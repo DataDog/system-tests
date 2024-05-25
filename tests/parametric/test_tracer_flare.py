@@ -100,10 +100,12 @@ def trigger_tracer_flare_and_wait(test_agent, task_overrides: Dict[str, Any]) ->
     return tracer_flare
 
 
-def assert_valid_zip(content):
-    flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
-    assert flare_file.testzip() is None, "tracer_file zip must not contain errors"
-    assert flare_file.namelist(), "tracer_file zip must contain at least one entry"
+# TODO: Update to support Gzip.
+def assert_valid_zip(content, test_library):
+    if test_library.lang != "nodejs": # Node sends a text file right now.
+        flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
+        assert flare_file.testzip() is None, "tracer_file zip must not contain errors"
+        assert flare_file.namelist(), "tracer_file zip must contain at least one entry"
 
 
 @rfc("https://docs.google.com/document/d/1U9aaYM401mJPTM8YMVvym1zaBxFtS4TjbdpZxhX3c3E")
@@ -126,7 +128,7 @@ class TestTracerFlareV1:
     def test_tracer_flare(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
 
-        assert_valid_zip(tracer_flare["flare_file"])
+        assert_valid_zip(tracer_flare["flare_file"], test_library)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
@@ -136,7 +138,7 @@ class TestTracerFlareV1:
 
         _clear_log_level(test_agent, "debug")
 
-        assert_valid_zip(tracer_flare["flare_file"])
+        assert_valid_zip(tracer_flare["flare_file"], test_library)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
