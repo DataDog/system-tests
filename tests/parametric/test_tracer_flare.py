@@ -102,7 +102,7 @@ def trigger_tracer_flare_and_wait(test_agent, task_overrides: Dict[str, Any]) ->
 
 # TODO: Update to support Gzip.
 def assert_valid_zip(content, test_library):
-    if test_library.lang != "nodejs": # Node sends a text file right now.
+    if test_library.lang != "nodejs":  # Node sends a text file right now.
         flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
         assert flare_file.testzip() is None, "tracer_file zip must not contain errors"
         assert flare_file.namelist(), "tracer_file zip must contain at least one entry"
