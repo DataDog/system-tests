@@ -38,4 +38,14 @@ tasks.named<BootBuildImage>("bootBuildImage") {
     //   builder = "dashaun/builder:tiny"
     //   environment.set("BP_DATADOG_ENABLED","true")
     //}
+    buildpacks = listOf(
+        "gcr.io/paketo-buildpacks/adoptium:latest",
+         "urn:cnb:builder:paketo-buildpacks/java"
+	//"urn:cnb:builder:paketo-buildpacks/java",
+	//"gcr.io/paketo-buildpacks/new-relic",
+    //"gcr.io/paketo-buildpacks/builder:base",
+    //"gcr.io/paketo-buildpacks/run:base-cnb",
+    //"gcr.io/paketo-buildpacks/adoptium:11.2.3"
+
+    )
 }
