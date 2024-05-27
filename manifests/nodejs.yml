@@ -401,10 +401,10 @@ tests/:
       Test_Dbm: missing_feature
       Test_Dbm_Comment_NodeJS_mysql2: 
         '*': missing_feature (Missing on weblog)
-        express4: *ref_5.13.0
+        express4: *ref_5_13_0
       Test_Dbm_Comment_NodeJS_pg: 
         '*': missing_feature (Missing on weblog)
-        express4: *ref_5.13.0
+        express4: *ref_5_13_0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
@@ -445,12 +445,12 @@ tests/:
     test_otel_api_interoperability.py: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: 
-      Test_Span_Links: *ref_5.3.0
+      Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
       Test_Defaults: *ref_5_6_0
       Test_Environment: *ref_5_6_0
       Test_TelemetryInstallSignature: *ref_4_23_0
-      Test_TelemetrySCAEnvVar: *ref_5.13.0
+      Test_TelemetrySCAEnvVar: *ref_5_13_0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
