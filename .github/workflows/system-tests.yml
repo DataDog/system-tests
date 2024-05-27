@@ -6,66 +6,26 @@ on:
         description: "Library to test"
         required: true
         type: string
-      run_all:
-        description: "Shall we run all scenarios"
-        default: false
+      scenarios: 
+        description: "Comma-separated list scenarios to run"
+        default: DEFAULT
         required: false
-        type: boolean
-      run_all_end_to_end:
-        description: "Shall we run all end-to-end scenarios"
-        default: false
+        type: string
+      scenarios_groups: 
+        description: "Comma-separated list of scenarios groups to run"
+        default: ''
         required: false
-        type: boolean
-      run_replay:
-        description: "Shall we run all scenarios in replay mode"
-        default: false
+        type: string
+      binaries_artifact:
+        description: "Artifact name containing the binaries to test"
+        default: ''
         required: false
-        type: boolean
-      run_open_telemetry:
-        description: "Shall we run open-telemetry scenarios"
-        default: false
+        type: string
+      ci_environment:
+        description: "Which CI environment is running the tests, used for FPD"
+        default: 'custom'
         required: false
-        type: boolean
-      run_sampling:
-        description: "Shall we run sampling scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_profiling:
-        description: "Shall we run profiling scenario"
-        default: false
-        required: false
-        type: boolean
-      run_debugger:
-        description: "Shall we run debugger scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_appsec:
-        description: "Shall we run AppSec scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_integration:
-        description: "Shall we run Integrations scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_parametric:
-        description: "Shall we run parametric scenario"
-        default: false
-        required: false
-        type: boolean
-      run_graphql:
-        description: "Shall we run GraphQL scenarios"
-        default: false
-        required: false
-        type: boolean
-      run_libinjection:
-        description: "Shall we run libinjection scenarios"
-        default: false
-        required: false
-        type: boolean
+        type: string
       build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
@@ -93,24 +53,64 @@ on:
         type: boolean
 
 jobs:
+  compute_parameters:
+    name: Get parameters
+    runs-on: ubuntu-latest
+    outputs:
+      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
+      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
+      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
+      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
+      libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
+      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
+      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
+      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    - name: main
+      id: main
+      run: |
+        source venv/bin/activate
+        python utils/scripts/get_github_parameters.py >> $GITHUB_OUTPUT
+      env:
+        PYTHONPATH: "."
+        SCENARIOS: ${{ inputs.scenarios }}
+        SCENARIOS_GROUPS: ${{ inputs.scenarios_groups }}
+        LIBRARY: ${{ inputs.library }}
 
   parametric:
-    if: inputs.run_parametric || inputs.run_all
+    needs:
+      - compute_parameters
+    if: needs.compute_parameters.outputs.parametric_scenarios != '[]'
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
       library: ${{ inputs.library }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
 
   graphql:
-    if: inputs.run_graphql || inputs.run_all_end_to_end || inputs.run_all
+    needs:
+      - compute_parameters
+    if: needs.compute_parameters.outputs.graphql_scenarios != '[]'
     uses: ./.github/workflows/run-graphql.yml
     secrets: inherit
     with:
-      build_proxy_image: ${{ inputs.build_proxy_image }}
       library: ${{ inputs.library }}
+      weblogs: ${{ needs.compute_parameters.outputs.graphql_weblogs }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
+      build_proxy_image: ${{ inputs.build_proxy_image }}
 
   lib-injection:
-    if: inputs.run_libinjection || inputs.run_all
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.libinjection_scenarios != '[]' && inputs.binaries_artifact == '' }}
     uses: ./.github/workflows/run-lib-injection.yml
     secrets: inherit
     with:
@@ -118,26 +118,27 @@ jobs:
       library: ${{ inputs.library }}
 
   end-to-end:
+    needs:
+      - compute_parameters
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
-      run_all: ${{ inputs.run_all || inputs.run_all_end_to_end }}
-      run_replay: ${{ inputs.run_replay }}
-      run_integration: ${{ inputs.run_integration }}
-      run_sampling: ${{ inputs.run_sampling }}
-      run_profiling: ${{ inputs.run_profiling }}
-      run_debugger: ${{ inputs.run_debugger }}
-      run_appsec: ${{ inputs.run_appsec }}
-      run_open_telemetry: ${{ inputs.run_open_telemetry }}
+      library: ${{ inputs.library }}
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      library: ${{ inputs.library }}
+      scenarios: ${{ needs.compute_parameters.outputs.endtoend_scenarios }}
+      weblogs: ${{ needs.compute_parameters.outputs.endtoend_weblogs }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
 
   open-telemetry:
-    if: inputs.run_open_telemetry || inputs.run_all
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.opentelemetry_scenarios != '[]' && inputs.binaries_artifact == '' }}
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:
-      build_proxy_image: ${{ inputs.build_proxy_image }}
       library: ${{ inputs.library }}
+      weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
+      build_proxy_image: ${{ inputs.build_proxy_image }}

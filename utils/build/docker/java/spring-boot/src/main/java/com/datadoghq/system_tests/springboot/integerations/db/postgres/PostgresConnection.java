@@ -9,7 +9,7 @@ public class PostgresConnection implements IDBConnector {
             throws SQLException, ClassNotFoundException {
         String dbDriver = "org.postgresql.Driver";
         String dbURL = "jdbc:postgresql://postgres:5433/";
-        String dbName = "system_tests";
+        String dbName = "system_tests_dbname";
         String dbUsername = "system_tests_user";
         String dbPassword = "system_tests";
 

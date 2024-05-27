@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _python_buddy, _java_buddy
+from utils.buddies import python_buddy, java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -216,7 +216,7 @@ class _Test_SQS:
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy_interface = interfaces.python_buddy
-    buddy = _python_buddy
+    buddy = python_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
 
@@ -225,7 +225,7 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy_interface = interfaces.java_buddy
-    buddy = _java_buddy
+    buddy = java_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_aws_xray_header_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_aws_xray_header_buddy_to_weblog"
 
@@ -246,5 +246,6 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
+    @missing_feature(library="dotnet", reason="Expected to fail, Dotnet will not extract from XRay headers")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

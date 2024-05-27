@@ -1,12 +1,25 @@
 import json
 import logging
+import mock
 import os
 import random
 import subprocess
 import threading
+import http.client
+import urllib.request
+import xmltodict
+import sys
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
+    import asyncpg
     import psycopg2
+
+if os.environ.get("INCLUDE_MYSQL", "true") == "true":
+    import aiomysql
+    import mysql
+    import pymysql
+    import MySQLdb
+
 import requests
 from flask import Flask, Response, jsonify
 from flask import request
@@ -46,6 +59,8 @@ from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.internal.datastreams import data_streams_processor
+from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
 # Patch kombu since its not patched automatically
 ddtrace.patch_all(kombu=True)
@@ -56,12 +71,34 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
 )
+ASYNCPG_CONFIG = dict(POSTGRES_CONFIG)
+ASYNCPG_CONFIG["database"] = ASYNCPG_CONFIG["dbname"]  # asyncpg uses 'database' instead of 'dbname'
+del ASYNCPG_CONFIG["dbname"]
+
+MYSQL_CONFIG = dict(host="mysqldb", port=3306, user="mysqldb", password="mysqldb", database="mysql_dbname",)
+AIOMYSQL_CONFIG = dict(MYSQL_CONFIG)
+AIOMYSQL_CONFIG["db"] = AIOMYSQL_CONFIG["database"]
+del AIOMYSQL_CONFIG["database"]
 
 app = Flask(__name__)
 
 tracer.trace("init.service").finish()
+
+
+def reset_dsm_context():
+    # force reset DSM context for global tracer and global DSM processor
+    try:
+        del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+    try:
+        from ddtrace.internal.datastreams import data_streams_processor
+
+        del data_streams_processor()._current_context.value
+    except AttributeError:
+        pass
 
 
 @app.route("/")
@@ -94,6 +131,65 @@ def waf(*args, **kwargs):
 
         return "Value tagged", kwargs["status_code"], flask_request.args
     return "Hello, World!\n"
+
+
+### BEGIN EXPLOIT PREVENTION
+
+
+@app.route("/rasp/lfi", methods=["GET", "POST"])
+def rasp_lfi(*args, **kwargs):
+    file = None
+    if request.method == "GET":
+        file = flask_request.args.get("file")
+    elif request.method == "POST":
+        try:
+            file = (request.form or request.json or {}).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if file is None:
+                file = xmltodict.parse(flask_request.data).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+    if file is None:
+        return Response("missing file parameter", status=400)
+    try:
+        with open(file, "rb") as f_in:
+            f_in.seek(0, os.SEEK_END)
+            return f"{file} open with {f_in.tell()} bytes"
+    except OSError as e:
+        return f"{file} could not be open: {e!r}"
+
+
+@app.route("/rasp/ssrf", methods=["GET", "POST"])
+def rasp_ssrf(*args, **kwargs):
+    domain = None
+    if request.method == "GET":
+        domain = flask_request.args.get("domain")
+    elif request.method == "POST":
+        try:
+            domain = (request.form or request.json or {}).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if domain is None:
+                domain = xmltodict.parse(flask_request.data).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if domain is None:
+        return Response("missing domain parameter", status=400)
+    try:
+        with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
+
+            return f"url http://{domain} open with {len(url_in.read())} bytes"
+    except http.client.HTTPException as e:
+        return f"url http://{domain} could not be open: {e!r}"
+
+
+### END EXPLOIT PREVENTION
 
 
 @app.route("/read_file", methods=["GET"])
@@ -177,6 +273,95 @@ def users():
         scope="usr.scope",
     )
     return Response("OK")
+
+
+@app.route("/stub_dbm")
+async def stub_dbm():
+    integration = flask_request.args.get("integration")
+    operation = flask_request.args.get("operation", None)
+
+    if integration == "psycopg":
+        postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+        cursor = postgres_db.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+
+    elif integration == "asyncpg":
+        conn = await asyncpg.connect(**ASYNCPG_CONFIG)
+
+        orig = ddtrace.propagation._database_monitoring.set_argument_value
+
+        def mock_func(args, kwargs, sql_pos, sql_kw, sql_with_dbm_tags):
+            return orig(args, kwargs, sql_pos, sql_kw, sql_with_dbm_tags)
+
+        with mock.patch(
+            "ddtrace.propagation._database_monitoring.set_argument_value", side_effect=mock_func
+        ) as patched:
+            if operation == "execute":
+                await conn.execute("SELECT version()")
+                return get_dbm_comment(None, "execute", patched.call_args_list[0][0][4])
+            elif operation == "executemany":
+                await cursor.executemany("SELECT version()", [((),)])
+                return get_dbm_comment(None, "executemany", patched.call_args_list[0][0][4])
+        return Response(f"Cursor method is not supported: {operation}", 406)
+
+    elif integration == "aiomysql":
+        conn = await aiomysql.connect(**AIOMYSQL_CONFIG)
+        cursor = await conn.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor, is_async=True)
+
+    elif integration == "mysql-connector":
+        conn = mysql.connector.connect(**AIOMYSQL_CONFIG)
+        cursor = conn.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+
+    elif integration == "mysqldb":
+        conn = MySQLdb.Connect(
+            **{
+                "host": MYSQL_CONFIG["host"],
+                "user": MYSQL_CONFIG["user"],
+                "passwd": MYSQL_CONFIG["password"],
+                "db": MYSQL_CONFIG["database"],
+                "port": MYSQL_CONFIG["port"],
+            }
+        )
+        cursor = conn.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+
+    elif integration == "pymysql":
+        conn = pymysql.connect(**AIOMYSQL_CONFIG)
+        cursor = conn.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+    return Response(f"Integration is not supported: {integration}", 406)
+
+
+async def db_execute_and_retrieve_comment(operation, cursor, is_async=False):
+    if not is_async:
+        cursor.__wrapped__ = mock.Mock()
+        if operation == "execute":
+            cursor.execute("SELECT version()")
+            return get_dbm_comment(cursor.__wrapped__, "execute")
+        elif operation == "executemany":
+            cursor.executemany("SELECT version()", [((),)])
+            return get_dbm_comment(cursor.__wrapped__, "executemany")
+    else:
+        cursor.__wrapped__ = mock.AsyncMock()
+        if operation == "execute":
+            await cursor.execute("SELECT version()")
+            return get_dbm_comment(cursor.__wrapped__, "execute")
+        elif operation == "executemany":
+            await cursor.executemany("SELECT version()", [((),)])
+            return get_dbm_comment(cursor.__wrapped__, "executemany")
+
+
+def get_dbm_comment(wrapped_instance, operation, wrapped_call_args=None):
+    if wrapped_call_args is None:
+        dbm_comment = getattr(wrapped_instance, operation).call_args.args[0]
+    else:
+        dbm_comment = wrapped_call_args
+
+    # Store response in a json object
+    response = {"status": "ok", "dbm_comment": dbm_comment}
+    return Response(json.dumps(response))
 
 
 @app.route("/dbm")
@@ -297,17 +482,7 @@ def consume_kinesis_message():
 
 @app.route("/rabbitmq/produce")
 def produce_rabbitmq_message():
-    # force reset DSM context for global tracer and global DSM processor
-    try:
-        del tracer.data_streams_processor._current_context.value
-    except AttributeError:
-        pass
-    try:
-        from ddtrace.internal.datastreams import data_streams_processor
-
-        del data_streams_processor()._current_context.value
-    except AttributeError:
-        pass
+    reset_dsm_context()
 
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
@@ -348,16 +523,7 @@ def dsm():
     logging.info(f"[DSM] Got request with integration: {integration}")
 
     # force reset DSM context for global tracer and global DSM processor
-    try:
-        del tracer.data_streams_processor._current_context.value
-    except AttributeError:
-        pass
-    try:
-        from ddtrace.internal.datastreams import data_streams_processor
-
-        del data_streams_processor()._current_context.value
-    except AttributeError:
-        pass
+    reset_dsm_context()
 
     response = Response(f"Integration is not supported: {integration}", 406)
 
@@ -428,6 +594,34 @@ def dsm():
     return response
 
 
+@app.route("/dsm/inject")
+def inject_dsm_context():
+    topic = flask_request.args.get("topic")
+    integration = flask_request.args.get("integration")
+    headers = {}
+
+    reset_dsm_context()
+
+    ctx = data_streams_processor().set_checkpoint(["direction:out", "topic:" + topic, "type:" + integration])
+    DsmPathwayCodec.encode(ctx, headers)
+
+    return Response(json.dumps(headers))
+
+
+@app.route("/dsm/extract")
+def extract_dsm_context():
+    topic = flask_request.args.get("topic")
+    integration = flask_request.args.get("integration")
+    ctx = flask_request.args.get("ctx")
+
+    reset_dsm_context()
+
+    ctx = DsmPathwayCodec.decode(json.loads(ctx), data_streams_processor())
+    ctx.set_checkpoint(["direction:in", "topic:" + topic, "type:" + integration])
+
+    return Response("ok")
+
+
 @app.route("/iast/insecure_hashing/multiple_hash")
 def view_weak_hash_multiple_hash():
     weak_hash_multiple()
@@ -464,60 +658,71 @@ def view_weak_cipher_secure():
     return Response("OK")
 
 
-def _sink_point(table="user", id="1"):
+def _sink_point_sqli(table="user", id="1"):
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
+
+
+def _sink_point_path_traversal(tainted_str="user"):
+    try:
+        m = open(tainted_str)
+        _ = m.read()
+    except Exception:
+        pass
 
 
 @app.route("/iast/source/body/test", methods=["POST"])
 def view_iast_source_body():
     table = flask_request.json.get("name")
     user = flask_request.json.get("value")
-    _sink_point(table=table, id=user)
+    _sink_point_sqli(table=table, id=user)
     return Response("OK")
 
 
 @app.route("/iast/source/cookiename/test")
 def view_iast_source_cookie_name():
     param = [key for key in flask_request.cookies.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_path_traversal(param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/cookievalue/test")
 def view_iast_source_cookie_value():
     table = flask_request.cookies.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
 @app.route("/iast/source/headername/test")
 def view_iast_source_header_name():
     param = [key for key in flask_request.headers.keys() if key == "User"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/header/test")
 def view_iast_source_header_value():
     table = flask_request.headers.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
 @app.route("/iast/source/parametername/test", methods=["GET"])
 def view_iast_source_parametername_get():
     param = [key for key in flask_request.args.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/parametername/test", methods=["POST"])
 def view_iast_source_parametername_post():
     param = [key for key in flask_request.json.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
@@ -527,7 +732,7 @@ def view_iast_source_parameter():
         table = flask_request.args.get("table")
     else:
         table = flask_request.json.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
@@ -583,6 +788,22 @@ def view_iast_ssrf_secure():
         pass
 
     return Response("OK")
+
+
+@app.route("/iast/header_injection/test_insecure", methods=["POST"])
+def view_iast_header_injection_insecure():
+    header = flask_request.form["test"]
+    resp = Response("OK")
+    resp.headers["Header-Injection"] = header
+    return resp
+
+
+@app.route("/iast/header_injection/test_secure", methods=["POST"])
+def view_iast_header_injection_secure():
+    header = flask_request.form["test"]
+    resp = Response("OK")
+    resp.headers["Vary"] = header
+    return resp
 
 
 _TRACK_METADATA = {

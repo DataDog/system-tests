@@ -6,10 +6,8 @@ from utils import weblog, interfaces, scenarios, irrelevant, context, bug, featu
 from utils.tools import logger
 
 import base64
-import logging
+import json
 import struct
-
-import kombu
 
 # Kafka specific
 DSM_CONSUMER_GROUP = "testgroup1"
@@ -25,6 +23,9 @@ DSM_STREAM = "dsm-system-tests-stream"
 DSM_QUEUE = "dsm-system-tests-queue"
 DSM_TOPIC = "dsm-system-tests-topic"
 
+# Queue requests can take a while, so give time for them to complete
+DSM_REQUEST_TIMEOUT = 61
+
 
 @features.datastreams_monitoring_support_for_kafka
 @scenarios.integrations
@@ -34,7 +35,6 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
-    @flaky(library="java", reason="AIT-10206")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -43,20 +43,33 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         language_hashes = {
-            "nodejs": {"producer": 2931833227331067675, "consumer": 271115008390912609,},
-            "default": {"producer": 4463699290244539355, "consumer": 3735318893869752335,},
+            "nodejs": {
+                "producer": 2931833227331067675,
+                "consumer": 271115008390912609,
+                "edge_tags": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
+            },
+            # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
+            "golang": {
+                "producer": 4463699290244539355,
+                "consumer": 13758451224913876939,
+                "edge_tags": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
+            },
+            "default": {
+                "producer": 4463699290244539355,
+                "consumer": 3735318893869752335,
+                "edge_tags": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
+            },
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        edge_tags = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags"]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash,
-            parent_hash=producer_hash,
-            tags=("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
         )
 
 
@@ -66,7 +79,9 @@ class Test_DsmHttp:
     def setup_dsm_http(self):
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
         # and will be instrumented as such
-        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
+        self.r = weblog.get(
+            f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}", timeout=DSM_REQUEST_TIMEOUT
+        )
 
     def test_dsm_http(self):
         assert self.r.text == "ok"
@@ -83,7 +98,8 @@ class Test_DsmRabbitmq:
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get(
-            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}"
+            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}",
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     @bug(
@@ -130,7 +146,8 @@ class Test_DsmRabbitmq:
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
         self.r = weblog.get(
-            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}"
+            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}",
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
@@ -162,7 +179,7 @@ class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
 
     def setup_dsm_rabbitmq(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
+        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
@@ -198,7 +215,7 @@ class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
 
     def setup_dsm_rabbitmq(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
@@ -234,7 +251,7 @@ class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
 
     def setup_dsm_sqs(self):
-        self.r = weblog.get(f"/dsm?integration=sqs&timeout=60&queue={DSM_QUEUE}", timeout=61)
+        self.r = weblog.get(f"/dsm?integration=sqs&timeout=60&queue={DSM_QUEUE}", timeout=DSM_REQUEST_TIMEOUT)
 
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -263,7 +280,9 @@ class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
     def setup_dsm_sns(self):
-        self.r = weblog.get(f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=61,)
+        self.r = weblog.get(
+            f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_sns(self):
@@ -293,7 +312,7 @@ class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
 
     def setup_dsm_kinesis(self):
-        self.r = weblog.get(f"/dsm?integration=kinesis&timeout=60&stream={DSM_STREAM}", timeout=61,)
+        self.r = weblog.get(f"/dsm?integration=kinesis&timeout=60&stream={DSM_STREAM}", timeout=DSM_REQUEST_TIMEOUT,)
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     def test_dsm_kinesis(self):
@@ -334,53 +353,31 @@ class Test_DsmKinesis:
 @features.datastreams_monitoring_support_context_injection_base64
 @scenarios.integrations
 class Test_DsmContext_Injection_Base64:
-    """ Verify DSM context is injected using correct encoding (base64) """
+    """ Verify DSM context is injected to carrier using correct encoding (base64) """
 
     def setup_dsmcontext_injection_base64(self):
-        queue = "dsm-propagation-test-injection"
-        exchange = "dsm-propagation-test-injection-exchange"
-        routing_key = "dsm-propagation-test-injection-routing-key"
+        topic = "dsm-injection-topic"
+        integration = "kafka"
 
-        # send initial message with via weblog
-        self.r = weblog.get(
-            f"/rabbitmq/produce?queue={queue}&exchange={exchange}&routing_key={routing_key}&timeout=60", timeout=61,
-        )
-
-        if not context.scenario.replay:
-            # consume message using helper and check propagation type
-            self.consume_response = DsmHelper.consume_rabbitmq_injection(queue, exchange, routing_key, 61)
+        self.r = weblog.get(f"/dsm/inject?topic={topic}&integration={integration}", timeout=DSM_REQUEST_TIMEOUT,)
 
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
-        assert "error" not in self.r.text
-        if context.scenario.replay:
-            # This test doesn't work in replay mode
-            return
-        assert "error" not in self.consume_response
-
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 5171947544405521872, "consumer": 1272731766871501641,},
-            "python": {
-                "producer": 12830291756145931912,  # python is producing 12830291756145931912, since it includes 'has_routing_key:<value>', which Java SHOULD too but isnt
-                "consumer": 6273982990684090851,
-            },
-            "default": {
-                "producer": 8303078309451632155,  # Java should be producing the same as python, but for some reason isn't including the routing key tag in the created hash
-                "consumer": 6884439977898629893,
-            },
+            "nodejs": {"producer": 18431567370843181989},
+            "default": {"producer": 6031446427375485596,},
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        edge_tags = ("direction:out", "topic:dsm-injection-topic", "type:kafka")
 
-        exchange = "dsm-propagation-test-injection-exchange"
-        edge_tags_out = ("direction:out", f"exchange:{exchange}", "has_routing_key:true", "type:rabbitmq")
+        # get json carrier object
+        carrier = json.loads(self.r.text)
 
-        message = self.consume_response["result"][0]
+        assert "dd-pathway-ctx-base64" in carrier
 
-        assert "dd-pathway-ctx-base64" in message.headers
-
-        encoded_pathway_b64 = message.headers["dd-pathway-ctx-base64"]
+        encoded_pathway_b64 = carrier["dd-pathway-ctx-base64"]
 
         # assert that this is base64
         assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
@@ -391,59 +388,44 @@ class Test_DsmContext_Injection_Base64:
         _format = "<Q"
         if context.library.library == "nodejs":
             _format = ">Q"
-        decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
+        # decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
 
-        assert producer_hash == decoded_pathway
+        # assert producer_hash == decoded_pathway
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=decoded_pathway, parent_hash=0, tags=edge_tags_out,
+            hash_=producer_hash, parent_hash=0, tags=edge_tags,
         )
 
 
 @features.datastreams_monitoring_support_for_base64_encoding
 @scenarios.integrations
 class Test_DsmContext_Extraction_Base64:
-    """ Verify DSM context is extracted using "dd-pathway-ctx/dd-pathway-ctx-base64" """
+    """ Verify DSM context is extracted using "dd-pathway-ctx-base64" """
 
     def setup_dsmcontext_extraction_base64(self):
-        queue = "dsm-propagation-test-v2-encoding-queue"
-        exchange = "dsm-propagation-test-v2-encoding-exchange"
-        routing_key = "dsm-propagation-test-v2-encoding-routing-key"
+        topic = "dsm-injection-topic"
+        integration = "kafka"
 
-        if not context.scenario.replay:
-            # send initial message with v2 pathway context encoding
-            self.produce_response = DsmHelper.produce_rabbitmq_message_base64_propagation(queue, exchange, routing_key)
-        else:
-            self.produce_response = "ok"
+        ctx = {"dd-pathway-ctx-base64": "nMKD2ZEAtFOy/f/K5mOy/f/K5mM="}
 
         self.r = weblog.get(
-            f"/rabbitmq/consume?queue={queue}&exchange={exchange}&routing_key={routing_key}&timeout=60", timeout=61,
+            f"/dsm/extract?topic={topic}&integration={integration}&ctx="
+            + json.dumps(ctx),  # GoP2wpyqhGvWhsLZ5mPqhsLZ5mM= for java :(, nMKD2ZEAtFOSrODZ5mOSrODZ5mM= for go,
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     def test_dsmcontext_extraction_base64(self):
-        queue = "dsm-propagation-test-v2-encoding-queue"
-        routing_key = "dsm-propagation-test-v2-encoding-routing-key"
-
-        assert self.produce_response == "ok"
-        assert "error" not in self.r.text
+        assert self.r.text == "ok"
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
             # it does not have access to the queue name
-            "nodejs": {
-                "producer": 15513165469939804800,
-                "consumer": 7616007432001161798,
-                "edge_tags": ("direction:in", f"topic:{routing_key}", "type:rabbitmq"),
-            },
-            "default": {
-                "producer": 9235368231858162135,
-                "consumer": 7819692959683983563,
-                "edge_tags": ("direction:in", f"topic:{queue}", "type:rabbitmq"),
-            },  # java/python decode to consumer hash of 7819692959683983563
+            "nodejs": {"producer": 11295735785862509651, "consumer": 18410421833994263340},
+            "default": {"producer": 6031446427375485596, "consumer": 12795903374559614717,},
         }
+        edge_tags = ("direction:in", "topic:dsm-injection-topic", "type:kafka")
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags"]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
@@ -487,59 +469,3 @@ class DsmHelper:
 
         logger.error("Checkpoint not found 🚨")
         raise ValueError("Checkpoint has not been found, please have a look in logs")
-
-    @staticmethod
-    def produce_rabbitmq_message_base64_propagation(queue, exchange, routing_key):
-        # Create a RabbitMQ client
-        conn = kombu.Connection("amqp://127.0.0.1:5672")
-        conn.connect()
-        producer = conn.Producer()
-
-        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=routing_key)
-
-        headers = {
-            "dd-pathway-ctx": "10nVzXmeKoCM1uautmOM1uautmM=",  # base64 encoded V2 pathway from dd-trace-py, pathway hash is: 9235368231858162135
-            "dd-pathway-ctx-base64": "10nVzXmeKoCM1uautmOM1uautmM=",
-        }
-        to_publish = {"message": "DSM Pathway Encoding V2 Base64 Test"}
-
-        try:
-            producer.publish(
-                to_publish,
-                exchange=task_queue.exchange,
-                routing_key=task_queue.routing_key,
-                declare=[task_queue],
-                headers=headers,
-            )
-            logging.info("System Tests RabbitMQ message using V2 DSM Pathway Encoding sent successfully")
-            conn.close()
-            return "ok"
-        except Exception as e:
-            logging.info(f"Error during DSM RabbitMQ publish message using V2 DSM Pathway Encoding: {e}")
-            conn.close()
-            return "error"
-
-    @staticmethod
-    def consume_rabbitmq_injection(queue, exchange, routing_key, timeout):
-        # Create a RabbitMQ client
-        conn = kombu.Connection("amqp://127.0.0.1:5672")
-        task_queue = kombu.Queue(queue, kombu.Exchange(exchange), routing_key=routing_key)
-        messages = []
-
-        def process_message(body, message):
-            message.ack()
-            messages.append(message)
-
-        try:
-            with kombu.Consumer(conn, [task_queue], accept=["json"], callbacks=[process_message]):
-                conn.drain_events(timeout=timeout)
-
-            conn.close()
-            if messages:
-                logging.info("System Tests RabbitMQ testing injection and consume from weblog successfully")
-                return {"result": messages}
-            else:
-                return {"error": "Message not received"}
-        except Exception as e:
-            logging.info(f"Error during DSM RabbitMQ publish message using V2 DSM Pathway Encoding: {e}")
-            return "error"

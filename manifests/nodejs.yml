@@ -67,7 +67,7 @@ tests/:
             nextjs: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords:
-            '*': *ref_5_11_0
+            '*': *ref_5_13_0
             nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
@@ -192,6 +192,12 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_span_tags.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
+      test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -392,6 +398,12 @@ tests/:
         express4: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
+      Test_Dbm_Comment_NodeJS_mysql2: 
+        '*': missing_feature (Missing on weblog)
+        express4: v5.13.0
+      Test_Dbm_Comment_NodeJS_pg: 
+        '*': missing_feature (Missing on weblog)
+        express4: v5.13.0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
@@ -431,12 +443,13 @@ tests/:
       TestDynamicConfigV2: *ref_4_23_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
-    test_span_links.py: missing_feature
+    test_span_links.py: 
+      Test_Span_Links: v5.3.0
     test_telemetry.py:
       Test_Defaults: *ref_5_6_0
       Test_Environment: *ref_5_6_0
       Test_TelemetryInstallSignature: *ref_4_23_0
-      Test_TelemetrySCAEnvVar: missing_feature
+      Test_TelemetrySCAEnvVar: v5.13.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature

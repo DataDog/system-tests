@@ -69,56 +69,88 @@ jobs:
   #         /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
+    name: Get scenarios and groups
     uses: ./.github/workflows/compute-scenarios.yml
 
   impacted_libraries:
+    name: Get impacted libraries
     uses: ./.github/workflows/compute-impacted-libraries.yml
 
-  system_tests:
+  get_dev_artifacts:
     needs:
-    - lint
-    - test_the_test
-    - scenarios
     - impacted_libraries
     strategy:
       matrix:
         library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
       fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get library artifact
+        run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
+      - name: Get agent artifact
+        run: ./utils/scripts/load-binary.sh agent
+      # ### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
+      # ### skipping this, waiting for a proper solution
+      # - name: Load WAF rules
+      #   if: matrix.version == 'dev'
+      #   run: ./utils/scripts/load-binary.sh waf_rule_set
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries_dev_${{ matrix.library }}
+          path: binaries/
+
+  system_tests:
+    name: System Tests
+    needs:
+    - lint
+    - test_the_test
+    - scenarios
+    - impacted_libraries
+    - get_dev_artifacts
+    strategy:
+      matrix:
+        library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
+        version:
+        - prod
+        - dev
+      fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     secrets: inherit
     with:
       library: ${{ matrix.library }}
-      run_all: ${{ needs.scenarios.outputs.run_all  == 'true' }}
-      run_replay: ${{ needs.scenarios.outputs.run_all  == 'true' }}
-      run_integration: ${{ needs.scenarios.outputs.run_integration  == 'true' }}
-      run_sampling: ${{ needs.scenarios.outputs.run_sampling  == 'true' }}
-      run_profiling: ${{ needs.scenarios.outputs.run_profiling  == 'true' }}
-      run_debugger: ${{ needs.scenarios.outputs.run_debugger  == 'true' }}
-      run_appsec: ${{ needs.scenarios.outputs.run_appsec  == 'true' }}
-      run_open_telemetry: ${{ needs.scenarios.outputs.run_open_telemetry  == 'true' }}
-      run_parametric: ${{ needs.scenarios.outputs.run_parametric  == 'true' }}
-      run_graphql:  ${{ needs.scenarios.outputs.run_graphql == 'true' }}
-      run_libinjection: ${{ needs.scenarios.outputs.run_libinjection == 'true' }}
+      scenarios: ${{ needs.scenarios.outputs.scenarios }}
+      scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
+      binaries_artifact: ${{ matrix.version == 'dev' && format('binaries_dev_{0}', matrix.library) || '' }}
+      ci_environment: ${{ matrix.version }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
 
   system_tests_docker_mode:
+    name: Ruby Docker Mode
     needs:
     - lint
     - test_the_test
     - impacted_libraries
+    - get_dev_artifacts  # non official set-up, this needs put this job in last
     if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
     secrets: inherit
 
   exotics:
-    if: needs.scenarios.outputs.run_all  == 'true'
+    name: Exotics scenarios
+    if: contains(github.event.pull_request.labels.*.name, 'run-all-scenarios')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
   update-CI-visibility:
+    name: Update CI Visibility Dashboard
     runs-on: ubuntu-latest
     needs:
     - system_tests

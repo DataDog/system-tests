@@ -104,6 +104,12 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_span_tags.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
+      test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.8.0
@@ -296,8 +302,8 @@ tests/:
         rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: missing_feature
+      TestDynamicConfigHeaderTags: v2.0.0
+      TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: v1.13.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
@@ -314,7 +320,8 @@ tests/:
         (The "_sampling_priority_v1" numeric tag is missing from the local
         root span when the trace was extracted without a sampling decision.
         See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782693568?pr=2005>.)
-    test_span_links.py: missing_feature
+    test_span_links.py: 
+      Test_Span_Links: v2.0.0
     test_telemetry.py:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
@@ -322,9 +329,9 @@ tests/:
       Test_TelemetrySCAEnvVar: v2.1.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
+      Test_Trace_Sampling_Globs: v2.0.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v2.0.0
+      Test_Trace_Sampling_Resource: v2.0.0
       Test_Trace_Sampling_Tags: missing_feature
       Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
