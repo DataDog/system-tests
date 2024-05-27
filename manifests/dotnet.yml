@@ -111,8 +111,8 @@ tests/:
         Test_Lfi_BodyXml: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
       test_span_tags.py:
-        Test_Mandatory_SpanTags: missing_feature
-        Test_Optional_SpanTags: missing_feature
+        Test_Mandatory_SpanTags: v2.52.0
+        Test_Optional_SpanTags: v2.52.0
       test_sqli.py: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.51.0
