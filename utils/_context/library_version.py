@@ -18,7 +18,6 @@ def _build(version):
 
 
 class Version(version_module.Version):
-
     def __init__(self, version):
 
         # remove any leading "v"
@@ -29,7 +28,6 @@ class Version(version_module.Version):
         x = version_module.Version.coerce(version)
 
         super().__init__(major=x.major, minor=x.minor, patch=x.patch, prerelease=x.prerelease, build=x.build)
-
 
     def __eq__(self, other):
         return super().__eq__(_build(other))
@@ -95,7 +93,6 @@ class LibraryVersion:
             elif library == "php":
                 version = version.replace("-nightly", "")
 
-
             self.version = Version(version)
             self.add_known_version(self.version)
         else:
@@ -113,7 +110,7 @@ class LibraryVersion:
     def __eq__(self, other):
         if isinstance(other, LibraryVersion):
             return self.library == other.library and self.version == other.version
-        
+
         if not isinstance(other, str):
             raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
 

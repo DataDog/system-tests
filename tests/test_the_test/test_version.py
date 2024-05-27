@@ -38,8 +38,8 @@ def test_version_comparizon():
 def test_library_version_comparizon():
 
     assert LibraryVersion("x", "1.31.1") < "x@1.34.1"
-    assert "x@1.31.1" < LibraryVersion( "x", "v1.34.1")
-    assert LibraryVersion("x", "1.31.1") < LibraryVersion( "x", "v1.34.1")
+    assert "x@1.31.1" < LibraryVersion("x", "v1.34.1")
+    assert LibraryVersion("x", "1.31.1") < LibraryVersion("x", "v1.34.1")
 
     assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)") == LibraryVersion("ruby", "1.0.0.beta1")
     assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)")
@@ -48,8 +48,8 @@ def test_library_version_comparizon():
     assert LibraryVersion("python", "1.1.0rc2.dev15+gc41d325d") >= "python@1.1.0rc2.dev"
     assert LibraryVersion("python", "1.1.0") > "python@1.1.0rc2.dev"
 
-    assert LibraryVersion( "python", "2.1.0-dev") < "python@2.1.0.dev83+gac1037728"
-    assert LibraryVersion( "python", "2.1.0-dev") < "python@2.1.0"
+    assert LibraryVersion("python", "2.1.0-dev") < "python@2.1.0.dev83+gac1037728"
+    assert LibraryVersion("python", "2.1.0-dev") < "python@2.1.0"
 
 
 def test_version_serialization():
@@ -67,7 +67,7 @@ def test_version_serialization():
     assert v.version == Version("2.0.0+beta1")
 
     v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)")
-    assert v.version  == Version("1.0.0+beta1-de82857")
+    assert v.version == Version("1.0.0+beta1-de82857")
 
     v = LibraryVersion("libddwaf", "* libddwaf (1.0.14.1.0.beta1)")
     assert v.version == Version("1.0.14.1.0.beta1")
@@ -91,11 +91,13 @@ def test_version_serialization():
 
 def test_agent_version():
 
-    v = LibraryVersion("agent", "Agent 7.37.0 - Commit: 1124d66 - Serialization version: v5.0.22 - Go version: go1.17.11")
+    v = LibraryVersion(
+        "agent", "Agent 7.37.0 - Commit: 1124d66 - Serialization version: v5.0.22 - Go version: go1.17.11"
+    )
     assert v == "agent@7.37.0"
 
     v = LibraryVersion(
-        "agent", 
+        "agent",
         "Agent 7.38.0-rc.1 - Meta: git.1.3b34941 - Commit: 3b34941 - Serialization version: v5.0.23 - Go version: go1.17.11",
     )
     assert v == "agent@7.38.0-rc.1"
