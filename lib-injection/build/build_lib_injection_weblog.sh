@@ -61,11 +61,13 @@ case $ARCH in
     *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
 esac
 
+
 echo "Building docker weblog image using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}]"
 CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
 
 if [ -n "${PUSH_TAG+set}" ]; then
+  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
   docker buildx build ${DOCKER_PLATFORM} -t ${PUSH_TAG} . --push
 else
     docker build ${DOCKER_PLATFORM} -t weblog-injection:latest .

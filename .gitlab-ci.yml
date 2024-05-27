@@ -218,8 +218,7 @@ generate_system_tests_images:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text) 
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text) 
   script:
-   # - ./utils/build/build_tracer_buddies.sh --push
-   # - ./utils/build/build_python_base_images.sh --push
-    - echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
-    - ./lib-injection/build/build_lib_injection_images.sh
+      - ./utils/build/build_tracer_buddies.sh --push
+      - ./utils/build/build_python_base_images.sh --push
+      - ./lib-injection/build/build_lib_injection_images.sh
   when: manual

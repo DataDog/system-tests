@@ -38,9 +38,12 @@ tasks.named<BootBuildImage>("bootBuildImage") {
     //   builder = "dashaun/builder:tiny"
     //   environment.set("BP_DATADOG_ENABLED","true")
     //}
-    buildpacks = listOf(
-        "gcr.io/paketo-buildpacks/adoptium:latest",
-         "urn:cnb:builder:paketo-buildpacks/java"
+
+    //TODO Change to use images from gcr.io to aboud docker hub rate limits
+    //There is a bug: https://github.com/paketo-buildpacks/adoptium/issues/401
+    //buildpacks = listOf(
+    //    "gcr.io/paketo-buildpacks/adoptium:latest",
+    //     "urn:cnb:builder:paketo-buildpacks/java"
 	//"urn:cnb:builder:paketo-buildpacks/java",
 	//"gcr.io/paketo-buildpacks/new-relic",
     //"gcr.io/paketo-buildpacks/builder:base",
