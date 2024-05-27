@@ -103,6 +103,6 @@ installer-bootstrap:
   install:
     - os_type: linux
       remote-command: |
+        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
         sudo datadog-installer install "oci://localhost:12345/datadog/agent-package:latest"
         sudo datadog-installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
-        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
