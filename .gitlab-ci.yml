@@ -220,5 +220,6 @@ generate_system_tests_images:
   script:
    # - ./utils/build/build_tracer_buddies.sh --push
    # - ./utils/build/build_python_base_images.sh --push
+    - echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
     - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
