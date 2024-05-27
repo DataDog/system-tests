@@ -79,8 +79,8 @@ def test_version_serialization():
     v = LibraryVersion("php", "1.0.0-nightly")
     assert v.version == "1.0.0"
 
-    v = LibraryVersion("nodejs", "3.0.0pre0")
-    assert v.version == "3.0.0pre0"
+    v = LibraryVersion("nodejs", "3.0.0-pre0")
+    assert v.version == "3.0.0-pre0"
 
     v = LibraryVersion("agent", "7.43.1-beta-cache-hit-ratio")
     assert v.version == "7.43.1-beta-cache-hit-ratio"
