@@ -49,6 +49,5 @@ tasks.named<BootBuildImage>("bootBuildImage") {
     //"gcr.io/paketo-buildpacks/builder:base",
     //"gcr.io/paketo-buildpacks/run:base-cnb",
     //"gcr.io/paketo-buildpacks/adoptium:11.2.3"
-
-    )
+    //)
 }
