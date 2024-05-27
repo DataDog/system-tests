@@ -7,9 +7,9 @@ import re
 import semantic_version as version_module
 
 
-def _build(version, component):
+def _build(version):
     if isinstance(version, str):
-        return Version(version, component)
+        return Version(version)
 
     if isinstance(version, Version):
         return version
@@ -19,63 +19,32 @@ def _build(version, component):
 
 class Version(version_module.Version):
 
-    version_re = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:[-\.]?([0-9a-zA-Z.-]+))?(?:[\+ ]([0-9a-zA-Z.-]+))?$")
+    def __init__(self, version):
 
-    def __init__(self, version, component):
-
-        self._component = component
-
-        version = version.strip()
-
-        if component == "ruby":
-            if version.startswith("* ddtrace"):
-                version = re.sub(r"\* *ddtrace *\((.*)\)", r"\1", version)
-            if version.startswith("* datadog"):
-                version = re.sub(r"\* *datadog *\((.*)\)", r"\1", version)
-
-        elif component == "libddwaf":
-            if version.startswith("* libddwaf"):
-                version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
-
-        elif component == "agent":
-            version = re.sub(r"(.*) - Commit.*", r"\1", version)
-            version = re.sub(r"(.*) - Meta.*", r"\1", version)
-            version = re.sub(r"Agent (.*)", r"\1", version)
-            version = re.sub("\x1b\\[\\d+m", "", version)  # remove color pattern from terminal
-            version = re.sub(r"[a-zA-Z\-]*$", "", version)  # remove any lable post version
-
-        elif component == "java":
-            version = version.split("~")[0]
-            version = version.replace("-SNAPSHOT", "")
-
-        elif component == "dotnet":
-            version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
-
-        elif component == "php":
-            version = version.replace("-nightly", "")
-
+        # remove any leading "v"
         if version.startswith("v"):
             version = version[1:]
 
-        if re.match(r"^\d+\.\d+$", version):
-            version = f"{version}.0"
+        # and use coerce to allow the wide variaty of version strings
+        x = version_module.Version.coerce(version)
 
-        super().__init__(version)
+        super().__init__(major=x.major, minor=x.minor, patch=x.patch, prerelease=x.prerelease, build=x.build)
+
 
     def __eq__(self, other):
-        return super().__eq__(_build(other, self._component))
+        return super().__eq__(_build(other))
 
     def __lt__(self, other):
-        return super().__lt__(_build(other, self._component))
+        return super().__lt__(_build(other))
 
     def __le__(self, other):
-        return super().__le__(_build(other, self._component))
+        return super().__le__(_build(other))
 
     def __gt__(self, other):
-        return super().__gt__(_build(other, self._component))
+        return super().__gt__(_build(other))
 
     def __ge__(self, other):
-        return super().__ge__(_build(other, self._component))
+        return super().__ge__(_build(other))
 
 
 class LibraryVersion:
@@ -96,8 +65,41 @@ class LibraryVersion:
             raise ValueError("Library can't contains '@'")
 
         self.library = library
-        self.version = Version(version, component=library) if version else None
-        self.add_known_version(self.version)
+
+        if version:
+            version = version.strip()
+
+            if library == "ruby":
+                if version.startswith("* ddtrace"):
+                    version = re.sub(r"\* *ddtrace *\((.*)\)", r"\1", version)
+                if version.startswith("* datadog"):
+                    version = re.sub(r"\* *datadog *\((.*)\)", r"\1", version)
+
+            elif library == "libddwaf":
+                if version.startswith("* libddwaf"):
+                    version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
+
+            elif library == "agent":
+                version = re.sub(r"(.*) - Commit.*", r"\1", version)
+                version = re.sub(r"(.*) - Meta.*", r"\1", version)
+                version = re.sub(r"Agent (.*)", r"\1", version)
+                version = re.sub("\x1b\\[\\d+m", "", version)  # remove color pattern from terminal
+
+            elif library == "java":
+                version = version.split("~")[0]
+                version = version.replace("-SNAPSHOT", "")
+
+            elif library == "dotnet":
+                version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
+
+            elif library == "php":
+                version = version.replace("-nightly", "")
+
+
+            self.version = Version(version)
+            self.add_known_version(self.version)
+        else:
+            self.version = None
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.library}", "{self.version}")'
@@ -109,6 +111,9 @@ class LibraryVersion:
         return f"{self.library}@{self.version}" if self.version else self.library
 
     def __eq__(self, other):
+        if isinstance(other, LibraryVersion):
+            return self.library == other.library and self.version == other.version
+        
         if not isinstance(other, str):
             raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
 
@@ -129,6 +134,9 @@ class LibraryVersion:
         return self.library == library
 
     def _extract_members(self, other):
+        if isinstance(other, LibraryVersion):
+            return other.library, other.version
+
         if not isinstance(other, str):
             raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
 

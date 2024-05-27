@@ -895,7 +895,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     @property
     def agent_version(self):
-        return self.agent_container.agent_version if self.include_agent else Version("0.0.0", "agent")
+        return self.agent_container.agent_version if self.include_agent else Version("0.0.0")
 
     @property
     def weblog_variant(self):

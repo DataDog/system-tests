@@ -14,7 +14,7 @@ from docker.models.containers import Container
 import pytest
 import requests
 
-from utils._context.library_version import LibraryVersion, Version
+from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
@@ -402,7 +402,7 @@ class AgentContainer(TestedContainer):
         logger.info(f"Agent version is {agent_version}")
 
         if agent_version:
-            self.agent_version = Version(agent_version, "agent")
+            self.agent_version = LibraryVersion("agent", agent_version).version
 
     @property
     def dd_site(self):
@@ -495,10 +495,10 @@ class WeblogContainer(TestedContainer):
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
         if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
-            self.libddwaf_version = Version(libddwaf_version, "libddwaf")
+            self.libddwaf_version = LibraryVersion("libddwaf", libddwaf_version).version
 
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules")
+        self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
 
         if self.library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
