@@ -43,7 +43,7 @@ public class RabbitmqConnectorForDirectExchange extends RabbitmqConnector {
         channel.queueBind(queue, exchange, routing_key);
 	}
 
-    public void startProducingMessages() throws Exception {
+    public Thread startProducingMessages() throws Exception {
         Thread thread = new Thread("RabbitmqProduce_Direct") {
             public void run() {
                 try {
@@ -59,9 +59,10 @@ public class RabbitmqConnectorForDirectExchange extends RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 
-    public void startConsumingMessages() throws Exception {
+    public Thread startConsumingMessages() throws Exception {
         Thread thread = new Thread("RabbitmqConsume_Direct") {
             public void run() {
                 try {
@@ -77,5 +78,6 @@ public class RabbitmqConnectorForDirectExchange extends RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 }
