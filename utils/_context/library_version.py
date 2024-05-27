@@ -76,10 +76,13 @@ class LibraryVersion:
                 # ruby version pattern can be like
 
                 # 2.0.0.rc1 b908262
+                # 2.0.0.rc1
 
                 # adding + and - signs in the good places
                 if re.match(r"\d+\.\d+\.\d+\.[\w\d+]+ [\w\d]+", version):
                     version = re.sub(r"(\d+\.\d+\.\d+)\.([\w\d]+) ([\w\d]+)", r"\1-\2+\3", version)
+                elif re.match(r"\d+\.\d+\.\d+\.[\w\d+]+", version):
+                    version = re.sub(r"(\d+\.\d+\.\d+)\.([\w\d]+)", r"\1-\2", version)
 
             elif library == "libddwaf":
                 if version.startswith("* libddwaf"):

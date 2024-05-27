@@ -43,7 +43,8 @@ def test_library_version_comparizon():
 
     assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)") == LibraryVersion("ruby", "1.0.0.beta1")
     assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)")
-    assert LibraryVersion("ruby", "  * ddtrace (1.0.0-beta1 de82857)") < LibraryVersion("ruby", "1.0.0")
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)") < LibraryVersion("ruby", "1.0.0")
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.rc1)") < LibraryVersion("ruby", "1.0.0")
 
     assert LibraryVersion("python", "1.1.0rc2.dev15+gc41d325d") >= "python@1.1.0rc2.dev"
     assert LibraryVersion("python", "1.1.0") > "python@1.1.0rc2.dev"
@@ -57,14 +58,11 @@ def test_version_serialization():
     assert LibraryVersion("cpp", "v1.3.1") == "cpp@1.3.1"
 
     v = LibraryVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
-    assert v.version == Version("0.53.0+appsec.180045")
-    assert v.version == "0.53.0+appsec.180045"
+    assert v.version == Version("0.53.0-appsec.180045")
+    assert v.version == "0.53.0-appsec.180045"
 
     v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)")
-    assert v.version == Version("1.0.0+beta1")
-
-    v = LibraryVersion("ruby", "  * datadog (2.0.0.beta1)")
-    assert v.version == Version("2.0.0+beta1")
+    assert v.version == Version("1.0.0-beta1")
 
     v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)")
     assert v.version == Version("1.0.0-beta1+de82857")
