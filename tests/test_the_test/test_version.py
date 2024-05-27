@@ -67,7 +67,7 @@ def test_version_serialization():
     assert v.version == Version("2.0.0+beta1")
 
     v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)")
-    assert v.version == Version("1.0.0+beta1-de82857")
+    assert v.version == Version("1.0.0-beta1+de82857")
 
     v = LibraryVersion("libddwaf", "* libddwaf (1.0.14.1.0.beta1)")
     assert v.version == Version("1.0.14.1.0.beta1")
