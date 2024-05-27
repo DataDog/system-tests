@@ -28,6 +28,7 @@ refs:
   - &ref_5_6_0 '>=5.6.0 || ^4.30.0 || ^3.51.0'
   - &ref_5_7_0 '>=5.7.0 || ^4.31.0 || ^3.52.0'
   - &ref_5_11_0 '>=5.11.0 || ^4.35.0 || ^3.56.0'
+  - &ref_5.13.0 '>=5.13.0 || ^4.37.0 || ^3.58.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -400,10 +401,10 @@ tests/:
       Test_Dbm: missing_feature
       Test_Dbm_Comment_NodeJS_mysql2: 
         '*': missing_feature (Missing on weblog)
-        express4: v5.13.0
+        express4: *ref_5.13.0
       Test_Dbm_Comment_NodeJS_pg: 
         '*': missing_feature (Missing on weblog)
-        express4: v5.13.0
+        express4: *ref_5.13.0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: 
         "*": irrelevant
@@ -444,12 +445,12 @@ tests/:
     test_otel_api_interoperability.py: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: 
-      Test_Span_Links: v5.3.0
+      Test_Span_Links: *ref_5.3.0
     test_telemetry.py:
       Test_Defaults: *ref_5_6_0
       Test_Environment: *ref_5_6_0
       Test_TelemetryInstallSignature: *ref_4_23_0
-      Test_TelemetrySCAEnvVar: v5.13.0
+      Test_TelemetrySCAEnvVar: *ref_5.13.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
