@@ -479,8 +479,8 @@ class Test_Headers_Tracecontext:
         expects the tracestate to be discarded
         """
         with test_library:
-            _, tracestate1 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1"],])
-            _, tracestate2 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1,bar=2"],])
+            _, tracestate1 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1"],],)
+            _, tracestate2 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1,bar=2"],],)
 
         # Updated the test to check that the number of tracestate list-members is the same,
         # since Datadog will add an entry.
@@ -719,7 +719,6 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
@@ -773,7 +772,6 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
@@ -805,7 +803,6 @@ class Test_Headers_Tracecontext:
         Ensure the last parent id tag is set according to the W3C phase 3 spec
         """
         with test_library:
-
             # 1) Trace ids and parent ids in datadog and tracecontext headers match
             with test_library.start_span(
                 name="identical_trace_info",

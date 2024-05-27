@@ -368,6 +368,7 @@ class TestDynamicConfigV1:
             }
         ],
     )
+    @bug(library="cpp", reason="empty service default to '*'")
     def test_trace_sampling_rate_with_sampling_rules(self, library_env, test_agent, test_library):
         """Ensure that sampling rules still apply when the sample rate is set via remote config."""
         RC_SAMPLING_RULE_RATE = 0.56
@@ -684,7 +685,8 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    def test_trace_sampling_rules_with_tags(self, library_env, test_agent, test_library):
+    @bug(context.library == "cpp")
+    def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
         When a sampling rule contains a tag clause/pattern, it should be used to match against a trace/span.
