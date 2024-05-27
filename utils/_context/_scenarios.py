@@ -1903,6 +1903,15 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_expression_language = EndToEndScenario(
+        "DEBUGGER_EXPRESSION_LANGUAGE",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_EXPRESSION_LANGUAGE"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=5,
+        doc="Check expression language",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     host_auto_injection = HostAutoInjectionScenario(

@@ -331,6 +331,11 @@ jobs:
       run: ./run.sh DEBUGGER_PII_REDACTION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_EXPRESSION_LANGUAGE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_EXPRESSION_LANGUAGE"')
+      run: ./run.sh DEBUGGER_EXPRESSION_LANGUAGE
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success'
