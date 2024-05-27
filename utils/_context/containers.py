@@ -160,9 +160,19 @@ class TestedContainer:
     def warmup(self):
         """ if some stuff must be done after healthcheck """
 
+    def post_start(self):
+        """ if some stuff must be done after the container is started """
+
+    @property
+    def healthcheck_log_file(self):
+        return f"{self.log_folder_path}/healthcheck.log"
+
     def wait_for_health(self):
         if self.healthcheck:
-            self.execute_command(**self.healthcheck)
+            result = self.execute_command(**self.healthcheck)
+
+            with open(self.healthcheck_log_file, "w", encoding="utf-8") as f:
+                f.write(result.output.decode("utf-8"))
 
     def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
         """
@@ -192,7 +202,7 @@ class TestedContainer:
                 logger.debug(f"Try #{i}: {result}")
 
                 if result.exit_code == 0:
-                    return
+                    return result
 
             except APIError as e:
                 logger.exception(f"Try #{i} failed")
@@ -384,25 +394,14 @@ class AgentContainer(TestedContainer):
 
         self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-        if not replay:
-            logger.debug("Get agent version from agent container")
+    def post_start(self):
+        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
 
-            agent_version = self._container = _get_client().containers.run(
-                image=self.image.name, auto_remove=True, command="/opt/datadog-agent/bin/agent/agent version"
-            )
+        self.agent_version = LibraryVersion("agent", data["version"]).version
 
-            agent_version = agent_version.decode("ascii")
-
-            with open(f"{self.host_log_folder}/agent_version", mode="w", encoding="utf-8") as f:
-                f.write(agent_version)
-        else:
-            with open(f"{self.host_log_folder}/agent_version", mode="r", encoding="utf-8") as f:
-                agent_version = f.read()
-
-        logger.info(f"Agent version is {agent_version}")
-
-        if agent_version:
-            self.agent_version = LibraryVersion("agent", agent_version).version
+        logger.stdout(f"Agent: {self.agent_version}")
+        logger.stdout(f"Backend: {self.dd_site}")
 
     @property
     def dd_site(self):
@@ -524,6 +523,24 @@ class WeblogContainer(TestedContainer):
         if self.weblog_variant == "python3.12":
             if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
                 self.environment["DD_PROFILING_ENABLED"] = "false"
+
+    def post_start(self):
+        from utils import weblog
+
+        logger.debug(f"Docker host is {weblog.domain}")
+
+        logger.stdout(f"Library: {self.library}")
+
+        if self.libddwaf_version:
+            logger.stdout(f"libddwaf: {self.libddwaf_version}")
+
+        if self.appsec_rules_file:
+            logger.stdout(f"AppSec rules version: {self.appsec_rules_version}")
+
+        if self.uds_mode:
+            logger.stdout(f"UDS socket: {self.uds_socket}")
+
+        logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
     @property
     def library(self):

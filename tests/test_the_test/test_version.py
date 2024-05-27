@@ -71,9 +71,6 @@ def test_version_serialization():
     assert v.version == Version("1.0.14.1.0.beta1")
     assert v.version == "1.0.14+1.0.beta1"
 
-    v = LibraryVersion("agent", "Agent 7.33.0 - Commit: e6cfcb9 - Serialization version: v5.0.4 - Go version: go1.16.7")
-    assert v.version == "7.33.0"
-
     v = LibraryVersion("php", "1.0.0-nightly")
     assert v.version == "1.0.0"
 
@@ -89,19 +86,8 @@ def test_version_serialization():
 
 def test_agent_version():
 
-    v = LibraryVersion(
-        "agent", "Agent 7.37.0 - Commit: 1124d66 - Serialization version: v5.0.22 - Go version: go1.17.11"
-    )
-    assert v == "agent@7.37.0"
-
-    v = LibraryVersion(
-        "agent",
-        "Agent 7.38.0-rc.1 - Meta: git.1.3b34941 - Commit: 3b34941 - Serialization version: v5.0.23 - Go version: go1.17.11",
-    )
-    assert v == "agent@7.38.0-rc.1"
-
-    v = LibraryVersion("agent", "Agent \x1b[36m7.40.0-rc.2\x1b[0m")
-    assert v == "agent@7.40.0-rc.2"
+    v = LibraryVersion("agent", "7.54.0-installer-0.0.7+git.106.b0943ad")
+    assert v == "agent@7.54.0-installer-0.0.7+git.106.b0943ad"
 
 
 def test_in_operator():
