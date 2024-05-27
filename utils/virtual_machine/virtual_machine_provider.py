@@ -16,6 +16,10 @@ class VmProviderFactory:
             from utils.virtual_machine.vagrant_provider import VagrantProvider
 
             return VagrantProvider()
+        elif provider_id == "krunvm":
+            from utils.virtual_machine.krunvm_provider import KrunVmProvider
+
+            return KrunVmProvider()
         else:
             raise ValueError("Not supported provided", provider_id)
 
