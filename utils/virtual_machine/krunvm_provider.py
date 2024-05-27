@@ -1,13 +1,10 @@
 import socket
 import os
 import subprocess
-import vagrant
 import paramiko
-from fabric.api import env
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.tools import logger
 from utils import context
-from scp import SCPClient
 from utils.virtual_machine.vm_logger import vm_logger
 
 
@@ -21,6 +18,10 @@ class KrunVmProvider(VmProvider):
         for vm in self.vms:
             logger.stdout(f"--------- Starting Krun VM MicroVM: {vm.name} -----------")
 
+            cmd_create_microvm = f"krunvm create --name {vm.name} {vm.krunvm_config.oci_image_name}"
+            output_create_microvm = subprocess.run(cmd_create_microvm.split(), capture_output=True, text=True).stdout
+            logger.info(f"[KrumVm] MicroVM created: {output_create_microvm}")
+            self.commander.start_vm(vm.name)
             # Install provision on the started server
             # self.install_provision(vm, None, client)
 
@@ -40,6 +41,20 @@ class KrunVmProvider(VmProvider):
 
 
 class KrunVmCommander(Commander):
+    def start_vm(self, kunvm_vm_name):
+        import pexpect
+
+        logger.info("[KrumVm] MicroVM starting ...")
+
+        child = pexpect.spawn(f"krunvm start {kunvm_vm_name}")
+        child.expect("root@Ubuntu_22_amd64:/#")
+        logger.info("[KrumVm] Before ls")
+        child.sendline("ls")
+        child.logfile = logger.info
+
+        # logger.info(child.before )
+        logger.info("[KrumVm] finn")
+
     def execute_local_command(self, local_command_id, local_command, env, last_task, logger_name):
         logger.info(f"KrunVM: Execute local command: {local_command}")
 
