@@ -36,12 +36,7 @@ class Test_Debugger_Probe_Statuses:
 
 @features.debugger
 @scenarios.debugger_method_probes_snapshot
-class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Snapshot_Test):
-    log_probe_response = None
-    metric_probe_response = None
-    span_probe_response = None
-    span_decoration_probe_response = None
-
+class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
     def setup_method_probe_snaphots(self):
         self.expected_probe_ids = [
             "log170aa-acda-4453-9111-1478a6method",
@@ -52,19 +47,17 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Snapshot_Test):
 
         interfaces.library.wait_for_remote_config_request()
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.log_probe_response = weblog.get("/debugger/log")
-        self.metric_probe_response = weblog.get("/debugger/metric/1")
-        self.span_probe_response = weblog.get("/debugger/span")
-        self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
+        self.weblog_responses = [
+            weblog.get("/debugger/log"),
+            weblog.get("/debugger/metric/1"),
+            weblog.get("/debugger/span"),
+            weblog.get("/debugger/span-decoration/asd/1"),
+        ]
 
     def test_method_probe_snaphots(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
-
-        assert self.log_probe_response.status_code == 200
-        assert self.metric_probe_response.status_code == 200
-        assert self.span_probe_response.status_code == 200
-        assert self.span_decoration_probe_response.status_code == 200
+        self.assert_all_weblog_responses_ok()
 
         expected_probes = {
             "log170aa-acda-4453-9111-1478a6method": "INSTALLED",
@@ -82,11 +75,7 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Snapshot_Test):
 
 @features.debugger
 @scenarios.debugger_line_probes_snapshot
-class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Snapshot_Test):
-    log_probe_response = None
-    metric_probe_response = None
-    span_decoration_probe_response = None
-
+class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
     def setup_line_probe_snaphots(self):
         self.expected_probe_ids = [
             "log170aa-acda-4453-9111-1478a697line",
@@ -96,17 +85,16 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Snapshot_Test):
 
         interfaces.library.wait_for_remote_config_request()
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.log_probe_response = weblog.get("/debugger/log")
-        self.metric_probe_response = weblog.get("/debugger/metric/1")
-        self.span_decoration_probe_response = weblog.get("/debugger/span-decoration/asd/1")
+        self.weblog_responses = [
+            weblog.get("/debugger/log"),
+            weblog.get("/debugger/metric/1"),
+            weblog.get("/debugger/span-decoration/asd/1"),
+        ]
 
     def test_line_probe_snaphots(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
-
-        assert self.log_probe_response.status_code == 200
-        assert self.metric_probe_response.status_code == 200
-        assert self.span_decoration_probe_response.status_code == 200
+        self.assert_all_weblog_responses_ok()
 
         expected_probes = {
             "log170aa-acda-4453-9111-1478a697line": "INSTALLED",
@@ -123,9 +111,7 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Snapshot_Test):
 
 @features.debugger
 @scenarios.debugger_mix_log_probe
-class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Snapshot_Test):
-    multi_probe_response = None
-
+class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
     def setup_mix_probe(self):
         self.expected_probe_ids = [
             "logfb5a-1974-4cdb-b1dd-77dba2method",
@@ -134,13 +120,12 @@ class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Snapshot_Test):
 
         interfaces.library.wait_for_remote_config_request()
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.multi_probe_response = weblog.get("/debugger/mix/asd/1")
+        self.weblog_responses = [weblog.get("/debugger/mix/asd/1")]
 
     def test_mix_probe(self):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
-
-        assert self.multi_probe_response.status_code == 200
+        self.assert_all_weblog_responses_ok()
 
         expected_probes = {
             "logfb5a-1974-4cdb-b1dd-77dba2method": "INSTALLED",
