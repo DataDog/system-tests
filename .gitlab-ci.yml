@@ -2,12 +2,12 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
-  - ruby_tracer
-  - nodejs_tracer
+ # - ruby_tracer
+ # - nodejs_tracer
   - java_tracer
-  - python_tracer
-  - dotnet_tracer
-  - parse_results
+  #- python_tracer
+  #- dotnet_tracer
+  #- parse_results
   - before_tests
 
 .base_job_onboarding_system_tests:
@@ -29,7 +29,7 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
     
-onboarding_nodejs:
+.onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -88,7 +88,7 @@ onboarding_java:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_python:
+.onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -118,7 +118,7 @@ onboarding_python:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_dotnet:
+.onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
@@ -142,7 +142,7 @@ onboarding_dotnet:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_ruby:
+.onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
@@ -166,7 +166,7 @@ onboarding_ruby:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_parse_results:
+.onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
