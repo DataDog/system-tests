@@ -24,6 +24,9 @@ tests/:
       # declare compatibility for multiple release lines
       # the caret character locks the major version (ie: `(>=1.3.0 && <2.0.0) || >= 2.3.0`)
       Test_FeatureD: ^1.3.0 || >=2.3.0
+
+      # reference an alias to avoid repeating long or complex semver versions
+      Test_FeatureE: *5_6_and_someid_backports
 ```
 
 ### Implementation
