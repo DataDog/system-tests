@@ -309,7 +309,7 @@ class Test_Login_Events_Extended:
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "social-security-id"
 
-            if context.library == "dotnet":
+            if context.library in ("dotnet", "python"):
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
                 assert meta["usr.email"] == "testuser@ddog.com"
@@ -341,7 +341,7 @@ class Test_Login_Events_Extended:
             assert meta["usr.id"] == "social-security-id"
             assert meta["usr.email"] == "testuser@ddog.com"
 
-            if context.library == "dotnet":
+            if context.library in ("dotnet", "python"):
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
                 assert meta["usr.name"] == "test"
@@ -538,7 +538,6 @@ class Test_Login_Events_Extended:
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
     @missing_feature(library="nodejs")
-    @missing_feature(library="python")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_success_headers(self):
@@ -564,7 +563,6 @@ class Test_Login_Events_Extended:
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
     @missing_feature(library="nodejs")
-    @missing_feature(library="python")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_failure_headers(self):

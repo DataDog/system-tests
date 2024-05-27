@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import mock
@@ -24,6 +25,11 @@ import requests
 from flask import Flask, Response, jsonify
 from flask import request
 from flask import request as flask_request
+
+from flask_login import login_user, logout_user, LoginManager
+
+
+
 from iast import (
     weak_cipher,
     weak_cipher_secure_algorithm,
@@ -83,6 +89,44 @@ AIOMYSQL_CONFIG["db"] = AIOMYSQL_CONFIG["database"]
 del AIOMYSQL_CONFIG["database"]
 
 app = Flask(__name__)
+app.secret_key = 'SECRET_FOR_TEST'
+app.config['SESSION_TYPE'] = "memcached"
+login_manager = LoginManager()
+login_manager.login_view = "login"
+login_manager.init_app(app)
+DB_AUTH = set()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
+class User:
+    def __init__(self, uid, login, passwd, email):
+        self.uid, self.login, self.passwd, self.email = uid, login, passwd, email
+    def get_id(self):
+        return self.uid
+    @property
+    def is_anonymous(self): return False
+    @property
+    def is_active(self): return True
+    @property
+    def is_authenticated(self):
+        return self.uid in DB_AUTH
+    @staticmethod
+    def check(name, passwd):
+        if name in DB_USER:
+            return passwd == DB_USER[name].passwd, DB_USER[name]
+        return False, None
+    @staticmethod
+    def get(uid):
+        for user in DB_USER.values():
+            if uid == user.uid:
+                return user
+
+DB_USER = {
+    "test": User("social-security-id", "test", "1234", "testuser@ddog.com"),
+    "testuuid": User("591dc126-8431-4d0f-9509-b23318d3dce4", "testuuid", "1234", "testuseruuid@ddog.com"),
+}
 
 tracer.trace("init.service").finish()
 
@@ -828,6 +872,34 @@ def track_user_login_failure_event():
     )
     return Response("OK")
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    username = flask_request.form.get("username")
+    password = flask_request.form.get("password")
+    sdk_event = flask_request.args.get("sdk_event")
+    if sdk_event:
+        sdk_user = flask_request.args.get("sdk_user")
+        sdk_mail = flask_request.args.get("sdk_mail")
+        sdk_user_exists = flask_request.args.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
+            return Response("OK")
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists)
+            return Response("login failure", status=401)
+    authorisation = flask_request.headers.get("Authorization")
+    if authorisation:
+        username, password = base64.b64decode(authorisation[6:]).decode().split(":")
+    success, user = User.check(username, password)
+    if success:
+        login_user(user)
+        appsec_trace_utils.track_user_login_success_event(tracer, name=user.login, login=user.login, user_id=user.uid, email=user.email)
+        return Response("OK")
+    if user:
+        appsec_trace_utils.track_user_login_failure_event(tracer, user_id=user.uid, name=user.login, login=user.login, email=user.email, exists=True)
+    else:
+        appsec_trace_utils.track_user_login_failure_event(tracer, user_id=username, exists=False)
+    return Response("login failure", status=401)
 
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
