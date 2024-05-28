@@ -69,8 +69,8 @@ class Test_Defaults:
             ("appsec_enabled", ("false", False, "inactive", None)),
             ("data_streams_enabled", ("false", False)),
         ]:
-            # The Go tracer does not support logs injection.
-            if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
+            # The Go tracer does not support logs injection. It doesn't report the *_enabled values (except for trace_enabled).
+            if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled","profiling_enabled","appsec_enabled","data_streams_enabled",):
                 continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
@@ -136,8 +136,8 @@ class Test_Environment:
             ("appsec_enabled", ("false", False)),
             ("data_streams_enabled", ("false", False)),
         ]:
-            # The Go tracer does not support logs injection.
-            if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
+             # The Go tracer does not support logs injection. It doesn't report the *_enabled values (except for trace_enabled).
+            if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled","profiling_enabled","appsec_enabled","data_streams_enabled",):
                 continue
 
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
