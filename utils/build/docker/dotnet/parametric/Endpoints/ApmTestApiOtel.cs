@@ -221,7 +221,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         if (Enum.TryParse(code.ToString(), ignoreCase: true, out ActivityStatusCode statusCode))
         {
-            var activity = FindActivity(requestBodyObject["id"]);
+            var activity = FindActivity(requestBodyObject["span_id"]);
             activity.SetStatus(statusCode, requestBodyObject["description"].ToString());
         }
         else
