@@ -151,12 +151,7 @@ class _Scenario:
     def session_start(self):
         """called at the very begning of the process"""
 
-        self.print_test_context()
-
-        if self.replay:
-            return
-
-        logger.stdout("Executing warmups...")
+        logger.terminal.write_sep("=", "test context", bold=True)
 
         try:
             for warmup in self._get_warmups():
@@ -169,13 +164,11 @@ class _Scenario:
     def pytest_sessionfinish(self, session):
         """called at the end of the process"""
 
-    def print_test_context(self):
-        logger.terminal.write_sep("=", "test context", bold=True)
-        logger.stdout(f"Scenario: {self.name}")
-        logger.stdout(f"Logs folder: ./{self.host_log_folder}")
-
     def _get_warmups(self):
-        return []
+        return [
+            lambda: logger.stdout(f"Scenario: {self.name}"),
+            lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"),
+        ]
 
     def post_setup(self):
         """called after test setup"""
@@ -351,10 +344,14 @@ class _DockerScenario(_Scenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.append(create_network)
+        if not self.replay:
+            warmups.append(create_network)
+
+            for container in self._required_containers:
+                warmups.append(container.start)
 
         for container in self._required_containers:
-            warmups.append(container.start)
+            warmups.append(container.post_start)
 
         return warmups
 
@@ -521,29 +518,8 @@ class EndToEndScenario(_DockerScenario):
                 message = stdout.decode()
         except BaseException as e:
             message = f"Unexpected exception {e}"
+
         logger.stdout(f"Weblog system: {message}")
-
-    def print_test_context(self):
-        from utils import weblog
-
-        super().print_test_context()
-
-        logger.debug(f"Docker host is {weblog.domain}")
-
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Agent: {self.agent_version}")
-
-        if self.weblog_container.libddwaf_version:
-            logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
-
-        if self.weblog_container.appsec_rules_file:
-            logger.stdout(f"AppSec rules version: {self.weblog_container.appsec_rules_version}")
-
-        if self.weblog_container.uds_mode:
-            logger.stdout(f"UDS socket: {self.weblog_container.uds_socket}")
-
-        logger.stdout(f"Weblog variant: {self.weblog_container.weblog_variant}")
-        logger.stdout(f"Backend: {self.agent_container.dd_site}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -584,9 +560,10 @@ class EndToEndScenario(_DockerScenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.insert(0, self._create_interface_folders)
-        warmups.insert(1, self._start_interface_watchdog)
-        warmups.append(self._wait_for_app_readiness)
+        if not self.replay:
+            warmups.insert(0, self._create_interface_folders)
+            warmups.insert(1, self._start_interface_watchdog)
+            warmups.append(self._wait_for_app_readiness)
 
         return warmups
 
@@ -846,9 +823,10 @@ class OpenTelemetryScenario(_DockerScenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.insert(0, self._create_interface_folders)
-        warmups.insert(1, self._start_interface_watchdog)
-        warmups.append(self._wait_for_app_readiness)
+        if not self.replay:
+            warmups.insert(0, self._create_interface_folders)
+            warmups.insert(1, self._start_interface_watchdog)
+            warmups.append(self._wait_for_app_readiness)
 
         return warmups
 
@@ -1011,10 +989,11 @@ class ParametricScenario(_Scenario):
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
         logger.stdout(f"Library: {self.library}")
 
-    def print_test_context(self):
-        super().print_test_context()
+    def _get_warmups(self):
+        result = super()._get_warmups()
+        result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
-        logger.stdout(f"Library: {self.library}")
+        return result
 
     @property
     def library(self):
@@ -1935,6 +1914,11 @@ class scenarios:
     container_auto_injection = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
     )
+    container_not_supported_auto_injection = ContainerAutoInjectionScenario(
+        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario for not supported languages or containers",
+    )
+
     simple_container_auto_injection = ContainerAutoInjectionScenario(
         "SIMPLE_CONTAINER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",

@@ -1,5 +1,5 @@
 weblog:
-    name: test-app-python-alpine
+    name: test-app-python-alpine-libgcc
     excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
     install: 
       - os_type: linux
@@ -11,6 +11,7 @@ weblog:
           - name: copy-python-app
             local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
           - name: copy-python-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-alpine/Dockerfile.template
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-alpine/Dockerfile.libgcc.template
+            remote_path: Dockerfile.template
 
         remote-command: sh test-app-python_docker_compose_run.sh
