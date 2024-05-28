@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using weblog.Models.Debugger;
 
 namespace weblog
 {
@@ -50,6 +51,17 @@ namespace weblog
         {
             intMixLocal = intArg * arg.Length;
             return Content($"Mixed result {intMixLocal}");
+        }
+
+        [HttpGet("pii")]
+        [Consumes("application/json", "application/xml")]
+        public async Task<IActionResult> Pii()
+        {
+            PiiBase? pii = await Task.FromResult<PiiBase>(new Pii());
+            PiiBase? customPii = await Task.FromResult<PiiBase>(new CustomPii());
+            var value = pii?.TestValue;
+            var customValue = customPii?.TestValue;
+            return Content($"PII {value}. CustomPII {customValue}");
         }
     }
 }

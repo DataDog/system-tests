@@ -1,7 +1,7 @@
-from tests.apm_tracing_e2e.test_single_span import _get_spans_submitted, _assert_msg
-from utils import context, weblog, scenarios, interfaces, irrelevant, bug
+from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features
 
 
+@features.otel_api
 @scenarios.apm_tracing_e2e_otel
 class Test_Otel_Span:
     """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API.
@@ -23,8 +23,8 @@ class Test_Otel_Span:
     # - span kind of SpanKind - Internal
     @bug(context.library == "java", reason="Span.kind is not set to internal, have type instead")
     def test_datadog_otel_span(self):
-        spans = _get_spans_submitted(self.req)
-        assert 2 <= len(spans), _assert_msg(2, len(spans), "Agent did not submit the spans we want!")
+        spans = interfaces.agent.get_spans_list(self.req)
+        assert 2 <= len(spans), "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
@@ -45,7 +45,7 @@ class Test_Otel_Span:
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
-        assert 2 == len(spans), _assert_msg(2, len(spans))
+        assert 2 == len(spans)
 
     def setup_distributed_otel_trace(self):
         self.req = weblog.get(
@@ -54,8 +54,8 @@ class Test_Otel_Span:
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
-        spans = _get_spans_submitted(self.req)
-        assert 3 <= len(spans), _assert_msg(3, len(spans), "Agent did not submit the spans we want!")
+        spans = interfaces.agent.get_spans_list(self.req)
+        assert 3 <= len(spans), "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
@@ -76,7 +76,7 @@ class Test_Otel_Span:
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
-        assert 3 == len(spans), _assert_msg(3, len(spans))
+        assert 3 == len(spans)
 
 
 def _get_span_by_name(spans, span_name):

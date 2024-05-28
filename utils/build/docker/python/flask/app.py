@@ -1,10 +1,25 @@
+import json
 import logging
+import mock
 import os
 import random
 import subprocess
 import threading
+import http.client
+import urllib.request
+import xmltodict
+import sys
 
-import psycopg2
+if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
+    import asyncpg
+    import psycopg2
+
+if os.environ.get("INCLUDE_MYSQL", "true") == "true":
+    import aiomysql
+    import mysql
+    import pymysql
+    import MySQLdb
+
 import requests
 from flask import Flask, Response, jsonify
 from flask import request
@@ -17,27 +32,38 @@ from iast import (
     weak_hash_multiple,
     weak_hash_secure_algorithm,
 )
-from integrations.db.mssql import executeMssqlOperation
-from integrations.db.mysqldb import executeMysqlOperation
-from integrations.db.postgres import executePostgresOperation
+
+if os.environ.get("INCLUDE_SQLSERVER", "true") == "true":
+    from integrations.db.mssql import executeMssqlOperation
+if os.environ.get("INCLUDE_MYSQL", "true") == "true":
+    from integrations.db.mysqldb import executeMysqlOperation
+if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
+    from integrations.db.postgres import executePostgresOperation
+from integrations.messaging.aws.kinesis import kinesis_consume
+from integrations.messaging.aws.kinesis import kinesis_produce
+from integrations.messaging.aws.sns import sns_consume
+from integrations.messaging.aws.sns import sns_produce
 from integrations.messaging.aws.sqs import sqs_consume
 from integrations.messaging.aws.sqs import sqs_produce
-from integrations.messaging.kafka import kafka_consume
-from integrations.messaging.kafka import kafka_produce
-from integrations.messaging.rabbitmq import rabbitmq_consume
-from integrations.messaging.rabbitmq import rabbitmq_produce
+
+if os.environ.get("INCLUDE_KAFKA", "true") == "true":
+    from integrations.messaging.kafka import kafka_consume
+    from integrations.messaging.kafka import kafka_produce
+if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
+    from integrations.messaging.rabbitmq import rabbitmq_consume
+    from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
 
-ddtrace.patch_all()
-
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace import Pin, patch, tracer
+from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.internal.datastreams import data_streams_processor
+from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
 # Patch kombu since its not patched automatically
-patch(kombu=True)
+ddtrace.patch_all(kombu=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -45,12 +71,34 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
 )
+ASYNCPG_CONFIG = dict(POSTGRES_CONFIG)
+ASYNCPG_CONFIG["database"] = ASYNCPG_CONFIG["dbname"]  # asyncpg uses 'database' instead of 'dbname'
+del ASYNCPG_CONFIG["dbname"]
+
+MYSQL_CONFIG = dict(host="mysqldb", port=3306, user="mysqldb", password="mysqldb", database="mysql_dbname",)
+AIOMYSQL_CONFIG = dict(MYSQL_CONFIG)
+AIOMYSQL_CONFIG["db"] = AIOMYSQL_CONFIG["database"]
+del AIOMYSQL_CONFIG["database"]
 
 app = Flask(__name__)
 
 tracer.trace("init.service").finish()
+
+
+def reset_dsm_context():
+    # force reset DSM context for global tracer and global DSM processor
+    try:
+        del tracer.data_streams_processor._current_context.value
+    except AttributeError:
+        pass
+    try:
+        from ddtrace.internal.datastreams import data_streams_processor
+
+        del data_streams_processor()._current_context.value
+    except AttributeError:
+        pass
 
 
 @app.route("/")
@@ -83,6 +131,65 @@ def waf(*args, **kwargs):
 
         return "Value tagged", kwargs["status_code"], flask_request.args
     return "Hello, World!\n"
+
+
+### BEGIN EXPLOIT PREVENTION
+
+
+@app.route("/rasp/lfi", methods=["GET", "POST"])
+def rasp_lfi(*args, **kwargs):
+    file = None
+    if request.method == "GET":
+        file = flask_request.args.get("file")
+    elif request.method == "POST":
+        try:
+            file = (request.form or request.json or {}).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if file is None:
+                file = xmltodict.parse(flask_request.data).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+    if file is None:
+        return Response("missing file parameter", status=400)
+    try:
+        with open(file, "rb") as f_in:
+            f_in.seek(0, os.SEEK_END)
+            return f"{file} open with {f_in.tell()} bytes"
+    except OSError as e:
+        return f"{file} could not be open: {e!r}"
+
+
+@app.route("/rasp/ssrf", methods=["GET", "POST"])
+def rasp_ssrf(*args, **kwargs):
+    domain = None
+    if request.method == "GET":
+        domain = flask_request.args.get("domain")
+    elif request.method == "POST":
+        try:
+            domain = (request.form or request.json or {}).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if domain is None:
+                domain = xmltodict.parse(flask_request.data).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if domain is None:
+        return Response("missing domain parameter", status=400)
+    try:
+        with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
+
+            return f"url http://{domain} open with {len(url_in.read())} bytes"
+    except http.client.HTTPException as e:
+        return f"url http://{domain} could not be open: {e!r}"
+
+
+### END EXPLOIT PREVENTION
 
 
 @app.route("/read_file", methods=["GET"])
@@ -168,6 +275,95 @@ def users():
     return Response("OK")
 
 
+@app.route("/stub_dbm")
+async def stub_dbm():
+    integration = flask_request.args.get("integration")
+    operation = flask_request.args.get("operation", None)
+
+    if integration == "psycopg":
+        postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+        cursor = postgres_db.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+
+    elif integration == "asyncpg":
+        conn = await asyncpg.connect(**ASYNCPG_CONFIG)
+
+        orig = ddtrace.propagation._database_monitoring.set_argument_value
+
+        def mock_func(args, kwargs, sql_pos, sql_kw, sql_with_dbm_tags):
+            return orig(args, kwargs, sql_pos, sql_kw, sql_with_dbm_tags)
+
+        with mock.patch(
+            "ddtrace.propagation._database_monitoring.set_argument_value", side_effect=mock_func
+        ) as patched:
+            if operation == "execute":
+                await conn.execute("SELECT version()")
+                return get_dbm_comment(None, "execute", patched.call_args_list[0][0][4])
+            elif operation == "executemany":
+                await cursor.executemany("SELECT version()", [((),)])
+                return get_dbm_comment(None, "executemany", patched.call_args_list[0][0][4])
+        return Response(f"Cursor method is not supported: {operation}", 406)
+
+    elif integration == "aiomysql":
+        conn = await aiomysql.connect(**AIOMYSQL_CONFIG)
+        cursor = await conn.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor, is_async=True)
+
+    elif integration == "mysql-connector":
+        conn = mysql.connector.connect(**AIOMYSQL_CONFIG)
+        cursor = conn.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+
+    elif integration == "mysqldb":
+        conn = MySQLdb.Connect(
+            **{
+                "host": MYSQL_CONFIG["host"],
+                "user": MYSQL_CONFIG["user"],
+                "passwd": MYSQL_CONFIG["password"],
+                "db": MYSQL_CONFIG["database"],
+                "port": MYSQL_CONFIG["port"],
+            }
+        )
+        cursor = conn.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+
+    elif integration == "pymysql":
+        conn = pymysql.connect(**AIOMYSQL_CONFIG)
+        cursor = conn.cursor()
+        return await db_execute_and_retrieve_comment(operation, cursor)
+    return Response(f"Integration is not supported: {integration}", 406)
+
+
+async def db_execute_and_retrieve_comment(operation, cursor, is_async=False):
+    if not is_async:
+        cursor.__wrapped__ = mock.Mock()
+        if operation == "execute":
+            cursor.execute("SELECT version()")
+            return get_dbm_comment(cursor.__wrapped__, "execute")
+        elif operation == "executemany":
+            cursor.executemany("SELECT version()", [((),)])
+            return get_dbm_comment(cursor.__wrapped__, "executemany")
+    else:
+        cursor.__wrapped__ = mock.AsyncMock()
+        if operation == "execute":
+            await cursor.execute("SELECT version()")
+            return get_dbm_comment(cursor.__wrapped__, "execute")
+        elif operation == "executemany":
+            await cursor.executemany("SELECT version()", [((),)])
+            return get_dbm_comment(cursor.__wrapped__, "executemany")
+
+
+def get_dbm_comment(wrapped_instance, operation, wrapped_call_args=None):
+    if wrapped_call_args is None:
+        dbm_comment = getattr(wrapped_instance, operation).call_args.args[0]
+    else:
+        dbm_comment = wrapped_call_args
+
+    # Store response in a json object
+    response = {"status": "ok", "dbm_comment": dbm_comment}
+    return Response(json.dumps(response))
+
+
 @app.route("/dbm")
 def dbm():
     integration = flask_request.args.get("integration")
@@ -236,12 +432,63 @@ def consume_sqs_message():
         return output, 200
 
 
+@app.route("/sns/produce")
+def produce_sns_message():
+    queue = flask_request.args.get("queue", "DistributedTracing SNS")
+    topic = flask_request.args.get("topic", "DistributedTracing SNS Topic")
+    message = "Hello from Python SNS -> SQS"
+    output = sns_produce(queue, topic, message)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/sns/consume")
+def consume_sns_message():
+    queue = flask_request.args.get("queue", "DistributedTracing SNS")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = sns_consume(queue, timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/kinesis/produce")
+def produce_kinesis_message():
+    stream = flask_request.args.get("stream", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
+
+    # we only allow injection into JSON messages encoded as a string
+    message = json.dumps({"message": "Hello from Python Producer: Kinesis Context Propagation Test"})
+    output = kinesis_produce(stream, message, "1", timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/kinesis/consume")
+def consume_kinesis_message():
+    stream = flask_request.args.get("stream", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = kinesis_consume(stream, timeout)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
 @app.route("/rabbitmq/produce")
 def produce_rabbitmq_message():
+    reset_dsm_context()
+
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    routing_key = flask_request.args.get("routing_key", "DistributedTracingContextPropagationRoutingKey")
     message = "Hello from Python RabbitMQ Context Propagation Test"
-    output = rabbitmq_produce(queue, exchange, message)
+    output = rabbitmq_produce(queue, exchange, routing_key, message)
     if "error" in output:
         return output, 400
     else:
@@ -252,8 +499,9 @@ def produce_rabbitmq_message():
 def consume_rabbitmq_message():
     queue = flask_request.args.get("queue", "DistributedTracingContextPropagation")
     exchange = flask_request.args.get("exchange", "DistributedTracingContextPropagation")
+    routing_key = flask_request.args.get("routing_key", "DistributedTracingContextPropagationRoutingKey")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = rabbitmq_consume(queue, exchange, timeout)
+    output = rabbitmq_consume(queue, exchange, routing_key, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -265,10 +513,19 @@ def dsm():
     logging.basicConfig(
         format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S",
     )
-    topic = "dsm-system-tests-queue"
     integration = flask_request.args.get("integration")
+    queue = flask_request.args.get("queue")
+    topic = flask_request.args.get("topic")
+    stream = flask_request.args.get("stream")
+    exchange = flask_request.args.get("exchange")
+    routing_key = flask_request.args.get("routing_key")
 
     logging.info(f"[DSM] Got request with integration: {integration}")
+
+    # force reset DSM context for global tracer and global DSM processor
+    reset_dsm_context()
+
+    response = Response(f"Integration is not supported: {integration}", 406)
 
     if integration == "kafka":
 
@@ -279,37 +536,90 @@ def dsm():
                 logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
         produce_thread = threading.Thread(
-            target=kafka_produce, args=(topic, b"Hello, Kafka from DSM python!", delivery_report,)
+            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,)
         )
-        consume_thread = threading.Thread(target=kafka_consume, args=(topic, "testgroup1",))
+        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
         consume_thread.join()
         logging.info("[kafka] Returning response")
-        return Response("ok")
+        response = Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(target=sqs_produce, args=(topic, "Hello, SQS from DSM python!",))
-        consume_thread = threading.Thread(target=sqs_consume, args=(topic,))
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",))
+        consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
         consume_thread.join()
         logging.info("[sqs] Returning response")
-        return Response("ok")
+        response = Response("ok")
     elif integration == "rabbitmq":
         timeout = int(flask_request.args.get("timeout", 60))
         produce_thread = threading.Thread(
-            target=rabbitmq_produce, args=(topic, topic, "Hello, RabbitMQ from DSM python!")
+            target=rabbitmq_produce, args=(queue, exchange, routing_key, "Hello, RabbitMQ from DSM python!")
         )
-        consume_thread = threading.Thread(target=rabbitmq_consume, args=(topic, topic, timeout))
+        consume_thread = threading.Thread(target=rabbitmq_consume, args=(queue, exchange, routing_key, timeout))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
         consume_thread.join()
         logging.info("[RabbitMQ] Returning response")
-        return Response("ok")
-    return Response(f"Integration is not supported: {integration}", 406)
+        response = Response("ok")
+    elif integration == "sns":
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",))
+        consume_thread = threading.Thread(target=sns_consume, args=(queue,))
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[SNS->SQS] Returning response")
+        response = Response("ok")
+    elif integration == "kinesis":
+        timeout = int(flask_request.args.get("timeout", "60"))
+        message = json.dumps({"message": "Hello from Python DSM Kinesis test"})
+
+        produce_thread = threading.Thread(target=kinesis_produce, args=(stream, message, "1", timeout))
+        consume_thread = threading.Thread(target=kinesis_consume, args=(stream, timeout))
+        produce_thread.start()
+        consume_thread.start()
+        produce_thread.join()
+        consume_thread.join()
+        logging.info("[Kinesis] Returning response")
+        response = Response("ok")
+
+    # force flush stats to ensure they're available to agent after test setup is complete
+    tracer.data_streams_processor.periodic()
+    data_streams_processor().periodic()
+    return response
+
+
+@app.route("/dsm/inject")
+def inject_dsm_context():
+    topic = flask_request.args.get("topic")
+    integration = flask_request.args.get("integration")
+    headers = {}
+
+    reset_dsm_context()
+
+    ctx = data_streams_processor().set_checkpoint(["direction:out", "topic:" + topic, "type:" + integration])
+    DsmPathwayCodec.encode(ctx, headers)
+
+    return Response(json.dumps(headers))
+
+
+@app.route("/dsm/extract")
+def extract_dsm_context():
+    topic = flask_request.args.get("topic")
+    integration = flask_request.args.get("integration")
+    ctx = flask_request.args.get("ctx")
+
+    reset_dsm_context()
+
+    ctx = DsmPathwayCodec.decode(json.loads(ctx), data_streams_processor())
+    ctx.set_checkpoint(["direction:in", "topic:" + topic, "type:" + integration])
+
+    return Response("ok")
 
 
 @app.route("/iast/insecure_hashing/multiple_hash")
@@ -348,60 +658,71 @@ def view_weak_cipher_secure():
     return Response("OK")
 
 
-def _sink_point(table="user", id="1"):
+def _sink_point_sqli(table="user", id="1"):
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
+
+
+def _sink_point_path_traversal(tainted_str="user"):
+    try:
+        m = open(tainted_str)
+        _ = m.read()
+    except Exception:
+        pass
 
 
 @app.route("/iast/source/body/test", methods=["POST"])
 def view_iast_source_body():
     table = flask_request.json.get("name")
     user = flask_request.json.get("value")
-    _sink_point(table=table, id=user)
+    _sink_point_sqli(table=table, id=user)
     return Response("OK")
 
 
 @app.route("/iast/source/cookiename/test")
 def view_iast_source_cookie_name():
     param = [key for key in flask_request.cookies.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_path_traversal(param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/cookievalue/test")
 def view_iast_source_cookie_value():
     table = flask_request.cookies.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
 @app.route("/iast/source/headername/test")
 def view_iast_source_header_name():
     param = [key for key in flask_request.headers.keys() if key == "User"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/header/test")
 def view_iast_source_header_value():
     table = flask_request.headers.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
 @app.route("/iast/source/parametername/test", methods=["GET"])
 def view_iast_source_parametername_get():
     param = [key for key in flask_request.args.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
 @app.route("/iast/source/parametername/test", methods=["POST"])
 def view_iast_source_parametername_post():
     param = [key for key in flask_request.json.keys() if key == "user"]
-    _sink_point(id=param[0])
+    _sink_point_sqli(id=param[0])
     return Response("OK")
 
 
@@ -411,14 +732,17 @@ def view_iast_source_parameter():
         table = flask_request.args.get("table")
     else:
         table = flask_request.json.get("table")
-    _sink_point(table=table)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
 @app.route("/iast/path_traversal/test_insecure", methods=["POST"])
 def view_iast_path_traversal_insecure():
     path = flask_request.form["path"]
-    os.mkdir(path)
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
     return Response("OK")
 
 
@@ -464,6 +788,22 @@ def view_iast_ssrf_secure():
         pass
 
     return Response("OK")
+
+
+@app.route("/iast/header_injection/test_insecure", methods=["POST"])
+def view_iast_header_injection_insecure():
+    header = flask_request.form["test"]
+    resp = Response("OK")
+    resp.headers["Header-Injection"] = header
+    return resp
+
+
+@app.route("/iast/header_injection/test_secure", methods=["POST"])
+def view_iast_header_injection_secure():
+    header = flask_request.form["test"]
+    resp = Response("OK")
+    resp.headers["Vary"] = header
+    return resp
 
 
 _TRACK_METADATA = {

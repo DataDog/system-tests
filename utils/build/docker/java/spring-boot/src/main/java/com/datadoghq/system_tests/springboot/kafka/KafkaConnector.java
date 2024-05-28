@@ -9,11 +9,13 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Consumer;
 
 public class KafkaConnector {
     public static final String BOOTSTRAP_SERVERS = "kafka:9092";
@@ -50,7 +52,7 @@ public class KafkaConnector {
         return new KafkaConsumer<String, String>(props);
     }
 
-    public void startProducingMessage(String message) throws Exception {
+    public Thread startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("KafkaProduce") {
             public void run() {
                 KafkaTemplate<String, String> kafkaTemplate = createKafkaTemplateForProducer();
@@ -59,11 +61,13 @@ public class KafkaConnector {
             }
         };
         thread.start();
+
+        return thread;
     }
 
     // Ideally we should be able to use @Component and @KafkaListener to auto consume messages, but I wasn't able
     // to get it to work. Can look into this as a follow up.
-    public void startConsumingMessages(String topicName) throws Exception {
+    public Thread startConsumingMessages(String topicName) throws Exception {
         Thread thread = new Thread("KafkaConsume") {
             public void run() {
                 KafkaConsumer<String, String> consumer = createKafkaConsumer(topicName);
@@ -76,6 +80,28 @@ public class KafkaConnector {
         };
         thread.start();
         System.out.println("Started Kafka consumer thread");
+        return thread;
+    }
+
+    public Thread startConsumingMessages(String groupName, long timeoutMs, Consumer<ConsumerRecords<String, String>> callback) throws Exception {
+        Thread thread = new Thread("KafkaConsume") {
+            public void run() {
+                try (KafkaConsumer<String, String> consumer = createKafkaConsumer(groupName)) {
+                    consumer.subscribe(Collections.singletonList(topic));
+                    while (true) {
+                        ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(timeoutMs));
+                        if (records.isEmpty()) {
+                            consumer.unsubscribe();
+                            break;
+                        }
+                        callback.accept(records);
+                    }
+                }
+            }
+        };
+        thread.start();
+        System.out.println("Started Kafka consumer thread");
+        return thread;
     }
 
     // For APM testing, produce message without starting a new thread
@@ -83,6 +109,13 @@ public class KafkaConnector {
         KafkaTemplate<String, String> kafkaTemplate = createKafkaTemplateForProducer();
         System.out.printf("Publishing message: %s%n", message);
         kafkaTemplate.send(topic, message);
+    }
+
+    // For APM testing, produce message without starting a new thread
+    public void produceMessageWithoutNewThread(@Nonnull String key, @Nonnull String value) throws Exception {
+        KafkaTemplate<String, String> kafkaTemplate = createKafkaTemplateForProducer();
+        System.out.printf("Publishing message: %s->%s%n", key, value);
+        kafkaTemplate.send(topic, key, value);
     }
 
     // For APM testing, a consume message without starting a new thread
@@ -102,7 +135,7 @@ public class KafkaConnector {
                 return true;
             }
         }
-        
+
         return false;
     }
 }

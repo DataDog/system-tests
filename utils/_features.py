@@ -1230,6 +1230,36 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_source_kafka_key(test_object):
+        """
+        IAST Source: Kafka message key
+
+        https://feature-parity.us1.prod.dog/#/?feature=277
+        """
+        pytest.mark.features(feature_id=277)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_source_kafka_value(test_object):
+        """
+        IAST Source: Kafka message value
+
+        https://feature-parity.us1.prod.dog/#/?feature=278
+        """
+        pytest.mark.features(feature_id=278)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_graphql_resolver_argument(test_object):
+        """
+        IAST Source: Graphql resolver argument
+
+        https://feature-parity.us1.prod.dog/#/?feature=281
+        """
+        pytest.mark.features(feature_id=281)(test_object)
+        return test_object
+
+    @staticmethod
     def grpc_threats_management(test_object):
         """
         gRPC Threats Management
@@ -1276,6 +1306,16 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=197
         """
         pytest.mark.features(feature_id=197)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_hardcoded_passwords(test_object):
+        """
+        IAST sink: Hardcoded passwords detection
+
+        https://feature-parity.us1.prod.dog/#/?feature=290
+        """
+        pytest.mark.features(feature_id=290)(test_object)
         return test_object
 
     @staticmethod
@@ -1925,4 +1965,224 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=270
         """
         pytest.mark.features(feature_id=270)(test_object)
+        return test_object
+
+    @staticmethod
+    def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-SNS][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=271
+        """
+        pytest.mark.features(feature_id=271)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_sns(test_object):
+        """
+        DataStreams Monitoring support for AWS SNS
+
+        https://feature-parity.us1.prod.dog/#/?feature=273
+        """
+        pytest.mark.features(feature_id=273)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_insecure_auth_protocol(test_object):
+        """
+        IAST Sink: Insecure auth protocol
+
+        https://feature-parity.us1.prod.dog/#/?feature=272
+        """
+        pytest.mark.features(feature_id=272)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_installation_script(test_object):
+        """
+        Agent installation script should allow us to install auto-injection software for containers
+
+        https://feature-parity.us1.prod.dog/#/?feature=274
+        """
+        pytest.mark.features(feature_id=274)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_auto_installation_script(test_object):
+        """
+        Agent installation script should allow us to install auto-injection software for hosts
+
+        https://feature-parity.us1.prod.dog/#/?feature=275
+        """
+        pytest.mark.features(feature_id=275)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_user_managed_block_list(test_object):
+        """
+        A way to allow users to specify their own block lists
+
+        https://feature-parity.us1.prod.dog/#/?feature=276
+        """
+        pytest.mark.features(feature_id=276)(test_object)
+        return test_object
+
+    @staticmethod
+    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+        """
+        [AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=280
+        """
+        pytest.mark.features(feature_id=280)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_base64_encoding(test_object):
+        """
+        DataStreams Monitoring support for V2 Base64 Encoding using dd-pathway-ctx/dd-pathway-ctx-base64
+
+        https://feature-parity.us1.prod.dog/#/?feature=284
+        """
+        pytest.mark.features(feature_id=284)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_context_injection_base64(test_object):
+        """
+        Datastreams Monitoring support for V2 Base64 Encoding injection using dd-pathway-ctx-base64
+
+        https://feature-parity.us1.prod.dog/#/?feature=287
+        """
+        pytest.mark.features(feature_id=287)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_kinesis(test_object):
+        """
+        DataStreams Monitoring support for AWS Kinesis
+
+        https://feature-parity.us1.prod.dog/#/?feature=282
+        """
+        pytest.mark.features(feature_id=282)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_reflection_injection(test_object):
+        """
+        IAST Sink: Reflection Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=279
+        """
+        pytest.mark.features(feature_id=279)(test_object)
+        return test_object
+
+    @staticmethod
+    def embeded_git_reference(test_object):
+        """
+        Embedding Git references to build artifacts
+
+        https://feature-parity.us1.prod.dog/#/?feature=286
+        """
+        pytest.mark.features(feature_id=286)(test_object)
+        return test_object
+
+    @staticmethod
+    def k8s_admission_controller(test_object):
+        """
+        Auto inject the tracer library for k8s enviroments using admission controller
+
+        https://feature-parity.us1.prod.dog/#/?feature=288
+        """
+        pytest.mark.features(feature_id=288)(test_object)
+        return test_object
+
+    @staticmethod
+    def f_otel_interoperability(test_object):
+        """
+        OTel Interoperability
+
+        https://feature-parity.us1.prod.dog/#/?feature=289
+        """
+        pytest.mark.features(feature_id=289)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_pii_redaction(test_object):
+        """
+        PII Redaction
+
+        https://feature-parity.us1.prod.dog/#/?feature=291
+        """
+        pytest.mark.features(feature_id=291)(test_object)
+        return test_object
+
+    @staticmethod
+    def installer_auto_instrumentation(test_object):
+        """
+        Installer auto-instrumentation
+
+        https://feature-parity.us1.prod.dog/#/?feature=292
+        """
+        pytest.mark.features(feature_id=292)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_local_file_inclusion(test_object):
+        """
+        Appsec RASP rule : local file inclusion
+
+        https://feature-parity.us1.prod.dog/#/?feature=293
+        """
+        pytest.mark.features(feature_id=293)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_server_side_request_forgery(test_object):
+        """
+        Appsec RASP rule : server-side request forgery
+
+        https://feature-parity.us1.prod.dog/#/?feature=294
+        """
+        pytest.mark.features(feature_id=294)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_sql_injection(test_object):
+        """
+        Appsec RASP rule : SQL injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=295
+        """
+        pytest.mark.features(feature_id=295)(test_object)
+        return test_object
+
+    @staticmethod
+    def database_monitoring_support(test_object):
+        """
+        DBM: Database Monitoring is supported by an integration
+
+        https://feature-parity.us1.prod.dog/#/?feature=296
+        """
+        pytest.mark.features(feature_id=296)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_stack_trace(test_object):
+        """
+        Appsec RASP: Stack Trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=297
+        """
+        pytest.mark.features(feature_id=297)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_span_tags(test_object):
+        """
+        Appsec RASP: Span Tags
+
+        https://feature-parity.us1.prod.dog/#/?feature=298
+        """
+        pytest.mark.features(feature_id=298)(test_object)
         return test_object

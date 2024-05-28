@@ -52,65 +52,7 @@ class Test_Agent:
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
-    @bug(context.library < "golang@1.36.0")
-    @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "nodejs@3.14.1")
-    @bug(context.library == "php")
-    def test_schemas(self):
-        """Test all library schemas"""
-        interfaces.library.assert_schemas()
-
-    def test_non_regression(self):
-        """Non-regression test on shemas"""
-
-        # Never skip this test. As a full respect of shemas may be hard, this test ensure that
-        # at least the part that was ok stays ok.
-
-        allowed_errors = None
-        if context.library == "golang":
-            allowed_errors = (
-                r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
-                r"'protocol_version' is a required property on instance ",
-            )
-        elif context.library == "java":
-            # pylint: disable=line-too-long
-            allowed_errors = (
-                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
-                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
-                r"'idempotency_key' is a required property on instance ",
-            )
-        elif context.library == "dotnet":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "nodejs":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "php":
-            allowed_errors = (
-                r"'interval' is a required property on instance \['payload'\]\['series'\]\[\d+\]",
-                r"'namespace' is a required property on instance \['payload'\]",
-            )
-
-        interfaces.library.assert_schemas(allowed_errors=allowed_errors)
-
-    def test_client_state_errors(self):
-        """Ensure that the Client State error is consistent"""
-
-        def validator(data):
-            state = data["request"]["content"]["client"]["state"]
-
-            if state.get("has_error") is True:
-                assert (
-                    "error" in state
-                ), "'client.state.error' must be non-empty if a client reports an error with 'client.state.has_error'"
-
-        interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
-
-    def test_client_fields(self):
+    def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
 
         def validator(data):
@@ -245,7 +187,6 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
     python_request_number = 0
 
-    @bug(context.library >= "php@0.95.0", reason="Since the unified package (ddtracer + appsec) ")
     @bug(context.library == "python@1.9.2")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(
@@ -256,6 +197,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
@@ -336,6 +279,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        self.assert_client_fields()
+
         def validate(data):
             """Helper to validate config request content"""
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
@@ -370,6 +315,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        self.assert_client_fields()
+
         def validate(data):
             """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
@@ -395,6 +342,8 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
@@ -422,6 +371,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        self.assert_client_fields()
+
         def validate(data):
             """Helper to validate config request content"""
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
@@ -448,6 +399,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""

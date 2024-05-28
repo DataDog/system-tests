@@ -74,7 +74,7 @@ Tests can be aborted using CTRL-C but note that containers maybe still be runnin
 
 For running the Go tests, see the README in apps/golang.
 
-To test unmerged PRs locally, run the following in the apps/golang directory:
+To test unmerged PRs locally, run the following in the utils/build/docker/golang/parametric directory:
 
 ```sh
 go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
@@ -99,6 +99,8 @@ cd dd-trace-java
 2. Copy both artifacts into the `system-tests/binaries/` folder:
   * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
   * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
+
+Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
 
 3. Run Parametric tests from the `system-tests/parametric` folder:
 

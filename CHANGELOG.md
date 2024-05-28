@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+
+### 2024-03 (85 PR merged)
+
+* 2024-03-29 [Fix test that triggers false XPASS](https://github.com/DataDog/system-tests/pull/2281) by @cbeauchesne
+* 2024-03-27 [Add more ruby variants](https://github.com/DataDog/system-tests/pull/2246) by @lloeki
+* 2024-03-20 [New Ruby variant : Rails 7.1](https://github.com/DataDog/system-tests/pull/2242) by @lloeki
+* 2024-03-18 [Add OTel Interoperability System tests](https://github.com/DataDog/system-tests/pull/2128) by @PROFeNoM
+
+
+### 2024-02 (73 PR merged)
+
+* 2024-02-15 [Allow the main workflow to be called in a distant workflow](https://github.com/DataDog/system-tests/pull/2150) by @cbeauchesne
+* 2024-02-16 [Conti/add aws kinesis tests](https://github.com/DataDog/system-tests/pull/2143) by @wconti27
+* 2024-02-15 [feat: add aws sns context propagation and DSM tests](https://github.com/DataDog/system-tests/pull/2095) by @wconti27
+* 2024-02-01 [OnBoarding: new tests for args block list](https://github.com/DataDog/system-tests/pull/2089) by @robertomonteromiguel
+* 2024-02-01 [feat: add rabbitmq sample apps](https://github.com/DataDog/system-tests/pull/2066) by @wconti27
+* 2024-02-13 [Graphql blocking tests](https://github.com/DataDog/system-tests/pull/1879) by @uurien
+
+
+### 2024-01 (86 PR merged)
+
+* 2024-01-31 [Remove entirely the coverage decorator](https://github.com/DataDog/system-tests/pull/2091) by @cbeauchesne
+* 2024-01-29 [Check variant names in manifest validation](https://github.com/DataDog/system-tests/pull/2082) by @cbeauchesne
+* 2024-01-29 [Generate buddies on merge if needed](https://github.com/DataDog/system-tests/pull/2068) by @robertomonteromiguel
+* 2024-01-15 [Support for PHP unified client library](https://github.com/DataDog/system-tests/pull/1998) by @robertomonteromiguel
+* 2024-01-08 Parametric: test "dev" version of clienty libraries by @robertomonteromiguel
+* 2024-01-04 [parametric: test C++ client library](https://github.com/DataDog/system-tests/pull/1942) by @dmehala
+
 ### December 2023 (75 PR merged)
 
 * 2023-12-26 [Remove legacy coverage decorator](https://github.com/DataDog/system-tests/pull/1961) by @cbeauchesne (Testing coverage is not dependant of system-tests only, so it's now declared directly in Feature Parity Dashbaord)

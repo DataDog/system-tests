@@ -14,9 +14,10 @@ from docker.models.containers import Container
 import pytest
 import requests
 
-from utils._context.library_version import LibraryVersion, Version
+from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils import interfaces
+from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 
 
 @lru_cache
@@ -51,6 +52,15 @@ def create_network():
 
     logger.debug(f"Create network {_NETWORK_NAME}")
     _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+
+
+_VOLUME_INJECTOR_NAME = "volume-inject"
+
+
+def create_inject_volume():
+
+    logger.debug(f"Create volume {_VOLUME_INJECTOR_NAME}")
+    _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
 
 class TestedContainer:
@@ -150,9 +160,19 @@ class TestedContainer:
     def warmup(self):
         """ if some stuff must be done after healthcheck """
 
+    def post_start(self):
+        """ if some stuff must be done after the container is started """
+
+    @property
+    def healthcheck_log_file(self):
+        return f"{self.log_folder_path}/healthcheck.log"
+
     def wait_for_health(self):
         if self.healthcheck:
-            self.execute_command(**self.healthcheck)
+            result = self.execute_command(**self.healthcheck)
+
+            with open(self.healthcheck_log_file, "w", encoding="utf-8") as f:
+                f.write(result.output.decode("utf-8"))
 
     def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
         """
@@ -182,7 +202,7 @@ class TestedContainer:
                 logger.debug(f"Try #{i}: {result}")
 
                 if result.exit_code == 0:
-                    return
+                    return result
 
             except APIError as e:
                 logger.exception(f"Try #{i} failed")
@@ -215,18 +235,20 @@ class TestedContainer:
     def stop(self):
         self._container.stop()
 
+    def collect_logs(self):
+        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
+            f.write(self._container.logs(stdout=True, stderr=False))
+
+        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
+            f.write(self._container.logs(stdout=False, stderr=True))
+
     def remove(self):
         logger.debug(f"Removing container {self.name}")
 
         if self._container:
             try:
                 # collect logs before removing
-                with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-                    f.write(self._container.logs(stdout=True, stderr=False))
-
-                with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-                    f.write(self._container.logs(stdout=False, stderr=True))
-
+                self.collect_logs()
                 self._container.remove(force=True)
             except:
                 # Sometimes, the container does not exists.
@@ -372,25 +394,14 @@ class AgentContainer(TestedContainer):
 
         self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-        if not replay:
-            logger.debug("Get agent version from agent container")
+    def post_start(self):
+        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
 
-            agent_version = self._container = _get_client().containers.run(
-                image=self.image.name, auto_remove=True, command="/opt/datadog-agent/bin/agent/agent version"
-            )
+        self.agent_version = LibraryVersion("agent", data["version"]).version
 
-            agent_version = agent_version.decode("ascii")
-
-            with open(f"{self.host_log_folder}/agent_version", mode="w", encoding="utf-8") as f:
-                f.write(agent_version)
-        else:
-            with open(f"{self.host_log_folder}/agent_version", mode="r", encoding="utf-8") as f:
-                agent_version = f.read()
-
-        logger.info(f"Agent version is {agent_version}")
-
-        if agent_version:
-            self.agent_version = Version(agent_version, "agent")
+        logger.stdout(f"Agent: {self.agent_version}")
+        logger.stdout(f"Backend: {self.dd_site}")
 
     @property
     def dd_site(self):
@@ -437,6 +448,8 @@ class WeblogContainer(TestedContainer):
 
         from utils import weblog
 
+        self.port = weblog.port
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
@@ -446,8 +459,8 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail --silent --show-error localhost:{weblog.port}", "retries": 60},
-            ports={"7777/tcp": weblog.port, "7778/tcp": weblog._grpc_port},
+            healthcheck={"test": f"curl --fail --silent --show-error localhost:{self.port}", "retries": 60},
+            ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
         )
 
@@ -481,10 +494,10 @@ class WeblogContainer(TestedContainer):
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
         if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
-            self.libddwaf_version = Version(libddwaf_version, "libddwaf")
+            self.libddwaf_version = LibraryVersion("libddwaf", libddwaf_version).version
 
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = Version(appsec_rules_version, "appsec_rules")
+        self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
 
         if self.library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
@@ -508,9 +521,26 @@ class WeblogContainer(TestedContainer):
             self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
         if self.weblog_variant == "python3.12":
-            self.environment["DD_IAST_ENABLED"] = "false"  # IAST is not working as now on python3.12
             if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
                 self.environment["DD_PROFILING_ENABLED"] = "false"
+
+    def post_start(self):
+        from utils import weblog
+
+        logger.debug(f"Docker host is {weblog.domain}")
+
+        logger.stdout(f"Library: {self.library}")
+
+        if self.libddwaf_version:
+            logger.stdout(f"libddwaf: {self.libddwaf_version}")
+
+        if self.appsec_rules_file:
+            logger.stdout(f"AppSec rules version: {self.appsec_rules_version}")
+
+        if self.uds_mode:
+            logger.stdout(f"UDS socket: {self.uds_socket}")
+
+        logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
     @property
     def library(self):
@@ -529,6 +559,10 @@ class WeblogContainer(TestedContainer):
     @property
     def telemetry_heartbeat_interval(self):
         return 2
+
+    def request(self, method, url, **kwargs):
+        """ perform an HTTP request on the weblog, must NOT be used for tests """
+        return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)
 
 
 class PostgresContainer(SqlDbTestedContainer):
@@ -550,7 +584,7 @@ class PostgresContainer(SqlDbTestedContainer):
             db_user="system_tests_user",
             db_password="system_tests",
             db_host="postgres",
-            db_instance="system_tests",
+            db_instance="system_tests_dbname",
         )
 
 
@@ -631,6 +665,7 @@ class RabbitMqContainer(TestedContainer):
             name="rabbitmq",
             host_log_folder=host_log_folder,
             allow_old_container=True,
+            ports={"5672": ("127.0.0.1", 5672)},
         )
 
 
@@ -641,7 +676,7 @@ class MySqlContainer(SqlDbTestedContainer):
             name="mysqldb",
             command="--default-authentication-plugin=mysql_native_password",
             environment={
-                "MYSQL_DATABASE": "world",
+                "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",
                 "MYSQL_ROOT_PASSWORD": "mysqldb",
                 "MYSQL_PASSWORD": "mysqldb",
@@ -653,7 +688,7 @@ class MySqlContainer(SqlDbTestedContainer):
             db_user="mysqldb",
             db_password="mysqldb",
             db_host="mysqldb",
-            db_instance="world",
+            db_instance="mysql_dbname",
         )
 
 
@@ -747,3 +782,82 @@ class ElasticMQContainer(TestedContainer):
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
             allow_old_container=True,
         )
+
+
+class LocalstackContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="localstack/localstack:3.1.0",
+            name="localstack-main",
+            environment={
+                "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
+                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",
+                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid",
+                "AWS_DEFAULT_REGION": "us-east-1",
+                "FORCE_NONINTERACTIVE": "true",
+                "START_WEB": "0",
+                "DOCKER_HOST": "unix:///var/run/docker.sock",
+            },
+            host_log_folder=host_log_folder,
+            ports={"4566": ("127.0.0.1", 4566)},
+            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+        )
+
+
+class APMTestAgentContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            name="ddapm-test-agent",
+            host_log_folder=host_log_folder,
+            environment={"SNAPSHOT_CI": "0",},
+            ports={"8126": ("127.0.0.1", 8126)},
+            allow_old_container=True,
+        )
+
+
+class MountInjectionVolume(TestedContainer):
+    def __init__(self, host_log_folder, name) -> None:
+        super().__init__(
+            image_name=None,
+            name=name,
+            host_log_folder=host_log_folder,
+            command="/bin/true",
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},},
+        )
+
+    def _lib_init_image(self, lib_init_image):
+        self.image = ImageInfo(lib_init_image)
+        if "dd-lib-js-init" in lib_init_image:
+            self.kwargs["volumes"] = {
+                _VOLUME_INJECTOR_NAME: {"bind": "/operator-build", "mode": "rw"},
+            }
+        if "dd-lib-dotnet-init" in lib_init_image:
+            self.kwargs["volumes"] = {
+                _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},
+            }
+
+    def remove(self):
+        super().remove()
+        _get_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
+
+
+class WeblogInjectionInitContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+
+        super().__init__(
+            image_name="docker.io/library/weblog-injection:latest",
+            name="weblog-injection-init",
+            host_log_folder=host_log_folder,
+            ports={"18080": ("127.0.0.1", 8080)},
+            allow_old_container=True,
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"},},
+        )
+
+    def set_environment_for_library(self, library):
+        lib_inject_props = {}
+        for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.library == "nodejs" else library.library]:
+            lib_inject_props[lang_env_vars["name"]] = lang_env_vars["value"]
+        lib_inject_props["DD_AGENT_HOST"] = "ddapm-test-agent"
+        lib_inject_props["DD_TRACE_DEBUG"] = "true"
+        self.environment = lib_inject_props

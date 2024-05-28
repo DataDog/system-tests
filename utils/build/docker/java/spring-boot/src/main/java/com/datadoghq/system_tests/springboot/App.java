@@ -1,6 +1,9 @@
 package com.datadoghq.system_tests.springboot;
 
+import com.datadoghq.system_tests.springboot.aws.KinesisConnector;
+import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
+import com.datadoghq.system_tests.springboot.Carrier;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
@@ -8,18 +11,22 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.trace.api.Trace;
+import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.context.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -56,6 +63,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
 import java.util.Scanner;
+import java.util.LinkedHashMap;
 
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -73,6 +81,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
@@ -87,6 +97,7 @@ public class App {
 
     CassandraConnector cassandra;
     MongoClient mongoClient;
+    int PRODUCE_CONSUME_THREAD_TIMEOUT = 5000;
 
     @RequestMapping("/")
     String home(HttpServletResponse response) {
@@ -293,7 +304,7 @@ public class App {
     ResponseEntity<String> kafkaProduce(@RequestParam(required = true) String topic) {
         KafkaConnector kafka = new KafkaConnector(topic);
         try {
-            kafka.produceMessageWithoutNewThread("DistributedTracing");
+            kafka.produceMessageWithoutNewThread("DistributedTracing from Java");
         } catch (Exception e) {
             System.out.println("[kafka] Failed to start producing message...");
             e.printStackTrace();
@@ -326,7 +337,7 @@ public class App {
     ResponseEntity<String> sqsProduce(@RequestParam(required = true) String queue) {
         SqsConnector sqs = new SqsConnector(queue);
         try {
-            sqs.produceMessageWithoutNewThread("DistributedTracing SQS");
+            sqs.produceMessageWithoutNewThread("DistributedTracing SQS from Java");
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -341,7 +352,7 @@ public class App {
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread();
+            consumed = sqs.consumeMessageWithoutNewThread("SQS");
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start consuming message...");
@@ -350,11 +361,70 @@ public class App {
         }
     }
 
+    @RequestMapping("/sns/produce")
+    ResponseEntity<String> snsProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String topic) {
+        SnsConnector sns = new SnsConnector(topic);
+        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        try {
+            sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS from Java", sqs);
+        } catch (Exception e) {
+            System.out.println("[SNS->SQS] Failed to start producing message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[SNS->SQS] failed to start producing messages", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("produce ok", HttpStatus.OK);
+    }
+
+    @RequestMapping("/sns/consume")
+    ResponseEntity<String> snsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        if (timeout == null) timeout = 60;
+        boolean consumed = false;
+        try {
+            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS");
+            return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println("[SNS->SQS] Failed to start consuming message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[SNS->SQS] failed to start consuming messages", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping("/kinesis/produce")
+    ResponseEntity<String> kinesisProduce(@RequestParam(required = true) String stream) {
+        KinesisConnector kinesis = new KinesisConnector(stream);
+        try {
+            String jsonString = "{\"message\":\"DistributedTracing Kinesis from Java\"}";
+            kinesis.produceMessageWithoutNewThread(jsonString);
+        } catch (Exception e) {
+            System.out.println("[Kinesis] Failed to start producing message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[Kinesis] failed to start producing messages", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("produce ok", HttpStatus.OK);
+    }
+
+    @RequestMapping("/kinesis/consume")
+    ResponseEntity<String> kinesisConsume(@RequestParam(required = true) String stream, @RequestParam(required = false) Integer timeout) {
+        KinesisConnector kinesis = new KinesisConnector(stream);
+        if (timeout == null) timeout = 60;
+        boolean consumed = false;
+        try {
+            consumed = kinesis.consumeMessageWithoutNewThread(timeout);
+            return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println("[Kinesis] Failed to start consuming message...");
+            e.printStackTrace();
+            return new ResponseEntity<>("[Kinesis] failed to start consuming messages", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @RequestMapping("/rabbitmq/produce")
     ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         try {
-            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test", queue, exchange);
+            Thread produceThread = rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
+            produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start producing message...");
             e.printStackTrace();
@@ -383,34 +453,46 @@ public class App {
     }
 
     @RequestMapping("/dsm")
-    String publishToKafka(@RequestParam(required = true, name = "integration") String integration) {
+    String publishToKafka(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = false, name = "topic") String topic,
+        @RequestParam(required = false, name = "queue") String queue,
+        @RequestParam(required = false, name = "stream") String stream,
+        @RequestParam(required = false, name = "routing_key") String routing_key,
+        @RequestParam(required = false, name = "exchange") String exchange,
+        @RequestParam(required = false, name = "group") String group
+    ) {
         if ("kafka".equals(integration)) {
-            KafkaConnector kafka = new KafkaConnector();
+            KafkaConnector kafka = new KafkaConnector(queue);
             try {
-                kafka.startProducingMessage("hello world!");
+                Thread produceThread = kafka.startProducingMessage("hello world!");
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                kafka.startConsumingMessages("");
+                Thread consumeThread = kafka.startConsumingMessages("");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
                 return "failed to start consuming message";
             }
         } else if ("rabbitmq".equals(integration)) {
-            RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange();
+            RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange(queue, exchange, routing_key);
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start consuming message...");
                 e.printStackTrace();
@@ -419,14 +501,16 @@ public class App {
         } else if ("rabbitmq_topic_exchange".equals(integration)) {
             RabbitmqConnectorForTopicExchange rabbitmq = new RabbitmqConnectorForTopicExchange();
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_topic] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_topic] Failed to start consuming message...");
                 e.printStackTrace();
@@ -435,38 +519,120 @@ public class App {
         } else if ("rabbitmq_fanout_exchange".equals(integration)) {
             RabbitmqConnectorForFanoutExchange rabbitmq = new RabbitmqConnectorForFanoutExchange();
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_fanout] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_fanout] Failed to start consuming message...");
                 e.printStackTrace();
                 return "failed to start consuming message";
             }
         } else if ("sqs".equals(integration)) {
-            SqsConnector sqs = new SqsConnector("dsm-system-tests-queue-java");
+            SqsConnector sqs = new SqsConnector(queue);
             try {
-                sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                Thread produceThread = sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start producing message...");
                 e.printStackTrace();
                 return "[SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages();
+                Thread consumeThread = sqs.startConsumingMessages("SQS");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
                 e.printStackTrace();
                 return "[SQS] failed to start consuming message";
             }
+        } else if ("sns".equals(integration)) {
+            SnsConnector sns = new SnsConnector(topic);
+            SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+            try {
+                Thread produceThread = sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
+            } catch (Exception e) {
+                System.out.println("[SNS->SQS] Failed to start producing message...");
+                e.printStackTrace();
+                return "[SNS->SQS] failed to start producing message";
+            }
+            try {
+                Thread consumeThread = sqs.startConsumingMessages("SNS->SQS");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
+            } catch (Exception e) {
+                System.out.println("[SNS->SQS] Failed to start consuming message...");
+                e.printStackTrace();
+                return "[SNS->SQS] failed to start consuming message";
+            }
+        } else if ("kinesis".equals(integration)) {
+            KinesisConnector kinesis = new KinesisConnector(stream);
+            try {
+                String jsonString = "{\"message\":\"DSM Test Kinesis from Java\"}";
+                kinesis.produceMessageWithoutNewThread(jsonString);
+            } catch (Exception e) {
+                System.out.println("[Kinesis] Failed to start producing message...");
+                e.printStackTrace();
+                return "[Kinesis] failed to start producing message";
+            }
+            try {
+                kinesis.consumeMessageWithoutNewThread(60);
+            } catch (Exception e) {
+                System.out.println("[Kinesis] Failed to start consuming message...");
+                e.printStackTrace();
+                return "[Kinesis] failed to start consuming message";
+            }
         } else {
             return "unknown integration: " + integration;
         }
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/inject")
+    String dsmInject(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = true, name = "topic") String topic
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        Span span = GlobalTracer.get().buildSpan("kafka.produce").ignoreActiveSpan().start();
+        GlobalTracer.get().activateSpan(span);
+
+        Map<String, Object> headers = new HashMap<String, Object>();
+        Carrier headersAdapter = new Carrier(headers);
+
+        DataStreamsCheckpointer.get().setProduceCheckpoint(integration, topic, headersAdapter);
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(headers);
+
+        span.finish();
+
+        return jsonString;
+    }
+
+    @RequestMapping("/dsm/extract")
+    String dsmExtract(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = true, name = "topic") String topic,
+        @RequestParam(required = true, name = "ctx") String ctx
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        Span span = GlobalTracer.get().buildSpan("kafka.consume").ignoreActiveSpan().start();
+        GlobalTracer.get().activateSpan(span);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> headers = mapper.readValue(ctx, new TypeReference<Map<String, Object>>(){});
+        Carrier headersAdapter = new Carrier(headers);
+
+        DataStreamsCheckpointer.get().setConsumeCheckpoint(integration, topic, headersAdapter);
+
+        span.finish();
+
         return "ok";
     }
 

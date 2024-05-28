@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, bug, missing_feature, features
-from .._test_iast_fixtures import BaseSourceTest
+from ..utils import BaseSourceTest
 
 
 @features.iast_source_header_value
@@ -18,10 +18,6 @@ class TestHeaderValue(BaseSourceTest):
     requests_kwargs = [{"method": "GET", "headers": {"table": "user"}}]
     source_type = "http.request.header"
     source_value = "user"
-
-    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    def test_source_reported(self):
-        super().test_source_reported()
 
     @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(

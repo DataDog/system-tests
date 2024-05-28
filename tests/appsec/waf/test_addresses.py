@@ -1,6 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+import json
 from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
 
 
@@ -96,16 +97,20 @@ class Test_Headers:
     def setup_specific_key2(self):
         self.r_sk_4 = weblog.get("/waf/", headers={"X_Filename": "routing.yml"})
 
-    @missing_feature(library="python")
     @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
         """attacks on specific header X_Filename, and report it"""
-
-        interfaces.library.assert_waf_attack(
-            self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
-        )
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
+            )
+        except ValueError:
+            # also accept report on x-filename
+            interfaces.library.assert_waf_attack(
+                self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
+            )
 
     def setup_specific_key3(self):
         self.r_sk_5 = weblog.get("/waf/", headers={"referer": "<script >"})
@@ -236,7 +241,7 @@ class Test_BodyRaw:
     @missing_feature(reason="no rule with body raw yet")
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
-        interfaces.library.assert_waf_attack(self.r, address="server.request.body")
+        interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
 
 
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
@@ -319,7 +324,7 @@ class Test_BodyXml:
         self.r_attr_1 = self.weblog_post("/waf", data='<string attack="var_dump ()" />')
         self.r_attr_2 = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
 
-    @bug(context.weblog_variant == "spring-boot-wildfly")
+    @bug(context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"))
     def test_xml_attr_value(self):
         interfaces.library.assert_waf_attack(self.r_attr_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_attr_2, address="server.request.body", value=self.ATTACK)
@@ -328,7 +333,7 @@ class Test_BodyXml:
         self.r_content_1 = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         self.r_content_2 = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
 
-    @bug(context.weblog_variant == "spring-boot-wildfly")
+    @bug(context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"))
     def test_xml_content(self):
         interfaces.library.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
@@ -388,15 +393,17 @@ class Test_gRPC:
 
     def setup_basic(self):
         self.requests = [
-            weblog.grpc('" OR TRUE --'),
-            weblog.grpc("SELECT * FROM users WHERE name='com.sun.org.apache' UNION SELECT creditcard FROM users"),
-            weblog.grpc("SELECT * FROM users WHERE id=1 UNION SELECT creditcard FROM users"),
+            weblog.grpc("SELECT * FROM products WHERE id=1-SLEEP(15)"),
+            weblog.grpc("SELECT * FROM products WHERE id=1; WAITFOR DELAY '00:00:15'"),
         ]
 
     def test_basic(self):
         """AppSec detects some basic attack"""
         for r in self.requests:
-            interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+            try:
+                interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+            except:
+                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected")
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
@@ -409,13 +416,96 @@ class Test_FullGrpc:
         assert False, "Need to write a test"
 
 
-@features.appsec_request_blocking
+@scenarios.graphql_appsec
 @features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""
 
-    def test_main(self):
-        assert False, "Need to write a test"
+    def setup_request_no_attack(self):
+        """Set up an innofensive request with no attacks"""
+
+        self.r_no_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "foo"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_no_attack(self):
+        """Verify that no AppSec event was reported"""
+
+        assert self.r_no_attack.status_code == 200  # There is no attack here!
+        interfaces.library.assert_no_appsec_event(self.r_no_attack)
+
+    def base_test_request_monitor_attack(self, resolversKeyPath, allResolversKeyPath):
+        """Verify that the request triggered a directive attack event"""
+
+        assert self.r_attack.status_code == 200  # This attack is never blocking
+
+        failures = []
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack, rule="monitor-resolvers", key_path=resolversKeyPath, value="testattack", full_trace=True
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        try:
+            interfaces.library.assert_waf_attack(
+                self.r_attack,
+                rule="monitor-all-resolvers",
+                key_path=allResolversKeyPath,
+                value="testattack",
+                full_trace=True,
+            )
+        except ValueError as e:
+            failures.append(e)
+
+        # At least one of the two assertions should have passed...
+        if len(failures) >= 2:
+            raise ValueError(f"At least one rule should have triggered - {failures[0]}- {failures[1]}")
+
+    def setup_request_monitor_attack(self):
+        """Set up a request with a resolver-targeted attack"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": "query getUserByName($name: String) { userByName(name: $name) { id name }}",
+                    "variables": {"name": "testattack"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_monitor_attack(self):
+        self.base_test_request_monitor_attack(["userByName", "name"], ["userByName", "0", "name"])
+
+    def setup_request_monitor_attack_directive(self):
+        """Set up a request with a directive-targeted attack"""
+
+        self.r_attack = weblog.post(
+            "/graphql",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "query": 'query getUserByName($name: String) { userByName(name: $name) @case(format: "testattack") { id name }}',
+                    "variables": {"name": "test"},
+                    "operationName": "getUserByName",
+                }
+            ),
+        )
+
+    def test_request_monitor_attack_directive(self):
+        self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
 
 
 @features.appsec_request_blocking

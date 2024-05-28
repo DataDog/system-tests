@@ -2,6 +2,8 @@
 
 A weblog is a web app that system uses to test the library. It mimics what would be a real instrumented HTTP application. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different endpoints.
 
+> Note: a separate document describes [GraphQL Weblog](./graphql_weblog.md).
+
 ## Disclaimer
 
 This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contains mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
@@ -162,7 +164,7 @@ Then the response should contain json with the format:
 where payload is the parsed body of the request
 
 
-Make sure to especify the Content-Type header as `application/json`
+Make sure to specify the Content-Type header as `application/json`
 
 #### Example
 
@@ -403,6 +405,9 @@ The following query parameters are required for each endpoint:
 - `arg`: This is a parameter that can take any string as an argument.
 - `intArg`: This is a parameter that can take any integer as an argument.
 
+#### GET /debugger/pii
+This endpoint will be used to validate pii redaction feature.
+
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
 
@@ -415,3 +420,76 @@ It supports the following body fields:
 - `options`: a record with the following options:
   - `shell`: boolean in order to instruct if the program should be executed within a shell.
 - `args`: arguments passed to the program.
+
+### GET /flush
+This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.
+
+### \[GET,POST\] /rasp/lfi
+
+This endpoint is used to test for local file inclusion / path traversal attacks, consequently it must perform an operation on a file or directory, e.g. `open` with a relative path. The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `file`: containing the string to inject on the file operation.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+open($file);
+```
+
+Examples:
+- `GET`: `/rasp/lfi?file=../etc/passwd`
+- `POST`: `{"file": "../etc/passwd"}`
+
+### \[GET,POST\] /rasp/ssrf
+
+This endpoint is used to test for server side request forgery attacks, consequently it must perform a network operation, e.g. an HTTP request. The chosen operation must be partially injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `domain`: containing the string to partially inject on the network operation.
+
+The endpoint should support the following content types:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The url used in the network operation should be similar to the following:
+```
+http://$domain
+```
+
+Examples:
+- `GET`: `/rasp/ssrf?domain=169.254.169.254`
+- `POST`: `{"domain": "169.254.169.254"}`
+
+### \[GET,POST\] /rasp/sqli
+
+This endpoint is used to test for SQL injection attacks, consequently it must perform a database query. The chosen operation must be partially injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `user_id`: containing the string to partially inject on the SQL query.
+
+The endpoint should support the following content types:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The statement used in the query should be similar to the following:
+
+```sql
+SELECT * FROM users WHERE id='$user_id';
+```
+
+Examples:
+- `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
+- `POST`: `{"user_id": "' OR 1 = 1 --"}`
+
+### GET /dsm/inject
+This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
+
+### GET /dsm/extract
+This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.

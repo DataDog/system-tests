@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, bug, missing_feature, features
-from .._test_iast_fixtures import BaseSourceTest
+from ..utils import BaseSourceTest
 
 
 @features.iast_source_cookie_value
@@ -15,10 +15,6 @@ class TestCookieValue(BaseSourceTest):
     source_type = "http.request.cookie.value"
     source_names = ["table"]
     source_value = "user"
-
-    @bug(context.weblog_variant == "jersey-grizzly2", reason="name field of source not set")
-    def test_source_reported(self):
-        super().test_source_reported()
 
     @missing_feature(library="dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.17.0", reason="Metrics not implemented")

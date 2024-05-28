@@ -46,7 +46,6 @@ JSON_CONTENT_TYPES = {
 
 @scenarios.appsec_blocking
 @features.appsec_blocking_action
-@flaky(context.library > "php@0.96.0", reason="APPSEC-51448")
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
 
@@ -55,7 +54,6 @@ class Test_Blocking:
 
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "python@1.16.1", reason="Bug, minify and remove new line characters")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_no_accept(self):
@@ -93,7 +91,6 @@ class Test_Blocking:
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
@@ -107,7 +104,6 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
         )
 
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
@@ -141,7 +137,6 @@ class Test_Blocking:
             },
         )
 
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
@@ -162,7 +157,6 @@ class Test_Blocking:
     @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
     @missing_feature(context.library == "ruby", reason="Support for quality not implemented")
-    @bug(context.weblog_variant == "gin", reason="Block message is prepended")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
@@ -202,6 +196,23 @@ class Test_Blocking:
         assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
 
 
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
+@scenarios.appsec_blocking
+@features.appsec_blocking_action
+class Test_Blocking_strip_response_headers:
+    def setup_strip_response_headers(self):
+        self.r_srh = weblog.get(f"/tag_value/anything/200?x-secret-header=123&content-language=krypton")
+
+    def test_strip_response_headers(self):
+        """Test if headers are stripped from the blocking response"""
+        assert self.r_srh.status_code == 403
+        interfaces.library.assert_waf_attack(self.r_srh, rule="tst-037-009")
+        # x-secret-header is set by the app so is should be not be present in the response
+        assert "x-secret-header" not in self.r_srh.headers
+        # content-length is set by the blocking response so it should be present
+        assert "content-length" in self.r_srh.headers
+
+
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
 @scenarios.appsec_blocking
 @features.appsec_blocking_action
@@ -231,7 +242,6 @@ class Test_CustomBlockingResponse:
         context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
         reason="Do not check the configured redirect status code",
     )
-    @bug(context.library == "golang", reason="Do not check the configured redirect status code")
     def test_custom_redirect_wrong_status_code(self):
         """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
         assert self.r_cr.status_code == 303
@@ -241,7 +251,6 @@ class Test_CustomBlockingResponse:
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False)
 
     @bug(context.library == "java", reason="Do not check the configured redirect location value")
-    @bug(context.library == "golang", reason="Do not check the configured redirect location value")
     def test_custom_redirect_missing_location(self):
         """Block with an default page because location parameter is missing from redirect request configuration"""
         assert self.r_cr.status_code == 403

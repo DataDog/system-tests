@@ -1,0 +1,144 @@
+name: system-tests
+on:
+  workflow_call:
+    inputs:
+      library:
+        description: "Library to test"
+        required: true
+        type: string
+      scenarios: 
+        description: "Comma-separated list scenarios to run"
+        default: DEFAULT
+        required: false
+        type: string
+      scenarios_groups: 
+        description: "Comma-separated list of scenarios groups to run"
+        default: ''
+        required: false
+        type: string
+      binaries_artifact:
+        description: "Artifact name containing the binaries to test"
+        default: ''
+        required: false
+        type: string
+      ci_environment:
+        description: "Which CI environment is running the tests, used for FPD"
+        default: 'custom'
+        required: false
+        type: string
+      build_python_base_images:
+        description: "Shall we build python base images for tests on python tracer"
+        default: false
+        required: false
+        type: boolean
+      build_buddies_images:
+        description: "Shall we build buddies images"
+        default: false
+        required: false
+        type: boolean
+      build_proxy_image:
+        description: "Shall we build proxy image"
+        default: false
+        required: false
+        type: boolean
+      build_lib_injection_app_images:
+          description: "Shall we build and push k8s lib injection weblog images"
+          default: false
+          required: false
+          type: boolean
+      push_to_feature_parity_dashbaord:
+        description: "Shall we push results to Feature Parity Dashbaord"
+        default: false
+        required: false
+        type: boolean
+
+jobs:
+  compute_parameters:
+    name: Get parameters
+    runs-on: ubuntu-latest
+    outputs:
+      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
+      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
+      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
+      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
+      libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
+      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
+      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
+      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    - name: main
+      id: main
+      run: |
+        source venv/bin/activate
+        python utils/scripts/get_github_parameters.py >> $GITHUB_OUTPUT
+      env:
+        PYTHONPATH: "."
+        SCENARIOS: ${{ inputs.scenarios }}
+        SCENARIOS_GROUPS: ${{ inputs.scenarios_groups }}
+        LIBRARY: ${{ inputs.library }}
+
+  parametric:
+    needs:
+      - compute_parameters
+    if: needs.compute_parameters.outputs.parametric_scenarios != '[]'
+    uses: ./.github/workflows/run-parametric.yml
+    secrets: inherit
+    with:
+      library: ${{ inputs.library }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
+
+  graphql:
+    needs:
+      - compute_parameters
+    if: needs.compute_parameters.outputs.graphql_scenarios != '[]'
+    uses: ./.github/workflows/run-graphql.yml
+    secrets: inherit
+    with:
+      library: ${{ inputs.library }}
+      weblogs: ${{ needs.compute_parameters.outputs.graphql_weblogs }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
+      build_proxy_image: ${{ inputs.build_proxy_image }}
+
+  lib-injection:
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.libinjection_scenarios != '[]' && inputs.binaries_artifact == '' }}
+    uses: ./.github/workflows/run-lib-injection.yml
+    secrets: inherit
+    with:
+      build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
+      library: ${{ inputs.library }}
+
+  end-to-end:
+    needs:
+      - compute_parameters
+    uses: ./.github/workflows/run-end-to-end.yml
+    secrets: inherit
+    with:
+      library: ${{ inputs.library }}
+      build_python_base_images: ${{ inputs.build_python_base_images }}
+      build_buddies_images: ${{ inputs.build_buddies_images }}
+      build_proxy_image: ${{ inputs.build_proxy_image }}
+      scenarios: ${{ needs.compute_parameters.outputs.endtoend_scenarios }}
+      weblogs: ${{ needs.compute_parameters.outputs.endtoend_weblogs }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ inputs.ci_environment }}
+
+  open-telemetry:
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.opentelemetry_scenarios != '[]' && inputs.binaries_artifact == '' }}
+    uses: ./.github/workflows/run-open-telemetry.yml
+    secrets: inherit
+    with:
+      library: ${{ inputs.library }}
+      weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
+      build_proxy_image: ${{ inputs.build_proxy_image }}

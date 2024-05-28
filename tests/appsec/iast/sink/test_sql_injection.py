@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, features, bug
-from .._test_iast_fixtures import BaseSinkTest
+from ..utils import BaseSinkTest
 
 
 @features.iast_sink_sql_injection
@@ -30,13 +30,16 @@ class TestSqlInjection(BaseSinkTest):
         super().test_insecure()
 
     @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
     @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+    @missing_feature(library="python", reason="Endpoint responds 500")
+    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 500")
+    def test_secure(self):
+        super().test_secure()

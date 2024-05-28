@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from utils import bug, scenarios  # noqa
+from utils import bug, scenarios, features  # noqa
 from utils.parametric.spec.trace import MANUAL_DROP_KEY  # noqa
 from utils.parametric.spec.trace import MANUAL_KEEP_KEY  # noqa
 from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE  # noqa
@@ -71,6 +71,7 @@ def _assert_sampling_tags(
 
 
 @scenarios.parametric
+@features.trace_sampling
 class Test_Sampling_Span_Tags:
     @bug(library="python", reason="Python sets dm tag on child span")
     @bug(library="nodejs", reason="NodeJS does not set priority on parent span")
@@ -131,7 +132,7 @@ class Test_Sampling_Span_Tags:
             ("-1", "-0"),
             1,
             agent_rate=(1, None),
-            description="When no envirionment variables related to sampling or "
+            description="When no environment variables related to sampling or "
             "rate limiting are set, decisionmaker "
             "should be either -1 or -0, priority should be 1, and the agent sample rate tag should "
             "be either set to the default rate or unset",

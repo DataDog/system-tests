@@ -6,8 +6,9 @@ import boto3
 
 def sqs_produce(queue, message):
     """
-        The goal of this function is to trigger sqs producer calls
+    The goal of this function is to trigger sqs producer calls
     """
+
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
 
@@ -29,7 +30,7 @@ def sqs_produce(queue, message):
 
 def sqs_consume(queue, timeout=60):
     """
-        The goal of this function is to trigger sqs consumer calls
+    The goal of this function is to trigger sqs consumer calls
     """
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
@@ -42,8 +43,10 @@ def sqs_consume(queue, timeout=60):
             response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
+                    logging.info("Consumed the following SQS message with params: ")
+                    logging.info(message)
                     consumed_message = message["Body"]
-                    logging.info("Consumed the following: " + consumed_message)
+                    logging.info("Consumed the following SQS message: " + consumed_message)
         except Exception as e:
             logging.warning(e)
         time.sleep(1)

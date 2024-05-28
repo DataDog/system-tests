@@ -1,3 +1,10 @@
+[project]
+name = 'system_tests'
+version = '0.0.1'
+
+[tool.setuptools]
+packages = ["tests", "utils"]
+
 [tool.black]
 line-length = 120
 exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps|parametric/protos/)"
@@ -25,23 +32,14 @@ markers =[
     "features: declare the feature id"
 ]
 
-python_files = "test_*.py _test_*.py"
+python_files = "test_*.py *utils.py"
 
 # migration tooling: list of folders where feature declarations are mandatory
 # once every test class got its feature declaration, we can remove this
 allow_no_feature_nodes = [
-    "tests/apm_tracing_e2e/test_otel.py",
     "tests/apm_tracing_e2e/test_single_span.py",
     "tests/apm_tracing_e2e/test_smoke.py",
     "tests/otel_tracing_e2e/test_e2e.py",
-    "tests/parametric/test_headers_none.py",
-    "tests/parametric/test_headers_precedence.py",
-    "tests/parametric/test_headers_tracecontext.py",
-    "tests/parametric/test_headers_tracestate_dd.py",
-    "tests/parametric/test_otel_span_methods.py",
-    "tests/parametric/test_otel_span_with_w3c.py",
-    "tests/parametric/test_otel_tracer.py",
-    "tests/parametric/test_sampling_span_tags.py",
     "tests/parametric/test_span_links.py",
     "tests/parametric/test_tracer.py",
     "tests/perfs/test_performances.py",  # exotic scenario, not really used

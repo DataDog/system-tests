@@ -25,8 +25,9 @@ apt-get install -y
 
 find /var/www/html -mindepth 1 -delete
 
-
+mkdir -p /var/www/html/rasp
 cp -rf /tmp/php/common/*.php /var/www/html/
+cp -rf /tmp/php/common/rasp/*.php /var/www/html/rasp/
 cp /tmp/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 cp /tmp/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 cp /tmp/php/php-fpm/entrypoint.sh /
@@ -57,3 +58,4 @@ rm -rf /etc/php/$PHP_VERSION/fpm/conf.d/98-ddappsec.ini
 
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >> /etc/php/$PHP_VERSION/fpm/php.ini
+echo "datadog.trace.sources_path = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/src" >> /etc/php/$PHP_VERSION/fpm/php.ini

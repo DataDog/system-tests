@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import json
+import os
 import time
 
 import pytest
@@ -31,25 +32,34 @@ def pytest_addoption(parser):
     parser.addoption(
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
+    parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+
     # Onboarding scenarios mandatory parameters
-    parser.addoption("--obd-weblog", type=str, action="store", help="Set onboarding weblog")
-    parser.addoption("--obd-library", type=str, action="store", help="Set onboarding library to test")
-    parser.addoption("--obd-env", type=str, action="store", help="Set onboarding environment")
+    parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
+    parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
+    parser.addoption("--vm-env", type=str, action="store", help="Set virtual machine environment")
+    parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
+    parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
+    parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
 
     # report data to feature parity dashboard
     parser.addoption(
-        "--report-run-url",
-        type=str,
-        action="store",
-        default="https://github.com/DataDog/system-tests",
-        help="URI of the run who produced the report",
+        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report",
     )
     parser.addoption(
-        "--report-environment", type=str, action="store", default="local", help="The environment the test is run under",
+        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under",
     )
 
 
 def pytest_configure(config):
+
+    # handle options that can be filled by environ
+    if not config.option.report_environment and "SYSTEM_TESTS_REPORT_ENVIRONMENT" in os.environ:
+        config.option.report_environment = os.environ["SYSTEM_TESTS_REPORT_ENVIRONMENT"]
+
+    if not config.option.report_run_url and "SYSTEM_TESTS_REPORT_RUN_URL" in os.environ:
+        config.option.report_run_url = os.environ["SYSTEM_TESTS_REPORT_RUN_URL"]
+
     # First of all, we must get the current scenario
     for name in dir(scenarios):
         if name.upper() == config.option.scenario:
@@ -188,16 +198,20 @@ def pytest_collection_modifyitems(session, config, items):
     selected = []
     deselected = []
 
+    declared_scenarios = {}
+
     for item in items:
         scenario_markers = list(item.iter_markers("scenario"))
         declared_scenario = scenario_markers[0].args[0] if len(scenario_markers) != 0 else "DEFAULT"
+
+        declared_scenarios[item.nodeid] = declared_scenario
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
             deselected.append(item)
             continue
 
-        if declared_scenario == context.scenario.name:
+        if context.scenario.is_part_of(declared_scenario):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
@@ -211,6 +225,10 @@ def pytest_collection_modifyitems(session, config, items):
             deselected.append(item)
     items[:] = selected
     config.hook.pytest_deselected(items=deselected)
+
+    if config.option.scenario_report:
+        with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
+            json.dump(declared_scenarios, f, indent=2)
 
 
 def pytest_deselected(items):
@@ -336,15 +354,15 @@ def pytest_sessionfinish(session, exitstatus):
             data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
         )
 
-        export_feature_parity_dashbaord(session, data)
+        export_feature_parity_dashboard(session, data)
 
 
-def export_feature_parity_dashbaord(session, data):
+def export_feature_parity_dashboard(session, data):
 
     result = {
-        "runUrl": session.config.option.report_run_url,
+        "runUrl": session.config.option.report_run_url or "https://github.com/DataDog/system-tests",
         "runDate": data["created"],
-        "environment": session.config.option.report_environment,
+        "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
         "language": context.scenario.library.library,
         "variant": context.scenario.weblog_variant,
@@ -354,7 +372,7 @@ def export_feature_parity_dashbaord(session, data):
         "scenario": context.scenario.name,
         "tests": [convert_test_to_feature_parity_model(test) for test in data["tests"]],
     }
-
+    context.scenario.customize_feature_parity_dashboard(result)
     with open(f"{context.scenario.host_log_folder}/feature_parity.json", "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
 

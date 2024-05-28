@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
+import string
 from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
@@ -21,8 +22,8 @@ class Test_TraceUniqueness:
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
+    @missing_feature(library="cpp")
     @bug(context.library <= "golang@1.37.0")
-    @bug(library="cpp")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 
@@ -139,10 +140,10 @@ class Test_LibraryHeaders:
         interfaces.library.validate(validator, success_by_default=True)
 
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="golang", reason="not implemented yet")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
@@ -158,8 +159,14 @@ class Test_LibraryHeaders:
             if "datadog-entity-id" not in request_headers:
                 raise ValueError(f"Datadog-Entity-ID header is missing in request {data['log_filename']}")
             val = request_headers["datadog-entity-id"]
-            assert val.startswith("in-"), f"Datadog-Entity-ID header value {val} doesn't start with 'in-'"
-            assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
+            if val.startswith("in-"):
+                assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
+            elif val.startswith("cid-"):
+                assert all(
+                    c in string.hexdigits for c in val[4:]
+                ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+            else:
+                raise ValueError(f"Datadog-Entity-ID header value {val} doesn't start with either 'in-' or 'cid-'")
 
         interfaces.library.validate(validator, success_by_default=True)
 
