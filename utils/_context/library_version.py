@@ -88,12 +88,6 @@ class LibraryVersion:
                 if version.startswith("* libddwaf"):
                     version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
 
-            elif library == "agent":
-                version = re.sub(r"(.*) - Commit.*", r"\1", version)
-                version = re.sub(r"(.*) - Meta.*", r"\1", version)
-                version = re.sub(r"Agent (.*)", r"\1", version)
-                version = re.sub("\x1b\\[\\d+m", "", version)  # remove color pattern from terminal
-
             elif library == "java":
                 version = version.split("~")[0]
                 version = version.replace("-SNAPSHOT", "")
