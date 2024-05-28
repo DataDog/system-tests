@@ -868,8 +868,8 @@ class Test_Otel_Span_Methods:
         assert root_span["error"] == 1
         error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
         assert error_message == "message override"
-        assert "error.type" not in root_span["meta"]
-        assert "error.stack" not in root_span["meta"]
+        assert "error.type" in root_span["meta"]
+        assert "error.stack" in root_span["meta"]
 
 
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
