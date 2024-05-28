@@ -809,6 +809,19 @@ class Test_Otel_Span_Methods:
         assert event3["attributes"].get("string_array")[0] == "5"
         assert event3["attributes"].get("string_array")[1] == "6"
 
+    def test_otel_record_exception_does_not_set_error(self, test_agent, test_library):
+        """
+            Tests the Span.RecordException API (requires Span.AddEvent API support)
+            and its serialization into the Datadog error tags and the 'events' tag
+        """
+        with test_library:
+            with test_library.otel_start_span("operation") as span:
+                span.record_exception(message="woof", attributes={"exception.stacktrace": "stacktrace string"})
+                span.end_span()
+
+        root_span = get_span(test_agent)
+        assert "error" not in root_span or root_span["error"] == 0
+
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
