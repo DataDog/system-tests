@@ -41,11 +41,6 @@ jobs:
         with:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
-
-      - name: Load C++ library binary (skipping release tests, use snapshot instead)
-        if: ${{ inputs.ci_environment == 'prod' && inputs.library == 'cpp'}}
-        run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
-
       - name: Run parametric tests (with timeout)
         if: ${{ inputs.library == 'java' }}
         run: |
