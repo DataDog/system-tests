@@ -368,6 +368,23 @@ def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
     return OtelAddEventReturn()
 
 
+class OtelRecordExceptionReturn(BaseModel):
+    pass
+
+
+class OtelRecordExceptionArgs(BaseModel):
+    span_id: int
+    message: str
+    attributes: dict
+
+
+@app.post("/trace/otel/record_exception")
+def otel_record_exception(args: OtelRecordExceptionArgs) -> OtelRecordExceptionReturn:
+    span = otel_spans[args.span_id]
+    span.record_exception(Exception(args.message), args.attributes)
+    return OtelRecordExceptionReturn()
+
+
 class OtelEndSpanArgs(BaseModel):
     id: int
     timestamp: int
