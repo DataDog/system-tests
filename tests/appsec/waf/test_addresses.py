@@ -514,3 +514,16 @@ class Test_Lambda:
 
     def test_main(self):
         assert False, "Need to write a test"
+
+
+@features.appsec_request_blocking
+@features.grpc_threats_management
+@scenarios.appsec_custom_rules
+class Test_GrpcServerMethod:
+    """Test as a custom rule until we have official rules for the address"""
+
+    def setup_grpc_server_method_rule(self):
+        self.request = weblog.grpc("Mr Bean")
+
+    def test_grpc_server_method_rule(self):
+        interfaces.library.assert_waf_attack(self.request, value="weblog.Weblog/Unary", address="grpc.server.method")

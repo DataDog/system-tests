@@ -119,6 +119,7 @@ tests/:
         Test_ClientIP: missing_feature
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Lambda: missing_feature
         Test_Method: missing_feature
         Test_PathParams:

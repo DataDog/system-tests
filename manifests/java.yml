@@ -425,6 +425,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Headers:
           '*': v0.87.0
           akka-http: v1.22.0

@@ -218,6 +218,7 @@ tests/:
         Test_GraphQL:
           '*': *ref_4_22_0
           nextjs: irrelevant # nextjs is not related with graphql
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature

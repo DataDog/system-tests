@@ -137,6 +137,7 @@ tests/:
           gin: v1.37.0
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Headers:
           '*': v1.34.0
           chi: v1.36.0

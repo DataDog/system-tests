@@ -3054,6 +3054,27 @@
           "operator": "match_regex"
         }
       ]
+    },
+    {
+      "id": "grpc_server_method",
+      "name": "grpc_server_method",
+      "tags": {
+        "type": "testing",
+        "category": "testing"
+      },
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "grpc.server.method"
+              }
+            ],
+            "regex": "^weblog"
+          }
+        }
+      ]
     }
   ]
 }
