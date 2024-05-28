@@ -885,6 +885,9 @@ def track_user_login_failure_event():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    from ddtrace.settings.asm import config as asm_config
+
+    mode = asm_config._automatic_login_events_mode
     username = flask_request.form.get("username")
     password = flask_request.form.get("password")
     sdk_event = flask_request.args.get("sdk_event")
@@ -907,15 +910,23 @@ def login():
     if success:
         login_user(user)
         appsec_trace_utils.track_user_login_success_event(
-            tracer, name=user.login, login=user.login, user_id=user.uid, email=user.email
+            tracer, name=user.login, login=user.login, user_id=user.uid, email=user.email, login_events_mode=mode
         )
         return Response("OK")
-    if user:
+    elif user:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=user.uid, name=user.login, login=user.login, email=user.email, exists=True
+            tracer,
+            user_id=user.uid,
+            name=user.login,
+            login=user.login,
+            email=user.email,
+            exists=True,
+            login_events_mode=mode,
         )
     else:
-        appsec_trace_utils.track_user_login_failure_event(tracer, user_id=username, exists=False)
+        appsec_trace_utils.track_user_login_failure_event(
+            tracer, user_id=username, exists=False, login_events_mode=mode
+        )
     return Response("login failure", status=401)
 
 
