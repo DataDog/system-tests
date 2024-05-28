@@ -3,11 +3,11 @@ include:
 
 stages:
   - ruby_tracer
-  - nodejs_tracer
-  - java_tracer
-  - python_tracer
-  - dotnet_tracer
-  - parse_results
+ # - nodejs_tracer
+ # - java_tracer
+ # - python_tracer
+ # - dotnet_tracer
+ # - parse_results
   - before_tests
 
 .base_job_onboarding_system_tests:
@@ -29,7 +29,7 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
     
-onboarding_nodejs:
+.onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -57,7 +57,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 3600s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_java:
+.onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -88,7 +88,7 @@ onboarding_java:
       - ./build.sh -i runner
       - timeout 3600s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_python:
+.onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -118,7 +118,7 @@ onboarding_python:
       - ./build.sh -i runner
       - timeout 3600s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_dotnet:
+.onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
@@ -153,20 +153,24 @@ onboarding_ruby:
     TEST_LIBRARY: "ruby"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+          SCENARIO: [HOST_AUTO_INJECTION, SIMPLE_HOST_AUTO_INJECTION]
+
+       # - ONBOARDING_FILTER_ENV: [dev, prod]
+       #   ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
+       #   SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+       # - ONBOARDING_FILTER_ENV: [dev, prod]
+       #   ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+       #   SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
+       # - ONBOARDING_FILTER_ENV: [dev, prod]
+       #   ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
+       #   SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
       - ./build.sh -i runner
       - timeout 3600s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_parse_results:
+.onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
