@@ -1,3 +1,4 @@
+import sys
 import socket
 import os
 import subprocess
@@ -46,13 +47,15 @@ class KrunVmCommander(Commander):
 
         logger.info("[KrumVm] MicroVM starting ...")
 
-        child = pexpect.spawn(f"krunvm start {kunvm_vm_name}")
+        child = pexpect.spawnu(f"krunvm start {kunvm_vm_name}")
         child.expect("root@Ubuntu_22_amd64:/#")
-        logger.info("[KrumVm] Before ls")
         child.sendline("ls")
-        child.logfile = logger.info
+        child.expect(".*")
+        logger.info(f"EL COMANDO {child.before} output {child.after}")
 
-        # logger.info(child.before )
+        # logger.info( child.read())
+        #   child.logfile = logger.info
+
         logger.info("[KrumVm] finn")
 
     def execute_local_command(self, local_command_id, local_command, env, last_task, logger_name):
