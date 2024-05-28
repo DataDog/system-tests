@@ -527,3 +527,11 @@ class Test_GrpcServerMethod:
 
     def test_grpc_server_method_rule(self):
         interfaces.library.assert_waf_attack(self.request, value="weblog.Weblog/Unary", address="grpc.server.method")
+
+    def setup_streaming_grpc_server_method_rule(self):
+        self.request_streaming = weblog.grpc("Mr Stream", streaming=True)
+
+    def test_streaming_grpc_server_method_rule(self):
+        interfaces.library.assert_waf_attack(
+            self.request_streaming, value="weblog.Weblog/ServerStream", address="grpc.server.method"
+        )
