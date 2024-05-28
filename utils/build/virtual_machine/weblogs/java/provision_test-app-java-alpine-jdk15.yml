@@ -22,7 +22,7 @@ weblog:
 
           - name: copy-docker-file
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/Dockerfile.alpine-jdk15
-            remote_path: Dockerfile
+            remote_path: Dockerfile.template
 
           - name: copy-entrypoint-docker
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/docker_entrypoint_docker.sh

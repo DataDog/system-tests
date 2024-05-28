@@ -47,8 +47,11 @@ onboarding_nodejs:
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
+          SCENARIO: [CONTAINER_NOT_SUPPORTED_AUTO_INJECTION]
          
   script:
       - ./build.sh -i runner
@@ -72,11 +75,15 @@ onboarding_java:
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-buildpack,test-app-java-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc,test-app-java-buildpack]
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-buildpack,test-app-java-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine-libgcc,test-app-java-buildpack]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-alpine,test-app-java-alpine-jdk15,test-app-java-alpine-jdk21]
+          SCENARIO: [CONTAINER_NOT_SUPPORTED_AUTO_INJECTION]
+          
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
@@ -99,8 +106,14 @@ onboarding_python:
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine-libgcc]
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python,test-app-python-container,test-app-python-alpine-libgcc]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python-alpine]
+          SCENARIO: [CONTAINER_NOT_SUPPORTED_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
@@ -151,7 +164,7 @@ onboarding_ruby:
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws 
 
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
@@ -192,3 +205,19 @@ check_merge_labels:
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+
+generate_system_tests_images:
+  image: registry.ddbuild.io/images/ci_docker_base
+  tags: ["runner:docker"]
+
+  stage: before_tests
+  allow_failure: true
+  before_script:
+    - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text) 
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text) 
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text) 
+  script:
+      - ./utils/build/build_tracer_buddies.sh --push
+      - ./utils/build/build_python_base_images.sh --push
+      - ./lib-injection/build/build_lib_injection_images.sh
+  when: manual

@@ -73,7 +73,7 @@ public class RabbitmqConnector {
 		};
 	}
 
-    public void startProducingMessage(String message) throws Exception {
+    public Thread startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("RabbitmqProduce") {
             public void run() {
                 try {
@@ -90,10 +90,11 @@ public class RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 
 
-    public void startProducingMessageWithQueue(String message, String queue, String exchange) throws Exception {
+    public Thread startProducingMessageWithQueue(String message, String queue, String exchange) throws Exception {
         Thread thread = new Thread("RabbitmqProduce") {
             public void run() {
                 try {
@@ -110,9 +111,10 @@ public class RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 
-    public void startConsumingMessages() throws Exception {
+    public Thread startConsumingMessages() throws Exception {
         System.out.println("[rabbitmq] Start consuming messages");
         Thread thread = new Thread("RabbitmqConsume") {
             public void run() {
@@ -133,6 +135,7 @@ public class RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 
     public CompletableFuture<Boolean> startConsumingMessagesWithQueue(String queue, String exchange, Integer timeout) throws Exception {

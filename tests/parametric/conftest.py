@@ -359,7 +359,7 @@ WORKDIR /usr/app
 COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
 RUN sh /binaries/install_ddtrace.sh
 RUN cd /binaries/dd-trace-cpp \
- && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=1 . \
+ && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DDD_TRACE_BUILD_TESTING=1 . \
  && cmake --build .build -j $(nproc) \
  && cmake --install .build --prefix /usr/app/
 
@@ -983,7 +983,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.15.0",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,

@@ -3,7 +3,17 @@
 const { join } = require('path')
 const { Client } = require('pg')
 const { readFileSync } = require('fs')
-const { createDBMSpy, getDbmQueryString } = require('./utils')
+let createDBMSpy = null
+let getDbmQueryString = null
+
+// load functions requiring dd-trace as long as this isn't an OTEL test
+if (!process.env.OTEL_INTEGRATIONS_TEST) {
+  try {
+    ({ createDBMSpy, getDbmQueryString } = require('./utils'))
+  } catch (error) {
+    // pass
+  }
+}
 
 async function launchQuery (query) {
   return new Promise(function (resolve, reject) {

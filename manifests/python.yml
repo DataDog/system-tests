@@ -61,7 +61,7 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection:
-            '*': v2.2.0
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
@@ -94,7 +94,7 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
-            '*': bug (v2.9.0dev disables this test due to a bug with mock package)
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
@@ -143,11 +143,11 @@ tests/:
             uwsgi-poc: v1.20.0
         test_cookie_name.py:
           TestCookieName:
-            '*': bug (v2.9.0dev disables Path Traversal vulnerability due to a bug with mock package)
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_cookie_value.py:
           TestCookieValue:
-            '*': bug (v2.9.0dev disables Path Traversal vulnerability due to a bug with mock package)
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_graphql_resolver.py:
           TestGraphqlResolverArgument: missing_feature
@@ -188,8 +188,8 @@ tests/:
         Test_Lfi_BodyXml: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
       test_span_tags.py:
-        Test_Mandatory_SpanTags: missing_feature
-        Test_Optional_SpanTags: missing_feature
+        Test_Mandatory_SpanTags: v2.10.0.dev
+        Test_Optional_SpanTags: v2.10.0.dev
       test_sqli.py: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0.dev
