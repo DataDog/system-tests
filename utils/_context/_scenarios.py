@@ -1914,6 +1914,11 @@ class scenarios:
     container_auto_injection = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
     )
+    container_not_supported_auto_injection = ContainerAutoInjectionScenario(
+        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario for not supported languages or containers",
+    )
+
     simple_container_auto_injection = ContainerAutoInjectionScenario(
         "SIMPLE_CONTAINER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
