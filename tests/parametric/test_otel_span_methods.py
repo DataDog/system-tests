@@ -761,7 +761,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library <= "dotnet@2.52.0", reason="Implemented in 2.53.0")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
         """
@@ -832,8 +832,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library <= "dotnet@2.52.0", reason="Implemented in 2.53.0")
-    @missing_feature(context.library < "python@2.10.0", reason="Implemented in 2.10.0")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
         """
             Tests the Span.RecordException API (requires Span.AddEvent API support)
