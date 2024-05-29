@@ -112,12 +112,33 @@ public abstract class ApmTestApiOtel : ApmTestApi
             }
         }
         
+        var linkList = new List<ActivityLink>(); // Assuming Link is a class representing the span link
+
+        if (requestBodyObject.TryGetValue("links", out var links))
+        {
+            foreach (var spanLink in (dynamic)links)
+            {
+                var spanLinkParent = spanLink["parent_id"];
+                var contextToLink = parentContext;
+
+                if (spanLinkParent != null)
+                {
+                    if (spanLinkParent > 0)
+                    {
+                        contextToLink = FindActivity(spanLinkParent).Context;
+                    }
+
+                    linkList.Add(new ActivityLink(contextToLink));
+                }
+            }
+        }
+
         var activity = ApmTestApiActivitySource.StartActivity(
             (string)requestBodyObject["name"],
             kind,
             parentContext,
             tags: null,
-            links: null,
+            links: linkList,
             startTime);
         
         if (activity is null)
