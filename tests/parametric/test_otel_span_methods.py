@@ -809,6 +809,11 @@ class Test_Otel_Span_Methods:
         assert event3["attributes"].get("string_array")[0] == "5"
         assert event3["attributes"].get("string_array")[1] == "6"
 
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     def test_otel_record_exception_does_not_set_error(self, test_agent, test_library):
         """
             Tests the Span.RecordException API (requires Span.AddEvent API support)
