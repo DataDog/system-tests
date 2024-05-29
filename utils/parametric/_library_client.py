@@ -605,9 +605,7 @@ class APMLibraryClientGRPC:
 
     def record_exception(self, span_id: int, message: str, attributes):
         self._client.OtelRecordException(
-            pb.OtelRecordExceptionArgs(
-                span_id=span_id, message=message, attributes=convert_to_proto(attributes)
-            )
+            pb.OtelRecordExceptionArgs(span_id=span_id, message=message, attributes=convert_to_proto(attributes))
         )
 
     def otel_is_recording(self, span_id: int) -> bool:

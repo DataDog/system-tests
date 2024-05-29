@@ -837,7 +837,9 @@ class Test_Otel_Span_Methods:
         with test_library:
             with test_library.otel_start_span("operation") as span:
                 span.set_status(OTEL_ERROR_CODE, "error_desc")
-                span.record_exception(message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"})
+                span.record_exception(
+                    message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
+                )
                 span.add_event(name="non_exception_event", attributes={"exception.stacktrace": "non-error"})
                 span.record_exception(message="woof3", attributes={"exception.message": "message override"})
                 span.end_span()
