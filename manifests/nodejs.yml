@@ -29,6 +29,7 @@ refs:
   - &ref_5_7_0 '>=5.7.0 || ^4.31.0 || ^3.52.0'
   - &ref_5_11_0 '>=5.11.0 || ^4.35.0 || ^3.56.0'
   - &ref_5_13_0 '>=5.13.0 || ^4.37.0 || ^3.58.0'
+  - &ref_5_15_0 '>=5.15.0 || ^4.39.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -235,7 +236,7 @@ tests/:
       test_blocking.py:
         Test_Blocking: *ref_3_19_0
         Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: v5.15.0
+        Test_CustomBlockingResponse: *ref_5_15_0
       test_custom_rules.py:
         Test_CustomRules: *ref_4_1_0
       test_exclusions.py:
