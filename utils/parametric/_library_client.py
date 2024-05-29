@@ -596,14 +596,14 @@ class APMLibraryClientGRPC:
     def otel_set_status(self, span_id: int, code: int, description: str):
         self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code, description=description))
 
-    def add_event(self, span_id: int, name: str, timestamp: int, attributes):
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes):
         self._client.OtelAddEvent(
             pb.OtelAddEventArgs(
                 span_id=span_id, name=name, timestamp=timestamp, attributes=convert_to_proto(attributes)
             )
         )
 
-    def record_exception(self, span_id: int, message: str, attributes):
+    def otel_record_exception(self, span_id: int, message: str, attributes):
         self._client.OtelRecordException(
             pb.OtelRecordExceptionArgs(span_id=span_id, message=message, attributes=convert_to_proto(attributes))
         )
