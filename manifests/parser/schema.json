@@ -2,6 +2,12 @@
   "type": "object",
 
   "properties": {
+    "refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "tests/": { "$ref": "#/$defs/folder_content" }
   },
 

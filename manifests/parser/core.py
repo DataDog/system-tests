@@ -29,6 +29,10 @@ def _load_file(file):
     except FileNotFoundError:
         return {}
 
+    # this field is only used for YAML templating
+    if "refs" in data:
+        del data["refs"]
+
     return {nodeid: value for nodeid, value in _flatten("", data) if value is not None}
 
 
@@ -97,6 +101,10 @@ def validate_manifest_files():
             try:
                 with open(f"manifests/{file}", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
+
+                # this field is only used for YAML templating
+                if "refs" in data:
+                    del data["refs"]
 
                 validate(data, schema)
                 assert_key_order(data)
