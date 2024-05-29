@@ -404,8 +404,8 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
+    @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_another_span(self, test_agent, test_library):
@@ -440,15 +440,11 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id") == root.get("trace_id")
         root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
         assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
-        assert link["attributes"].get("foo") == "bar"
-        assert link["attributes"].get("array.0") == "a"
-        assert link["attributes"].get("array.1") == "b"
-        assert link["attributes"].get("array.2") == "c"
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
+    @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
@@ -494,12 +490,11 @@ class Test_Otel_Span_Methods:
             assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
 
         assert len(link.get("attributes")) == 1
-        assert link["attributes"].get("foo") == "bar"
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
+    @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
@@ -541,13 +536,57 @@ class Test_Otel_Span_Methods:
         assert "s:2" in tracestateDD
         assert "t.dm:-4" in tracestateDD
 
-        assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
-        assert link.get("attributes") is None
+        assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET or TRACECONTEXT_FLAGS_SET
+        assert link.get("attributes") is None or len(link.get("attributes")) == 0
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    def test_otel_span_link_attribute_handling(self, test_agent, test_library):
+        """Test that span links implementations correctly handle attributes according to spec.
+        """
+        with test_library:
+            with test_library.otel_start_span(
+                "root",
+                links=[
+                    Link(
+                        http_headers=[
+                            ["x-datadog-trace-id", "1234567890"],
+                            ["x-datadog-parent-id", "9876543210"],
+                            ["x-datadog-sampling-priority", "2"],
+                            ["x-datadog-origin", "synthetics"],
+                            ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
+                        ],
+                        attributes={"foo": "bar", "array": ["a", "b", "c"], "bools": [True, False], "nested": [1, 2]},
+                    )
+                ],
+            ) as span:
+                span.end_span()
+
+        span = get_span(test_agent)
+        span_links = retrieve_span_links(span)
+        assert span_links is not None
+        assert len(span_links) == 1
+
+        link = span_links[0]
+
+        assert len(link.get("attributes")) == 8
+        assert link["attributes"].get("foo") == "bar"
+        assert link["attributes"].get("bools.0") == "true"
+        assert link["attributes"].get("bools.1") == "false"
+        assert link["attributes"].get("nested.0") == "1"
+        assert link["attributes"].get("nested.1") == "2"
+        assert link["attributes"].get("array.0") == "a"
+        assert link["attributes"].get("array.1") == "b"
+        assert link["attributes"].get("array.2") == "c"
+
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
+    @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
@@ -587,7 +626,7 @@ class Test_Otel_Span_Methods:
         assert link.get("span_id") == root.get("span_id")
         assert link.get("trace_id") == root.get("trace_id")
         assert link.get("trace_id_high") == int(root_tid, 16)
-        assert link.get("attributes") is None
+        assert link.get("attributes") is None or len(link.get("attributes")) == 0
         # Tracestate is not required, but if it is present, it must contain the linked span's tracestate
         assert link.get("tracestate") is None or "dd=" in link.get("tracestate")
 
@@ -595,11 +634,6 @@ class Test_Otel_Span_Methods:
         assert link.get("span_id") == first.get("span_id")
         assert link.get("trace_id") == first.get("trace_id")
         assert link.get("trace_id_high") == int(root_tid, 16)
-        assert len(link.get("attributes")) == 4
-        assert link["attributes"].get("bools.0") == "true"
-        assert link["attributes"].get("bools.1") == "false"
-        assert link["attributes"].get("nested.0") == "1"
-        assert link["attributes"].get("nested.1") == "2"
         assert link.get("tracestate") is None or "dd=" in link.get("tracestate")
 
     @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
