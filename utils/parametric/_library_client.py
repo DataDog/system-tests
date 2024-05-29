@@ -715,34 +715,6 @@ class APMLibrary:
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
-    @contextlib.contextmanager
-    def otel_start_span(
-        self,
-        name: str,
-        timestamp: int = 0,
-        span_kind: int = 0,
-        parent_id: int = 0,
-        links: Optional[List[Link]] = None,
-        attributes: dict = None,
-        http_headers: Optional[List[Tuple[str, str]]] = None,
-    ) -> Generator[_TestOtelSpan, None, None]:
-        resp = self._client.otel_trace_start_span(
-            name=name,
-            timestamp=timestamp,
-            span_kind=span_kind,
-            parent_id=parent_id,
-            links=links if links is not None else [],
-            attributes=attributes,
-            http_headers=http_headers if http_headers is not None else [],
-        )
-        span = _TestOtelSpan(self._client, resp["span_id"])
-        yield span
-
-        return {
-            "span_id": resp["span_id"],
-            "trace_id": resp["trace_id"],
-        }
-
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
 
