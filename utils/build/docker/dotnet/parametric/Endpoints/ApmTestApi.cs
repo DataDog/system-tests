@@ -60,6 +60,9 @@ public abstract class ApmTestApi
     private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
+    // SpanLinks add span
+    private static readonly MethodInfo AddSpanLink = SpanType.GetMethod("AddSpanLink", BindingFlags.Instance | BindingFlags.Public)!;
+
     private static readonly Dictionary<ulong, ISpan> Spans = new();
 
     internal static ILogger<ApmTestApi> _logger;
@@ -140,6 +143,26 @@ public abstract class ApmTestApi
             Origin.SetValue(spanContext, origin);
         }
         
+        if (parsedDictionary.TryGetValue("links", out var links))
+        {
+            foreach (var spanLink in (dynamic)(links))
+            {
+                var linkParentId = spanLink["parent_id"];
+
+                if (linkParentId != null)
+                {
+                    if (linkParentId > 0)
+                    {
+                        AddSpanLink.Invoke(span, new object[] { Spans[linkParentId], spanLink.Attributes });
+                    } 
+                    else
+                    {
+                        AddSpanLink.Invoke(span, new object[] { creationSettings.Parent, spanLink.Attributes });
+                    }
+                }
+            }
+        }
+
         Spans[span.SpanId] = span;
         
         return JsonConvert.SerializeObject(new
