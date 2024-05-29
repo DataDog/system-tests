@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM public.ecr.aws/docker/library/alpine:latest
 
 RUN apk add --update nodejs npm
 RUN apk add --no-cache bash

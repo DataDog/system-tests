@@ -7,7 +7,7 @@ pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 def test_version_comparizon():
 
-    v = Version("1.0", "some_component")
+    v = Version("1.0")
 
     assert v == "1.0"
     assert v != "1.1"
@@ -28,79 +28,66 @@ def test_version_comparizon():
     assert v > "0.9"
     assert "0.9" < v
 
-    assert Version("1.31.1", "") < "v1.34.1"
-    assert "1.31.1" < Version("v1.34.1", "")
-    assert Version("1.31.1", "") < Version("v1.34.1", "")
+    assert str(Version("v1.3.1")) == "1.3.1"
 
-    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") == Version("1.0.0.beta1", "ruby")
-    assert Version("  * ddtrace (1.0.0.beta1)", "ruby")
-    assert Version("  * ddtrace (1.0.0.beta1)", "ruby") < Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
-    assert Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby") < Version("1.0.0", "ruby")
+    v = Version("0.53.0.dev70+g494e6dc0")
+    assert v == "0.53.0.dev70+g494e6dc0"
+    assert str(v) == "0.53.0+dev70.g494e6dc0"
 
-    assert Version("1.0.0beta1", "ruby") < Version("1.0.0beta1+8a50f1f", "ruby")
 
-    assert Version("1.1.0rc2.dev15+gc41d325d", "python") >= "1.1.0rc2.dev"
-    assert Version("1.1.0", "python") > "1.1.0rc2.dev"
+def test_library_version_comparizon():
 
-    assert Version("2.1.0.dev", "python") < "2.1.0.dev83+gac1037728"
-    assert Version("2.1.0.dev", "python") < "2.1.0"
+    assert LibraryVersion("x", "1.31.1") < "x@1.34.1"
+    assert "x@1.31.1" < LibraryVersion("x", "v1.34.1")
+    assert LibraryVersion("x", "1.31.1") < LibraryVersion("x", "v1.34.1")
+
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)") == LibraryVersion("ruby", "1.0.0.beta1")
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)")
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)") < LibraryVersion("ruby", "1.0.0")
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.rc1)") < LibraryVersion("ruby", "1.0.0")
+
+    assert LibraryVersion("python", "1.1.0rc2.dev15+gc41d325d") >= "python@1.1.0rc2.dev"
+    assert LibraryVersion("python", "1.1.0") > "python@1.1.0rc2.dev"
+
+    assert LibraryVersion("python", "2.1.0-dev") < "python@2.1.0.dev83+gac1037728"
+    assert LibraryVersion("python", "2.1.0-dev") < "python@2.1.0"
 
 
 def test_version_serialization():
 
-    assert Version("v1.3.1", "cpp") == "1.3.1"
-    assert str(Version("v1.3.1", "cpp")) == "1.3.1"
+    assert LibraryVersion("cpp", "v1.3.1") == "cpp@1.3.1"
 
-    v = Version("0.53.0.dev70+g494e6dc0", "some comp")
-    assert v == "0.53.0.dev70+g494e6dc0"
-    assert str(v) == "0.53.0.dev70+g494e6dc0"
+    v = LibraryVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
+    assert v.version == Version("0.53.0-appsec.180045")
+    assert v.version == "0.53.0-appsec.180045"
 
-    v = Version("  * ddtrace (0.53.0.appsec.180045)", "ruby")
-    assert v == Version("0.53.0appsec.180045", "ruby")
-    assert v == "0.53.0appsec.180045"
+    v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)")
+    assert v.version == Version("1.0.0-beta1")
 
-    v = Version("  * ddtrace (1.0.0.beta1)", "ruby")
-    assert v == Version("1.0.0beta1", "ruby")
+    v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)")
+    assert v.version == Version("1.0.0-beta1+de82857")
 
-    v = Version("  * datadog (2.0.0.beta1)", "ruby")
-    assert v == Version("2.0.0beta1", "ruby")
+    v = LibraryVersion("libddwaf", "* libddwaf (1.0.14.1.0.beta1)")
+    assert v.version == Version("1.0.14.1.0.beta1")
+    assert v.version == "1.0.14+1.0.beta1"
 
-    v = Version("  * ddtrace (1.0.0.beta1 de82857)", "ruby")
-    assert v == Version("1.0.0beta1+de82857", "ruby")
+    v = LibraryVersion("php", "1.0.0-nightly")
+    assert v.version == "1.0.0"
 
-    v = Version("* libddwaf (1.0.14.1.0.beta1)", "libddwaf")
-    assert v == Version("1.0.14.1.0.beta1", "libddwaf")
-    assert v == "1.0.14.1.0.beta1"
+    v = LibraryVersion("nodejs", "3.0.0-pre0")
+    assert v.version == "3.0.0-pre0"
 
-    v = Version("Agent 7.33.0 - Commit: e6cfcb9 - Serialization version: v5.0.4 - Go version: go1.16.7", "agent")
-    assert v == "7.33.0"
+    v = LibraryVersion("agent", "7.43.1-beta-cache-hit-ratio")
+    assert v.version == "7.43.1-beta-cache-hit-ratio"
 
-    v = Version("1.0.0-nightly", "php")
-    assert v == "1.0.0"
-
-    v = Version("3.0.0pre0", "nodejs")
-    assert v == "3.0.0pre0"
-
-    v = Version("7.43.1-beta-cache-hit-ratio", "agent")
-    assert v == "7.43.1"
-
-    v = Version("7.50.0-dbm-oracle-0.1", "agent")
-    assert str(v) == "7.50.0+dbm.oracle.0.1"
+    v = LibraryVersion("agent", "7.50.0-dbm-oracle-0.1")
+    assert str(v.version) == "7.50.0-dbm-oracle-0.1"
 
 
 def test_agent_version():
 
-    v = Version("Agent 7.37.0 - Commit: 1124d66 - Serialization version: v5.0.22 - Go version: go1.17.11", "agent")
-    assert v == "7.37.0"
-
-    v = Version(
-        "Agent 7.38.0-rc.1 - Meta: git.1.3b34941 - Commit: 3b34941 - Serialization version: v5.0.23 - Go version: go1.17.11",
-        "agent",
-    )
-    assert v == "7.38.0-rc.1"
-
-    v = Version("Agent \x1b[36m7.40.0-rc.2\x1b[0m", "agent")
-    assert v == "7.40.0-rc.2"
+    v = LibraryVersion("agent", "7.54.0-installer-0.0.7+git.106.b0943ad")
+    assert v == "agent@7.54.0-installer-0.0.7+git.106.b0943ad"
 
 
 def test_in_operator():
