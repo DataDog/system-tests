@@ -293,21 +293,35 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         _logger.LogInformation("OtelRecordException: {RequestBodyObject}", requestBodyObject);
 
-        var message = requestBodyObject["message"] as string;
-
         ActivityTagsCollection? tags = default;
         if (requestBodyObject.TryGetValue("attributes", out var attributes))
         {
-            tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)attributes)?.ToObject<Dictionary<string, object>>());
+            tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)attributes)?.ToObject<Dictionary<string, object>>()) ?? new();
+        }
+        else
+        {
+            tags = new();
         }
 
         // RecordException is not implemented on Activity, so we'll reproduce the behavior done by the .NET OpenTelemetry API package
         // in the TelemetrySpan class.
         // Further, the TelemetrySpan.RecordException does not accept attributes, so we'll piece together the additional attributes
         // in this test app (even though the API spec this should be done by the library...)
-        if (message is not null && !tags.Any(s => s.Key == "exception.message"))
+        var exception = new Exception(requestBodyObject["message"].ToString());
+
+        if (!tags.ContainsKey("exception.message"))
         {
-            tags["exception.message"] = message;
+            tags.Add("exception.message", exception.Message);
+        }
+
+        if (!tags.ContainsKey("exception.type"))
+        {
+            tags.Add("exception.type", exception.GetType().Name);
+        }
+
+        if (!tags.ContainsKey("exception.stacktrace"))
+        {
+            tags.Add("exception.stacktrace", exception.ToString());
         }
 
         const string name = "exception";
