@@ -140,6 +140,8 @@ class APMLibraryClient:
 
     def http_request(self, method: str, url: str, headers: List[Tuple[str, str]]) -> None:
         raise NotImplementedError
+    def get_tracer_config(self) -> dict:
+        raise NotImplementedError
 
 
 class APMLibraryClientHTTP(APMLibraryClient):
@@ -349,6 +351,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
         ).json()
         return resp
+    
+    def get_tracer_config(self) -> dict:
+        resp = self._session.get(self._url("/trace/config")).json()
+        return resp
 
 
 class _TestSpan:
@@ -395,7 +401,7 @@ class _TestOtelSpan:
         self.trace_id = trace_id
 
     # API methods
-
+    
     def set_attributes(self, attributes):
         self._client.otel_set_attributes(self.span_id, attributes)
 
@@ -623,6 +629,13 @@ class APMLibraryClientGRPC:
 
     def otel_flush(self, timeout: int) -> bool:
         return self._client.OtelFlushSpans(pb.OtelFlushSpansArgs(seconds=timeout)).success
+    
+    def get_tracer_config(self) -> dict:
+        resp = self._client.GetTraceConfig(pb.GetTraceConfigArgs())
+        return {
+            "config": resp.config,
+            "language": resp.language,
+        }
 
 
 class APMLibrary:
@@ -726,3 +739,7 @@ class APMLibrary:
 
     def finish_span(self, span_id: int) -> None:
         self._client.finish_span(span_id)
+    
+    def get_tracer_config(self) -> dict:
+        return self._client.get_tracer_config()
+

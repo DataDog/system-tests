@@ -41,6 +41,15 @@ service APMClient {
   rpc OtelGetLinks(OtelGetLinksArgs) returns (OtelGetLinksReturn) {}
 
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
+
+  rpc GetTraceConfig(GetTraceConfigArgs) returns (GetTraceConfigReturn) {}
+}
+
+message GetTraceConfigArgs {}
+
+message GetTraceConfigReturn {
+  map<string, google.protobuf.Any> config = 1;
+  string language = 2;
 }
 
 message StartSpanArgs {

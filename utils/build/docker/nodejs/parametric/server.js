@@ -285,6 +285,11 @@ app.post('/trace/otel/set_attributes', (req, res) => {
   res.json({});
 });
 
+app.get('/trace/config', (req, res) => {
+  const dummyTracer = require('dd-trace').init()
+  res.json( { config: dummyTracer._tracer._config, language: 'nodejs' });
+});
+
 // TODO: implement this endpoint correctly, current blockers:
 // 1. Fails on invalid url
 // 2. does not generate span, because http instrumentation turned off

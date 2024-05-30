@@ -9,7 +9,7 @@ import uuid
 
 import pytest
 
-from utils import context, scenarios, rfc, features
+from utils import context, scenarios, rfc, features, missing_feature
 
 
 telemetry_name_mapping = {
@@ -163,6 +163,80 @@ class Test_Environment:
                     apm_telemetry_name
                 )
             assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
+
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                'DD_TRACE_AGENT_PORT': 'agent.port',
+                'DD_TRACE_OTEL_ENABLED': 1,
+                'DD_TELEMETRY_HEARTBEAT_INTERVAL': 1,
+                'TIMEOUT': 1500,
+                'DD_SERVICE': 'service',
+                'OTEL_SERVICE_NAME': 'otel_service',
+                'DD_TRACE_LOG_LEVEL': 'error',
+                'OTEL_LOG_LEVEL': 'debug',
+                'DD_TRACE_SAMPLE_RATE': '0.5',
+                'OTEL_TRACES_SAMPLER': 'traceidratio',
+                'OTEL_TRACES_SAMPLER_ARG': '0.1',
+                'DD_TRACE_ENABLED': 'true',
+                'OTEL_TRACES_EXPORTER': 'none',
+                'DD_RUNTIME_METRICS_ENABLED': 'true',
+                'OTEL_METRICS_EXPORTER': 'none',
+                'DD_TAGS': 'foo:bar,baz:qux',
+                'OTEL_RESOURCE_ATTRIBUTES': 'foo=bar1,baz=qux1',
+                'DD_TRACE_PROPAGATION_STYLE': 'datadog',
+                'OTEL_PROPAGATORS': 'datadog,tracecontext',
+                'OTEL_LOGS_EXPORTER': 'none',
+                'OTEL_SDK_DISABLED': 'false'
+            }
+        ],
+    )
+    def test_telemetry_when_dd_and_otel_env_vars_set(self, library_env, test_agent, test_library):
+        with test_library.start_span("test"):
+            pass
+        event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
+        payload = event["payload"]
+        assert event['request_type'] == 'generate-metrics'
+
+        metrics = payload['series']
+
+        assert payload['namespace'] == 'tracers'
+
+        otelHiding = [s for s in metrics if s['metric'] == 'otel.env.hiding']
+        otelInvalid = [s for s in metrics if s['metric'] == 'otel.env.invalid']
+
+        assert len(otelHiding) == 8
+        assert len(otelInvalid) == 1
+
+        expected_tags = [
+            ['DD_TRACE_LOG_LEVEL', 'OTEL_LOG_LEVEL'],
+            ['DD_TRACE_PROPAGATION_STYLE', 'OTEL_PROPAGATORS'],
+            ['DD_SERVICE', 'OTEL_SERVICE_NAME'],
+            ['DD_TRACE_SAMPLE_RATE', 'OTEL_TRACES_SAMPLER', 'OTEL_TRACES_SAMPLER_ARG'],
+            ['DD_TRACE_ENABLED', 'OTEL_TRACES_EXPORTER'],
+            ['DD_RUNTIME_METRICS_ENABLED', 'OTEL_METRICS_EXPORTER'],
+            ['DD_TAGS', 'OTEL_RESOURCE_ATTRIBUTES'],
+            ['DD_TRACE_OTEL_ENABLED', 'OTEL_SDK_DISABLED']
+        ]
+
+        for i, tags in enumerate(expected_tags):
+            assert len(otelHiding[i]['tags']) == 4 if tags[0] == 'DD_TRACE_SAMPLE_RATE' else 3
+            assert all(elem in otelHiding[i]['tags'] for elem in tags)
+
+        for metric in otelHiding:
+            assert metric['points'][0][1] == 1
+
+        assert otelInvalid[0]['points'][0][1] == 1
+
+        assert len(otelInvalid[0]['tags']) == 2
+        assert 'OTEL_LOGS_EXPORTER' in otelInvalid[0]['tags']
 
 
 DEFAULT_ENVVARS = {
