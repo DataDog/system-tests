@@ -8,7 +8,7 @@ RUN python --version && curl --version
 
 # install python deps
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now
-RUN pip install 'flask[async]'==2.2.4 uwsgi gevent requests pycryptodome psycopg2-binary confluent-kafka==2.1.1
+RUN pip install 'flask[async]'==2.2.4 flask-login uwsgi gevent requests pycryptodome psycopg2-binary confluent-kafka==2.1.1
 
 # this is necessary for the mysqlclient install
 RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config

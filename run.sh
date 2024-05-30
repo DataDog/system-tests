@@ -397,7 +397,11 @@ function main() {
 
     # evaluate max pytest number of process for K8s_lib_injection
     for scenario in "${scenarios[@]}"; do
+        #TODO DELETE WHEN THE SCENARIO IS REMOVED. REPLACED BY K8S_LIBRARY_INJECTION
         if [[ "${scenario}" == K8S_LIB_INJECTION_* ]]; then
+            pytest_numprocesses=$(nproc)
+        fi
+        if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
         fi
     done

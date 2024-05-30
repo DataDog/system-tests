@@ -1,3 +1,10 @@
+[project]
+name = 'system_tests'
+version = '0.0.1'
+
+[tool.setuptools]
+packages = ["tests", "utils"]
+
 [tool.black]
 line-length = 120
 exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps|parametric/protos/)"
@@ -25,7 +32,7 @@ markers =[
     "features: declare the feature id"
 ]
 
-python_files = "test_*.py _test_*.py"
+python_files = "test_*.py *utils.py"
 
 # migration tooling: list of folders where feature declarations are mandatory
 # once every test class got its feature declaration, we can remove this

@@ -2166,3 +2166,23 @@ class features:
         """
         pytest.mark.features(feature_id=296)(test_object)
         return test_object
+
+    @staticmethod
+    def rasp_stack_trace(test_object):
+        """
+        Appsec RASP: Stack Trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=297
+        """
+        pytest.mark.features(feature_id=297)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_span_tags(test_object):
+        """
+        Appsec RASP: Span Tags
+
+        https://feature-parity.us1.prod.dog/#/?feature=298
+        """
+        pytest.mark.features(feature_id=298)(test_object)
+        return test_object

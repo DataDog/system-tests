@@ -16,3 +16,8 @@ SINGLE_SPAN_SAMPLING_RATE = "_dd.span_sampling.rule_rate"
 
 """Key used in the metrics to map to single span sampling max per second."""
 SINGLE_SPAN_SAMPLING_MAX_PER_SEC = "_dd.span_sampling.max_per_second"
+
+
+""" Some release identifiers """
+PYTHON_RELEASE_PUBLIC_BETA = "1.4.0rc1.dev"
+PYTHON_RELEASE_GA_1_1 = "1.5.0rc1.dev"
