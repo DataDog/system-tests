@@ -1,9 +1,6 @@
 package com.datadoghq.system_tests.springboot;
 
-public class Pii {
-    public static String VALUE = "SHOULD_BE_REDACTED";
-    public String TestValue = VALUE;
-
+public class Pii  extends PiiBase {
     public String _2fa = VALUE;
     public String accesstoken = VALUE;
     public String access_token = VALUE;
@@ -96,4 +93,7 @@ public class Pii {
     public String xrealip = VALUE;
     public String xsrf = VALUE;
     public String xsrftoken = VALUE;
+
+    public String customidentifier1 = VALUE;
+    public String customidentifier2 = VALUE;
 }

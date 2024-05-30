@@ -39,10 +39,7 @@ if [ -z "$ARCH" ]; then
 fi
 
 NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
-
-BASE_IMAGE="nginx:${NGINX_VERSION}"
-BASE_IMAGE_WITHOUT_COLONS=$(echo "$BASE_IMAGE" | tr ':' '_')
-TARBALL="$BASE_IMAGE_WITHOUT_COLONS-$ARCH-ngx_http_datadog_module.so.tgz"
+TARBALL="ngx_http_datadog_module-appsec-$ARCH-$NGINX_VERSION.so.tgz"
 
 # Install NGINX plugin
 wget "https://github.com/DataDog/nginx-datadog/releases/download/${NGINX_DATADOG_VERSION}/${TARBALL}"

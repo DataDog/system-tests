@@ -27,10 +27,14 @@ def test_k8s_instance(request):
         context.scenario.weblog_variant,
         context.scenario._weblog_variant_image,
         context.scenario._library_init_image,
-        context.scenario._library_init_image_tag,
-        context.scenario._prefix_library_init_image,
         output_folder,
         test_name,
+        library_init_image_tag=context.scenario._library_init_image_tag
+        if hasattr(context.scenario, "_library_init_image_tag")
+        else None,
+        prefix_library_init_image=context.scenario._prefix_library_init_image
+        if hasattr(context.scenario, "_prefix_library_init_image")
+        else None,
     )
     logger.info(f"K8sInstance creating -- {test_name}")
     k8s_instance.start_instance()
@@ -50,24 +54,29 @@ class K8sInstance:
         weblog_variant,
         weblog_variant_image,
         library_init_image,
-        library_init_image_tag,
-        prefix_library_init_image,
         output_folder,
         test_name,
+        # TODO remove these two parameters
+        library_init_image_tag=None,
+        prefix_library_init_image=None,
     ):
         self.library = library
         self.weblog_variant = weblog_variant
         self.weblog_variant_image = weblog_variant_image
         self.library_init_image = library_init_image
-        self.library_init_image_tag = library_init_image_tag
+        self.library_init_image_tag = library_init_image.rpartition(":")[-1]
         # If we inject the library using configmap and cluster agent, we need to use the prefix_library_init_image
         # only for snapshot images. The agent builds image names like “gcr.io/datadoghq/dd-lib-python-init:latest_snapshot”
-        # but we need gcr.io/datadoghq/dd-trace-py/dd-lib-python-init:latest_snapshot
+        # but we need gcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot
         # We use this prefix with the env prop "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_CONTAINER_REGISTRY"
-        self.prefix_library_init_image = prefix_library_init_image
+        self.prefix_library_init_image = (
+            "gcr.io/datadoghq"
+            if library_init_image.endswith("latest")
+            else library_init_image[: library_init_image.rfind("/")]
+        )
         self.output_folder = output_folder
         self.test_name = test_name
-        self.test_agent = K8sDatadogClusterTestAgent(prefix_library_init_image, output_folder, test_name)
+        self.test_agent = K8sDatadogClusterTestAgent(self.prefix_library_init_image, output_folder, test_name)
         self.test_weblog = K8sWeblog(weblog_variant_image, library, library_init_image, output_folder, test_name)
         self.k8s_kind_cluster = None
         self.k8s_wrapper = None

@@ -10,7 +10,7 @@ from utils import irrelevant
 
 
 @features.k8s_admission_controller
-@scenarios.k8s_lib_injection_full
+@scenarios.k8s_library_injection_full
 class TestConfigMapAutoInject:
     """ Datadog Agent Auto-injection tests using ConfigMap
         Check: https://datadoghq.atlassian.net/wiki/spaces/AO/pages/2983035648/Cluster+Agent+Development
@@ -409,8 +409,8 @@ class TestConfigMapAutoInject:
 
     @irrelevant(
         condition=not hasattr(context.scenario, "_library_init_image_tag")
-        or context.scenario._library_init_image_tag != "latest",
-        reason="We only can test the latest release of the library",
+        or context.scenario._library_init_image_tag != "",
+        reason="Test a discontinued feature",
     )
     def test_fileprovider_configmap_case6(self, test_k8s_instance):
         """  Inject-all case (for batch instrumentation)

@@ -1,5 +1,4 @@
 lang_variant:
-    #We compile with jdk 11, but we run the app with java 15
     name: OpenJDK11
     cache: true
     install:
@@ -12,8 +11,8 @@ lang_variant:
         remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
 
 weblog:
-    name: test-app-java-alpine-jdk15
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64, ubuntu22_arm64, amazon_linux2023_arm64]
+    name: test-app-java-alpine-libgcc
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64]
     install:
       - os_type: linux
         copy_files:
@@ -21,7 +20,7 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/test-app-java_docker_compose_run.sh
 
           - name: copy-docker-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/Dockerfile.alpine-jdk15
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/Dockerfile.alpine.libgcc
             remote_path: Dockerfile.template
 
           - name: copy-entrypoint-docker

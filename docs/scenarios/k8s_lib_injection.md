@@ -166,10 +166,8 @@ The next step is define the environment variables. This is an example of env var
 ```sh
 export TEST_LIBRARY=java
 export WEBLOG_VARIANT=dd-lib-java-init-test-app #Which variant do we want to use?
-export DOCKER_REGISTRY_IMAGES_PATH=docker.io/MY_DOCKERHUB_USERNAME #Use your docker hub account as registry
-export BUILDX_PLATFORMS=linux/arm64 #Set your CPU arch. In this sample, we are using a Mac M1
-export DOCKER_IMAGE_TAG=local #Tag for dd-lib-java-init. Use tag 'latest' to test latest release
-export DOCKER_IMAGE_WEBLOG_TAG=local #Tag for current weblog image
+export LIBRARY_INJECTION_TEST_APP_IMAGE=docker.io/MY_DOCKERHUB_USERNAME/dd-lib-java-init-test-app:local #Use your docker hub account as registry
+export LIB_INIT_IMAGE=gcr.io/datadoghq/dd-lib-java-init:latest # What is the lib init image that we want to test?
 ```
 
 ## Build and Push weblog image
@@ -177,9 +175,7 @@ export DOCKER_IMAGE_WEBLOG_TAG=local #Tag for current weblog image
 You need to build and push weblog application to docker registry. You can use this script:
 
 ```sh
-  cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
-  export APP_DOCKER_IMAGE_REPO=$DOCKER_REGISTRY_IMAGES_PATH/$WEBLOG_VARIANT
-  LIBRARY_INJECTION_TEST_APP_IMAGE="$APP_DOCKER_IMAGE_REPO:$DOCKER_IMAGE_WEBLOG_TAG" ./build.sh
+  lib-injection/build/build_lib_injection_weblog.sh -w $WEBLOG_VARIANT -l $TEST_LIBRARY --push-tag $LIBRARY_INJECTION_TEST_APP_IMAGE
 ```
 ## Build and Push init image
 
@@ -187,9 +183,10 @@ If you want to test the latest dd-lib-LANG-init image, you can skip this step.
 If you want to test your own dd-lib-LANG-init image, you can build by yourself from source code or you can use a existing one:
 
 ```sh
+export LIB_INIT_IMAGE=docker.io/MY_DOCKERHUB_USERNAME/dd-lib-java-init:local
 docker pull ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot
-docker tag ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-java-init:local
-docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-java-init:local
+docker tag ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot $LIB_INIT_IMAGE
+docker push $LIB_INIT_IMAGE
 ```
 
 ## Run the tests
@@ -197,113 +194,13 @@ docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-java-init:local
 These K8s Lib Injection tests are fully integrated into system-tests life cycle. If we followed the previous steps, we only have to execute this command:
 
 ```sh
-  ./run.sh K8S_LIB_INJECTION_FULL
+  ./run.sh K8S_LIBRARY_INJECTION_FULL
 ```
 
 A minimum test scenario is also included. You can run it:
 
 ```sh
-  ./run.sh K8S_LIB_INJECTION_BASIC
-```
-# Run the K8s Lib Injection tests in your CI
-
-If you are going to run the K8s lib injection tests on your CI pipeline, check this example:
-
-```yml
-  jobs:
-  k8s-lib-injection-tests:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        variant:
-        - library: java
-          weblog-variant: dd-lib-java-init-test-app
-
-        - library: nodejs
-          weblog-variant: sample-app
-
-        - library: python
-          weblog-variant: dd-lib-python-init-test-django
-        
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails
-          
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails-explicit
-        
-        - library: ruby
-          weblog-variant: dd-lib-ruby-init-test-rails-gemsrb
-
-        - library: dotnet
-          weblog-variant: dd-lib-dotnet-init-test-app
-
-        version: 
-          - latest #Production tag
-          - latest_snapshot
-
-      fail-fast: false
-    env:
-      TEST_LIBRARY: ${{ matrix.variant.library }}
-      WEBLOG_VARIANT: ${{ matrix.variant.weblog-variant }}
-      DOCKER_REGISTRY_IMAGES_PATH: ghcr.io/datadog
-      DOCKER_IMAGE_TAG: ${{ matrix.version }}
-      BUILDX_PLATFORMS: linux/amd64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: 'DataDog/system-tests'
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-    
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-          buildkitd-config-inline: |
-            [worker.oci]
-              max-parallelism = 1
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
-        with:
-          registry: ghcr.io/datadog
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build weblog latest base images
-        env:
-          DOCKER_IMAGE_WEBLOG_TAG: latest
-          APP_DOCKER_IMAGE_REPO: ghcr.io/datadog/system-tests/${{ matrix.variant.weblog-variant }}
-        run: |
-          cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT 
-          LIBRARY_INJECTION_TEST_APP_IMAGE=$APP_DOCKER_IMAGE_REPO:latest ./build.sh
-          cd ..
-
-      - name: Install runner
-        uses: ./.github/actions/install_runner       
-
-      - name: Kubernetes lib-injection tests
-        id: k8s-lib-injection-tests
-        run: ./run.sh K8S_LIB_INJECTION 
-
-      - name: Compress logs
-        id: compress_logs
-        if: always()
-        run: tar -czvf artifact.tar.gz $(ls | grep logs)
-
-      - name: Upload artifact
-        if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs_k8s_lib_injection_${{ matrix.variant.library}}_${{matrix.variant.weblog-variant}}_${{ matrix.version }}
-          path: artifact.tar.gz
+  ./run.sh K8S_LIBRARY_INJECTION_BASIC
 ```
 
 # Test development
@@ -314,8 +211,6 @@ Each test case will receive a "test_k8s_instance" object with these main propert
 * **weblog_variant:** Current sample application name (weblog name)
 * **weblog_variant_image:** Reference to the weblog image in the registry
 * **library_init_image:** Reference to the library init image in the registry
-* **library_init_image_tag:** Library init image tag to be used
-* **prefix_library_init_image:** Tricky part. If we inject the library using configmap and cluster agent, we need to use the prefix_library_init_image only for snapshot images. The agent builds image names like “gcr.io/datadoghq/dd-lib-python-init:latest_snapshot” but we need gcr.io/datadoghq/dd-trace-py/dd-lib-python-init:latest_snapshot. We use this prefix with the env prop "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_CONTAINER_REGISTRY"
 * **output_folder:** Path to log folder for the current test.
 * **test_name:** Name of the current test.
 * **test_agent:** Instance of the object that contains the main methods to access to Datadog Cluster Agent (Deploy agent, deploy operator, apply configmaps...). See utils/k8s_lib_injection/k8s_datadog_cluster_agent.py.
