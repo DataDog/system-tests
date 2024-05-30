@@ -3064,17 +3064,14 @@
       },
       "conditions": [
         {
-          "operator": "phrase_match",
+          "operator": "match_regex",
           "parameters": {
             "inputs": [
               {
                 "address": "grpc.server.method"
               }
             ],
-            "list": [
-              "/weblog.Weblog/Unary",
-              "/weblog.Weblog/ServerStream"
-            ]
+            "regex": "weblog"
           }
         }
       ]
