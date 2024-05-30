@@ -431,7 +431,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     toAdd.Add(valueToAdd);
                 }
 
-                tags.Add(key, toAdd);
+                tags.Add(key, toAdd.ToArray());
             }
         }
 
