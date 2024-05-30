@@ -234,7 +234,7 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: *ref_3_19_0
-        Test_Blocking_strip_response_headers: v5.0.0
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: missing_feature
       test_custom_rules.py:
         Test_CustomRules: *ref_4_1_0
@@ -292,8 +292,8 @@ tests/:
         "*": *ref_3_19_0
         nextjs: missing_feature
       Test_Blocking_request_uri: *ref_3_19_0
-      Test_Blocking_response_headers: v4.0.0
-      Test_Blocking_response_status: v4.0.0
+      Test_Blocking_response_headers: missing_feature
+      Test_Blocking_response_status: missing_feature
       Test_Suspicious_Request_Blocking:
         "*": missing_feature (v3.19.0, but test is not implemented)
         nextjs: missing_feature
