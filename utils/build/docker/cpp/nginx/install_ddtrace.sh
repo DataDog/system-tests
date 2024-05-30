@@ -38,17 +38,23 @@ if [ -z "$ARCH" ]; then
     exit 1
 fi
 
-NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
-TARBALL="ngx_http_datadog_module-appsec-$ARCH-$NGINX_VERSION.so.tgz"
+FILENAME=ngx_http_datadog_module-appsec-$ARCH-$NGINX_VERSION.so
 
-# Install NGINX plugin
-wget "https://github.com/DataDog/nginx-datadog/releases/download/${NGINX_DATADOG_VERSION}/${TARBALL}"
-tar -xzf "${TARBALL}" -C /usr/lib/nginx/modules
-rm "$TARBALL"
+if [ -e "/binaries/$FILENAME" ]; then
+  echo "Install NGINX plugin from /binaries/$FILENAME"
+  cp /binaries/$FILENAME /usr/lib/nginx/modules
+else
+  NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
+  TARBALL="$FILENAME.tgz"
+  echo "Get NGINX plugin from last github release of nginx-datadog"
+  wget "https://github.com/DataDog/nginx-datadog/releases/download/${NGINX_DATADOG_VERSION}/${TARBALL}"
+  tar -xzf "${TARBALL}" -C /usr/lib/nginx/modules
+  rm "$TARBALL"
+fi
 
 # Sys test stuff
 echo "DataDog/nginx-datadog version: ${NGINX_DATADOG_VERSION}"
-echo $NGINX_DATADOG_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
+echo $NGINX_DATADOG_VERSION > SYSTEM_TESTS_LIBRARY_VERSION  # TODO : it's not the good version, we must use dd-trace-cpp version !
 touch SYSTEM_TESTS_LIBDDWAF_VERSION
 echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 echo "Library version : $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
