@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import sys
+import json
 
 
 class bcolors:
@@ -182,3 +183,20 @@ def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
         return False
 
     raise TypeError(f"Can't handle type {type(heystack)}")
+
+
+def generate_curl_command(method, url, headers, params):
+    curl_command = f"curl -X {method} '{url}'"
+
+    for key, value in headers.items():
+        curl_command += f" -H '{key}: {value}'"
+
+    if method.upper() == "GET" and params:
+        query_string = "&".join([f"{key}={value}" for key, value in params.items()])
+        curl_command += f"?{query_string}"
+
+    if method.upper() in ["POST", "PUT", "PATCH"] and params:
+        json_data = json.dumps(params)
+        curl_command += f" -d '{json_data}'"
+
+    return curl_command
