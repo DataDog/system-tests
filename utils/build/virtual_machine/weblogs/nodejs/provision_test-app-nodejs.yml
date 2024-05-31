@@ -1,11 +1,11 @@
 lang_variant:
-    name: node16
-    version: 16
+    name: node21
+    version: 21
     cache: true
     install: 
       - os_type: linux
         os_distro: deb
-        remote-command: curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - && sudo apt-get install -y nodejs  
+        remote-command: curl -sL https://deb.nodesource.com/setup_21.x | sudo bash - && sudo apt-get install -y nodejs  
       - os_type: linux
         os_distro: rpm
         remote-command: | 
@@ -29,7 +29,10 @@ weblog:
           - name: copy-run-weblog-script
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
 
+          - name: copy-run-weblog-script_microvm
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run_microvm.sh
+
           - name: copy-binary
             local_path: lib-injection/build/docker/nodejs/sample-app/index.js
 
-        remote-command: sh test-app-nodejs_run.sh
+        remote-command: sh /shared_volume/test-app-nodejs_run_microvm.sh

@@ -133,6 +133,7 @@ class VmProvider:
                         remote_path,
                         server_connection,
                         last_task,
+                        vm=vm,
                     )
                 else:
                     last_task = self.commander.remote_copy_folders(
@@ -175,7 +176,7 @@ class Commander:
             Return the current task executed."""
         raise NotImplementedError
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task):
+    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
         """ Copy a file from local to remote. 
             Use last_task to depend on the last executed task.
             Return the current task executed."""

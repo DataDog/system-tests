@@ -164,7 +164,7 @@ class AWSCommander(Commander):
         last_task.stdout.apply(lambda outputlog: vm_logger(context.scenario.name, logger_name).info(outputlog))
         return last_task
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task):
+    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
         last_task = command.remote.CopyFile(
             id,
             connection=connection,

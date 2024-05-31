@@ -33,7 +33,21 @@
         echo "Instaling datadog-apm-library-$DD_LANG from remote repository"
         sudo apt install -y --reinstall -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
     fi
-    dd-host-install
+    
+    #TODO MicroVm: The agent does not always start, we have to retry until it works.
+    until dd-host-install; do
+        echo dd-host-install failed. Retrying in 10 seconds...
+        sleep 10
+    done
+
+    echo "Check the agent status:"
+    sudo service datadog-agent status
+    echo "Running checks:"
+    sudo datadog-agent status
+    echo "Agent logs:"
+    sudo ls /var/log/datadog/
+    sudo cat /var/log/datadog/agent.log
+
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
 - os_type: linux
@@ -47,11 +61,11 @@
         local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
 
   remote-command: | 
-    architecture=""
-    case $(uname -m) in
-        x86_64) architecture="x86_64" ;;
-        aarch64) architecture="aarch64" ;;
-    esac
+    architecture="" 
+    case $(uname -m) in 
+        x86_64) architecture="x86_64" ;; 
+        aarch64) architecture="aarch64" ;; 
+    esac 
 
     if ls datadog-apm-inject-*.$architecture.rpm 1> /dev/null 2>&1; then
         echo "Instaling datadog-apm-inject from local folder"
@@ -68,7 +82,6 @@
         echo "Instaling datadog-apm-library-$DD_LANG from remote repository"
         sudo yum -q list installed datadog-apm-library-$DD_LANG &>/dev/null && sudo yum -y reinstall --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG || sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG
     fi
-
     dd-host-install
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 

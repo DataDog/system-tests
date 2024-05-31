@@ -100,7 +100,7 @@ class VagrantCommander(Commander):
         vm_logger(context.scenario.name, logger_name).info(result.stdout)
         return last_task
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task):
+    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
 
         SCPClient(connection.get_transport()).put(local_path, remote_path)
         return last_task
