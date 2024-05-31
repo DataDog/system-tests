@@ -19,6 +19,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
         app.MapPost("/trace/otel/set_status", OtelSetStatus);
         app.MapPost("/trace/otel/set_name", OtelSetName);
         app.MapPost("/trace/otel/set_attributes", OtelSetAttributes);
+        app.MapPost("/trace/otel/add_event", OtelAddEvent);
+        app.MapPost("/trace/otel/record_exception", OtelRecordException);
         app.MapPost("/trace/stats/flush", OtelFlushTraceStats);
     }
 
@@ -219,7 +221,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         if (Enum.TryParse(code.ToString(), ignoreCase: true, out ActivityStatusCode statusCode))
         {
-            var activity = FindActivity(requestBodyObject["id"]);
+            var activity = FindActivity(requestBodyObject["span_id"]);
             activity.SetStatus(statusCode, requestBodyObject["description"].ToString());
         }
         else
@@ -254,6 +256,77 @@ public abstract class ApmTestApiOtel : ApmTestApi
         SetTag(FindActivity(requestBodyObject["span_id"]), ((Newtonsoft.Json.Linq.JObject?)requestBodyObject["attributes"])?.ToObject<Dictionary<string, object>>());
 
         _logger?.LogInformation("OtelSetAttributesReturn");
+    }
+
+    private static async Task OtelAddEvent(HttpRequest request)
+    {
+        var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
+
+        _logger.LogInformation("AddEvent: {RequestBodyObject}", requestBodyObject);
+
+        var name = requestBodyObject["name"] as string;
+
+        DateTimeOffset timestamp = default;
+        const long TicksPerMicroseconds = 10;
+        if (requestBodyObject.TryGetValue("timestamp", out var timestampInMicrosecondsObject)
+            && Convert.ToInt64(timestampInMicrosecondsObject) is long timestampInMicroseconds
+            && timestampInMicroseconds != 0)
+        {
+            var timestampTicks = timestampInMicroseconds * TicksPerMicroseconds;
+            timestamp = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
+            timestamp = timestamp.AddTicks(timestampTicks);
+        }
+
+        ActivityTagsCollection? tags = default;
+        if (requestBodyObject.TryGetValue("attributes", out var attributes))
+        {
+            tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)attributes)?.ToObject<Dictionary<string, object>>());
+        }
+
+        var activity = FindActivity(requestBodyObject["span_id"]);
+        activity.AddEvent(new ActivityEvent(name, timestamp, tags));
+    }
+
+    private static async Task OtelRecordException(HttpRequest request)
+    {
+        var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
+
+        _logger.LogInformation("OtelRecordException: {RequestBodyObject}", requestBodyObject);
+
+        ActivityTagsCollection? tags = default;
+        if (requestBodyObject.TryGetValue("attributes", out var attributes))
+        {
+            tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)attributes)?.ToObject<Dictionary<string, object>>()) ?? new();
+        }
+        else
+        {
+            tags = new();
+        }
+
+        // RecordException is not implemented on Activity, so we'll reproduce the behavior done by the .NET OpenTelemetry API package
+        // in the TelemetrySpan class.
+        // Further, the TelemetrySpan.RecordException does not accept attributes, so we'll piece together the additional attributes
+        // in this test app (even though the API spec this should be done by the library...)
+        var exception = new Exception(requestBodyObject["message"].ToString());
+
+        if (!tags.ContainsKey("exception.message"))
+        {
+            tags.Add("exception.message", exception.Message);
+        }
+
+        if (!tags.ContainsKey("exception.type"))
+        {
+            tags.Add("exception.type", exception.GetType().Name);
+        }
+
+        if (!tags.ContainsKey("exception.stacktrace"))
+        {
+            tags.Add("exception.stacktrace", exception.ToString());
+        }
+
+        const string name = "exception";
+        var activity = FindActivity(requestBodyObject["span_id"]);
+        activity.AddEvent(new ActivityEvent(name, default, tags));
     }
 
     private static async Task<string> OtelFlushSpans(HttpRequest request)
@@ -329,5 +402,39 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 activity.SetTag(key, toAdd);
             }
         }
+    }
+
+    private static ActivityTagsCollection? ToActivityTagsCollection(Dictionary<string, object>? attributes)
+    {
+        if (attributes is null)
+        {
+            return default;
+        }
+
+        ActivityTagsCollection tags = new();
+
+        foreach ((string key, object values) in attributes)
+        {
+            if (values is string
+                || values is bool
+                || values is long
+                || values is double)
+            {
+                tags.Add(key, values);
+            }
+            else if (values is System.Collections.IEnumerable valuesList)
+            {
+                var toAdd = new List<object>();
+                foreach (var value in valuesList)
+                {
+                    var valueToAdd = ((Newtonsoft.Json.Linq.JValue)value).Value ?? throw new InvalidOperationException("Null value in attribute array");
+                    toAdd.Add(valueToAdd);
+                }
+
+                tags.Add(key, toAdd.ToArray());
+            }
+        }
+
+        return tags;
     }
 }
