@@ -235,13 +235,9 @@ class Test_Telemetry:
             raise Exception(f"app-started message not found")
 
     @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        weblog_variant="spring-boot-openliberty", reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
-    @bug(
-        library="java", weblog_variant="spring-boot-wildfly",
-    )
+    @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
     @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
