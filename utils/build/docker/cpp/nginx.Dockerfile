@@ -6,16 +6,16 @@ ENV NGINX_VERSION=${NGINX_VERSION}
 RUN apt-get update \
  && apt-get install -y wget tar jq curl xz-utils stress-ng
 
-RUN mkdir /app
+RUN mkdir /builds
 
 COPY utils/build/docker/cpp/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY utils/build/docker/cpp/nginx/hello.html /app/hello.html
-COPY utils/build/docker/cpp/nginx/install_ddtrace.sh /app/
-COPY utils/build/docker/cpp/install_ddprof.sh /app/
-COPY utils/build/docker/cpp/nginx/app.sh /app/
-COPY utils/build/docker/cpp/ binaries* /app/
+COPY utils/build/docker/cpp/nginx/hello.html /builds/hello.html
+COPY utils/build/docker/cpp/nginx/install_ddtrace.sh /builds/
+COPY utils/build/docker/cpp/install_ddprof.sh /builds/
+COPY utils/build/docker/cpp/nginx/app.sh /builds/
+COPY utils/build/docker/cpp/ binaries* /builds/
 
-WORKDIR /app
+WORKDIR /builds
 
 # NGINX Plugin setup 
 RUN ./install_ddtrace.sh
