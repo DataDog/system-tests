@@ -12,8 +12,8 @@ import pytest
 
 
 class _AutoInjectBaseTest:
-    def _test_install(self, virtual_machine):
-        """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
+    def _test_install(self, virtual_machine, profile: bool = False):
+        """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         vm_ip = virtual_machine.ssh_config.hostname
@@ -34,7 +34,7 @@ class _AutoInjectBaseTest:
             request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
 
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, 120.0)
+        wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
     def execute_command(self, virtual_machine, command):
         # Env for the command
