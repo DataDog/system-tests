@@ -128,7 +128,7 @@ def _collect_item_metadata(item):
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
         else:
-            raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
+            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {result['details']}")
 
     return result
 
