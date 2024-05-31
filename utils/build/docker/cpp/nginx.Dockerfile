@@ -4,7 +4,7 @@ ARG NGINX_VERSION="1.25.4"
 ENV NGINX_VERSION=${NGINX_VERSION}
 
 RUN apt-get update \
- && apt-get install -y wget tar jq curl xz-utils stress-ng
+ && apt-get install -y wget tar jq curl xz-utils stress-ng binutils
 
 RUN mkdir /builds
 
