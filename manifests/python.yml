@@ -191,6 +191,9 @@ tests/:
         Test_Mandatory_SpanTags: v2.10.0.dev
         Test_Optional_SpanTags: v2.10.0.dev
       test_sqli.py:
+        Test_Sqli_BodyJson: v2.10.0.dev
+        Test_Sqli_BodyUrlEncoded: v2.10.0.dev
+        Test_Sqli_BodyXml: v2.10.0.dev
         Test_Sqli_UrlQuery: v2.10.0.dev
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0.dev
