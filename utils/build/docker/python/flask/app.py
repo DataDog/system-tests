@@ -242,6 +242,7 @@ def rasp_ssrf(*args, **kwargs):
     except http.client.HTTPException as e:
         return f"url http://{domain} could not be open: {e!r}"
 
+
 @app.route("/rasp/sqli", methods=["GET", "POST"])
 def rasp_sqli(*args, **kwargs):
     user_id = None
@@ -263,6 +264,7 @@ def rasp_sqli(*args, **kwargs):
         return "missing user_id parameter", 400
     try:
         import sqlite3
+
         DB = sqlite3.connect(":memory:")
         print(f"SELECT * FROM table WHERE {user_id}")
         cursor = DB.execute(f"SELECT * FROM table WHERE '{user_id};")
