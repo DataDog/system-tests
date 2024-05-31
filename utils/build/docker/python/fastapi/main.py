@@ -37,7 +37,11 @@ except ImportError:
 app = FastAPI()
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
+    host="postgres",
+    port="5433",
+    user="system_tests_user",
+    password="system_tests",
+    dbname="system_tests_dbname",
 )
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
@@ -96,7 +100,9 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
     )
     if tag_value.startswith("payload_in_response_body"):
         return JSONResponse(
-            {"payload": dict(await request.form())}, status_code=status_code, headers=request.query_params,
+            {"payload": dict(await request.form())},
+            status_code=status_code,
+            headers=request.query_params,
         )
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
 
@@ -426,7 +432,10 @@ def track_user_login_success_event():
 @app.get("/user_login_failure_event", response_class=PlainTextResponse)
 def track_user_login_failure_event():
     appsec_trace_utils.track_user_login_failure_event(
-        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+        tracer,
+        user_id=_TRACK_USER,
+        exists=True,
+        metadata=_TRACK_METADATA,
     )
     return "OK"
 
