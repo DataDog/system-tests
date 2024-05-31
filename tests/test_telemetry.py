@@ -95,6 +95,7 @@ class Test_Telemetry:
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
         reason="Version reporting of trace agent is broken in 7.36.x release",
     )
+    @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -131,6 +132,7 @@ class Test_Telemetry:
         )
 
     @flaky(library="ruby", reason="AIT-8418")
+    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -192,6 +194,7 @@ class Test_Telemetry:
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
+    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
@@ -240,6 +243,7 @@ class Test_Telemetry:
     @bug(
         library="java", weblog_variant="spring-boot-wildfly",
     )
+    @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 

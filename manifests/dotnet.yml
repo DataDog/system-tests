@@ -105,11 +105,22 @@ tests/:
         test_uri.py:
           TestURI: irrelevant
     rasp/:
-      test_lfi.py: missing_feature
-      test_span_tags.py: missing_feature
+      test_lfi.py:
+        Test_Lfi_BodyJson: v2.51.0
+        Test_Lfi_BodyUrlEncoded: v2.51.0
+        Test_Lfi_BodyXml: v2.51.0
+        Test_Lfi_UrlQuery: v2.51.0
+      test_span_tags.py:
+        Test_Mandatory_SpanTags: v2.52.0
+        Test_Optional_SpanTags: v2.52.0
       test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
-      test_stack_traces.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson: v2.51.0
+        Test_Ssrf_BodyUrlEncoded: v2.51.0
+        Test_Ssrf_BodyXml: v2.51.0
+        Test_Ssrf_UrlQuery: v2.51.0
+      test_stack_traces.py:
+        Test_StackTrace: v2.51.0     
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -222,7 +233,7 @@ tests/:
       Test_Debugger_Mix_Log_Probe: bug (statuses are not reported well)
       Test_Debugger_Probe_Statuses: bug (statuses are not reported well)
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: bug (statuses are not reported well)
+      Test_Debugger_PII_Redaction: v2.50.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -274,7 +285,7 @@ tests/:
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
       Test_TelemetryInstallSignature: v2.45.0
-      Test_TelemetrySCAEnvVar: missing_feature
+      Test_TelemetrySCAEnvVar: v2.50.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature

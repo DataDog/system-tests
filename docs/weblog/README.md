@@ -405,6 +405,9 @@ The following query parameters are required for each endpoint:
 - `arg`: This is a parameter that can take any string as an argument.
 - `intArg`: This is a parameter that can take any integer as an argument.
 
+#### GET /debugger/pii
+This endpoint will be used to validate pii redaction feature.
+
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
 

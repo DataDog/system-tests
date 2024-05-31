@@ -64,11 +64,19 @@ class _TestAdmisionController:
 
 @features.k8s_admission_controller
 @scenarios.k8s_lib_injection_basic
+class TestAdmisionControllerBasic_DEPRECATED(_TestAdmisionController):
+    """To be removed after the chages on the pipeline are merged for all the tracers."""
+
+    pass
+
+
+@features.k8s_admission_controller
+@scenarios.k8s_library_injection_basic
 class TestAdmisionControllerBasic(_TestAdmisionController):
     pass
 
 
 @features.k8s_admission_controller
-@scenarios.k8s_lib_injection_full
+@scenarios.k8s_library_injection_full
 class TestAdmisionControllerComplete(_TestAdmisionController):
     pass
