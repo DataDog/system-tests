@@ -132,10 +132,7 @@ async def rasp_lfi(request: Request):
         return PlainTextResponse(f"{file} could not be open: {e!r}")
 
 
-@app.get("/rasp/ssrf")
-@app.post("/rasp/ssrf")
-async def rasp_ssrf(request: Request):
-    print("rasp_ssrf", repr(request), file=sys.stderr)
+def _get_request_domain(request: Request):
     domain = None
     if request.method == "GET":
         domain = request.query_params.get("domain")
@@ -151,7 +148,15 @@ async def rasp_ssrf(request: Request):
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return domain
 
+
+@app.get("/rasp/ssrf")
+@app.post("/rasp/ssrf")
+async def rasp_ssrf(request: Request):
+    print("rasp_ssrf", repr(request), file=sys.stderr)
+
+    domain = _get_request_domain(request)
     if domain is None:
         return PlainTextResponse("missing domain parameter", status_code=400)
     try:
@@ -165,6 +170,31 @@ async def rasp_ssrf(request: Request):
 
 
 ### END EXPLOIT PREVENTION
+
+
+@app.get("/iast/ssrf/test_insecure")
+@app.post("/iast/ssrf/test_insecure")
+async def iast_ssrf_insecure(request: Request):
+    domain = _get_request_domain(request)
+    if domain is None:
+        return PlainTextResponse("missing domain parameter", status_code=400)
+    try:
+        with requests.get(f"http://{domain}", timeout=1) as url_in:
+            return PlainTextResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
+    except Exception:
+        pass
+    return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
+
+
+@app.get("/iast/ssrf/test_secure")
+@app.post("/iast/ssrf/test_secure")
+async def iast_ssrf_secure(request: Request):
+    try:
+        with requests.get("https://www.datadog.com", timeout=1) as url_in:
+            return PlainTextResponse(f"url https://www.datadog.com open with {len(url_in.read())} bytes")
+    except Exception:
+        pass
+    return PlainTextResponse(f"url https://www.datadog.com could not be open: {e!r}")
 
 
 @app.get("/read_file", response_class=PlainTextResponse)
