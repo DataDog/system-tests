@@ -237,7 +237,6 @@ def rasp_ssrf(*args, **kwargs):
         return Response("missing domain parameter", status=400)
     try:
         with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
-
             return f"url http://{domain} open with {len(url_in.read())} bytes"
     except http.client.HTTPException as e:
         return f"url http://{domain} could not be open: {e!r}"
@@ -590,9 +589,9 @@ def dsm():
                 logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
         produce_thread = threading.Thread(
-            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,)
+            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,),
         )
-        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",))
+        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",),)
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -600,7 +599,7 @@ def dsm():
         logging.info("[kafka] Returning response")
         response = Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",))
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",),)
         consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
@@ -621,7 +620,7 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",))
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",),)
         consume_thread = threading.Thread(target=sns_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
@@ -825,19 +824,10 @@ def view_iast_ssrf_insecure():
 
 @app.route("/iast/ssrf/test_secure", methods=["POST"])
 def view_iast_ssrf_secure():
-    from urllib.parse import urlparse
     import requests
 
-    url = flask_request.form["url"]
-    # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
-    parsed_url = urlparse(url)
-
-    if parsed_url.hostname not in allowed_domains:
-        return "Forbidden", 403
-
     try:
-        requests.get(url)
+        requests.get("https://www.datadog.com")
     except Exception:
         pass
 

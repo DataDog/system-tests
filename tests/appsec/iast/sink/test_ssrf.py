@@ -18,7 +18,7 @@ class TestSSRF(BaseSinkTest):
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
-        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "app/main.py"},
     }
 
     @bug(context.library < "java@1.14.0", reason="https://github.com/DataDog/dd-trace-java/pull/5172")
@@ -26,12 +26,10 @@ class TestSSRF(BaseSinkTest):
         super().test_insecure()
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
-    @missing_feature(library="python", reason="Endpoint responds 403")
     @missing_feature(library="java", reason="Endpoint not implemented")
     def test_secure(self):
         super().test_secure()
 
-    @missing_feature(library="python", reason="Endpoint not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
