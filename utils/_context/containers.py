@@ -143,6 +143,10 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
+        # the whole thing is reimplemented in python...
+        if self.healthcheck is not None:
+            self.kwargs["healthcheck"] = {"test": ["NONE"]}
+
         self._container = _get_client().containers.run(
             image=self.image.name,
             name=self.container_name,
@@ -205,13 +209,22 @@ class TestedContainer:
                     return result
 
             except APIError as e:
-                logger.exception(f"Try #{i} failed")
-                pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
+                logger.exception(f"Try #{i} failed for {self._container.name}: {e.explanation}")
+                break
 
             except Exception as e:
                 logger.debug(f"Try #{i}: {e}")
 
             time.sleep(interval)
+
+        logs = "<cannot retrieve logs>"
+        try:
+            logs = self._container.logs(stdout=True, stderr=True)
+            logs = logs.decode("utf-8")
+        except:
+            pass
+
+        logger.info("Container logs: %s", logs)
 
         pytest.exit(f"Command {cmd} failed for {self._container.name}", 1)
 
@@ -672,9 +685,10 @@ class RabbitMqContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mysql/mysql-server:latest",
+            image_name="mysql/mysql-server@sha256:d6c8301b7834c5b9c2b733b10b7e630f441af7bc917c74dba379f24eeeb6a313",
             name="mysqldb",
-            command="--default-authentication-plugin=mysql_native_password",
+            command="--lc-messages-dir=/usr/share/mysql-8.0/english "
+            "--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",
@@ -683,7 +697,13 @@ class MySqlContainer(SqlDbTestedContainer):
             },
             allow_old_container=True,
             host_log_folder=host_log_folder,
-            healthcheck={"test": "/healthcheck.sh", "retries": 60},
+            healthcheck={
+                "test": "/healthcheck.sh",
+                "interval": 1_000_000_000,  # 1 sec
+                "timeout": 5_000_000_000,
+                "start_period": 3_000_000_000,
+                "retries": 60,
+            },
             dd_integration_service="mysql",
             db_user="mysqldb",
             db_password="mysqldb",

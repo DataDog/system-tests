@@ -3,6 +3,9 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+
+import pytest
+
 from utils import (
     bug,
     context,
@@ -35,6 +38,7 @@ class Test_BlockingAddresses:
 
     @missing_feature(library="java", reason="Missing /users endpoint")
     @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
+    @irrelevant(weblog_variant="nginx", reason="nginx authentication not hooked")
     def test_block_user(self):
         """can block the request from the user"""
 
@@ -72,6 +76,7 @@ class Test_BlockingAddresses:
     @bug(weblog_variant="spring-boot-payara", reason="APPSEC-52335")
     @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
     @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
+    @irrelevant(context.weblog_variant == "nginx")
     def test_path_params(self):
         """can block on server.request.path_params"""
 
@@ -106,6 +111,7 @@ class Test_BlockingAddresses:
     @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
     @bug(weblog_variant="spring-boot-payara", reason="Not blocking")
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
+    @missing_feature(weblog_variant="nginx", reason="Body not transmitted to the WAF yet")
     def test_request_body_urlencoded(self):
         """can block on server.request.body (urlencoded variant)"""
 
@@ -133,6 +139,7 @@ class Test_BlockingAddresses:
         reason="Blocking on multipart not supported yet",
     )
     @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
+    @missing_feature(weblog_variant="nginx", reason="Body not transmitted to the WAF yet")
     def test_request_body_multipart(self):
         """can block on server.request.body (multipart/form-data variant)"""
 
@@ -164,6 +171,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
     @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(weblog_variant="nginx", reason="Blocking on final WAF run not supported")
     def test_response_status(self):
         """can block on server.response.status"""
 
@@ -180,6 +188,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "ruby", reason="Not working")
     @missing_feature(library="nodejs", reason="Not supported yet")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
+    @missing_feature(weblog_variant="nginx", reason="Blocking on final WAF run not supported")
     def test_not_found(self):
         """can block on server.response.status"""
 
@@ -198,6 +207,7 @@ class Test_BlockingAddresses:
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
     @missing_feature(library="nodejs", reason="Not supported yet")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
+    @missing_feature(weblog_variant="nginx", reason="Blocking on final WAF run not supported")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
 
@@ -255,6 +265,7 @@ class Test_Blocking_request_method:
         self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
     @flaky(context.library < "java@1.16.0")
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -308,6 +319,7 @@ class Test_Blocking_request_uri:
         self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -353,6 +365,7 @@ class Test_Blocking_request_path_params:
         self.set_req1 = weblog.get("/tag_value/clean_value_3878/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_AiKfOeRcvG45/200")
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -401,6 +414,7 @@ class Test_Blocking_request_query:
         self.set_req1 = weblog.get("/tag_value/clean_value_3879/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -449,6 +463,7 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -497,6 +512,7 @@ class Test_Blocking_request_cookies:
         self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
