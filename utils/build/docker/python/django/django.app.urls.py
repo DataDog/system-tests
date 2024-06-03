@@ -116,6 +116,38 @@ def rasp_ssrf(request, *args, **kwargs):
         return HttpResponse(f"url http://{domain} could not be open: {e!r}")
 
 
+@csrf_exempt
+def rasp_sqli(request, *args, **kwargs):
+    user_id = None
+    if request.method == "GET":
+        user_id = request.GET.get("user_id")
+    elif request.method == "POST":
+        try:
+            user_id = (request.POST or json.loads(request.body)).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if user_id is None:
+                user_id = xmltodict.parse(request.body).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if user_id is None:
+        return HttpResponse("missing user_id parameter", status=400)
+    try:
+        import sqlite3
+
+        DB = sqlite3.connect(":memory:")
+        print(f"SELECT * FROM table WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM table WHERE '{user_id};")
+        print("DB request with {len(list(cursor))} results")
+        return HttpResponse(f"DB request with {len(list(cursor))} results")
+    except Exception as e:
+        print(f"DB request failure: {e!r}", file=sys.stderr)
+        return HttpResponse(f"DB request failure: {e!r}", status=201)
+
+
 ### END EXPLOIT PREVENTION
 
 
@@ -542,6 +574,7 @@ urlpatterns = [
     path("waf/<url>", waf),
     path("rasp/lfi", rasp_lfi),
     path("rasp/ssrf", rasp_ssrf),
+    path("rasp/sqli", rasp_sqli),
     path("params/<appscan_fingerprint>", waf),
     path("tag_value/<str:tag_value>/<int:status_code>", waf),
     path("createextraservice", create_extra_service),
