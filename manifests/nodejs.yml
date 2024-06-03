@@ -445,6 +445,8 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: *ref_4_23_0
     test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Var: v5.11.0
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: 
       Test_Span_Links: *ref_5_3_0

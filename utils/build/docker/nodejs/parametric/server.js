@@ -287,7 +287,21 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 
 app.get('/trace/config', (req, res) => {
   const dummyTracer = require('dd-trace').init()
-  res.json( { config: dummyTracer._tracer._config, language: 'nodejs' });
+  const config = dummyTracer._tracer._config
+  res.json( { 
+    'dd_service': config ? config.service : null,
+    'dd_log_level': config ? config.logLevel : null,
+    'dd_trace_debug': config ? config.debug : null,
+    'dd_trace_sample_rate': config && config.sampleRate !== undefined ? config.sampleRate : null,
+    'dd_trace_enabled': config ? true : false, // in node if dd_trace_enabled is true the tracer won't have a config object
+    'dd_runtime_metrics_enabled': config ? config.runtimeMetrics : null,
+    'dd_tags': config ? config.tags : null,
+    'dd_trace_propagation_style': config ? config.tracePropagationStyle.inject.join(",") : null,
+    'dd_trace_sample_ignore_parent': null, // not implemented in node
+    'dd_trace_otel_enabled': null, // not exposed in config object in node
+    'dd_env': config && config.tags.env ? config.tags.env : null,
+    'dd_version': config ? config.tags.version : null,
+  });
 });
 
 // TODO: implement this endpoint correctly, current blockers:

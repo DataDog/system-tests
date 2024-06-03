@@ -355,7 +355,20 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def get_tracer_config(self) -> dict:
         resp = self._session.get(self._url("/trace/config")).json()
-        return resp
+        return {
+            "dd_service": resp["dd_service"],
+            "dd_log_level": resp["dd_log_level"],
+            "dd_trace_sample_rate": resp["dd_trace_sample_rate"],
+            "dd_trace_enabled": resp["dd_trace_enabled"],
+            "dd_runtime_metrics_enabled": resp["dd_runtime_metrics_enabled"],
+            "dd_tags": resp["dd_tags"],
+            "dd_trace_propagation_style": resp["dd_trace_propagation_style"],
+            "dd_trace_debug": resp["dd_trace_debug"],
+            "dd_trace_otel_enabled": resp["dd_trace_otel_enabled"],
+            "dd_trace_sample_ignore_parent": resp["dd_trace_sample_ignore_parent"],
+            "dd_env": resp["dd_env"],
+            "dd_version": resp["dd_version"]
+        }
 
 
 class _TestSpan:
@@ -634,8 +647,18 @@ class APMLibraryClientGRPC:
     def get_tracer_config(self) -> dict:
         resp = self._client.GetTraceConfig(pb.GetTraceConfigArgs())
         return {
-            "config": resp.config,
-            "language": resp.language,
+            "dd_service": resp.dd_service,
+            "dd_log_level": resp.dd_log_level,
+            "dd_trace_sample_rate": resp.dd_trace_sample_rate,
+            "dd_trace_enabled": resp.dd_trace_enabled,
+            "dd_runtime_metrics_enabled": resp.dd_runtime_metrics_enabled,
+            "dd_tags": resp.dd_tags,
+            "dd_trace_propagation_style": resp.dd_trace_propagation_style,
+            "dd_trace_debug": resp.dd_trace_debug,
+            "dd_trace_otel_enabled": resp.dd_trace_otel_enabled,
+            "dd_trace_sample_ignore_parent": resp.dd_trace_sample_ignore_parent,
+            "dd_env": resp.dd_env,
+            "dd_version": resp.dd_version
         }
 
 
