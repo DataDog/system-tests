@@ -367,7 +367,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
             "dd_trace_otel_enabled": resp["dd_trace_otel_enabled"],
             "dd_trace_sample_ignore_parent": resp["dd_trace_sample_ignore_parent"],
             "dd_env": resp["dd_env"],
-            "dd_version": resp["dd_version"]
+            "dd_version": resp["dd_version"],
         }
 
 
@@ -658,7 +658,7 @@ class APMLibraryClientGRPC:
             "dd_trace_otel_enabled": resp.dd_trace_otel_enabled,
             "dd_trace_sample_ignore_parent": resp.dd_trace_sample_ignore_parent,
             "dd_env": resp.dd_env,
-            "dd_version": resp.dd_version
+            "dd_version": resp.dd_version,
         }
 
 
