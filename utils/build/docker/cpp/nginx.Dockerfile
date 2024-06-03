@@ -15,6 +15,7 @@ COPY utils/build/docker/cpp/nginx/install_ddtrace.sh /builds/
 COPY utils/build/docker/cpp/install_ddprof.sh /builds/
 COPY utils/build/docker/cpp/nginx/app.sh /builds/
 COPY utils/build/docker/cpp/ binaries* /builds/
+COPY utils/build/docker/cpp/nginx/backend.c /tmp/
 
 # install backend app
 RUN gcc -o /usr/local/bin/backend /tmp/backend.c -lmicrohttpd && rm /tmp/backend.c

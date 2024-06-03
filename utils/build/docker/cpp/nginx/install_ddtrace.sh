@@ -122,9 +122,9 @@ fi
 readonly NGINX_DATADOG_VERSION="$(get_latest_release)"
 
 if version_first_is_greater "$NGINX_DATADOG_VERSION" "v1.1.0"; then
-  local readonly TARBALLS=(
-    "ngx_http_datadog_module-appsec-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.tgz"
-    "ngx_http_datadog_module-appsec-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.debug.tgz"
+  TARBALLS=(
+    "ngx_http_datadog_module-appsec-${ARCH}-${NGINX_VERSION}.so.tgz"
+    "ngx_http_datadog_module-appsec-${ARCH}-${NGINX_VERSION}.so.debug.tgz"
   )
   for FILE in "${TARBALLS[@]}"; do
     wget -O - \
