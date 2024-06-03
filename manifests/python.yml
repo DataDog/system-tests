@@ -107,7 +107,7 @@ tests/:
             python3.12: v1.18.0
         test_ssrf.py:
           TestSSRF:
-            '*': v2.2.0
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
@@ -351,6 +351,8 @@ tests/:
       Test_Login_Events_Extended: 
         '*': missing_feature (weblog endpoint missing)
         flask-poc: v2.10.0.dev
+        uds-flask: v2.10.0.dev
+        uwsgi-poc: v2.10.0.dev
     test_blocking_addresses.py:
       Test_BlockingAddresses:
         '*': v1.16.1
