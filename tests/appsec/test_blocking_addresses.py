@@ -654,16 +654,16 @@ class Test_Suspicious_Request_Blocking:
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        pytest.skip("TODO: test not implemented")
+        assert False, "TODO"
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         self.test_blocking()
-        pytest.skip("TODO: test not implemented")
+        assert False, "TODO"
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
-        pytest.skip("TODO: test not implemented")
+        assert False, "TODO"
 
 
 @scenarios.graphql_appsec

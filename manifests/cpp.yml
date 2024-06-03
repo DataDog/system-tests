@@ -249,7 +249,7 @@ tests/:
         nginx: missing_feature (blocking on final WAF run not possible)
       Test_Suspicious_Request_Blocking:
         "*": irrelevant (ASM is not implemented in C++)
-        nginx: v1.2.0
+        nginx: missing_feature (missing test)
     test_client_ip.py:
       Test_StandardTagsClientIp:
         "*": irrelevant (ASM is not implemented in C++)
