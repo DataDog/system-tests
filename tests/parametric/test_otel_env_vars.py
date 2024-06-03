@@ -3,7 +3,7 @@ from utils import missing_feature, context, scenarios
 
 
 @scenarios.parametric
-class Test_Otel_Env_Var:
+class Test_Otel_Env_Vars:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
