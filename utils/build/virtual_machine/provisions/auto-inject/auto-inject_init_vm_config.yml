@@ -28,8 +28,7 @@
     sudo apt-get -y update
 
     #Install some basic tools (microvm doesn't have them by default)
-    sudo apt-get -y install vim curl gpg net-tools iproute2  apt-utils || true
-
+    sudo apt-get -y install vim curl gpg net-tools iproute2 dialog apt-utils lsof || true
     hosts_file="/etc/hosts"
     if [ ! -s $hosts_file ]; then echo "Creating /etc/hosts file with default values..."
       # Default values for /etc/hosts file

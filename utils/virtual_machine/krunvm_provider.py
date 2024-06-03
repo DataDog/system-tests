@@ -54,6 +54,12 @@ class KrunVmProvider(VmProvider):
             )
             os.chmod(f"{self.shared_volume}/krunvm_init.sh", 0o777)
 
+            # Set the shared volume as working directory
+            cmd_krunvm_workdir = f"krunvm changevm {vm.name} --workdir /shared_volume"
+            logger.debug(cmd_krunvm_workdir)
+            output_workdir = subprocess.run(cmd_krunvm_workdir.split(), capture_output=True, text=True).stdout
+            logger.info(f"[KrumVm] MicroVM workdir: {output_workdir}")
+
             # Start the MicroVM and wait for std.in to be ready
             logger.info(f"[KrumVm] MicroVM [{vm.name}] starting ...")
             cmd_krunvm_start = f"krunvm start {vm.name} /shared_volume/krunvm_init.sh"
@@ -63,10 +69,9 @@ class KrunVmProvider(VmProvider):
             logger.info(f"[KrumVm] MicroVM [{vm.name}] started.")
             logger.info(microvm_process.after)
             self._microvm_processes.append(microvm_process)
-            # time.sleep(10)
+
             self.install_provision(vm, None, None)
-            # Install provision on the started server
-            # self.install_provision(vm, None, client)
+            vm.set_ip("localhost")
 
     def _get_open_port(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

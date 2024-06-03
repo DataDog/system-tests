@@ -26,13 +26,16 @@ weblog:
           - name: copy-service
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app.service
 
+         # - name: copy-service-init
+         #   local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app.init.service
+
           - name: copy-run-weblog-script
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
 
-          - name: copy-run-weblog-script_microvm
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run_microvm.sh
+          - name: copy-service-daemon
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_daemon.sh
 
           - name: copy-binary
             local_path: lib-injection/build/docker/nodejs/sample-app/index.js
 
-        remote-command: sh /shared_volume/test-app-nodejs_run_microvm.sh
+        remote-command: sh test-app-nodejs_run.sh

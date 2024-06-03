@@ -141,7 +141,7 @@ class TestHostAutoInjectInstallScript(_AutoInjectBaseTest):
 class TestSimpleHostAutoInjectManual(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        assert True  # self._test_install(virtual_machine)
+        self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
