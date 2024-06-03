@@ -107,7 +107,7 @@ tests/:
             python3.12: v1.18.0
         test_ssrf.py:
           TestSSRF:
-            '*': v2.2.0
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
