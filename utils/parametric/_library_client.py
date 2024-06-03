@@ -85,6 +85,12 @@ class APMLibraryClient:
     def otel_set_status(self, span_id: int, code: int, description: str) -> None:
         raise NotImplementedError
 
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict) -> None:
+        raise NotImplementedError
+
+    def otel_record_exception(self, span_id: int, message: str, attributes: dict) -> None:
+        raise NotImplementedError
+
     def otel_is_recording(self, span_id: int) -> bool:
         raise NotImplementedError
 
@@ -307,6 +313,18 @@ class APMLibraryClientHTTP(APMLibraryClient):
             self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code, "description": description}
         )
 
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
+        self._session.post(
+            self._url("/trace/otel/add_event"),
+            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes},
+        )
+
+    def otel_record_exception(self, span_id: int, message: str, attributes) -> None:
+        self._session.post(
+            self._url("/trace/otel/record_exception"),
+            json={"span_id": span_id, "message": message, "attributes": attributes},
+        )
+
     def otel_is_recording(self, span_id: int) -> bool:
         resp = self._session.post(self._url("/trace/otel/is_recording"), json={"span_id": span_id}).json()
         return resp["is_recording"]
@@ -389,6 +407,12 @@ class _TestOtelSpan:
 
     def set_status(self, code, description):
         self._client.otel_set_status(self.span_id, code, description)
+
+    def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
+        self._client.otel_add_event(self.span_id, name, timestamp, attributes)
+
+    def record_exception(self, message: str, attributes: Optional[dict] = None):
+        self._client.otel_record_exception(self.span_id, message, attributes)
 
     def end_span(self, timestamp: int = 0):
         self._client.otel_end_span(self.span_id, timestamp)
@@ -571,6 +595,18 @@ class APMLibraryClientGRPC:
 
     def otel_set_status(self, span_id: int, code: int, description: str):
         self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code, description=description))
+
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes):
+        self._client.OtelAddEvent(
+            pb.OtelAddEventArgs(
+                span_id=span_id, name=name, timestamp=timestamp, attributes=convert_to_proto(attributes)
+            )
+        )
+
+    def otel_record_exception(self, span_id: int, message: str, attributes):
+        self._client.OtelRecordException(
+            pb.OtelRecordExceptionArgs(span_id=span_id, message=message, attributes=convert_to_proto(attributes))
+        )
 
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=span_id)).is_recording

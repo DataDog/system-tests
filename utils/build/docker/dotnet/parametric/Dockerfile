@@ -19,6 +19,7 @@ COPY utils/build/docker/dotnet/parametric ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /app/out
 
+
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
