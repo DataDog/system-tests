@@ -224,7 +224,7 @@ class _Weblog:
 
         return res
 
-    def grpc(self, string_value):
+    def grpc(self, string_value, streaming=False):
 
         if self.replay:
             return self.get_grpc_request_from_logs()
@@ -251,8 +251,12 @@ class _Weblog:
         }
 
         try:
-            _grpc_client.Unary(request)
-            response_data["response"] = "TODO"
+            if streaming:
+                for response in _grpc_client.ServerStream(request):
+                    response_data["response"] = response.string_value
+            else:
+                response = _grpc_client.Unary(request)
+                response_data["response"] = response.string_value
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
