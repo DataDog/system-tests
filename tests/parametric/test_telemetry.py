@@ -213,12 +213,13 @@ class Test_Environment:
         otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
         otelInvalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
-
         assert len(otelHiding) == 9
         assert len(otelInvalid) == 0
 
         expected_tags = [
-            ["DD_TRACE_LOG_LEVEL", "OTEL_LOG_LEVEL"] if context.library == "nodejs" else ["DD_LOG_LEVEL",  "OTEL_LOG_LEVEL"],
+            ["DD_TRACE_LOG_LEVEL", "OTEL_LOG_LEVEL"]
+            if context.library == "nodejs"
+            else ["DD_LOG_LEVEL", "OTEL_LOG_LEVEL"],
             ["DD_TRACE_PROPAGATION_STYLE", "OTEL_PROPAGATORS"],
             ["DD_SERVICE", "OTEL_SERVICE_NAME"],
             ["DD_TRACE_SAMPLE_RATE", "OTEL_TRACES_SAMPLER"],
@@ -230,7 +231,7 @@ class Test_Environment:
         ]
 
         for expected in expected_tags:
-            assert any(all(tag in metric['tags'] for tag in expected) for metric in otelHiding)
+            assert any(all(tag in metric["tags"] for tag in expected) for metric in otelHiding)
 
         for metric in otelHiding:
             assert metric["points"][0][1] == 1
@@ -248,16 +249,16 @@ class Test_Environment:
                 "DD_TRACE_AGENT_PORT": "agent.port",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
                 "TIMEOUT": 1500,
-                'OTEL_SERVICE_NAME': 'otel_service',
-                'OTEL_LOG_LEVEL': 'foo',
-                'OTEL_TRACES_SAMPLER': 'foo',
-                'OTEL_TRACES_SAMPLER_ARG': 'foo',
-                'OTEL_TRACES_EXPORTER': 'foo',
-                'OTEL_METRICS_EXPORTER': 'foo',
-                'OTEL_RESOURCE_ATTRIBUTES': 'foo',
-                'OTEL_PROPAGATORS': 'foo',
-                'OTEL_LOGS_EXPORTER': 'foo',
-                'OTEL_SDK_DISABLED': 'foo'
+                "OTEL_SERVICE_NAME": "otel_service",
+                "OTEL_LOG_LEVEL": "foo",
+                "OTEL_TRACES_SAMPLER": "foo",
+                "OTEL_TRACES_SAMPLER_ARG": "foo",
+                "OTEL_TRACES_EXPORTER": "foo",
+                "OTEL_METRICS_EXPORTER": "foo",
+                "OTEL_RESOURCE_ATTRIBUTES": "foo",
+                "OTEL_PROPAGATORS": "foo",
+                "OTEL_LOGS_EXPORTER": "foo",
+                "OTEL_SDK_DISABLED": "foo",
             }
         ],
     )
@@ -275,23 +276,24 @@ class Test_Environment:
         otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
         otelInvalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
-
         assert len(otelHiding) == 0
         assert len(otelInvalid) == 8
 
         expected_invalid_tags = [
-            ["DD_TRACE_LOG_LEVEL", "OTEL_LOG_LEVEL"] if context.library == "nodejs" else ["DD_LOG_LEVEL",  "OTEL_LOG_LEVEL"],
+            ["DD_TRACE_LOG_LEVEL", "OTEL_LOG_LEVEL"]
+            if context.library == "nodejs"
+            else ["DD_LOG_LEVEL", "OTEL_LOG_LEVEL"],
             ["DD_TRACE_PROPAGATION_STYLE", "OTEL_PROPAGATORS"],
             ["DD_TRACE_SAMPLE_RATE", "OTEL_TRACES_SAMPLER"],
             ["DD_TRACE_SAMPLE_RATE", "OTEL_TRACES_SAMPLER_ARG"],
             ["DD_TRACE_ENABLED", "OTEL_TRACES_EXPORTER"],
             ["DD_RUNTIME_METRICS_ENABLED", "OTEL_METRICS_EXPORTER"],
             ["DD_TRACE_OTEL_ENABLED", "OTEL_SDK_DISABLED"],
-            ['OTEL_LOGS_EXPORTER']
+            ["OTEL_LOGS_EXPORTER"],
         ]
 
         for expected in expected_invalid_tags:
-            assert any(all(tag in metric['tags'] for tag in expected) for metric in otelInvalid)
+            assert any(all(tag in metric["tags"] for tag in expected) for metric in otelInvalid)
 
         for metric in otelInvalid:
             assert metric["points"][0][1] == 1

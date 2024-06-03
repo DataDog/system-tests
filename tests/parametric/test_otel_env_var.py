@@ -1,6 +1,7 @@
 import pytest
 from utils import missing_feature, context, scenarios
 
+
 @scenarios.parametric
 class Test_Otel_Env_Var:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -15,9 +16,9 @@ class Test_Otel_Env_Var:
             {
                 "DD_SERVICE": "service",
                 "OTEL_SERVICE_NAME": "otel_service",
-                "DD_TRACE_LOG_LEVEL": "error", # Node uses DD_TRACE_LOG_LEVEL
-                "DD_LOG_LEVEL": 'error',
-                "DD_TRACE_DEBUG": 'false',
+                "DD_TRACE_LOG_LEVEL": "error",  # Node uses DD_TRACE_LOG_LEVEL
+                "DD_LOG_LEVEL": "error",
+                "DD_TRACE_DEBUG": "false",
                 "OTEL_LOG_LEVEL": "debug",
                 "DD_TRACE_SAMPLE_RATE": "0.5",
                 "OTEL_TRACES_SAMPLER": "traceidratio",
@@ -32,7 +33,7 @@ class Test_Otel_Env_Var:
                 "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3,tracecontext",
                 "OTEL_PROPAGATORS": "datadog,tracecontext",
                 "DD_TRACE_OTEL_ENABLED": "false",
-                "OTEL_SDK_DISABLED": "false"
+                "OTEL_SDK_DISABLED": "false",
             }
         ],
     )
@@ -50,8 +51,8 @@ class Test_Otel_Env_Var:
         assert resp["dd_trace_propagation_style"] == "b3,tracecontext"
         assert resp["dd_trace_debug"] == False
         if context.library != "nodejs":
-          assert resp["dd_trace_otel_enabled"] == False # node does not expose this variable in the config
-          assert resp["dd_trace_sample_ignore_parent"] == True # node does not implement this env variable
+            assert resp["dd_trace_otel_enabled"] == False  # node does not expose this variable in the config
+            assert resp["dd_trace_sample_ignore_parent"] == True  # node does not implement this env variable
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -70,7 +71,7 @@ class Test_Otel_Env_Var:
                 "OTEL_METRICS_EXPORTER": "none",
                 "OTEL_RESOURCE_ATTRIBUTES": "foo=bar1,baz=qux1",
                 "OTEL_PROPAGATORS": "b3,datadog",
-                "OTEL_SDK_DISABLED": "true"
+                "OTEL_SDK_DISABLED": "true",
             }
         ],
     )
@@ -87,9 +88,9 @@ class Test_Otel_Env_Var:
         assert tags.get("baz") == "qux1"
         assert resp["dd_trace_propagation_style"] == "b3,datadog"
         if context.library != "nodejs":
-          assert resp["dd_trace_debug"] == True
-          assert resp["dd_trace_otel_enabled"] == False
-          assert resp["dd_trace_sample_ignore_parent"] == True
+            assert resp["dd_trace_debug"] == True
+            assert resp["dd_trace_otel_enabled"] == False
+            assert resp["dd_trace_sample_ignore_parent"] == True
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -127,7 +128,7 @@ class Test_Otel_Env_Var:
     def test_otel_traces_always_on(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
         if context.library != "nodejs":
-          assert resp["dd_trace_sample_ignore_parent"] == False
+            assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 1.0
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -142,7 +143,7 @@ class Test_Otel_Env_Var:
     def test_otel_traces_always_off(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
         if context.library != "nodejs":
-          assert resp["dd_trace_sample_ignore_parent"] == False
+            assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 0.0
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -157,7 +158,7 @@ class Test_Otel_Env_Var:
     def test_otel_traces_traceidratio(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
         if context.library != "nodejs":
-          assert resp["dd_trace_sample_ignore_parent"] == False
+            assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 0.1
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -172,7 +173,7 @@ class Test_Otel_Env_Var:
     def test_otel_traces_parentbased_on(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
         if context.library != "nodejs":
-          assert resp["dd_trace_sample_ignore_parent"] == False
+            assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 1.0
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -187,7 +188,7 @@ class Test_Otel_Env_Var:
     def test_otel_traces_parentbased_off(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
         if context.library != "nodejs":
-          assert resp["dd_trace_sample_ignore_parent"] == False
+            assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 0.0
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -202,9 +203,8 @@ class Test_Otel_Env_Var:
     def test_otel_traces_parentbased_ratio(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
         if context.library != "nodejs":
-          assert resp["dd_trace_sample_ignore_parent"] == False
+            assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 0.1
-
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -213,7 +213,7 @@ class Test_Otel_Env_Var:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
-        "library_env", [{'OTEL_TRACES_EXPORTER': 'none'}],
+        "library_env", [{"OTEL_TRACES_EXPORTER": "none"}],
     )
     def test_otel_traces_exporter_none(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
