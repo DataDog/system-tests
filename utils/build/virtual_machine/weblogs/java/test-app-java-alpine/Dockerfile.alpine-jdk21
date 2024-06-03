@@ -1,10 +1,10 @@
-FROM eclipse-temurin:21.0.3_9-jdk-alpine
-RUN apk add --no-cache bash
+FROM public.ecr.aws/docker/library/alpine:latest
+RUN apk --no-cache add openjdk21 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+
 COPY build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar /usr/local/app/
 
-COPY docker_entrypoint_docker.sh /usr/local/app/
-RUN chmod 755 /usr/local/app/docker_entrypoint_docker.sh
-CMD [ "/usr/local/app/docker_entrypoint_docker.sh" ]
+WORKDIR /usr/local/app/
+ENTRYPOINT ["java", "-jar", "k8s-lib-injection-app-0.0.1-SNAPSHOT.jar"]
 
 
 
