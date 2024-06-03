@@ -70,6 +70,52 @@ class Test_Otel_Span_Methods:
         assert root_span["resource"] == "parent_span"
         assert root_span["service"] == "new_service"
 
+    @missing_feature(context.library < "python@2.9.0", reason="Implemented in 2.9.0")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    def test_otel_set_attribute_remapping_httpresponsestatuscode(self, test_agent, test_library):
+        """
+            - May 2024 update to OTel API RFC requires implementations to remap
+              OTEL Span attribute 'http.response.status_code' to DD Span tag 'http.status_code'.
+              This solves an issue with trace metrics when using the OTel API.
+        """
+        with test_library:
+            with test_library.otel_start_span("operation") as span:
+                span.set_attributes({"http.response.status_code": 200})
+                span.end_span()
+
+        test_span = get_span(test_agent)
+
+        assert "http.response.status_code" not in test_span["meta"]
+        assert test_span["meta"]["http.status_code"] == "200"
+
+    @missing_feature(context.library < "python@2.9.0", reason="Implemented in 2.9.0")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    def test_otel_set_attribute_remapping_httpstatuscode(self, test_agent, test_library):
+        """
+            - May 2024 update to OTel API RFC requires implementations to remap
+              OTEL Span attribute 'http.response.status_code' to DD Span tag 'http.status_code'.
+              This test ensures that the original OTEL Span attribute 'http.status_code'
+              is also set as DD Span tag 'http.status_code'
+        """
+        with test_library:
+            with test_library.otel_start_span("operation") as span:
+                span.set_attributes({"http.status_code": 200})
+                span.end_span()
+
+        test_span = get_span(test_agent)
+
+        assert test_span["meta"]["http.status_code"] == "200"
+
     @irrelevant(
         context.library == "java",
         reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
