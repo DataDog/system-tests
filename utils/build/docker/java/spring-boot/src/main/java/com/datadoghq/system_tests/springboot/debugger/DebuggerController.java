@@ -52,4 +52,13 @@ public class DebuggerController {
         intMixLocal = intArg * arg.length();
         return "Span Decoration Probe " + intMixLocal;
     }
+
+    @GetMapping("/pii")
+    public String pii() {
+        PiiBase pii = new Pii();
+        PiiBase customPii = new CustomPii();
+        String value = pii.TestValue;
+        String customValue = customPii.TestValue;
+        return "PII " + value + ". CustomPII" + customValue;
+    }
 }

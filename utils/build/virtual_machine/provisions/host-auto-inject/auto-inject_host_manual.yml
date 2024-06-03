@@ -76,7 +76,7 @@
         echo "Skipping package signature verification for local package"
     else
         echo "Verify package signature. Fails if it isn't V4"
-        yumdownloader datadog-apm-inject
+        yumdownloader -y datadog-apm-inject
         rpm -v --checksig *.rpm | grep -q "Header V4 RSA/SHA256 Signature"
         echo "Package signature verified!"
         rm datadog-apm-inject*.rpm || true

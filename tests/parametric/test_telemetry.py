@@ -60,7 +60,7 @@ class Test_Defaults:
             ("trace_header_tags", ""),
             ("trace_tags", ""),
             ("trace_enabled", ("true", True)),
-            ("profiling_enabled", ("false", False)),
+            ("profiling_enabled", ("false", False, None)),
             ("appsec_enabled", ("false", False, "inactive", None)),
             ("data_streams_enabled", ("false", False)),
         ]:

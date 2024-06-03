@@ -124,11 +124,11 @@ readonly NGINX_DATADOG_VERSION="$(get_latest_release)"
 if version_first_is_greater "$NGINX_DATADOG_VERSION" "v1.1.0"; then
   local readonly TARBALLS=(
     "ngx_http_datadog_module-appsec-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.tgz"
-    "ngx_http_datadog_module-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.debug.tgz"
+    "ngx_http_datadog_module-appsec-${ARCH}-${NGINX_DATADOG_VERSION:1}.so.debug.tgz"
   )
   for FILE in "${TARBALLS[@]}"; do
     wget -O - \
-      "https://github.com/DataDog/nginx-datadog/releases/download/untagged-aa7b821fde252827b9e8/${FILE}" \
+      "https://github.com/DataDog/nginx-datadog/releases/download/$NGINX_DATADOG_VERSION/${FILE}" \
       | tar -xzf - -C /usr/lib/nginx/modules
   done
 else

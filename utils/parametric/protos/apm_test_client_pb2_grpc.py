@@ -110,6 +110,16 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.OtelEndSpanArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.OtelEndSpanReturn.FromString,
                 )
+        self.OtelAddEvent = channel.unary_unary(
+                '/APMClient/OtelAddEvent',
+                request_serializer=protos_dot_apm__test__client__pb2.OtelAddEventArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.OtelAddEventReturn.FromString,
+                )
+        self.OtelRecordException = channel.unary_unary(
+                '/APMClient/OtelRecordException',
+                request_serializer=protos_dot_apm__test__client__pb2.OtelRecordExceptionArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.OtelRecordExceptionReturn.FromString,
+                )
         self.OtelIsRecording = channel.unary_unary(
                 '/APMClient/OtelIsRecording',
                 request_serializer=protos_dot_apm__test__client__pb2.OtelIsRecordingArgs.SerializeToString,
@@ -290,6 +300,18 @@ class APMClientServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def OtelAddEvent(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def OtelRecordException(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def OtelIsRecording(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -459,6 +481,16 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.OtelEndSpan,
                     request_deserializer=protos_dot_apm__test__client__pb2.OtelEndSpanArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.OtelEndSpanReturn.SerializeToString,
+            ),
+            'OtelAddEvent': grpc.unary_unary_rpc_method_handler(
+                    servicer.OtelAddEvent,
+                    request_deserializer=protos_dot_apm__test__client__pb2.OtelAddEventArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.OtelAddEventReturn.SerializeToString,
+            ),
+            'OtelRecordException': grpc.unary_unary_rpc_method_handler(
+                    servicer.OtelRecordException,
+                    request_deserializer=protos_dot_apm__test__client__pb2.OtelRecordExceptionArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.OtelRecordExceptionReturn.SerializeToString,
             ),
             'OtelIsRecording': grpc.unary_unary_rpc_method_handler(
                     servicer.OtelIsRecording,
@@ -851,6 +883,40 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/OtelEndSpan',
             protos_dot_apm__test__client__pb2.OtelEndSpanArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.OtelEndSpanReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def OtelAddEvent(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/OtelAddEvent',
+            protos_dot_apm__test__client__pb2.OtelAddEventArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.OtelAddEventReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def OtelRecordException(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/OtelRecordException',
+            protos_dot_apm__test__client__pb2.OtelRecordExceptionArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.OtelRecordExceptionReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

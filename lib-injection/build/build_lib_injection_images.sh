@@ -22,5 +22,6 @@ for variant in "${!variants[@]}"; do
     language="${variants[$variant]}"
     echo "Building $variant - $language"; 
     echo "$(pwd)"
-    cd ./lib-injection/build/docker/$language/$variant/ && APP_DOCKER_IMAGE_REPO=ghcr.io/datadog/system-tests/$variant LIBRARY_INJECTION_TEST_APP_IMAGE=ghcr.io/datadog/system-tests/$variant:$DOCKER_IMAGE_WEBLOG_TAG ./build.sh && cd ../../../../../
+    ./lib-injection/build/build_lib_injection_weblog.sh -w $variant -l $language --push-tag ghcr.io/datadog/system-tests/$variant:$DOCKER_IMAGE_WEBLOG_TAG   
+
 done

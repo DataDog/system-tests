@@ -23,6 +23,9 @@ DSM_STREAM = "dsm-system-tests-stream"
 DSM_QUEUE = "dsm-system-tests-queue"
 DSM_TOPIC = "dsm-system-tests-topic"
 
+# Queue requests can take a while, so give time for them to complete
+DSM_REQUEST_TIMEOUT = 61
+
 
 @features.datastreams_monitoring_support_for_kafka
 @scenarios.integrations
@@ -32,7 +35,6 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
-    @flaky(library="java", reason="AIT-10206")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -77,7 +79,9 @@ class Test_DsmHttp:
     def setup_dsm_http(self):
         # Note that for HTTP, we will still test using Kafka, because the call to Weblog itself is HTTP
         # and will be instrumented as such
-        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
+        self.r = weblog.get(
+            f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}", timeout=DSM_REQUEST_TIMEOUT
+        )
 
     def test_dsm_http(self):
         assert self.r.text == "ok"
@@ -94,7 +98,8 @@ class Test_DsmRabbitmq:
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get(
-            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}"
+            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}",
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     @bug(
@@ -141,7 +146,8 @@ class Test_DsmRabbitmq:
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
         self.r = weblog.get(
-            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}"
+            f"/dsm?integration=rabbitmq&queue={DSM_QUEUE}&exchange={DSM_EXCHANGE}&routing_key={DSM_ROUTING_KEY}",
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
@@ -173,7 +179,7 @@ class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
 
     def setup_dsm_rabbitmq(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange")
+        self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
@@ -209,7 +215,7 @@ class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
 
     def setup_dsm_rabbitmq(self):
-        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange")
+        self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
@@ -245,7 +251,7 @@ class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
 
     def setup_dsm_sqs(self):
-        self.r = weblog.get(f"/dsm?integration=sqs&timeout=60&queue={DSM_QUEUE}", timeout=61)
+        self.r = weblog.get(f"/dsm?integration=sqs&timeout=60&queue={DSM_QUEUE}", timeout=DSM_REQUEST_TIMEOUT)
 
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -274,7 +280,9 @@ class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
     def setup_dsm_sns(self):
-        self.r = weblog.get(f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=61,)
+        self.r = weblog.get(
+            f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_sns(self):
@@ -304,7 +312,7 @@ class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
 
     def setup_dsm_kinesis(self):
-        self.r = weblog.get(f"/dsm?integration=kinesis&timeout=60&stream={DSM_STREAM}", timeout=61,)
+        self.r = weblog.get(f"/dsm?integration=kinesis&timeout=60&stream={DSM_STREAM}", timeout=DSM_REQUEST_TIMEOUT,)
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     def test_dsm_kinesis(self):
@@ -351,7 +359,7 @@ class Test_DsmContext_Injection_Base64:
         topic = "dsm-injection-topic"
         integration = "kafka"
 
-        self.r = weblog.get(f"/dsm/inject?topic={topic}&integration={integration}", timeout=61,)
+        self.r = weblog.get(f"/dsm/inject?topic={topic}&integration={integration}", timeout=DSM_REQUEST_TIMEOUT,)
 
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
@@ -403,7 +411,7 @@ class Test_DsmContext_Extraction_Base64:
         self.r = weblog.get(
             f"/dsm/extract?topic={topic}&integration={integration}&ctx="
             + json.dumps(ctx),  # GoP2wpyqhGvWhsLZ5mPqhsLZ5mM= for java :(, nMKD2ZEAtFOSrODZ5mOSrODZ5mM= for go,
-            timeout=61,
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     def test_dsmcontext_extraction_base64(self):

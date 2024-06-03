@@ -11,6 +11,6 @@ weblog:
           - name: copy-python-app
             local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
           - name: copy-python-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-alpine/Dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-alpine/Dockerfile.template
 
         remote-command: sh test-app-python_docker_compose_run.sh

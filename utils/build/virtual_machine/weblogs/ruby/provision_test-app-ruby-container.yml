@@ -14,4 +14,7 @@ weblog:
           - name: copy-ruby-rails-app
             local_path: lib-injection/build/docker/ruby
 
+          - name: copy-ruby-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-container/Dockerfile.template
+
         remote-command: sh test-app-ruby_docker_compose_run.sh

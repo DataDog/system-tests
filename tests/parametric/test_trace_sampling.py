@@ -441,7 +441,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env",
         [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
     )
-    @bug(library="cpp", reason="implementation is case-sensitive")
     def test_globs_different_casing(self, test_agent, test_library):
         """Test tag matching with string of matching case"""
         with test_library:

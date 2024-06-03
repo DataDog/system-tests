@@ -185,6 +185,26 @@ class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
+@features.container_auto_instrumentation
+@scenarios.container_not_supported_auto_injection
+class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
+    """ Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
+
+    def test_app_working(self, virtual_machine):
+        """ Test app is working."""
+        vm_ip = virtual_machine.ssh_config.hostname
+        vm_port = virtual_machine.deffault_open_port
+        vm_name = virtual_machine.name
+
+        logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
+        wait_for_port(vm_port, vm_ip, 80.0)
+        logger.info(f"[{vm_ip}]: Weblog app is ready!")
+        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+        logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
+        request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
+        logger.info(f"Http request done for ip [{vm_ip}]")
+
+
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
 class TestHostAutoInjectChaos(_AutoInjectBaseTest):

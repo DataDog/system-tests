@@ -111,8 +111,8 @@ tests/:
         Test_Lfi_BodyXml: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
       test_span_tags.py:
-        Test_Mandatory_SpanTags: missing_feature
-        Test_Optional_SpanTags: missing_feature
+        Test_Mandatory_SpanTags: v2.52.0
+        Test_Optional_SpanTags: v2.52.0
       test_sqli.py: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.51.0
@@ -233,7 +233,7 @@ tests/:
       Test_Debugger_Mix_Log_Probe: bug (statuses are not reported well)
       Test_Debugger_Probe_Statuses: bug (statuses are not reported well)
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: bug (statuses are not reported well)
+      Test_Debugger_PII_Redaction: v2.50.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:

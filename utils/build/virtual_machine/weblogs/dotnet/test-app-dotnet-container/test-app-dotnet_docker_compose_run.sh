@@ -9,14 +9,19 @@ set -e
 sudo chmod -R 755 *
 
 sudo docker build --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
-sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
-sleep 30
+if [ -f docker-compose-agent-prod.yml ]; then
+    # Agent may be installed in a different way
+    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
+    sleep 30
+fi
 sudo -E docker-compose -f docker-compose.yml up -d test-app-dotnet
 
 echo "**************** RUNNING DOCKER SERVICES *****************" 
 sudo docker-compose ps
-echo "**************** DATADOG AGENT OUTPUT ********************"
-sudo docker-compose -f docker-compose-agent-prod.yml logs datadog
+if [ -f docker-compose-agent-prod.yml ]; then
+    echo "**************** DATADOG AGENT OUTPUT ********************"
+    sudo docker-compose -f docker-compose-agent-prod.yml logs datadog
+fi
 echo "**************** WEBLOG APP OUTPUT********************"
 sudo docker-compose logs
 

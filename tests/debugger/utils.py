@@ -131,7 +131,8 @@ def validate_spans(expected_spans):
         check_trace(expected_trace, span_map)
 
 
-class _Base_Debugger_Snapshot_Test:
+class _Base_Debugger_Test:
+    weblog_responses = []
     expected_probe_ids = []
     all_probes_installed = False
 
@@ -175,3 +176,9 @@ class _Base_Debugger_Snapshot_Test:
 
         if not self.all_probes_installed:
             raise ValueError("At least one probe is missing")
+
+    def assert_all_weblog_responses_ok(self):
+        assert len(self.weblog_responses) > 0, "No responses available."
+
+        for respone in self.weblog_responses:
+            assert respone.status_code == 200

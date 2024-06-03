@@ -58,7 +58,7 @@ public class SqsConnector {
         }
     }
 
-    public void startProducingMessage(String message) throws Exception {
+    public Thread startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("SqsProduce") {
             public void run() {
                 try {
@@ -71,9 +71,10 @@ public class SqsConnector {
         };
         thread.start();
         System.out.println("[SQS] Started Sqs producer thread");
+        return thread;
     }
 
-    public void startConsumingMessages(String service) throws Exception {
+    public Thread startConsumingMessages(String service) throws Exception {
         Thread thread = new Thread(service + "Consume") {
             public void run() {
                 boolean recordFound = false;
@@ -89,6 +90,7 @@ public class SqsConnector {
         };
         thread.start();
         System.out.println("[" + service.toUpperCase() + "] Started consumer thread");
+        return thread;
     }
 
     // For APM testing, produce message without starting a new thread

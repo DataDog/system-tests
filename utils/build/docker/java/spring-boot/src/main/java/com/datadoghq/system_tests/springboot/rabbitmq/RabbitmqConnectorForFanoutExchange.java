@@ -43,7 +43,7 @@ public class RabbitmqConnectorForFanoutExchange extends RabbitmqConnector {
         channel.queueBind(FANOUT_EXCHANGE_QUEUE_3, FANOUT_EXCHANGE_NAME, "");
 	}
 
-    public void startProducingMessages() throws Exception {
+    public Thread startProducingMessages() throws Exception {
         Thread thread = new Thread("RabbitmqProduce_Fanout") {
             public void run() {
                 String message = "hello world";
@@ -59,9 +59,10 @@ public class RabbitmqConnectorForFanoutExchange extends RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 
-    public void startConsumingMessages() throws Exception {
+    public Thread startConsumingMessages() throws Exception {
         Thread thread = new Thread("RabbitmqConsume_Fanout") {
             public void run() {
                 try {
@@ -79,5 +80,6 @@ public class RabbitmqConnectorForFanoutExchange extends RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 }

@@ -1,3 +1,10 @@
+[project]
+name = 'system_tests'
+version = '0.0.1'
+
+[tool.setuptools]
+packages = ["tests", "utils"]
+
 [tool.black]
 line-length = 120
 exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps|parametric/protos/)"

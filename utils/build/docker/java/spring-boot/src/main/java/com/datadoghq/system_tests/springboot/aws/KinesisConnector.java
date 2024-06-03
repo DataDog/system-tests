@@ -63,7 +63,7 @@ public class KinesisConnector {
         }
     }
 
-    public void startProducingMessage(String message) throws Exception {
+    public Thread startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("KinesisProduce") {
             public void run() {
                 try {
@@ -76,9 +76,10 @@ public class KinesisConnector {
         };
         thread.start();
         System.out.println("[Kinesis] Started Kinesis producer thread");
+        return thread;
     }
 
-    public void startConsumingMessages(int timeout) throws Exception {
+    public Thread startConsumingMessages(int timeout) throws Exception {
         Thread thread = new Thread("KinesisConsume") {
             public void run() {
                 boolean recordFound = false;
@@ -94,6 +95,7 @@ public class KinesisConnector {
         };
         thread.start();
         System.out.println("[Kinesis] Started consumer thread");
+        return thread;
     }
 
     public void produceMessageWithoutNewThread(String message) throws Exception {

@@ -13,4 +13,7 @@ weblog:
           - name: copy-nodejs-app
             local_path: lib-injection/build/docker/nodejs/sample-app
 
+          - name: copy-nodejs-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-container/Dockerfile.template
+
         remote-command: sh test-app-nodejs_docker_compose_run.sh

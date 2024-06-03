@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk15:jdk15u-nightly 
+FROM public.ecr.aws/docker/library/openjdk:15
 
 COPY build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar /usr/local/app/
 
