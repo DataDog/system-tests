@@ -61,7 +61,7 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection:
-            '*': v2.10.0dev
+            '*': v2.10.0.dev
             fastapi: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
@@ -342,6 +342,8 @@ tests/:
       Test_Login_Events: 
         '*': missing_feature (weblog endpoint missing)
         flask-poc: v2.10.0.dev
+        uds-flask: v2.10.0.dev
+        uwsgi-poc: v2.10.0.dev
       Test_Login_Events_Extended: 
         '*': missing_feature (weblog endpoint missing)
         flask-poc: v2.10.0.dev
@@ -414,11 +416,9 @@ tests/:
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
       Test_UserLoginFailureEvent:
-        '*': v1.9.0
-        python3.12: bug (APPSEC-53079)
+        '*': v2.10.0.dev
       Test_UserLoginSuccessEvent:
-        '*': v1.9.0
-        python3.12: bug (APPSEC-53079)
+        '*': v2.10.0.dev
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:

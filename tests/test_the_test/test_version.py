@@ -1,4 +1,6 @@
 import pytest
+import semantic_version as semver
+from utils._decorators import CustomSpec
 from utils._context.library_version import LibraryVersion, Version
 
 
@@ -51,6 +53,16 @@ def test_library_version_comparizon():
 
     assert LibraryVersion("python", "2.1.0-dev") < "python@2.1.0.dev83+gac1037728"
     assert LibraryVersion("python", "2.1.0-dev") < "python@2.1.0"
+
+    assert LibraryVersion("nodejs", "6.0.0-pre") > "nodejs@5.0.0"
+    assert LibraryVersion("nodejs", "5.0.0") <= "nodejs@6.0.0-pre"
+
+
+def test_spec():
+    assert semver.Version("6.0.0-pre") in CustomSpec(">=5.0.0")
+    assert semver.Version("3.1.2") in CustomSpec(">=5.0.0 || ^3.0.0")
+    assert semver.Version("4.1.2") not in CustomSpec(">=5.0.0 || ^3.0.0")
+    assert semver.Version("6.0.0") in CustomSpec(">=5.0.0 || ^3.0.0")
 
 
 def test_version_serialization():
