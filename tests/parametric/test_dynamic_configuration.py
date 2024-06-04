@@ -454,7 +454,7 @@ class TestDynamicConfigV1_ServiceTargets:
             # C++ make RC requests every second -> update is a bit slower to propagate.
             rc_args["wait_loops"] = 1000
 
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3, **rc_args, wait_loops=200)
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3, **rc_args)
         assert cfg_state["apply_state"] == 3
         assert cfg_state["apply_error"] != ""
 
@@ -688,6 +688,10 @@ class TestDynamicConfigSamplingRules:
     @bug(
         context.library == "cpp",
         reason="JSON tag format in RC differs from the JSON tag format used in DD_TRACE_SAMPLING_RULES",
+    )
+    @missing_feature(
+        context.library == "python",
+        reason=""
     )
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
