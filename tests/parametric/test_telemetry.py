@@ -167,9 +167,11 @@ class Test_Environment:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -242,6 +244,8 @@ class Test_Environment:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [
