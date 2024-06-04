@@ -593,7 +593,7 @@ tests/:
       Test_128_Bit_Traceids: v2.6.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: flaky (failure 2.8.0/2.9.0.dev)
-      TestDynamicConfigSamplingRules: missing_feature
+      TestDynamicConfigSamplingRules: v2.9.0dev
       TestDynamicConfigTracingEnabled: flaky (failure 2.8.0/2.9.0.dev)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
