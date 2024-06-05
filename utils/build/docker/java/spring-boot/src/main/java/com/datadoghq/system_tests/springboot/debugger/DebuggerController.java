@@ -55,8 +55,10 @@ public class DebuggerController {
 
     @GetMapping("/pii")
     public String pii() {
-        Pii pii = new Pii();
+        PiiBase pii = new Pii();
+        PiiBase customPii = new CustomPii();
         String value = pii.TestValue;
-        return "PII " + value;
+        String customValue = customPii.TestValue;
+        return "PII " + value + ". CustomPII" + customValue;
     }
 }

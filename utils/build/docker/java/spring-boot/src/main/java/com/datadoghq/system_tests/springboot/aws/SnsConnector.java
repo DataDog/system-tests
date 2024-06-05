@@ -68,7 +68,7 @@ public class SnsConnector {
         }
     }
 
-    public void startProducingMessage(String message, SqsConnector sqs) throws Exception {
+    public Thread startProducingMessage(String message, SqsConnector sqs) throws Exception {
         Thread thread = new Thread("SnsProduce") {
             public void run() {
                 try {
@@ -81,6 +81,7 @@ public class SnsConnector {
         };
         thread.start();
         System.out.println("[SNS] Started Sns producer thread");
+        return thread;
     }
 
     // For APM testing, produce message without starting a new thread

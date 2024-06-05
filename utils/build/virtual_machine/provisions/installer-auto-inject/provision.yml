@@ -28,7 +28,6 @@ setup-testing-dependencies:
     - os_type: linux
       os_distro: deb
       remote-command: |
-        sudo docker pull registry:2
         sudo rm -rf /usr/local/go
         sudo curl https://dl.google.com/go/go1.22.1.linux-$(dpkg --print-architecture).tar.gz --output go.tar.gz
         sudo tar -C /usr/local -xzf go.tar.gz
@@ -66,7 +65,7 @@ setup-local-registry:
         export PATH=$PATH:/usr/local/go/bin
         export PATH=$PATH:$(go env GOPATH)/bin
         sudo systemctl start docker
-        sudo docker run -d -p 12345:5000 --restart=always --name registry registry:2
+        sudo docker run -d -p 12345:5000 --restart=always --name registry 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/registry:2
         sleep 10
 
         if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
@@ -79,7 +78,7 @@ setup-local-registry:
         if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
           export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INSTALLER_INJECTOR_VERSION}"
         else
-          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/apm-inject-package-dev:latest"
+          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/apm-inject-package-dev:0.13.2-beta1-dev.b0d6e40.glci531210996.g95332787-1"
         fi
         crane copy "${INJECTOR_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
 
@@ -104,6 +103,6 @@ installer-bootstrap:
   install:
     - os_type: linux
       remote-command: |
+        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
         sudo datadog-installer install "oci://localhost:12345/datadog/agent-package:latest"
         sudo datadog-installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
-        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"

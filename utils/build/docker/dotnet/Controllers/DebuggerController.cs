@@ -58,8 +58,10 @@ namespace weblog
         public async Task<IActionResult> Pii()
         {
             PiiBase? pii = await Task.FromResult<PiiBase>(new Pii());
+            PiiBase? customPii = await Task.FromResult<PiiBase>(new CustomPii());
             var value = pii?.TestValue;
-            return Content($"PII {value}");
+            var customValue = customPii?.TestValue;
+            return Content($"PII {value}. CustomPII {customValue}");
         }
     }
 }
