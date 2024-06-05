@@ -25,7 +25,15 @@ class Test_AppSecPropagation:
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
 
-            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
+            # Some tracers use true while others use yes
+            assert any(
+                [
+                    "Datadog-Client-Computed-Stats",
+                    trueish,
+                ]
+                in data["request"]["headers"]
+                for trueish in ["yes", "true"]
+            )
 
     def setup_trace_no_upstream_appsec_propagation_with_attack_is_kept(self):
         trace_id = 1212121212121212121
@@ -47,7 +55,15 @@ class Test_AppSecPropagation:
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
 
-            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
+            # Some tracers use true while others use yes
+            assert any(
+                [
+                    "Datadog-Client-Computed-Stats",
+                    trueish,
+                ]
+                in data["request"]["headers"]
+                for trueish in ["yes", "true"]
+            )
 
     def setup_trace_upstream_appsec_propagation_no_attack_is_propagated(self):
         trace_id = 1212121212121212121
@@ -69,7 +85,15 @@ class Test_AppSecPropagation:
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
 
-            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
+            # Some tracers use true while others use yes
+            assert any(
+                [
+                    "Datadog-Client-Computed-Stats",
+                    trueish,
+                ]
+                in data["request"]["headers"]
+                for trueish in ["yes", "true"]
+            )
 
     def setup_trace_any_upstream_propagation_with_attack_raises_priority(self):
         trace_id = 1212121212121212121
@@ -91,7 +115,15 @@ class Test_AppSecPropagation:
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
 
-            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
+            # Some tracers use true while others use yes
+            assert any(
+                [
+                    "Datadog-Client-Computed-Stats",
+                    trueish,
+                ]
+                in data["request"]["headers"]
+                for trueish in ["yes", "true"]
+            )
 
     def setup_trace_drop_upstream_propagation_with_attack_raises_priority(self):
         trace_id = 1212121212121212121
@@ -113,4 +145,12 @@ class Test_AppSecPropagation:
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
 
-            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
+            # Some tracers use true while others use yes
+            assert any(
+                [
+                    "Datadog-Client-Computed-Stats",
+                    trueish,
+                ]
+                in data["request"]["headers"]
+                for trueish in ["yes", "true"]
+            )
