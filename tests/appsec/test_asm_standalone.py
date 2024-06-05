@@ -92,3 +92,25 @@ class Test_AppSecPropagation:
             assert span["meta"]["_dd.p.appsec"] == "1"
 
             assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
+
+    def setup_trace_drop_upstream_propagation_with_attack_raises_priority(self):
+        trace_id = 1212121212121212121
+        parent_id = 34343434
+        self.r = weblog.get(
+            "/waf/",
+            headers={
+                "x-datadog-trace-id": str(trace_id),
+                "x-datadog-parent-id": str(parent_id),
+                "x-datadog-origin": "rum",
+                "x-datadog-sampling-priority": "-1",
+                "User-Agent": "Arachni/v1",
+            },
+        )
+
+    def test_trace_drop_upstream_propagation_with_attack_raises_priority(self):
+        for data, _, span in interfaces.library.get_spans(request=self.r):
+            assert span["metrics"]["_sampling_priority_v1"] == 2
+            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["meta"]["_dd.p.appsec"] == "1"
+
+            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
