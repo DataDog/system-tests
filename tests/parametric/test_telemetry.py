@@ -219,17 +219,17 @@ class Test_Environment:
         assert len(otelInvalid) == 0
 
         expected_tags = [
-            ["DD_TRACE_LOG_LEVEL", "OTEL_LOG_LEVEL"]
+            ["config.datadog:DD_TRACE_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"]
             if context.library == "nodejs"
-            else ["DD_LOG_LEVEL", "OTEL_LOG_LEVEL"],
-            ["DD_TRACE_PROPAGATION_STYLE", "OTEL_PROPAGATORS"],
-            ["DD_SERVICE", "OTEL_SERVICE_NAME"],
-            ["DD_TRACE_SAMPLE_RATE", "OTEL_TRACES_SAMPLER"],
-            ["DD_TRACE_SAMPLE_RATE", "OTEL_TRACES_SAMPLER_ARG"],
-            ["DD_TRACE_ENABLED", "OTEL_TRACES_EXPORTER"],
-            ["DD_RUNTIME_METRICS_ENABLED", "OTEL_METRICS_EXPORTER"],
-            ["DD_TAGS", "OTEL_RESOURCE_ATTRIBUTES"],
-            ["DD_TRACE_OTEL_ENABLED", "OTEL_SDK_DISABLED"],
+            else ["DD_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"],
+            ["config.datadog:DD_TRACE_PROPAGATION_STYLE", "config.opentelemetry:OTEL_PROPAGATORS"],
+            ["config.datadog:DD_SERVICE", "config.opentelemetry:OTEL_SERVICE_NAME"],
+            ["config.datadog:DD_TRACE_SAMPLE_RATE", "config.opentelemetry:OTEL_TRACES_SAMPLER"],
+            ["config.datadog:DD_TRACE_SAMPLE_RATE", "config.opentelemetry:OTEL_TRACES_SAMPLER_ARG"],
+            ["config.datadog:DD_TRACE_ENABLED", "config.opentelemetry:OTEL_TRACES_EXPORTER"],
+            ["config.datadog:DD_RUNTIME_METRICS_ENABLED", "config.opentelemetry:OTEL_METRICS_EXPORTER"],
+            ["config.datadog:DD_TAGS", "config.opentelemetry:OTEL_RESOURCE_ATTRIBUTES"],
+            ["config.datadog:DD_TRACE_OTEL_ENABLED", "config.opentelemetry:OTEL_SDK_DISABLED"],
         ]
 
         for expected in expected_tags:
@@ -284,16 +284,16 @@ class Test_Environment:
         assert len(otelInvalid) == 8
 
         expected_invalid_tags = [
-            ["DD_TRACE_LOG_LEVEL", "OTEL_LOG_LEVEL"]
+            ["config.datadog:DD_TRACE_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"]
             if context.library == "nodejs"
-            else ["DD_LOG_LEVEL", "OTEL_LOG_LEVEL"],
-            ["DD_TRACE_PROPAGATION_STYLE", "OTEL_PROPAGATORS"],
-            ["DD_TRACE_SAMPLE_RATE", "OTEL_TRACES_SAMPLER"],
-            ["DD_TRACE_SAMPLE_RATE", "OTEL_TRACES_SAMPLER_ARG"],
-            ["DD_TRACE_ENABLED", "OTEL_TRACES_EXPORTER"],
-            ["DD_RUNTIME_METRICS_ENABLED", "OTEL_METRICS_EXPORTER"],
-            ["DD_TRACE_OTEL_ENABLED", "OTEL_SDK_DISABLED"],
-            ["OTEL_LOGS_EXPORTER"],
+            else ["config.datadog:DD_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"],
+            ["config.datadog:DD_TRACE_PROPAGATION_STYLE", "config.opentelemetry:OTEL_PROPAGATORS"],
+            ["config.datadog:DD_TRACE_SAMPLE_RATE", "config.opentelemetry:OTEL_TRACES_SAMPLER"],
+            ["config.datadog:DD_TRACE_SAMPLE_RATE", "config.opentelemetry:OTEL_TRACES_SAMPLER_ARG"],
+            ["config.datadog:DD_TRACE_ENABLED", "config.opentelemetry:OTEL_TRACES_EXPORTER"],
+            ["config.datadog:DD_RUNTIME_METRICS_ENABLED", "config.opentelemetry:OTEL_METRICS_EXPORTER"],
+            ["config.datadog:DD_TRACE_OTEL_ENABLED", "config.opentelemetry:OTEL_SDK_DISABLED"],
+            ["config.opentelemetry:OTEL_LOGS_EXPORTER"],
         ]
 
         for expected in expected_invalid_tags:

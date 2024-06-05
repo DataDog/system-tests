@@ -5,12 +5,7 @@ from utils import missing_feature, context, scenarios, features
 @scenarios.parametric
 @features.open_tracing_api
 class Test_Otel_Env_Vars:
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -55,12 +50,7 @@ class Test_Otel_Env_Vars:
             assert resp["dd_trace_otel_enabled"] == False  # node does not expose this variable in the config
             assert resp["dd_trace_sample_ignore_parent"] == True  # node does not implement this env variable
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -92,12 +82,7 @@ class Test_Otel_Env_Vars:
             assert resp["dd_trace_otel_enabled"] == False
             assert resp["dd_trace_sample_ignore_parent"] == True
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -116,12 +101,7 @@ class Test_Otel_Env_Vars:
         assert tags.get("foo") == "bar1"
         assert tags.get("baz") == "qux1"
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "always_on",}],
     )
@@ -131,12 +111,7 @@ class Test_Otel_Env_Vars:
             assert resp["dd_trace_sample_ignore_parent"] == True
         assert resp["dd_trace_sample_rate"] == 1.0
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "always_off",}],
     )
@@ -146,12 +121,7 @@ class Test_Otel_Env_Vars:
             assert resp["dd_trace_sample_ignore_parent"] == True
         assert resp["dd_trace_sample_rate"] == 0.0
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "traceidratio", "OTEL_TRACES_SAMPLER_ARG": "0.1"}],
     )
@@ -161,12 +131,7 @@ class Test_Otel_Env_Vars:
             assert resp["dd_trace_sample_ignore_parent"] == True
         assert resp["dd_trace_sample_rate"] == 0.1
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_on",}],
     )
@@ -176,12 +141,7 @@ class Test_Otel_Env_Vars:
             assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 1.0
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off",}],
     )
@@ -191,12 +151,7 @@ class Test_Otel_Env_Vars:
             assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 0.0
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_traceidratio", "OTEL_TRACES_SAMPLER_ARG": "0.1"}],
     )
@@ -206,12 +161,7 @@ class Test_Otel_Env_Vars:
             assert resp["dd_trace_sample_ignore_parent"] == False
         assert resp["dd_trace_sample_rate"] == 0.1
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_EXPORTER": "none"}],
     )
@@ -219,12 +169,7 @@ class Test_Otel_Env_Vars:
         resp = test_library.get_tracer_config()
         assert resp["dd_trace_enabled"] == False
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_LOG_LEVEL": "debug"}],
     )
