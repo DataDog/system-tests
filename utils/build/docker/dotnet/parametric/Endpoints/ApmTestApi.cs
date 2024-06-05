@@ -52,6 +52,7 @@ public abstract class ApmTestApi
     internal static readonly PropertyInfo RawTraceId = SpanContextType.GetProperty("RawTraceId", BindingFlags.Instance | BindingFlags.NonPublic)!;
     internal static readonly PropertyInfo RawSpanId = SpanContextType.GetProperty("RawSpanId", BindingFlags.Instance | BindingFlags.NonPublic)!;
     internal static readonly PropertyInfo AdditionalW3CTraceState = SpanContextType.GetProperty("AdditionalW3CTraceState", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    internal static readonly PropertyInfo SpanLinks = SpanContextType.GetProperty("SpanLinks", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     // Propagator methods
     private static readonly MethodInfo SpanContextPropagatorInject = GenerateInjectMethod()!;
