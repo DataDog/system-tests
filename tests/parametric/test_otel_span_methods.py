@@ -491,7 +491,6 @@ class Test_Otel_Span_Methods:
 
         assert len(link.get("attributes")) == 1
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")

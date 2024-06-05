@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ApmTestApi.Endpoints;
 
@@ -47,8 +48,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
         if (requestBodyObject.TryGetValue("http_headers", out var headersList))
         {
             var extractedContext = _spanContextExtractor.Extract(
-                    ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
-                    getter: GetHeaderValues!);
+            ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
+            getter: GetHeaderValues!);
             
             _logger.LogInformation("Extracted SpanContext: {ExtractedContext}", extractedContext);
 
@@ -110,24 +111,48 @@ public abstract class ApmTestApiOtel : ApmTestApi
             }
         }
         
-        var linkList = new List<ActivityLink>(); // Assuming Link is a class representing the span link
+        var linksList = new List<ActivityLink>();
 
         if (requestBodyObject.TryGetValue("links", out var links))
         {
             foreach (var spanLink in (dynamic)links)
             {
-                var spanLinkParent = spanLink["parent_id"];
-                var contextToLink = parentContext;
+                var parentSpanLink = spanLink["parent_id"];
 
-                if (spanLinkParent != null)
+                try
                 {
-                    if (spanLinkParent > 0)
+                    ActivityContext contextToLink = new ActivityContext();
+
+                    if (parentSpanLink != null && parentSpanLink > 0)
                     {
-                        contextToLink = FindActivity(spanLinkParent).Context;
+                        contextToLink = FindActivity(parentSpanLink).Context;
+                    }
+                    else 
+                    {
+                        var extractedContext = _spanContextExtractor.Extract(
+                                ((Newtonsoft.Json.Linq.JArray)spanLink["http_headers"]).ToObject<string[][]>(),
+                                getter: GetHeaderValues!);
+
+                        var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
+                        var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
+                        var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
+                        var tracestate = spanLink["http_headers"][1][0] == "tracestate" ? spanLink["http_headers"][1][1] : null;
+
+                        contextToLink = new ActivityContext(
+                            parentTraceId,
+                            parentSpanId,
+                            flags,
+                            spanLink["http_headers"][1][1],
+                            isRemote: true);
                     }
 
-                    linkList.Add(new ActivityLink(contextToLink));
+                    linksList.Add(new ActivityLink(contextToLink));
                 }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+
             }
         }
 
@@ -136,7 +161,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
             kind,
             parentContext,
             tags: null,
-            links: linkList,
+            links: linksList,
             startTime);
         
         if (activity is null)
