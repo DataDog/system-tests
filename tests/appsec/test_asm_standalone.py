@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
 from utils import weblog, interfaces, scenarios, features
 from utils._context.header_tag_vars import *
 
 
+@scenarios.appsec_standalone
 class Test_AppSecPropagation:
     """APM correctly propagates AppSec events in distributing tracing."""
 
@@ -19,12 +19,13 @@ class Test_AppSecPropagation:
             },
         )
 
-    @scenarios.appsec_standalone
     def test_trace_no_upstream_appsec_propagation_no_attack_is_dropped(self):
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == -1
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
+
+            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
 
     def setup_trace_no_upstream_appsec_propagation_with_attack_is_kept(self):
         trace_id = 1212121212121212121
@@ -40,12 +41,13 @@ class Test_AppSecPropagation:
             },
         )
 
-    @scenarios.appsec_standalone
     def test_trace_no_upstream_appsec_propagation_with_attack_is_kept(self):
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
+
+            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
 
     def setup_trace_upstream_appsec_propagation_no_attack_is_propagated(self):
         trace_id = 1212121212121212121
@@ -61,12 +63,13 @@ class Test_AppSecPropagation:
             },
         )
 
-    @scenarios.appsec_standalone
     def test_trace_upstream_appsec_propagation_no_attack_is_propagated(self):
-        for x, y, span in interfaces.library.get_spans(request=self.r):
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
+
+            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
 
     def setup_trace_any_upstream_propagation_with_attack_raises_priority(self):
         trace_id = 1212121212121212121
@@ -82,9 +85,10 @@ class Test_AppSecPropagation:
             },
         )
 
-    @scenarios.appsec_standalone
     def test_trace_any_upstream_propagation_with_attack_raises_priority(self):
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
+
+            assert ["Datadog-Client-Computed-Stats", "yes"] in data["request"]["headers"]
