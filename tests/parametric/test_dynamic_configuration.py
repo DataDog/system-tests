@@ -649,7 +649,7 @@ class TestDynamicConfigSamplingRules:
             test_agent,
             config_overrides={
                 "tracing_sampling_rate": RC_SAMPLING_RATE,
-                "tracing_sampling_rules": [
+                "trace_sample_rules": [
                     {"sample_rate": RC_SAMPLING_RULE_RATE_CUSTOMER, "service": TEST_SERVICE, "provenance": "customer"}
                 ],
             },
