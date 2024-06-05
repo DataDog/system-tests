@@ -26,9 +26,6 @@ weblog:
           - name: copy-service
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app.service
 
-         # - name: copy-service-init
-         #   local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app.init.service
-
           - name: copy-run-weblog-script
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
 

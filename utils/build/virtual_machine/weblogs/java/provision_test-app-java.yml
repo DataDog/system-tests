@@ -26,4 +26,7 @@ weblog:
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
+          - name: copy-service-daemon
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/test-app-java_daemon.sh
+
         remote-command: sh test-app-java_run.sh

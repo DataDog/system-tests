@@ -145,7 +145,7 @@ class VagrantCommander(Commander):
         return last_task
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
     ):
         if not source_folder.endswith("/"):
             source_folder = source_folder + "/"

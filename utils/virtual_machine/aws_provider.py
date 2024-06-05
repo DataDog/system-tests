@@ -203,7 +203,7 @@ class AWSCommander(Commander):
         return cmd_exec_install
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
     ):
         # If we don't use remote_path, the remote_path will be a default remote user home
         if not destination_folder:
@@ -251,7 +251,7 @@ class AWSCommander(Commander):
                 quee_depends_on.insert(
                     0,
                     self.remote_copy_folders(
-                        source, destination, command_id, connection, quee_depends_on.pop(), relative_path=True
+                        source, destination, command_id, connection, quee_depends_on.pop(), relative_path=True, vm=vm
                     ),
                 )
         return quee_depends_on.pop()  # Here the quee should contain only one element

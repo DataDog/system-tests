@@ -142,6 +142,7 @@ class VmProvider:
                         f"-{vm.name}-{installation.id}",
                         server_connection,
                         last_task,
+                        vm=vm,
                     )
 
         # Execute a basic command on our server.
@@ -191,7 +192,7 @@ class Commander:
         raise NotImplementedError
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
     ):
         """ The best option would be zip folder on local system and copy to remote machine
              There is a weird behaviour synchronizing local command and remote command

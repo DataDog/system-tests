@@ -37,4 +37,7 @@ weblog:
           - name: copy-run-weblog-script-ruby
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app-ruby_run.sh
 
+          - name: copy-service-daemon
+            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app-ruby_daemon.sh
+
         remote-command: sh test-app-ruby_run.sh
