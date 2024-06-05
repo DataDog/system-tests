@@ -48,18 +48,8 @@ service APMClient {
 message GetTraceConfigArgs {}
 
 message GetTraceConfigReturn {
-  string dd_service = 1;
-  string dd_log_level = 2;
-  float dd_trace_sample_rate = 3;
-  bool dd_trace_enabled = 4;
-  bool dd_runtime_metrics_enabled = 5;
-  map<string, google.protobuf.Any> dd_tags = 6;
-  string dd_trace_propagation_style = 7;
-  bool dd_trace_debug = 8;
-  bool dd_trace_otel_enabled = 9;
-  bool dd_trace_sample_ignore_parent = 10;
-  string dd_env = 11;
-  string dd_version = 12;
+  map<string, string> config = 1;
+
 }
 
 message StartSpanArgs {
