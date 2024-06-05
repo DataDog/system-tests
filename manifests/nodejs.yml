@@ -210,7 +210,7 @@ tests/:
           nextjs: *ref_5_3_0
         Test_BodyXml:
           '*': v2.2.0
-          nextjs: irrelevant # Body xml is not converted to JSON in nextjs
+          nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
         Test_ClientIP: missing_feature
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
@@ -234,7 +234,7 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: *ref_3_19_0
-        Test_Blocking_strip_response_headers: v5.0.0
+        Test_Blocking_strip_response_headers: *ref_5_16_0
         Test_CustomBlockingResponse: missing_feature
       test_custom_rules.py:
         Test_CustomRules: *ref_4_1_0
@@ -242,7 +242,7 @@ tests/:
         Test_Exclusions: *ref_3_19_0
       test_miscs.py:
         Test_404: v2.0.0
-        Test_CorrectOptionProcessing: *ref_3_19_0 # probably sooner, but bugged
+        Test_CorrectOptionProcessing: *ref_3_19_0  # probably sooner, but bugged
         Test_MultipleAttacks: v2.0.0
         Test_MultipleHighlight: v2.0.0
       test_reports.py:
@@ -277,8 +277,8 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingAddresses: *ref_3_19_0
       Test_BlockingGraphqlResolvers:
-        '*': *ref_4_22_0
-        nextjs: irrelevant # nextjs is not related with graphql
+          '*': *ref_4_22_0
+          nextjs: irrelevant # nextjs is not related with graphql
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         nextjs: missing_feature
@@ -292,8 +292,8 @@ tests/:
         '*': *ref_3_19_0
         nextjs: missing_feature
       Test_Blocking_request_uri: *ref_3_19_0
-      Test_Blocking_response_headers: v4.0.0
-      Test_Blocking_response_status: v4.0.0
+      Test_Blocking_response_headers: *ref_5_16_0
+      Test_Blocking_response_status: *ref_5_16_0
       Test_Suspicious_Request_Blocking:
         '*': missing_feature (v3.19.0, but test is not implemented)
         nextjs: missing_feature
@@ -334,8 +334,8 @@ tests/:
       Test_StatusCode: v2.0.0
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
-        '*': *ref_3_19_0
-        nextjs: missing_feature (can not block by query param in nextjs yet)
+          '*': *ref_3_19_0
+          nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
     test_shell_execution.py:
@@ -366,26 +366,26 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          '*': irrelevant
+          "*": irrelevant
           express4: v0.1 # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          '*': irrelevant
+          "*": irrelevant
           express4: *ref_5_3_0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          '*': irrelevant
+          "*": irrelevant
           express4: v0.1 # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          '*': irrelevant
+          "*": irrelevant
           express4: v0.1 # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          '*': irrelevant
+          "*": irrelevant
           express4: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          '*': irrelevant
+          "*": irrelevant
           express4: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
@@ -399,40 +399,40 @@ tests/:
         express4: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
-      Test_Dbm_Comment_NodeJS_mysql2:
+      Test_Dbm_Comment_NodeJS_mysql2: 
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
-      Test_Dbm_Comment_NodeJS_pg:
+      Test_Dbm_Comment_NodeJS_pg: 
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64:
-        '*': irrelevant
+      Test_DsmContext_Extraction_Base64: 
+        "*": irrelevant
         express4: *ref_5_6_0
-      Test_DsmContext_Injection_Base64:
-        '*': irrelevant
+      Test_DsmContext_Injection_Base64: 
+        "*": irrelevant
         express4: *ref_5_6_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': *ref_4_4_0
         nextjs: missing_feature (missing endpoint)
       Test_DsmKinesis:
-        '*': irrelevant
+        "*": irrelevant
         express4: *ref_5_2_0
       Test_DsmRabbitmq:
-        '*': irrelevant
+        "*": irrelevant
         express4: *ref_5_3_0
       Test_DsmRabbitmq_FanoutExchange:
-        '*': irrelevant
+        "*": irrelevant
         express4: missing_feature
       Test_DsmRabbitmq_TopicExchange:
-        '*': irrelevant
+        "*": irrelevant
         express4: missing_feature
       Test_DsmSNS:
-        '*': irrelevant
+        "*": irrelevant
         express4: *ref_5_2_0
       Test_DsmSQS:
-        '*': irrelevant
+        "*": irrelevant
         express4: *ref_5_2_0
   parametric/:
     test_dynamic_configuration.py:
@@ -444,7 +444,7 @@ tests/:
       TestDynamicConfigV2: *ref_4_23_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
-    test_span_links.py:
+    test_span_links.py: 
       Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
       Test_Defaults: *ref_5_6_0
