@@ -98,7 +98,7 @@ def set_and_wait_rc_telemetry(test_agent, config_overrides: Dict[str, Any]) -> D
 
     _set_rc(test_agent, rc_config)
 
-    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True,)
+    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=300)
 
 
 def assert_sampling_rate(trace: List[Dict], rate: float):
@@ -832,20 +832,19 @@ class TestDynamicConfigSamplingRules:
             },
         )
         configuration = event["payload"]["configuration"]
-        assert configuration == str(
-            [{"service": "svc*", "resource": "*abc", "name": "op-??", "sample_rate": 0.5, "provenance": "dynamic"}]
-        ) or str(
-            [
-                {
-                    "service": "svc*",
-                    "resource": "*abc",
-                    "name": "op-??",
-                    "tags": [{"tag-a": "ta-v*", "tag-b": "tb-v?", "tag-c": "tc-v"}],
-                    "sample_rate": 0.5,
-                    "provenance": "dynamic",
-                }
-            ]
-        )
+        rules = next(filter(lambda x: x["name"] == "trace_sampling_rules", configuration))["value"]
+        assert json.loads(rules) == [{
+                        "service": "svc*",
+                        "resource": "*abc",
+                        "name": "op-??",
+                        "tags": [
+                            {"key": "tag-a", "value_glob": "ta-v*"},
+                            {"key": "tag-b", "value_glob": "tb-v?"},
+                            {"key": "tag-c", "value_glob": "tc-v"},
+                        ],
+                        "sample_rate": 0.5,
+                        "provenance": "dynamic",
+                    }]
 
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": []},)
         configuration = event["payload"]["configuration"]
