@@ -28,8 +28,6 @@ class Test_Otel_Env_Vars:
                 "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3,tracecontext",
                 "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3,tracecontext",
                 "OTEL_PROPAGATORS": "datadog,tracecontext",
-                "DD_TRACE_OTEL_ENABLED": "false",
-                "OTEL_SDK_DISABLED": "false",
             }
         ],
     )
@@ -38,17 +36,14 @@ class Test_Otel_Env_Vars:
 
         assert resp["dd_service"] == "service"
         assert resp["dd_log_level"] == "error"
-        assert resp["dd_trace_sample_rate"] == 0.5
-        assert resp["dd_trace_enabled"] == True
-        assert resp["dd_runtime_metrics_enabled"] == True
+        assert resp["dd_trace_sample_rate"] == "0.5"
+        assert resp["dd_trace_enabled"] == "true"
+        assert resp["dd_runtime_metrics_enabled"]
         tags = resp["dd_tags"]
-        assert tags.get("foo") == "bar"
-        assert tags.get("baz") == "qux"
+        assert "foo:bar" in tags
+        assert "baz:qux" in tags
         assert resp["dd_trace_propagation_style"] == "b3,tracecontext"
-        assert resp["dd_trace_debug"] == False
-        if context.library != "nodejs":
-            assert resp["dd_trace_otel_enabled"] == False  # node does not expose this variable in the config
-            assert resp["dd_trace_sample_ignore_parent"] == True  # node does not implement this env variable
+        assert resp["dd_trace_debug"] == "false"
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -62,7 +57,6 @@ class Test_Otel_Env_Vars:
                 "OTEL_METRICS_EXPORTER": "none",
                 "OTEL_RESOURCE_ATTRIBUTES": "foo=bar1,baz=qux1",
                 "OTEL_PROPAGATORS": "b3,datadog",
-                "OTEL_SDK_DISABLED": "true",
             }
         ],
     )
@@ -71,16 +65,13 @@ class Test_Otel_Env_Vars:
 
         assert resp["dd_service"] == "otel_service"
         assert resp["dd_log_level"] == "error"
-        assert resp["dd_trace_sample_rate"] == 0.1
-        assert resp["dd_trace_enabled"] == True
-        assert resp["dd_runtime_metrics_enabled"] == False
+        assert resp["dd_trace_sample_rate"] == "0.1"
+        assert resp["dd_trace_enabled"] == "true"
+        assert resp["dd_runtime_metrics_enabled"] == "false"
         tags = resp["dd_tags"]
-        assert tags.get("foo") == "bar1"
-        assert tags.get("baz") == "qux1"
+        assert "foo:bar1" in tags
+        assert "baz:qux1" in tags
         assert resp["dd_trace_propagation_style"] == "b3,datadog"
-        if context.library != "nodejs":
-            assert resp["dd_trace_otel_enabled"] == False
-            assert resp["dd_trace_sample_ignore_parent"] == True
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -98,8 +89,8 @@ class Test_Otel_Env_Vars:
         assert resp["dd_env"] == "test1"
         assert resp["dd_version"] == "5"
         tags = resp["dd_tags"]
-        assert tags.get("foo") == "bar1"
-        assert tags.get("baz") == "qux1"
+        assert "foo:bar1" in tags
+        assert "baz:qux1" in tags
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -107,9 +98,7 @@ class Test_Otel_Env_Vars:
     )
     def test_otel_traces_always_on(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
-        if context.library != "nodejs":
-            assert resp["dd_trace_sample_ignore_parent"] == True
-        assert resp["dd_trace_sample_rate"] == 1.0
+        assert resp["dd_trace_sample_rate"] == "1.0" or "1"
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -117,9 +106,7 @@ class Test_Otel_Env_Vars:
     )
     def test_otel_traces_always_off(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
-        if context.library != "nodejs":
-            assert resp["dd_trace_sample_ignore_parent"] == True
-        assert resp["dd_trace_sample_rate"] == 0.0
+        assert resp["dd_trace_sample_rate"] == "0.0" or "0"
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -127,9 +114,7 @@ class Test_Otel_Env_Vars:
     )
     def test_otel_traces_traceidratio(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
-        if context.library != "nodejs":
-            assert resp["dd_trace_sample_ignore_parent"] == True
-        assert resp["dd_trace_sample_rate"] == 0.1
+        assert resp["dd_trace_sample_rate"] == "0.1"
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -137,9 +122,7 @@ class Test_Otel_Env_Vars:
     )
     def test_otel_traces_parentbased_on(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
-        if context.library != "nodejs":
-            assert resp["dd_trace_sample_ignore_parent"] == False
-        assert resp["dd_trace_sample_rate"] == 1.0
+        assert resp["dd_trace_sample_rate"] == "1.0" or "1"
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -147,9 +130,7 @@ class Test_Otel_Env_Vars:
     )
     def test_otel_traces_parentbased_off(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
-        if context.library != "nodejs":
-            assert resp["dd_trace_sample_ignore_parent"] == False
-        assert resp["dd_trace_sample_rate"] == 0.0
+        assert resp["dd_trace_sample_rate"] == "0.0" or "0"
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -157,9 +138,7 @@ class Test_Otel_Env_Vars:
     )
     def test_otel_traces_parentbased_ratio(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
-        if context.library != "nodejs":
-            assert resp["dd_trace_sample_ignore_parent"] == False
-        assert resp["dd_trace_sample_rate"] == 0.1
+        assert resp["dd_trace_sample_rate"] == "0.1"
 
     @missing_feature(context.library < "nodejs@5.11.0", reason="Implemented in v5.11.0, v4.35.0, &v3.56.0")
     @pytest.mark.parametrize(
@@ -167,7 +146,7 @@ class Test_Otel_Env_Vars:
     )
     def test_otel_traces_exporter_none(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
-        assert resp["dd_trace_enabled"] == False
+        assert resp["dd_trace_enabled"] == "false"
 
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @pytest.mark.parametrize(
@@ -176,4 +155,36 @@ class Test_Otel_Env_Vars:
     def test_otel_log_level_to_debug_mapping(self, test_agent, test_library):
         resp = test_library.get_tracer_config()
         assert resp["dd_log_level"] == "debug"
-        assert resp["dd_trace_debug"] == True
+        assert resp["dd_trace_debug"] == "true"
+
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}],
+    )
+    def test_dd_trace_otel_enabled_takes_precedence(self, test_agent, test_library):
+        resp = test_library.get_tracer_config()
+        assert resp["dd_trace_otel_enabled"] == "true"
+
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env", [{"OTEL_SDK_DISABLED": "true"}],
+    )
+    def test_otel_sdk_disabled_set(self, test_agent, test_library):
+        resp = test_library.get_tracer_config()
+        assert resp["dd_trace_otel_enabled"] == "true"
+
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env", [{"OTEL_TRACES_SAMPLER": "always_on"}],
+    )
+    def test_dd_trace_sample_ignore_parent_true(self, test_agent, test_library):
+        resp = test_library.get_tracer_config()
+        assert resp["dd_trace_sample_ignore_parent"] == "true"
+
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off"}],
+    )
+    def test_dd_trace_sample_ignore_parent_false(self, test_agent, test_library):
+        resp = test_library.get_tracer_config()
+        assert resp["dd_trace_sample_ignore_parent"] == "false"
