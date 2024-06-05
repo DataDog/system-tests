@@ -120,7 +120,7 @@ tests/:
         Test_Ssrf_BodyXml: v2.51.0
         Test_Ssrf_UrlQuery: v2.51.0
       test_stack_traces.py:
-        Test_StackTrace: v2.51.0     
+        Test_StackTrace: v2.51.0
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
