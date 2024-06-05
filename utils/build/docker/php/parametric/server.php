@@ -335,6 +335,22 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         $spanBuilder->setStartTimestamp($timestamp * 1000); // ms -> ns
     }
 
+    $link_from_headers = false;
+    $span_link_attributes = [];
+    $links = [];
+    if ($span_links = arg($req, 'links')) {
+        foreach ($span_links as $span_link) {
+            var_dump($span_link);
+            $span_link_attributes = isset($span_link["attributes"]) ? $span_link["attributes"] : [];
+            if ($span_link_parent_id = $span_link["parent_id"]) {
+                $span_context = $otelSpans[$span_link_parent_id]->getContext();
+                $spanBuilder->addLink($span_context, $span_link_attributes);
+            } else {
+                $link_from_headers = true;
+            }
+        }
+    }
+
     if ($httpHeaders) {
         $carrier = [];
         foreach ($httpHeaders as $headers) {
