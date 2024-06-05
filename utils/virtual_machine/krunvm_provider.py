@@ -205,7 +205,7 @@ class KrunVmCommander(Commander):
         with open(self._get_stdin_path(vm), "a") as stdin:
             stdin.write(f"bash /shared_volume/{installation_id}.sh\n")
 
-        self.wait_until_commands_processed(vm, timeout=300)
+        self.wait_until_commands_processed(vm, timeout=600)
 
     def wait_until_commands_processed(self, vm, interval=0.1, timeout=1, *args):
         start = time.time()
