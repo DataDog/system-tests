@@ -164,7 +164,9 @@ class Test_Otel_Env_Vars:
         resp = test_library.get_tracer_config()
         assert resp["dd_trace_otel_enabled"] == "false"
 
-    @missing_feature(True, reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language")
+    @missing_feature(
+        True, reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language"
+    )
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "always_on"}],
     )
@@ -172,7 +174,9 @@ class Test_Otel_Env_Vars:
         resp = test_library.get_tracer_config()
         assert resp["dd_trace_sample_ignore_parent"] == "true"
 
-    @missing_feature(True, reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language")
+    @missing_feature(
+        True, reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language"
+    )
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off"}],
     )
