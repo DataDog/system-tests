@@ -24,8 +24,7 @@ class Test_Otel_Env_Vars:
                 "OTEL_METRICS_EXPORTER": "none",
                 "DD_TAGS": "foo:bar,baz:qux",
                 "OTEL_RESOURCE_ATTRIBUTES": "foo=otel_bar,baz=otel_qux",
-                "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3,tracecontext",
-                "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3,tracecontext",
+                "DD_TRACE_PROPAGATION_STYLE": "b3,tracecontext",
                 "OTEL_PROPAGATORS": "datadog,tracecontext",
             }
         ],
