@@ -59,7 +59,6 @@ class Test_Login_Events:
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
-            print(meta)
             assert "usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.success.track"] == "true"
