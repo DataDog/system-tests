@@ -612,6 +612,8 @@ tests/:
       Test_Library_Tracestats: missing_feature (failure 2.8.0)
     test_otel_api_interoperability.py:
       Test_Otel_API_Interoperability: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py:
       Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
