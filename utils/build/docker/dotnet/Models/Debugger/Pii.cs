@@ -17,7 +17,6 @@ namespace weblog.Models.Debugger
         public string? accessToken { get; set; } = PiiBase.Value;
         public string? AccessToken { get; set; } = PiiBase.Value;
         public string? ACCESSTOKEN { get; set; } = PiiBase.Value;
-        public string? address { get; set; } = PiiBase.Value;
         public string? aiohttpsession { get; set; } = PiiBase.Value;
         public string? apikey { get; set; } = PiiBase.Value;
         public string? apisecret { get; set; } = PiiBase.Value;
@@ -31,7 +30,6 @@ namespace weblog.Models.Debugger
         public string? cipher { get; set; } = PiiBase.Value;
         public string? clientid { get; set; } = PiiBase.Value;
         public string? clientsecret { get; set; } = PiiBase.Value;
-        public string? config { get; set; } = PiiBase.Value;
         public string? connectionstring { get; set; } = PiiBase.Value;
         public string? connectsid { get; set; } = PiiBase.Value;
         public string? cookie { get; set; } = PiiBase.Value;
