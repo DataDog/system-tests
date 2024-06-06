@@ -34,10 +34,11 @@
         sudo apt install -y --reinstall -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
     fi
     
-    #TODO MicroVm: The agent does not always start, we have to retry until it works.
+    #MicroVm: The agent does not always start, we have to retry until it works. 
+    #Krunvm implements a different tcp/ip stack that can cause the agent to fail to start.
     until dd-host-install; do
-        echo dd-host-install failed. Retrying in 10 seconds...
-        sleep 10
+        echo dd-host-install failed. Retrying in 3 seconds...
+        sleep 3
     done
 
     echo "Check the agent status:"

@@ -94,11 +94,11 @@ class KrunVmProvider(VmProvider):
             logger.info(f"[KrumVm] MicroVM Share volume mounted: {output_mount_volume}")
 
             # Open http port
-            cmd_krunvm_open_ports = f"krunvm changevm {vm.name} --port 5985:5985"
-            logger.debug(cmd_krunvm_open_ports)
-            vm_logger(context.scenario.name, vm.name).info(cmd_krunvm_open_ports)
-            output_open_ports = subprocess.run(cmd_krunvm_open_ports.split(), capture_output=True, text=True).stdout
-            logger.info(f"[KrumVm] MicroVM port open: {output_open_ports}")
+            # cmd_krunvm_open_ports = f"krunvm changevm {vm.name} --port 5985:5985"
+            # logger.debug(cmd_krunvm_open_ports)
+            # vm_logger(context.scenario.name, vm.name).info(cmd_krunvm_open_ports)
+            # output_open_ports = subprocess.run(cmd_krunvm_open_ports.split(), capture_output=True, text=True).stdout
+            # logger.info(f"[KrumVm] MicroVM port open: {output_open_ports}")
 
             # Copy the init script to the shared volume
             shutil.copyfile(
@@ -128,15 +128,9 @@ class KrunVmProvider(VmProvider):
             self._microvm_processes.append(microvm_process)
 
             self.install_provision(vm, container_name, None, create_cache=image_id is None)
-            vm.set_ip("localhost")
-
-    def _get_open_port(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(("", 0))
-        s.listen(1)
-        port = s.getsockname()[1]
-        s.close()
-        return port
+            # vm.set_ip("localhost"): Krunvm provides a special networking protocol, some apps may not work with it.
+            # Instead of use a network, we can use stdin to lauch commands on the microVM
+            vm.krunvm_config.stdin = self.commander._get_stdin_path(vm)
 
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")

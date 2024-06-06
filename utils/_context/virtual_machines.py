@@ -41,6 +41,8 @@ class _VagrantConfig:
 class _KrunVmConfig:
     def __init__(self, oci_image_name) -> None:
         self.oci_image_name = oci_image_name
+        # KrunVm doesn't contain a good network capabilities. We use a std.in file to input parameters
+        self.stdin = None
 
 
 class _AWSConfig:
