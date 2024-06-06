@@ -983,7 +983,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0",
+        image="ghcr.io/hoolioh/dd-apm-test-agent/ddapm-test-agent:latest",
         name=test_agent_container_name,
         cmd=[],
         env=env,
