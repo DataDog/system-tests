@@ -148,7 +148,7 @@ class Test_Otel_Env_Vars:
         assert resp["dd_log_level"] == "debug"
         assert resp["dd_trace_debug"] == "true"
 
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="this setting is not exposed in the Node.js config object")
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}],
     )
@@ -156,7 +156,7 @@ class Test_Otel_Env_Vars:
         resp = test_library.get_tracer_config()
         assert resp["dd_trace_otel_enabled"] == "true"
 
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="this setting is not exposed in the Node.js config object")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_SDK_DISABLED": "true"}],
     )
@@ -164,7 +164,7 @@ class Test_Otel_Env_Vars:
         resp = test_library.get_tracer_config()
         assert resp["dd_trace_otel_enabled"] == "false"
 
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(True, reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "always_on"}],
     )
@@ -172,7 +172,7 @@ class Test_Otel_Env_Vars:
         resp = test_library.get_tracer_config()
         assert resp["dd_trace_sample_ignore_parent"] == "true"
 
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(True, reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off"}],
     )
