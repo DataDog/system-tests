@@ -51,7 +51,7 @@ def _default_config(service: str, env: str) -> Dict[str, Any]:
             "runtime_metrics_enabled": None,
             "tracing_debug": None,
             "tracing_service_mapping": None,
-            "trace_sample_rules": None,
+            "tracing_sampling_rules": None,
             "data_streams_enabled": None,
         },
     }
@@ -593,7 +593,7 @@ class TestDynamicConfigSamplingRules:
         set_and_wait_rc(
             test_agent,
             config_overrides={
-                "trace_sample_rules": [
+                "tracing_sampling_rules": [
                     {
                         "sample_rate": RC_SAMPLING_RULE_RATE_CUSTOMER,
                         "service": TEST_SERVICE,
@@ -625,7 +625,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-12"
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config_overrides={"trace_sample_rules": None})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is restored to "-3"
@@ -649,7 +649,7 @@ class TestDynamicConfigSamplingRules:
             test_agent,
             config_overrides={
                 "tracing_sampling_rate": RC_SAMPLING_RATE,
-                "trace_sample_rules": [
+                "tracing_sampling_rules": [
                     {"sample_rate": RC_SAMPLING_RULE_RATE_CUSTOMER, "service": TEST_SERVICE, "provenance": "customer"}
                 ],
             },
@@ -672,7 +672,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Unset RC to ensure local settings
-        set_and_wait_rc(test_agent, config_overrides={"trace_sample_rules": None, "trace_sample_rules": None})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None, "tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
@@ -718,7 +718,7 @@ class TestDynamicConfigSamplingRules:
             test_agent,
             config_overrides={
                 "tracing_sampling_rate": RC_SAMPLING_RATE,
-                "trace_sample_rules": [
+                "tracing_sampling_rules": [
                     {
                         "sample_rate": RC_SAMPLING_TAGS_RULE_RATE,
                         "service": TEST_SERVICE,
@@ -774,7 +774,7 @@ class TestDynamicConfigSamplingRules:
             test_agent,
             config_overrides={
                 "dynamic_sampling_enabled": "true",
-                "trace_sample_rules": [
+                "tracing_sampling_rules": [
                     {
                         "sample_rate": RC_SAMPLING_TAGS_RULE_RATE,
                         "service": TEST_SERVICE,
