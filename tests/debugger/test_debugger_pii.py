@@ -202,6 +202,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
 
     @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
     @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
+    @bug(context.library >= "java@1.35.0", reason="Fields not properly redacted: address, config")
     def test_pii_redaction_full(self):
         self._test(REDACTED_KEYS, REDACTED_TYPES)
 
