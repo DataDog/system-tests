@@ -41,6 +41,15 @@ service APMClient {
   rpc OtelGetLinks(OtelGetLinksArgs) returns (OtelGetLinksReturn) {}
 
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
+
+  rpc GetTraceConfig(GetTraceConfigArgs) returns (GetTraceConfigReturn) {}
+}
+
+message GetTraceConfigArgs {}
+
+message GetTraceConfigReturn {
+  map<string, string> config = 1;
+
 }
 
 message StartSpanArgs {
