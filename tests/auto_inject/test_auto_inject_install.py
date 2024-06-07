@@ -305,11 +305,16 @@ class TestInstallerAutoInjectManual(_AutoInjectBaseTest):
 
     def test_uninstall(self, virtual_machine):
         logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
-        stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
-        # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
-        start_weblog_command = "sudo systemctl start test-app.service"
 
-        if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):
+            # Host
+            stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
+            start_weblog_command = "sudo systemctl start test-app.service"
+            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+                start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+        else:
+            # Container
+            stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
             start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
 
         install_command = "sudo datadog-installer apm instrument"
