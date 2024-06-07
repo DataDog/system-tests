@@ -1,6 +1,13 @@
 FROM ubuntu:22.04
 
+#Basic packages
 RUN apt-get update && apt-get -y install vim curl gpg net-tools iproute2 dialog apt-utils lsof wget unzip
+
+# Packages related with the jdk installation. We added these packages previously trying to speed up the jdk installation.
+RUN apt-get install -y alsa-topology-conf alsa-ucm-conf dbus fontconfig-config fonts-dejavu-core libapparmor1 libasound2 libasound2-data
+RUN apt-get install -y libavahi-client3 libavahi-common-data libavahi-common3 libcups2 libdbus-1-3 libfontconfig1 libfreetype6 libglib2.0-0 libglib2.0-data libgraphite2-3
+RUN apt-get install -y libharfbuzz0b libicu70 libjpeg-turbo8 libjpeg8 liblcms2-2 libnspr4 libnss3 libpcsclite1 libpng16-16 libxml2 shared-mime-info ucf xdg-user-dirs
+
 RUN ln -s /usr/sbin/start-stop-daemon /usr/bin/start-stop-daemon
 COPY systemctl /usr/bin/systemctl
 COPY sudo.sh /usr/bin/sudo
