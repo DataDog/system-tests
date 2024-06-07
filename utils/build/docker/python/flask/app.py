@@ -243,6 +243,38 @@ def rasp_ssrf(*args, **kwargs):
         return f"url http://{domain} could not be open: {e!r}"
 
 
+@app.route("/rasp/sqli", methods=["GET", "POST"])
+def rasp_sqli(*args, **kwargs):
+    user_id = None
+    if request.method == "GET":
+        user_id = flask_request.args.get("user_id")
+    elif request.method == "POST":
+        try:
+            user_id = (request.form or request.json or {}).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if user_id is None:
+                user_id = xmltodict.parse(flask_request.data).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if user_id is None:
+        return "missing user_id parameter", 400
+    try:
+        import sqlite3
+
+        DB = sqlite3.connect(":memory:")
+        print(f"SELECT * FROM table WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM table WHERE '{user_id};")
+        print("DB request with {len(list(cursor))} results")
+        return f"DB request with {len(list(cursor))} results"
+    except Exception as e:
+        print(f"DB request failure: {e!r}", file=sys.stderr)
+        return f"DB request failure: {e!r}", 201
+
+
 ### END EXPLOIT PREVENTION
 
 

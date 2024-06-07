@@ -61,7 +61,7 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection:
-            '*': v2.10.0dev
+            '*': v2.10.0.dev
             fastapi: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
@@ -107,7 +107,7 @@ tests/:
             python3.12: v1.18.0
         test_ssrf.py:
           TestSSRF:
-            '*': v2.2.0
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
@@ -190,7 +190,11 @@ tests/:
       test_span_tags.py:
         Test_Mandatory_SpanTags: v2.10.0.dev
         Test_Optional_SpanTags: v2.10.0.dev
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson: v2.10.0.dev
+        Test_Sqli_BodyUrlEncoded: v2.10.0.dev
+        Test_Sqli_BodyXml: v2.10.0.dev
+        Test_Sqli_UrlQuery: v2.10.0.dev
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0.dev
         Test_Ssrf_BodyUrlEncoded: v2.10.0.dev
@@ -225,6 +229,7 @@ tests/:
           uwsgi-poc: v1.16.1
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v1.6
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -340,11 +345,11 @@ tests/:
         fastapi: v2.4.0.dev1
     test_automated_login_events.py:
       Test_Login_Events: 
-        '*': missing_feature (weblog endpoint missing)
-        flask-poc: v2.10.0.dev
+        '*': v2.10.0.dev
+        fastapi: missing_feature
       Test_Login_Events_Extended: 
-        '*': missing_feature (weblog endpoint missing)
-        flask-poc: v2.10.0.dev
+        '*': v2.10.0.dev
+        fastapi: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses:
         '*': v1.16.1
@@ -414,11 +419,9 @@ tests/:
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
       Test_UserLoginFailureEvent:
-        '*': v1.9.0
-        python3.12: bug (APPSEC-53079)
+        '*': v2.10.0.dev
       Test_UserLoginSuccessEvent:
-        '*': v1.9.0
-        python3.12: bug (APPSEC-53079)
+        '*': v2.10.0.dev
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
@@ -609,6 +612,8 @@ tests/:
       Test_Library_Tracestats: missing_feature (failure 2.8.0)
     test_otel_api_interoperability.py:
       Test_Otel_API_Interoperability: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py:
       Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
