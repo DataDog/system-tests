@@ -188,7 +188,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_0(self):
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            assert span["metrics"]["_sampling_priority_v1"] == 0
+            assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -214,7 +214,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            assert span["metrics"]["_sampling_priority_v1"] == 1
+            assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
