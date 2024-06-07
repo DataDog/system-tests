@@ -151,6 +151,14 @@ class TestSimpleHostAutoInjectManual(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
+@features.host_auto_instrumentation_profiling
+@scenarios.simple_host_auto_injection_profiling
+class TestSimpleHostAutoInjectManualProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine, profile=True)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
 
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection_ld_preload

@@ -1920,6 +1920,10 @@ class scenarios:
     simple_host_auto_injection = HostAutoInjectionScenario(
         "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
     )
+    simple_host_auto_injection_profiling = HostAutoInjectionScenario(
+        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
+        "Onboarding Host Single Step Instrumentation with profiling scenario (minimal test scenario)",
+    )
     host_auto_injection_block_list = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
         "Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists",

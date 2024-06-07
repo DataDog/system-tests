@@ -2198,6 +2198,16 @@ class features:
         return test_object
 
     @staticmethod
+    def host_auto_instrumentation_profiling(test_object):
+        """
+        Host auto-instrumentation with profiling
+
+        https://feature-parity.us1.prod.dog/#/?feature=302
+        """
+        pytest.mark.features(feature_id=302)(test_object)
+        return test_object
+
+    @staticmethod
     def appsec_standalone(test_object):
         """
         Appsec Standalone Billing
