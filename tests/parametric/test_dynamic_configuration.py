@@ -838,18 +838,20 @@ class TestDynamicConfigSamplingRules:
         )
         configuration = event["payload"]["configuration"]
         rules = next(filter(lambda x: x["name"] == "trace_sampling_rules", configuration))["value"]
-        assert json.loads(rules) == [{
-                        "service": "svc*",
-                        "resource": "*abc",
-                        "name": "op-??",
-                        "tags": [
-                            {"key": "tag-a", "value_glob": "ta-v*"},
-                            {"key": "tag-b", "value_glob": "tb-v?"},
-                            {"key": "tag-c", "value_glob": "tc-v"},
-                        ],
-                        "sample_rate": 0.5,
-                        "provenance": "dynamic",
-                    }]
+        assert json.loads(rules) == [
+            {
+                "service": "svc*",
+                "resource": "*abc",
+                "name": "op-??",
+                "tags": [
+                    {"key": "tag-a", "value_glob": "ta-v*"},
+                    {"key": "tag-b", "value_glob": "tb-v?"},
+                    {"key": "tag-c", "value_glob": "tc-v"},
+                ],
+                "sample_rate": 0.5,
+                "provenance": "dynamic",
+            }
+        ]
 
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": []},)
         configuration = event["payload"]["configuration"]
