@@ -120,6 +120,22 @@ public abstract class ApmTestApiOtel : ApmTestApi
             foreach (var spanLink in (dynamic)links)
             {
                 var parentSpanLink = spanLink["parent_id"];
+                ActivityTagsCollection tagsCollection = new ActivityTagsCollection();
+
+                var tagsDictionary = ((Newtonsoft.Json.Linq.JObject)spanLink["attributes"]).ToObject<Dictionary<string,object>>();
+               
+               foreach (var tags in tagsDictionary)
+               {
+                    if (tags.Value is JArray)
+                    {
+                        tagsCollection.Add(tags.Key, new List<object> { tags.Value });
+                    }
+                    else
+                    {
+                        tagsCollection.Add(tags.Key, tags.Value);
+                    } 
+               }
+
                 ActivityContext contextToLink = new ActivityContext();
 
                 if (parentSpanLink != null && parentSpanLink > 0)
@@ -148,7 +164,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
                         isRemote: true);
                 }
 
-                linksList.Add(new ActivityLink(contextToLink));
+                linksList.Add(new ActivityLink(contextToLink, tagsCollection));
             }
         }
 

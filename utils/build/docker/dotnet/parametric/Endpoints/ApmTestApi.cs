@@ -65,7 +65,7 @@ public abstract class ApmTestApi
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     // SpanLinks add span
-    private static readonly MethodInfo AddSpanLink = SpanType.GetMethod("AddSpanLink", BindingFlags.Instance | BindingFlags.Public)!;
+    private static readonly MethodInfo AddSpanLink = SpanType.GetMethod("AddSpanLink", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
 
@@ -145,26 +145,6 @@ public abstract class ApmTestApi
         {
             var spanContext = SpanContext.GetValue(span)!;
             Origin.SetValue(spanContext, origin);
-        }
-        
-        if (parsedDictionary.TryGetValue("links", out var links))
-        {
-            foreach (var spanLink in (dynamic)(links))
-            {
-                var linkParentId = spanLink["parent_id"];
-
-                if (linkParentId != null)
-                {
-                    if (linkParentId > 0)
-                    {
-                        AddSpanLink.Invoke(span, new object[] { Spans[linkParentId], spanLink.Attributes });
-                    } 
-                    else
-                    {
-                        AddSpanLink.Invoke(span, new object[] { creationSettings.Parent, spanLink.Attributes });
-                    }
-                }
-            }
         }
 
         Spans[span.SpanId] = span;
