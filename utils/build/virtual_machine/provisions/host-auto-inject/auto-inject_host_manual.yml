@@ -9,6 +9,11 @@
       - name: copy-tracer-debug-config
         local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
 
+      - name: copy-microvm-patch
+        local_path: utils/build/virtual_machine/microvm/microvm_agent_restart_retry.sh
+
+        
+
   remote-command: |
     architecture=""
     case $(uname -m) in
@@ -34,21 +39,8 @@
         sudo apt install -y --reinstall -t $DD_deb_repo_name datadog-apm-library-$DD_LANG
     fi
     
-    #MicroVm: The agent does not always start, we have to retry until it works. 
-    #Krunvm implements a different tcp/ip stack that can cause the agent to fail to start.
-    until dd-host-install; do
-        echo dd-host-install failed. Retrying in 3 seconds...
-        sleep 3
-    done
-
-    echo "Check the agent status:"
-    sudo service datadog-agent status
-    echo "Running checks:"
-    sudo datadog-agent status
-    echo "Agent logs:"
-    sudo ls /var/log/datadog/
-    sudo cat /var/log/datadog/agent.log
-
+    dd-host-install
+    bash microvm_agent_restart_retry.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
 - os_type: linux
@@ -60,6 +52,9 @@
 
       - name: copy-tracer-debug-config
         local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+
+      - name: copy-microvm-patch
+        local_path: utils/build/virtual_machine/microvm/microvm_agent_restart_retry.sh
 
   remote-command: | 
     architecture="" 
@@ -84,6 +79,8 @@
         sudo yum -q list installed datadog-apm-library-$DD_LANG &>/dev/null && sudo yum -y reinstall --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG || sudo yum -y install --disablerepo="*" --enablerepo="$DD_rpm_repo_name" datadog-apm-library-$DD_LANG
     fi
     dd-host-install
+    sh microvm_agent_restart_retry.sh
+
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
     if ls datadog-apm-inject-*.$architecture.rpm 1> /dev/null 2>&1; then

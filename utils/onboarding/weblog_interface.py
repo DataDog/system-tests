@@ -34,7 +34,7 @@ URL="http://localhost:{vm_port}/"
 TIMEOUT={timeout}
 TRACE_ID={generated_uuid}
 PARENT_ID={generated_uuid}
-
+ps
 while true; do
   RESPONSE=$(curl -i -m 2 -H "x-datadog-trace-id: $TRACE_ID" -H "x-datadog-parent-id: $PARENT_ID" $URL)
   echo "$RESPONSE"

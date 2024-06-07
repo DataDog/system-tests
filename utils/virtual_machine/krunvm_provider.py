@@ -34,10 +34,9 @@ class KrunVmProvider(VmProvider):
         return None
 
     def _image_exists(self, image_name):
-        cmd2 = f"buildah images --format '{{.Repository}}' | grep {image_name}"
         cmd = f" buildah images  --root /Volumes/krunvm/root --runroot /Volumes/krunvm/runroot -f=reference={image_name} | grep {image_name}"
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = p.communicate()
+        stdout, _ = p.communicate()
         if stdout == b"":
             return False
         return True
@@ -183,10 +182,12 @@ class KrunVmCommander(Commander):
     def remote_command(
         self, vm, installation_id, remote_command, env, connection, last_task, logger_name=None, output_callback=None
     ):
-        # Workaround with env variables and paramiko :-(
+        # Workaround with env variables  :-(
         export_command = ""
         for key, value in env.items():
             export_command += f"export {key}={value} \n "
+        # Set provider env vars
+        export_command += f"export SYSTEM_TESTS_PROVIDER=KRUNVM \n "
 
         logger.debug(f"Running installation id: {installation_id} ")
         # logger.debug(f"Remote command: {export_command} {remote_command}")

@@ -1,0 +1,9 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get -y install vim curl gpg net-tools iproute2 dialog apt-utils lsof wget unzip
+RUN ln -s /usr/sbin/start-stop-daemon /usr/bin/start-stop-daemon
+COPY systemctl /usr/bin/systemctl
+COPY sudo.sh /usr/bin/sudo
+RUN chmod +x /usr/bin/systemctl
+RUN chmod +x /usr/bin/sudo
+ENTRYPOINT sleep infinity

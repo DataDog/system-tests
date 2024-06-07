@@ -1,0 +1,27 @@
+FROM amazonlinux:2023 as cbuilder
+RUN yum -y install git
+RUN yum group install -y "Development Tools"
+RUN git clone https://github.com/llggttd/start-stop-daemon
+RUN cd start-stop-daemon && make
+
+FROM amazonlinux:2023
+
+RUN yum -y install vim \
+    tar \
+    shadow-utils \
+    wget \
+    gzip \
+    unzip \
+    findutils \
+    which \
+    yum-utils \
+    systemd \
+    initscripts \
+    kernel-libbpf 
+    
+COPY --from=cbuilder /start-stop-daemon/start-stop-daemon /usr/bin/start-stop-daemon
+COPY systemctl /usr/bin/systemctl
+COPY sudo.sh /usr/bin/sudo
+RUN chmod +x /usr/bin/systemctl
+RUN chmod +x /usr/bin/sudo
+ENTRYPOINT sleep infinity
