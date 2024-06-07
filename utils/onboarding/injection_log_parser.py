@@ -3,12 +3,15 @@ import json
 from utils.tools import logger
 
 
+def exclude_telemetry_logs_filter(line):
+    return "\"command\":\"telemetry\"" not in line
+
 def command_injection_skipped(command_line, log_local_path):
     """ From parsed log, search on the list of logged commands 
     if one command has been skipped from the instrumentation"""
     command, command_args = _parse_command(command_line)
     logger.debug(f"- Checking command: {command_args}")
-    for command_desc in _get_commands_from_log_file(log_local_path):
+    for command_desc in _get_commands_from_log_file(log_local_path, exclude_telemetry_logs_filter):
         # First line contains the name of the intercepted command
         first_line_json = json.loads(command_desc[0])
         if command in first_line_json["inFilename"]:
@@ -94,13 +97,15 @@ def _get_command_props_values(command_instrumentation_desc, command_args_check):
     return False
 
 
-def _get_commands_from_log_file(log_local_path):
+def _get_commands_from_log_file(log_local_path, filter):
     """ From instrumentation log file, extract all commands parsed by dd-injection (the log level should be DEBUG)  """
 
     store_as_command = False
     command_lines = []
     with open(log_local_path, encoding="utf-8") as f:
         for line in f:
+            if not filter(line):
+                continue
             if "starting process" in line:
                 store_as_command = True
                 continue
