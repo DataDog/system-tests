@@ -33,7 +33,6 @@ class Test_Otel_Env_Vars:
         resp = test_library.get_tracer_config()
 
         assert resp["dd_service"] == "service"
-        assert resp["dd_log_level"] == "error"
         assert float(resp["dd_trace_sample_rate"]) == 0.5
         assert resp["dd_trace_enabled"] == "true"
         assert resp["dd_runtime_metrics_enabled"]
@@ -63,7 +62,6 @@ class Test_Otel_Env_Vars:
         resp = test_library.get_tracer_config()
 
         assert resp["dd_service"] == "otel_service"
-        assert resp["dd_log_level"] == "error"
         assert float(resp["dd_trace_sample_rate"]) == 0.1
         assert resp["dd_trace_enabled"] == "true"
         assert resp["dd_runtime_metrics_enabled"] == "false"
@@ -140,6 +138,8 @@ class Test_Otel_Env_Vars:
         assert resp["dd_trace_enabled"] == "false"
 
     @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="dd_log_level is not supported")
+    @missing_feature(context.library == "python", reason="dd_log_level is not supported")
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_LOG_LEVEL": "debug"}],
     )
@@ -149,6 +149,7 @@ class Test_Otel_Env_Vars:
         assert resp["dd_trace_debug"] == "true"
 
     @missing_feature(context.library == "nodejs", reason="this setting is not exposed in the Node.js config object")
+    @missing_feature(context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}],
     )
