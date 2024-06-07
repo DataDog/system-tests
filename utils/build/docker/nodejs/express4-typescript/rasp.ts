@@ -1,6 +1,6 @@
 'use strict'
 
-import type {Express, Request, Response} from "express";
+import type { Express, Request, Response } from 'express';
 
 const http = require('http')
 function initRaspEndpoints (app: Express) {
@@ -9,15 +9,10 @@ function initRaspEndpoints (app: Express) {
             res.end('end')
         })
         cl.on('error', (e: any) => {
-            if (e.name !== 'AbortError' && !res.headersSent) {
-                res.writeHead(500).end(e.message)
-                return
-            }
-            console.error(e)
-            throw e
+            // TODO when blocking is supported, throw e when is aborted
+            //  to check that we are blocking as expected
+            res.writeHead(500).end(e.message)
         })
-        // TODO when blocking is supported, move this res.end to the callback
-        // res.end('end')
     })
 
     app.post('/rasp/ssrf', (req: Request, res: Response) => {
@@ -25,15 +20,10 @@ function initRaspEndpoints (app: Express) {
             res.end('end')
         })
         cl.on('error', (e: any) => {
-            if (e.name !== 'AbortError' && !res.headersSent) {
-                res.writeHead(500).end(e.message)
-                return
-            }
-            console.error(e)
-            throw e
+            // TODO when blocking is supported, throw e when is aborted
+            //  to check that we are blocking as expected
+            res.writeHead(500).end(e.message)
         })
-        // TODO when blocking is supported, move this res.end to the callback
-        // res.end('end')
     })
 }
 module.exports = initRaspEndpoints

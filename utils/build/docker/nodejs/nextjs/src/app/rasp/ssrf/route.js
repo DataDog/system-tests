@@ -9,6 +9,8 @@ export async function GET (request) {
       resolve()
     })
     cl.on('error', (e) => {
+      // TODO when blocking is supported, throw e when is aborted
+      //  to check that we are blocking as expected
       status = 500
       resolve()
     })
