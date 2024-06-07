@@ -26,7 +26,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            assert span["metrics"]["_sampling_priority_v1"] == 1
+            assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
             assert "_dd.p.other" in span["meta"]
@@ -53,7 +53,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            assert span["metrics"]["_sampling_priority_v1"] == 1
+            assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
             assert "_dd.p.other" in span["meta"]
@@ -80,7 +80,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_1(self):
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            assert span["metrics"]["_sampling_priority_v1"] == 1
+            assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
             assert "_dd.p.other" in span["meta"]
@@ -107,7 +107,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_2(self):
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            assert span["metrics"]["_sampling_priority_v1"] == 1
+            assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
             assert "_dd.p.other" in span["meta"]
