@@ -120,41 +120,35 @@ public abstract class ApmTestApiOtel : ApmTestApi
             foreach (var spanLink in (dynamic)links)
             {
                 var parentSpanLink = spanLink["parent_id"];
+                ActivityContext contextToLink = new ActivityContext();
 
-                try
+                if (parentSpanLink != null && parentSpanLink > 0)
                 {
-                    ActivityContext contextToLink = new ActivityContext();
-
-                    if (parentSpanLink != null && parentSpanLink > 0)
-                    {
-                        contextToLink = FindActivity(parentSpanLink).Context;
-                    }
-                    else 
-                    {
-                        var extractedContext = _spanContextExtractor.Extract(
-                                ((Newtonsoft.Json.Linq.JArray)spanLink["http_headers"]).ToObject<string[][]>(),
-                                getter: GetHeaderValues!);
-
-                        var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
-                        var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
-                        var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
-                        var tracestate = spanLink["http_headers"][1][0] == "tracestate" ? spanLink["http_headers"][1][1] : null;
-
-                        contextToLink = new ActivityContext(
-                            parentTraceId,
-                            parentSpanId,
-                            flags,
-                            spanLink["http_headers"][1][1],
-                            isRemote: true);
-                    }
-
-                    linksList.Add(new ActivityLink(contextToLink));
+                    contextToLink = FindActivity(parentSpanLink).Context;
                 }
-                catch (Exception e)
+                else 
                 {
-                    Console.WriteLine(e.Message);
+                    var extractedContext = _spanContextExtractor.Extract(
+                            ((Newtonsoft.Json.Linq.JArray)spanLink["http_headers"]).ToObject<string[][]>(),
+                            getter: GetHeaderValues!);
+
+                    var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
+                    var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
+                    var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
+
+                    var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext });
+
+                    var tracestate = spanLink["http_headers"][1][0] == "tracestate" ? spanLink["http_headers"][1][1] : datadogHeadersTracestate;
+
+                    contextToLink = new ActivityContext(
+                        parentTraceId,
+                        parentSpanId,
+                        flags,
+                        tracestate,
+                        isRemote: true);
                 }
 
+                linksList.Add(new ActivityLink(contextToLink));
             }
         }
 
