@@ -197,7 +197,11 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
-      test_span_tags.py: missing_feature
+      test_span_tags.py:
+        Test_Mandatory_SpanTags:
+          '*': v6.0.0-pre
+        Test_Optional_SpanTags:
+          '*': v6.0.0-pre
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
       test_stack_traces.py: missing_feature
