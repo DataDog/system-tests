@@ -72,9 +72,12 @@ class Test_Otel_Env_Vars:
         tags = resp["dd_tags"]
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
-        assert resp["dd_trace_propagation_style"] == "b3,tracecontext"
+        assert resp["dd_trace_propagation_style"] == (
+            "b3,tracecontext" if context.library != "dotnet" else "b3 single header,tracecontext"
+        )
 
     @missing_feature(context.library == "python", reason="DD_LOG_LEVEL is not supported in Python")
+    @missing_feature(context.library == "dotnet", reason="DD_LOG_LEVEL is not supported in .NET")
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "error"}])
     def test_otel_log_level_env(self, test_agent, test_library):
         with test_library as t:
