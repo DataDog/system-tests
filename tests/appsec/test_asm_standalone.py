@@ -32,12 +32,7 @@ class Test_AppSecPropagation:
 
             # Some tracers use true while others use yes
             assert any(
-                [
-                    "Datadog-Client-Computed-Stats",
-                    trueish,
-                ]
-                in data["request"]["headers"]
-                for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
     def setup_trace_no_upstream_appsec_propagation_no_attack_is_dropped(self):
@@ -62,12 +57,7 @@ class Test_AppSecPropagation:
 
             # Some tracers use true while others use yes
             assert any(
-                [
-                    "Datadog-Client-Computed-Stats",
-                    trueish,
-                ]
-                in data["request"]["headers"]
-                for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
     def setup_trace_no_upstream_appsec_propagation_with_attack_is_kept(self):
@@ -94,12 +84,7 @@ class Test_AppSecPropagation:
 
             # Some tracers use true while others use yes
             assert any(
-                [
-                    "Datadog-Client-Computed-Stats",
-                    trueish,
-                ]
-                in data["request"]["headers"]
-                for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
     def setup_trace_upstream_appsec_propagation_no_attack_is_propagated(self):
@@ -125,12 +110,7 @@ class Test_AppSecPropagation:
 
             # Some tracers use true while others use yes
             assert any(
-                [
-                    "Datadog-Client-Computed-Stats",
-                    trueish,
-                ]
-                in data["request"]["headers"]
-                for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
     def setup_trace_any_upstream_propagation_with_attack_raises_priority(self):
@@ -157,12 +137,7 @@ class Test_AppSecPropagation:
 
             # Some tracers use true while others use yes
             assert any(
-                [
-                    "Datadog-Client-Computed-Stats",
-                    trueish,
-                ]
-                in data["request"]["headers"]
-                for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
     def setup_trace_drop_upstream_propagation_with_attack_is_not_honored(self):
@@ -189,10 +164,5 @@ class Test_AppSecPropagation:
 
             # Some tracers use true while others use yes
             assert any(
-                [
-                    "Datadog-Client-Computed-Stats",
-                    trueish,
-                ]
-                in data["request"]["headers"]
-                for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
