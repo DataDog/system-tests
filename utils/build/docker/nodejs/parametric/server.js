@@ -9,6 +9,7 @@ const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_con
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
 const { trace, ROOT_CONTEXT } = require('@opentelemetry/api')
+const { millisToHrTime } = require('@opentelemetry/core')
 
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
@@ -305,6 +306,21 @@ app.get('/trace/config', (req, res) => {
     }
   });
 });
+
+app.post("/trace/otel/add_event", (req, res) => {
+  const { span_id, name, timestamp, attributes } = req.body;
+  const span = otelSpans[span_id]
+  // convert to TimeInput object using millisToHrTime
+  span.addEvent(name, attributes, millisToHrTime(timestamp / 1000))
+  res.json({})
+})
+
+app.post("/trace/otel/record_exception", (req, res) => {
+  const { span_id, message, attributes } = req.body;
+  const span = otelSpans[span_id]
+  span.recordException(new Error(message))
+  res.json({})
+})
 
 // TODO: implement this endpoint correctly, current blockers:
 // 1. Fails on invalid url
