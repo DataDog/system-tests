@@ -225,23 +225,20 @@ class Test_Telemetry:
                 first_message.get("request_type") == "app-started"
             ), "app-started was not the first message in the first batch"
         else:
-            for data in telemetry_data:
-                req_content = data["request"]["content"]
-                if req_content["request_type"] == "app-started":
-                    seq_id = req_content["seq_id"]
-                    assert seq_id == 1, f"app-started found but it was not the first message sent"
-                    return
-
-            raise Exception(f"app-started message not found")
+            # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
+            # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
+            telemetry_data = list(sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"]))
+            app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
+            assert app_started, "app-started message not found"
+            min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
+            assert (
+                app_started[0]["request"]["content"]["seq_id"] == min_seq_id
+            ), "app-started is not the first message by seq_id"
 
     @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        weblog_variant="spring-boot-openliberty", reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
-    @bug(
-        library="java", weblog_variant="spring-boot-wildfly",
-    )
+    @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
     @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""

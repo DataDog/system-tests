@@ -137,6 +137,7 @@ tests/:
           gin: v1.37.0
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: v1.62.0
         Test_Headers:
           '*': v1.34.0
           chi: v1.36.0
@@ -412,6 +413,8 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
     test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:

@@ -218,6 +218,7 @@ tests/:
         Test_GraphQL:
           '*': *ref_4_22_0
           nextjs: irrelevant # nextjs is not related with graphql
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -444,6 +445,8 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: *ref_4_23_0
     test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: v5.11.0 #implemented in v5.11.0, v4.35.0, &v3.56.0
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: 
       Test_Span_Links: *ref_5_3_0

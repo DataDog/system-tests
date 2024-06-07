@@ -135,7 +135,6 @@ async def rasp_lfi(request: Request):
 @app.get("/rasp/ssrf")
 @app.post("/rasp/ssrf")
 async def rasp_ssrf(request: Request):
-    print("rasp_ssrf", repr(request), file=sys.stderr)
     domain = None
     if request.method == "GET":
         domain = request.query_params.get("domain")
@@ -162,6 +161,40 @@ async def rasp_ssrf(request: Request):
     except Exception as e:
         print(repr(e), file=sys.stderr)
     return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
+
+
+@app.get("/rasp/sqli")
+@app.post("/rasp/sqli")
+async def rasp_ssrf(request: Request):
+    user_id = None
+    if request.method == "GET":
+        user_id = request.query_params.get("user_id")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            user_id = ((await request.form()) or json.loads(body) or {}).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if user_id is None:
+                user_id = xmltodict.parse(body).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if user_id is None:
+        return PlainTextResponse("missing user_id parameter", status_code=400)
+    try:
+        import sqlite3
+
+        DB = sqlite3.connect(":memory:")
+        print(f"SELECT * FROM table WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM table WHERE '{user_id};")
+        print("DB request with {len(list(cursor))} results")
+        return PlainTextResponse(f"DB request with {len(list(cursor))} results")
+    except Exception as e:
+        print(f"DB request failure: {e!r}", file=sys.stderr)
+        return PlainTextResponse(f"DB request failure: {e!r}", status_code=201)
 
 
 ### END EXPLOIT PREVENTION
