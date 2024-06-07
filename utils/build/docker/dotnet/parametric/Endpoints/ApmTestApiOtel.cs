@@ -120,21 +120,12 @@ public abstract class ApmTestApiOtel : ApmTestApi
             foreach (var spanLink in (dynamic)links)
             {
                 var parentSpanLink = spanLink["parent_id"];
-                ActivityTagsCollection tagsCollection = new ActivityTagsCollection();
 
-                var tagsDictionary = ((Newtonsoft.Json.Linq.JObject)spanLink["attributes"]).ToObject<Dictionary<string,object>>();
-               
-               foreach (var tags in tagsDictionary)
-               {
-                    if (tags.Value is JArray)
-                    {
-                        tagsCollection.Add(tags.Key, new List<object> { tags.Value });
-                    }
-                    else
-                    {
-                        tagsCollection.Add(tags.Key, tags.Value);
-                    } 
-               }
+                ActivityTagsCollection? tags = default;
+                if (spanLink["attributes"] is not null)
+                {
+                    tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)spanLink["attributes"])?.ToObject<Dictionary<string, object>>());
+                }
 
                 ActivityContext contextToLink = new ActivityContext();
 
@@ -151,9 +142,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
                     var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
                     var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
-
                     var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext });
-
                     var tracestate = spanLink["http_headers"][1][0] == "tracestate" ? spanLink["http_headers"][1][1] : datadogHeadersTracestate;
 
                     contextToLink = new ActivityContext(
@@ -164,7 +153,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
                         isRemote: true);
                 }
 
-                linksList.Add(new ActivityLink(contextToLink, tagsCollection));
+                linksList.Add(new ActivityLink(contextToLink, tags));
             }
         }
 
@@ -480,6 +469,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
             }
             else if (values is System.Collections.IEnumerable valuesList)
             {
+                Console.WriteLine(valuesList.GetType());
+
                 var toAdd = new List<object>();
                 foreach (var value in valuesList)
                 {
@@ -487,7 +478,42 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     toAdd.Add(valueToAdd);
                 }
 
-                tags.Add(key, toAdd.ToArray());
+                if (toAdd[0] is string)
+                {
+                    var strings = new List<string>();
+                    foreach(var value in toAdd)
+                    {
+                        strings.Add(value.ToString());
+                    }
+                    tags.Add(key, strings.ToArray());
+                }
+                else if (toAdd[0] is long)
+                {
+                    var longs = new List<long>();
+                    foreach (var value in toAdd)
+                    {
+                        longs.Add(Convert.ToInt64(value));
+                    }
+                    tags.Add(key, longs.ToArray());
+                }
+                else if (toAdd[0] is bool)
+                {
+                    var bools = new List<bool>();
+                    foreach (var value in toAdd)
+                    {
+                        bools.Add(Convert.ToBoolean(value));
+                    }
+                    tags.Add(key, bools.ToArray());
+                }
+                else if (toAdd[0] is double)
+                {
+                    var doubles = new List<double>();
+                    foreach (var value in toAdd)
+                    {
+                        doubles.Add(Convert.ToDouble(value));
+                    }
+                    tags.Add(key, doubles.ToArray());
+                }
             }
         }
 
