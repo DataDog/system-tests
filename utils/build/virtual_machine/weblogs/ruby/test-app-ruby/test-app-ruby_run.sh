@@ -5,7 +5,7 @@ echo "START RUN APP"
 #This is the output for the app service
 sudo touch /home/datadog/app-std.out
 sudo chmod 777 /home/datadog/app-std.out
-sudo rm Gemfile.lock
+#sudo rm Gemfile.lock
 sudo sed -i "s/3.1.3/>= 3.0.0\", \"< 3.3.0/g" Gemfile || sed -i "s/3.1.3/>= 3.0.0\", \"< 3.3.0/g" Gemfile
 export DD_INSTRUMENT_SERVICE_WITH_APM=false 
 sudo bundle install
