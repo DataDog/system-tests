@@ -186,8 +186,6 @@ class KrunVmCommander(Commander):
         export_command = ""
         for key, value in env.items():
             export_command += f"export {key}={value} \n "
-        # Set provider env vars
-        export_command += f"export SYSTEM_TESTS_PROVIDER=KRUNVM \n "
 
         logger.debug(f"Running installation id: {installation_id} ")
         # logger.debug(f"Remote command: {export_command} {remote_command}")

@@ -6,9 +6,8 @@ lang_variant:
       - os_type: linux
         os_distro: deb
         remote-command: |
-          sudo apt-get -y update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev nodejs yarn
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install rbenv ruby-build ruby-dev
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get -y install libyaml-dev rbenv ruby-build ruby-dev
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
       - os_type: linux
@@ -36,8 +35,5 @@ weblog:
 
           - name: copy-run-weblog-script-ruby
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app-ruby_run.sh
-
-          - name: copy-service-daemon
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app-ruby_daemon.sh
 
         remote-command: sh test-app-ruby_run.sh

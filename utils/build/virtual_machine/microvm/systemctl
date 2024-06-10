@@ -138,11 +138,10 @@ function action_start(){
 
         cmd=("/usr/bin/start-stop-daemon --background --start --pidfile $PIDFile $makepid")
 
-       # [ -n "$WorkingDirectory" ] && cmd+=("--chdir $WorkingDirectory")
+        [ -n "$WorkingDirectory" ] && cmd+=("--chdir $WorkingDirectory")
         [ -n "$User" ] && cmd+=("--chuid $User")
 
         cmd+=(--exec "${ExecStart[0]}" -- "${ExecStart[@]:1}")
-
         while IFS=$'\n' read -a i; do
             # ignore errors
             $(eval echo "$i") || echo

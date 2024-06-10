@@ -11,7 +11,7 @@ Type=simple
 
 Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
 WorkingDirectory=/home/datadog
-ExecStart=/bin/bash -c 'rails server -b 0.0.0.0 -p 5985'
+ExecStart=/bin/bash -c 'rails server -b 0.0.0.0 -p 5985 >> /home/datadog/app-std.out 2>&1 </dev/null'
 ExecStop=/bin/kill -15 $MAINPID
 
 [Install]

@@ -27,7 +27,4 @@ weblog:
           - name: copy-run-weblog-script
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
 
-          - name: copy-service-daemon
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_daemon.sh
-
         remote-command: sh test-app-dotnet_run.sh

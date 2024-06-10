@@ -1,8 +1,11 @@
 FROM amazonlinux:2023 as cbuilder
+#
 RUN yum -y install git
 RUN yum group install -y "Development Tools"
-RUN git clone https://github.com/llggttd/start-stop-daemon
-RUN cd start-stop-daemon && make
+
+RUN git clone https://github.com/robertomonteromiguel/start-stop-daemon
+
+RUN cd start-stop-daemon && git pull && make
 
 FROM amazonlinux:2023
 

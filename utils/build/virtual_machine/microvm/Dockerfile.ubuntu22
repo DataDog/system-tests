@@ -2,11 +2,21 @@ FROM ubuntu:22.04
 
 #Basic packages
 RUN apt-get update && apt-get -y install vim curl gpg net-tools iproute2 dialog apt-utils lsof wget unzip
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Packages related with the jdk installation. We added these packages previously trying to speed up the jdk installation.
 RUN apt-get install -y alsa-topology-conf alsa-ucm-conf dbus fontconfig-config fonts-dejavu-core libapparmor1 libasound2 libasound2-data
 RUN apt-get install -y libavahi-client3 libavahi-common-data libavahi-common3 libcups2 libdbus-1-3 libfontconfig1 libfreetype6 libglib2.0-0 libglib2.0-data libgraphite2-3
 RUN apt-get install -y libharfbuzz0b libicu70 libjpeg-turbo8 libjpeg8 liblcms2-2 libnspr4 libnss3 libpcsclite1 libpng16-16 libxml2 shared-mime-info ucf xdg-user-dirs
+# Packages related with the python installation. We added these packages previously trying to speed up the python installation.
+RUN apt-get install -y binfmt-support binutils binutils-aarch64-linux-gnu binutils-common build-essential bzip2 bzip2-doc cpp cpp-11 dpkg-dev fakeroot g++ g++-11 gcc gcc-11 gcc-11-base git 
+RUN apt-get install -y git-man icu-devtools less libalgorithm-diff-perl libalgorithm-diff-xs-perl libalgorithm-merge-perl libasan6 libatomic1 libbinutils libbrotli-dev libbz2-dev libc-dev-bin libc-devtools libc6-dev
+RUN apt-get install -y libcbor0.8 libcc1-0 libclang-cpp14 libcrypt-dev libctf-nobfd0 libctf0 libcurl3-gnutls libdeflate0 libdpkg-perl libdrm-amdgpu1 libdrm-common libdrm-nouveau2 libdrm-radeon1 libdrm2 libedit2 
+RUN apt-get install -y liberror-perl libevent-2.1-7 libexpat1-dev libfakeroot libffi-dev libfido2-1 libfile-fcntllock-perl libfontconfig-dev libfontconfig1-dev libfontenc1 libfreetype-dev
+RUN apt-get install -y libfreetype6-dev libgcc-11-dev libgcrypt20-dev libgd3 libgdbm-compat4 libgdbm6 libgl1 libgl1-amber-dri libgl1-mesa-dri libglapi-mesa libglvnd0 libglx-mesa0 libglx0 libgmp-dev libgmpxx4ldbl libgnutls-dane0
+RUN apt-get install -y libgnutls-openssl27 libgnutls28-dev libgnutlsxx28 libgomp1 libgpg-error-dev libhwasan0 libice6 libicu-dev libidn2-dev libisl23 libitm1 libjbig0 libllvm14 libllvm15 liblocale-gettext-perl liblsan0 liblzma-dev libmpc3
+RUN apt-get install -y libmpfr6 libncurses-dev libncursesw5-dev libnsl-dev libnspr4-dev libnss3-dev libp11-kit-dev libperl5.34 libpfm4 libpipeline1 libpng-dev libpng-tools libpthread-stubs0-dev libpython3-stdlib libreadline-dev libsensors-config
+RUN apt-get install -y libsensors5 libsm6 libsqlite3-dev libssl-dev libstdc++-11-dev libtasn1-6-dev libtasn1-doc libtcl8.6 libtiff5 libtirpc-dev libtk8.6 libtsan0 libubsan1 libunbound8 libutempter0 libwebp7 libx11-6 libx11-data libx11-dev
 
 RUN ln -s /usr/sbin/start-stop-daemon /usr/bin/start-stop-daemon
 COPY systemctl /usr/bin/systemctl
