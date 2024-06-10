@@ -4,7 +4,8 @@ from utils.tools import logger
 
 
 def exclude_telemetry_logs_filter(line):
-    return "\"command\":\"telemetry\"" not in line
+    return '"command":"telemetry"' not in line
+
 
 def command_injection_skipped(command_line, log_local_path):
     """ From parsed log, search on the list of logged commands 
