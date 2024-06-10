@@ -20,7 +20,7 @@ class _AutoInjectBaseTest:
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
         request_uuid = None
-        if virtual_machine.krunvm_config.stdin is not None:
+        if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
             logger.info(
                 f"We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
             )
