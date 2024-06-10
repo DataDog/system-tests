@@ -218,7 +218,7 @@ def pytest_collection_modifyitems(session, config, items):
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
                     logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
-                    item.own_markers = [m for m in item.own_markers if m.name not in ("skip", "skipif")]
+                    item.own_markers = [m for m in item.own_markers if m.name not in ("skip", "skipif", "xfail")]
 
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
