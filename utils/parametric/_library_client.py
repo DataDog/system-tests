@@ -356,7 +356,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def get_tracer_config(self) -> Dict[str, Optional[str]]:
         resp = self._session.get(self._url("/trace/config")).json()
-        config_dict = json.loads(resp["config"])
+        config_dict = resp["config"]
         return {
             "dd_service": config_dict.get("dd_service", None),
             "dd_log_level": config_dict.get("dd_log_level", None),
