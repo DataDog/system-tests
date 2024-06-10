@@ -807,7 +807,7 @@ class LocalstackContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="ghcr.io/hoolioh/dd-apm-test-agent/ddapm-test-agent:latest",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
             environment={"SNAPSHOT_CI": "0",},
