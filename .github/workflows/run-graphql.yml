@@ -89,11 +89,11 @@ jobs:
         with:
           name: logs_graphql_${{ inputs.library }}_${{ matrix.weblog }}_${{ inputs.ci_environment }}
           path: artifact.tar.gz
-      - name: Upload results CI Visibility
-        if: always()
-        run: ./utils/scripts/upload_results_CI_visibility.sh dev system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-        env:
-          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+      # - name: Upload results CI Visibility
+      #   if: always()
+      #   run: ./utils/scripts/upload_results_CI_visibility.sh dev system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+      #   env:
+      #     DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
       - name: Print fancy log report
         if: always()
         run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
