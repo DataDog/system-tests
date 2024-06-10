@@ -63,7 +63,7 @@ class Test_UserLoginSuccessEvent:
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@6.0.0-pre")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_user_login_success_header_collection(self):
@@ -119,7 +119,7 @@ class Test_UserLoginFailureEvent:
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@6.0.0-pre")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_user_login_failure_header_collection(self):
