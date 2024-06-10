@@ -62,7 +62,6 @@ class Test_StackTrace:
     def setup_lfi_stack_trace(self):
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-    @missing_feature(library="nodejs")
     def test_lfi_stack_trace(self):
         assert self.r.status_code == 403
         validate_stack_traces(self.r)
@@ -78,7 +77,6 @@ class Test_StackTrace:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     @missing_feature(library="dotnet")
-    @missing_feature(library="nodejs")
     def test_sqli_stack_trace(self):
         assert self.r.status_code == 403
         validate_stack_traces(self.r)
