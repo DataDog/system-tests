@@ -271,6 +271,7 @@ class Centos7amd64(_VirtualMachine):
             aws_config=_AWSConfig(ami_id="ami-002070d43b0a4f171", ami_instance_type="t2.medium", user="centos"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
+            krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="centos_7_amd64",

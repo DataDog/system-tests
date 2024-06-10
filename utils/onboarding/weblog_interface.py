@@ -1,8 +1,7 @@
 import time
 from random import randint
-import requests
 import os
-from utils.tools import logger
+import requests
 
 
 def make_get_request(app_url):
@@ -53,11 +52,11 @@ done"""
     shared_folder = os.path.dirname(os.path.abspath(stdin_file))
 
     # Write the script in the shared folder
-    with open(os.path.join(shared_folder, script_name), "w") as file:
+    with open(os.path.join(shared_folder, script_name), "w", encoding="utf-8") as file:
         file.write(script_to_run)
 
     # Write the command to run the script in the stdin file
-    with open(stdin_file, "a") as file:
+    with open(stdin_file, "a", encoding="utf-8") as file:
         file.write(f"chmod 755 /shared_volume/{script_name} \n")
         file.write(f"bash /shared_volume/{script_name} \n")
 
