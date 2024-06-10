@@ -245,3 +245,18 @@ class AmazonLinux2023arm64(_VirtualMachine):
             os_cpu="arm64",
             **kwargs,
         )
+
+
+class Centos7amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "CentOS_7_amd64",
+            aws_config=_AWSConfig(ami_id="ami-002070d43b0a4f171", ami_instance_type="t2.medium", user="centos"),
+            # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
+            vagrant_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="centos_7_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
