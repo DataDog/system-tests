@@ -53,7 +53,6 @@ public abstract class ApmTestApi
     internal static readonly PropertyInfo RawTraceId = SpanContextType.GetProperty("RawTraceId", BindingFlags.Instance | BindingFlags.NonPublic)!;
     internal static readonly PropertyInfo RawSpanId = SpanContextType.GetProperty("RawSpanId", BindingFlags.Instance | BindingFlags.NonPublic)!;
     internal static readonly PropertyInfo AdditionalW3CTraceState = SpanContextType.GetProperty("AdditionalW3CTraceState", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo SpanLinks = SpanContextType.GetProperty("SpanLinks", BindingFlags.Instance | BindingFlags.NonPublic)!;
     internal static readonly FieldInfo GetW3CTraceContextPropagator = W3CTraceContextPropagatorType.GetField("Instance", BindingFlags.Static | BindingFlags.Public)!;
 
     // Propagator methods
@@ -63,9 +62,6 @@ public abstract class ApmTestApi
     // StatsAggregator flush methods
     private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-    // SpanLinks add span
-    private static readonly MethodInfo AddSpanLink = SpanType.GetMethod("AddSpanLink", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
 

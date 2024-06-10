@@ -478,41 +478,25 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     toAdd.Add(valueToAdd);
                 }
 
-                if (toAdd[0] is string)
+                if (toAdd.Count > 0)
                 {
-                    var strings = new List<string>();
-                    foreach(var value in toAdd)
+                    var type = toAdd[0].GetType();
+                    if (type == typeof(string))
                     {
-                        strings.Add(value.ToString());
+                        tags.Add(key, toAdd.Cast<string>().ToArray());
                     }
-                    tags.Add(key, strings.ToArray());
-                }
-                else if (toAdd[0] is long)
-                {
-                    var longs = new List<long>();
-                    foreach (var value in toAdd)
+                    else if (type == typeof(long))
                     {
-                        longs.Add(Convert.ToInt64(value));
+                        tags.Add(key, toAdd.Cast<long>().ToArray());
                     }
-                    tags.Add(key, longs.ToArray());
-                }
-                else if (toAdd[0] is bool)
-                {
-                    var bools = new List<bool>();
-                    foreach (var value in toAdd)
+                    else if (type == typeof(bool))
                     {
-                        bools.Add(Convert.ToBoolean(value));
+                        tags.Add(key, toAdd.Cast<bool>().ToArray());
                     }
-                    tags.Add(key, bools.ToArray());
-                }
-                else if (toAdd[0] is double)
-                {
-                    var doubles = new List<double>();
-                    foreach (var value in toAdd)
+                    else if (type == typeof(double))
                     {
-                        doubles.Add(Convert.ToDouble(value));
+                        tags.Add(key, toAdd.Cast<double>().ToArray());
                     }
-                    tags.Add(key, doubles.ToArray());
                 }
             }
         }
