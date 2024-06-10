@@ -4,9 +4,9 @@ include:
 stages:
   - ruby_tracer
  # - nodejs_tracer
-  - java_tracer
+ # - java_tracer
 #  - python_tracer
-  - dotnet_tracer
+ # - dotnet_tracer
   #- parse_results
   - before_tests
 
@@ -60,7 +60,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_java:
+.onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -121,7 +121,7 @@ onboarding_java:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_dotnet:
+.onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
@@ -157,6 +157,7 @@ onboarding_ruby:
     - schedules
   variables:
     TEST_LIBRARY: "ruby"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -173,7 +174,7 @@ onboarding_ruby:
       #    SCENARIO: [INSTALLER_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
-      - timeout 2700s AMI_UPDATE=true ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws 
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws 
 
 .onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
