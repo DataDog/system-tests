@@ -1,4 +1,5 @@
 # pages/urls.py
+import base64
 import json
 import os
 import random
@@ -32,6 +33,20 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
+
+
+from app.models import CustomUser
+
+# creating users at start
+for username, email, passwd, last_name, user_id in [
+    ("test", "testuser@ddog.com", "1234", "test", "social-security-id"),
+    ("testuuid", "testuseruuid@ddog.com", "1234", "testuuid", "591dc126-8431-4d0f-9509-b23318d3dce4"),
+]:
+    try:
+        if not CustomUser.objects.filter(id=user_id).exists():
+            CustomUser.objects.create_user(username, email, passwd, last_name=last_name, id=user_id)
+    except Exception as e:
+        pass
 
 
 def hello_world(request):
@@ -521,6 +536,37 @@ def track_user_login_failure_event(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def login(request):
+    from ddtrace.settings.asm import config as asm_config
+    from django.contrib.auth import authenticate, login
+
+    mode = asm_config._automatic_login_events_mode
+    username = request.POST.get("username")
+    password = request.POST.get("password")
+    sdk_event = request.GET.get("sdk_event")
+    if sdk_event:
+        sdk_user = request.GET.get("sdk_user")
+        sdk_mail = request.GET.get("sdk_mail")
+        sdk_user_exists = request.GET.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
+            return HttpResponse("OK")
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
+            )
+            return HttpResponse("login failure", status=401)
+    authorisation = request.headers.get("Authorization")
+    if authorisation:
+        username, password = base64.b64decode(authorisation[6:]).decode().split(":")
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        login(request, user)
+        return HttpResponse("OK")
+    return HttpResponse("login failure", status=401)
+
+
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
@@ -620,6 +666,7 @@ urlpatterns = [
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
+    path("login", login),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
 ]

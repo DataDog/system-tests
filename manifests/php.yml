@@ -119,6 +119,7 @@ tests/:
         Test_Cookies: v0.68.3
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v0.68.3
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -238,6 +239,8 @@ tests/:
       TestDynamicConfigV2: missing_feature
     test_otel_api_interoperability.py:
       Test_Otel_API_Interoperability: v0.94.0
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py:
       Test_Otel_SDK_Interoperability: v0.94.0
     test_otel_span_methods.py:
