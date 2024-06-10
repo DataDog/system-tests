@@ -98,14 +98,14 @@ def _get_command_props_values(command_instrumentation_desc, command_args_check):
     return False
 
 
-def _get_commands_from_log_file(log_local_path, filter):
+def _get_commands_from_log_file(log_local_path, line_filter):
     """ From instrumentation log file, extract all commands parsed by dd-injection (the log level should be DEBUG)  """
 
     store_as_command = False
     command_lines = []
     with open(log_local_path, encoding="utf-8") as f:
         for line in f:
-            if not filter(line):
+            if not line_filter(line):
                 continue
             if "starting process" in line:
                 store_as_command = True
