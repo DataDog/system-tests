@@ -29,7 +29,10 @@ require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true w
 OpenTelemetry::SDK.configure # Initialize OpenTelemetry
 
 Datadog.configure do |c|
-  # c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
+  if ENV['DD_TRACE_DEBUG'].nil?
+    # If DD_TRACE_DEBUG is set do not override this configuration.
+    c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
+  end
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
   c.tracing.instrument :http # Used for `http_client_request`
 end
