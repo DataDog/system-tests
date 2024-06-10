@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios, rfc, bug, features
+from utils import weblog, interfaces, context, missing_feature, scenarios, rfc, bug, features, irrelevant
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
@@ -51,6 +51,10 @@ class Test_Login_Events:
         )
 
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @irrelevant(
+        context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
+        reason="APM reports all user id for now on Django",
+    )
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -65,6 +69,10 @@ class Test_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @irrelevant(
+        context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
+        reason="APM reports all user id for now on Django",
+    )
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -309,7 +317,7 @@ class Test_Login_Events_Extended:
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "social-security-id"
 
-            if context.library == "dotnet":
+            if context.library in ("dotnet", "python"):
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
                 assert meta["usr.email"] == "testuser@ddog.com"
@@ -341,7 +349,7 @@ class Test_Login_Events_Extended:
             assert meta["usr.id"] == "social-security-id"
             assert meta["usr.email"] == "testuser@ddog.com"
 
-            if context.library == "dotnet":
+            if context.library in ("dotnet", "python"):
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
                 assert meta["usr.name"] == "test"
@@ -538,7 +546,6 @@ class Test_Login_Events_Extended:
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
     @missing_feature(library="nodejs")
-    @missing_feature(library="python")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_success_headers(self):
@@ -564,7 +571,6 @@ class Test_Login_Events_Extended:
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
     @missing_feature(library="nodejs")
-    @missing_feature(library="python")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_failure_headers(self):

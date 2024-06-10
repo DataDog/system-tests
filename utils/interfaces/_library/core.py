@@ -279,7 +279,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             raise ValueError(f"An appsec event has been reported in {data['log_filename']}")
 
     def assert_waf_attack(
-        self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None, full_trace=False
+        self,
+        request,
+        rule=None,
+        pattern=None,
+        value=None,
+        address=None,
+        patterns=None,
+        key_path=None,
+        full_trace=False,
+        span_validator=None,
     ):
         """Asserts the WAF detected an attack on the provided request.
 
@@ -289,7 +298,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         """
 
         validator = _WafAttack(
-            rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path,
+            rule=rule,
+            pattern=pattern,
+            value=value,
+            address=address,
+            patterns=patterns,
+            key_path=key_path,
+            span_validator=span_validator,
         )
 
         self.validate_appsec(

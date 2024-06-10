@@ -1,11 +1,8 @@
-FROM adoptopenjdk/openjdk15:jdk15u-alpine-nightly
-RUN apk add --no-cache bash
+FROM public.ecr.aws/docker/library/alpine:3.18
+RUN apk add openjdk15-jdk 
+
 COPY build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar /usr/local/app/
 
-COPY docker_entrypoint_docker.sh /usr/local/app/
-RUN chmod 755 /usr/local/app/docker_entrypoint_docker.sh
-CMD [ "/usr/local/app/docker_entrypoint_docker.sh" ]
+WORKDIR /usr/local/app/
 
-
-
-
+ENTRYPOINT ["java", "-jar", "k8s-lib-injection-app-0.0.1-SNAPSHOT.jar"]

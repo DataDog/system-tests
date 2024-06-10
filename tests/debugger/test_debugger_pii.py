@@ -14,7 +14,6 @@ REDACTED_KEYS = [
     "accessToken",
     "AccessToken",
     "ACCESSTOKEN",
-    "address",
     "aiohttpsession",
     "apikey",
     "apisecret",
@@ -28,7 +27,6 @@ REDACTED_KEYS = [
     "cipher",
     "clientid",
     "clientsecret",
-    "config",
     "connectionstring",
     "connectsid",
     "cookie",
@@ -112,9 +110,7 @@ def filter(keys_to_filter):
 
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
-class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
-    pii_responses = []
-
+class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     def _setup(self):
         self.expected_probe_ids = [
             "log170aa-acda-4453-9111-1478a6method",
@@ -122,16 +118,12 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
 
         interfaces.library.wait_for_remote_config_request()
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.pii_responses = [weblog.get("/debugger/pii")]
+        self.weblog_responses = [weblog.get("/debugger/pii")]
 
     def _test(self, redacted_keys, redacted_types):
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
-
-        assert len(self.pii_responses) > 0, "No responses available."
-
-        for respone in self.pii_responses:
-            assert respone.status_code == 200
+        self.assert_all_weblog_responses_ok()
 
         base.validate_probes(
             {"log170aa-acda-4453-9111-1478a6method": "INSTALLED",}

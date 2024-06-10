@@ -76,7 +76,6 @@ class Test_StackTrace:
     def setup_sqli_stack_trace(self):
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
-    @missing_feature(library="python")
     @missing_feature(library="dotnet")
     def test_sqli_stack_trace(self):
         assert self.r.status_code == 403

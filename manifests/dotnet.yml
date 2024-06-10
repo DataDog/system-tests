@@ -111,8 +111,8 @@ tests/:
         Test_Lfi_BodyXml: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
       test_span_tags.py:
-        Test_Mandatory_SpanTags: missing_feature
-        Test_Optional_SpanTags: missing_feature
+        Test_Mandatory_SpanTags: v2.52.0
+        Test_Optional_SpanTags: v2.52.0
       test_sqli.py: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.51.0
@@ -130,6 +130,7 @@ tests/:
         Test_ClientIP: missing_feature
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v1.28.6
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -228,10 +229,10 @@ tests/:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: bug (statuses are not reported well)
-      Test_Debugger_Method_Probe_Snaphots: bug (statuses are not reported well)
-      Test_Debugger_Mix_Log_Probe: bug (statuses are not reported well)
-      Test_Debugger_Probe_Statuses: bug (statuses are not reported well)
+      Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots: v2.53.0
+      Test_Debugger_Mix_Log_Probe: v2.53.0
+      Test_Debugger_Probe_Statuses: v2.53.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
   integrations/:
@@ -275,6 +276,8 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v2.42.0

@@ -78,7 +78,7 @@ setup-local-registry:
         if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
           export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INSTALLER_INJECTOR_VERSION}"
         else
-          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/apm-inject-package-dev:latest"
+          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/apm-inject-package-dev:0.13.2-beta1-dev.b0d6e40.glci531210996.g95332787-1"
         fi
         crane copy "${INJECTOR_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
 
@@ -103,6 +103,6 @@ installer-bootstrap:
   install:
     - os_type: linux
       remote-command: |
+        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
         sudo datadog-installer install "oci://localhost:12345/datadog/agent-package:latest"
         sudo datadog-installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
-        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
