@@ -22,7 +22,7 @@ sudo sed -i "s/net7.0/net6.0/g" MinimalWebApp.csproj
 #Restore, build and publish the app
 dotnet restore
 dotnet build -c Release 
-dotnet publish -c Release -o /home/datadog/publish
+sudo dotnet publish -c Release -o /home/datadog/publish
 
 #Copy app service and start it
 export DD_APM_INSTRUMENTATION_DEBUG=true
@@ -34,6 +34,6 @@ sudo systemctl status test-app.service
 
 #Wait for the app to start and show the logs
 sleep 5
-cat /home/datadog/app-std.out
+sudo cat /home/datadog/app-std.out
 
 echo "RUN DONE"

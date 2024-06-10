@@ -21,6 +21,6 @@ sudo systemctl start test-app.service
 sudo systemctl status test-app.service
 
 sleep 5
-cat /home/datadog/app-std.out
+sudo cat /home/datadog/app-std.out
 
 echo "RUN DONE"
