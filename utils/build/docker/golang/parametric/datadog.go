@@ -101,6 +101,26 @@ func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorAr
 	return &SpanSetErrorReturn{}, nil
 }
 
+
+func (s *apmClientServer) GetTraceConfig(ctx context.Context, args *GetTraceConfigArgs) (*GetTraceConfigReturn, error) {
+	t_config := tracer.config.(*tracer.config)
+
+	config := make(map[string]string)
+	config["dd_service"] = t_config.serviceName
+	config["dd_trace_sample_rate"] = fmt.Sprintf("%f", t_config.globalSampleRate)
+	config["dd_trace_enabled"] = fmt.Sprintf("%t", t_config.enabled)
+	config["dd_runtime_metrics_enabled"] = fmt.Sprintf("%t", t_config.runtimeMetrics)
+	config["dd_trace_propagation_style"] = t_config.propagator.injectorNames.join(",")
+	config["dd_trace_debug"] = fmt.Sprintf("%t", t_config.debug)
+	config["dd_env"] = t_config.env
+	config["dd_version"] = t_config.version
+	config["dd_tags"] = ""
+	for k, v := range t_config.globalTags {
+		config["dd_tags"] += fmt.Sprintf("%s:%s,", k, v)
+	}
+	return &GetTraceConfigReturn{Config: config}, nil
+}
+
 func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeadersArgs) (*InjectHeadersReturn, error) {
 	span := s.spans[args.SpanId]
 	headers := tracer.TextMapCarrier(map[string]string{})
