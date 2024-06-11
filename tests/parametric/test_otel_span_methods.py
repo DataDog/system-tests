@@ -574,14 +574,15 @@ class Test_Otel_Span_Methods:
 
         assert link.get("tracestate") is not None
         tracestateArr = link["tracestate"].split(",")
-        assert len(tracestateArr) == 3
-        dd_num = 0 if tracestateArr[0].startswith("dd=") else 1
-        other_num = 0 if dd_num == 1 else 1
-        assert tracestateArr[other_num] == "foo=1"
-        assert tracestateArr[2] == "bar=baz"
-        tracestateDD = tracestateArr[dd_num][3:].split(";")
-        assert "s:2" in tracestateDD
-        assert "t.dm:-4" in tracestateDD
+        dd_member = next(iter([x for x in tracestateArr if x.startswith("dd=")]), None)
+        foo_member = next(iter([x for x in tracestateArr if x.startswith("foo=")]), None)
+        bar_member = next(iter([x for x in tracestateArr if x.startswith("bar=")]), None)
+        # ruby removes the dd member from the tracestate while python does not
+        if dd_member:
+            assert "s:2" in dd_member
+            assert "t.dm:-4" in dd_member
+        assert foo_member == "foo=1"
+        assert bar_member == "bar=baz"
 
         assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET or TRACECONTEXT_FLAGS_SET
         assert link.get("attributes") is None or len(link.get("attributes")) == 0
@@ -636,6 +637,9 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(
+        context.library == "ruby", reason="The ruby parametric app returns incorrect span ids on start span"
+    )
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
         """Test adding a span link from a span to another span.
         """
