@@ -407,9 +407,9 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
         """
         with test_library:
-            with test_library.otel_start_span(name="operation") as parent:
+            with test_library.otel_start_span(name="op1") as parent:
                 parent.end_span()
-                with test_library.otel_start_span(name="operation", parent_id=parent.span_id) as span:
+                with test_library.otel_start_span(name="op2", parent_id=parent.span_id) as span:
                     span.end_span()
                     context = span.span_context()
                     assert context.get("trace_id") == parent.span_context().get("trace_id")
@@ -425,6 +425,13 @@ class Test_Otel_Span_Methods:
                         # due to 64-bit integers being too large.
                         assert context.get("span_id") == "{:016x}".format(int(span.span_id))
                     assert context.get("trace_flags") == "01"
+
+        # compare the values of the span context with the values of the trace sent to the agent
+        traces = test_agent.wait_for_num_traces(1)
+        op2, _ = traces[0]
+        assert op2.get("resource") == "op2"
+        assert op2.get("trace_id") == int(context.get("trace_id"), 16)
+        assert op2.get("span_id") == int(context.get("span_id"), 16)
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
