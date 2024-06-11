@@ -388,7 +388,15 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 || values is long
                 || values is double)
             {
-                activity.SetTag(key, values);
+                var isInt = int.TryParse(values.ToString(), out var valueInt);
+                if (isInt)
+                {
+                    activity.SetTag(key, valueInt);
+                }
+                else
+                {
+                    activity.SetTag(key, values);
+                }
             }
             else if (values is System.Collections.IEnumerable valuesList)
             {
