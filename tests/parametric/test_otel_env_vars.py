@@ -171,7 +171,9 @@ class Test_Otel_Env_Vars:
         assert resp["dd_trace_otel_enabled"] == "true"
 
     @missing_feature(context.library == "nodejs", reason="this setting is not exposed in the Node.js config object")
-    @missing_feature(context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
+    @missing_feature(
+        context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
+    )
     @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true"}])
     def test_otel_sdk_disabled_set(self, test_agent, test_library):
         with test_library as t:
