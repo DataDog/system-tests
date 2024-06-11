@@ -5,9 +5,8 @@
 """Misc checks around data integrity during components' lifetime"""
 import string
 from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
-from utils.tools import logger
+from utils.tools import logger, is_payload_v07, convert_to_v04
 from utils.cgroup_info import get_container_id
-
 
 @features.data_integrity
 class Test_TraceUniqueness:
@@ -57,6 +56,10 @@ class Test_TraceHeaders:
         """X-Datadog-Trace-Count header value is right in all traces submitted to the agent"""
 
         def validator(data):
+            content = data["request"]["content"]
+            if is_payload_v07(data):
+                content = convert_to_v04(data["request"]["content"])
+
             for header, value in data["request"]["headers"]:
                 if header.lower() == "x-datadog-trace-count":
                     try:
@@ -64,8 +67,9 @@ class Test_TraceHeaders:
                     except ValueError:
                         raise ValueError(f"'x-datadog-trace-count' request header is not an integer: {value}")
 
-                    if trace_count != len(data["request"]["content"]):
-                        raise ValueError("x-datadog-trace-count request header didn't match the number of traces")
+                    trace_count_len = len(content)
+                    if trace_count != trace_count_len:
+                        raise ValueError(f"'x-datadog-trace-count' request header didn't match the number of traces: {len(content)}")
 
         interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
 

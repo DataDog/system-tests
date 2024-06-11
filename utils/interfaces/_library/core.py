@@ -6,7 +6,7 @@ import copy
 import json
 import threading
 
-from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
+from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request, is_payload_v07, convert_to_v04
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
@@ -17,7 +17,6 @@ from utils.interfaces._library.telemetry import (
 )
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
@@ -45,7 +44,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ############################################################
     def get_traces(self, request=None):
-        paths = ["/v0.4/traces", "/v0.5/traces"]
+        paths = ["/v0.4/traces", "/v0.5/traces", "/v0.7/traces"]
 
         rid = get_rid_from_request(request)
 
@@ -53,7 +52,11 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Try to find traces related to request {rid}")
 
         for data in self.get_data(path_filters=paths):
-            traces = data["request"]["content"]
+            if is_payload_v07(data):
+                traces = convert_to_v04(data["request"]["content"])
+            else:
+                traces = data["request"]["content"]
+
             for trace in traces:
                 if rid is None:
                     yield data, trace
@@ -71,6 +74,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         If request is not None and full_trace is True, all spans from a trace triggered by that
         request will be returned.
         """
+        logger.error(f"Request: {request}")
+
         rid = get_rid_from_request(request)
 
         if rid:
@@ -91,6 +96,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def get_appsec_events(self, request=None, full_trace=False):
         for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
+            #print(span)
             if "appsec" in span.get("meta_struct", {}):
 
                 if request:  # do not spam log if all data are sent to the validator
@@ -104,6 +110,10 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
                 appsec_data = span["meta"]["_dd.appsec.json"]
+                # print(appsec_data)
+                # print(type(appsec_data))
+                if type(appsec_data) is str:
+                    appsec_data = json.loads(appsec_data)
                 yield data, trace, span, appsec_data
 
     def get_legacy_appsec_events(self, request=None):

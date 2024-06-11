@@ -1,4 +1,4 @@
-# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0., is_payload_v07, convert_to_v04
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
@@ -182,3 +182,19 @@ def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
         return False
 
     raise TypeError(f"Can't handle type {type(heystack)}")
+
+def is_payload_v07(data):
+    if "path" in data:
+        return "v0.7" in data["path"]
+    else:
+        return False
+
+def convert_to_v04(content):
+    traces = []
+    for chunk in content["chunks"]:
+        trace = []
+        for span in chunk["spans"]:
+            trace.append(span)
+        traces.append(trace)
+    return traces
+
