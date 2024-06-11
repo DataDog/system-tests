@@ -345,15 +345,11 @@ tests/:
         fastapi: v2.4.0.dev1
     test_automated_login_events.py:
       Test_Login_Events: 
-        '*': missing_feature (weblog endpoint missing)
-        flask-poc: v2.10.0.dev
-        uds-flask: v2.10.0.dev
-        uwsgi-poc: v2.10.0.dev
+        '*': v2.10.0.dev
+        fastapi: missing_feature
       Test_Login_Events_Extended: 
-        '*': missing_feature (weblog endpoint missing)
-        flask-poc: v2.10.0.dev
-        uds-flask: v2.10.0.dev
-        uwsgi-poc: v2.10.0.dev
+        '*': v2.10.0.dev
+        fastapi: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses:
         '*': v1.16.1
@@ -616,6 +612,8 @@ tests/:
       Test_Library_Tracestats: missing_feature (failure 2.8.0)
     test_otel_api_interoperability.py:
       Test_Otel_API_Interoperability: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: v2.9.0
     test_otel_sdk_interoperability.py:
       Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
