@@ -3,11 +3,11 @@ include:
 
 stages:
   - ruby_tracer
-   - nodejs_tracer
-   - java_tracer
-   - python_tracer
-   - dotnet_tracer
-   - parse_results
+  - nodejs_tracer
+  - java_tracer
+  - python_tracer
+  - dotnet_tracer
+  - parse_results
   - before_tests
 
 .base_job_onboarding_system_tests:
