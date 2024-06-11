@@ -388,10 +388,10 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 || values is long
                 || values is double)
             {
-                var isInt = int.TryParse(values.ToString(), out var valueInt);
-                if (isInt)
+                // TODO remove this when 2.54.0 is released
+                if (values is long)
                 {
-                    activity.SetTag(key, valueInt);
+                    activity.SetTag(key, Convert.ToInt32(values));
                 }
                 else
                 {
