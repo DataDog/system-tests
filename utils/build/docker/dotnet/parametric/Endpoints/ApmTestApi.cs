@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ApmTestApi.Endpoints;
 
@@ -47,6 +48,7 @@ public abstract class ApmTestApi
     private static readonly PropertyInfo SpanContext = SpanType.GetProperty("Context", BindingFlags.Instance | BindingFlags.NonPublic)!;
     private static readonly PropertyInfo Origin = SpanContextType.GetProperty("Origin", BindingFlags.Instance | BindingFlags.NonPublic)!;
     private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo AddSpanLink = SpanType.GetMethod("AddSpanLink", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     internal static readonly PropertyInfo SamplingPriority = SpanContextType.GetProperty("SamplingPriority", BindingFlags.Instance | BindingFlags.NonPublic)!;
     internal static readonly PropertyInfo RawTraceId = SpanContextType.GetProperty("RawTraceId", BindingFlags.Instance | BindingFlags.NonPublic)!;
@@ -138,6 +140,25 @@ public abstract class ApmTestApi
         {
             var spanContext = SpanContext.GetValue(span)!;
             Origin.SetValue(spanContext, origin);
+        }
+
+        if (parsedDictionary.TryGetValue("links", out var links))
+        {
+            foreach (var spanLink in (dynamic)links)
+            {
+                var parentSpanLink = Convert.ToUInt64(spanLink["parent_id"]);
+                var attributes = spanLink["attributes"] as JObject;
+                var attributesList = new List<KeyValuePair<string, string>>();
+
+                SpanContext? contextToLink = null;
+
+                if (parentSpanLink != null && parentSpanLink > 0)
+                {
+                    contextToLink = (SpanContext)SpanContext.GetValue(Spans[parentSpanLink])!;
+                }
+
+                AddSpanLink.Invoke(span, new object[] { contextToLink, null });
+            }
         }
         
         Spans[span.SpanId] = span;
