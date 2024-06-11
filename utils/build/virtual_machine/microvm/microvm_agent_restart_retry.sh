@@ -2,7 +2,7 @@
 
 # shellcheck disable=SC2143
 
-#This script will only run whebn the provider is KRUNVM
+#This script will only run when the provider is KRUNVM
 #Krunvm incorporates a very interesting feature: virtio-vsock (specialized for TSI, Transparent Socket Impersonation).
 #This feature allows the guest to communicate with the host without the need for a network interface, but some programs doesn't support it very well.
 #For example, the agent doesn't support it, so we need to restart the agent to make it work.

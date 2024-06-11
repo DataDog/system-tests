@@ -3,11 +3,11 @@ include:
 
 stages:
   - ruby_tracer
-  # - nodejs_tracer
-  # - java_tracer
-  # - python_tracer
-  # - dotnet_tracer
-  # - parse_results
+   - nodejs_tracer
+   - java_tracer
+   - python_tracer
+   - dotnet_tracer
+   - parse_results
   - before_tests
 
 .base_job_onboarding_system_tests:
@@ -29,7 +29,7 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
     
-.onboarding_nodejs:
+onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -60,7 +60,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -91,7 +91,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -121,7 +121,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_dotnet:
+onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true

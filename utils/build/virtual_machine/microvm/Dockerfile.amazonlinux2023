@@ -1,5 +1,5 @@
 FROM amazonlinux:2023 as cbuilder
-#
+
 RUN yum -y install git
 RUN yum group install -y "Development Tools"
 
