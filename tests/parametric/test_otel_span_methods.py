@@ -13,7 +13,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
-from utils import features, missing_feature, irrelevant, context, scenarios
+from utils import bug, features, missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -542,9 +542,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @missing_feature(
-        context.library == "ruby", reason="opentelemetry propagator truncates 128bit trace_ids to 64bits"
-    )
+    @bug(context.library == "ruby", reason="opentelemetry propagator truncates 128bit trace_ids to 64bits")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
