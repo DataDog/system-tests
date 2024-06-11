@@ -439,7 +439,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: *ref_5_15_0
+      TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: *ref_4_11_0
       TestDynamicConfigV1_ServiceTargets: missing_feature
