@@ -542,7 +542,9 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
+    @missing_feature(
+        context.library == "ruby", reason="opentelemetry propagator truncates 128bit trace_ids to 64bits"
+    )
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
