@@ -20,7 +20,8 @@ RUN yum -y install vim \
     yum-utils \
     systemd \
     initscripts \
-    kernel-libbpf 
+    kernel-libbpf \
+    libyaml-devel
     
 COPY --from=cbuilder /start-stop-daemon/start-stop-daemon /usr/bin/start-stop-daemon
 COPY systemctl /usr/bin/systemctl

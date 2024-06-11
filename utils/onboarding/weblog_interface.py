@@ -26,7 +26,7 @@ def make_internal_get_request(stdin_file, vm_port):
     It is used to make a request to the weblog application inside the VM, using stdin file"""
 
     generated_uuid = str(randint(0, 100000000000000000))
-    timeout = 30
+    timeout = 80
     script_to_run = f"""#!/bin/bash
 echo "Requesting weblog..." 
 URL="http://localhost:{vm_port}/"

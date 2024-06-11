@@ -6,10 +6,6 @@ set -e
 # shellcheck disable=SC2035
 sudo chmod -R 755 * 
 
-#This is the output for the app service
-sudo touch /home/datadog/app-std.out
-sudo chmod 777 /home/datadog/app-std.out
-
 sudo cp django_app.py /home/datadog/
 sudo /home/datadog/.pyenv/shims/pip3 install django
 echo "Testing weblog with python version:"
