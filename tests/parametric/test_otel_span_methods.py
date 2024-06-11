@@ -874,7 +874,7 @@ class Test_Otel_Span_Methods:
 
         event2 = events[1]
         assert event2.get("name") == "second_event"
-        assert event2.get("time_unix_nano") // 10000 == event2_timestamp_ns // 10000 #reduce the precision tested
+        assert event2.get("time_unix_nano") // 10000 == event2_timestamp_ns // 10000  # reduce the precision tested
         assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]
@@ -934,7 +934,9 @@ class Test_Otel_Span_Methods:
         events = json.loads(root_span.get("meta", {}).get("events"))
         assert len(events) == 3
         event1 = events[0]
-        assert event1.get("name").lower() == "exception" or "error" #node uses error objects instead of exception objects
+        assert (
+            event1.get("name").lower() == "exception" or "error"
+        )  # node uses error objects instead of exception objects
         assert event1.get("time_unix_nano") > 0
 
         event2 = events[1]
