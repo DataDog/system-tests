@@ -637,7 +637,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(
+    @bug(
         context.library == "ruby", reason="The ruby parametric app returns incorrect span ids on start span"
     )
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
