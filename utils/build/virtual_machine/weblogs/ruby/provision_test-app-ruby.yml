@@ -6,12 +6,20 @@ lang_variant:
       - os_type: linux
         os_distro: deb
         remote-command: |
+          echo "RMM PASO 1"
           sudo apt-get -y update
+          echo "RMM PASO 2"
           export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev nodejs yarn
+          echo "RMM PASO 3"
+          sudo apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev libffi-dev nodejs yarn
+          echo "RMM PASO 4"
+          #   software-properties-common
           sudo apt-get -y install rbenv ruby-build ruby-dev
+          echo "RMM PASO 5"
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
+          echo "RMM PASO 6"
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
+          echo "RMM PASO 7"
       - os_type: linux
         os_distro: rpm
         remote-command: |

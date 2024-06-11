@@ -1,9 +1,12 @@
 #!/bin/bash
 echo "START RUN APP"
 
-sudo sed -i "s/3.1.3/>= 3.0.0\", \"< 3.3.0/g" Gemfile
+# shellcheck disable=SC2035
+sudo chmod -R 755 *
 
-sudo DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
+sed -i "s/3.1.3/>= 3.0.0\", \"< 3.3.0/g" Gemfile
+rm -rf Gemfile.lock
+DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
 
 # shellcheck disable=SC2035
 sudo cp -R * /home/datadog

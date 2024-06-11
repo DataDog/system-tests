@@ -161,6 +161,10 @@ class KrunVmCommander(Commander):
 
     def create_cache(self, vm, server, last_task):
         """ Create a cache : We execute buildah commit to store currebt state of the microVM as an image"""
+
+        # First we need to wait for cacheable commands to be processed
+        self.wait_until_commands_processed(vm, timeout=600)
+
         cache_image_name = vm.get_cache_name() + "_" + context.scenario.name
         cache_image_name = cache_image_name.lower()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
