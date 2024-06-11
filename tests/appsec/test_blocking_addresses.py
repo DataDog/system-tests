@@ -163,7 +163,7 @@ class Test_BlockingAddresses:
     )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(context.library < "ruby@1.10.0")
-    @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(context.library < "nodejs@5.17.0", reason="Not supported yet")
     def test_response_status(self):
         """can block on server.response.status"""
 
@@ -178,7 +178,7 @@ class Test_BlockingAddresses:
         reason="Happens on a subsequent WAF run",
     )
     @missing_feature(context.library == "ruby", reason="Not working")
-    @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(context.library < "nodejs@5.17.0", reason="Not supported yet")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_not_found(self):
         """can block on server.response.status"""
@@ -196,7 +196,7 @@ class Test_BlockingAddresses:
     )
     @missing_feature(context.library == "ruby")
     @missing_feature(context.library == "php", reason="Headers already sent at this stage")
-    @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(context.library < "nodejs@5.17.0", reason="Not supported yet")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_response_header(self):
         """can block on server.response.headers.no_cookies"""
