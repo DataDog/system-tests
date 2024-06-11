@@ -394,7 +394,6 @@ class EndToEndScenario(_DockerScenario):
         include_elasticmq=False,
         include_localstack=False,
     ) -> None:
-
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END] + (scenario_groups or [])
 
         super().__init__(
@@ -1196,8 +1195,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class _KubernetesScenario(_Scenario):
-    """ DEPRECATED: Replaced by Kubernetes Scenario. 
-        Scenario that tests kubernetes lib injection"""
+    """DEPRECATED: Replaced by Kubernetes Scenario.
+    Scenario that tests kubernetes lib injection"""
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -1289,7 +1288,7 @@ class _KubernetesScenario(_Scenario):
 
 
 class KubernetesScenario(_Scenario):
-    """ Scenario that tests kubernetes lib injection """
+    """Scenario that tests kubernetes lib injection"""
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -1327,7 +1326,7 @@ class KubernetesScenario(_Scenario):
 
 
 class WeblogInjectionScenario(_Scenario):
-    """Scenario that runs APM test agent """
+    """Scenario that runs APM test agent"""
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -1526,17 +1525,23 @@ class scenarios:
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
+        weblog_env={
+            "DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",
+        },
         doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
+        weblog_env={
+            "DD_TELEMETRY_METRICS_ENABLED": "false",
+        },
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
     )
     telemetry_metric_generation_enabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_ENABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true",},
+        weblog_env={
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+        },
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
     )
 
@@ -1674,7 +1679,10 @@ class scenarios:
 
     appsec_api_security_rc = EndToEndScenario(
         "APPSEC_API_SECURITY_RC",
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0",},
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+        },
         proxy_state={"mock_remote_config_backend": "APPSEC_API_SECURITY_RC"},
         doc="""
             Scenario to test API Security Remote config
@@ -1724,7 +1732,11 @@ class scenarios:
 
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        weblog_env={
+            "DD_TRACE_DEBUG": "true",
+            "DD_APPSEC_ENABLED": "true",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+        },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -1776,7 +1788,10 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+        },
         library_interface_timeout=100,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
@@ -1785,7 +1800,10 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+        },
         library_interface_timeout=100,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
@@ -1815,7 +1833,12 @@ class scenarios:
 
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario(
-        "APM_TRACING_E2E_OTEL", weblog_env={"DD_TRACE_OTEL_ENABLED": "true",}, backend_interface_timeout=5, doc="",
+        "APM_TRACING_E2E_OTEL",
+        weblog_env={
+            "DD_TRACE_OTEL_ENABLED": "true",
+        },
+        backend_interface_timeout=5,
+        doc="",
     )
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
@@ -1861,7 +1884,10 @@ class scenarios:
     debugger_method_probes_snapshot = EndToEndScenario(
         "DEBUGGER_METHOD_PROBES_SNAPSHOT",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+        },
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
@@ -1870,7 +1896,10 @@ class scenarios:
     debugger_line_probes_snapshot = EndToEndScenario(
         "DEBUGGER_LINE_PROBES_SNAPSHOT",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+        },
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
@@ -1879,7 +1908,10 @@ class scenarios:
     debugger_mix_log_probe = EndToEndScenario(
         "DEBUGGER_MIX_LOG_PROBE",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_MIX_LOG_PROBE"},
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+        },
         library_interface_timeout=5,
         doc="Set both method and line probes at the same code",
         scenario_groups=[ScenarioGroup.DEBUGGER],
@@ -1902,10 +1934,12 @@ class scenarios:
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     host_auto_injection = HostAutoInjectionScenario(
-        "HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario",
+        "HOST_AUTO_INJECTION",
+        "Onboarding Host Single Step Instrumentation scenario",
     )
     simple_host_auto_injection = HostAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
+        "SIMPLE_HOST_AUTO_INJECTION",
+        "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
     )
     host_auto_injection_block_list = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
@@ -1924,7 +1958,8 @@ class scenarios:
     )
 
     container_auto_injection = ContainerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
+        "CONTAINER_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario",
     )
     container_not_supported_auto_injection = ContainerAutoInjectionScenario(
         "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",

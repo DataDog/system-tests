@@ -14,7 +14,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/?url=http%3A%2F%2Flocalhost%3A7777%2Fwaf%2F",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -122,7 +122,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/?url=http%3A%2F%2Flocalhost%3A7777%2Fwaf%2F",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -135,6 +135,11 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
         for data, _, span in interfaces.library.get_spans(request=self.r):
+            import pdb
+
+            pdb.set_trace()
+            assert data["request"]["content"][0][0]["meta"]["_dd.appsec.s.req.headers"][0]["user-agent"][0] != 8
+
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -228,7 +233,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/?url=http%3A%2F%2Flocalhost%3A7777%2Fwaf%2F",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -254,7 +259,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/?url=http%3A%2F%2Flocalhost%3A7777%2Fwaf%2F",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
