@@ -123,7 +123,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library >= "golang@v1.59.0.dev0", reason="New span naming introduced in v1.59.0")
     @irrelevant(context.library == "ruby", reason="Old array encoding no longer supported")
     @irrelevant(context.library == "php", reason="Old array encoding no longer supported")
-    @missing_feature(context.library <= "dotnet", reason="Old array encoding no longer supported")
+    @missing_feature(context.library > "dotnet@2.52.0", reason="Old array encoding no longer supported")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     def test_otel_set_attributes_different_types_legacy(self, test_agent, test_library):
