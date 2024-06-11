@@ -1722,6 +1722,13 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        doc="Appsec standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     # Remote config scenarios
     # library timeout is set to 100 seconds
     # default polling interval for tracers is very low (5 seconds)
