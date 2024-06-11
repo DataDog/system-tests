@@ -77,7 +77,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "nodejs@5.16.0", reason="Implemented in 5.16.0")
     @missing_feature(context.library == "nodejs@4.40.0", reason="Implemented in 5.40.0")
     @missing_feature(context.library == "java@1.35.0", reason="Implemented in 1.35.0")
-    @missing_feature(context.library == "dotnet@2.53.0", reason="Implemented in 2.53.0")
+    @missing_feature(context.library < "dotnet@2.53.0", reason="Implemented in 2.53.0")
     def test_otel_set_attribute_remapping_httpresponsestatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
