@@ -817,28 +817,7 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_telemetry(self, library_env, test_agent, test_library):
         """RC sampling rules should be reported by telemetry"""
-        event = set_and_wait_rc_telemetry(
-            test_agent,
-            config_overrides={
-                "tracing_sampling_rules": [
-                    {
-                        "service": "svc*",
-                        "resource": "*abc",
-                        "name": "op-??",
-                        "tags": [
-                            {"key": "tag-a", "value_glob": "ta-v*"},
-                            {"key": "tag-b", "value_glob": "tb-v?"},
-                            {"key": "tag-c", "value_glob": "tc-v"},
-                        ],
-                        "sample_rate": 0.5,
-                        "provenance": "dynamic",
-                    }
-                ],
-            },
-        )
-        configuration = event["payload"]["configuration"]
-        rules = next(filter(lambda x: x["name"] == "trace_sampling_rules", configuration))["value"]
-        assert json.loads(rules) == [
+        sampling_rule = [
             {
                 "service": "svc*",
                 "resource": "*abc",
@@ -852,10 +831,20 @@ class TestDynamicConfigSamplingRules:
                 "provenance": "dynamic",
             }
         ]
+        telemetry_names = set(["sampling_rules", "trace.sampling_rules", "DD_TRACE_SAMPLING_RULES"])
+        event = set_and_wait_rc_telemetry(
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rules": sampling_rule,
+            },
+        )
+        configuration = event["payload"]["configuration"]
+        rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
+        assert json.loads(rules) == sampling_rule
 
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": []},)
-        configuration = event["payload"]["configuration"]
-        assert configuration == str([])
+        rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
+        assert json.loads(rules) == []
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
