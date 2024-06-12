@@ -255,8 +255,8 @@ class ServerImpl < APMClient::Service
     context = span.context
 
     OtelSpanContextReturn.new(
-      span_id: context.hex_span_id,
-      trace_id: context.hex_trace_id,
+      span_id: format('%016x', context.hex_span_id.to_i(16)),
+      trace_id: format('%032x', context.hex_trace_id.to_i(16)),
       trace_flags: context.trace_flags.sampled? ? '01' : '00',
       trace_state: context.tracestate.to_s,
       remote: context.remote?,
