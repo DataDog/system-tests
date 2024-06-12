@@ -388,9 +388,11 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 || values is long
                 || values is double)
             {
-                // TODO remove this when 2.54.0 is released
-                if (values is long)
+                if (key == "http.response.status_code")
                 {
+                    // http.response.status_code is an int type
+                    // the .NET Tracer only will remap this tag _if_ it is an int to ensure we aren't remapping other, invalid datatypes
+                    // Newtonsoft will only convert JSON numerical types into longs or doubles, so we need to convert the datatype here
                     activity.SetTag(key, Convert.ToInt32(values));
                 }
                 else
