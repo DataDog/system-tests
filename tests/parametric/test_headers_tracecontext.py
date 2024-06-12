@@ -791,7 +791,7 @@ class Test_Headers_Tracecontext:
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert "p:{:016x}".format(int(span.span_id)) in tracestate
 
-    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
+    @missing_feature(context.library < "python@2.8.0", reason="Not implemented")
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
