@@ -2,7 +2,6 @@
 
 #This script is needed only for this reason: https://datadoghq.atlassian.net/browse/AP-2165
 
-DD_APM_INSTRUMENTATION_ENABLED="$1"
 
 curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh --output install_script_agent7.sh
 chmod 755 install_script_agent7.sh
