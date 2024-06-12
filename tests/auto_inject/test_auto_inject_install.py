@@ -302,3 +302,24 @@ class TestInstallerAutoInjectManual(_AutoInjectBaseTest):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+    def test_uninstall(self, virtual_machine):
+        logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
+
+        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):
+            # Host
+            stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
+            start_weblog_command = "sudo systemctl start test-app.service"
+            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+                start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+        else:
+            # Container
+            stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
+            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+
+        install_command = "sudo datadog-installer apm instrument"
+        uninstall_command = "sudo datadog-installer apm uninstrument"
+        self._test_uninstall(
+            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        )
+        logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")

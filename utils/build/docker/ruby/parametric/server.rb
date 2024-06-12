@@ -29,7 +29,10 @@ require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true w
 OpenTelemetry::SDK.configure # Initialize OpenTelemetry
 
 Datadog.configure do |c|
-  c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
+  if ENV['DD_TRACE_DEBUG'].nil?
+    # If DD_TRACE_DEBUG is set do not override this configuration.
+    c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
+  end
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
   c.tracing.instrument :http # Used for `http_client_request`
 end
@@ -92,6 +95,22 @@ class ServerImpl < APMClient::Service
     span.finish
 
     FinishSpanReturn.new
+  end
+
+  def get_trace_config(get_trace_config_args, _call)
+    config = {}
+    Datadog.configure do |c|
+      config["dd_service"] = c.service || ""
+      config["dd_trace_sample_rate"] = c.tracing.sampling.default_rate.to_s
+      config["dd_trace_enabled"] = c.tracing.enabled.to_s
+      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s # x
+      config["dd_trace_propagation_style"] = c.tracing.propagation_style.join(",")
+      config["dd_trace_debug"] = c.diagnostics.debug.to_s
+      config["dd_env"] = c.env || ""
+      config["dd_version"] = c.version || ""
+      config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
+    end
+    GetTraceConfigReturn.new(config: config)
   end
 
   def span_set_meta(span_set_meta_args, _call)
