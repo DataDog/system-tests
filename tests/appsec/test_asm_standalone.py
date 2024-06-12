@@ -47,7 +47,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
-
     def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
