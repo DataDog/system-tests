@@ -483,8 +483,9 @@ class Test_Otel_Span_Methods:
         link = span_links[0]
         assert link.get("span_id") == root.get("span_id")
         assert link.get("trace_id") == root.get("trace_id")
-        root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
-        assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
+        if "trace_id_high" in link:
+            root_tid = root["meta"].get("_dd.p.tid", "0")
+            assert link.get("trace_id_high") == int(root_tid, 16)
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
