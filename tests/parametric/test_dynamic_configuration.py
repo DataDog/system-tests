@@ -831,7 +831,9 @@ class TestDynamicConfigSamplingRules:
                 "provenance": "dynamic",
             }
         ]
-        telemetry_names = set(["sampling_rules", "trace.sampling_rules", "DD_TRACE_SAMPLING_RULES", "trace_sampling_rules"])
+        telemetry_names = set(
+            ["sampling_rules", "trace.sampling_rules", "DD_TRACE_SAMPLING_RULES", "trace_sampling_rules"]
+        )
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": sampling_rule,},)
         configuration = event["payload"]["configuration"]
         rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
@@ -845,11 +847,17 @@ class TestDynamicConfigSamplingRules:
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""
         set_and_wait_rc(
-            test_agent, config_overrides={"tracing_sampling_rules": [{"service": "svc*", "sample_rate": 0.5}],}
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rules": [{"service": "svc*", "sample_rate": 0.5, "provenance": "customer"}],
+            },
         )
 
         set_and_wait_rc(
-            test_agent, config_overrides={"tracing_sampling_rules": [{"service": "foo*", "sample_rate": 0.1}],}
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rules": [{"service": "foo*", "sample_rate": 0.1, "provenance": "customer"}],
+            },
         )
 
         trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
