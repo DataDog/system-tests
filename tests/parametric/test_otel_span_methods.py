@@ -99,9 +99,9 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
     @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
     @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
-    @irrelevant(context.library == "golang", reason="Does not support translating Otel attributes to DD tags")
-    @irrelevant(context.library == "dotnet", reason="Does not support translating Otel attributes to DD tags")
-    @irrelevant(context.library == "php", reason="Does not support translating Otel attributes to DD tags")
+    @irrelevant(context.library == "golang", reason="Does not support automatic status code remapping to meta")
+    @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
+    @irrelevant(context.library == "php", reason="Does not support automatic status code remapping to meta")
     def test_otel_set_attribute_remapping_httpstatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
