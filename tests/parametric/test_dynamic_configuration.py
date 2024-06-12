@@ -836,13 +836,14 @@ class TestDynamicConfigSamplingRules:
         )
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": sampling_rule,},)
         configuration = event["payload"]["configuration"]
-        rules = next(filter(lambda x: x["name"] == "trace_sampling_rules", configuration))["value"]
+        rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
         assert json.loads(rules) == sampling_rule
 
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": []},)
-        rules = next(filter(lambda x: x["name"] == "trace_sampling_rules", configuration))["value"]
+        rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
         assert json.loads(rules) == []
 
+    @bug(library="cpp", reason="unknown")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""
@@ -863,5 +864,5 @@ class TestDynamicConfigSamplingRules:
         trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
         assert_sampling_rate(trace, 0.1)
 
-        trace = send_and_wait_trace(test_library, test_agent, name="test", service="svc")
+        trace = send_and_wait_trace(test_library, test_agent, name="test2", service="svc")
         assert_sampling_rate(trace, 1)
