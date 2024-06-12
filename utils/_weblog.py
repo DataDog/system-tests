@@ -129,6 +129,7 @@ class _Weblog:
         rid_in_user_agent=True,
         **kwargs,
     ):
+
         if self.current_nodeid is None:
             raise ValueError("Weblog calls can only be done during setup")
 
@@ -167,9 +168,6 @@ class _Weblog:
             req = requests.Request(method, url, params=params, data=data, headers=headers, cookies=cookies, **kwargs)
             r = req.prepare()
             r.url = url
-            # import pdb
-
-            # pdb.set_trace()
             logger.debug(f"Sending request {rid}: {method} {url}")
 
             r = requests.Session().send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
@@ -227,6 +225,7 @@ class _Weblog:
         return res
 
     def grpc(self, string_value, streaming=False):
+
         if self.replay:
             return self.get_grpc_request_from_logs()
 

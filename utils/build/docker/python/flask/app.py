@@ -7,14 +7,11 @@ import random
 import subprocess
 import threading
 import http.client
-import urllib.parse
 import urllib.request
 import urllib3
 import xmltodict
 import sys
 
-from ddtrace import patch
-patch()
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
     import asyncpg
     import psycopg2
