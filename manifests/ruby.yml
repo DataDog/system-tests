@@ -148,6 +148,8 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events:
         '*': v1.13.0
@@ -311,7 +313,7 @@ tests/:
       TestDynamicConfigV2: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
-      Test_Otel_Env_Vars: missing_feature
+      Test_Otel_Env_Vars: v2.1.0
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0

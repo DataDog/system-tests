@@ -17,6 +17,7 @@ APPSEC_SCENARIOS: &appsec_scenarios
   - APPSEC_API_SECURITY
   - APPSEC_API_SECURITY_NO_RESPONSE_BODY
   - APPSEC_AUTO_EVENTS_EXTENDED
+  - APPSEC_STANDALONE
 
 # Scenarios covering Remote Configuration
 REMOTE_CONFIG_SCENARIOS: &remote_config_scenarios
