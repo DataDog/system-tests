@@ -1921,8 +1921,7 @@ class scenarios:
         "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
     )
     simple_host_auto_injection_profiling = HostAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
-        "Onboarding Host Single Step Instrumentation with profiling scenario (minimal test scenario)",
+        "SIMPLE_HOST_AUTO_INJECTION_PROFILING", "Onboarding Host Single Step Instrumentation scenario with profiling",
     )
     host_auto_injection_block_list = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
@@ -1933,6 +1932,13 @@ class scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
     )
+
+    host_auto_injection_install_script_profiling = HostAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling",
+        vm_provision="host-auto-inject-install-script",
+    )
+
     # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
     host_auto_injection_ld_preload = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_LD_PRELOAD",

@@ -60,9 +60,9 @@ class _AutoInjectBaseTest:
     def _test_uninstall(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
     ):
-        """ We can unistall the auto injection software. We can start the app again 
+        """ We can unistall the auto injection software. We can start the app again
         The weblog app should work but no sending traces to the backend.
-        We can reinstall the auto inject software. The weblog app should be instrumented 
+        We can reinstall the auto inject software. The weblog app should be instrumented
         and reporting traces to the backend."""
         logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
 
@@ -151,9 +151,19 @@ class TestSimpleHostAutoInjectManual(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
+
 @features.host_auto_instrumentation_profiling
 @scenarios.simple_host_auto_injection_profiling
 class TestSimpleHostAutoInjectManualProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine, profile=True)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+
+@features.host_auto_instrumentation_profiling
+@scenarios.host_auto_injection_install_script_profiling
+class TestHostAutoInjectInstallScriptProfiling(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
