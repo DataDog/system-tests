@@ -46,6 +46,7 @@ from utils._context.virtual_machines import (
     AmazonLinux2023amd64,
     AmazonLinux2DotNet6,
     AmazonLinux2amd64,
+    Centos7amd64,
 )
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
@@ -1016,6 +1017,7 @@ class _VirtualMachineScenario(_Scenario):
         include_amazon_linux_2_dotnet_6=False,
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
+        include_centos_7_amd64=False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow)
         self.vm_provision_name = vm_provision
@@ -1039,6 +1041,8 @@ class _VirtualMachineScenario(_Scenario):
             self.required_vms.append(AmazonLinux2023amd64())
         if include_amazon_linux_2023_arm64:
             self.required_vms.append(AmazonLinux2023arm64())
+        if include_centos_7_amd64:
+            self.required_vms.append(Centos7amd64())
 
     def session_start(self):
         super().session_start()
@@ -1187,6 +1191,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_amazon_linux_2_dotnet_6=True,
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
+            include_centos_7_amd64=True,
         )
 
 
@@ -1714,6 +1719,13 @@ class scenarios:
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
         appsec_enabled=True,
         doc="Scenario for checking extended mode in automatic user events",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 

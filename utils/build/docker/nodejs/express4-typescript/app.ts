@@ -260,6 +260,8 @@ app.get('/flush', (req: Request, res: Response) => {
   })
 })
 
+require('./rasp')(app)
+
 require('./graphql')(app).then(() => {
   app.listen(7777, '0.0.0.0', () => {
     tracer.trace('init.service', () => { })

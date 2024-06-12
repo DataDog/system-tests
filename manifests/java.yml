@@ -576,6 +576,8 @@ tests/:
         '*': v0.87.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
@@ -954,6 +956,8 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: v1.31.0
       TestDynamicConfigV2: v1.31.0
     test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
