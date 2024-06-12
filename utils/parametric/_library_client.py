@@ -2,7 +2,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator, List, Optional, Tuple, TypedDict, Union
+from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
 
 import grpc
 import requests
@@ -139,6 +139,9 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def http_request(self, method: str, url: str, headers: List[Tuple[str, str]]) -> None:
+        raise NotImplementedError
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
         raise NotImplementedError
 
 
@@ -349,6 +352,24 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
         ).json()
         return resp
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        resp = self._session.get(self._url("/trace/config")).json()
+        config_dict = resp["config"]
+        return {
+            "dd_service": config_dict.get("dd_service", None),
+            "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
+            "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
+            "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_tags": config_dict.get("dd_tags", None),
+            "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
+            "dd_trace_debug": config_dict.get("dd_trace_debug", None),
+            "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
+            "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
+            "dd_env": config_dict.get("dd_env", None),
+            "dd_version": config_dict.get("dd_version", None),
+        }
 
 
 class _TestSpan:
@@ -624,6 +645,24 @@ class APMLibraryClientGRPC:
     def otel_flush(self, timeout: int) -> bool:
         return self._client.OtelFlushSpans(pb.OtelFlushSpansArgs(seconds=timeout)).success
 
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        resp = self._client.GetTraceConfig(pb.GetTraceConfigArgs())
+        config_dict = resp.config
+        return {
+            "dd_service": config_dict.get("dd_service", None),
+            "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
+            "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
+            "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_tags": config_dict.get("dd_tags", None),
+            "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
+            "dd_trace_debug": config_dict.get("dd_trace_debug", None),
+            "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
+            "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
+            "dd_env": config_dict.get("dd_env", None),
+            "dd_version": config_dict.get("dd_version", None),
+        }
+
 
 class APMLibrary:
     def __init__(self, client: APMLibraryClient, lang):
@@ -726,3 +765,6 @@ class APMLibrary:
 
     def finish_span(self, span_id: int) -> None:
         self._client.finish_span(span_id)
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        return self._client.get_tracer_config()

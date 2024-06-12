@@ -66,6 +66,7 @@ tests/:
       test_telemetry.py: irrelevant (ASM is not implemented in C++)
     test_PII.py: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
+    test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
     test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
     test_client_ip.py: irrelevant (ASM is not implemented in C++)
@@ -127,6 +128,8 @@ tests/:
     test_dynamic_configuration.py: 
       TestDynamicConfigHeaderTags: missing_feature
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature
