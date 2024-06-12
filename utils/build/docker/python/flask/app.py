@@ -9,9 +9,12 @@ import threading
 import http.client
 import urllib.parse
 import urllib.request
+import urllib3
 import xmltodict
 import sys
 
+from ddtrace import patch
+patch()
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
     import asyncpg
     import psycopg2
@@ -68,8 +71,8 @@ from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
-# Patch kombu since its not patched automatically
-ddtrace.patch_all(kombu=True)
+# Patch kombu and urllib3 since they are not patched automatically
+ddtrace.patch_all(kombu=True, urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -77,23 +80,13 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 POSTGRES_CONFIG = dict(
-    host="postgres",
-    port="5433",
-    user="system_tests_user",
-    password="system_tests",
-    dbname="system_tests_dbname",
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
 )
 ASYNCPG_CONFIG = dict(POSTGRES_CONFIG)
 ASYNCPG_CONFIG["database"] = ASYNCPG_CONFIG["dbname"]  # asyncpg uses 'database' instead of 'dbname'
 del ASYNCPG_CONFIG["dbname"]
 
-MYSQL_CONFIG = dict(
-    host="mysqldb",
-    port=3306,
-    user="mysqldb",
-    password="mysqldb",
-    database="mysql_dbname",
-)
+MYSQL_CONFIG = dict(host="mysqldb", port=3306, user="mysqldb", password="mysqldb", database="mysql_dbname",)
 AIOMYSQL_CONFIG = dict(MYSQL_CONFIG)
 AIOMYSQL_CONFIG["db"] = AIOMYSQL_CONFIG["database"]
 del AIOMYSQL_CONFIG["database"]
@@ -184,15 +177,12 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 @app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
 @app.route("/params/<path>", methods=["GET", "POST", "OPTIONS"])
 @app.route(
-    "/tag_value/<string:tag_value>/<int:status_code>",
-    methods=["GET", "POST", "OPTIONS"],
+    "/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"],
 )
 def waf(*args, **kwargs):
     if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer,
-            event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME,
-            metadata={"value": kwargs["tag_value"]},
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]},
         )
         if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
             return jsonify({"payload": request.form}), kwargs["status_code"], flask_request.args
@@ -610,9 +600,7 @@ def consume_rabbitmq_message():
 @app.route("/dsm")
 def dsm():
     logging.basicConfig(
-        format="%(asctime)s %(levelname)-8s %(message)s",
-        level=logging.INFO,
-        datefmt="%Y-%m-%d %H:%M:%S",
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S",
     )
     integration = flask_request.args.get("integration")
     queue = flask_request.args.get("queue")
@@ -637,20 +625,9 @@ def dsm():
                 logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
         produce_thread = threading.Thread(
-            target=kafka_produce,
-            args=(
-                queue,
-                b"Hello, Kafka from DSM python!",
-                delivery_report,
-            ),
+            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,),
         )
-        consume_thread = threading.Thread(
-            target=kafka_consume,
-            args=(
-                queue,
-                "testgroup1",
-            ),
-        )
+        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",),)
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -658,13 +635,7 @@ def dsm():
         logging.info("[kafka] Returning response")
         response = Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(
-            target=sqs_produce,
-            args=(
-                queue,
-                "Hello, SQS from DSM python!",
-            ),
-        )
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",),)
         consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
@@ -685,14 +656,7 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(
-            target=sns_produce,
-            args=(
-                queue,
-                topic,
-                "Hello, SNS->SQS from DSM python!",
-            ),
-        )
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",),)
         consume_thread = threading.Thread(target=sns_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
@@ -949,10 +913,7 @@ def track_user_login_success_event():
 @app.route("/user_login_failure_event")
 def track_user_login_failure_event():
     appsec_trace_utils.track_user_login_failure_event(
-        tracer,
-        user_id=_TRACK_USER,
-        exists=True,
-        metadata=_TRACK_METADATA,
+        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
     )
     return Response("OK")
 
@@ -1158,10 +1119,19 @@ def create_extra_service():
 @app.route("/requestdownstream", methods=["GET", "POST", "OPTIONS"])
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
-    url = urllib.parse.unquote(flask_request.args.get("url"))
     # Propagate the received headers to the downstream service
-    # headers = {}
-    # for key, value in flask_request.headers.items():
-    #     headers[key] = value
-    response = requests.get(url, headers=flask_request.headers)
-    return Response(response.text)
+    http = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http.request("GET", "http://localhost:7777/returnheaders")
+    return Response(response.data)
+    # response = requests.get("http://localhost:7777/returnheaders")
+    # return Response(response.text)
+
+
+@app.route("/returnheaders", methods=["GET", "POST", "OPTIONS"])
+@app.route("/returnheaders/", methods=["GET", "POST", "OPTIONS"])
+def return_headers(*args, **kwargs):
+    headers = {}
+    for key, value in flask_request.headers.items():
+        headers[key] = value
+    return jsonify(headers)

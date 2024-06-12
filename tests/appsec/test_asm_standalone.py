@@ -1,3 +1,5 @@
+import json
+
 from utils import weblog, interfaces, scenarios, features, rfc
 from utils._context.header_tag_vars import *
 
@@ -14,7 +16,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/?url=http%3A%2F%2Flocalhost%3A7777%2Fwaf%2F",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -25,7 +27,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
@@ -37,11 +39,20 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        # Downstream propagation is fully disabled in this case
+        downstream_headers = json.loads(self.r.text)
+        assert "X-Datadog-Origin" not in downstream_headers
+        assert "X-Datadog-Parent-Id" not in downstream_headers
+        assert "X-Datadog-Tags" not in downstream_headers
+        assert "X-Datadog-Sampling-Priority" not in downstream_headers
+        assert "X-Datadog-Trace-Id" not in downstream_headers
+
+
     def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -52,7 +63,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
@@ -64,11 +75,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        # Downstream propagation is fully disabled in this case
+        downstream_headers = json.loads(self.r.text)
+        assert "X-Datadog-Origin" not in downstream_headers
+        assert "X-Datadog-Parent-Id" not in downstream_headers
+        assert "X-Datadog-Tags" not in downstream_headers
+        assert "X-Datadog-Sampling-Priority" not in downstream_headers
+        assert "X-Datadog-Trace-Id" not in downstream_headers
+
     def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -79,7 +98,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_1(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
@@ -91,11 +110,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        # Downstream propagation is fully disabled in this case
+        downstream_headers = json.loads(self.r.text)
+        assert "X-Datadog-Origin" not in downstream_headers
+        assert "X-Datadog-Parent-Id" not in downstream_headers
+        assert "X-Datadog-Tags" not in downstream_headers
+        assert "X-Datadog-Sampling-Priority" not in downstream_headers
+        assert "X-Datadog-Trace-Id" not in downstream_headers
+
     def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_2(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -106,7 +133,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_2(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
@@ -118,11 +145,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        # Downstream propagation is fully disabled in this case
+        downstream_headers = json.loads(self.r.text)
+        assert "X-Datadog-Origin" not in downstream_headers
+        assert "X-Datadog-Parent-Id" not in downstream_headers
+        assert "X-Datadog-Tags" not in downstream_headers
+        assert "X-Datadog-Sampling-Priority" not in downstream_headers
+        assert "X-Datadog-Trace-Id" not in downstream_headers
+
     def setup_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/?url=http%3A%2F%2Flocalhost%3A7777%2Fwaf%2F",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -134,12 +169,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
-            import pdb
-
-            pdb.set_trace()
-            assert data["request"]["content"][0][0]["meta"]["_dd.appsec.s.req.headers"][0]["user-agent"][0] != 8
-
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -150,11 +180,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        downstream_headers = json.loads(self.r.text)
+        assert downstream_headers["X-Datadog-Origin"] == "rum"
+        assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
+        assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
+        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
     def setup_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -166,7 +204,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -177,11 +215,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        downstream_headers = json.loads(self.r.text)
+        assert downstream_headers["X-Datadog-Origin"] == "rum"
+        assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
+        assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
+        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
     def setup_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -192,7 +238,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_0(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -203,11 +249,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        downstream_headers = json.loads(self.r.text)
+        assert downstream_headers["X-Datadog-Origin"] == "rum"
+        assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
+        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
+        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
     def setup_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -218,7 +272,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -229,11 +283,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        downstream_headers = json.loads(self.r.text)
+        assert downstream_headers["X-Datadog-Origin"] == "rum"
+        assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
+        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
+        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
     def setup_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_2(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/?url=http%3A%2F%2Flocalhost%3A7777%2Fwaf%2F",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -244,7 +306,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_2(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -255,11 +317,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        downstream_headers = json.loads(self.r.text)
+        assert downstream_headers["X-Datadog-Origin"] == "rum"
+        assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
+        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
+        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
     def setup_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/?url=http%3A%2F%2Flocalhost%3A7777%2Fwaf%2F",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -270,7 +340,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -281,11 +351,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        downstream_headers = json.loads(self.r.text)
+        assert downstream_headers["X-Datadog-Origin"] == "rum"
+        assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
+        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
+        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
     def setup_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -296,7 +374,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -307,11 +385,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
+        downstream_headers = json.loads(self.r.text)
+        assert downstream_headers["X-Datadog-Origin"] == "rum"
+        assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
+        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
+        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
     def setup_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/waf/",
+            "/requestdownstream/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -322,7 +408,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span in interfaces.library.get_root_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -332,3 +418,11 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+
+        downstream_headers = json.loads(self.r.text)
+        assert downstream_headers["X-Datadog-Origin"] == "rum"
+        assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
+        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
+        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
