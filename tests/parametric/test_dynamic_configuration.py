@@ -836,11 +836,11 @@ class TestDynamicConfigSamplingRules:
         )
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": sampling_rule,},)
         configuration = event["payload"]["configuration"]
-        rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
+        rules = next(filter(lambda x: x["name"]  == "trace_sampling_rules", configuration))["value"]
         assert json.loads(rules) == sampling_rule
 
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": []},)
-        rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
+        rules = next(filter(lambda x: x["name"]  == "trace_sampling_rules", configuration))["value"]
         assert json.loads(rules) == []
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
