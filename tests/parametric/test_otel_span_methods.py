@@ -452,7 +452,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
     def test_otel_span_started_with_link_from_another_span(self, test_agent, test_library):
         """Test adding a span link created from another span.
         This tests the functionality of "create a direct link between two spans
@@ -492,7 +492,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
     def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links.
         """
@@ -542,7 +542,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @bug(context.library == "ruby", reason="opentelemetry propagator truncates 128bit trace_ids to 64bits")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
@@ -583,7 +583,7 @@ class Test_Otel_Span_Methods:
         assert foo_member == "foo=1"
         assert bar_member == "bar=baz"
 
-        assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET or TRACECONTEXT_FLAGS_SET
+        assert (link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET) or (link.get("flags") == TRACECONTEXT_FLAGS_SET)
         assert link.get("attributes") is None or len(link.get("attributes")) == 0
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -591,7 +591,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented, does not break out arrays into dot notation")
     def test_otel_span_link_attribute_handling(self, test_agent, test_library):
         """Test that span links implementations correctly handle attributes according to spec.
         """
@@ -635,8 +635,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @bug(context.library == "ruby", reason="The ruby parametric app returns incorrect span ids on start span")
+    @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
         """Test adding a span link from a span to another span.
         """
