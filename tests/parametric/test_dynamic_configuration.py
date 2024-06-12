@@ -832,7 +832,7 @@ class TestDynamicConfigSamplingRules:
             }
         ]
         telemetry_names = set(
-            ["sampling_rules", "trace.sampling_rules", "DD_TRACE_SAMPLING_RULES", "trace_sampling_rules"]
+            ["sampling_rules", "trace.sampling_rules", "DD_TRACE_SAMPLING_RULES", "trace_sampling_rules", "trace_sample_rules"]
         )
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": sampling_rule,},)
         configuration = event["payload"]["configuration"]
