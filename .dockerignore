@@ -1,8 +1,18 @@
 venv/
 .git/
+.idea/
+.vs/
 .vscode/
 vendor
 logs*
 shell.nix
 __pycache__
 scenario_groups.yml
+
+# dotnet
+**/dotnet/**/bin/
+**/dotnet/**/obj/
+**/dotnet/**/packages/
+**/dotnet/**/out/
+**/dotnet/**/*.user
+**/dotnet/**/*.suo
