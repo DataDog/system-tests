@@ -92,13 +92,6 @@ class KrunVmProvider(VmProvider):
             output_mount_volume = subprocess.run(cmd_krunvm_mount_volume.split(), capture_output=True, text=True).stdout
             logger.info(f"[KrumVm] MicroVM Share volume mounted: {output_mount_volume}")
 
-            # Open http port
-            # cmd_krunvm_open_ports = f"krunvm changevm {vm.name} --port 5985:5985"
-            # logger.debug(cmd_krunvm_open_ports)
-            # vm_logger(context.scenario.name, vm.name).info(cmd_krunvm_open_ports)
-            # output_open_ports = subprocess.run(cmd_krunvm_open_ports.split(), capture_output=True, text=True).stdout
-            # logger.info(f"[KrumVm] MicroVM port open: {output_open_ports}")
-
             # Copy the init script to the shared volume
             shutil.copyfile(
                 "utils/build/virtual_machine/microvm/krunvm_init.sh", f"{self.shared_volume}/krunvm_init.sh"
@@ -195,7 +188,6 @@ class KrunVmCommander(Commander):
             export_command += f"export {key}={value} \n "
 
         logger.debug(f"Running installation id: {installation_id} ")
-        # logger.debug(f"Remote command: {export_command} {remote_command}")
 
         # Store installation commands on script file called as installation_id.sh
         with open(os.path.join(self._get_shared_folder_path(vm), f"{installation_id}.sh"), "a") as script_file:

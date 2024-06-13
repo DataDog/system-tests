@@ -2,7 +2,7 @@
 set -e
 
 # shellcheck disable=SC2035
-sudo chmod -R 755 * || chmod -R 755 * 
+sudo chmod -R 755 *
 
 echo "START RUN APP"
 ./gradlew build

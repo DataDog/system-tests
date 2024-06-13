@@ -9,7 +9,6 @@ lang_variant:
           sudo apt-get -y update
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev libffi-dev nodejs yarn
-          #   software-properties-common
           sudo apt-get -y install rbenv ruby-build ruby-dev
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
