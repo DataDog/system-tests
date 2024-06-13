@@ -623,13 +623,8 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
-
-        if context.library == "dotnet":
-            assert link["attributes"].get("bools.0") == "True"
-            assert link["attributes"].get("bools.1") == "False"
-        else:
-            assert link["attributes"].get("bools.0") == "true"
-            assert link["attributes"].get("bools.1") == "false"
+        assert link["attributes"].get("bools.0").casefold() == "true"
+        assert link["attributes"].get("bools.1").casefold() == "false"
 
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")

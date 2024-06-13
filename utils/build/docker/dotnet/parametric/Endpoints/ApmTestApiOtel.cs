@@ -117,9 +117,9 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         if (requestBodyObject.TryGetValue("links", out var links))
         {
-            foreach (var spanLink in (dynamic)links)
+            foreach (var spanLink in (JArray)links)
             {
-                var parentSpanLink = spanLink["parent_id"];
+                var parentSpanLink = Convert.ToUInt64(spanLink["parent_id"]);
 
                 ActivityTagsCollection? tags = default;
                 if (spanLink["attributes"] is not null)
@@ -143,13 +143,13 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
                     var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
                     var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext });
-                    var tracestate = spanLink["http_headers"][1][0] == "tracestate" ? spanLink["http_headers"][1][1] : datadogHeadersTracestate;
+                    var tracestate = (string)spanLink["http_headers"][1][0] == "tracestate" ? (string)spanLink["http_headers"][1][1] : datadogHeadersTracestate;
 
                     contextToLink = new ActivityContext(
                         parentTraceId,
                         parentSpanId,
                         flags,
-                        tracestate,
+                        (string)tracestate,
                         isRemote: true);
                 }
 
