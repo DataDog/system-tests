@@ -168,7 +168,7 @@ class Test_Otel_Env_Vars:
         assert resp["dd_trace_enabled"] == "false"
 
     @irrelevant(
-        context.library <= "php@1.2.0",
+        context.library == "php",
         reason="PHP uses DD_TRACE_DEBUG to set DD_TRACE_LOG_LEVEL=debug, so it does not do this mapping in the reverse direction",
     )
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "debug"}])
