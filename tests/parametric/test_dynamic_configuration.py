@@ -408,7 +408,7 @@ class TestDynamicConfigV1:
 
         There is no way (at the time of writing) to check the logs produced by the library.
         """
-        cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
+        cfg_state = set_and_wait_rc(test_agent, config_overrides={"log_injection_enabled": True})
         assert cfg_state["apply_state"] == 2
 
 
