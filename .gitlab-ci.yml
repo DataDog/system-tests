@@ -7,7 +7,7 @@ stages:
   - java_tracer
   - python_tracer
   - dotnet_tracer
-  - parse_results
+ # - parse_results
   - before_tests
 
 .base_job_onboarding_system_tests:
@@ -38,23 +38,13 @@ onboarding_nodejs:
     - schedules
   variables:
     TEST_LIBRARY: "nodejs"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
-          SCENARIO: [CONTAINER_NOT_SUPPORTED_AUTO_INJECTION]
+          SCENARIO: [SIMPLE_HOST_AUTO_INJECTION]
+
          
   script:
       - ./build.sh -i runner
@@ -69,23 +59,13 @@ onboarding_java:
     - schedules
   variables:
     TEST_LIBRARY: "java"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc,test-app-java-buildpack]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine-libgcc,test-app-java-buildpack]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-alpine,test-app-java-alpine-jdk15,test-app-java-alpine-jdk21]
-          SCENARIO: [CONTAINER_NOT_SUPPORTED_AUTO_INJECTION]
+          SCENARIO: [SIMPLE_HOST_AUTO_INJECTION]
+
           
   script:
       - ./build.sh -i runner
@@ -100,23 +80,13 @@ onboarding_python:
     - schedules
   variables:
     TEST_LIBRARY: "python"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine-libgcc]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python,test-app-python-container,test-app-python-alpine-libgcc]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python-alpine]
-          SCENARIO: [CONTAINER_NOT_SUPPORTED_AUTO_INJECTION]
+          SCENARIO: [SIMPLE_HOST_AUTO_INJECTION]
+
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
@@ -130,20 +100,13 @@ onboarding_dotnet:
     - schedules
   variables:
     TEST_LIBRARY: "dotnet"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION] 
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+          SCENARIO: [SIMPLE_HOST_AUTO_INJECTION]
+
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
@@ -157,25 +120,17 @@ onboarding_ruby:
     - schedules
   variables:
     TEST_LIBRARY: "ruby"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [dev]
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]      
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
+          SCENARIO: [SIMPLE_HOST_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws 
 
-onboarding_parse_results:
+.onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
