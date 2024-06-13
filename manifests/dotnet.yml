@@ -170,6 +170,8 @@ tests/:
       Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: v2.32.0
       Test_Login_Events_Extended: v2.33.0
@@ -277,7 +279,7 @@ tests/:
       TestDynamicConfigV2: v2.44.0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
-      Test_Otel_Env_Vars: missing_feature
+      Test_Otel_Env_Vars: v2.53.0
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v2.42.0

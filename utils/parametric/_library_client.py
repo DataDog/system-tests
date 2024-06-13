@@ -2,7 +2,6 @@
 import contextlib
 import time
 import urllib.parse
-import json
 from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
 
 import grpc
@@ -648,8 +647,7 @@ class APMLibraryClientGRPC:
 
     def get_tracer_config(self) -> Dict[str, Optional[str]]:
         resp = self._client.GetTraceConfig(pb.GetTraceConfigArgs())
-        config = resp.config
-        config_dict = json.loads(config)
+        config_dict = resp.config
         return {
             "dd_service": config_dict.get("dd_service", None),
             "dd_log_level": config_dict.get("dd_log_level", None),
