@@ -236,6 +236,9 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
+# "disable" rate limiting by default by setting it to a large value
+ENV DD_TRACE_RATE_LIMIT=10000000
+
 ENTRYPOINT ["dotnet", "ApmTestApi.dll"]
 """,
         container_cmd=["./ApmTestApi"],
