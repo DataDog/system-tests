@@ -28,7 +28,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
@@ -39,7 +40,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
@@ -63,7 +67,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
@@ -74,7 +79,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
@@ -98,7 +106,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_1(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
@@ -109,7 +118,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
@@ -133,7 +145,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_2(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
@@ -144,7 +157,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
@@ -169,7 +185,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -179,7 +196,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
@@ -204,7 +224,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -214,7 +235,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
@@ -238,7 +262,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_0(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -248,7 +273,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
@@ -271,7 +299,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -281,7 +310,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
@@ -304,7 +336,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_2(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -314,7 +347,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
-
+            spans_checked += 1
+        assert spans_checked == 1
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
@@ -337,7 +371,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -347,7 +382,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
@@ -370,7 +408,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -380,7 +419,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
@@ -403,7 +445,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         )
 
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
-        for data, span in interfaces.library.get_root_spans(request=self.r):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
@@ -413,7 +456,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert any(
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
+            spans_checked += 1
+            continue
 
+        assert spans_checked == 1
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
