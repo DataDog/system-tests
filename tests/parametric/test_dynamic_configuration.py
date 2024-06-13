@@ -860,6 +860,8 @@ class TestDynamicConfigSamplingRules:
             assert json.loads(rules) == sampling_rule_without_tags
         elif context.library.library == "python":
             assert json.loads(rules) == sampling_rule_with_modified_tags
+        elif context.library.library == "ruby":
+            assert rules == sampling_rule
         else:
             assert json.loads(rules) == sampling_rule
 
