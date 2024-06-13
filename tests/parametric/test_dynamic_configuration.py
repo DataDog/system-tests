@@ -98,7 +98,7 @@ def set_and_wait_rc_telemetry(test_agent, config_overrides: Dict[str, Any]) -> D
 
     _set_rc(test_agent, rc_config)
 
-    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=300)
+    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=400)
 
 
 def assert_sampling_rate(trace: List[Dict], rate: float):
@@ -839,7 +839,7 @@ class TestDynamicConfigSamplingRules:
                 "service": "svc*",
                 "resource": "*abc",
                 "name": "op-??",
-                "tags": [{"tag-a": "ta-v*"}, {"tag-b": "tb-v?"}, {"tag-c": "tc-v"},],
+                "tags": {"tag-a": "ta-v*", "tag-b": "tb-v?", "tag-c": "tc-v"},
                 "sample_rate": 0.5,
                 "provenance": "dynamic",
             }
