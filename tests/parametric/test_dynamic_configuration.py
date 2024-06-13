@@ -845,7 +845,7 @@ class TestDynamicConfigSamplingRules:
         rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
         assert json.loads(rules) == sampling_rule
 
-        event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": []},)
+        event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": None},)
         rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
         assert json.loads(rules) == []
 
