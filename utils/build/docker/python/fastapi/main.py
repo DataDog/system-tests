@@ -12,7 +12,8 @@ import requests
 import fastapi
 import psycopg2
 import requests
-from ddtrace import Pin, tracer
+import urllib3
+from ddtrace import Pin, tracer, patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from fastapi import Cookie, FastAPI, Form, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -25,6 +26,8 @@ from iast import (
     weak_hash_secure_algorithm,
 )
 from pydantic import BaseModel
+
+patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
@@ -570,3 +573,29 @@ def create_extra_service(serviceName: str = ""):
     if serviceName:
         Pin.override(fastapi, service=serviceName, tracer=tracer)
     return "OK"
+
+
+@app.get("/requestdownstream", response_class=PlainTextResponse)
+@app.post("/requestdownstream", response_class=PlainTextResponse)
+@app.options("/requestdownstream", response_class=PlainTextResponse)
+@app.get("/requestdownstream/", response_class=PlainTextResponse)
+@app.post("/requestdownstream/", response_class=PlainTextResponse)
+@app.options("/requestdownstream/", response_class=PlainTextResponse)
+def request_downstream():
+    http_ = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http_.request("GET", "http://localhost:7777/returnheaders")
+    return response.data
+
+
+@app.get("/returnheaders", response_class=PlainTextResponse)
+@app.post("/returnheaders", response_class=PlainTextResponse)
+@app.options("/returnheaders", response_class=PlainTextResponse)
+@app.get("/returnheaders/", response_class=PlainTextResponse)
+@app.post("/returnheaders/", response_class=PlainTextResponse)
+@app.options("/returnheaders/", response_class=PlainTextResponse)
+def return_headers(request: Request):
+    headers = {}
+    for key, value in request.headers.items():
+        headers[key] = value
+    return JSONResponse(headers)

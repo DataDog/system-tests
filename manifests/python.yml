@@ -345,8 +345,7 @@ tests/:
         fastapi: v2.4.0.dev1
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': missing_feature
-        flask-poc: v2.10.rc1
+        '*': v2.10.0-rc1
     test_automated_login_events.py:
       Test_Login_Events: 
         '*': v2.10.0.dev
