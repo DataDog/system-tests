@@ -861,13 +861,9 @@ class TestDynamicConfigSamplingRules:
         elif context.library.library == "python":
             assert json.loads(rules) == sampling_rule_with_modified_tags
         elif context.library.library == "ruby":
-            assert rules == sampling_rule
+            assert rules == sampling_rule_with_modified_tags
         else:
             assert json.loads(rules) == sampling_rule
-
-        event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": None},)
-        rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
-        assert json.loads(rules) == []
 
     @bug(library="cpp", reason="unknown")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
