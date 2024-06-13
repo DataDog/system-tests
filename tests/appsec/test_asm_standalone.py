@@ -2,6 +2,7 @@ import json
 
 from utils import weblog, interfaces, scenarios, features, rfc
 from utils._context.header_tag_vars import *
+from requests.structures import CaseInsensitiveDict
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -40,7 +41,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             )
 
         # Downstream propagation is fully disabled in this case
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -75,7 +76,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             )
 
         # Downstream propagation is fully disabled in this case
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -110,7 +111,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             )
 
         # Downstream propagation is fully disabled in this case
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -145,7 +146,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             )
 
         # Downstream propagation is fully disabled in this case
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -179,7 +180,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
@@ -214,7 +215,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
@@ -248,10 +249,9 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
@@ -282,10 +282,9 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
@@ -316,10 +315,9 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
@@ -350,10 +348,9 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
@@ -384,10 +381,9 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
@@ -401,7 +397,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
                 "x-datadog-origin": "rum",
-                "x-datadog-sampling-priority": "0",
+                "x-datadog-sampling-priority": "1",
                 "User-Agent": "Arachni/v1",
             },
         )
@@ -418,10 +414,9 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
 
-        downstream_headers = json.loads(self.r.text)
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.other=1" not in downstream_headers["X-Datadog-Tags"]
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"

@@ -1121,8 +1121,6 @@ def request_downstream():
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http.request("GET", "http://localhost:7777/returnheaders")
     return Response(response.data)
-    # response = requests.get("http://localhost:7777/returnheaders")
-    # return Response(response.text)
 
 
 @app.route("/returnheaders", methods=["GET", "POST", "OPTIONS"])
