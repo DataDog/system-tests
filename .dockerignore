@@ -1,8 +1,8 @@
 venv/
 .git/
-.idea/
-.vs/
-.vscode/
+**/.idea/
+**/.vs/
+**/.vscode/
 vendor
 logs*
 shell.nix
