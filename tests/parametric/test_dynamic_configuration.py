@@ -701,6 +701,8 @@ class TestDynamicConfigSamplingRules:
         context.library == "cpp",
         reason="JSON tag format in RC differs from the JSON tag format used in DD_TRACE_SAMPLING_RULES",
     )
+    @missing_feature(library="nodejs")
+    @missing_feature(library="ruby")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
