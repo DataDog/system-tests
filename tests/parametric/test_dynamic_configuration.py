@@ -831,6 +831,29 @@ class TestDynamicConfigSamplingRules:
                 "provenance": "dynamic",
             }
         ]
+        sampling_rule_without_tags = [
+            {
+                "service": "svc*",
+                "resource": "*abc",
+                "name": "op-??",
+                "sample_rate": 0.5,
+                "provenance": "dynamic",
+            }
+        ]
+        sampling_rule_with_modified_tags = [
+            {
+                "service": "svc*",
+                "resource": "*abc",
+                "name": "op-??",
+                "tags": [
+                    {"tag-a": "ta-v*"},
+                    {"tag-b": "tb-v?"},
+                    {"tag-c": "tc-v"},
+                ],
+                "sample_rate": 0.5,
+                "provenance": "dynamic",
+            }
+        ]
         telemetry_names = set(
             [
                 "sampling_rules",
@@ -843,7 +866,12 @@ class TestDynamicConfigSamplingRules:
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": sampling_rule,},)
         configuration = event["payload"]["configuration"]
         rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
-        assert json.loads(rules) == sampling_rule
+        if context.library.library == "nodejs":
+            assert json.loads(rules) == sampling_rule_without_tags
+        elif context.library.library == "python":
+            assert json.loads(rules) == sampling_rule_with_modified_tags
+        else:
+            assert json.loads(rules) == sampling_rule
 
         event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": None},)
         rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
