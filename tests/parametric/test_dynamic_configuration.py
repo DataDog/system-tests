@@ -832,24 +832,14 @@ class TestDynamicConfigSamplingRules:
             }
         ]
         sampling_rule_without_tags = [
-            {
-                "service": "svc*",
-                "resource": "*abc",
-                "name": "op-??",
-                "sample_rate": 0.5,
-                "provenance": "dynamic",
-            }
+            {"service": "svc*", "resource": "*abc", "name": "op-??", "sample_rate": 0.5, "provenance": "dynamic",}
         ]
         sampling_rule_with_modified_tags = [
             {
                 "service": "svc*",
                 "resource": "*abc",
                 "name": "op-??",
-                "tags": [
-                    {"tag-a": "ta-v*"},
-                    {"tag-b": "tb-v?"},
-                    {"tag-c": "tc-v"},
-                ],
+                "tags": [{"tag-a": "ta-v*"}, {"tag-b": "tb-v?"}, {"tag-c": "tc-v"},],
                 "sample_rate": 0.5,
                 "provenance": "dynamic",
             }
