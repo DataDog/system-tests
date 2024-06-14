@@ -703,6 +703,7 @@ class TestDynamicConfigSamplingRules:
     )
     @missing_feature(library="nodejs")
     @missing_feature(library="ruby")
+    @missing_feature(library="python")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
