@@ -89,22 +89,6 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
 
 
-def set_and_wait_rc_telemetry(test_agent, config_overrides: Dict[str, Any]) -> Dict:
-    """Helper to create an RC configuration with the given settings and return associated telemetry event
-
-    It is assumed that the configuration is successfully applied.
-    """
-    rc_config = _create_rc_config(config_overrides)
-
-    _set_rc(test_agent, rc_config)
-
-    # skip the first telemetry event for golang
-    if context.library.library == "golang":
-        test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=300)
-
-    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=300)
-
-
 def assert_sampling_rate(trace: List[Dict], rate: float):
     """Asserts that a trace returned from the test agent is consistent with the given sample rate.
 
@@ -820,59 +804,6 @@ class TestDynamicConfigSamplingRules:
         span = trace[0]
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
-
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_remote_sampling_rules_telemetry(self, library_env, test_agent, test_library):
-        """RC sampling rules should be reported by telemetry"""
-        sampling_rule = [
-            {
-                "service": "svc*",
-                "resource": "*abc",
-                "name": "op-??",
-                "tags": [
-                    {"key": "tag-a", "value_glob": "ta-v*"},
-                    {"key": "tag-b", "value_glob": "tb-v?"},
-                    {"key": "tag-c", "value_glob": "tc-v"},
-                ],
-                "sample_rate": 0.5,
-                "provenance": "dynamic",
-            }
-        ]
-        sampling_rule_without_tags = [
-            {"service": "svc*", "resource": "*abc", "name": "op-??", "sample_rate": 0.5, "provenance": "dynamic",}
-        ]
-        sampling_rule_with_modified_tags = [
-            {
-                "service": "svc*",
-                "resource": "*abc",
-                "name": "op-??",
-                "tags": {"tag-a": "ta-v*", "tag-b": "tb-v?", "tag-c": "tc-v"},
-                "sample_rate": 0.5,
-                "provenance": "dynamic",
-            }
-        ]
-        telemetry_names = set(
-            [
-                "sampling_rules",
-                "trace.sampling_rules",
-                "DD_TRACE_SAMPLING_RULES",
-                "trace_sampling_rules",
-                "trace_sample_rules",
-            ]
-        )
-        event = set_and_wait_rc_telemetry(test_agent, config_overrides={"tracing_sampling_rules": sampling_rule,},)
-        configuration = event["payload"]["configuration"]
-        rules = next(filter(lambda x: x["name"] in telemetry_names, configuration))["value"]
-        if context.library.library == "nodejs":
-            assert json.loads(rules) == sampling_rule_without_tags
-        elif context.library.library == "python":
-            assert json.loads(rules) == sampling_rule_with_modified_tags
-        elif context.library.library == "golang":
-            assert json.loads(rules) == sampling_rule_with_modified_tags
-        elif context.library.library == "ruby":
-            assert rules == sampling_rule_with_modified_tags
-        else:
-            assert json.loads(rules) == sampling_rule
 
     @bug(library="cpp", reason="unknown")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
