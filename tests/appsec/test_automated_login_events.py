@@ -858,7 +858,7 @@ class Test_V2_Login_Events:
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @scenarios.appsec_auto_events_extended
 @features.user_monitoring
-class Test_V2_Login_Events_Extended:
+class Test_V2_Login_Events_Anon:
     """Test login success/failure use cases
        As default mode is identification, this scenario will test anonymization. 
     """
