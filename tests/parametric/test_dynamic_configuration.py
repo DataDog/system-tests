@@ -101,7 +101,7 @@ def set_and_wait_rc_telemetry(test_agent, config_overrides: Dict[str, Any]) -> D
     # skip the first telemetry event for golang
     if context.library.library == "golang":
         test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=300)
-        
+
     return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=300)
 
 
