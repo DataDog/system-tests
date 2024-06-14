@@ -246,6 +246,8 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Extended: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
       Test_BlockingGraphqlResolvers: missing_feature

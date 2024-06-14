@@ -165,6 +165,8 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: v0.89.0
       Test_Login_Events_Extended: v0.89.0
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Extended: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)

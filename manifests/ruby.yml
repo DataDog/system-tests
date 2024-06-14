@@ -179,6 +179,8 @@ tests/:
         sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Extended: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.0.0
       Test_BlockingGraphqlResolvers: missing_feature
