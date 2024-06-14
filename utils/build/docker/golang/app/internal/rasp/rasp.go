@@ -18,9 +18,9 @@ func parseRASPRequest(w http.ResponseWriter, r *http.Request, key string) string
 	var input string
 
 	switch r.Method {
-	case http.MethodPost:
-		input = r.URL.Query().Get("file")
 	case http.MethodGet:
+		input = r.URL.Query().Get(key)
+	case http.MethodPost:
 		var (
 			body map[string]string
 			err  error
@@ -32,7 +32,7 @@ func parseRASPRequest(w http.ResponseWriter, r *http.Request, key string) string
 			err = xml.NewDecoder(r.Body).Decode(&body)
 		case "application/x-www-form-urlencoded":
 			err = r.ParseForm()
-			body[key] = r.Form.Get("file")
+			body[key] = r.Form.Get(key)
 		default:
 			err = errors.New("unsupported content type")
 		}
@@ -71,7 +71,6 @@ func LFI(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(500)
-		log.Fatalln([]byte(err.Error()))
 		return
 	}
 }
@@ -96,7 +95,6 @@ func SSRF(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(500)
-		log.Fatalln([]byte(err.Error()))
 		return
 	}
 }
@@ -124,7 +122,6 @@ func SQLi(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(500)
-		log.Fatalln([]byte(err.Error()))
 		return
 	}
 }

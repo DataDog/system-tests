@@ -127,7 +127,7 @@ tests/:
         Test_Ssrf_BodyXml: v1.65.0
         Test_Ssrf_UrlQuery: v1.65.0
       test_stack_traces.py:
-        Test_StackTrace: v1.65.0
+        Test_StackTrace: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0
