@@ -30,6 +30,7 @@ refs:
   - &ref_5_11_0 '>=5.11.0 || ^4.35.0 || ^3.56.0'
   - &ref_5_13_0 '>=5.13.0 || ^4.37.0 || ^3.58.0'
   - &ref_5_15_0 '>=5.15.0 || ^4.39.0'
+  - &ref_5_16_0 '>=5.16.0 || ^4.40.0'
   - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
 
@@ -445,7 +446,7 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: *ref_5_15_0
+      TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: *ref_4_11_0
       TestDynamicConfigV1_ServiceTargets: missing_feature
