@@ -18,6 +18,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
@@ -164,6 +165,19 @@ public class App {
         h.put("metadata0", "value0");
         h.put("metadata1", "value1");
         return h;
+    }
+
+    @GetMapping("/users")
+    String users(@RequestParam String user) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if ((span instanceof MutableSpan)) {
+            MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+            localRootSpan.setTag("usr.id", user);
+        }
+        Blocking
+                .forUser(user)
+                .blockIfMatch();
+        return "Hello " + user;
     }
 
     @GetMapping("/user_login_success_event")

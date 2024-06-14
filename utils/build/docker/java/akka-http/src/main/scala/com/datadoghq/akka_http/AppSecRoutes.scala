@@ -8,6 +8,9 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling._
+import datadog.appsec.api.blocking.Blocking
+import datadog.trace.api.interceptor.MutableSpan
+import io.opentracing.util.GlobalTracer
 
 import java.util
 import scala.concurrent.Future
@@ -107,6 +110,21 @@ object AppSecRoutes {
         get {
           parameter("code".as[Int]) { code =>
             complete(StatusCodes.custom(code, "whatever reason"))
+          }
+        }
+      } ~
+      path("users") {
+        get {
+          parameter("user") { user =>
+            var span = GlobalTracer.get().activeSpan()
+            span match {
+              case span1: MutableSpan =>
+                var localRootSpan = span1.getLocalRootSpan()
+                localRootSpan.setTag("usr.id", user)
+              case _ =>
+            }
+            Blocking.forUser(user).blockIfMatch()
+            complete(s"Hello ${user}")
           }
         }
       } ~
