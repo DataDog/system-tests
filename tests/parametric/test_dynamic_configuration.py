@@ -98,7 +98,11 @@ def set_and_wait_rc_telemetry(test_agent, config_overrides: Dict[str, Any]) -> D
 
     _set_rc(test_agent, rc_config)
 
-    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=400)
+    # skip the first telemetry event for golang
+    if context.library.library == "golang":
+        test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=300)
+        
+    return test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True, wait_loops=300)
 
 
 def assert_sampling_rate(trace: List[Dict], rate: float):
@@ -862,6 +866,8 @@ class TestDynamicConfigSamplingRules:
         if context.library.library == "nodejs":
             assert json.loads(rules) == sampling_rule_without_tags
         elif context.library.library == "python":
+            assert json.loads(rules) == sampling_rule_with_modified_tags
+        elif context.library.library == "golang":
             assert json.loads(rules) == sampling_rule_with_modified_tags
         elif context.library.library == "ruby":
             assert rules == sampling_rule_with_modified_tags
