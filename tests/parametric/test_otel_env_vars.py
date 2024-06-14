@@ -1,5 +1,5 @@
 import pytest, os
-from utils import missing_feature, context, scenarios, features
+from utils import missing_feature, context, scenarios, features, irrelevant
 
 
 @scenarios.parametric
@@ -39,7 +39,6 @@ class Test_Otel_Env_Vars:
         assert resp["dd_log_level"] != "debug"
         assert float(resp["dd_trace_sample_rate"]) == 0.5
         assert resp["dd_trace_enabled"] == "true"
-        assert resp["dd_runtime_metrics_enabled"]
         tags = resp["dd_tags"]
         assert "foo:bar" in tags
         assert "baz:qux" in tags
@@ -47,6 +46,9 @@ class Test_Otel_Env_Vars:
         assert "baz:otel_qux" not in tags
         assert resp["dd_trace_propagation_style"] == "b3,tracecontext"
         assert resp["dd_trace_debug"] == "false"
+
+        if context.library != "php":
+            assert resp["dd_runtime_metrics_enabled"]
 
     @pytest.mark.parametrize(
         "library_env",
@@ -68,13 +70,20 @@ class Test_Otel_Env_Vars:
         assert resp["dd_service"] == "otel_service"
         assert float(resp["dd_trace_sample_rate"]) == 0.1
         assert resp["dd_trace_enabled"] == "true"
-        assert resp["dd_runtime_metrics_enabled"] == "false"
         tags = resp["dd_tags"]
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
-        assert resp["dd_trace_propagation_style"] == "b3,tracecontext"
+
+        if context.library in ("dotnet", "php"):
+            assert resp["dd_trace_propagation_style"] == "b3 single header,tracecontext"
+        else:
+            assert resp["dd_trace_propagation_style"] == "b3,tracecontext"
+
+        if context.library != "php":
+            assert resp["dd_runtime_metrics_enabled"] == "false"
 
     @missing_feature(context.library == "python", reason="DD_LOG_LEVEL is not supported in Python")
+    @missing_feature(context.library == "dotnet", reason="DD_LOG_LEVEL is not supported in .NET")
     @missing_feature(context.library == "ruby", reason="DD_LOG_LEVEL is not supported in ruby")
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "error"}])
     def test_otel_log_level_env(self, test_agent, test_library):
@@ -102,6 +111,9 @@ class Test_Otel_Env_Vars:
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
 
+    @missing_feature(
+        context.library <= "php@1.1.0", reason="The always_on sampler mapping is properly implemented in v1.2.0"
+    )
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on",}])
     def test_otel_traces_always_on(self, test_agent, test_library):
         with test_library as t:
@@ -122,6 +134,9 @@ class Test_Otel_Env_Vars:
             resp = t.get_tracer_config()
         assert float(resp["dd_trace_sample_rate"]) == 0.1
 
+    @missing_feature(
+        context.library <= "php@1.1.0", reason="The always_on sampler mapping is properly implemented in v1.2.0"
+    )
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_on",}])
     def test_otel_traces_parentbased_on(self, test_agent, test_library):
         with test_library as t:
@@ -152,6 +167,10 @@ class Test_Otel_Env_Vars:
             resp = t.get_tracer_config()
         assert resp["dd_trace_enabled"] == "false"
 
+    @irrelevant(
+        context.library == "php",
+        reason="PHP uses DD_TRACE_DEBUG to set DD_TRACE_LOG_LEVEL=debug, so it does not do this mapping in the reverse direction",
+    )
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "debug"}])
     def test_otel_log_level_to_debug_mapping(self, test_agent, test_library):
         with test_library as t:

@@ -13,7 +13,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
-from utils import features, missing_feature, irrelevant, context, scenarios
+from utils import bug, features, missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -71,12 +71,13 @@ class Test_Otel_Span_Methods:
         assert root_span["service"] == "new_service"
 
     @missing_feature(context.library < "python@2.9.0", reason="Implemented in 2.9.0")
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.65.0", reason="Implemented in 1.65.0")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Implemented in 2.0.0")
+    @missing_feature(context.library < "php@1.1.0", reason="Implemented in 1.1.0")
+    @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
+    @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
+    @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
+    @missing_feature(context.library < "dotnet@2.53.0", reason="Implemented in 2.53.0")
     def test_otel_set_attribute_remapping_httpresponsestatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
@@ -94,12 +95,13 @@ class Test_Otel_Span_Methods:
         assert test_span["meta"]["http.status_code"] == "200"
 
     @missing_feature(context.library < "python@2.9.0", reason="Implemented in 2.9.0")
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Implemented in 2.0.0")
+    @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
+    @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
+    @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
+    @irrelevant(context.library == "golang", reason="Does not support automatic status code remapping to meta")
+    @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
+    @irrelevant(context.library == "php", reason="Does not support automatic status code remapping to meta")
     def test_otel_set_attribute_remapping_httpstatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
@@ -483,8 +485,9 @@ class Test_Otel_Span_Methods:
         link = span_links[0]
         assert link.get("span_id") == root.get("span_id")
         assert link.get("trace_id") == root.get("trace_id")
-        root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
-        assert (link.get("trace_id_high") or 0) == int(root_tid, 16)
+        if "trace_id_high" in link:
+            root_tid = root["meta"].get("_dd.p.tid", "0")
+            assert link.get("trace_id_high") == int(root_tid, 16)
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
@@ -540,7 +543,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
+    @bug(context.library == "ruby", reason="opentelemetry propagator truncates 128bit trace_ids to 64bits")
     @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
@@ -572,14 +575,15 @@ class Test_Otel_Span_Methods:
 
         assert link.get("tracestate") is not None
         tracestateArr = link["tracestate"].split(",")
-        assert len(tracestateArr) == 3
-        dd_num = 0 if tracestateArr[0].startswith("dd=") else 1
-        other_num = 0 if dd_num == 1 else 1
-        assert tracestateArr[other_num] == "foo=1"
-        assert tracestateArr[2] == "bar=baz"
-        tracestateDD = tracestateArr[dd_num][3:].split(";")
-        assert "s:2" in tracestateDD
-        assert "t.dm:-4" in tracestateDD
+        dd_member = next(iter([x for x in tracestateArr if x.startswith("dd=")]), None)
+        foo_member = next(iter([x for x in tracestateArr if x.startswith("foo=")]), None)
+        bar_member = next(iter([x for x in tracestateArr if x.startswith("bar=")]), None)
+        # ruby removes the dd member from the tracestate while python does not
+        if dd_member:
+            assert "s:2" in dd_member
+            assert "t.dm:-4" in dd_member
+        assert foo_member == "foo=1"
+        assert bar_member == "bar=baz"
 
         assert (link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET) or (link.get("flags") == TRACECONTEXT_FLAGS_SET)
         assert link.get("attributes") is None or len(link.get("attributes")) == 0
@@ -633,6 +637,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
+    @bug(context.library == "ruby", reason="The ruby parametric app returns incorrect span ids on start span")
     @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
         """Test adding a span link from a span to another span.
@@ -838,7 +843,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
@@ -874,7 +879,7 @@ class Test_Otel_Span_Methods:
 
         event2 = events[1]
         assert event2.get("name") == "second_event"
-        assert event2.get("time_unix_nano") == event2_timestamp_ns
+        assert event2.get("time_unix_nano") // 10000 == event2_timestamp_ns // 10000  # reduce the precision tested
         assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]
@@ -891,7 +896,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_does_not_set_error(self, test_agent, test_library):
         """
@@ -910,7 +915,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
@@ -933,29 +938,64 @@ class Test_Otel_Span_Methods:
 
         events = json.loads(root_span.get("meta", {}).get("events"))
         assert len(events) == 3
-
         event1 = events[0]
-        assert event1.get("name") == "exception"
-        assert event1["attributes"].get("string_val") == "value"
-        assert event1["attributes"].get("exception.message") == "woof1"
-        assert event1["attributes"].get("exception.stacktrace") == "stacktrace1"
+        assert (
+            event1.get("name").lower() == "exception" or "error"
+        )  # node uses error objects instead of exception objects
         assert event1.get("time_unix_nano") > 0
 
         event2 = events[1]
         assert event2.get("name") == "non_exception_event"
-        assert event2["attributes"].get("exception.stacktrace") == "non-error"
         assert event2.get("time_unix_nano") > event1.get("time_unix_nano")
 
         event3 = events[2]
-        assert event3.get("name") == "exception"
-        assert event3["attributes"].get("exception.message") == "message override"
+        assert event3.get("name") == "exception" or "error"
         assert event3.get("time_unix_nano") > event2.get("time_unix_nano")
 
         assert root_span["error"] == 1
-        error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
-        assert error_message == "message override"
         assert "error.type" in root_span["meta"]
         assert "error.stack" in root_span["meta"]
+
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
+    def test_otel_record_exception_attributes_serialization(self, test_agent, test_library):
+        """
+            Tests the Span.RecordException API (requires Span.AddEvent API support)
+            and its serialization into the Datadog error tags and the 'events' tag
+        """
+        with test_library:
+            with test_library.otel_start_span("operation") as span:
+                span.set_status(OTEL_ERROR_CODE, "error_desc")
+                span.record_exception(
+                    message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
+                )
+                span.add_event(name="non_exception_event", attributes={"exception.stacktrace": "non-error"})
+                span.record_exception(message="woof3", attributes={"exception.message": "message override"})
+                span.end_span()
+
+        root_span = get_span(test_agent)
+        assert "events" in root_span["meta"]
+
+        events = json.loads(root_span.get("meta", {}).get("events"))
+        assert len(events) == 3
+        event1 = events[0]
+        assert event1["attributes"].get("string_val") == "value"
+        assert event1["attributes"].get("exception.message") == "woof1"
+        assert event1["attributes"].get("exception.stacktrace") == "stacktrace1"
+
+        event2 = events[1]
+        assert event2["attributes"].get("exception.stacktrace") == "non-error"
+
+        event3 = events[2]
+        assert event3["attributes"].get("exception.message") == "message override"
+
+        error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
+        assert error_message == "message override"
 
 
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):

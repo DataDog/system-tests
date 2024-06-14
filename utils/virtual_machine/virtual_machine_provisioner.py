@@ -50,6 +50,10 @@ class VirtualMachineProvisioner:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a Vagrant VM")
                 vms_to_remove.append(vm)
                 continue
+            if vm_provider_id == "krunvm" and vm.krunvm_config is None:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a KrunVm VM")
+                vms_to_remove.append(vm)
+                continue
             if vm_provider_id == "aws" and vm.aws_config is None:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a AWS VM")
                 vms_to_remove.append(vm)
