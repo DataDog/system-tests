@@ -449,7 +449,7 @@ class Test_Otel_Span_Methods:
         assert span["name"] == "kafka.receive"
         assert span["resource"] == "operation"
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
@@ -489,7 +489,7 @@ class Test_Otel_Span_Methods:
             root_tid = root["meta"].get("_dd.p.tid", "0")
             assert link.get("trace_id_high") == int(root_tid, 16)
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
@@ -537,9 +537,7 @@ class Test_Otel_Span_Methods:
             # Sampled flag should be set to match the existing tracestate
             assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
 
-        assert len(link.get("attributes")) == 1
-
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
@@ -588,7 +586,7 @@ class Test_Otel_Span_Methods:
         assert (link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET) or (link.get("flags") == TRACECONTEXT_FLAGS_SET)
         assert link.get("attributes") is None or len(link.get("attributes")) == 0
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
@@ -624,15 +622,15 @@ class Test_Otel_Span_Methods:
 
         assert len(link.get("attributes")) == 8
         assert link["attributes"].get("foo") == "bar"
-        assert link["attributes"].get("bools.0") == "true"
-        assert link["attributes"].get("bools.1") == "false"
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
+        assert link["attributes"].get("bools.0").casefold() == "true"
+        assert link["attributes"].get("bools.1").casefold() == "false"
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")

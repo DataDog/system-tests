@@ -38,6 +38,7 @@ public abstract class ApmTestApi
 
     // Propagator types
     private static readonly Type SpanContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.SpanContextPropagator, Datadog.Trace", throwOnError: true)!;
+    internal static readonly Type W3CTraceContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.W3CTraceContextPropagator, Datadog.Trace", throwOnError: true)!;
 
     // Agent-related types
     private static readonly Type AgentWriterType = Type.GetType("Datadog.Trace.Agent.AgentWriter, Datadog.Trace", throwOnError: true)!;
@@ -63,6 +64,7 @@ public abstract class ApmTestApi
 
     // Propagator methods
     private static readonly MethodInfo SpanContextPropagatorInject = GenerateInjectMethod()!;
+    internal static readonly MethodInfo W3CTraceContextCreateTraceStateHeader = W3CTraceContextPropagatorType.GetMethod("CreateTraceStateHeader", BindingFlags.Static | BindingFlags.NonPublic)!;
 
     // StatsAggregator flush methods
     private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
@@ -147,7 +149,7 @@ public abstract class ApmTestApi
             var spanContext = SpanContext.GetValue(span)!;
             Origin.SetValue(spanContext, origin);
         }
-        
+
         Spans[span.SpanId] = span;
         
         return JsonConvert.SerializeObject(new
