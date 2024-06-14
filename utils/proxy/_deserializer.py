@@ -33,28 +33,6 @@ def get_header_value(name, headers):
     return next((h[1] for h in headers if h[0].lower() == name.lower()), None)
 
 
-def _parse_as_unsigned_int(value, size_in_bits):
-    """This is necessary because some fields in spans are decribed as a 64 bits unsigned integers, but
-    java, and other languages only supports signed integer. As such, they might send trace ids as negative
-    number if >2**63 -1. The agent parses it signed and interpret the bytes as unsigned. See
-    https://github.com/DataDog/datadog-agent/blob/778855c6c31b13f9235a42b758a1f7c8ab7039e5/pkg/trace/pb/decoder_bytes.go#L181-L196"""
-    if not isinstance(value, int):
-        return value
-
-    # Asserts that the unsigned is either a no bigger than the size in bits
-    assert -(2 ** size_in_bits - 1) <= value <= 2 ** size_in_bits - 1
-
-    # Take two's complement of the number if negative
-    return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
-
-
-def _decode_unsigned_int_traces(content):
-    for span in (span for trace in content for span in trace):
-        for sub_key in ("trace_id", "parent_id", "span_id"):
-            if sub_key in span:
-                span[sub_key] = _parse_as_unsigned_int(span[sub_key], 64)
-
-
 def _decode_v_0_5_traces(content):
     # https://github.com/DataDog/architecture/blob/master/rfcs/apm/agent/v0.5-endpoint/rfc.md
     strings, payload = content
@@ -127,12 +105,10 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
 
         if interface == "library":
             if path == "/v0.4/traces":
-                _decode_unsigned_int_traces(result)
                 _deserialized_nested_json_from_trace_payloads(result, interface)
 
             elif path == "/v0.5/traces":
                 result = _decode_v_0_5_traces(result)
-                _decode_unsigned_int_traces(result)
                 _deserialized_nested_json_from_trace_payloads(result, interface)
 
         _convert_bytes_values(result)
