@@ -30,7 +30,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] < 2
@@ -71,7 +71,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] < 2
@@ -112,7 +112,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_1(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] < 2
@@ -153,7 +153,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_2(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] < 2
@@ -195,7 +195,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] == 2
@@ -236,7 +236,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] == 2
@@ -276,7 +276,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_0(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] == 2
@@ -315,7 +315,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] == 2
@@ -354,7 +354,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_2(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] == 2
@@ -393,7 +393,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] == 2
@@ -432,7 +432,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] == 2
@@ -471,7 +471,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
-            if span["resource"] != "GET /requestdownstream":
+            if not span["resource"].startswith("GET /requestdownstream"):
                 continue
 
             assert span["metrics"]["_sampling_priority_v1"] == 2
