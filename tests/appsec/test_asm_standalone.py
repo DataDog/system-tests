@@ -10,7 +10,8 @@ from requests.structures import CaseInsensitiveDict
 # "GET /requestdownstream/"
 # "GET requestdownstream"
 # "GET requestdownstream/"
-REQUESTDOWNSTREAM_RESOURCE_PATTERN = re.compile(r'GET /?requestdownstream/?')
+REQUESTDOWNSTREAM_RESOURCE_PATTERN = re.compile(r"GET /?requestdownstream/?")
+
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
