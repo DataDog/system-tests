@@ -2,10 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
+
+var globalConfig = make(map[string]string)
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
 	var opts []tracer.StartSpanOption
@@ -101,23 +106,53 @@ func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorAr
 	return &SpanSetErrorReturn{}, nil
 }
 
+type CustomLogger struct {
+	*logrus.Logger
+}
+
+func (l *CustomLogger) Log(logMessage string) {
+	start := strings.Index(logMessage, "{")
+	end := strings.LastIndex(logMessage, "}")
+
+	if start == -1 || end == -1 {
+		fmt.Println("JSON not found in log message")
+		return
+	}
+	jsonStr := logMessage[start : end+1]
+	var config map[string]interface{}
+	if err := json.Unmarshal([]byte(jsonStr), &config); err != nil {
+		fmt.Printf("Error unmarshaling JSON: %v\n", err)
+		return
+	}
+	stringConfig := make(map[string]string)
+	for key, value := range config {
+		stringConfig[key] = fmt.Sprintf("%v", value)
+	}
+	globalConfig = stringConfig
+}
 
 func (s *apmClientServer) GetTraceConfig(ctx context.Context, args *GetTraceConfigArgs) (*GetTraceConfigReturn, error) {
-	t_config := tracer.config.(*tracer.config)
+	var log = &CustomLogger{logrus.New()}
+	tracer.Start(tracer.WithLogger(log))
 
-	config := make(map[string]string)
-	config["dd_service"] = t_config.serviceName
-	config["dd_trace_sample_rate"] = fmt.Sprintf("%f", t_config.globalSampleRate)
-	config["dd_trace_enabled"] = fmt.Sprintf("%t", t_config.enabled)
-	config["dd_runtime_metrics_enabled"] = fmt.Sprintf("%t", t_config.runtimeMetrics)
-	config["dd_trace_propagation_style"] = t_config.propagator.injectorNames.join(",")
-	config["dd_trace_debug"] = fmt.Sprintf("%t", t_config.debug)
-	config["dd_env"] = t_config.env
-	config["dd_version"] = t_config.version
-	config["dd_tags"] = ""
-	for k, v := range t_config.globalTags {
-		config["dd_tags"] += fmt.Sprintf("%s:%s,", k, v)
+	tracerEnabled := "true"
+	// if globalConfig is empty, then there were no startup logs generated and thus it means the tracer was disabled
+	if len(globalConfig) == 0 {
+		tracerEnabled = "false"
 	}
+	config := make(map[string]string)
+	config["dd_service"] = globalConfig["service"]
+	config["dd_log_level"] = "null" // golang doesn't support DD_LOG_LEVEL, only thing it supports is passing in DEBUG or DD_TRACE_DEBUG to set debug to true
+	config["dd_trace_sample_rate"] = globalConfig["sample_rate"]
+	config["dd_trace_enabled"] = tracerEnabled
+	config["dd_runtime_metrics_enabled"] = globalConfig["runtime_metrics_enabled"]
+	config["dd_tags"] = globalConfig["tags"]
+	config["dd_trace_propagation_style"] = globalConfig["propagation_style_inject"]
+	config["dd_trace_debug"] = globalConfig["debug"]
+	config["dd_trace_otel_enabled"] = "null"         // golang doesn't support DD_TRACE_OTEL_ENABLED
+	config["dd_trace_sample_ignore_parent"] = "null" // golang doesn't support DD_TRACE_SAMPLE_IGNORE_PARENT
+	config["dd_env"] = globalConfig["env"]
+	config["dd_version"] = globalConfig["dd_version"]
 	return &GetTraceConfigReturn{Config: config}, nil
 }
 
