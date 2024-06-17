@@ -2196,7 +2196,7 @@ class features:
         """
         pytest.mark.features(feature_id=291)(test_object)
         return test_object
-		
+
     @staticmethod
     def appsec_standalone(test_object):
         """
@@ -2206,4 +2206,3 @@ class features:
         """
         pytest.mark.features(feature_id=305)(test_object)
         return test_object
-
