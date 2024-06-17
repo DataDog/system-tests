@@ -348,12 +348,8 @@ tests/:
         '*': v2.10.0-rc1
         uwsgi-poc: bug
     test_automated_login_events.py:
-      Test_Login_Events: 
-        '*': v2.10.0.dev
-        fastapi: missing_feature
-      Test_Login_Events_Extended: 
-        '*': v2.10.0.dev
-        fastapi: missing_feature
+      Test_Login_Events: irrelevant(was v2.10.0.dev but will be replaced by V2)
+      Test_Login_Events_Extended: irrelevant(was v2.10.0.dev but will be replaced by V2)
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
