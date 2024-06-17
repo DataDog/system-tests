@@ -344,7 +344,9 @@ tests/:
         '*': v1.1.0rc2.dev
         fastapi: v2.4.0.dev1
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation:
+        '*': v2.10.0-rc1
+        uwsgi-poc: bug
     test_automated_login_events.py:
       Test_Login_Events: 
         '*': v2.10.0.dev
