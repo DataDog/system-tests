@@ -493,3 +493,10 @@ This endpoint is used to validate DSM context injection injects the correct enco
 
 ### GET /dsm/extract
 This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.
+
+### \[GET,POST\] /requestdownstream
+This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning it's value (the headers received) to inspect them, looking for
+distributed tracing propagation headers.
+
+### \[GET,POST\] /returnheaders
+This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
