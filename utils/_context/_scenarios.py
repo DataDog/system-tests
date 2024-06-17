@@ -1716,7 +1716,11 @@ class scenarios:
 
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+        },
         appsec_enabled=True,
         doc="Scenario for checking extended mode in automatic user events",
         scenario_groups=[ScenarioGroup.APPSEC],

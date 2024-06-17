@@ -354,6 +354,8 @@ tests/:
       Test_Login_Events_Extended: 
         '*': v2.10.0.dev
         fastapi: missing_feature
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses:
         '*': v1.16.1
