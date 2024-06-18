@@ -102,7 +102,7 @@ onboarding_python:
     TEST_LIBRARY: "python"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev]
+        - ONBOARDING_FILTER_ENV: [prod]
         #- ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [ HOST_AUTO_INJECTION_INSTALL_SCRIPT]
