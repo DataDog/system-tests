@@ -100,7 +100,6 @@ onboarding_python:
     - schedules
   variables:
     TEST_LIBRARY: "python"
-    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
