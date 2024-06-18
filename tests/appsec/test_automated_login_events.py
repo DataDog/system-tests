@@ -641,7 +641,7 @@ class Test_V2_Login_Events:
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" in meta
-            assert "usr.id" == "social-security-id"
+            assert meta["usr.id"] == "social-security-id"
             # deprecated tags
             assert "appsec.events.users.login.success.email" not in meta
             assert "appsec.events.users.login.success.username" not in meta
@@ -658,7 +658,7 @@ class Test_V2_Login_Events:
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" in meta
-            assert "usr.id" == "social-security-id"
+            assert meta["usr.id"] == "social-security-id"
             # deprecated tags
             assert "appsec.events.users.login.success.email" not in meta
             assert "appsec.events.users.login.success.username" not in meta
@@ -715,7 +715,7 @@ class Test_V2_Login_Events:
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
-            assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
@@ -736,7 +736,7 @@ class Test_V2_Login_Events:
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
-            assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
@@ -958,7 +958,7 @@ class Test_V2_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
-            assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert meta["appsec.events.users.login.failure.usr.id"] == "anon_2141e3bee69f7de45b4f1d8d1f29258a"
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
@@ -978,7 +978,7 @@ class Test_V2_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
-            assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert meta["appsec.events.users.login.failure.usr.id"] == "anon_2141e3bee69f7de45b4f1d8d1f29258a"
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
