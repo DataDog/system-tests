@@ -428,10 +428,10 @@ class Test_Otel_Span_Methods:
 
         # compare the values of the span context with the values of the trace sent to the agent
         traces = test_agent.wait_for_num_traces(1)
-        op2, _ = traces[0]
-        assert op2.get("resource") == "op2"
-        assert op2.get("trace_id") == int(context.get("trace_id"), 16)
-        assert op2.get("span_id") == int(context.get("span_id"), 16)
+        op1, _ = traces[0]
+        assert op1.get("resource") == "op1"
+        assert op1.get("trace_id") == int(context.get("trace_id"), 16)
+        assert op1.get("span_id") == int(context.get("span_id"), 16)
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
