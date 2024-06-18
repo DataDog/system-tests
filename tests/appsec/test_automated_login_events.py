@@ -156,6 +156,7 @@ class Test_Login_Events:
         )
 
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @missing_feature(context.library == "java", reason="Cannot reliably check if the user exists")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -176,6 +177,7 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "java", reason="Cannot reliably check if the user exists")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -426,6 +428,7 @@ class Test_Login_Events_Extended:
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
         )
 
+    @missing_feature(context.library == "java", reason="Cannot reliably check if the user exists")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -449,6 +452,7 @@ class Test_Login_Events_Extended:
         self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @missing_feature(context.library == "java", reason="Cannot reliably check if the user exists")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -748,6 +752,7 @@ class Test_V2_Login_Events:
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
         )
 
+    @missing_feature(context.library == "java", reason="Cannot reliably check if the user exists")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -771,6 +776,7 @@ class Test_V2_Login_Events:
             "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
+    @missing_feature(context.library == "java", reason="Cannot reliably check if the user exists")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -989,6 +995,7 @@ class Test_V2_Login_Events_Anon:
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
         )
 
+    @missing_feature(context.library == "java", reason="Cannot reliably check if the user exists")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -1006,6 +1013,7 @@ class Test_V2_Login_Events_Anon:
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
 
+    @missing_feature(context.library == "java", reason="Cannot reliably check if the user exists")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):

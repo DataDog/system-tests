@@ -167,6 +167,11 @@
             <artifactId>kinesis</artifactId>
             <version>2.17.51</version>
         </dependency>
+        <dependency>
+            <groupId>com.datadoghq</groupId>
+            <artifactId>dd-trace-api</artifactId>
+            <version>${dd-trace-java.version}</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -434,5 +439,6 @@
         <protobuf.version>3.16.3</protobuf.version>
         <grpc.version>1.31.0</grpc.version>
         <packaging.type>jar</packaging.type>
+        <dd-trace-java.version>1.35.0</dd-trace-java.version>
 	</properties>
 </project>
