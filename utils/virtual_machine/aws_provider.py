@@ -33,6 +33,8 @@ class AWSPulumiProvider(VmProvider):
             # Static loading of keypairs for ec2 machines
             self.pulumi_ssh = PulumiSSH()
             self.pulumi_ssh.load(self.vms)
+            # Debug purposes. How many instances, created by system-tests are running in the AWS account?
+            self._debug_instances()
             for vm in self.vms:
                 logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
                 self._start_vm(vm)
@@ -64,7 +66,7 @@ class AWSPulumiProvider(VmProvider):
             subnet_id=vm.aws_config.aws_infra_config.subnet_id,
             key_name=self.pulumi_ssh.keypair_name,
             ami=vm.aws_config.ami_id if ami_id is None else ami_id,
-            tags={"Name": vm.name, "CI": "system-tests"},
+            tags=self._get_ec2_tags(vm),
             opts=self.pulumi_ssh.aws_key_resource,
             root_block_device={"volume_size": 16},
             iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
@@ -136,6 +138,31 @@ class AWSPulumiProvider(VmProvider):
         else:
             logger.info(f"Not found an existing AMI with name {ami_name}")
         return ami_id
+
+    def _get_ec2_tags(self, vm):
+        """ Build the ec2 tags for the VM """
+        tags = {"Name": vm.name, "CI": "system-tests"}
+
+        if os.getenv("CI_PROJECT_NAME") is not None:
+            tags["CI_PROJECT_NAME"] = os.getenv("CI_PROJECT_NAME")
+
+        if os.getenv("CI_PIPELINE_ID") is not None:
+            tags["CI_PIPELINE_ID"] = os.getenv("CI_PIPELINE_ID")
+
+        if os.getenv("CI_JOB_ID") is not None:
+            tags["CI_JOB_ID"] = os.getenv("CI_JOB_ID")
+        logger.info(f"Tags for the VM [{vm.name}]: {tags}")
+        return tags
+
+    def _debug_instances(self):
+        """ Print the instances created by system-tests and still running in the AWS account """
+
+        instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
+
+        logger.info(f"AWS Listing running instances with system-tests tag")
+        for instance_id in instances.ids:
+            logger.info(f"Instance id: [{instance_id}]  status:[running] ")
+        logger.info(f"Total tags: {instances.instance_tags}")
 
 
 class AWSCommander(Commander):
