@@ -75,8 +75,8 @@ class AWSPulumiProvider(VmProvider):
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
         Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
         pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
-        Output.all(ec2_server.private_ip, vm.name).apply(
-            lambda args: vm_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}")
+        Output.all(ec2_server.private_ip, vm.name, ec2_server.id).apply(
+            lambda args: vm_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}:{args[2]}")
         )
 
         vm.ssh_config.username = vm.aws_config.user
