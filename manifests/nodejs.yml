@@ -477,7 +477,7 @@ tests/:
     test_tracer.py:
       Test_TracerSCITagging: *ref_3_21_0
     test_tracer_flare.py:
-      TestTracerFlareV1: missing_feature
+      TestTracerFlareV1: *ref_5_15_0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: *ref_4_17_0
