@@ -96,9 +96,13 @@ class _VirtualMachine:
         self._vm_provision = None
         self.tested_components = {}
         self.deffault_open_port = 5985
+        self.id = None
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
+
+    def set_id(self, id):
+        self.id = id
 
     def get_log_folder(self):
         vm_folder = f"{context.scenario.host_log_folder}/{self.name}"

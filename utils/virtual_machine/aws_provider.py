@@ -34,7 +34,7 @@ class AWSPulumiProvider(VmProvider):
             self.pulumi_ssh = PulumiSSH()
             self.pulumi_ssh.load(self.vms)
             # Debug purposes. How many instances, created by system-tests are running in the AWS account?
-            self._debug_instances()
+            self._check_running_instances()
             for vm in self.vms:
                 logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
                 self._start_vm(vm)
@@ -74,6 +74,7 @@ class AWSPulumiProvider(VmProvider):
 
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
         Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
+        Output.all(vm, ec2_server.id).apply(lambda args: args[0].set_id(args[1]))
         pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
         Output.all(ec2_server.private_ip, vm.name, ec2_server.id).apply(
             lambda args: vm_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}:{args[2]}")
@@ -92,7 +93,11 @@ class AWSPulumiProvider(VmProvider):
 
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
+        logger.info(f"Listing machines before destroy")
+        self._check_running_instances()
         self.stack.destroy(on_output=logger.info)
+        logger.info(f"Listing machines after destroy")
+        self._check_running_instances(vms=self.vms)
 
     def _get_cached_ami(self, vm):
         """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
@@ -154,7 +159,7 @@ class AWSPulumiProvider(VmProvider):
         logger.info(f"Tags for the VM [{vm.name}]: {tags}")
         return tags
 
-    def _debug_instances(self):
+    def _check_running_instances(self, vms=None):
         """ Print the instances created by system-tests and still running in the AWS account """
 
         instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
@@ -163,6 +168,11 @@ class AWSPulumiProvider(VmProvider):
         for instance_id in instances.ids:
             logger.info(f"Instance id: [{instance_id}]  status:[running] ")
         logger.info(f"Total tags: {instances.instance_tags}")
+
+        logger.info("Checking if there are any instances running afer destroying the stack")
+        if vms:
+            for vm in vms:
+                assert vm.id not in instances.ids, f"Vm still running!!! VM: {vm.name} id: {vm.id}"
 
 
 class AWSCommander(Commander):
