@@ -170,10 +170,6 @@ class _Base_Debugger_Test:
         return self.all_probes_installed
 
     def assert_all_probes_are_installed(self):
-        data_debug = interfaces.agent.get_data(_DEBUGER_PATH)
-        for data in data_debug:
-            self.wait_for_all_probes_installed(data)
-
         if not self.all_probes_installed:
             raise ValueError("At least one probe is missing")
 

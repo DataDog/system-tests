@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ApmTestApi.Endpoints;
 
@@ -49,8 +50,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
         if (requestBodyObject.TryGetValue("http_headers", out var headersList))
         {
             var extractedContext = _spanContextExtractor.Extract(
-                    ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
-                    getter: GetHeaderValues!);
+            ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
+            getter: GetHeaderValues!);
             
             _logger.LogInformation("Extracted SpanContext: {ExtractedContext}", extractedContext);
 
@@ -112,12 +113,56 @@ public abstract class ApmTestApiOtel : ApmTestApi
             }
         }
         
+        var linksList = new List<ActivityLink>();
+
+        if (requestBodyObject.TryGetValue("links", out var links))
+        {
+            foreach (var spanLink in (JArray)links)
+            {
+                var parentSpanLink = Convert.ToUInt64(spanLink["parent_id"]);
+
+                ActivityTagsCollection? tags = default;
+                if (spanLink["attributes"] is not null)
+                {
+                    tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)spanLink["attributes"])?.ToObject<Dictionary<string, object>>());
+                }
+
+                ActivityContext contextToLink = new ActivityContext();
+
+                if (parentSpanLink != null && parentSpanLink > 0)
+                {
+                    contextToLink = FindActivity(parentSpanLink).Context;
+                }
+                else 
+                {
+                    var extractedContext = _spanContextExtractor.Extract(
+                            ((Newtonsoft.Json.Linq.JArray)spanLink["http_headers"]).ToObject<string[][]>(),
+                            getter: GetHeaderValues!);
+
+                    var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
+                    var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
+                    var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
+                    var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext });
+                    var tracestate = (string)spanLink["http_headers"][1][0] == "tracestate" ? (string)spanLink["http_headers"][1][1] : datadogHeadersTracestate;
+
+                    contextToLink = new ActivityContext(
+                        parentTraceId,
+                        parentSpanId,
+                        flags,
+                        (string)tracestate,
+                        isRemote: true);
+                }
+
+                linksList.Add(new ActivityLink(contextToLink, tags));
+            }
+        }
+
         var activity = ApmTestApiActivitySource.StartActivity(
             (string)requestBodyObject["name"],
             kind,
             parentContext,
             tags: null,
-            links: null,
+            links: linksList,
             startTime);
         
         if (activity is null)
@@ -388,7 +433,17 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 || values is long
                 || values is double)
             {
-                activity.SetTag(key, values);
+                if (key == "http.response.status_code")
+                {
+                    // http.response.status_code is an int type
+                    // the .NET Tracer only will remap this tag _if_ it is an int to ensure we aren't remapping other, invalid datatypes
+                    // Newtonsoft will only convert JSON numerical types into longs or doubles, so we need to convert the datatype here
+                    activity.SetTag(key, Convert.ToInt32(values));
+                }
+                else
+                {
+                    activity.SetTag(key, values);
+                }
             }
             else if (values is System.Collections.IEnumerable valuesList)
             {
@@ -424,6 +479,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
             }
             else if (values is System.Collections.IEnumerable valuesList)
             {
+                Console.WriteLine(valuesList.GetType());
+
                 var toAdd = new List<object>();
                 foreach (var value in valuesList)
                 {
@@ -431,7 +488,26 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     toAdd.Add(valueToAdd);
                 }
 
-                tags.Add(key, toAdd.ToArray());
+                if (toAdd.Count > 0)
+                {
+                    var type = toAdd[0].GetType();
+                    if (type == typeof(string))
+                    {
+                        tags.Add(key, toAdd.Cast<string>().ToArray());
+                    }
+                    else if (type == typeof(long))
+                    {
+                        tags.Add(key, toAdd.Cast<long>().ToArray());
+                    }
+                    else if (type == typeof(bool))
+                    {
+                        tags.Add(key, toAdd.Cast<bool>().ToArray());
+                    }
+                    else if (type == typeof(double))
+                    {
+                        tags.Add(key, toAdd.Cast<double>().ToArray());
+                    }
+                }
             }
         }
 

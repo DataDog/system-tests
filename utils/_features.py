@@ -2186,3 +2186,23 @@ class features:
         """
         pytest.mark.features(feature_id=298)(test_object)
         return test_object
+
+    @staticmethod
+    def debugger_expression_language(test_object):
+        """
+        Expression Language
+
+        https://feature-parity.us1.prod.dog/#/?feature=303
+        """
+        pytest.mark.features(feature_id=303)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_standalone(test_object):
+        """
+        Appsec Standalone Billing
+
+        https://feature-parity.us1.prod.dog/#/?feature=305
+        """
+        pytest.mark.features(feature_id=305)(test_object)
+        return test_object

@@ -576,9 +576,13 @@ tests/:
         '*': v0.87.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses:
         '*': v0.111.0
@@ -866,6 +870,8 @@ tests/:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: 
         '*': missing_feature

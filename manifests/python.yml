@@ -343,13 +343,15 @@ tests/:
       Test_Basic:
         '*': v1.1.0rc2.dev
         fastapi: v2.4.0.dev1
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation:
+        '*': v2.10.0-rc1
+        uwsgi-poc: bug
     test_automated_login_events.py:
-      Test_Login_Events: 
-        '*': v2.10.0.dev
-        fastapi: missing_feature
-      Test_Login_Events_Extended: 
-        '*': v2.10.0.dev
-        fastapi: missing_feature
+      Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
+      Test_Login_Events_Extended: irrelevant (was v2.10.0.dev but will be replaced by V2)
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses:
         '*': v1.16.1
@@ -465,6 +467,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: missing_feature
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature
   integrations/:
@@ -589,7 +593,7 @@ tests/:
       Test_128_Bit_Traceids: v2.6.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: flaky (failure 2.8.0/2.9.0.dev)
-      TestDynamicConfigSamplingRules: missing_feature
+      TestDynamicConfigSamplingRules: v2.9.0dev
       TestDynamicConfigTracingEnabled: flaky (failure 2.8.0/2.9.0.dev)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)

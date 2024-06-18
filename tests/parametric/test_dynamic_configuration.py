@@ -689,6 +689,9 @@ class TestDynamicConfigSamplingRules:
         context.library == "cpp",
         reason="JSON tag format in RC differs from the JSON tag format used in DD_TRACE_SAMPLING_RULES",
     )
+    @bug(context.library == "ruby", reason="RC_SAMPLING_TAGS_RULE_RATE is not respected")
+    @missing_feature(library="nodejs")
+    @missing_feature(library="python")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
@@ -801,3 +804,27 @@ class TestDynamicConfigSamplingRules:
         span = trace[0]
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
+
+    @bug(library="cpp", reason="unknown")
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
+        """Only the last set of sampling rules should be applied"""
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rules": [{"service": "svc*", "sample_rate": 0.5, "provenance": "customer"}],
+            },
+        )
+
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rules": [{"service": "foo*", "sample_rate": 0.1, "provenance": "customer"}],
+            },
+        )
+
+        trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
+        assert_sampling_rate(trace, 0.1)
+
+        trace = send_and_wait_trace(test_library, test_agent, name="test2", service="svc")
+        assert_sampling_rate(trace, 1)

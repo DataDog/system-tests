@@ -269,6 +269,11 @@ jobs:
       run: ./run.sh APPSEC_RASP
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_STANDALONE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
+      run: ./run.sh APPSEC_STANDALONE
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
@@ -324,6 +329,11 @@ jobs:
     - name: Run DEBUGGER_PII_REDACTION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_EXPRESSION_LANGUAGE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_EXPRESSION_LANGUAGE"')
+      run: ./run.sh DEBUGGER_EXPRESSION_LANGUAGE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

@@ -66,6 +66,7 @@ tests/:
       test_telemetry.py: irrelevant (ASM is not implemented in C++)
     test_PII.py: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
+    test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
     test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
     test_client_ip.py: irrelevant (ASM is not implemented in C++)
@@ -89,6 +90,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: irrelevant
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: irrelevant
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
   integrations/:

@@ -1716,9 +1716,20 @@ class scenarios:
 
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+        },
         appsec_enabled=True,
         doc="Scenario for checking extended mode in automatic user events",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
@@ -1889,6 +1900,15 @@ class scenarios:
         },
         library_interface_timeout=5,
         doc="Check pii redaction",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    debugger_expression_language = EndToEndScenario(
+        "DEBUGGER_EXPRESSION_LANGUAGE",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_EXPRESSION_LANGUAGE"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=5,
+        doc="Check expression language",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
