@@ -116,7 +116,11 @@ func SQLi(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	_, err = db.Exec("SELECT * FROM users WHERE id = '" + sqli)
+	if _, err = db.Exec("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)"); err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	_, err = db.Exec("SELECT * FROM users WHERE name = '" + sqli)
 	if events.IsSecurityError(err) {
 		return
 	}
