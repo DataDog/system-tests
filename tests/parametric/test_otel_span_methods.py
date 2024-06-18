@@ -13,7 +13,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
-from utils import features, missing_feature, irrelevant, context, scenarios
+from utils import bug, features, missing_feature, irrelevant, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -400,6 +400,7 @@ class Test_Otel_Span_Methods:
         assert span.get("name") == "internal"
         assert span.get("resource") == "ok_span"
 
+    @bug(context.library < "ruby@2.2.0", reason="Older versions do not generate datadog spans with the correct ids")
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -428,10 +429,11 @@ class Test_Otel_Span_Methods:
 
         # compare the values of the span context with the values of the trace sent to the agent
         traces = test_agent.wait_for_num_traces(1)
-        _, opt2 = traces[0]
-        assert opt2.get("resource") == "opt2"
-        assert opt2.get("trace_id") == int(context.get("trace_id"), 16)
-        assert opt2.get("span_id") == int(context.get("span_id"), 16)
+        _, op2 = traces[0]
+        assert op2["resource"] == "op2"
+        assert op2["span_id"] == int(context["span_id"], 16)
+        op2_tidhex = op2["meta"].get("_dd.p.tid", "") + "{:016x}".format(op2["trace_id"])
+        assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
