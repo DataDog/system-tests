@@ -14,7 +14,7 @@ import (
 	"os"
 )
 
-func parseRASPRequest(w http.ResponseWriter, r *http.Request, key string) string {
+func parseRASPRequest(r *http.Request, key string) string {
 	var input string
 
 	switch r.Method {
@@ -22,44 +22,47 @@ func parseRASPRequest(w http.ResponseWriter, r *http.Request, key string) string
 		input = r.URL.Query().Get(key)
 	case http.MethodPost:
 		var (
-			body map[string]string
 			err  error
+			body map[string]string
 		)
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			err = json.NewDecoder(r.Body).Decode(&body)
 		case "application/xml":
-			err = xml.NewDecoder(r.Body).Decode(&body)
+			var xmlBody []string
+			xml.NewDecoder(r.Body).Decode(&xmlBody)
+			body = map[string]string{key: xmlBody[0]}
 		case "application/x-www-form-urlencoded":
 			err = r.ParseForm()
-			body[key] = r.Form.Get(key)
+			body = map[string]string{key: r.Form.Get(key)}
 		default:
 			err = errors.New("unsupported content type")
 		}
 		if err != nil {
-			w.WriteHeader(400)
 			log.Fatalf("failed to parse body: %v\n", err)
-			return ""
 		}
 
-		appsec.MonitorParsedHTTPBody(r.Context(), body)
+		if _, ok := body[key]; !ok {
+			log.Fatalln("missing key in body: ", key)
+		}
+
+		if err := appsec.MonitorParsedHTTPBody(r.Context(), body); err != nil {
+			log.Fatalf("Body Monitoring should not block the request: %v\n", err)
+		}
 		input = body[key]
 	default:
-		w.WriteHeader(405)
-		return ""
+		log.Fatalln("method not allowed")
 	}
 
 	if len(input) == 0 {
-		w.WriteHeader(422)
 		log.Fatalln("missing required parameter")
-		return ""
 	}
 
 	return input
 }
 
 func LFI(w http.ResponseWriter, r *http.Request) {
-	path := parseRASPRequest(w, r, "file")
+	path := parseRASPRequest(r, "file")
 	if path == "" {
 		return
 	}
@@ -70,13 +73,12 @@ func LFI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		w.WriteHeader(500)
-		return
+		log.Fatalln(err.Error())
 	}
 }
 
 func SSRF(w http.ResponseWriter, r *http.Request) {
-	path := parseRASPRequest(w, r, "domain")
+	path := parseRASPRequest(r, "domain")
 	if path == "" {
 		return
 	}
@@ -84,7 +86,7 @@ func SSRF(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest("GET", "http://"+path, nil)
 	if err != nil {
 		w.WriteHeader(500)
-		log.Fatalln([]byte(err.Error()))
+		log.Fatalln(err.Error())
 		return
 	}
 
@@ -94,13 +96,12 @@ func SSRF(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		w.WriteHeader(500)
-		return
+		log.Fatalln(err.Error())
 	}
 }
 
 func SQLi(w http.ResponseWriter, r *http.Request) {
-	sqli := parseRASPRequest(w, r, "user_id")
+	sqli := parseRASPRequest(r, "user_id")
 	if sqli == "" {
 		return
 	}
@@ -109,19 +110,18 @@ func SQLi(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		w.WriteHeader(500)
-		log.Fatalln([]byte(err.Error()))
+		log.Fatalln(err.Error())
 		return
 	}
 
 	defer db.Close()
 
-	_, err = db.Exec("SELECT * FROM users WHERE id = " + sqli)
+	_, err = db.Exec("SELECT * FROM users WHERE id = '" + sqli)
 	if events.IsSecurityError(err) {
 		return
 	}
 
 	if err != nil {
-		w.WriteHeader(500)
-		return
+		log.Fatalln(err.Error())
 	}
 }
