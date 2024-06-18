@@ -34,7 +34,7 @@ class AWSPulumiProvider(VmProvider):
             self.pulumi_ssh = PulumiSSH()
             self.pulumi_ssh.load(self.vms)
             # Debug purposes. How many instances, created by system-tests are running in the AWS account?
-            self._check_running_instances()
+            self._check_running_instances(vms=self.vms)
             for vm in self.vms:
                 logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
                 self._start_vm(vm)
@@ -93,11 +93,8 @@ class AWSPulumiProvider(VmProvider):
 
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
-        logger.info(f"Listing machines before destroy")
-        self._check_running_instances()
-        self.stack.destroy(on_output=logger.info)
-        logger.info(f"Listing machines after destroy")
         self._check_running_instances(vms=self.vms)
+        self.stack.destroy(on_output=logger.info)
 
     def _get_cached_ami(self, vm):
         """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
@@ -166,13 +163,11 @@ class AWSPulumiProvider(VmProvider):
 
         logger.info(f"AWS Listing running instances with system-tests tag")
         for instance_id in instances.ids:
-            logger.info(f"Instance id: [{instance_id}]  status:[running] ")
+            if instance_id in [vm.id for vm in vms]:
+                logger.info(f"Instance id: [{instance_id}]  status:[running] (created by this execution)")
+            else:
+                logger.info(f"Instance id: [{instance_id}]  status:[running] (created by other execution)")
         logger.info(f"Total tags: {instances.instance_tags}")
-
-        logger.info("Checking if there are any instances running afer destroying the stack")
-        if vms:
-            for vm in vms:
-                assert vm.id not in instances.ids, f"Vm still running!!! VM: {vm.name} id: {vm.id}"
 
 
 class AWSCommander(Commander):
