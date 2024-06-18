@@ -2188,6 +2188,16 @@ class features:
         return test_object
 
     @staticmethod
+    def debugger_expression_language(test_object):
+        """
+        Expression Language
+
+        https://feature-parity.us1.prod.dog/#/?feature=303
+        """
+        pytest.mark.features(feature_id=303)(test_object)
+        return test_object
+
+    @staticmethod
     def appsec_standalone(test_object):
         """
         Appsec Standalone Billing
