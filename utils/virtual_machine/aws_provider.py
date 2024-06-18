@@ -90,7 +90,7 @@ class AWSPulumiProvider(VmProvider):
         )
         # Install provision on the started server
 
-    # TODO RMM self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
+        self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
 
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
