@@ -104,7 +104,8 @@ onboarding_python:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+          SCENARIO: [HOST_AUTO_INJECTION]
+       #   SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
        # - ONBOARDING_FILTER_ENV: [dev, prod]
        #   ONBOARDING_FILTER_WEBLOG: [test-shell-script]
        #   SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    

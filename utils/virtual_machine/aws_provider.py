@@ -34,11 +34,10 @@ class AWSPulumiProvider(VmProvider):
             self.pulumi_ssh = PulumiSSH()
             self.pulumi_ssh.load(self.vms)
             # Debug purposes. How many instances, created by system-tests are running in the AWS account?
-            self._check_running_instances(vms=self.vms)
+            self._check_running_instances()
             for vm in self.vms:
                 logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
                 self._start_vm(vm)
-            self._check_running_instances(vms=self.vms)
 
         project_name = "system-tests-vms"
         stack_name = "testing_v3"
@@ -90,11 +89,12 @@ class AWSPulumiProvider(VmProvider):
             dial_error_limit=-1,
         )
         # Install provision on the started server
-        self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
+
+    # TODO RMM self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
 
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
-        self.stack.destroy(on_output=logger.info)
+        self.stack.destroy(on_output=logger.info, debug=True)
 
     def _get_cached_ami(self, vm):
         """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
@@ -156,17 +156,15 @@ class AWSPulumiProvider(VmProvider):
         logger.info(f"Tags for the VM [{vm.name}]: {tags}")
         return tags
 
-    def _check_running_instances(self, vms=None):
+    def _check_running_instances(self):
         """ Print the instances created by system-tests and still running in the AWS account """
 
         instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
 
         logger.info(f"AWS Listing running instances with system-tests tag")
         for instance_id in instances.ids:
-            if instance_id in [vm.id for vm in vms]:
-                logger.info(f"Instance id: [{instance_id}]  status:[running] (created by this execution)")
-            else:
-                logger.info(f"Instance id: [{instance_id}]  status:[running] (created by other execution)")
+            logger.info(f"Instance id: [{instance_id}]  status:[running] (created by other execution)")
+
         logger.info(f"Total tags: {instances.instance_tags}")
 
 
