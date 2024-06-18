@@ -641,7 +641,7 @@ class Test_V2_Login_Events:
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" in meta
-            assert "usr.id" == "social-security-id"
+            assert meta["usr.id"] == "social-security-id"
             # deprecated tags
             assert "appsec.events.users.login.success.email" not in meta
             assert "appsec.events.users.login.success.username" not in meta
@@ -658,7 +658,7 @@ class Test_V2_Login_Events:
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" in meta
-            assert "usr.id" == "social-security-id"
+            assert meta["usr.id"] == "social-security-id"
             # deprecated tags
             assert "appsec.events.users.login.success.email" not in meta
             assert "appsec.events.users.login.success.username" not in meta
