@@ -38,6 +38,7 @@ class AWSPulumiProvider(VmProvider):
             for vm in self.vms:
                 logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
                 self._start_vm(vm)
+            self._check_running_instances(vms=self.vms)
 
         project_name = "system-tests-vms"
         stack_name = "testing_v3"
@@ -93,7 +94,6 @@ class AWSPulumiProvider(VmProvider):
 
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
-        self._check_running_instances(vms=self.vms)
         self.stack.destroy(on_output=logger.info)
 
     def _get_cached_ami(self, vm):
