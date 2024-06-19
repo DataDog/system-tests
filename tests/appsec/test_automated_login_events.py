@@ -1211,6 +1211,79 @@ class Test_V2_Login_Events_Anon:
         interfaces.library.validate_spans(self.r_hdr_failure, validate_login_failure_headers)
 
 
+class _Test_V2_Remote_Config:
+
+    USER = "test"
+    PASSWORD = "1234"
+    USER_HASH = "anon_5f31ffaf95946d2dc703ddc96a100de5"
+
+    @property
+    def username_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[username]" if "rails" in context.weblog_variant else "username"
+
+    @property
+    def password_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[password]" if "rails" in context.weblog_variant else "password"
+
+    def _wait_for_rc_and_trigger_request(self):
+        interfaces.library.wait_for_remote_config_request()
+        self.request = weblog.post(
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
+        )
+
+
+@rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
+@features.user_monitoring
+@scenarios.appsec_auto_events_disabled_rc
+class Test_V2_Disabled_Remote_Config(_Test_V2_Remote_Config):
+    def setup_login(self):
+        self._wait_for_rc_and_trigger_request()
+
+    def test_login(self):
+        assert self.request.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.request):
+            meta = span.get("meta", {})
+            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert "appsec.events.users.login.success.track" not in meta
+            assert "usr.id" not in meta
+
+
+@rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
+@features.user_monitoring
+@scenarios.appsec_auto_events_anonymization_rc
+class Test_V2_Anonymization_Remote_Config(_Test_V2_Remote_Config):
+    def setup_login(self):
+        self._wait_for_rc_and_trigger_request()
+
+    def test_login(self):
+        assert self.request.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.request):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == self.USER_HASH
+            assert_priority(span, meta)
+
+
+@rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
+@features.user_monitoring
+@scenarios.appsec_auto_events_identification_rc
+class Test_V2_Identification_Remote_Config(_Test_V2_Remote_Config):
+    def setup_login(self):
+        self._wait_for_rc_and_trigger_request()
+
+    def test_login(self):
+        assert self.request.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.request):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == self.USER
+            assert_priority(span, meta)
+
+
 def assert_priority(span, meta):
     MANUAL_KEEP_SAMPLING_PRIORITY = 2
     if span["metrics"].get("_sampling_priority_v1") != MANUAL_KEEP_SAMPLING_PRIORITY:
