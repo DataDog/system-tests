@@ -12,12 +12,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing input variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing input variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "ref": "inputValue"
@@ -36,12 +33,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing return variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing return variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "ref": "@return"
@@ -60,12 +54,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing local variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing local variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "ref": "localValue"
@@ -84,12 +75,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing complex object int variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing complex object int variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "getmember": [
@@ -113,12 +101,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing complex object double variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing complex object double variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "getmember": [
@@ -142,12 +127,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing complex object string variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing complex object string variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "getmember": [
@@ -171,12 +153,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing complex object bool variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing complex object bool variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "getmember": [
@@ -200,12 +179,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing complex object collection first variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing complex object collection first variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "index": [
@@ -234,12 +210,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing complex object dictionary 'two' keyword. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing complex object dictionary 'two' keyword. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "index": [
@@ -268,12 +241,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing duration variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing duration variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "ref": "@duration"
@@ -292,12 +262,9 @@
       "evaluateAt": "EXIT",
       "segments": [
         {
-          "str": "Accessing exception variable. Value is: ",
-          "dsl": null,
-          "json": null
+          "str": "Accessing exception variable. Value is: "
         },
         {
-          "str": null,
           "dsl": "",
           "json": {
             "ref": "@exception"
