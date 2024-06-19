@@ -10,6 +10,7 @@
       - name: copy-agent-docker-compose
         local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
   remote-command: |
+    sudo mkdir -p /etc/datadog-agent/inject
     bash execute_install_script.sh docker
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml

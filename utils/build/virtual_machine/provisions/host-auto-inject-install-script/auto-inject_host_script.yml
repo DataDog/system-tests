@@ -6,5 +6,6 @@
       - name: copy-tracer-debug-config
         local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
   remote-command: |
+    sudo mkdir -p /etc/datadog-agent/inject
     bash execute_install_script.sh host 
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
