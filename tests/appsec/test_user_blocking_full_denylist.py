@@ -43,6 +43,11 @@ class Test_UserBlocking_FullDenylist:
         ]
 
     @bug(context.library < "ruby@1.12.1", reason="not setting the tags on the service entry span")
+    @bug(
+        context.library >= "java@1.22.0" and context.library < "java@1.35.0",
+        reason="Failed on large expiration values, which are used in this test",
+    )
+    @bug(library="java", reason="Request blocked but appsec.blocked tag not set")
     @missing_feature(library="python")
     def test_blocking_test(self):
         """Test with a denylisted user"""

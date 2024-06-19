@@ -3,6 +3,9 @@ package controllers
 import akka.stream.Materializer
 import akka.stream.javadsl.Sink
 import akka.util.ByteString
+import datadog.appsec.api.blocking.Blocking
+import datadog.trace.api.interceptor.MutableSpan
+import io.opentracing.util.GlobalTracer
 import play.api.libs.json.{Json, Writes}
 import play.api.libs.ws.ahc.{AhcWSClient, AhcWSRequest, StandaloneAhcWSResponse}
 import play.api.libs.ws.{WSClient, WSRequest}
@@ -111,6 +114,20 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
 
   def status(code: Int) = Action {
     Results.Status(code)
+  }
+
+  def users(user: String) = Action {
+    var span = GlobalTracer.get().activeSpan()
+    span match {
+      case span1: MutableSpan =>
+        var localRootSpan = span1.getLocalRootSpan()
+        localRootSpan.setTag("usr.id", user);
+      case _ =>
+    }
+    Blocking
+      .forUser(user)
+      .blockIfMatch();
+    Results.Ok(s"Hello $user")
   }
 
   def loginSuccess(event_user_id: Option[String]) = Action {

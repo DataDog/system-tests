@@ -741,16 +741,15 @@ tests/:
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: bug (RC payload limit)
-        # '*': missing_feature
-        # jersey-grizzly2: v1.7.0
-        # ratpack: v1.7.0
-        # resteasy-netty3: v1.7.0
-        # spring-boot: v0.110.0
-        # spring-boot-openliberty: v0.115.0
-        # spring-boot-undertow: v0.111.0
-        # spring-boot-jetty: v0.111.0
-        # vertx3: v1.7.0
+      Test_AppSecIPBlockingFullDenylist:
+        '*': v0.111.0
+        jersey-grizzly2: v1.7.0
+        ratpack: v1.7.0
+        resteasy-netty3: v1.7.0
+        spring-boot: v0.110.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: v0.115.0
+        vertx3: v1.7.0
     test_logs.py:
       Test_Standardization:
         akka-http: v1.22.0
@@ -840,16 +839,15 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: bug (RC payload limit)
-        # '*': missing_feature
-        # jersey-grizzly2: v1.7.0
-        # ratpack: v1.7.0
-        # resteasy-netty3: v1.7.0
-        # spring-boot: v0.110.0
-        # spring-boot-openliberty: v0.115.0
-        # spring-boot-undertow: v0.111.0
-        # spring-boot-jetty: v0.111.0
-        # vertx3: v1.7.0
+      Test_UserBlocking_FullDenylist:
+        '*': v0.111.0
+        jersey-grizzly2: v1.7.0
+        ratpack: v1.7.0
+        resteasy-netty3: v1.7.0
+        spring-boot: v0.110.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: v0.115.0
+        vertx3: v1.7.0
     test_versions.py:
       Test_Events: v0.90.0
   debugger/:
