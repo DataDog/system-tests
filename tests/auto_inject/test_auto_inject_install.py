@@ -116,16 +116,10 @@ class _AutoInjectBaseTest:
 class TestHostAutoInjectManual(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        # TODO RMM self._test_install(virtual_machine)
-        pass
+        self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
     def test_uninstall(self, virtual_machine):
-        logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
-        # TODO RMM
-        pass
-
-    def ____test_uninstall(self, virtual_machine):
         logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
         stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
@@ -218,9 +212,8 @@ class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
         logger.info(f"Http request done for ip [{vm_ip}]")
 
 
-# TODO RMM
-# @features.host_auto_instrumentation
-# @scenarios.host_auto_injection
+@features.host_auto_instrumentation
+@scenarios.host_auto_injection
 class TestHostAutoInjectChaos(_AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
         """ Test break the installation and restore it.
