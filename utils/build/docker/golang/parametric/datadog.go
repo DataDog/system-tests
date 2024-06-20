@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
+	"log"
+	"regexp"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -111,24 +112,43 @@ type CustomLogger struct {
 }
 
 func (l *CustomLogger) Log(logMessage string) {
-	start := strings.Index(logMessage, "{")
-	end := strings.LastIndex(logMessage, "}")
-
-	if start == -1 || end == -1 {
-		fmt.Println("JSON not found in log message")
+	re := regexp.MustCompile(`DATADOG TRACER CONFIGURATION (\{.*\})`)
+	matches := re.FindStringSubmatch(logMessage)
+	if len(matches) < 2 {
+		log.Printf("JSON not found in log message")
 		return
 	}
-	jsonStr := logMessage[start : end+1]
+	jsonStr := matches[1]
+
 	var config map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonStr), &config); err != nil {
-		fmt.Printf("Error unmarshaling JSON: %v\n", err)
+		log.Printf("Error unmarshaling JSON: %v\n", err)
 		return
 	}
+
 	stringConfig := make(map[string]string)
 	for key, value := range config {
 		stringConfig[key] = fmt.Sprintf("%v", value)
 	}
 	globalConfig = stringConfig
+}
+
+func parseTracerConfig(tracerEnabled string) map[string]string {
+	config := make(map[string]string)
+	config["dd_service"] = globalConfig["service"]
+	// config["dd_log_level"] = nil // golang doesn't support DD_LOG_LEVEL, only thing it supports is passing in DEBUG or DD_TRACE_DEBUG to set debug to true
+	config["dd_trace_sample_rate"] = globalConfig["sample_rate"]
+	config["dd_trace_enabled"] = tracerEnabled
+	config["dd_runtime_metrics_enabled"] = globalConfig["runtime_metrics_enabled"]
+	config["dd_tags"] = globalConfig["tags"]
+	config["dd_trace_propagation_style"] = globalConfig["propagation_style_inject"]
+	config["dd_trace_debug"] = globalConfig["debug"]
+	// config["dd_trace_otel_enabled"] = nil         // golang doesn't support DD_TRACE_OTEL_ENABLED
+	// config["dd_trace_sample_ignore_parent"] = nil // golang doesn't support DD_TRACE_SAMPLE_IGNORE_PARENT
+	config["dd_env"] = globalConfig["env"]
+	config["dd_version"] = globalConfig["dd_version"]
+	log.Print("Parsed config: ", config)
+	return config
 }
 
 func (s *apmClientServer) GetTraceConfig(ctx context.Context, args *GetTraceConfigArgs) (*GetTraceConfigReturn, error) {
@@ -140,20 +160,7 @@ func (s *apmClientServer) GetTraceConfig(ctx context.Context, args *GetTraceConf
 	if len(globalConfig) == 0 {
 		tracerEnabled = "false"
 	}
-	config := make(map[string]string)
-	config["dd_service"] = globalConfig["service"]
-	config["dd_log_level"] = "null" // golang doesn't support DD_LOG_LEVEL, only thing it supports is passing in DEBUG or DD_TRACE_DEBUG to set debug to true
-	config["dd_trace_sample_rate"] = globalConfig["sample_rate"]
-	config["dd_trace_enabled"] = tracerEnabled
-	config["dd_runtime_metrics_enabled"] = globalConfig["runtime_metrics_enabled"]
-	config["dd_tags"] = globalConfig["tags"]
-	config["dd_trace_propagation_style"] = globalConfig["propagation_style_inject"]
-	config["dd_trace_debug"] = globalConfig["debug"]
-	config["dd_trace_otel_enabled"] = "null"         // golang doesn't support DD_TRACE_OTEL_ENABLED
-	config["dd_trace_sample_ignore_parent"] = "null" // golang doesn't support DD_TRACE_SAMPLE_IGNORE_PARENT
-	config["dd_env"] = globalConfig["env"]
-	config["dd_version"] = globalConfig["dd_version"]
-	return &GetTraceConfigReturn{Config: config}, nil
+	return &GetTraceConfigReturn{Config: parseTracerConfig(tracerEnabled)}, nil
 }
 
 func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeadersArgs) (*InjectHeadersReturn, error) {
