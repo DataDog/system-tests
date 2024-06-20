@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"github.com/mattn/go-sqlite3"
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec/events"
-	"gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"log"
 	"net/http"
 	"os"
+
+	_ "github.com/mattn/go-sqlite3"
+	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
+	"gopkg.in/DataDog/dd-trace-go.v1/appsec/events"
+	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 )
 
 func parseRASPRequest(r *http.Request, key string) string {
@@ -106,8 +107,7 @@ func SQLi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sql.Register("sqlite3", &sqlite3.SQLiteDriver{})
-	db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sqltrace.Open("sqlite3", ":memory:")
 	if err != nil {
 		w.WriteHeader(500)
 		log.Fatalln(err.Error())
@@ -120,7 +120,7 @@ func SQLi(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err.Error())
 	}
 
-	_, err = db.Exec("SELECT * FROM users WHERE name = '" +sqli+"'")
+	_, err = db.ExecContext(r.Context(), "SELECT * FROM users WHERE '"+sqli)
 	if events.IsSecurityError(err) {
 		return
 	}
