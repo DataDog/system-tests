@@ -3,10 +3,11 @@ on:
   schedule:
     - cron: '15 3 * * *'
   workflow_dispatch:
-
+  pull_request:
+    branches:
+    - '**'
 jobs:
   prune-init-images:
-    if: ${{ false }} #Enable when Github support fix the problem related to the image versions. 
     name: Prune dd-lib-java-init docker images
     runs-on: ubuntu-latest
     permissions:
