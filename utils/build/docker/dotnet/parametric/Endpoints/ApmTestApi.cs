@@ -148,6 +148,17 @@ public abstract class ApmTestApi
             Origin.SetValue(spanContext, origin);
         }
 
+        if (parsedDictionary.TryGetValue("span_tags", out var tagsToken))
+        {
+            foreach (var tag in (Newtonsoft.Json.Linq.JArray)tagsToken)
+            {
+                var key = (string)tag[0]!;
+                var value = (string?)tag[1];
+
+                span.SetTag(key, value);
+            }
+        }
+
         Spans[span.SpanId] = span;
 
         return JsonConvert.SerializeObject(new
