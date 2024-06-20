@@ -6,8 +6,9 @@
       - name: copy-tracer-debug-config
         local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
   remote-command: |
-    bash execute_install_script.sh host 
+    printf "DD_APM_RECEIVER_SOCKET=/opt/datadog/apm/inject/run/apm.socket\nDD_DOGSTATSD_SOCKET=/opt/datadog/apm/inject/run/dsd.socket\nDD_USE_DOGSTATSD=true\n" | sudo tee /var/run/datadog-installer/environment
+    bash execute_install_script.sh host
     sudo mkdir -p /var/run/datadog-installer
     sudo mkdir -p /opt/datadog/apm/inject/run
-    printf "DD_APM_RECEIVER_SOCKET=/opt/datadog/apm/inject/run/apm.socket\nDD_DOGSTATSD_SOCKET=/opt/datadog/apm/inject/run/dsd.socket\nDD_USE_DOGSTATSD=true\n" | sudo tee /var/run/datadog-installer/environment
+    sudo chmod 777 /opt/datadog/apm/inject/run
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml

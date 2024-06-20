@@ -2,7 +2,7 @@
 - os_type: linux
   os_distro: rpm
   remote-command: |
-      if rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent &> /dev/null; then 
+      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)" ]; then 
         export agent_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent);
       else
         export agent_path="$(readlink -f /opt/datadog-packages/datadog-agent/stable)"
@@ -11,8 +11,8 @@
         export agent_version="${agent_version%-1}"
       fi
 
-      if rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject &> /dev/null; then 
-        export inject_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject | grep Version);
+      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)" ]; then 
+        export inject_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject);
       else
         export inject_path="$(readlink -f /opt/datadog-packages/datadog-apm-inject/stable)"
         export inject_path="${inject_path%/}"
@@ -20,16 +20,14 @@
         export inject_version="${inject_version%-1}"
       fi
 
-      if rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG &> /dev/null; then 
-        export tracer_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG | grep Version);
-        export tracer_version=${tracer_version//'Version:'/}
+      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG)" ]; then 
+        export tracer_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG);
       else
         export tracer_path="$(readlink -f /opt/datadog-packages/datadog-apm-library-$DD_LANG/stable)"
         export tracer_path="${tracer_path%/}"
         export tracer_version="${tracer_path##*/}"
         export tracer_version="${tracer_version%-1}"
       fi
-
 
       export installer_path="$(readlink -f /opt/datadog-packages/datadog-installer/stable)"
       export installer_path="${installer_path%/}"
@@ -70,7 +68,6 @@
         export tracer_version="${tracer_path##*/}"
         export tracer_version="${tracer_version%-1}"
       fi
-
 
       export installer_path="$(readlink -f /opt/datadog-packages/datadog-installer/stable)"
       export installer_path="${installer_path%/}"
