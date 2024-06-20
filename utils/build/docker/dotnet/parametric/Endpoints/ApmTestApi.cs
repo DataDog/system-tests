@@ -261,13 +261,13 @@ public abstract class ApmTestApi
         }
 
         var tracerSettings = Tracer.Instance.Settings;
-        var globalSettings = (GlobalSettings)GetGlobalSettingsInstance.GetValue(null);
+        var globalSettings = (GlobalSettings)GetGlobalSettingsInstance.GetValue(null)!;
 
-        var propagationStyleInject = (string[])PropagationStyleInject.GetValue(tracerSettings);
-        var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(tracerSettings);
-        var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(tracerSettings);
+        var propagationStyleInject = (string[])PropagationStyleInject.GetValue(tracerSettings)!;
+        var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(tracerSettings)!;
+        var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(tracerSettings)!;
 
-        Dictionary<string, object> config = new()
+        Dictionary<string, object?> config = new()
         {
             { "dd_service", tracerSettings.ServiceName },
             { "dd_env", tracerSettings.Environment },
