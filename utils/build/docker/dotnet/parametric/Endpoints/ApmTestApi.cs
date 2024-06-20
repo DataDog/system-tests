@@ -25,7 +25,7 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
     }
-    
+
     // Core types
     private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
     private static readonly Type SpanContextType = Type.GetType("Datadog.Trace.SpanContext, Datadog.Trace", throwOnError: true)!;
@@ -87,7 +87,7 @@ public abstract class ApmTestApi
 
         return values.AsReadOnly();
     }
-    
+
     public static async Task StopTracer()
     {
         await Tracer.Instance.ForceFlushAsync();
@@ -115,7 +115,7 @@ public abstract class ApmTestApi
         if (parsedDictionary!.TryGetValue("parent_id", out var parentId))
         {
             var longParentId = Convert.ToUInt64(parentId);
-            
+
             if (creationSettings.Parent is null && longParentId > 0 )
             {
                 var parentSpan = Spans[longParentId];
@@ -149,14 +149,14 @@ public abstract class ApmTestApi
         }
 
         Spans[span.SpanId] = span;
-        
+
         return JsonConvert.SerializeObject(new
         {
             span_id = span.SpanId.ToString(),
             trace_id = span.TraceId.ToString(),
         });
     }
-    
+
     private static async Task SpanSetMeta(HttpRequest request)
     {
         var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
@@ -240,13 +240,13 @@ public abstract class ApmTestApi
             // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
             SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, httpHeaders, Setter });
         }
-        
+
         return JsonConvert.SerializeObject(new
         {
             http_headers = httpHeaders
         });
     }
-        
+
     private static async Task FinishSpan(HttpRequest request)
     {
         var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
@@ -331,7 +331,7 @@ public abstract class ApmTestApi
             await flushTask!;
         }
     }
-    
+
     private static MethodInfo? GenerateInjectMethod()
     {
         if (SpanContextPropagatorType is null)
