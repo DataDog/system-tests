@@ -209,6 +209,11 @@ class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine)
 
+@features.container_auto_installation_script_profiling
+@scenarios.container_auto_injection_install_script_profiling
+class TestContainerAutoInjectInstallScriptProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine, profile=True)
 
 @features.container_auto_instrumentation
 @scenarios.simple_container_auto_injection

@@ -2226,3 +2226,13 @@ class features:
         """
         pytest.mark.features(feature_id=306)(test_object)
         return test_object
+
+    @staticmethod
+    def container_auto_installation_script_profiling(test_object):
+        """
+        Profiling works when enabled through the agent installer script in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=307
+        """
+        pytest.mark.features(feature_id=307)(test_object)
+        return test_object
