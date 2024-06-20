@@ -19,6 +19,7 @@ COPY utils/build/docker/dotnet/parametric ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /app/out
 
+
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
@@ -34,5 +35,8 @@ ENV DD_TRACE_Grpc_ENABLED=false
 ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
+
+# "disable" rate limiting by default by setting it to a large value
+ENV DD_TRACE_RATE_LIMIT=10000000
 
 ENTRYPOINT ["dotnet", "ApmTestApi.dll"]

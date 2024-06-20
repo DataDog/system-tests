@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
+from utils.tools import logger
 
 
 @features.appsec_request_blocking
@@ -514,3 +515,42 @@ class Test_Lambda:
 
     def test_main(self):
         assert False, "Need to write a test"
+
+
+@features.appsec_request_blocking
+@features.grpc_threats_management
+@scenarios.appsec_custom_rules
+class Test_GrpcServerMethod:
+    """Test as a custom rule until we have official rules for the address"""
+
+    def validate_span(self, span, appsec_data):
+        tag = "rpc.grpc.full_method"
+        if not tag in span["meta"]:
+            logger.info(f"Can't find '{tag}' in span's meta")
+            return False
+
+        expected = span["meta"][tag]
+        value = appsec_data["triggers"][0]["rule_matches"][0]["parameters"][0]["value"]
+        if value != expected:
+            logger.info(
+                f"receive rule match with value '{value}', expected to match span tag '{tag}' with value '{expected}'"
+            )
+            return False
+
+        return True
+
+    def setup_grpc_server_method_rule(self):
+        self.request = weblog.grpc("Mr Bean")
+
+    def test_grpc_server_method_rule(self):
+        interfaces.library.assert_waf_attack(
+            self.request, address="grpc.server.method", span_validator=self.validate_span
+        )
+
+    def setup_streaming_grpc_server_method_rule(self):
+        self.request_streaming = weblog.grpc("Mr Stream", streaming=True)
+
+    def test_streaming_grpc_server_method_rule(self):
+        interfaces.library.assert_waf_attack(
+            self.request_streaming, address="grpc.server.method", span_validator=self.validate_span
+        )

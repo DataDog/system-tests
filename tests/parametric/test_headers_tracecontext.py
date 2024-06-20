@@ -479,8 +479,8 @@ class Test_Headers_Tracecontext:
         expects the tracestate to be discarded
         """
         with test_library:
-            _, tracestate1 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1"],])
-            _, tracestate2 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1,bar=2"],])
+            _, tracestate1 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1"],],)
+            _, tracestate2 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1,bar=2"],],)
 
         # Updated the test to check that the number of tracestate list-members is the same,
         # since Datadog will add an entry.
@@ -718,7 +718,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.36.0", reason="Not implemented")
+    @missing_feature(context.library < "java@1.35.0", reason="Not implemented")
     @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -746,7 +746,7 @@ class Test_Headers_Tracecontext:
                 pass
 
             with test_library.start_span(
-                name="p_not_propagated",
+                name="p_not_propagated_valid_dd_tracestate",
                 http_headers=[
                     ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
                     ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
@@ -765,7 +765,7 @@ class Test_Headers_Tracecontext:
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
 
-        assert case3["name"] == "p_not_propagated"
+        assert case3["name"] == "p_not_propagated_valid_dd_tracestate"
         assert case3["meta"]["_dd.parent_id"] == "0000000000000000"
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
@@ -805,7 +805,6 @@ class Test_Headers_Tracecontext:
         Ensure the last parent id tag is set according to the W3C phase 3 spec
         """
         with test_library:
-
             # 1) Trace ids and parent ids in datadog and tracecontext headers match
             with test_library.start_span(
                 name="identical_trace_info",
@@ -918,9 +917,9 @@ class Test_Headers_Tracecontext:
     )
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    def test_tracestate_w3c_p_phase_3_extract_inject_extract_first(self, test_agent, test_library):
+    def test_tracestate_w3c_p_phase_3_extract_first(self, test_agent, test_library):
         """
-        Ensure the last parent id tag is set according to the W3C phase 3 spec
+        Ensure the last parent id tag is not set when only Datadog headers are extracted
         """
 
         # 1) Datadog and tracecontext headers, parent ids do not match

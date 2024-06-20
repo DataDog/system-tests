@@ -13,8 +13,9 @@ chmod 755 install_script_agent7_autoinject.sh
 
 if [ "$1" == "docker" ]; then
     echo "Skipping agent installation in container/docker scenario (Installing only datadog-signing-keys)"
-    DD_NO_AGENT_INSTALL=true ./install_script_agent7.sh
+    # shellcheck disable=SC2154
+    DD_SITE=$DD_injection_repo_url DD_NO_AGENT_INSTALL=true ./install_script_agent7.sh
 fi
 # shellcheck disable=SC2154
-DD_REPO_URL=$DD_injection_repo_url DD_AGENT_DIST_CHANNEL=$DD_injection_dist_channel DD_AGENT_MAJOR_VERSION=$DD_injection_major_version DD_APM_INSTRUMENTATION_LANGUAGES="$DD_LANG" DD_APM_INSTRUMENTATION_ENABLED="$DD_APM_INSTRUMENTATION_ENABLED" ./install_script_agent7_autoinject.sh
+DD_SITE=$DD_injection_repo_url DD_REPO_URL=$DD_injection_repo_url DD_AGENT_DIST_CHANNEL=$DD_injection_dist_channel DD_AGENT_MAJOR_VERSION=$DD_injection_major_version DD_APM_INSTRUMENTATION_LANGUAGES="$DD_LANG" DD_APM_INSTRUMENTATION_ENABLED="$DD_APM_INSTRUMENTATION_ENABLED" ./install_script_agent7_autoinject.sh
 echo "lib-injection install done"

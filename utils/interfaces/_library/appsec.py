@@ -10,7 +10,9 @@ from utils.tools import logger
 
 
 class _WafAttack:
-    def __init__(self, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None):
+    def __init__(
+        self, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None, span_validator=None
+    ):
 
         # rule can be a rule id, or a rule type
         if rule is None:
@@ -31,6 +33,8 @@ class _WafAttack:
 
         self.address = address
         self.key_path = key_path
+
+        self.span_validator = span_validator
 
     @staticmethod
     def _get_parameters(event):
@@ -107,6 +111,9 @@ class _WafAttack:
 
             elif self.address and self.key_path and (self.address, self.key_path) not in full_addresses:
                 logger.info(f"saw {full_addresses}, expecting {(self.address, self.key_path)}")
+
+            elif self.span_validator and not self.span_validator(span, appsec_data):
+                return False  # validator should output the reason for the failure
 
             else:
                 return True

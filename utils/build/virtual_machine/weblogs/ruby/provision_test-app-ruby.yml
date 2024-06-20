@@ -7,14 +7,15 @@ lang_variant:
         os_distro: deb
         remote-command: |
           sudo apt-get -y update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev nodejs yarn
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install rbenv ruby-build ruby-dev
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get -y install git-core zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev libffi-dev nodejs yarn
+          sudo apt-get -y install rbenv ruby-build ruby-dev
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
           sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
       - os_type: linux
         os_distro: rpm
         remote-command: |
-          sudo yum install -y gcc
+          sudo yum install -y gcc libyaml-devel
           sudo amazon-linux-extras install -y ruby3.0
           sudo yum install -y ruby-devel
           sudo yum groupinstall -y "Development Tools"
@@ -23,7 +24,7 @@ lang_variant:
 
 weblog:
     name: test-app-ruby
-    excluded_os_branches: [amazon_linux2_dotnet6,ubuntu18_amd64, amazon_linux2_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6, ubuntu18_amd64, amazon_linux2_amd64, centos_7_amd64]
     install:
       - os_type: linux
 

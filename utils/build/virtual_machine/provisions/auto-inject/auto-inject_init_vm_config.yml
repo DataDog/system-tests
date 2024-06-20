@@ -2,6 +2,7 @@
 - os_type: linux
   os_distro: deb
   remote-command: |
+
     #Disable auto updates. It could raise problems if the update proccess is launched just when we are trying to install de software 
     sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
     sudo sed -i 's/1/0/g'  /etc/apt/apt.conf.d/10periodic || true
@@ -9,21 +10,31 @@
     echo "On VM boot the Apt service status::::"
     sudo ps -fea|grep apt
     echo "On VM boot the System service apt-daily.service  status"
-    sudo systemctl list-units --all apt-daily.service 
+    #These commands will fail on the microvm
+    sudo systemctl list-units --all apt-daily.service || true
 
     sudo rm -rf /etc/cron.daily/update-notifier-common || true
     sudo rm -rf /etc/cron.weekly/update-notifier-common || true
-    sudo systemctl disable --now apt-daily.service
-    sudo systemctl disable --now apt-daily.timer
-    sudo systemctl disable --now apt-daily-upgrade.timer
-    sudo systemctl disable --now apt-daily-upgrade.service
+    sudo systemctl disable --now apt-daily.service || true
+    sudo systemctl disable --now apt-daily.timer || true
+    sudo systemctl disable --now apt-daily-upgrade.timer || true
+    sudo systemctl disable --now apt-daily-upgrade.service || true
 
     echo "After stop updates. Apt service status::::"
     sudo ps -fea|grep apt
     echo "After stop updates. System service apt-daily.service  status"
-    sudo systemctl list-units --all apt-daily.service 
+    sudo systemctl list-units --all apt-daily.service || true
 
     sudo apt-get -y update
+
+    #Install some basic tools (microvm doesn't have them by default)
+    hosts_file="/etc/hosts"
+    if [ ! -s $hosts_file ]; then echo "Creating /etc/hosts file with default values..."
+      # Default values for /etc/hosts file
+      echo "127.0.0.1 localhost" > $hosts_file
+      echo "::1 localhost" >> $hosts_file
+      echo "/etc/hosts file created with default values"
+    fi
 
     echo "After update the Apt service status::::"
     sudo ps -fea|grep apt
@@ -33,7 +44,7 @@
 
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
-    sudo systemctl restart sshd.service
+    sudo systemctl restart sshd.service || true
     echo "DONE"
  
 - os_type: linux

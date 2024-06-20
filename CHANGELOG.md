@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 
 
+### 2024-05 (90 PR merged)
+
+* 2024-05-27 [Use semver for version parser](https://github.com/DataDog/system-tests/pull/2487) by @cbeauchesne
+* 2024-05-07 [[python] decrease the waiting time for python libraries from 25s to 5s](https://github.com/DataDog/system-tests/pull/2431) by @christophe-papazian
+* 2024-05-29 [Manifest references + Node semver migration](https://github.com/DataDog/system-tests/pull/2416) by @simon-id
+* 2024-05-03 [Dynamically compute scenarios to run](https://github.com/DataDog/system-tests/pull/2408) by @cbeauchesne
+
+
+### 2024-04 (104 PR merged)
+
+* 2024-04-18 [Compute dynamically the matrix to run in CI](https://github.com/DataDog/system-tests/pull/2356) by @cbeauchesne
+* 2024-04-18 [Build docker images if there is a label](https://github.com/DataDog/system-tests/pull/2321) by @robertomonteromiguel
+* 2024-04-03 [K8s lib injection: new python variants](https://github.com/DataDog/system-tests/pull/2293) by @robertomonteromiguel
+* 2024-04-25 [Support semver version ranges for `released` decorator (and manifests)](https://github.com/DataDog/system-tests/pull/2045) by @simon-id
+
+
 ### 2024-03 (85 PR merged)
 
 * 2024-03-29 [Fix test that triggers false XPASS](https://github.com/DataDog/system-tests/pull/2281) by @cbeauchesne

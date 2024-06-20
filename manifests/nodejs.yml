@@ -1,3 +1,39 @@
+refs:
+  - &ref_3_0_0 '>=3.0.0 || ^2.13.0'
+  - &ref_3_2_0 '>=3.2.0 || ^2.15.0'
+  - &ref_3_6_0 '>=3.6.0 || ^2.19.0'
+  - &ref_3_7_0 '>=3.7.0 || ^2.20.0'
+  - &ref_3_9_0 '>=3.9.0 || ^2.22.0'
+  - &ref_3_11_0 '>=3.11.0 || ^2.24.0'
+  - &ref_3_13_0 '>=3.13.0 || ^2.26.0'
+  - &ref_3_13_1 '>=3.13.1 || ^2.26.1'
+  - &ref_3_15_0 '>=3.15.0 || ^2.28.0'
+  - &ref_3_19_0 '>=3.19.0 || ^2.32.0'
+  - &ref_3_21_0 '>=3.21.0 || ^2.34.0'
+  - &ref_4_1_0 '>=4.1.0 || ^3.22.0 || ^2.35.0'
+  - &ref_4_3_0 '>=4.3.0 || ^3.24.0 || ^2.37.0'
+  - &ref_4_4_0 '>=4.4.0 || ^3.25.0 || ^2.38.0'
+  - &ref_4_8_0 '>=4.8.0 || ^3.29.0 || ^2.42.0'
+  - &ref_4_11_0 '>=4.11.0 || ^3.32.0 || ^2.45.0'
+  - &ref_4_16_0 '>=4.16.0 || ^3.37.0'
+  - &ref_4_17_0 '>=4.17.0 || ^3.38.0'
+  - &ref_4_18_0 '>=4.18.0 || ^3.39.0'
+  - &ref_4_21_0 '>=4.21.0 || ^3.42.0'
+  - &ref_4_22_0 '>=4.22.0 || ^3.43.0'
+  - &ref_4_23_0 '>=4.23.0 || ^3.44.0'
+  - &ref_5_1_0 '>=5.1.0 || ^4.25.0 || ^3.46.0'
+  - &ref_5_2_0 '>=5.2.0 || ^4.26.0 || ^3.47.0'
+  - &ref_5_3_0 '>=5.3.0 || ^4.27.0 || ^3.48.0'
+  - &ref_5_4_0 '>=5.4.0 || ^4.28.0 || ^3.49.0'
+  - &ref_5_6_0 '>=5.6.0 || ^4.30.0 || ^3.51.0'
+  - &ref_5_7_0 '>=5.7.0 || ^4.31.0 || ^3.52.0'
+  - &ref_5_11_0 '>=5.11.0 || ^4.35.0 || ^3.56.0'
+  - &ref_5_13_0 '>=5.13.0 || ^4.37.0 || ^3.58.0'
+  - &ref_5_15_0 '>=5.15.0 || ^4.39.0'
+  - &ref_5_16_0 '>=5.16.0 || ^4.40.0'
+  - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
+  - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
+
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -7,114 +43,114 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: v5.3.0
-        Test_API_Security_RC_ASM_DD_scanners: v5.3.0
+        Test_API_Security_RC_ASM_DD_processors: *ref_5_3_0
+        Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
-        Test_API_Security_sampling: v4.21.0
+        Test_API_Security_sampling: *ref_4_21_0
       test_schemas.py:
-        Test_Scanners: v4.21.0
-        Test_Schema_Request_Cookies: v4.21.0
+        Test_Scanners: *ref_4_21_0
+        Test_Schema_Request_Cookies: *ref_4_21_0
         Test_Schema_Request_FormUrlEncoded_Body:
-          express4: v4.21.0
-          express4-typescript: v4.21.0
-          nextjs: v5.3.0
-        Test_Schema_Request_Headers: v4.21.0
-        Test_Schema_Request_Json_Body: v4.21.0
+          express4: *ref_4_21_0
+          express4-typescript: *ref_4_21_0
+          nextjs: *ref_5_3_0
+        Test_Schema_Request_Headers: *ref_4_21_0
+        Test_Schema_Request_Json_Body: *ref_4_21_0
         Test_Schema_Request_Path_Parameters: missing_feature (path_params not supported yet)
-        Test_Schema_Request_Query_Parameters: v4.21.0
+        Test_Schema_Request_Query_Parameters: *ref_4_21_0
         Test_Schema_Response_Body:
-          '*': v5.3.0
+          '*': *ref_5_3_0
           nextjs: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
-        Test_Schema_Response_Headers: v4.21.0
+        Test_Schema_Response_Headers: *ref_4_21_0
     iast/:
       sink/:
         test_command_injection.py:
           TestCommandInjection:
-            '*': v3.11.0
+            '*': *ref_3_11_0
             nextjs: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords:
-            '*': v5.13.0
+            '*': *ref_5_13_0
             nextjs: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
-            '*': v4.18.0
+            '*': *ref_4_18_0
             nextjs: missing_feature
           Test_HardcodedSecretsExtended:
-            '*': v5.11.0
+            '*': *ref_5_11_0
             nextjs: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
-            '*': v4.21.0
+            '*': *ref_4_21_0
             nextjs: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
-            '*': v4.8.0
+            '*': *ref_4_8_0
             nextjs: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
-            '*': v4.1.0
+            '*': *ref_4_1_0
             nextjs: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
-            '*': v4.1.0
+            '*': *ref_4_1_0
             nextjs: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
-            '*': v4.3.0
+            '*': *ref_4_3_0
             nextjs: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
-            '*': v4.3.0
+            '*': *ref_4_3_0
             nextjs: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
-            '*': v4.17.0
+            '*': *ref_4_17_0
             nextjs: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
-            '*': v3.19.0
+            '*': *ref_3_19_0
             nextjs: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
-            '*': v3.11.0
+            '*': *ref_3_11_0
             nextjs: missing_feature
         test_ssrf.py:
           TestSSRF:
-            '*': v4.1.0
+            '*': *ref_4_1_0
             nextjs: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
-            '*': v4.3.0
+            '*': *ref_4_3_0
             nextjs: missing_feature
           TestUnvalidatedRedirect:
-            '*': v4.3.0
+            '*': *ref_4_3_0
             nextjs: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
         test_weak_cipher.py:
           TestWeakCipher:
-            '*': v3.6.0
+            '*': *ref_3_6_0
             nextjs: missing_feature
         test_weak_hash.py:
           TestWeakHash:
-            '*': v3.11.0
+            '*': *ref_3_11_0
             nextjs: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
-            '*': v5.1.0
+            '*': *ref_5_1_0
             nextjs: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
-            '*': v4.8.0
+            '*': *ref_4_8_0
             nextjs: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
@@ -123,31 +159,31 @@ tests/:
       source/:
         test_body.py:
           TestRequestBody:
-            '*': v3.19.0
+            '*': *ref_3_19_0
             nextjs: missing_feature
         test_cookie_name.py:
           TestCookieName: missing_feature
         test_cookie_value.py:
           TestCookieValue:
-            '*': v4.3.0
+            '*': *ref_4_3_0
             nextjs: missing_feature
         test_graphql_resolver.py:
           TestGraphqlResolverArgument:
-            '*': v5.4.0
+            '*': *ref_5_4_0
             nextjs: irrelevant # nextjs is not related with graphql
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue:
-            '*': v4.3.0
+            '*': *ref_4_3_0
             nextjs: missing_feature
         test_kafka_key.py:
           TestKafkaKey:
-            '*': v5.4.0
+            '*': *ref_5_4_0
             nextjs: irrelevant # nextjs is not related with kafka
         test_kafka_value.py:
           TestKafkaValue:
-            '*': v5.4.0
+            '*': *ref_5_4_0
             nextjs: irrelevant # nextjs is not related with kafka
         test_multipart.py:
           TestMultipart: missing_feature
@@ -155,7 +191,7 @@ tests/:
           TestParameterName: missing_feature
         test_parameter_value.py:
           TestParameterValue:
-            '*': v3.19.0
+            '*': *ref_3_19_0
             nextjs: missing_feature
         test_path.py:
           TestPath: missing_feature
@@ -163,7 +199,9 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
-      test_span_tags.py: missing_feature
+      test_span_tags.py:
+        Test_Mandatory_SpanTags: *ref_5_18_0
+        Test_Optional_SpanTags: *ref_5_18_0
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
       test_stack_traces.py: missing_feature
@@ -171,20 +209,21 @@ tests/:
       test_addresses.py:
         Test_BodyJson:
           '*': v2.2.0
-          nextjs: v4.17.0
+          nextjs: *ref_4_17_0
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded:
           '*': v2.2.0
-          nextjs: v5.3.0
+          nextjs: *ref_5_3_0
         Test_BodyXml:
           '*': v2.2.0
-          nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
+          nextjs: irrelevant # Body xml is not converted to JSON in nextjs
         Test_ClientIP: missing_feature
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
-          '*': v4.22.0
+          '*': *ref_4_22_0
           nextjs: irrelevant # nextjs is not related with graphql
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v2.0.0
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -194,23 +233,23 @@ tests/:
         Test_ResponseStatus: v2.0.0
         Test_UrlQuery:
           '*': v2.0.0
-          nextjs: v4.17.0
+          nextjs: *ref_4_17_0
         Test_UrlQueryKey:
           '*': v2.6.0
-          nextjs: v4.17.0
+          nextjs: *ref_4_17_0
         Test_UrlRaw: v2.0.0
         Test_gRPC: missing_feature
       test_blocking.py:
-        Test_Blocking: v3.19.0
-        Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: missing_feature
+        Test_Blocking: *ref_3_19_0
+        Test_Blocking_strip_response_headers: *ref_5_17_0
+        Test_CustomBlockingResponse: *ref_5_15_0
       test_custom_rules.py:
-        Test_CustomRules: v4.1.0
+        Test_CustomRules: *ref_4_1_0
       test_exclusions.py:
-        Test_Exclusions: v3.19.0
+        Test_Exclusions: *ref_3_19_0
       test_miscs.py:
         Test_404: v2.0.0
-        Test_CorrectOptionProcessing: v3.19.0  # probably sooner, but bugged
+        Test_CorrectOptionProcessing: *ref_3_19_0 # probably sooner, but bugged
         Test_MultipleAttacks: v2.0.0
         Test_MultipleHighlight: v2.0.0
       test_reports.py:
@@ -230,43 +269,47 @@ tests/:
         Test_Scanners: v2.0.0
         Test_XSS: v2.0.0
       test_telemetry.py:
-        Test_TelemetryMetrics: v4.17.0
+        Test_TelemetryMetrics: *ref_4_17_0
     test_PII.py:
       Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v2.0.0
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events:
-        '*': v4.4.0
+        '*': *ref_4_4_0
         nextjs: missing_feature
       Test_Login_Events_Extended:
-        '*': v4.4.0
+        '*': *ref_4_4_0
         nextjs: missing_feature
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: v3.19.0
+      Test_BlockingAddresses: *ref_3_19_0
       Test_BlockingGraphqlResolvers:
-          '*': v4.22.0
-          nextjs: irrelevant # nextjs is not related with graphql
+        '*': *ref_4_22_0
+        nextjs: irrelevant # nextjs is not related with graphql
       Test_Blocking_request_body:
-        '*': v3.19.0
+        '*': *ref_3_19_0
         nextjs: missing_feature
       Test_Blocking_request_cookies:
-        '*': v4.16.0
+        '*': *ref_4_16_0
         nextjs: missing_feature
-      Test_Blocking_request_headers: v3.19.0
-      Test_Blocking_request_method: v3.19.0
+      Test_Blocking_request_headers: *ref_3_19_0
+      Test_Blocking_request_method: *ref_3_19_0
       Test_Blocking_request_path_params: missing_feature
       Test_Blocking_request_query:
-        '*': v3.19.0
+        '*': *ref_3_19_0
         nextjs: missing_feature
-      Test_Blocking_request_uri: v3.19.0
-      Test_Blocking_response_headers: missing_feature
-      Test_Blocking_response_status: missing_feature
+      Test_Blocking_request_uri: *ref_3_19_0
+      Test_Blocking_response_headers: *ref_5_17_0
+      Test_Blocking_response_status: *ref_5_17_0
       Test_Suspicious_Request_Blocking:
         '*': missing_feature (v3.19.0, but test is not implemented)
         nextjs: missing_feature
     test_client_ip.py:
-      Test_StandardTagsClientIp: v3.6.0
+      Test_StandardTagsClientIp: *ref_3_6_0
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
       Test_RuleSet_1_3_1: v2.5.0
@@ -277,48 +320,48 @@ tests/:
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
       Test_CustomEvent:
-        '*': v3.13.0
+        '*': *ref_3_13_0
         nextjs: missing_feature
       Test_UserLoginFailureEvent:
-        '*': v3.13.0
+        '*': *ref_3_13_0
         nextjs: missing_feature
       Test_UserLoginSuccessEvent:
-        '*': v3.13.0
+        '*': *ref_3_13_0
         nextjs: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: v3.11.0
+      Test_AppSecIPBlockingFullDenylist: *ref_3_11_0
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_reports.py:
-      Test_ExtraTagsFromRule: v4.1.0
+      Test_ExtraTagsFromRule: *ref_4_1_0
       Test_HttpClientIP: v2.0.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v2.0.0
       Test_StatusCode: v2.0.0
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
-          '*': v3.19.0
-          nextjs: missing_feature (can not block by query param in nextjs yet)
+        '*': *ref_3_19_0
+        nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
-      Test_RuntimeActivation: v3.9.0
+      Test_RuntimeActivation: *ref_3_9_0
     test_shell_execution.py:
-      Test_ShellExecution: v5.3.0
+      Test_ShellExecution: *ref_5_3_0
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
       Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v2.0.0
       Test_DistributedTraceInfo: missing_feature (test not implemented)
-      Test_ExternalWafRequestsIdentification: v5.7.0
+      Test_ExternalWafRequestsIdentification: *ref_5_7_0
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
-        '*': v3.15.0
+        '*': *ref_3_15_0
         nextjs: missing_feature (block method not implemented for nextjs yet)
     test_versions.py:
       Test_Events: v2.0.0
@@ -328,32 +371,34 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
       Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          "*": irrelevant
+          '*': irrelevant
           express4: v0.1 # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
-          express4: v5.3.0
+          '*': irrelevant
+          express4: *ref_5_3_0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           express4: v0.1 # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           express4: v0.1 # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": irrelevant
+          '*': irrelevant
           express4: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           express4: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
@@ -367,57 +412,60 @@ tests/:
         express4: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
-      Test_Dbm_Comment_NodeJS_mysql2: 
+      Test_Dbm_Comment_NodeJS_mysql2:
         '*': missing_feature (Missing on weblog)
-        express4: v5.13.0
-      Test_Dbm_Comment_NodeJS_pg: 
+        express4: *ref_5_13_0
+      Test_Dbm_Comment_NodeJS_pg:
         '*': missing_feature (Missing on weblog)
-        express4: v5.13.0
+        express4: *ref_5_13_0
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: 
-        "*": irrelevant
-        express4: v5.6.0
-      Test_DsmContext_Injection_Base64: 
-        "*": irrelevant
-        express4: v5.6.0
+      Test_DsmContext_Extraction_Base64:
+        '*': irrelevant
+        express4: *ref_5_6_0
+      Test_DsmContext_Injection_Base64:
+        '*': irrelevant
+        express4: *ref_5_6_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
-        '*': v4.4.0
+        '*': *ref_4_4_0
         nextjs: missing_feature (missing endpoint)
       Test_DsmKinesis:
-        "*": irrelevant
-        express4: v5.2.0
+        '*': irrelevant
+        express4: *ref_5_2_0
       Test_DsmRabbitmq:
-        "*": irrelevant
-        express4: v5.3.0
+        '*': irrelevant
+        express4: *ref_5_3_0
       Test_DsmRabbitmq_FanoutExchange:
-        "*": irrelevant
+        '*': irrelevant
         express4: missing_feature
       Test_DsmRabbitmq_TopicExchange:
-        "*": irrelevant
+        '*': irrelevant
         express4: missing_feature
       Test_DsmSNS:
-        "*": irrelevant
-        express4: v5.2.0
+        '*': irrelevant
+        express4: *ref_5_2_0
       Test_DsmSQS:
-        "*": irrelevant
-        express4: v5.2.0
+        '*': irrelevant
+        express4: *ref_5_2_0
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: missing_feature
+      TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: v4.11.0
+      TestDynamicConfigV1: *ref_4_11_0
       TestDynamicConfigV1_ServiceTargets: missing_feature
-      TestDynamicConfigV2: v4.23.0
+      TestDynamicConfigV2: *ref_4_23_0
     test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: v5.11.0 #implemented in v5.11.0, v4.35.0, &v3.56.0
     test_otel_sdk_interoperability.py: missing_feature
-    test_span_links.py: missing_feature
+    test_span_links.py:
+      Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
-      Test_Defaults: v5.6.0
-      Test_Environment: v5.6.0
-      Test_TelemetryInstallSignature: v4.23.0
-      Test_TelemetrySCAEnvVar: v5.13.0
+      Test_Defaults: *ref_5_6_0
+      Test_Environment: *ref_5_6_0
+      Test_TelemetryInstallSignature: *ref_4_23_0
+      Test_TelemetrySCAEnvVar: *ref_5_13_0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: missing_feature
       Test_Trace_Sampling_Globs: missing_feature
@@ -427,15 +475,15 @@ tests/:
       Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
-      Test_TracerSCITagging: v3.21.0
+      Test_TracerSCITagging: *ref_3_21_0
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: v4.17.0
-      Test_RemoteConfigurationUpdateSequenceASMDD: v3.19.0
+      Test_RemoteConfigurationExtraServices: *ref_4_17_0
+      Test_RemoteConfigurationUpdateSequenceASMDD: *ref_3_19_0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceFeatures: v3.9.0
+      Test_RemoteConfigurationUpdateSequenceFeatures: *ref_3_9_0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
@@ -443,40 +491,40 @@ tests/:
     Test_DistributedHttp: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
-    Test_Propagate: v3.2.0
-    Test_Propagate_Legacy: v3.2.0
+    Test_Propagate: *ref_3_2_0
+    Test_Propagate_Legacy: *ref_3_2_0
   test_library_conf.py:
-    Test_HeaderTags: v4.11.0
-    Test_HeaderTags_Colon_Leading: v4.11.0
-    Test_HeaderTags_Colon_Trailing: v4.11.0
-    Test_HeaderTags_Long: v4.11.0
-    Test_HeaderTags_Short: v4.11.0
+    Test_HeaderTags: *ref_4_11_0
+    Test_HeaderTags_Colon_Leading: *ref_4_11_0
+    Test_HeaderTags_Colon_Trailing: *ref_4_11_0
+    Test_HeaderTags_Long: *ref_4_11_0
+    Test_HeaderTags_Short: *ref_4_11_0
     Test_HeaderTags_Whitespace_Header: bug (AIT-9109)
     Test_HeaderTags_Whitespace_Tag: bug (AIT-9109)
-    Test_HeaderTags_Whitespace_Val_Long: v4.11.0
-    Test_HeaderTags_Whitespace_Val_Short: v4.11.0
+    Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
+    Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:
-    Test_UrlField: v3.13.1
+    Test_UrlField: *ref_3_13_1
     Test_UrlQuery:
-      '*': v3.0.0
-      nextjs: v4.17.0
+      '*': *ref_3_0_0
+      nextjs: *ref_4_17_0
   test_semantic_conventions.py:
     Test_Meta:
-      '*': v3.13.1
+      '*': *ref_3_13_1
       nextjs: missing_feature # nextjs makes some internal requests and we have different tag names
-    Test_MetricsStandardTags: v3.13.1
+    Test_MetricsStandardTags: *ref_3_13_1
   test_standard_tags.py:
     Test_StandardTagsClientIp:
-      '*': v3.6.0
+      '*': *ref_3_6_0
       nextjs: missing_feature # nextjs makes some internal requests, so we have more than 1 rootspans
     Test_StandardTagsMethod: v2.11.0
     Test_StandardTagsRoute:
       '*': v2.11.0
       nextjs: missing_feature # http.route not added in nextjs
     Test_StandardTagsStatusCode: v2.11.0
-    Test_StandardTagsUrl: v3.0.0
+    Test_StandardTagsUrl: *ref_3_0_0
     Test_StandardTagsUserAgent: v2.9.0
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
@@ -486,8 +534,8 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
     Test_Telemetry:
-      '*': v3.2.0
+      '*': *ref_3_2_0
       nextjs: missing_feature
-      uds-express4: v3.7.0
+      uds-express4: *ref_3_7_0
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: missing_feature

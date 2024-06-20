@@ -35,6 +35,8 @@ from utils._context.containers import (
     BuddyContainer,
     APMTestAgentContainer,
     WeblogInjectionInitContainer,
+    MountInjectionVolume,
+    create_inject_volume,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -44,6 +46,7 @@ from utils._context.virtual_machines import (
     AmazonLinux2023amd64,
     AmazonLinux2DotNet6,
     AmazonLinux2amd64,
+    Centos7amd64,
 )
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
@@ -149,12 +152,7 @@ class _Scenario:
     def session_start(self):
         """called at the very begning of the process"""
 
-        self.print_test_context()
-
-        if self.replay:
-            return
-
-        logger.stdout("Executing warmups...")
+        logger.terminal.write_sep("=", "test context", bold=True)
 
         try:
             for warmup in self._get_warmups():
@@ -167,13 +165,11 @@ class _Scenario:
     def pytest_sessionfinish(self, session):
         """called at the end of the process"""
 
-    def print_test_context(self):
-        logger.terminal.write_sep("=", "test context", bold=True)
-        logger.stdout(f"Scenario: {self.name}")
-        logger.stdout(f"Logs folder: ./{self.host_log_folder}")
-
     def _get_warmups(self):
-        return []
+        return [
+            lambda: logger.stdout(f"Scenario: {self.name}"),
+            lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"),
+        ]
 
     def post_setup(self):
         """called after test setup"""
@@ -349,10 +345,14 @@ class _DockerScenario(_Scenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.append(create_network)
+        if not self.replay:
+            warmups.append(create_network)
+
+            for container in self._required_containers:
+                warmups.append(container.start)
 
         for container in self._required_containers:
-            warmups.append(container.start)
+            warmups.append(container.post_start)
 
         return warmups
 
@@ -519,29 +519,8 @@ class EndToEndScenario(_DockerScenario):
                 message = stdout.decode()
         except BaseException as e:
             message = f"Unexpected exception {e}"
+
         logger.stdout(f"Weblog system: {message}")
-
-    def print_test_context(self):
-        from utils import weblog
-
-        super().print_test_context()
-
-        logger.debug(f"Docker host is {weblog.domain}")
-
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Agent: {self.agent_version}")
-
-        if self.weblog_container.libddwaf_version:
-            logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
-
-        if self.weblog_container.appsec_rules_file:
-            logger.stdout(f"AppSec rules version: {self.weblog_container.appsec_rules_version}")
-
-        if self.weblog_container.uds_mode:
-            logger.stdout(f"UDS socket: {self.weblog_container.uds_socket}")
-
-        logger.stdout(f"Weblog variant: {self.weblog_container.weblog_variant}")
-        logger.stdout(f"Backend: {self.agent_container.dd_site}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -582,9 +561,10 @@ class EndToEndScenario(_DockerScenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.insert(0, self._create_interface_folders)
-        warmups.insert(1, self._start_interface_watchdog)
-        warmups.append(self._wait_for_app_readiness)
+        if not self.replay:
+            warmups.insert(0, self._create_interface_folders)
+            warmups.insert(1, self._start_interface_watchdog)
+            warmups.append(self._wait_for_app_readiness)
 
         return warmups
 
@@ -844,9 +824,10 @@ class OpenTelemetryScenario(_DockerScenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.insert(0, self._create_interface_folders)
-        warmups.insert(1, self._start_interface_watchdog)
-        warmups.append(self._wait_for_app_readiness)
+        if not self.replay:
+            warmups.insert(0, self._create_interface_folders)
+            warmups.insert(1, self._start_interface_watchdog)
+            warmups.append(self._wait_for_app_readiness)
 
         return warmups
 
@@ -893,7 +874,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     @property
     def agent_version(self):
-        return self.agent_container.agent_version if self.include_agent else Version("0.0.0", "agent")
+        return self.agent_container.agent_version if self.include_agent else Version("0.0.0")
 
     @property
     def weblog_variant(self):
@@ -1009,10 +990,11 @@ class ParametricScenario(_Scenario):
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
         logger.stdout(f"Library: {self.library}")
 
-    def print_test_context(self):
-        super().print_test_context()
+    def _get_warmups(self):
+        result = super()._get_warmups()
+        result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
-        logger.stdout(f"Library: {self.library}")
+        return result
 
     @property
     def library(self):
@@ -1035,6 +1017,7 @@ class _VirtualMachineScenario(_Scenario):
         include_amazon_linux_2_dotnet_6=False,
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
+        include_centos_7_amd64=False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow)
         self.vm_provision_name = vm_provision
@@ -1058,6 +1041,8 @@ class _VirtualMachineScenario(_Scenario):
             self.required_vms.append(AmazonLinux2023amd64())
         if include_amazon_linux_2023_arm64:
             self.required_vms.append(AmazonLinux2023arm64())
+        if include_centos_7_amd64:
+            self.required_vms.append(Centos7amd64())
 
     def session_start(self):
         super().session_start()
@@ -1206,11 +1191,13 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_amazon_linux_2_dotnet_6=True,
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
+            include_centos_7_amd64=True,
         )
 
 
 class _KubernetesScenario(_Scenario):
-    """Scenario that tests kubernetes lib injection"""
+    """ DEPRECATED: Replaced by Kubernetes Scenario. 
+        Scenario that tests kubernetes lib injection"""
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -1301,17 +1288,70 @@ class _KubernetesScenario(_Scenario):
         return self._weblog_variant
 
 
-class APMTestAgentScenario(_Scenario):
+class KubernetesScenario(_Scenario):
+    """ Scenario that tests kubernetes lib injection """
+
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+
+    def configure(self, config):
+        super().configure(config)
+
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
+        assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
+        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE is not set. The init image to be tested is not set"
+        assert (
+            "LIBRARY_INJECTION_TEST_APP_IMAGE" in os.environ
+        ), "LIBRARY_INJECTION_TEST_APP_IMAGE is not set. The test app image to be tested is not set"
+
+        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
+        self._weblog_variant_image = os.getenv("LIBRARY_INJECTION_TEST_APP_IMAGE")
+        self._library_init_image = os.getenv("LIB_INIT_IMAGE")
+
+        logger.stdout("K8s Lib Injection environment:")
+        logger.stdout(f"Library: {self._library}")
+        logger.stdout(f"Weblog variant: {self._weblog_variant}")
+        logger.stdout(f"Weblog variant image: {self._weblog_variant_image}")
+        logger.stdout(f"Library init image: {self._library_init_image}")
+
+        logger.info("K8s Lib Injection environment configured")
+
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def weblog_variant(self):
+        return self._weblog_variant
+
+
+class WeblogInjectionScenario(_Scenario):
     """Scenario that runs APM test agent """
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
+        self._mount_injection_volume = MountInjectionVolume(
+            host_log_folder=self.host_log_folder, name="volume-injector"
+        )
+        self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
+
         self._required_containers = []
+        self._required_containers.append(self._mount_injection_volume)
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
-        self._required_containers.append(WeblogInjectionInitContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(self._weblog_injection)
 
     def configure(self, config):
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
+        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+
+        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
+        self._lib_init_image = os.getenv("LIB_INIT_IMAGE")
+
+        self._mount_injection_volume._lib_init_image(self._lib_init_image)
+        self._weblog_injection.set_environment_for_library(self.library)
+
         super().configure(config)
 
         for container in self._required_containers:
@@ -1321,7 +1361,7 @@ class APMTestAgentScenario(_Scenario):
         warmups = super()._get_warmups()
 
         warmups.append(create_network)
-
+        warmups.append(create_inject_volume)
         for container in self._required_containers:
             warmups.append(container.start)
 
@@ -1337,6 +1377,14 @@ class APMTestAgentScenario(_Scenario):
                 logger.info(f"Removing container {container}")
             except:
                 logger.exception(f"Failed to remove container {container}")
+
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def lib_init_image(self):
+        return self._lib_init_image
 
 
 class scenarios:
@@ -1412,6 +1460,7 @@ class scenarios:
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:8126",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "OTEL_INTEGRATIONS_TEST": True,
         },
         include_intake=False,
         include_collector=False,
@@ -1667,9 +1716,20 @@ class scenarios:
 
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+        },
         appsec_enabled=True,
         doc="Scenario for checking extended mode in automatic user events",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
@@ -1832,9 +1892,23 @@ class scenarios:
     debugger_pii_redaction = EndToEndScenario(
         "DEBUGGER_PII_REDACTION",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
+        },
         library_interface_timeout=5,
         doc="Check pii redaction",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    debugger_expression_language = EndToEndScenario(
+        "DEBUGGER_EXPRESSION_LANGUAGE",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_EXPRESSION_LANGUAGE"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=5,
+        doc="Check expression language",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
@@ -1865,6 +1939,11 @@ class scenarios:
     container_auto_injection = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
     )
+    container_not_supported_auto_injection = ContainerAutoInjectionScenario(
+        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario for not supported languages or containers",
+    )
+
     simple_container_auto_injection = ContainerAutoInjectionScenario(
         "SIMPLE_CONTAINER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
@@ -1875,19 +1954,29 @@ class scenarios:
         vm_provision="container-auto-inject-install-script",
     )
     k8s_lib_injection_basic = _KubernetesScenario(
-        "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+        "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario. DEPRECATED"
     )
-    k8s_lib_injection_full = _KubernetesScenario(
-        "K8S_LIB_INJECTION_FULL",
-        doc=" Kubernetes Instrumentation complete scenario",
+    k8s_library_injection_full = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_FULL",
+        doc=" Kubernetes Instrumentation complete scenario.",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
 
-    lib_injection_validation = APMTestAgentScenario(
+    k8s_library_injection_basic = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+    )
+
+    lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
-        # weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
         doc="Validates the init images without kubernetes enviroment",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    lib_injection_validation_unsupported_lang = WeblogInjectionScenario(
+        "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
+        doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )

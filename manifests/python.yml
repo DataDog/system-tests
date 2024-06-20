@@ -61,7 +61,7 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection:
-            '*': v2.2.0
+            '*': v2.10.0.dev
             fastapi: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
@@ -94,7 +94,7 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
-            '*': bug (v2.9.0dev disables this test due to a bug with mock package)
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
@@ -107,7 +107,7 @@ tests/:
             python3.12: v1.18.0
         test_ssrf.py:
           TestSSRF:
-            '*': v2.2.0
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
@@ -143,11 +143,11 @@ tests/:
             uwsgi-poc: v1.20.0
         test_cookie_name.py:
           TestCookieName:
-            '*': bug (v2.9.0dev disables Path Traversal vulnerability due to a bug with mock package)
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_cookie_value.py:
           TestCookieValue:
-            '*': bug (v2.9.0dev disables Path Traversal vulnerability due to a bug with mock package)
+            '*': v2.10.0dev
             fastapi: missing_feature
         test_graphql_resolver.py:
           TestGraphqlResolverArgument: missing_feature
@@ -188,9 +188,13 @@ tests/:
         Test_Lfi_BodyXml: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
       test_span_tags.py:
-        Test_Mandatory_SpanTags: missing_feature
-        Test_Optional_SpanTags: missing_feature
-      test_sqli.py: missing_feature
+        Test_Mandatory_SpanTags: v2.10.0.dev
+        Test_Optional_SpanTags: v2.10.0.dev
+      test_sqli.py:
+        Test_Sqli_BodyJson: v2.10.0.dev
+        Test_Sqli_BodyUrlEncoded: v2.10.0.dev
+        Test_Sqli_BodyXml: v2.10.0.dev
+        Test_Sqli_UrlQuery: v2.10.0.dev
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0.dev
         Test_Ssrf_BodyUrlEncoded: v2.10.0.dev
@@ -225,6 +229,7 @@ tests/:
           uwsgi-poc: v1.16.1
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v1.6
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -338,9 +343,15 @@ tests/:
       Test_Basic:
         '*': v1.1.0rc2.dev
         fastapi: v2.4.0.dev1
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation:
+        '*': v2.10.0-rc1
+        uwsgi-poc: bug
     test_automated_login_events.py:
-      Test_Login_Events: missing_feature
-      Test_Login_Events_Extended: missing_feature
+      Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
+      Test_Login_Events_Extended: irrelevant (was v2.10.0.dev but will be replaced by V2)
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses:
         '*': v1.16.1
@@ -410,11 +421,9 @@ tests/:
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
       Test_UserLoginFailureEvent:
-        '*': v1.9.0
-        python3.12: bug (APPSEC-53079)
+        '*': v2.10.0.dev
       Test_UserLoginSuccessEvent:
-        '*': v1.9.0
-        python3.12: bug (APPSEC-53079)
+        '*': v2.10.0.dev
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
@@ -458,6 +467,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: missing_feature
       Test_Debugger_Mix_Log_Probe: missing_feature
       Test_Debugger_Probe_Statuses: missing_feature
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature
   integrations/:
@@ -582,7 +593,7 @@ tests/:
       Test_128_Bit_Traceids: v2.6.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: flaky (failure 2.8.0/2.9.0.dev)
-      TestDynamicConfigSamplingRules: missing_feature
+      TestDynamicConfigSamplingRules: v2.9.0dev
       TestDynamicConfigTracingEnabled: flaky (failure 2.8.0/2.9.0.dev)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
@@ -605,6 +616,8 @@ tests/:
       Test_Library_Tracestats: missing_feature (failure 2.8.0)
     test_otel_api_interoperability.py:
       Test_Otel_API_Interoperability: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: v2.9.0
     test_otel_sdk_interoperability.py:
       Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:

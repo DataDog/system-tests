@@ -2,7 +2,7 @@ import requests
 import os
 from utils import scenarios, features
 from utils.tools import logger
-from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
+from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils import bug
@@ -19,13 +19,20 @@ class _AutoInjectBaseTest:
         vm_ip = virtual_machine.ssh_config.hostname
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
+        request_uuid = None
+        if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
+            logger.info(
+                f"We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
+            )
+            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
+        else:
+            logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
+            wait_for_port(vm_port, vm_ip, 80.0)
+            logger.info(f"[{vm_ip}]: Weblog app is ready!")
+            warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+            logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
+            request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
 
-        logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
-        wait_for_port(vm_port, vm_ip, 80.0)
-        logger.info(f"[{vm_ip}]: Weblog app is ready!")
-        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-        logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
-        request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, 120.0)
 
@@ -185,6 +192,26 @@ class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
+@features.container_auto_instrumentation
+@scenarios.container_not_supported_auto_injection
+class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
+    """ Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
+
+    def test_app_working(self, virtual_machine):
+        """ Test app is working."""
+        vm_ip = virtual_machine.ssh_config.hostname
+        vm_port = virtual_machine.deffault_open_port
+        vm_name = virtual_machine.name
+
+        logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
+        wait_for_port(vm_port, vm_ip, 80.0)
+        logger.info(f"[{vm_ip}]: Weblog app is ready!")
+        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+        logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
+        request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
+        logger.info(f"Http request done for ip [{vm_ip}]")
+
+
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection
 class TestHostAutoInjectChaos(_AutoInjectBaseTest):
@@ -282,3 +309,24 @@ class TestInstallerAutoInjectManual(_AutoInjectBaseTest):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+    def test_uninstall(self, virtual_machine):
+        logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
+
+        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):
+            # Host
+            stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
+            start_weblog_command = "sudo systemctl start test-app.service"
+            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+                start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+        else:
+            # Container
+            stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
+            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+
+        install_command = "sudo datadog-installer apm instrument"
+        uninstall_command = "sudo datadog-installer apm uninstrument"
+        self._test_uninstall(
+            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        )
+        logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")

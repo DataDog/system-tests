@@ -12,6 +12,21 @@ on:
         default: "[]"
         required: false
         type: string
+      weblogs: 
+        description: "JSON array of weblogs to run"
+        default: "[]"
+        required: false
+        type: string
+      binaries_artifact:
+        description: "Artifact name containing the binaries to test"
+        default: ''
+        required: false
+        type: string
+      ci_environment:
+        description: "Which CI environment is running the tests, used for FPD"
+        default: 'custom'
+        required: false
+        type: string
       build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
@@ -37,78 +52,16 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-
-  compute-matrix:
-    name: Get weblogs for end-to-end tests
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.compute-matrix.outputs.matrix }}
-    steps:
-    - name: Compute matrix
-      id: compute-matrix
-      shell: python
-      run: |
-        import json
-        import os
-
-        weblogs={
-          "cpp": ["nginx"],
-          "dotnet": ["poc", "uds"],
-          "golang": ["chi", "echo", "gin", "net-http", "uds-echo"],
-          "java": [
-            "akka-http", 
-            "jersey-grizzly2", 
-            "play",
-            "ratpack", 
-            "resteasy-netty3", 
-            "spring-boot-jetty", 
-            "spring-boot", 
-            "spring-boot-3-native", 
-            "spring-boot-openliberty", 
-            "spring-boot-wildfly", 
-            "spring-boot-undertow", 
-            "spring-boot-payara", 
-            "vertx3", 
-            "vertx4",
-            "uds-spring-boot", 
-          ],
-          "nodejs": ["express4", "uds-express4", "express4-typescript", "nextjs"],
-          "php": [
-            *[f"apache-mod-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"php-fpm-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]]
-          ],
-          "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi"],
-          "ruby": [
-            "rack",
-            "uds-sinatra",
-            *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
-            *[f"rails{v}" for v in ["50", "51", "52", "60", "61", "70", "71"]]
-          ]
-        }
-
-        result = weblogs["${{ inputs.library }}"]
-
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f'matrix={json.dumps(result)}', file=fh)
-
-        print(json.dumps(result, indent=2))
-
   end-to-end:
     runs-on: ubuntu-latest
-    needs: 
-      - compute-matrix
     strategy:
       matrix:
-        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
-        version:
-        - prod
-        - dev
+        weblog: ${{ fromJson(inputs.weblogs) }}
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
       WEBLOG_VARIANT: ${{ matrix.weblog }}
-      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ matrix.version }}
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
     - name: Checkout
@@ -131,23 +84,12 @@ jobs:
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
-    #### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
-    #### skipping this, waiting for a proper solution
-    # - name: Load WAF rules
-    #   if: matrix.version == 'dev'
-    #   run: ./utils/scripts/load-binary.sh waf_rule_set
-    #   env:
-    #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Load library binary
-      if: ${{ matrix.version == 'dev' }}
-      run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
-      # quick and dirty fix, because we can't test for now the PHP released tracer
-    - name: Load PHP library binary (skipping release tests, use snapshot instead)
-      if: ${{ matrix.version == 'prod' && inputs.library == 'php'}}
-      run: ./utils/scripts/load-binary.sh ${{ inputs.library }}
-    - name: Load agent binary
-      if: ${{ matrix.version == 'dev' }}
-      run: ./utils/scripts/load-binary.sh agent
+    - name: Get binaries artifact
+      if : ${{ inputs.binaries_artifact != '' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.binaries_artifact }}
+        path: binaries/
     - name: Log in to the Container registry
       if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
@@ -229,7 +171,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
+      # C++ 1.2.0 freeze when the rules file is missing
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && inputs.library != 'cpp'
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -239,7 +182,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
+      # C++ 1.2.0 freeze when the rules file is missing
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && inputs.library != 'cpp'
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -325,6 +269,11 @@ jobs:
       run: ./run.sh APPSEC_RASP
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_STANDALONE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
+      run: ./run.sh APPSEC_STANDALONE
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
@@ -382,6 +331,11 @@ jobs:
       run: ./run.sh DEBUGGER_PII_REDACTION
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_EXPRESSION_LANGUAGE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_EXPRESSION_LANGUAGE"')
+      run: ./run.sh DEBUGGER_EXPRESSION_LANGUAGE
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run all scenarios in replay mode
       if: always() && steps.build.outcome == 'success'
@@ -399,11 +353,11 @@ jobs:
       if: always() && steps.compress_logs.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblog }}_${{ matrix.version }}
+        name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblog }}_${{ inputs.ci_environment }}
         path: artifact.tar.gz
 
     - name: Push results to Feature Parity Dashboard
-      if: ${{ matrix.version == 'dev' && inputs.push_to_feature_parity_dashbaord && false }} # disabled for now
+      if: ${{ inputs.push_to_feature_parity_dashbaord && false }} # disabled for now
       run: |
         for folder in logs*/ ; do
           curl -X POST ${FP_IMPORT_URL} \

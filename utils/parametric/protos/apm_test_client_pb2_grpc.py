@@ -110,6 +110,16 @@ class APMClientStub(object):
                 request_serializer=protos_dot_apm__test__client__pb2.OtelEndSpanArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.OtelEndSpanReturn.FromString,
                 )
+        self.OtelAddEvent = channel.unary_unary(
+                '/APMClient/OtelAddEvent',
+                request_serializer=protos_dot_apm__test__client__pb2.OtelAddEventArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.OtelAddEventReturn.FromString,
+                )
+        self.OtelRecordException = channel.unary_unary(
+                '/APMClient/OtelRecordException',
+                request_serializer=protos_dot_apm__test__client__pb2.OtelRecordExceptionArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.OtelRecordExceptionReturn.FromString,
+                )
         self.OtelIsRecording = channel.unary_unary(
                 '/APMClient/OtelIsRecording',
                 request_serializer=protos_dot_apm__test__client__pb2.OtelIsRecordingArgs.SerializeToString,
@@ -169,6 +179,11 @@ class APMClientStub(object):
                 '/APMClient/StopTracer',
                 request_serializer=protos_dot_apm__test__client__pb2.StopTracerArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.StopTracerReturn.FromString,
+                )
+        self.GetTraceConfig = channel.unary_unary(
+                '/APMClient/GetTraceConfig',
+                request_serializer=protos_dot_apm__test__client__pb2.GetTraceConfigArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.GetTraceConfigReturn.FromString,
                 )
 
 
@@ -290,6 +305,18 @@ class APMClientServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def OtelAddEvent(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def OtelRecordException(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def OtelIsRecording(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -357,6 +384,12 @@ class APMClientServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def StopTracer(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetTraceConfig(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -460,6 +493,16 @@ def add_APMClientServicer_to_server(servicer, server):
                     request_deserializer=protos_dot_apm__test__client__pb2.OtelEndSpanArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.OtelEndSpanReturn.SerializeToString,
             ),
+            'OtelAddEvent': grpc.unary_unary_rpc_method_handler(
+                    servicer.OtelAddEvent,
+                    request_deserializer=protos_dot_apm__test__client__pb2.OtelAddEventArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.OtelAddEventReturn.SerializeToString,
+            ),
+            'OtelRecordException': grpc.unary_unary_rpc_method_handler(
+                    servicer.OtelRecordException,
+                    request_deserializer=protos_dot_apm__test__client__pb2.OtelRecordExceptionArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.OtelRecordExceptionReturn.SerializeToString,
+            ),
             'OtelIsRecording': grpc.unary_unary_rpc_method_handler(
                     servicer.OtelIsRecording,
                     request_deserializer=protos_dot_apm__test__client__pb2.OtelIsRecordingArgs.FromString,
@@ -519,6 +562,11 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.StopTracer,
                     request_deserializer=protos_dot_apm__test__client__pb2.StopTracerArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.StopTracerReturn.SerializeToString,
+            ),
+            'GetTraceConfig': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetTraceConfig,
+                    request_deserializer=protos_dot_apm__test__client__pb2.GetTraceConfigArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.GetTraceConfigReturn.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -855,6 +903,40 @@ class APMClient(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
+    def OtelAddEvent(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/OtelAddEvent',
+            protos_dot_apm__test__client__pb2.OtelAddEventArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.OtelAddEventReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def OtelRecordException(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/OtelRecordException',
+            protos_dot_apm__test__client__pb2.OtelRecordExceptionArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.OtelRecordExceptionReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
     def OtelIsRecording(request,
             target,
             options=(),
@@ -1055,5 +1137,22 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/StopTracer',
             protos_dot_apm__test__client__pb2.StopTracerArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.StopTracerReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetTraceConfig(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/GetTraceConfig',
+            protos_dot_apm__test__client__pb2.GetTraceConfigArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.GetTraceConfigReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

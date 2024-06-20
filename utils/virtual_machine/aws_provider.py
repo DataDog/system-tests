@@ -33,6 +33,8 @@ class AWSPulumiProvider(VmProvider):
             # Static loading of keypairs for ec2 machines
             self.pulumi_ssh = PulumiSSH()
             self.pulumi_ssh.load(self.vms)
+            # Debug purposes. How many instances, created by system-tests are running in the AWS account?
+            self._check_running_instances()
             for vm in self.vms:
                 logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
                 self._start_vm(vm)
@@ -44,7 +46,8 @@ class AWSPulumiProvider(VmProvider):
             self.stack = auto.create_or_select_stack(
                 stack_name=stack_name, project_name=project_name, program=pulumi_start_program
             )
-            self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
+            if os.getenv("ONBOARDING_LOCAL_TEST") is None:
+                self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
         except Exception as pulumi_exception:
             logger.error("Exception launching aws provision infraestructure")
@@ -63,16 +66,17 @@ class AWSPulumiProvider(VmProvider):
             subnet_id=vm.aws_config.aws_infra_config.subnet_id,
             key_name=self.pulumi_ssh.keypair_name,
             ami=vm.aws_config.ami_id if ami_id is None else ami_id,
-            tags={"Name": vm.name, "CI": "system-tests"},
+            tags=self._get_ec2_tags(vm),
             opts=self.pulumi_ssh.aws_key_resource,
             root_block_device={"volume_size": 16},
+            iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
         )
 
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
         Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
         pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
-        Output.all(ec2_server.private_ip, vm.name).apply(
-            lambda args: vm_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}")
+        Output.all(ec2_server.private_ip, vm.name, ec2_server.id).apply(
+            lambda args: vm_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}:{args[2]}")
         )
 
         vm.ssh_config.username = vm.aws_config.user
@@ -88,7 +92,7 @@ class AWSPulumiProvider(VmProvider):
 
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
-        self.stack.destroy(on_output=logger.info)
+        self.stack.destroy(on_output=logger.info, debug=True)
 
     def _get_cached_ami(self, vm):
         """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
@@ -135,6 +139,32 @@ class AWSPulumiProvider(VmProvider):
             logger.info(f"Not found an existing AMI with name {ami_name}")
         return ami_id
 
+    def _get_ec2_tags(self, vm):
+        """ Build the ec2 tags for the VM """
+        tags = {"Name": vm.name, "CI": "system-tests"}
+
+        if os.getenv("CI_PROJECT_NAME") is not None:
+            tags["CI_PROJECT_NAME"] = os.getenv("CI_PROJECT_NAME")
+
+        if os.getenv("CI_PIPELINE_ID") is not None:
+            tags["CI_PIPELINE_ID"] = os.getenv("CI_PIPELINE_ID")
+
+        if os.getenv("CI_JOB_ID") is not None:
+            tags["CI_JOB_ID"] = os.getenv("CI_JOB_ID")
+        logger.info(f"Tags for the VM [{vm.name}]: {tags}")
+        return tags
+
+    def _check_running_instances(self):
+        """ Print the instances created by system-tests and still running in the AWS account """
+
+        instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
+
+        logger.info(f"AWS Listing running instances with system-tests tag")
+        for instance_id in instances.ids:
+            logger.info(f"Instance id: [{instance_id}]  status:[running] (created by other execution)")
+
+        logger.info(f"Total tags: {instances.instance_tags}")
+
 
 class AWSCommander(Commander):
     def create_cache(self, vm, server, last_task):
@@ -162,7 +192,7 @@ class AWSCommander(Commander):
         last_task.stdout.apply(lambda outputlog: vm_logger(context.scenario.name, logger_name).info(outputlog))
         return last_task
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task):
+    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
         last_task = command.remote.CopyFile(
             id,
             connection=connection,
@@ -201,7 +231,7 @@ class AWSCommander(Commander):
         return cmd_exec_install
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
     ):
         # If we don't use remote_path, the remote_path will be a default remote user home
         if not destination_folder:
@@ -249,7 +279,7 @@ class AWSCommander(Commander):
                 quee_depends_on.insert(
                     0,
                     self.remote_copy_folders(
-                        source, destination, command_id, connection, quee_depends_on.pop(), relative_path=True
+                        source, destination, command_id, connection, quee_depends_on.pop(), relative_path=True, vm=vm
                     ),
                 )
         return quee_depends_on.pop()  # Here the quee should contain only one element

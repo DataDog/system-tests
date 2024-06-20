@@ -18,6 +18,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
@@ -97,6 +98,7 @@ public class App {
 
     CassandraConnector cassandra;
     MongoClient mongoClient;
+    int PRODUCE_CONSUME_THREAD_TIMEOUT = 5000;
 
     @RequestMapping("/")
     String home(HttpServletResponse response) {
@@ -163,6 +165,19 @@ public class App {
         h.put("metadata0", "value0");
         h.put("metadata1", "value1");
         return h;
+    }
+
+    @GetMapping("/users")
+    String users(@RequestParam String user) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if ((span instanceof MutableSpan)) {
+            MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+            localRootSpan.setTag("usr.id", user);
+        }
+        Blocking
+                .forUser(user)
+                .blockIfMatch();
+        return "Hello " + user;
     }
 
     @GetMapping("/user_login_success_event")
@@ -422,7 +437,8 @@ public class App {
     ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         try {
-            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
+            Thread produceThread = rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
+            produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start producing message...");
             e.printStackTrace();
@@ -463,14 +479,16 @@ public class App {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);
             try {
-                kafka.startProducingMessage("hello world!");
+                Thread produceThread = kafka.startProducingMessage("hello world!");
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                kafka.startConsumingMessages("");
+                Thread consumeThread = kafka.startConsumingMessages("");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
@@ -479,14 +497,16 @@ public class App {
         } else if ("rabbitmq".equals(integration)) {
             RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange(queue, exchange, routing_key);
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start consuming message...");
                 e.printStackTrace();
@@ -495,14 +515,16 @@ public class App {
         } else if ("rabbitmq_topic_exchange".equals(integration)) {
             RabbitmqConnectorForTopicExchange rabbitmq = new RabbitmqConnectorForTopicExchange();
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_topic] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_topic] Failed to start consuming message...");
                 e.printStackTrace();
@@ -511,14 +533,16 @@ public class App {
         } else if ("rabbitmq_fanout_exchange".equals(integration)) {
             RabbitmqConnectorForFanoutExchange rabbitmq = new RabbitmqConnectorForFanoutExchange();
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_fanout] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_fanout] Failed to start consuming message...");
                 e.printStackTrace();
@@ -527,14 +551,16 @@ public class App {
         } else if ("sqs".equals(integration)) {
             SqsConnector sqs = new SqsConnector(queue);
             try {
-                sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                Thread produceThread = sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start producing message...");
                 e.printStackTrace();
                 return "[SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages("SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SQS");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
                 e.printStackTrace();
@@ -544,14 +570,16 @@ public class App {
             SnsConnector sns = new SnsConnector(topic);
             SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
             try {
-                sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+                Thread produceThread = sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start producing message...");
                 e.printStackTrace();
                 return "[SNS->SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages("SNS->SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SNS->SQS");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start consuming message...");
                 e.printStackTrace();
