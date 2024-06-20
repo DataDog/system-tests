@@ -7,12 +7,12 @@ on:
         description: "Library to test"
         required: true
         type: string
-      scenarios: 
+      scenarios:
         description: "JSON array of scenarios to run"
         default: "[]"
         required: false
         type: string
-      weblogs: 
+      weblogs:
         description: "JSON array of weblogs to run"
         default: "[]"
         required: false

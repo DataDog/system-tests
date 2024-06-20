@@ -51,9 +51,9 @@ Step                       | Before                                             
 Weblog warmup              | custom test executor                                                       | pytest_collection_finished
 Setup test cases           | custom test executor, calling test functions (that must not fail)          | pytest_collection_finished, the only hacky part of the new model
 Wait for everything happen | custom test executor                                                       | pytest_collection_finished
-Test logic                 | custom test executor calls all asynchronous validation                     | Not needed, working out-of-the box 
+Test logic                 | custom test executor calls all asynchronous validation                     | Not needed, working out-of-the box
 collect logs               | pytest_terminal_summary, with lot of hack to collect logs and metadata     | Not needed, working out-of-the box
-Overwrite test result      | pytest_json_modifyreport, with lot of hacks                                | Not needed, working out-of-the box 
+Overwrite test result      | pytest_json_modifyreport, with lot of hacks                                | Not needed, working out-of-the box
 
 **In few words, we put the `setup` and `wait` step after the test collection, and nothing else is needed. Rather than rewritting a test executor, and lot of hacks**.
 
