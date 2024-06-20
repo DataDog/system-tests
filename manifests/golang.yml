@@ -256,6 +256,9 @@ tests/:
       Test_Login_Events_Extended: missing_feature
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Disabled_Remote_Config: missing_feature
+      Test_V2_Anonymization_Remote_Config: missing_feature
+      Test_V2_Identification_Remote_Config: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
       Test_BlockingGraphqlResolvers: missing_feature
