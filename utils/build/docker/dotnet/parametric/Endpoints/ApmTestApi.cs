@@ -1,8 +1,6 @@
 ﻿using Datadog.Trace;
 using Datadog.Trace.Configuration;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
