@@ -161,7 +161,7 @@ class TestSimpleHostAutoInjectManualProfiling(_AutoInjectBaseTest):
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
-@features.host_auto_instrumentation_profiling
+@features.host_auto_installation_script_profiling
 @scenarios.host_auto_injection_install_script_profiling
 class TestHostAutoInjectInstallScriptProfiling(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
