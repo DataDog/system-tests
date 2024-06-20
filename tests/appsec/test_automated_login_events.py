@@ -1211,7 +1211,7 @@ class Test_V2_Login_Events_Anon:
         interfaces.library.validate_spans(self.r_hdr_failure, validate_login_failure_headers)
 
 
-class _Test_V2_Remote_Config:
+class _Test_V2_Login_Events_RC:
 
     USER = "test"
     PASSWORD = "1234"
@@ -1236,8 +1236,8 @@ class _Test_V2_Remote_Config:
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @features.user_monitoring
-@scenarios.appsec_auto_events_disabled_rc
-class Test_V2_Disabled_Remote_Config(_Test_V2_Remote_Config):
+@scenarios.appsec_auto_events_rc_disabled
+class Test_V2_Login_Events_RC_Disabled(_Test_V2_Login_Events_RC):
     def setup_login(self):
         self._wait_for_rc_and_trigger_request()
 
@@ -1252,8 +1252,8 @@ class Test_V2_Disabled_Remote_Config(_Test_V2_Remote_Config):
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @features.user_monitoring
-@scenarios.appsec_auto_events_anonymization_rc
-class Test_V2_Anonymization_Remote_Config(_Test_V2_Remote_Config):
+@scenarios.appsec_auto_events_rc_anon
+class Test_V2_Login_Events_RC_Anon(_Test_V2_Login_Events_RC):
     def setup_login(self):
         self._wait_for_rc_and_trigger_request()
 
@@ -1269,8 +1269,8 @@ class Test_V2_Anonymization_Remote_Config(_Test_V2_Remote_Config):
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @features.user_monitoring
-@scenarios.appsec_auto_events_identification_rc
-class Test_V2_Identification_Remote_Config(_Test_V2_Remote_Config):
+@scenarios.appsec_auto_events_rc_ident
+class Test_V2_Login_Events_RC_Ident(_Test_V2_Login_Events_RC):
     def setup_login(self):
         self._wait_for_rc_and_trigger_request()
 

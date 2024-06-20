@@ -1737,30 +1737,30 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    appsec_auto_events_disabled_rc = EndToEndScenario(
-        "APPSEC_AUTO_EVENTS_DISABLED_RC",
+    appsec_auto_events_rc_disabled = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_RC_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "identification",},
-        proxy_state={"mock_remote_config_backend": "APPSEC_AUTO_EVENTS_DISABLED_RC"},
+        proxy_state={"mock_remote_config_backend": "APPSEC_AUTO_EVENTS_RC_DISABLED"},
         doc="""
             Scenario to test User ID collection disablement via Remote config
         """,
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    appsec_auto_events_anonymization_rc = EndToEndScenario(
-        "APPSEC_AUTO_EVENTS_ANONYMIZATION_RC",
+    appsec_auto_events_rc_anon = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_RC_ANON",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "disabled",},
-        proxy_state={"mock_remote_config_backend": "APPSEC_AUTO_EVENTS_ANONYMIZATION_RC"},
+        proxy_state={"mock_remote_config_backend": "APPSEC_AUTO_EVENTS_RC_ANON"},
         doc="""
             Scenario to test User ID collection anonymous mode via Remote config
         """,
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    appsec_auto_events_identification_rc = EndToEndScenario(
-        "APPSEC_AUTO_EVENTS_IDENTIFICATION_RC",
+    appsec_auto_events_rc_ident = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_RC_IDENT",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "disabled",},
-        proxy_state={"mock_remote_config_backend": "APPSEC_AUTO_EVENTS_IDENTIFICATION_RC"},
+        proxy_state={"mock_remote_config_backend": "APPSEC_AUTO_EVENTS_RC_IDENT"},
         doc="""
             Scenario to test User ID collection identification mode via Remote config
         """,

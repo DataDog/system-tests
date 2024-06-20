@@ -177,9 +177,9 @@ tests/:
       Test_Login_Events_Extended: v2.33.0
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Disabled_Remote_Config: missing_feature
-      Test_V2_Anonymization_Remote_Config: missing_feature
-      Test_V2_Identification_Remote_Config: missing_feature
+      Test_V2_Login_Events_RC_Anon: missing_feature
+      Test_V2_Login_Events_RC_Disabled: missing_feature
+      Test_V2_Login_Events_RC_Ident: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v2.27.0
       Test_BlockingGraphqlResolvers: missing_feature
