@@ -285,9 +285,7 @@ tests/:
         nextjs: missing_feature
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Login_Events_RC_Anon: missing_feature
-      Test_V2_Login_Events_RC_Disabled: missing_feature
-      Test_V2_Login_Events_RC_Ident: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: *ref_3_19_0
       Test_BlockingGraphqlResolvers:

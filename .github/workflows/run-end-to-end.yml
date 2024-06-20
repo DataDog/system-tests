@@ -264,19 +264,9 @@ jobs:
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_AUTO_EVENTS_RC_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_RC_DISABLED"')
-      run: ./run.sh APPSEC_AUTO_EVENTS_RC_DISABLED
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_AUTO_EVENTS_RC_ANON scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_RC_ANON"')
-      run: ./run.sh APPSEC_AUTO_EVENTS_RC_ANON
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_AUTO_EVENTS_RC_IDENT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_RC_IDENT"')
-      run: ./run.sh APPSEC_AUTO_EVENTS_RC_IDENT
+    - name: Run APPSEC_AUTO_EVENTS_RC scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_RC"')
+      run: ./run.sh APPSEC_AUTO_EVENTS_RC
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RASP scenario
