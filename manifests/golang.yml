@@ -121,7 +121,11 @@ tests/:
       test_lfi.py: missing_feature
       test_span_tags.py: missing_feature
       test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson: v1.65.1-rc.1
+        Test_Ssrf_BodyUrlEncoded: v1.65.1-rc.1
+        Test_Ssrf_BodyXml: v1.65.1-rc.1
+        Test_Ssrf_UrlQuery: v1.65.1-rc.1
       test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
