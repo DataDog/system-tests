@@ -399,7 +399,11 @@ class ServerImpl < APMClient::Service
   # OTel system tests provide times in microseconds, but Ruby OTel
   # measures time in seconds (Float).
   def otel_correct_time(microseconds)
-    microseconds &./ 1000000.0
+    if microseconds.nil? || microseconds == 0
+      nil
+    else
+      microseconds / 1000000.0
+    end
   end
 
   # Convert Protobuf attributes to native Ruby objects
