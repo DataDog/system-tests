@@ -1,5 +1,6 @@
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Union
 
@@ -104,6 +105,30 @@ class SpanFinishArgs(BaseModel):
 
 class SpanFinishReturn(BaseModel):
     pass
+
+
+class TraceConfigReturn(BaseModel):
+    config: dict[str, Optional[str]]
+
+
+@app.get("/trace/config")
+def trace_config() -> TraceConfigReturn:
+    return TraceConfigReturn(
+        config={
+            "dd_service": config.service,
+            "dd_log_level": None,
+            "dd_trace_sample_rate": str(config._trace_sample_rate),
+            "dd_trace_enabled": str(config._tracing_enabled).lower(),
+            "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
+            "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
+            "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
+            "dd_trace_debug": str(config._debug_mode).lower(),
+            "dd_trace_otel_enabled": str(config._otel_enabled).lower(),
+            "dd_trace_sample_ignore_parent": None,
+            "dd_env": config.env,
+            "dd_version": config.version,
+        }
+    )
 
 
 @app.post("/trace/span/finish")
@@ -347,6 +372,41 @@ def otel_start_span(args: OtelStartSpanArgs):
     ctx = otel_span.get_span_context()
     otel_spans[ctx.span_id] = otel_span
     return OtelStartSpanReturn(span_id=ctx.span_id, trace_id=ctx.trace_id)
+
+
+class OtelAddEventReturn(BaseModel):
+    pass
+
+
+class OtelAddEventArgs(BaseModel):
+    span_id: int
+    name: str
+    timestamp: Optional[int] = None
+    attributes: Optional[dict] = None
+
+
+@app.post("/trace/otel/add_event")
+def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
+    span = otel_spans[args.span_id]
+    span.add_event(args.name, args.attributes, args.timestamp)
+    return OtelAddEventReturn()
+
+
+class OtelRecordExceptionReturn(BaseModel):
+    pass
+
+
+class OtelRecordExceptionArgs(BaseModel):
+    span_id: int
+    message: str
+    attributes: dict
+
+
+@app.post("/trace/otel/record_exception")
+def otel_record_exception(args: OtelRecordExceptionArgs) -> OtelRecordExceptionReturn:
+    span = otel_spans[args.span_id]
+    span.record_exception(Exception(args.message), args.attributes)
+    return OtelRecordExceptionReturn()
 
 
 class OtelEndSpanArgs(BaseModel):

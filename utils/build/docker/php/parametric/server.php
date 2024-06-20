@@ -14,6 +14,7 @@ use Amp\Http\Server\Router;
 use Amp\Http\Server\SocketHttpServer;
 use Amp\Log\ConsoleFormatter;
 use Amp\Log\StreamHandler;
+use DDTrace\Configuration;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
@@ -335,6 +336,36 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         $spanBuilder->setStartTimestamp($timestamp * 1000); // ms -> ns
     }
 
+    $links = [];
+    if ($span_links = arg($req, 'links')) {
+        foreach ($span_links as $span_link) {
+            $span_link_attributes = isset($span_link["attributes"]) ? $span_link["attributes"] : [];
+            if ($span_link_parent_id = $span_link["parent_id"]) {
+                $span_context = $otelSpans[$span_link_parent_id]->getContext();
+                $spanBuilder->addLink($span_context, $span_link_attributes);
+            } else if ($span_link_http_headers = $span_link["http_headers"]) {
+                $carrier = [];
+                foreach ($span_link_http_headers as $span_link_http_header) {
+                    $carrier[$span_link_http_header[0]] = $span_link_http_header[1];
+                }
+
+                $callback = function ($headername) use ($carrier) {
+                    return $carrier[$headername] ?? null;
+                };
+                $headers_link = \DDTrace\SpanLink::fromHeaders($callback);
+
+                $linkSpanContext = \OpenTelemetry\API\Trace\SpanContext::create(
+                    $headers_link->traceId,
+                    $headers_link->spanId,
+                    \OpenTelemetry\API\Trace\TraceFlags::DEFAULT, // trace flags are not currently embedded into the native span link
+                    new \OpenTelemetry\API\Trace\TraceState($headers_link->traceState ?? null),
+                );
+
+                $spanBuilder->addLink($linkSpanContext, $span_link_attributes);
+            }
+        }
+    }
+
     if ($httpHeaders) {
         $carrier = [];
         foreach ($httpHeaders as $headers) {
@@ -531,6 +562,41 @@ $router->addRoute('POST', '/trace/otel/get_links', new ClosureRequestHandler(fun
     }
 
     return jsonResponse([]);
+}));
+$router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
+
+    $tags_array = \dd_trace_env_config("DD_TAGS");
+    $propagation_array = \dd_trace_env_config("DD_TRACE_PROPAGATION_STYLE");
+
+    $config_tags = [];
+    $config_propagation = "";
+
+    if (!empty($tags_array)) {
+        $callback = fn(string $k, string $v): string => "$k:$v";
+        $config_tags = array_map($callback, array_keys($tags_array), array_values($tags_array));
+    }
+
+    if (!empty($propagation_array)) {
+        $config_propagation = implode(",", array_keys($propagation_array));
+    }
+
+    $config = array(
+        'dd_service' => trim(var_export(\dd_trace_env_config("DD_SERVICE"), true), "'"),
+        'dd_env' => trim(var_export(\dd_trace_env_config("DD_ENV"), true), "'"),
+        'dd_version' => trim(var_export(\dd_trace_env_config("DD_VERSION"), true), "'"),
+        'dd_trace_sample_rate' => var_export(\dd_trace_env_config("DD_TRACE_SAMPLE_RATE"), true),
+        'dd_trace_enabled' => var_export(\dd_trace_env_config("DD_TRACE_ENABLED"), true),
+        'dd_runtime_metrics_enabled' => 'false', // PHP doesn't implement DD_RUNTIME_METRICS_ENABLED
+        'dd_tags' => $config_tags,
+        'dd_trace_propagation_style' => $config_propagation,
+        'dd_trace_debug' => var_export(\dd_trace_env_config("DD_TRACE_DEBUG"), true),
+        'dd_trace_otel_enabled' => var_export(\dd_trace_env_config("DD_TRACE_OTEL_ENABLED"), true),
+        'dd_log_level' => trim(var_export(\dd_trace_env_config("DD_TRACE_LOG_LEVEL"), true), "'"),
+    );
+    return jsonResponse(array(
+        'config' => $config
+    ));
+
 }));
 $server->start($router, $errorHandler);
 

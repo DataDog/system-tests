@@ -4,6 +4,23 @@ from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
 class K8sWeblog:
+    manual_injection_props = {
+        "python": [
+            {"name": "PYTHONPATH", "value": "/datadog-lib/"},
+            {"name": "DD_INSTALL_DDTRACE_PYTHON", "value": "1"},
+        ],
+        "dotnet": [
+            {"name": "CORECLR_ENABLE_PROFILING", "value": "1"},
+            {"name": "CORECLR_PROFILER", "value": "{846F5F1C-F9AE-4B07-969E-05C26BC060D8}"},
+            {"name": "CORECLR_PROFILER_PATH", "value": "/datadog-lib/Datadog.Trace.ClrProfiler.Native.so"},
+            {"name": "DD_DOTNET_TRACER_HOME", "value": "/datadog-lib"},
+            {"name": "LD_PRELOAD", "value": "/datadog-lib/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so"},
+        ],
+        "java": [{"name": "JAVA_TOOL_OPTIONS", "value": "-javaagent:/datadog-lib/dd-java-agent.jar"}],
+        "js": [{"name": "NODE_OPTIONS", "value": "--require=/datadog-lib/node_modules/dd-trace/init"}],
+        "ruby": [{"name": "RUBYOPT", "value": " -r/datadog-lib/auto_inject"}],
+    }
+
     def __init__(self, app_image, library, library_init_image, output_folder, test_name):
         self.k8s_kind_cluster = None
         self.app_image = app_image
@@ -13,23 +30,6 @@ class K8sWeblog:
         self.test_name = test_name
         self.logger = None
         self.k8s_wrapper = None
-
-        self.manual_injection_props = {
-            "python": [
-                {"name": "PYTHONPATH", "value": "/datadog-lib/"},
-                {"name": "DD_INSTALL_DDTRACE_PYTHON", "value": "1"},
-            ],
-            "dotnet": [
-                {"name": "CORECLR_ENABLE_PROFILING", "value": "1"},
-                {"name": "CORECLR_PROFILER", "value": "{846F5F1C-F9AE-4B07-969E-05C26BC060D8}"},
-                {"name": "CORECLR_PROFILER_PATH", "value": "/datadog-lib/Datadog.Trace.ClrProfiler.Native.so"},
-                {"name": "DD_DOTNET_TRACER_HOME", "value": "/datadog-lib"},
-                {"name": "LD_PRELOAD", "value": "/datadog-lib/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so"},
-            ],
-            "java": [{"name": "JAVA_TOOL_OPTIONS", "value": "-javaagent:/datadog-lib/dd-java-agent.jar"}],
-            "js": [{"name": "NODE_OPTIONS", "value": "--require=/datadog-lib/node_modules/dd-trace/init"}],
-            "ruby": [{"name": "RUBYOPT", "value": " -r/datadog-lib/auto_inject"}],
-        }
 
     def configure(self, k8s_kind_cluster, k8s_wrapper):
         self.k8s_kind_cluster = k8s_kind_cluster
@@ -129,7 +129,7 @@ class K8sWeblog:
         pod_body.spec.init_containers.append(init_container1)
         pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_LOGS_INJECTION", value="true"))
         # Env vars for manual injection. Each library has its own env vars
-        for lang_env_vars in self.manual_injection_props[self.library]:
+        for lang_env_vars in K8sWeblog.manual_injection_props[self.library]:
             pod_body.spec.containers[0].env.append(
                 client.V1EnvVar(name=lang_env_vars["name"], value=lang_env_vars["value"])
             )
@@ -355,10 +355,13 @@ class K8sWeblog:
         app_name = f"{self.library}-app"
         try:
             pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
-            if len(pods.items) > 0:
-                api_response = self.k8s_wrapper.read_namespaced_pod(pods.items[0].metadata.name)
+            for index in range(len(pods.items)):
+                k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(
+                    "-----------------------------------------------"
+                )
+                api_response = self.k8s_wrapper.read_namespaced_pod(pods.items[index].metadata.name)
                 k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(api_response)
-                api_response = self.k8s_wrapper.read_namespaced_pod_log(name=pods.items[0].metadata.name)
+                api_response = self.k8s_wrapper.read_namespaced_pod_log(name=pods.items[index].metadata.name)
                 k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, self.test_name, "deployment.logs").info(

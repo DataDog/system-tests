@@ -8,9 +8,19 @@ on:
         default: false
         required: false
         type: boolean
+      library:
+        description: "Library to test"
+        required: true
+        type: string
+      weblogs: 
+        description: "JSON array of weblogs to run"
+        default: "[]"
+        required: false
+        type: string
 
 jobs:
   open-telemetry-manual:
+    if: inputs.library == 'java'
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -75,22 +85,15 @@ jobs:
         path: artifact.tar.gz
 
   open-telemetry-automatic:
+    if: inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'nodejs'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        variant:
-        - library: java_otel
-          weblog: spring-boot-otel
-        - library: python_otel
-          weblog: flask-poc-otel
-        - library: nodejs_otel
-          weblog: express4-otel
-        version:
-        - prod
+        weblog: ${{ fromJson(inputs.weblogs) }}
       fail-fast: false
     env:
-      TEST_LIBRARY: ${{ matrix.variant.library }}
-      WEBLOG_VARIANT: ${{ matrix.variant.weblog }}
+      TEST_LIBRARY: ${{ inputs.library }}_otel
+      WEBLOG_VARIANT: ${{ matrix.weblog }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -105,12 +108,12 @@ jobs:
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
     - name: Build agent
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} -i agent
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
 
     - name: Build weblog opentelemetry autoinstrumentation
       if: always()
       id: build_otel
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ matrix.variant.library }} --weblog-variant ${{ matrix.variant.weblog }}
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }}_otel --weblog-variant ${{ matrix.weblog }}
     - name: Run OTEL_INTEGRATIONS scenario
       if: always() && steps.build_otel.outcome == 'success'
       run: ./run.sh OTEL_INTEGRATIONS
@@ -125,6 +128,6 @@ jobs:
       if: always() && steps.build_otel.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_otelautomatic_${{ matrix.variant.library }}_${{ matrix.variant.weblog }}_${{ matrix.version }}
+        name: logs_otelautomatic_${{ matrix.library }}_otel_${{ matrix.weblog }}_prod
         path: artifact.tar.gz
 

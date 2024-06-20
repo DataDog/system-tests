@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ApmTestApi.Endpoints;
 
@@ -19,6 +20,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
         app.MapPost("/trace/otel/set_status", OtelSetStatus);
         app.MapPost("/trace/otel/set_name", OtelSetName);
         app.MapPost("/trace/otel/set_attributes", OtelSetAttributes);
+        app.MapPost("/trace/otel/add_event", OtelAddEvent);
+        app.MapPost("/trace/otel/record_exception", OtelRecordException);
         app.MapPost("/trace/stats/flush", OtelFlushTraceStats);
     }
 
@@ -47,8 +50,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
         if (requestBodyObject.TryGetValue("http_headers", out var headersList))
         {
             var extractedContext = _spanContextExtractor.Extract(
-                    ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
-                    getter: GetHeaderValues!);
+            ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
+            getter: GetHeaderValues!);
             
             _logger.LogInformation("Extracted SpanContext: {ExtractedContext}", extractedContext);
 
@@ -110,12 +113,56 @@ public abstract class ApmTestApiOtel : ApmTestApi
             }
         }
         
+        var linksList = new List<ActivityLink>();
+
+        if (requestBodyObject.TryGetValue("links", out var links))
+        {
+            foreach (var spanLink in (JArray)links)
+            {
+                var parentSpanLink = Convert.ToUInt64(spanLink["parent_id"]);
+
+                ActivityTagsCollection? tags = default;
+                if (spanLink["attributes"] is not null)
+                {
+                    tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)spanLink["attributes"])?.ToObject<Dictionary<string, object>>());
+                }
+
+                ActivityContext contextToLink = new ActivityContext();
+
+                if (parentSpanLink != null && parentSpanLink > 0)
+                {
+                    contextToLink = FindActivity(parentSpanLink).Context;
+                }
+                else 
+                {
+                    var extractedContext = _spanContextExtractor.Extract(
+                            ((Newtonsoft.Json.Linq.JArray)spanLink["http_headers"]).ToObject<string[][]>(),
+                            getter: GetHeaderValues!);
+
+                    var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
+                    var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
+                    var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
+                    var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext });
+                    var tracestate = (string)spanLink["http_headers"][1][0] == "tracestate" ? (string)spanLink["http_headers"][1][1] : datadogHeadersTracestate;
+
+                    contextToLink = new ActivityContext(
+                        parentTraceId,
+                        parentSpanId,
+                        flags,
+                        (string)tracestate,
+                        isRemote: true);
+                }
+
+                linksList.Add(new ActivityLink(contextToLink, tags));
+            }
+        }
+
         var activity = ApmTestApiActivitySource.StartActivity(
             (string)requestBodyObject["name"],
             kind,
             parentContext,
             tags: null,
-            links: null,
+            links: linksList,
             startTime);
         
         if (activity is null)
@@ -219,7 +266,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         if (Enum.TryParse(code.ToString(), ignoreCase: true, out ActivityStatusCode statusCode))
         {
-            var activity = FindActivity(requestBodyObject["id"]);
+            var activity = FindActivity(requestBodyObject["span_id"]);
             activity.SetStatus(statusCode, requestBodyObject["description"].ToString());
         }
         else
@@ -254,6 +301,77 @@ public abstract class ApmTestApiOtel : ApmTestApi
         SetTag(FindActivity(requestBodyObject["span_id"]), ((Newtonsoft.Json.Linq.JObject?)requestBodyObject["attributes"])?.ToObject<Dictionary<string, object>>());
 
         _logger?.LogInformation("OtelSetAttributesReturn");
+    }
+
+    private static async Task OtelAddEvent(HttpRequest request)
+    {
+        var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
+
+        _logger.LogInformation("AddEvent: {RequestBodyObject}", requestBodyObject);
+
+        var name = requestBodyObject["name"] as string;
+
+        DateTimeOffset timestamp = default;
+        const long TicksPerMicroseconds = 10;
+        if (requestBodyObject.TryGetValue("timestamp", out var timestampInMicrosecondsObject)
+            && Convert.ToInt64(timestampInMicrosecondsObject) is long timestampInMicroseconds
+            && timestampInMicroseconds != 0)
+        {
+            var timestampTicks = timestampInMicroseconds * TicksPerMicroseconds;
+            timestamp = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
+            timestamp = timestamp.AddTicks(timestampTicks);
+        }
+
+        ActivityTagsCollection? tags = default;
+        if (requestBodyObject.TryGetValue("attributes", out var attributes))
+        {
+            tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)attributes)?.ToObject<Dictionary<string, object>>());
+        }
+
+        var activity = FindActivity(requestBodyObject["span_id"]);
+        activity.AddEvent(new ActivityEvent(name, timestamp, tags));
+    }
+
+    private static async Task OtelRecordException(HttpRequest request)
+    {
+        var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
+
+        _logger.LogInformation("OtelRecordException: {RequestBodyObject}", requestBodyObject);
+
+        ActivityTagsCollection? tags = default;
+        if (requestBodyObject.TryGetValue("attributes", out var attributes))
+        {
+            tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)attributes)?.ToObject<Dictionary<string, object>>()) ?? new();
+        }
+        else
+        {
+            tags = new();
+        }
+
+        // RecordException is not implemented on Activity, so we'll reproduce the behavior done by the .NET OpenTelemetry API package
+        // in the TelemetrySpan class.
+        // Further, the TelemetrySpan.RecordException does not accept attributes, so we'll piece together the additional attributes
+        // in this test app (even though the API spec this should be done by the library...)
+        var exception = new Exception(requestBodyObject["message"].ToString());
+
+        if (!tags.ContainsKey("exception.message"))
+        {
+            tags.Add("exception.message", exception.Message);
+        }
+
+        if (!tags.ContainsKey("exception.type"))
+        {
+            tags.Add("exception.type", exception.GetType().Name);
+        }
+
+        if (!tags.ContainsKey("exception.stacktrace"))
+        {
+            tags.Add("exception.stacktrace", exception.ToString());
+        }
+
+        const string name = "exception";
+        var activity = FindActivity(requestBodyObject["span_id"]);
+        activity.AddEvent(new ActivityEvent(name, default, tags));
     }
 
     private static async Task<string> OtelFlushSpans(HttpRequest request)
@@ -315,7 +433,17 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 || values is long
                 || values is double)
             {
-                activity.SetTag(key, values);
+                if (key == "http.response.status_code")
+                {
+                    // http.response.status_code is an int type
+                    // the .NET Tracer only will remap this tag _if_ it is an int to ensure we aren't remapping other, invalid datatypes
+                    // Newtonsoft will only convert JSON numerical types into longs or doubles, so we need to convert the datatype here
+                    activity.SetTag(key, Convert.ToInt32(values));
+                }
+                else
+                {
+                    activity.SetTag(key, values);
+                }
             }
             else if (values is System.Collections.IEnumerable valuesList)
             {
@@ -329,5 +457,60 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 activity.SetTag(key, toAdd);
             }
         }
+    }
+
+    private static ActivityTagsCollection? ToActivityTagsCollection(Dictionary<string, object>? attributes)
+    {
+        if (attributes is null)
+        {
+            return default;
+        }
+
+        ActivityTagsCollection tags = new();
+
+        foreach ((string key, object values) in attributes)
+        {
+            if (values is string
+                || values is bool
+                || values is long
+                || values is double)
+            {
+                tags.Add(key, values);
+            }
+            else if (values is System.Collections.IEnumerable valuesList)
+            {
+                Console.WriteLine(valuesList.GetType());
+
+                var toAdd = new List<object>();
+                foreach (var value in valuesList)
+                {
+                    var valueToAdd = ((Newtonsoft.Json.Linq.JValue)value).Value ?? throw new InvalidOperationException("Null value in attribute array");
+                    toAdd.Add(valueToAdd);
+                }
+
+                if (toAdd.Count > 0)
+                {
+                    var type = toAdd[0].GetType();
+                    if (type == typeof(string))
+                    {
+                        tags.Add(key, toAdd.Cast<string>().ToArray());
+                    }
+                    else if (type == typeof(long))
+                    {
+                        tags.Add(key, toAdd.Cast<long>().ToArray());
+                    }
+                    else if (type == typeof(bool))
+                    {
+                        tags.Add(key, toAdd.Cast<bool>().ToArray());
+                    }
+                    else if (type == typeof(double))
+                    {
+                        tags.Add(key, toAdd.Cast<double>().ToArray());
+                    }
+                }
+            }
+        }
+
+        return tags;
     }
 }

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, bug, features
-from .._test_iast_fixtures import BaseSourceTest
+from ..utils import BaseSourceTest
 
 
 @features.iast_source_request_parameter_value
@@ -29,14 +29,12 @@ class TestParameterValue(BaseSourceTest):
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
-    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     def test_source_get_reported(self):
         self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 

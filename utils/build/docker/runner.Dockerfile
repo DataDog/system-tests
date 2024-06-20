@@ -22,6 +22,7 @@ COPY utils/parametric /app/utils/parametric
 COPY utils/proxy /app/utils/proxy
 COPY utils/scripts /app/utils/scripts
 COPY utils/virtual_machine /app/utils/virtual_machine
+COPY utils/otel_validators /app/utils/otel_validators
 COPY utils/*.py /app/utils/
 
 # tests

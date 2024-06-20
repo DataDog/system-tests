@@ -219,6 +219,7 @@ COPY {dotnet_reldir} ./
 RUN dotnet publish --no-restore --configuration Release --output out
 WORKDIR /app/out
 
+
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
@@ -234,6 +235,9 @@ ENV DD_TRACE_Grpc_ENABLED=false
 ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
+
+# "disable" rate limiting by default by setting it to a large value
+ENV DD_TRACE_RATE_LIMIT=10000000
 
 ENTRYPOINT ["dotnet", "ApmTestApi.dll"]
 """,
@@ -329,9 +333,9 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_img=f"""
             FROM --platform=linux/amd64 ruby:3.2.1-bullseye
             WORKDIR /app
-            COPY {ruby_reldir} .           
+            COPY {ruby_reldir} .
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
-            RUN bundle install 
+            RUN bundle install
             RUN /binaries/install_ddtrace.sh
             COPY {ruby_reldir}/apm_test_client.proto /app/
             COPY {ruby_reldir}/generate_proto.sh /app/
@@ -358,7 +362,7 @@ WORKDIR /usr/app
 COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
 RUN sh /binaries/install_ddtrace.sh
 RUN cd /binaries/dd-trace-cpp \
- && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=1 . \
+ && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DDD_TRACE_BUILD_TESTING=1 . \
  && cmake --build .build -j $(nproc) \
  && cmake --install .build --prefix /usr/app/
 
@@ -654,6 +658,10 @@ class _TestAgentAPI:
                 if num_received == num:
                     if clear:
                         self.clear()
+                    for trace in traces:
+                        # Due to partial flushing the testagent may receive trace chunks out of order
+                        # so we must sort the spans by start time
+                        trace.sort(key=lambda x: x["start"])
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError(
@@ -978,7 +986,7 @@ def test_agent(
 
     test_agent_external_port = get_open_port()
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.15.0",
+        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,

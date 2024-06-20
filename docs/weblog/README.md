@@ -405,6 +405,13 @@ The following query parameters are required for each endpoint:
 - `arg`: This is a parameter that can take any string as an argument.
 - `intArg`: This is a parameter that can take any integer as an argument.
 
+#### GET /debugger/pii
+This endpoint will be used to validate debugger pii redaction feature.
+
+#### GET /expression
+#### GET /expression/exception
+These endpoints will be used to validate debugger expression language feature.
+
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
 
@@ -420,3 +427,80 @@ It supports the following body fields:
 
 ### GET /flush
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.
+
+### \[GET,POST\] /rasp/lfi
+
+This endpoint is used to test for local file inclusion / path traversal attacks, consequently it must perform an operation on a file or directory, e.g. `open` with a relative path. The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `file`: containing the string to inject on the file operation.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+open($file);
+```
+
+Examples:
+- `GET`: `/rasp/lfi?file=../etc/passwd`
+- `POST`: `{"file": "../etc/passwd"}`
+
+### \[GET,POST\] /rasp/ssrf
+
+This endpoint is used to test for server side request forgery attacks, consequently it must perform a network operation, e.g. an HTTP request. The chosen operation must be partially injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `domain`: containing the string to partially inject on the network operation.
+
+The endpoint should support the following content types:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The url used in the network operation should be similar to the following:
+```
+http://$domain
+```
+
+Examples:
+- `GET`: `/rasp/ssrf?domain=169.254.169.254`
+- `POST`: `{"domain": "169.254.169.254"}`
+
+### \[GET,POST\] /rasp/sqli
+
+This endpoint is used to test for SQL injection attacks, consequently it must perform a database query. The chosen operation must be partially injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `user_id`: containing the string to partially inject on the SQL query.
+
+The endpoint should support the following content types:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The statement used in the query should be similar to the following:
+
+```sql
+SELECT * FROM users WHERE id='$user_id';
+```
+
+Examples:
+- `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
+- `POST`: `{"user_id": "' OR 1 = 1 --"}`
+
+### GET /dsm/inject
+This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
+
+### GET /dsm/extract
+This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.
+
+### \[GET,POST\] /requestdownstream
+This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning it's value (the headers received) to inspect them, looking for
+distributed tracing propagation headers.
+
+### \[GET,POST\] /returnheaders
+This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers

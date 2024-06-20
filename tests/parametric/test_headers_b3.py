@@ -46,6 +46,7 @@ def enable_migrated_b3_single_key() -> Any:
 @scenarios.parametric
 class Test_Headers_B3:
     @enable_b3()
+    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_extract_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are extracted
@@ -63,6 +64,7 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3()
+    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_extract_invalid(self, test_agent, test_library):
         """Ensure that invalid b3 distributed tracing headers are not extracted.
@@ -76,6 +78,7 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3()
+    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_inject_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are injected properly.
@@ -97,6 +100,7 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3()
+    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_propagate_valid(self, test_agent, test_library):
         """Ensure that b3 distributed tracing headers are extracted
@@ -120,6 +124,7 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3()
+    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_propagate_invalid(self, test_agent, test_library):
         """Ensure that invalid b3 distributed tracing headers are not extracted
@@ -158,7 +163,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_valid(self, test_agent, test_library):
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
@@ -169,7 +173,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_invalid(self, test_agent, test_library):
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
@@ -180,7 +183,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_inject_valid(self, test_agent, test_library):
         self.test_headers_b3_inject_valid(test_agent, test_library)
 
@@ -191,7 +193,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_propagate_valid(self, test_agent, test_library):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
@@ -202,7 +203,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_propagate_invalid(self, test_agent, test_library):
         self.test_headers_b3_propagate_invalid(test_agent, test_library)
 
@@ -213,7 +213,6 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library == "python", reason="Need to remove b3=b3multi alias")
     @missing_feature(
         context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
     )

@@ -1,3 +1,4 @@
+from enum import Enum
 from logging import FileHandler
 import os
 from pathlib import Path
@@ -32,6 +33,10 @@ from utils._context.containers import (
     create_network,
     # SqlDbTestedContainer,
     BuddyContainer,
+    APMTestAgentContainer,
+    WeblogInjectionInitContainer,
+    MountInjectionVolume,
+    create_inject_volume,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -41,6 +46,7 @@ from utils._context.virtual_machines import (
     AmazonLinux2023amd64,
     AmazonLinux2DotNet6,
     AmazonLinux2amd64,
+    Centos7amd64,
 )
 
 from utils.tools import logger, get_log_formatter, update_environ_with_local_env
@@ -48,11 +54,47 @@ from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 update_environ_with_local_env()
 
 
+class ScenarioGroup(Enum):
+    ALL = "all"
+    APPSEC = "appsec"
+    DEBUGGER = "debugger"
+    END_TO_END = "end-to-end"
+    GRAPHQL = "graphql"
+    INTEGRATIONS = "integrations"
+    LIB_INJECTION = "lib-injection"
+    OPEN_TELEMETRY = "open-telemetry"
+    PARAMETRIC = "parametric"
+    PROFILING = "profiling"
+    SAMPLING = "sampling"
+
+
+VALID_GITHUB_WORKFLOWS = {
+    None,
+    "endtoend",
+    "graphql",
+    "libinjection",
+    "opentelemetry",
+    "parametric",
+    "testthetest",
+}
+
+
 class _Scenario:
-    def __init__(self, name, doc) -> None:
+    def __init__(self, name, github_workflow, doc, scenario_groups=None) -> None:
         self.name = name
         self.replay = False
         self.doc = doc
+        self.github_workflow = github_workflow
+        self.scenario_groups = scenario_groups or []
+
+        self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
+
+        assert (
+            self.github_workflow in VALID_GITHUB_WORKFLOWS
+        ), f"Invalid github_workflow {self.github_workflow} for {self.name}"
+
+        for group in self.scenario_groups:
+            assert group in ScenarioGroup, f"Invalid scenario group {group} for {self.name}: {group}"
 
     def create_log_subfolder(self, subfolder, remove_if_exists=False):
         if self.replay:
@@ -110,12 +152,7 @@ class _Scenario:
     def session_start(self):
         """called at the very begning of the process"""
 
-        self.print_test_context()
-
-        if self.replay:
-            return
-
-        logger.stdout("Executing warmups...")
+        logger.terminal.write_sep("=", "test context", bold=True)
 
         try:
             for warmup in self._get_warmups():
@@ -128,13 +165,11 @@ class _Scenario:
     def pytest_sessionfinish(self, session):
         """called at the end of the process"""
 
-    def print_test_context(self):
-        logger.terminal.write_sep("=", "test context", bold=True)
-        logger.stdout(f"Scenario: {self.name}")
-        logger.stdout(f"Logs folder: ./{self.host_log_folder}")
-
     def _get_warmups(self):
-        return []
+        return [
+            lambda: logger.stdout(f"Scenario: {self.name}"),
+            lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"),
+        ]
 
     def post_setup(self):
         """called after test setup"""
@@ -208,8 +243,16 @@ class _Scenario:
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
 
+    def is_part_of(self, declared_scenario):
+        return self.name == declared_scenario
+
 
 class TestTheTestScenario(_Scenario):
+    library = LibraryVersion("java", "0.66.0")
+
+    def __init__(self, name, doc) -> None:
+        super().__init__(name, doc=doc, github_workflow="testthetest")
+
     @property
     def agent_version(self):
         return "0.77.0"
@@ -223,10 +266,6 @@ class TestTheTestScenario(_Scenario):
         return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
 
     @property
-    def library(self):
-        return LibraryVersion("java", "0.66.0")
-
-    @property
     def weblog_variant(self):
         return "spring"
 
@@ -237,7 +276,9 @@ class _DockerScenario(_Scenario):
     def __init__(
         self,
         name,
+        github_workflow,
         doc,
+        scenario_groups=None,
         use_proxy=True,
         proxy_state=None,
         include_postgres_db=False,
@@ -250,7 +291,7 @@ class _DockerScenario(_Scenario):
         include_elasticmq=False,
         include_localstack=False,
     ) -> None:
-        super().__init__(name, doc=doc)
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
         self.use_proxy = use_proxy
         self._required_containers = []
@@ -304,10 +345,14 @@ class _DockerScenario(_Scenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.append(create_network)
+        if not self.replay:
+            warmups.append(create_network)
+
+            for container in self._required_containers:
+                warmups.append(container.start)
 
         for container in self._required_containers:
-            warmups.append(container.start)
+            warmups.append(container.post_start)
 
         return warmups
 
@@ -326,6 +371,8 @@ class EndToEndScenario(_DockerScenario):
         self,
         name,
         doc,
+        github_workflow="endtoend",
+        scenario_groups=None,
         weblog_env=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
@@ -347,9 +394,14 @@ class EndToEndScenario(_DockerScenario):
         include_elasticmq=False,
         include_localstack=False,
     ) -> None:
+
+        scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END] + (scenario_groups or [])
+
         super().__init__(
             name,
             doc=doc,
+            github_workflow=github_workflow,
+            scenario_groups=scenario_groups,
             use_proxy=use_proxy,
             proxy_state=proxy_state,
             include_postgres_db=include_postgres_db,
@@ -420,6 +472,9 @@ class EndToEndScenario(_DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
+    def is_part_of(self, declared_scenario):
+        return declared_scenario in (self.name, "EndToEndScenario")
+
     def configure(self, config):
         from utils import interfaces
 
@@ -446,12 +501,16 @@ class EndToEndScenario(_DockerScenario):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("python",):
-                self.library_interface_timeout = 25
+                self.library_interface_timeout = 5
             else:
                 self.library_interface_timeout = 40
 
     def session_start(self):
         super().session_start()
+
+        if self.replay:
+            return
+
         try:
             code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
             if code:
@@ -460,29 +519,8 @@ class EndToEndScenario(_DockerScenario):
                 message = stdout.decode()
         except BaseException as e:
             message = f"Unexpected exception {e}"
+
         logger.stdout(f"Weblog system: {message}")
-
-    def print_test_context(self):
-        from utils import weblog
-
-        super().print_test_context()
-
-        logger.debug(f"Docker host is {weblog.domain}")
-
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Agent: {self.agent_version}")
-
-        if self.weblog_container.libddwaf_version:
-            logger.stdout(f"libddwaf: {self.weblog_container.libddwaf_version}")
-
-        if self.weblog_container.appsec_rules_file:
-            logger.stdout(f"AppSec rules version: {self.weblog_container.appsec_rules_version}")
-
-        if self.weblog_container.uds_mode:
-            logger.stdout(f"UDS socket: {self.weblog_container.uds_socket}")
-
-        logger.stdout(f"Weblog variant: {self.weblog_container.weblog_variant}")
-        logger.stdout(f"Backend: {self.agent_container.dd_site}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -523,9 +561,10 @@ class EndToEndScenario(_DockerScenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.insert(0, self._create_interface_folders)
-        warmups.insert(1, self._start_interface_watchdog)
-        warmups.append(self._wait_for_app_readiness)
+        if not self.replay:
+            warmups.insert(0, self._create_interface_folders)
+            warmups.insert(1, self._start_interface_watchdog)
+            warmups.append(self._wait_for_app_readiness)
 
         return warmups
 
@@ -711,6 +750,8 @@ class OpenTelemetryScenario(_DockerScenario):
         super().__init__(
             name,
             doc=doc,
+            github_workflow="opentelemetry",
+            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.OPEN_TELEMETRY],
             use_proxy=True,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
@@ -783,9 +824,10 @@ class OpenTelemetryScenario(_DockerScenario):
     def _get_warmups(self):
         warmups = super()._get_warmups()
 
-        warmups.insert(0, self._create_interface_folders)
-        warmups.insert(1, self._start_interface_watchdog)
-        warmups.append(self._wait_for_app_readiness)
+        if not self.replay:
+            warmups.insert(0, self._create_interface_folders)
+            warmups.insert(1, self._start_interface_watchdog)
+            warmups.append(self._wait_for_app_readiness)
 
         return warmups
 
@@ -832,7 +874,7 @@ class OpenTelemetryScenario(_DockerScenario):
 
     @property
     def agent_version(self):
-        return self.agent_container.agent_version if self.include_agent else Version("0.0.0", "agent")
+        return self.agent_container.agent_version if self.include_agent else Version("0.0.0")
 
     @property
     def weblog_variant(self):
@@ -901,7 +943,9 @@ class ParametricScenario(_Scenario):
             return result
 
     def __init__(self, name, doc) -> None:
-        super().__init__(name, doc=doc)
+        super().__init__(
+            name, doc=doc, github_workflow="parametric", scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.PARAMETRIC]
+        )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
     @property
@@ -946,10 +990,11 @@ class ParametricScenario(_Scenario):
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
         logger.stdout(f"Library: {self.library}")
 
-    def print_test_context(self):
-        super().print_test_context()
+    def _get_warmups(self):
+        result = super()._get_warmups()
+        result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
-        logger.stdout(f"Library: {self.library}")
+        return result
 
     @property
     def library(self):
@@ -962,6 +1007,7 @@ class _VirtualMachineScenario(_Scenario):
     def __init__(
         self,
         name,
+        github_workflow,
         doc,
         vm_provision=None,
         include_ubuntu_22_amd64=False,
@@ -971,8 +1017,9 @@ class _VirtualMachineScenario(_Scenario):
         include_amazon_linux_2_dotnet_6=False,
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
+        include_centos_7_amd64=False,
     ) -> None:
-        super().__init__(name, doc=doc)
+        super().__init__(name, doc=doc, github_workflow=github_workflow)
         self.vm_provision_name = vm_provision
         self.vm_provider_id = "vagrant"
         self.vm_provider = None
@@ -994,6 +1041,8 @@ class _VirtualMachineScenario(_Scenario):
             self.required_vms.append(AmazonLinux2023amd64())
         if include_amazon_linux_2023_arm64:
             self.required_vms.append(AmazonLinux2023arm64())
+        if include_centos_7_amd64:
+            self.required_vms.append(Centos7amd64())
 
     def session_start(self):
         super().session_start()
@@ -1100,6 +1149,7 @@ class HostAutoInjectionScenario(_VirtualMachineScenario):
             name,
             vm_provision=vm_provision,
             doc=doc,
+            github_workflow=None,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
             include_ubuntu_18_amd64=True,
@@ -1116,6 +1166,7 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
             name,
             vm_provision=vm_provision,
             doc=doc,
+            github_workflow=None,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
             include_ubuntu_18_amd64=True,
@@ -1126,11 +1177,30 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
         )
 
 
-class _KubernetesScenario(_Scenario):
-    """Scenario that tests kubernetes lib injection"""
+class InstallerAutoInjectionScenario(_VirtualMachineScenario):
+    def __init__(self, name, doc, vm_provision="installer-auto-inject") -> None:
+        super().__init__(
+            name,
+            vm_provision=vm_provision,
+            doc=doc,
+            github_workflow=None,
+            include_ubuntu_22_amd64=True,
+            include_ubuntu_22_arm64=True,
+            include_ubuntu_18_amd64=True,
+            include_amazon_linux_2_amd64=True,
+            include_amazon_linux_2_dotnet_6=True,
+            include_amazon_linux_2023_amd64=True,
+            include_amazon_linux_2023_arm64=True,
+            include_centos_7_amd64=True,
+        )
 
-    def __init__(self, name, doc) -> None:
-        super().__init__(name, doc=doc)
+
+class _KubernetesScenario(_Scenario):
+    """ DEPRECATED: Replaced by Kubernetes Scenario. 
+        Scenario that tests kubernetes lib injection"""
+
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
     def configure(self, config):
         super().configure(config)
@@ -1218,8 +1288,120 @@ class _KubernetesScenario(_Scenario):
         return self._weblog_variant
 
 
+class KubernetesScenario(_Scenario):
+    """ Scenario that tests kubernetes lib injection """
+
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+
+    def configure(self, config):
+        super().configure(config)
+
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
+        assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
+        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE is not set. The init image to be tested is not set"
+        assert (
+            "LIBRARY_INJECTION_TEST_APP_IMAGE" in os.environ
+        ), "LIBRARY_INJECTION_TEST_APP_IMAGE is not set. The test app image to be tested is not set"
+
+        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
+        self._weblog_variant_image = os.getenv("LIBRARY_INJECTION_TEST_APP_IMAGE")
+        self._library_init_image = os.getenv("LIB_INIT_IMAGE")
+
+        logger.stdout("K8s Lib Injection environment:")
+        logger.stdout(f"Library: {self._library}")
+        logger.stdout(f"Weblog variant: {self._weblog_variant}")
+        logger.stdout(f"Weblog variant image: {self._weblog_variant_image}")
+        logger.stdout(f"Library init image: {self._library_init_image}")
+
+        logger.info("K8s Lib Injection environment configured")
+
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def weblog_variant(self):
+        return self._weblog_variant
+
+
+class WeblogInjectionScenario(_Scenario):
+    """Scenario that runs APM test agent """
+
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+
+        self._mount_injection_volume = MountInjectionVolume(
+            host_log_folder=self.host_log_folder, name="volume-injector"
+        )
+        self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
+
+        self._required_containers = []
+        self._required_containers.append(self._mount_injection_volume)
+        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(self._weblog_injection)
+
+    def configure(self, config):
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
+        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+
+        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
+        self._lib_init_image = os.getenv("LIB_INIT_IMAGE")
+
+        self._mount_injection_volume._lib_init_image(self._lib_init_image)
+        self._weblog_injection.set_environment_for_library(self.library)
+
+        super().configure(config)
+
+        for container in self._required_containers:
+            container.configure(self.replay)
+
+    def _get_warmups(self):
+        warmups = super()._get_warmups()
+
+        warmups.append(create_network)
+        warmups.append(create_inject_volume)
+        for container in self._required_containers:
+            warmups.append(container.start)
+
+        return warmups
+
+    def pytest_sessionfinish(self, session):
+        self.close_targets()
+
+    def close_targets(self):
+        for container in reversed(self._required_containers):
+            try:
+                container.remove()
+                logger.info(f"Removing container {container}")
+            except:
+                logger.exception(f"Failed to remove container {container}")
+
+    @property
+    def library(self):
+        return self._library
+
+    @property
+    def lib_init_image(self):
+        return self._lib_init_image
+
+
 class scenarios:
-    todo = _Scenario("TODO", doc="scenario that skips tests not yet executed")
+    @staticmethod
+    def all_endtoend_scenarios(test_object):
+        """particular use case where a klass applies on all scenarios"""
+
+        # Check that no scenario has been already declared
+        for marker in getattr(test_object, "pytestmark", []):
+            if marker.name == "scenario":
+                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
+
+        pytest.mark.scenario("EndToEndScenario")(test_object)
+
+        return test_object
+
+    todo = _Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
@@ -1253,6 +1435,7 @@ class scenarios:
         include_elasticmq=True,
         include_localstack=True,
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
+        scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC],
     )
 
     crossed_tracing_libraries = EndToEndScenario(
@@ -1268,6 +1451,7 @@ class scenarios:
         include_localstack=True,
         include_rabbitmq=True,
         doc="Spawns a buddy for each supported language of APM",
+        scenario_groups=[ScenarioGroup.INTEGRATIONS],
     )
 
     otel_integrations = OpenTelemetryScenario(
@@ -1276,6 +1460,7 @@ class scenarios:
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:8126",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "OTEL_INTEGRATIONS_TEST": True,
         },
         include_intake=False,
         include_collector=False,
@@ -1301,6 +1486,7 @@ class scenarios:
             "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
         },
         doc="Test profiling feature. Not included in default scenario because is quite slow",
+        scenario_groups=[ScenarioGroup.PROFILING],
     )
 
     sampling = EndToEndScenario(
@@ -1308,6 +1494,7 @@ class scenarios:
         tracer_sampling_rate=0.5,
         weblog_env={"DD_TRACE_RATE_LIMIT": "10000000"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
+        scenario_groups=[ScenarioGroup.SAMPLING],
     )
 
     trace_propagation_style_w3c = EndToEndScenario(
@@ -1355,24 +1542,41 @@ class scenarios:
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
-        "APPSEC_MISSING_RULES", appsec_rules="/donotexists", doc="Test missing appsec rules file"
+        "APPSEC_MISSING_RULES",
+        appsec_rules="/donotexists",
+        doc="Test missing appsec rules file",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_corrupted_rules = EndToEndScenario(
-        "APPSEC_CORRUPTED_RULES", appsec_rules="/appsec_corrupted_rules.yml", doc="Test corrupted appsec rules file"
+        "APPSEC_CORRUPTED_RULES",
+        appsec_rules="/appsec_corrupted_rules.yml",
+        doc="Test corrupted appsec rules file",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_custom_rules = EndToEndScenario(
-        "APPSEC_CUSTOM_RULES", appsec_rules="/appsec_custom_rules.json", doc="Test custom appsec rules file"
+        "APPSEC_CUSTOM_RULES",
+        appsec_rules="/appsec_custom_rules.json",
+        doc="Test custom appsec rules file",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_blocking = EndToEndScenario(
-        "APPSEC_BLOCKING", appsec_rules="/appsec_blocking_rule.json", doc="Misc tests for appsec blocking"
+        "APPSEC_BLOCKING",
+        appsec_rules="/appsec_blocking_rule.json",
+        doc="Misc tests for appsec blocking",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     graphql_appsec = EndToEndScenario(
-        "GRAPHQL_APPSEC", appsec_rules="/appsec_blocking_rule.json", doc="AppSec tests for GraphQL integrations"
+        "GRAPHQL_APPSEC",
+        appsec_rules="/appsec_blocking_rule.json",
+        doc="AppSec tests for GraphQL integrations",
+        github_workflow="graphql",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
         appsec_rules="/appsec_custom_rules_with_errors.json",
         doc="Appsec rule file with some errors",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_disabled = EndToEndScenario(
         "APPSEC_DISABLED",
@@ -1380,9 +1584,13 @@ class scenarios:
         appsec_enabled=False,
         include_postgres_db=True,
         doc="Disable appsec and test DBM setting integration outcome when disabled",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_low_waf_timeout = EndToEndScenario(
-        "APPSEC_LOW_WAF_TIMEOUT", weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"}, doc="Appsec with a very low WAF timeout"
+        "APPSEC_LOW_WAF_TIMEOUT",
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"},
+        doc="Appsec with a very low WAF timeout",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
@@ -1391,13 +1599,14 @@ class scenarios:
             "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value",
         },
         doc="Test custom appsec obfuscation parameters",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rate_limiter = EndToEndScenario(
         "APPSEC_RATE_LIMITER",
         weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1"},
         doc="Tests with a low rate trace limit for Appsec",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
-
     appsec_waf_telemetry = EndToEndScenario(
         "APPSEC_WAF_TELEMETRY",
         weblog_env={
@@ -1406,6 +1615,7 @@ class scenarios:
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
         },
         doc="Enable Telemetry feature for WAF",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     appsec_blocking_full_denylist = EndToEndScenario(
@@ -1420,6 +1630,7 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     appsec_request_blocking = EndToEndScenario(
@@ -1427,6 +1638,7 @@ class scenarios:
         proxy_state={"mock_remote_config_backend": "ASM"},
         weblog_env={"DD_APPSEC_RULES": None},
         doc="",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     appsec_runtime_activation = EndToEndScenario(
@@ -1439,6 +1651,7 @@ class scenarios:
             "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
         },
         doc="",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     appsec_api_security = EndToEndScenario(
@@ -1456,14 +1669,17 @@ class scenarios:
         Scenario for API Security feature, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     appsec_api_security_rc = EndToEndScenario(
         "APPSEC_API_SECURITY_RC",
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0",},
         proxy_state={"mock_remote_config_backend": "APPSEC_API_SECURITY_RC"},
         doc="""
             Scenario to test API Security Remote config
         """,
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -1481,6 +1697,7 @@ class scenarios:
         Scenario for API Security feature, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     appsec_api_security_with_sampling = EndToEndScenario(
@@ -1494,13 +1711,26 @@ class scenarios:
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+        },
         appsec_enabled=True,
         doc="Scenario for checking extended mode in automatic user events",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        doc="Appsec standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     # Remote config scenarios
@@ -1515,6 +1745,7 @@ class scenarios:
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         library_interface_timeout=100,
         doc="",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -1543,6 +1774,7 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -1551,6 +1783,7 @@ class scenarios:
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
         doc="",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -1559,6 +1792,7 @@ class scenarios:
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
         doc="",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     remote_config_mocked_backend_live_debugging_nocache = EndToEndScenario(
@@ -1578,6 +1812,7 @@ class scenarios:
         proxy_state={"mock_remote_config_backend": "ASM_DD_NOCACHE"},
         library_interface_timeout=100,
         doc="",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     # APM tracing end-to-end scenarios
@@ -1624,6 +1859,7 @@ class scenarios:
         },
         library_interface_timeout=100,
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
     debugger_method_probes_snapshot = EndToEndScenario(
@@ -1632,6 +1868,7 @@ class scenarios:
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
     debugger_line_probes_snapshot = EndToEndScenario(
@@ -1640,6 +1877,7 @@ class scenarios:
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
     debugger_mix_log_probe = EndToEndScenario(
@@ -1648,17 +1886,33 @@ class scenarios:
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
         doc="Set both method and line probes at the same code",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
     debugger_pii_redaction = EndToEndScenario(
         "DEBUGGER_PII_REDACTION",
         proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
+        },
         library_interface_timeout=5,
         doc="Check pii redaction",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)")
+    debugger_expression_language = EndToEndScenario(
+        "DEBUGGER_EXPRESSION_LANGUAGE",
+        proxy_state={"mock_remote_config_backend": "DEBUGGER_EXPRESSION_LANGUAGE"},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=5,
+        doc="Check expression language",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     host_auto_injection = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario",
@@ -1675,10 +1929,21 @@ class scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
     )
+    # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
+    host_auto_injection_ld_preload = HostAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_LD_PRELOAD",
+        "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
+        vm_provision="host-auto-inject-ld-preload",
+    )
 
     container_auto_injection = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
     )
+    container_not_supported_auto_injection = ContainerAutoInjectionScenario(
+        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario for not supported languages or containers",
+    )
+
     simple_container_auto_injection = ContainerAutoInjectionScenario(
         "SIMPLE_CONTAINER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
@@ -1689,18 +1954,70 @@ class scenarios:
         vm_provision="container-auto-inject-install-script",
     )
     k8s_lib_injection_basic = _KubernetesScenario(
-        "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+        "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario. DEPRECATED"
     )
-    k8s_lib_injection_full = _KubernetesScenario(
-        "K8S_LIB_INJECTION_FULL", doc=" Kubernetes Instrumentation complete scenario"
+    k8s_library_injection_full = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_FULL",
+        doc=" Kubernetes Instrumentation complete scenario.",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
+
+    k8s_library_injection_basic = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+    )
+
+    lib_injection_validation = WeblogInjectionScenario(
+        "LIB_INJECTION_VALIDATION",
+        doc="Validates the init images without kubernetes enviroment",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    lib_injection_validation_unsupported_lang = WeblogInjectionScenario(
+        "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
+        doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    installer_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
+    )
+
+    appsec_rasp = EndToEndScenario(
+        "APPSEC_RASP",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
+        appsec_rules="/appsec_rasp_ruleset.json",
+        doc="Enable APPSEC RASP",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+
+def get_all_scenarios() -> list[_Scenario]:
+    result = []
+    for name in dir(scenarios):
+        if not name.startswith("_"):
+            scenario: _Scenario = getattr(scenarios, name)
+            if issubclass(scenario.__class__, _Scenario):
+                result.append(scenario)
+
+    return result
 
 
 def _main():
-    for name in dir(scenarios):
-        if not name.startswith("_"):
-            scenario = getattr(scenarios, name)
-            print(scenario.doc)
+    data = {
+        scenario.name: {
+            "name": scenario.name,
+            "doc": scenario.doc,
+            "github_workflow": scenario.github_workflow,
+            "scenario_groups": scenario.scenario_groups,
+        }
+        for scenario in get_all_scenarios()
+    }
+
+    print(json.dumps(data, indent=2))
 
 
 if __name__ == "__main__":

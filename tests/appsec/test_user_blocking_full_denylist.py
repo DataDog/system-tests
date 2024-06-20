@@ -1,4 +1,4 @@
-from utils import context, interfaces, scenarios, weblog, bug, features
+from utils import context, interfaces, scenarios, weblog, bug, features, missing_feature
 
 
 @features.appsec_user_blocking
@@ -43,17 +43,20 @@ class Test_UserBlocking_FullDenylist:
         ]
 
     @bug(context.library < "ruby@1.12.1", reason="not setting the tags on the service entry span")
+    @bug(
+        context.library >= "java@1.22.0" and context.library < "java@1.35.0",
+        reason="Failed on large expiration values, which are used in this test",
+    )
+    @bug(library="java", reason="Request blocked but appsec.blocked tag not set")
+    @missing_feature(library="python")
     def test_blocking_test(self):
         """Test with a denylisted user"""
-
-        def validate_blocking_test(span):
-            """Check all fields are present in meta"""
-            assert span["meta"]["appsec.event"] == "true"
-            assert span["meta"]["appsec.blocked"] == "true"
-            assert span["meta"]["http.status_code"] == "403"
-            return True
-
         for r in self.r_blocked_requests:
             assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-002", address="usr.id")
-            interfaces.library.validate_spans(r, validator=validate_blocking_test)
+            spans = [s for _, s in interfaces.library.get_root_spans(r)]
+            assert len(spans) == 1
+            span = spans[0]
+            assert span["meta"]["appsec.event"] == "true"
+            assert span["meta"]["appsec.blocked"] == "true"
+            assert span["meta"]["http.status_code"] == "403"

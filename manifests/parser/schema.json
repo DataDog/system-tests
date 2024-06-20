@@ -2,6 +2,12 @@
   "type": "object",
 
   "properties": {
+    "refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "tests/": { "$ref": "#/$defs/folder_content" }
   },
 
@@ -58,12 +64,13 @@
     },
 
     "feature_state": {
-      "if": { "type": "string", "pattern": "^v\\d.+" },
-      "then": { "$ref": "#/$defs/version" },
-      "else": { "$ref": "#/$defs/skipped_declaration" }
+      "anyOf": [
+        { "$ref": "#/$defs/version" },
+        { "$ref": "#/$defs/skipped_declaration" }
+      ]
     },
 
-    "version": { "type": "string", "pattern": "^v\\d.+" },
+    "version": { "type": "string" },
 
     "skipped_declaration": {
       "type": "string",

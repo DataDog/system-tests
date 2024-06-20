@@ -1,6 +1,6 @@
 from utils import context, bug, features, irrelevant, missing_feature, scenarios
 from utils.tools import logger
-from .sql_utils import BaseDbIntegrationsTestClass
+from .utils import BaseDbIntegrationsTestClass
 
 
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):

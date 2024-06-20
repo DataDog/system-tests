@@ -1,0 +1,12 @@
+FROM public.ecr.aws/docker/library/python:3-alpine
+# Install python/pip
+ENV PYTHONUNBUFFERED=1
+RUN apk add libgcc
+RUN pip3 install --no-cache --upgrade pip setuptools
+
+ENV DJANGO_SETTINGS_MODULE django_app
+WORKDIR /src
+ADD . /src
+RUN pip3 install django
+EXPOSE 18080
+CMD python3 -m django runserver 0.0.0.0:18080

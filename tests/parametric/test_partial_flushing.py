@@ -32,7 +32,7 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
     @missing_feature(context.library == "golang", reason="partial flushing not enabled by default")
     @missing_feature(context.library == "dotnet", reason="partial flushing not enabled by default")
-    @missing_feature(
+    @bug(
         context.library == "python",
         reason="There is a problem with this tests when we execute python on multiple tests workers",
     )

@@ -4,6 +4,7 @@ import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx4.iast.routes.IastSourceRouteProvider;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -109,6 +110,17 @@ public class Main {
                     String codeString = ctx.request().getParam("code");
                     int code = Integer.parseInt(codeString);
                     ctx.response().setStatusCode(code).end();
+                });
+        router.get("/users")
+                .handler(ctx -> {
+                    final String user = ctx.request().getParam("user");
+                    final Span span = GlobalTracer.get().activeSpan();
+                    if ((span instanceof MutableSpan)) {
+                        MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+                        localRootSpan.setTag("usr.id", user);
+                    }
+                    Blocking.forUser(user).blockIfMatch();
+                    ctx.response().end("Hello " + user);
                 });
         router.get("/user_login_success_event")
                 .handler(ctx -> {

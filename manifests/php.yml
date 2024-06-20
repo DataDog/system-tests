@@ -27,8 +27,11 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
@@ -100,6 +103,12 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_span_tags.py: missing_feature
+      test_sqli.py: missing_feature
+      test_ssrf.py: missing_feature
+      test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v0.98.1 # TODO what is the earliest version?
@@ -110,6 +119,7 @@ tests/:
         Test_Cookies: v0.68.3
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v0.68.3
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -120,6 +130,7 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v0.86.0
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: v0.86.0
       test_custom_rules.py:
         Test_CustomRules: v0.87.2
@@ -149,9 +160,13 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_PII.py:
       Test_Scrubbing: missing_feature
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: v0.89.0
       Test_Login_Events_Extended: v0.89.0
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
@@ -181,6 +196,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: irrelevant
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: irrelevant
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
   integrations/:
@@ -228,6 +245,8 @@ tests/:
       TestDynamicConfigV2: missing_feature
     test_otel_api_interoperability.py:
       Test_Otel_API_Interoperability: v0.94.0
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: v1.1.0
     test_otel_sdk_interoperability.py:
       Test_Otel_SDK_Interoperability: v0.94.0
     test_otel_span_methods.py:
@@ -247,6 +266,7 @@ tests/:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v0.96.0
@@ -304,4 +324,5 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v0.90
+    Test_TelemetrySCAEnvVar: v0.99.1
     Test_TelemetryV2: v0.90

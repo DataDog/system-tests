@@ -9,6 +9,7 @@ const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_con
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
 const { trace, ROOT_CONTEXT } = require('@opentelemetry/api')
+const { millisToHrTime } = require('@opentelemetry/core')
 
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
@@ -33,8 +34,8 @@ const otelStatusCodes = {
   'ERROR': 2
 }
 
-const spans = {}
-const otelSpans = {}
+const spans = new Map()
+const otelSpans = new Map()
 
 // Endpoint /trace/span/inject_headers
 app.post('/trace/span/inject_headers', (req, res) => {
@@ -75,26 +76,53 @@ app.post('/trace/span/start', (req, res) => {
   for (const [key, value] of http_headers) {
       convertedHeaders[key.toLowerCase()] = value
   }
+  
   const extracted = tracer.extract('http_headers', convertedHeaders)
   if (extracted !== null) parent = extracted
 
   const span = tracer.startSpan(request.name, {
-      type: request.type,
-      resource: request.resource,
-      childOf: parent,
-      tags: {
-          service: request.service
-      }
+    type: request.type,
+    resource: request.resource,
+    childOf: parent,
+    tags: {
+        service: request.service
+    }
   })
+  
+  for (const link of request.links || []) {
+    const linkParentId = link.parent_id;
+    if (linkParentId) {
+      const linkParentSpan = spans[linkParentId];
+      span.addLink(linkParentSpan.context(), link.attributes);
+    } else {
+      const linkHeaders = link.http_headers || {};
+      const convertedLinkHeaders = {}
+      for (const [key, value] of linkHeaders) {
+        convertedLinkHeaders[key.toLowerCase()] = value
+      }
+      const linkExtracted = tracer.extract('http_headers', convertedLinkHeaders);
+      if (linkExtracted) {
+        span.addLink(linkExtracted, link.attributes);
+      }
+    }
+  }
+  
   spans[span.context().toSpanId()] = span
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
+});
+
+app.post('/trace/span/add_link', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const linked_span = spans[request.parent_id]
+  span.addLink(linked_span.context(), request.attributes)
+  res.json({});
 });
 
 app.post('/trace/span/finish', (req, res) => {
   const id = req.body.span_id
   const span = spans[id]
   span.finish()
-  delete spans[id]
   res.json({});
 });
 
@@ -103,6 +131,7 @@ app.post('/trace/span/flush', (req, res) => {
   _writer.flush(() => {
     res.json({});
   })
+  spans.clear();
 });
 
 app.post('/trace/span/set_meta', (req, res) => {
@@ -147,10 +176,23 @@ app.post('/trace/otel/start_span', (req, res) => {
 
   const makeSpan = (parentContext) => {
 
+    const links = (request.links || []).map(link => {
+      let spanContext;
+      if (link.parent_id && link.parent_id !== 0) {
+        spanContext = otelSpans[link.parent_id].spanContext();
+      } else {
+        const linkHeaders = Object.fromEntries(link.http_headers.map(([k, v]) => [k.toLowerCase(), v]));
+        const extractedContext = tracer.extract('http_headers', linkHeaders)
+        spanContext = new OtelSpanContext(extractedContext)
+      }
+      return {context: spanContext, attributes: link.attributes}
+    });  
+
     const span = otelTracer.startSpan(request.name, {
         type: request.type,
         kind: request.kind,
         attributes: request.attributes,
+        links,
         startTime: nanoLongToHrTime(request.timestamp)
     }, parentContext)
     const ctx = span._ddSpan.context()
@@ -193,8 +235,8 @@ app.post('/trace/otel/end_span', (req, res) => {
 
 app.post('/trace/otel/flush', async (req, res) => {
   await tracerProvider.forceFlush()
-  spans = {};
-  otelSpans = {};
+  spans.clear();
+  otelSpans.clear();
   res.json({ success: true });
 });
 
@@ -243,6 +285,42 @@ app.post('/trace/otel/set_attributes', (req, res) => {
   span.setAttributes(attributes)
   res.json({});
 });
+
+app.get('/trace/config', (req, res) => {
+  const dummyTracer = require('dd-trace').init()
+  const config = dummyTracer._tracer._config
+  res.json( { 
+    config: {
+      'dd_service': config?.service !== undefined ? `${config.service}`.toLowerCase() : 'null',
+      'dd_log_level': config?.logLevel !== undefined ? `${config.logLevel}`.toLowerCase() : 'null',
+      'dd_trace_debug': config?.debug !== undefined ? `${config.debug}`.toLowerCase() : 'null',
+      'dd_trace_sample_rate': config?.sampleRate !== undefined ? `${config.sampleRate}` : 'null',
+      'dd_trace_enabled': config ? 'true' : 'false', // in node if dd_trace_enabled is true the tracer won't have a config object
+      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics}`.toLowerCase() : 'null',
+      'dd_tags': config?.tags !== undefined ? Object.entries(config.tags).map(([key, val]) => `${key}:${val}`).join(',') : 'null',
+      'dd_trace_propagation_style': config?.tracePropagationStyle?.inject.join(',') ?? 'null',
+      'dd_trace_sample_ignore_parent': 'null', // not implemented in node
+      'dd_trace_otel_enabled': 'null', // not exposed in config object in node
+      'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
+      'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null'
+    }
+  });
+});
+
+app.post("/trace/otel/add_event", (req, res) => {
+  const { span_id, name, timestamp, attributes } = req.body;
+  const span = otelSpans[span_id]
+  // convert to TimeInput object using millisToHrTime
+  span.addEvent(name, attributes, millisToHrTime(timestamp / 1000))
+  res.json({})
+})
+
+app.post("/trace/otel/record_exception", (req, res) => {
+  const { span_id, message, attributes } = req.body;
+  const span = otelSpans[span_id]
+  span.recordException(new Error(message))
+  res.json({})
+})
 
 // TODO: implement this endpoint correctly, current blockers:
 // 1. Fails on invalid url

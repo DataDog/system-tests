@@ -8,6 +8,7 @@ binaries/*
 venv
 venv.
 /vendor/python
+system_tests.egg-info/
 
 .python-version
 
@@ -50,3 +51,4 @@ node_modules/
 
 # vim
 /*.vim
+*.swp

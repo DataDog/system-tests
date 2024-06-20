@@ -19,7 +19,7 @@ lang_variant:
 
 weblog:
     name: test-app-python
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6]
     install:
       - os_type: linux
 

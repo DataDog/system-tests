@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, missing_feature, scenarios, features
-from .utils import rules
+from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
@@ -21,7 +20,7 @@ class Test_404:
         assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(
             self.r,
-            rule=rules.security_scanner.ua0_600_12x,
+            rule=waf_rules.security_scanner.ua0_600_12x,
             pattern="Arachni/v",
             address="server.request.headers.no_cookies",
             key_path=["user-agent"],
@@ -83,12 +82,3 @@ class Test_CorrectOptionProcessing:
     def test_main(self):
         interfaces.library.assert_waf_attack(self.r_match)
         interfaces.library.assert_no_appsec_event(self.r_no_match)
-
-
-@features.threats_configuration
-class Test_NoWafTimeout:
-    """With an high value of DD_APPSEC_WAF_TIMEOUT, there is no WAF timeout"""
-
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
-    def test_main(self):
-        interfaces.library_stdout.assert_absence("Ran out of time while running flow")

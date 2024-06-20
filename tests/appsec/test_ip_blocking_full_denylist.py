@@ -74,6 +74,11 @@ class Test_AppSecIPBlockingFullDenylist:
         ]
 
     @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
+    @bug(
+        context.library >= "java@1.22.0" and context.library < "java@1.35.0",
+        reason="Failed on large expiration values, which are used in this test",
+    )
+    @missing_feature(library="python")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

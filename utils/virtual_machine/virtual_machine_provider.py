@@ -16,6 +16,10 @@ class VmProviderFactory:
             from utils.virtual_machine.vagrant_provider import VagrantProvider
 
             return VagrantProvider()
+        elif provider_id == "krunvm":
+            from utils.virtual_machine.krunvm_provider import KrunVmProvider
+
+            return KrunVmProvider()
         else:
             raise ValueError("Not supported provided", provider_id)
 
@@ -129,6 +133,7 @@ class VmProvider:
                         remote_path,
                         server_connection,
                         last_task,
+                        vm=vm,
                     )
                 else:
                     last_task = self.commander.remote_copy_folders(
@@ -137,6 +142,7 @@ class VmProvider:
                         f"-{vm.name}-{installation.id}",
                         server_connection,
                         last_task,
+                        vm=vm,
                     )
 
         # Execute a basic command on our server.
@@ -171,7 +177,7 @@ class Commander:
             Return the current task executed."""
         raise NotImplementedError
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task):
+    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
         """ Copy a file from local to remote. 
             Use last_task to depend on the last executed task.
             Return the current task executed."""
@@ -186,7 +192,7 @@ class Commander:
         raise NotImplementedError
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
     ):
         """ The best option would be zip folder on local system and copy to remote machine
              There is a weird behaviour synchronizing local command and remote command

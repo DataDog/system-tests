@@ -4,6 +4,7 @@
 import json
 import os
 import time
+import types
 
 import pytest
 from pytest_jsonreport.plugin import JSONReport
@@ -32,6 +33,8 @@ def pytest_addoption(parser):
     parser.addoption(
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
+    parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
@@ -126,7 +129,7 @@ def _collect_item_metadata(item):
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
         else:
-            raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
+            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {result['details']}")
 
     return result
 
@@ -188,7 +191,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
             released(**declaration)(obj)
 
 
-def pytest_collection_modifyitems(session, config, items):
+def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
     """unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
@@ -196,29 +199,44 @@ def pytest_collection_modifyitems(session, config, items):
     selected = []
     deselected = []
 
+    declared_scenarios = {}
+
+    def iter_markers(self, name=None):
+        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
+
     for item in items:
         scenario_markers = list(item.iter_markers("scenario"))
         declared_scenario = scenario_markers[0].args[0] if len(scenario_markers) != 0 else "DEFAULT"
+
+        declared_scenarios[item.nodeid] = declared_scenario
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
             deselected.append(item)
             continue
 
-        if declared_scenario == context.scenario.name:
+        if context.scenario.is_part_of(declared_scenario):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
                     logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
-                    item.own_markers = [m for m in item.own_markers if m.name not in ("skip", "skipif")]
+                    # when user specified a test to be forced, we need to run it if it is skipped/xfailed, but also
+                    # if any of it's parent is marked as skipped/xfailed. The trick is to monkey path the
+                    # iter_markers method (this method is used by pytest internally to get all markers of a test item,
+                    # including parent's markers) to exclude the skip, skipif and xfail markers.
+                    item.iter_markers = types.MethodType(iter_markers, item)
 
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
     items[:] = selected
     config.hook.pytest_deselected(items=deselected)
+
+    if config.option.scenario_report:
+        with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
+            json.dump(declared_scenarios, f, indent=2)
 
 
 def pytest_deselected(items):

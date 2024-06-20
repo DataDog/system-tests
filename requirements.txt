@@ -14,6 +14,7 @@ yarl==1.8.1
 
 jsonschema==4.16.0
 rfc3339-validator==0.1.4
+semantic-version==2.10.0
 
 matplotlib
 
@@ -35,9 +36,7 @@ pulumi-command==0.7.2
 pyyaml==6.0.0
 pyyaml-include==1.3
 python-vagrant==1.0.0
-
-# DSM Requirements
-kombu==5.3.5
+pexpect==4.9.0
 
 #lib-injection kubernetes
 kubernetes==29.0.0

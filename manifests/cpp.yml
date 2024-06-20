@@ -12,6 +12,7 @@ tests/:
     iast/:
       sink/:
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
         test_header_injection.py: irrelevant (ASM is not implemented in C++)
         test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
@@ -48,6 +49,12 @@ tests/:
         test_parameter_value.py: irrelevant (ASM is not implemented in C++)
         test_path.py: irrelevant (ASM is not implemented in C++)
         test_uri.py: irrelevant (ASM is not implemented in C++)
+    rasp/:
+      test_lfi.py: irrelevant (ASM is not implemented in C++)
+      test_span_tags.py: irrelevant (ASM is not implemented in C++)
+      test_sqli.py: irrelevant (ASM is not implemented in C++)
+      test_ssrf.py: irrelevant (ASM is not implemented in C++)
+      test_stack_traces.py: irrelevant (ASM is not implemented in C++)
     waf/:
       test_addresses.py: irrelevant (ASM is not implemented in C++)
       test_blocking.py: irrelevant (ASM is not implemented in C++)
@@ -59,6 +66,7 @@ tests/:
       test_telemetry.py: irrelevant (ASM is not implemented in C++)
     test_PII.py: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
+    test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
     test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
     test_client_ip.py: irrelevant (ASM is not implemented in C++)
@@ -82,6 +90,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: irrelevant
       Test_Debugger_Mix_Log_Probe: irrelevant
       Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: irrelevant
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
   integrations/:
@@ -117,15 +127,17 @@ tests/:
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
-    test_dynamic_configuration.py: missing_feature (float DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS not supported)
+    test_dynamic_configuration.py: 
+      TestDynamicConfigHeaderTags: missing_feature
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_TelemetryInstallSignature: missing_feature
-    test_trace_sampling.py:
-      Test_Trace_Sampling_Globs_Feb2024_Revision: bug (implementation is case-sensitive)
+      Test_TelemetrySCAEnvVar: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
@@ -153,3 +165,4 @@ tests/:
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
+    Test_TelemetrySCAEnvVar: missing_feature

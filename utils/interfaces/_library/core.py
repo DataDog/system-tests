@@ -17,7 +17,6 @@ from utils.interfaces._library.telemetry import (
 )
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-from utils.interfaces._schemas_validators import SchemaValidator
 
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -233,10 +232,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError("Nothing has been reported. No request root span with has been found")
 
-    def assert_schemas(self, allowed_errors=None):
-        validator = SchemaValidator("library", allowed_errors)
-        self.validate(validator, success_by_default=True)
-
     def assert_all_traces_requests_forwarded(self, paths):
         # TODO : move this in test class
         paths = set(paths)
@@ -284,7 +279,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             raise ValueError(f"An appsec event has been reported in {data['log_filename']}")
 
     def assert_waf_attack(
-        self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None, full_trace=False
+        self,
+        request,
+        rule=None,
+        pattern=None,
+        value=None,
+        address=None,
+        patterns=None,
+        key_path=None,
+        full_trace=False,
+        span_validator=None,
     ):
         """Asserts the WAF detected an attack on the provided request.
 
@@ -294,7 +298,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         """
 
         validator = _WafAttack(
-            rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path,
+            rule=rule,
+            pattern=pattern,
+            value=value,
+            address=address,
+            patterns=patterns,
+            key_path=key_path,
+            span_validator=span_validator,
         )
 
         self.validate_appsec(
@@ -366,3 +376,50 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
+
+    def assert_rasp_attack(self, request, rule: str, parameters=None):
+        def validator(_, appsec_data):
+            assert "triggers" in appsec_data, "'triggers' not found in '_dd.appsec.json'"
+
+            triggers = appsec_data["triggers"]
+            assert len(triggers) == 1, "multiple appsec events found, only one expected"
+
+            trigger = triggers[0]
+            obtained_rule_id = trigger["rule"]["id"]
+            assert obtained_rule_id == rule, f"incorrect rule id, expected {rule}"
+
+            if parameters is not None:
+                rule_matches = trigger["rule_matches"]
+                assert len(rule_matches) == 1, "multiple rule matches found, only one expected"
+
+                rule_match_params = rule_matches[0]["parameters"]
+                assert len(rule_match_params) == 1, "multiple parameters found, only one expected"
+
+                obtained_parameters = rule_match_params[0]
+                for name, fields in parameters.items():
+                    address = fields["address"]
+                    value = None
+                    if "value" in fields:
+                        value = fields["value"]
+
+                    key_path = None
+                    if "key_path" in fields:
+                        key_path = fields["key_path"]
+
+                    assert name in obtained_parameters, f"parameter '{name}' not in rule match"
+
+                    obtained_param = obtained_parameters[name]
+
+                    assert obtained_param["address"] == address, f"incorrect address for '{name}', expected '{address}'"
+
+                    if value is not None:
+                        assert obtained_param["value"] == value, f"incorrect value for '{name}', expected '{value}'"
+
+                    if key_path is not None:
+                        assert (
+                            obtained_param["key_path"] == key_path
+                        ), f"incorrect key_path for '{name}', expected '{key_path}'"
+
+            return True
+
+        self.validate_appsec(request, validator, success_by_default=False)

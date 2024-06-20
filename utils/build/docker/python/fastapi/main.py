@@ -1,13 +1,19 @@
+import json
+import http.client
 import logging
 import os
 import random
 import subprocess
+import sys
 import typing
+import xmltodict
+import requests
 
 import fastapi
 import psycopg2
 import requests
-from ddtrace import Pin, tracer
+import urllib3
+from ddtrace import Pin, tracer, patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from fastapi import Cookie, FastAPI, Form, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -21,6 +27,8 @@ from iast import (
 )
 from pydantic import BaseModel
 
+patch_all(urllib3=True)
+
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
 
@@ -32,7 +40,7 @@ except ImportError:
 app = FastAPI()
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests",
+    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
 )
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
@@ -94,6 +102,105 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
             {"payload": dict(await request.form())}, status_code=status_code, headers=request.query_params,
         )
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
+
+
+### BEGIN EXPLOIT PREVENTION
+
+
+@app.get("/rasp/lfi")
+@app.post("/rasp/lfi")
+async def rasp_lfi(request: Request):
+    file = None
+    if request.method == "GET":
+        file = request.query_params.get("file")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            file = ((await request.form()) or json.loads(body) or {}).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if file is None:
+                file = xmltodict.parse(body).get("file")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+    if file is None:
+        return PlainTextResponse("missing file parameter", status_code=400)
+    try:
+        with open(file, "rb") as f_in:
+            f_in.seek(0, os.SEEK_END)
+            return PlainTextResponse(f"{file} open with {f_in.tell()} bytes")
+    except OSError as e:
+        return PlainTextResponse(f"{file} could not be open: {e!r}")
+
+
+@app.get("/rasp/ssrf")
+@app.post("/rasp/ssrf")
+async def rasp_ssrf(request: Request):
+    domain = None
+    if request.method == "GET":
+        domain = request.query_params.get("domain")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            domain = ((await request.form()) or json.loads(body) or {}).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if domain is None:
+                domain = xmltodict.parse(body).get("domain")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if domain is None:
+        return PlainTextResponse("missing domain parameter", status_code=400)
+    try:
+        print("rasp_ssrf", f"http://{domain}", file=sys.stderr)
+        # DEV: use requests here due to permission error with urllib
+        with requests.get(f"http://{domain}", timeout=1) as url_in:
+            return PlainTextResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
+    except Exception as e:
+        print(repr(e), file=sys.stderr)
+    return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
+
+
+@app.get("/rasp/sqli")
+@app.post("/rasp/sqli")
+async def rasp_ssrf(request: Request):
+    user_id = None
+    if request.method == "GET":
+        user_id = request.query_params.get("user_id")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            user_id = ((await request.form()) or json.loads(body) or {}).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if user_id is None:
+                user_id = xmltodict.parse(body).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if user_id is None:
+        return PlainTextResponse("missing user_id parameter", status_code=400)
+    try:
+        import sqlite3
+
+        DB = sqlite3.connect(":memory:")
+        print(f"SELECT * FROM table WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM table WHERE '{user_id};")
+        print("DB request with {len(list(cursor))} results")
+        return PlainTextResponse(f"DB request with {len(list(cursor))} results")
+    except Exception as e:
+        print(f"DB request failure: {e!r}", file=sys.stderr)
+        return PlainTextResponse(f"DB request failure: {e!r}", status_code=201)
+
+
+### END EXPLOIT PREVENTION
 
 
 @app.get("/read_file", response_class=PlainTextResponse)
@@ -466,3 +573,29 @@ def create_extra_service(serviceName: str = ""):
     if serviceName:
         Pin.override(fastapi, service=serviceName, tracer=tracer)
     return "OK"
+
+
+@app.get("/requestdownstream", response_class=PlainTextResponse)
+@app.post("/requestdownstream", response_class=PlainTextResponse)
+@app.options("/requestdownstream", response_class=PlainTextResponse)
+@app.get("/requestdownstream/", response_class=PlainTextResponse)
+@app.post("/requestdownstream/", response_class=PlainTextResponse)
+@app.options("/requestdownstream/", response_class=PlainTextResponse)
+def request_downstream():
+    http_ = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http_.request("GET", "http://localhost:7777/returnheaders")
+    return response.data
+
+
+@app.get("/returnheaders", response_class=PlainTextResponse)
+@app.post("/returnheaders", response_class=PlainTextResponse)
+@app.options("/returnheaders", response_class=PlainTextResponse)
+@app.get("/returnheaders/", response_class=PlainTextResponse)
+@app.post("/returnheaders/", response_class=PlainTextResponse)
+@app.options("/returnheaders/", response_class=PlainTextResponse)
+def return_headers(request: Request):
+    headers = {}
+    for key, value in request.headers.items():
+        headers[key] = value
+    return JSONResponse(headers)

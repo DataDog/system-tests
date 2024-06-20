@@ -4,7 +4,7 @@ echo "START RUN APP"
 set -e
 
 # shellcheck disable=SC2035
-sudo chmod -R 755 *
+sudo chmod -R 755 * 
 
 sudo cp django_app.py /home/datadog/
 sudo /home/datadog/.pyenv/shims/pip3 install django
@@ -15,5 +15,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable test-app.service
 sudo systemctl start test-app.service
 sudo systemctl status test-app.service
-
+sleep 5
+cat /home/datadog/app-std.out
 echo "RUN DONE"

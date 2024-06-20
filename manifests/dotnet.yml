@@ -7,8 +7,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: missing_feature
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_DD_processors: v2.50.0
+        Test_API_Security_RC_ASM_DD_scanners: v2.50.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
       test_apisec_sampling.py:
         Test_API_Security_sampling: v2.46.0
@@ -27,14 +27,17 @@ tests/:
       sink/:
         test_command_injection.py:
           TestCommandInjection: v2.28.0
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection: v2.46.0
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: v2.44.0
         test_insecure_auth_protocol.py:
-          Test_InsecureAuthProtocol: missing_feature
+          Test_InsecureAuthProtocol: v2.49.0
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
         test_ldap_injection.py:
@@ -101,6 +104,23 @@ tests/:
           TestPath: v2.39.0
         test_uri.py:
           TestURI: irrelevant
+    rasp/:
+      test_lfi.py:
+        Test_Lfi_BodyJson: v2.51.0
+        Test_Lfi_BodyUrlEncoded: v2.51.0
+        Test_Lfi_BodyXml: v2.51.0
+        Test_Lfi_UrlQuery: v2.51.0
+      test_span_tags.py:
+        Test_Mandatory_SpanTags: v2.52.0
+        Test_Optional_SpanTags: v2.52.0
+      test_sqli.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson: v2.51.0
+        Test_Ssrf_BodyUrlEncoded: v2.51.0
+        Test_Ssrf_BodyXml: v2.51.0
+        Test_Ssrf_UrlQuery: v2.51.0
+      test_stack_traces.py:
+        Test_StackTrace: v2.51.0
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -110,6 +130,7 @@ tests/:
         Test_ClientIP: missing_feature
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
         Test_Headers: v1.28.6
         Test_Lambda: missing_feature
         Test_Method: missing_feature
@@ -121,6 +142,7 @@ tests/:
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v2.27.0
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v2.30.0
@@ -148,9 +170,13 @@ tests/:
       Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: v2.32.0
       Test_Login_Events_Extended: v2.33.0
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v2.27.0
       Test_BlockingGraphqlResolvers: missing_feature
@@ -201,18 +227,20 @@ tests/:
       Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v2.5.1
       Test_DistributedTraceInfo: missing_feature (test not implemented)
-      Test_ExternalWafRequestsIdentification: missing_feature
+      Test_ExternalWafRequestsIdentification: v2.50.0
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
     test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: bug (statuses are not reported well)
-      Test_Debugger_Method_Probe_Snaphots: bug (statuses are not reported well)
-      Test_Debugger_Mix_Log_Probe: bug (statuses are not reported well)
-      Test_Debugger_Probe_Statuses: bug (statuses are not reported well)
+      Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots: v2.53.0
+      Test_Debugger_Mix_Log_Probe: v2.53.0
+      Test_Debugger_Probe_Statuses: v2.53.0
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: v2.50.0
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: bug (statuses are not reported well)
+      Test_Debugger_PII_Redaction: v2.50.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -225,13 +253,15 @@ tests/:
         Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (not read in dotnet)
+          "*": v0.1  # version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": v2.48.0
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
       Test_Postgres: missing_feature
+    test_dbm.py:
+      Test_Dbm: v0.1  # missing version
     test_dsm.py:
       Test_DsmContext_Extraction_Base64: missing_feature
       Test_DsmContext_Injection_Base64: missing_feature
@@ -252,22 +282,32 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: v2.53.0
     test_otel_sdk_interoperability.py: missing_feature
+    test_otel_span_with_w3c.py:
+      Test_Otel_Span_With_W3c: v2.42.0
+    test_otel_tracer.py:
+      Test_Otel_Tracer: v2.8.0
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Defaults: missing_feature
-      Test_Environment: missing_feature
+      Test_Defaults: v2.49.0
+      Test_Environment: v2.49.0
       Test_TelemetryInstallSignature: v2.45.0
+      Test_TelemetrySCAEnvVar: v2.50.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: missing_feature
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_With_W3C: missing_feature
+      Test_Trace_Sampling_Basic: v2.46.0
+      Test_Trace_Sampling_Globs: v2.46.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v2.48.0
+      Test_Trace_Sampling_Resource: v2.46.0
+      Test_Trace_Sampling_Tags: v2.46.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v2.48.0
+      Test_Trace_Sampling_With_W3C: v2.46.0
     test_tracer.py:
-      Test_TracerSCITagging: bug (Both env vars are not independent; injected tags are duplicated in all spans)
+      # The dotnet parametric app generates trace chunks in a way that differs from the other languages
+      # This causes the sci tests to fail. Before enabling these tests we must ensure that the first span in the
+      # trace chunk is always the local root span.
+      Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
   remote_config/:
@@ -319,4 +359,5 @@ tests/:
     Test_Metric_Generation_Enabled: v2.35.0
     Test_ProductsDisabled: v2.12.0
     Test_Telemetry: v2.12.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v2.35.0
