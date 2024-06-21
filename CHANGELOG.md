@@ -97,7 +97,7 @@ All notable changes to this project will be documented in this file.
 * 2023-06-22 [Migrate parametric tests](https://github.com/DataDog/system-tests/pull/1279): Parametric tests are now a regular scenario of system tests
 * 2023-06-07 [New onboarding tests](https://github.com/DataDog/system-tests/pull/1191): Test the APM onboarding experience for customers using lib injection ([doc](https://github.com/DataDog/system-tests/tree/main/tests/onboarding))
 * 2023-06-26 [New java weblog: spring-boot-payara](https://github.com/DataDog/system-tests/pull/1287)
-* Some performance improvements on build step. 
+* Some performance improvements on build step.
 
 
 ### May 2023 (65 PR merged)

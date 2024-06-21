@@ -20,7 +20,7 @@ tests/:
         django: v1.2
         flask: v1.3
         uwsgi: bug (jira ticket) # For a weblog, skip it with bug, or flaky
-      
+
       # declare compatibility for multiple release lines
       # the caret character locks the major version (ie: `(>=1.3.0 && <2.0.0) || >= 2.3.0`)
       Test_FeatureD: ^1.3.0 || >=2.3.0

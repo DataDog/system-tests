@@ -61,7 +61,7 @@ jobs:
               #Max attempts reached, exit with 124
               exit 124
             fi
-          done          
+          done
       - name: Run parametric (without timeout)
         if: ${{ inputs.library != 'java' }}
         run: ./run.sh PARAMETRIC

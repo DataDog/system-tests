@@ -21,7 +21,7 @@ class Test_Feature():
         assert 1 + 1 == 2
 ```
 
-Please note that you don't have to rebuild images at each iteration. Simply re-run `run.sh`. And you can also specify the test you want to run, don't be overflooded by logs: 
+Please note that you don't have to rebuild images at each iteration. Simply re-run `run.sh`. And you can also specify the test you want to run, don't be overflooded by logs:
 
 ```
 ./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail

@@ -4,7 +4,7 @@ The docker compose file includes several dependancies between each services. Her
 
 ```mermaid
 graph TD
-    runner --> agent 
+    runner --> agent
     agent --> weblog
     runner --> weblog
     cassandra[(cassandra)] ----> weblog
@@ -13,7 +13,7 @@ graph TD
 
 ## Warmup
 
-Once the runner is started, it waits for several signals (defined in `execute_warmups` function) before starting the test session: 
+Once the runner is started, it waits for several signals (defined in `execute_warmups` function) before starting the test session:
 
 1. A successful request on `agent` service
 2. A successful request on `weblog` service
