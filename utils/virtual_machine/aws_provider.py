@@ -381,7 +381,7 @@ class DatadogEventSender:
                 default_tags.append(f"ci_project_name:{self.ci_project_name}")
             data_to_send = {
                 "title": title,
-                "text": message,
+                "text": (message[:255] + "..") if len(message) > 255 else message,
                 "tags": default_tags,
             }
             logger.debug(f"Sending event payload: [{data_to_send}]")
