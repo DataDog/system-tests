@@ -13,6 +13,7 @@ Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
 Environment=DD_TRACE_DEBUG=true
 Environment=DD_PROFILING_UPLOAD_PERIOD=10
 Environment=DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD=1500
+EnvironmentFile=/etc/environment
 WorkingDirectory=/home/datadog
 ExecStart=/bin/bash -c 'node index.js >> /home/datadog/app-std.out 2>&1 </dev/null'
 ExecStop=/bin/kill -15 $MAINPID
