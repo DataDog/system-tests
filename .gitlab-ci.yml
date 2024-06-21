@@ -2,12 +2,12 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
- # - ruby_tracer
+  - ruby_tracer
   - nodejs_tracer
- # - java_tracer
- # - python_tracer
- # - dotnet_tracer
- # - parse_results
+  - java_tracer
+  - python_tracer
+  - dotnet_tracer
+  - parse_results
   - before_tests
 
 .base_job_onboarding_system_tests:
@@ -43,24 +43,24 @@ onboarding_nodejs:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
           SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-      #  - ONBOARDING_FILTER_ENV: [dev, prod]
-      #    ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-      #    SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
-      #  - ONBOARDING_FILTER_ENV: [dev, prod]
-      #    ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
-      #    SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-      #  - ONBOARDING_FILTER_ENV: [dev, prod]
-      #    ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
-      #    SCENARIO: [INSTALLER_AUTO_INJECTION]
-      #  - ONBOARDING_FILTER_ENV: [dev, prod]
-      #    ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
-      #    SCENARIO: [CONTAINER_NOT_SUPPORTED_AUTO_INJECTION]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]    
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
+          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-alpine]
+          SCENARIO: [CONTAINER_NOT_SUPPORTED_AUTO_INJECTION]
          
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -91,7 +91,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -121,7 +121,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_dotnet:
+onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
@@ -148,7 +148,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_ruby:
+onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
@@ -175,7 +175,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws 
 
-.onboarding_parse_results:
+onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
