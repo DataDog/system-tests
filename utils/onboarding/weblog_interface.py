@@ -5,9 +5,15 @@ import requests
 
 
 def make_get_request(app_url):
-    generated_uuid = str(randint(0, 100000000000000000))
+    generated_uuid = str(randint(1, 100000000000000000))
     requests.get(
-        app_url, headers={"x-datadog-trace-id": generated_uuid, "x-datadog-parent-id": generated_uuid}, timeout=10
+        app_url,
+        headers={
+            "x-datadog-trace-id": generated_uuid,
+            "x-datadog-parent-id": generated_uuid,
+            "x-datadog-sampling-priority": "2",
+        },
+        timeout=10,
     )
     return generated_uuid
 
@@ -25,7 +31,7 @@ def make_internal_get_request(stdin_file, vm_port):
     """ This method is exclusively for testing through KrunVm microVM. 
     It is used to make a request to the weblog application inside the VM, using stdin file"""
 
-    generated_uuid = str(randint(0, 100000000000000000))
+    generated_uuid = str(randint(1, 100000000000000000))
     timeout = 80
     script_to_run = f"""#!/bin/bash
 echo "Requesting weblog..." 
@@ -35,7 +41,7 @@ TRACE_ID={generated_uuid}
 PARENT_ID={generated_uuid}
 ps
 while true; do
-  RESPONSE=$(curl -i -m 2 -H "x-datadog-trace-id: $TRACE_ID" -H "x-datadog-parent-id: $PARENT_ID" $URL)
+  RESPONSE=$(curl -i -m 2 -H "x-datadog-trace-id: $TRACE_ID" -H "x-datadog-parent-id: $PARENT_ID" -H "x-datadog-sampling-priority: 2" $URL)
   echo "$RESPONSE"
   if [[ $(echo "$RESPONSE" | grep "HTTP/1.1 200 OK") ]]; then
     echo "HTTP status 200 received: OK"
