@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	reflect "reflect"
 	"regexp"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
-
-var globalConfig = make(map[string]string)
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
 	var opts []tracer.StartSpanOption
@@ -109,58 +109,76 @@ func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorAr
 
 type CustomLogger struct {
 	*logrus.Logger
+	globalConfig map[string]string
+}
+
+type Config struct {
+	Service                string            `json:"service"`
+	SampleRate             string            `json:"sample_rate"`
+	RuntimeMetricsEnabled  bool              `json:"runtime_metrics_enabled"`
+	Tags                   map[string]string `json:"tags"`
+	PropagationStyleInject string            `json:"propagation_style_inject"`
+	Debug                  bool              `json:"debug"`
+	Env                    string            `json:"env"`
+	DdVersion              string            `json:"dd_version"`
 }
 
 func (l *CustomLogger) Log(logMessage string) {
 	re := regexp.MustCompile(`DATADOG TRACER CONFIGURATION (\{.*\})`)
 	matches := re.FindStringSubmatch(logMessage)
 	if len(matches) < 2 {
-		log.Printf("JSON not found in log message")
+		log.Print("JSON not found in log message")
 		return
 	}
 	jsonStr := matches[1]
 
-	var config map[string]interface{}
-	if err := json.Unmarshal([]byte(jsonStr), &config); err != nil {
-		log.Printf("Error unmarshaling JSON: %v\n", err)
+	var config Config
+	if err := json.Unmarshal([]byte(strings.ToLower(jsonStr)), &config); err != nil {
+		log.Print("Error unmarshaling JSON: %v\n", err)
 		return
 	}
 
 	stringConfig := make(map[string]string)
-	for key, value := range config {
-		stringConfig[key] = fmt.Sprintf("%v", value)
+	val := reflect.ValueOf(config)
+	for i := 0; i < val.Type().NumField(); i++ {
+		field := val.Type().Field(i)
+		valueField := val.Field(i)
+
+		// Convert field value to string and then to lowercase
+		stringValue := fmt.Sprintf("%v", valueField.Interface())
+		stringConfig[field.Name] = strings.ToLower(stringValue)
 	}
-	globalConfig = stringConfig
+	l.globalConfig = stringConfig
 }
 
-func parseTracerConfig(tracerEnabled string) map[string]string {
+func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string {
 	config := make(map[string]string)
-	config["dd_service"] = globalConfig["service"]
+	config["dd_service"] = l.globalConfig["Service"]
 	// config["dd_log_level"] = nil // golang doesn't support DD_LOG_LEVEL, only thing it supports is passing in DEBUG or DD_TRACE_DEBUG to set debug to true
-	config["dd_trace_sample_rate"] = globalConfig["sample_rate"]
+	config["dd_trace_sample_rate"] = l.globalConfig["SampleRate"]
 	config["dd_trace_enabled"] = tracerEnabled
-	config["dd_runtime_metrics_enabled"] = globalConfig["runtime_metrics_enabled"]
-	config["dd_tags"] = globalConfig["tags"]
-	config["dd_trace_propagation_style"] = globalConfig["propagation_style_inject"]
-	config["dd_trace_debug"] = globalConfig["debug"]
+	config["dd_runtime_metrics_enabled"] = l.globalConfig["RuntimeMetricsEnabled"]
+	config["dd_tags"] = l.globalConfig["Tags"]
+	config["dd_trace_propagation_style"] = l.globalConfig["PropagationStyleInject"]
+	config["dd_trace_debug"] = l.globalConfig["Debug"]
 	// config["dd_trace_otel_enabled"] = nil         // golang doesn't support DD_TRACE_OTEL_ENABLED
 	// config["dd_trace_sample_ignore_parent"] = nil // golang doesn't support DD_TRACE_SAMPLE_IGNORE_PARENT
-	config["dd_env"] = globalConfig["env"]
-	config["dd_version"] = globalConfig["dd_version"]
+	config["dd_env"] = l.globalConfig["Env"]
+	config["dd_version"] = l.globalConfig["DdVersion"]
 	log.Print("Parsed config: ", config)
 	return config
 }
 
 func (s *apmClientServer) GetTraceConfig(ctx context.Context, args *GetTraceConfigArgs) (*GetTraceConfigReturn, error) {
-	var log = &CustomLogger{logrus.New()}
+	var log = &CustomLogger{logrus.New(), make(map[string]string)}
 	tracer.Start(tracer.WithLogger(log))
 
 	tracerEnabled := "true"
 	// if globalConfig is empty, then there were no startup logs generated and thus it means the tracer was disabled
-	if len(globalConfig) == 0 {
+	if len(log.globalConfig) == 0 {
 		tracerEnabled = "false"
 	}
-	return &GetTraceConfigReturn{Config: parseTracerConfig(tracerEnabled)}, nil
+	return &GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled)}, nil
 }
 
 func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeadersArgs) (*InjectHeadersReturn, error) {

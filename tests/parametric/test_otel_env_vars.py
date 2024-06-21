@@ -202,9 +202,7 @@ class Test_Otel_Env_Vars:
     @missing_feature(
         context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
     )
-    @irrelevant(
-        context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
-    )
+    @irrelevant(context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}])
     def test_dd_trace_otel_enabled_takes_precedence(self, test_agent, test_library):
         with test_library as t:
