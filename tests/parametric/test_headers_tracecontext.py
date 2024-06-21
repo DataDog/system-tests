@@ -791,12 +791,12 @@ class Test_Headers_Tracecontext:
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert "p:{:016x}".format(int(span.span_id)) in tracestate
 
-    @missing_feature(context.library < "python@2.8.0", reason="Not implemented")
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
+    @missing_feature(context.library < "python@2.10.0", reason="Not implemented")
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.36.0", reason="Not implemented")
-    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
