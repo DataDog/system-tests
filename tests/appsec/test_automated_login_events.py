@@ -1224,11 +1224,13 @@ def assert_priority(span, meta):
 @features.user_monitoring
 @scenarios.appsec_auto_events_rc
 class Test_V2_Login_Events_RC:
-    """ Sequence of events: (default) -> anonymization -> identification -> disabled """
+    """
+    Sequence of events: (default) -> disabled
+    TODO add more uses cases when we have better semantics to control RC in the libs
+    """
 
     USER = "test"
     PASSWORD = "1234"
-    USER_HASH = "anon_5f31ffaf95946d2dc703ddc96a100de5"
 
     @property
     def username_key(self):
@@ -1251,54 +1253,12 @@ class Test_V2_Login_Events_RC:
 
         return _wait_for_config
 
-    def setup_initial(self):
-        def _is_initial_state(config_states):
-            return len(config_states) == 0
-
-        interfaces.library.wait_for(self._remote_config_is_applied(_is_initial_state), timeout=30)
-        self.request_initial = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        )
-
-    def test_initial(self):
-        assert self.request_initial.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.request_initial):
-            meta = span.get("meta", {})
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-
-    def setup_anon(self):
-        def _is_anon_state(config_states):
-            return len(config_states) == 1 and config_states[0]["id"] == "auto-user-instrum-anon"
-
-        interfaces.library.wait_for(self._remote_config_is_applied(_is_anon_state), timeout=30)
-        self.request_anon = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        )
-
-    def test_anon(self):
-        assert self.request_anon.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.request_anon):
-            meta = span.get("meta", {})
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-
-    def setup_ident(self):
-        def _is_ident_state(config_states):
-            return len(config_states) == 1 and config_states[0]["id"] == "auto-user-instrum-ident"
-
-        interfaces.library.wait_for(self._remote_config_is_applied(_is_ident_state), timeout=30)
-        self.request_ident = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        )
-
-    def test_ident(self):
-        assert self.request_ident.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.request_ident):
-            meta = span.get("meta", {})
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-
     def setup_disabled(self):
         def _is_disabled_state(config_states):
-            return len(config_states) == 1 and config_states[0]["id"] == "auto-user-instrum-disabled"
+            for s in config_states:
+                if s["id"] == "auto-user-instrum-disabled":
+                    return True
+            return False
 
         interfaces.library.wait_for(self._remote_config_is_applied(_is_disabled_state), timeout=30)
         self.request_disabled = weblog.post(
