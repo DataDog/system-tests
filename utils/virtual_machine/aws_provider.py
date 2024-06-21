@@ -1,6 +1,7 @@
 import os
 import pathlib
 import uuid
+import requests
 import tempfile
 from random import randint
 
@@ -25,6 +26,8 @@ class AWSPulumiProvider(VmProvider):
         super().__init__()
         self.commander = AWSCommander()
         self.pulumi_ssh = None
+        self.datadog_event_sender = DatadogEventSender()
+        self.stack_name = "system-tests_onboarding"
 
     def stack_up(self):
         logger.info(f"Starting AWS VMs: {self.vms}")
@@ -40,18 +43,26 @@ class AWSPulumiProvider(VmProvider):
                 self._start_vm(vm)
 
         project_name = "system-tests-vms"
-        stack_name = "testing_v3"
-
         try:
             self.stack = auto.create_or_select_stack(
-                stack_name=stack_name, project_name=project_name, program=pulumi_start_program
+                stack_name=self.stack_name, project_name=project_name, program=pulumi_start_program
             )
             if os.getenv("ONBOARDING_LOCAL_TEST") is None:
                 self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
             up_res = self.stack.up(on_output=logger.info)
+            self.datadog_event_sender.sendEventToDatadog(
+                f"[E2E] Stack {self.stack_name}  : success on Pulumi stack up",
+                "",
+                ["operation:up", "result:ok", f"stack:{self.stack_name}"],
+            )
         except Exception as pulumi_exception:
             logger.error("Exception launching aws provision infraestructure")
             logger.exception(pulumi_exception)
+            self.datadog_event_sender.sendEventToDatadog(
+                f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
+                repr(pulumi_exception),
+                ["operation:up", "result:fail", f"stack:{self.stack_name}"],
+            )
 
     def _start_vm(self, vm):
         # Check for cached ami, before starting a new one
@@ -92,7 +103,21 @@ class AWSPulumiProvider(VmProvider):
 
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
-        self.stack.destroy(on_output=logger.info, debug=True)
+        try:
+            self.stack.destroy(on_output=logger.info, debug=True)
+            self.datadog_event_sender.sendEventToDatadog(
+                f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
+                "",
+                ["operation:destroy", "result:ok", f"stack:{self.stack_name}"],
+            )
+        except Exception as pulumi_exception:
+            logger.error("Exception destroying aws provision infraestructure")
+            logger.exception(pulumi_exception)
+            self.datadog_event_sender.sendEventToDatadog(
+                f"[E2E] Stack {self.stack_name}  : error on Pulumi stack destroy",
+                repr(pulumi_exception),
+                ["operation:destroy", "result:fail", f"stack:{self.stack_name}"],
+            )
 
     def _get_cached_ami(self, vm):
         """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
@@ -331,3 +356,37 @@ class PulumiSSH:
     def _write_pem_file(self, pem_file, content):
         pem_file.write(content)
         pem_file.close()
+
+
+class DatadogEventSender:
+    """ Send events to Datadog ddev organization """
+
+    def __init__(self):
+        self.ddev_api_key = os.getenv("DDEV_API_KEY")
+        self.ci_project_name = os.getenv("CI_PROJECT_NAME")
+
+    def sendEventToDatadog(self, title, message, tags):
+
+        if not self.ddev_api_key:
+            logger.error("Datadog API key not found to send event to ddev organization. Skipping event.")
+            return
+        logger.debug("Sending event to datadog ddev organization")
+        try:
+            host = "https://dddev.datadoghq.com/api/v1/events"
+            headers = {"DD-API-KEY": self.ddev_api_key}
+
+            default_tags = ["repository:datadog/datadog-agent", f"test:{context.scenario.name}", "source:pulumi"]
+            default_tags = default_tags + tags
+            if self.ci_project_name is not None:
+                default_tags.append(f"ci_project_name:{self.ci_project_name}")
+            data_to_send = {
+                "title": title,
+                "text": (message[:255] + "..") if len(message) > 255 else message,
+                "tags": default_tags,
+            }
+            logger.debug(f"Sending event payload: [{data_to_send}]")
+            r = requests.post(host, headers=headers, json=data_to_send)
+            logger.debug(f"Backend response status for sending event: [{r.status_code}]")
+
+        except Exception as e:
+            logger.error(f"Error sending events to datadog ddevn organization {e} ")
