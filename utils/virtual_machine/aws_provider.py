@@ -378,7 +378,7 @@ class DatadogEventSender:
             default_tags = ["repository:datadog/datadog-agent", f"test:{context.scenario.name}", "source:pulumi"]
             default_tags = default_tags + tags
             if self.ci_project_name is not None:
-                default_tags.append = f"ci_project_name:{self.ci_project_name}"
+                default_tags.append(f"ci_project_name:{self.ci_project_name}")
             data_to_send = {
                 "title": title,
                 "text": message,
