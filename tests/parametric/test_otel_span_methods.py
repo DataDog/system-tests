@@ -372,10 +372,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
-    )
-    @missing_feature(
         context.library == "python",
         reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
     )
