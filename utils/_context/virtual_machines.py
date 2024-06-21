@@ -119,6 +119,10 @@ class _VirtualMachine:
         """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
         self.tested_components = json.loads(components_json.replace("'", '"'))
 
+    def set_vm_logs(self, vm_logs):
+        """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
+        logger.debug(f"VM logs: {vm_logs}")
+
     def get_cache_name(self):
         vm_cached_name = f"{self.name}_"
         if self.get_provision().lang_variant_installation:
