@@ -6,12 +6,12 @@ on:
         description: "Library to test"
         required: true
         type: string
-      scenarios: 
+      scenarios:
         description: "Comma-separated list scenarios to run"
         default: DEFAULT
         required: false
         type: string
-      scenarios_groups: 
+      scenarios_groups:
         description: "Comma-separated list of scenarios groups to run"
         default: ''
         required: false

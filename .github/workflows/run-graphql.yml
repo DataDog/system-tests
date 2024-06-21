@@ -11,7 +11,7 @@ on:
         description: "Library to test"
         required: true
         type: string
-      weblogs: 
+      weblogs:
         description: "JSON array of weblogs to run"
         default: "[]"
         required: false
