@@ -2,6 +2,25 @@ import os
 import paramiko
 from utils.tools import logger
 
+from pathlib import Path
+
+
+def extract_logs_to_file(logs_data, log_folder):
+    """ extract logs to different files. 
+    The logs_data is a string results of executing the command: 
+     find /var/log -type f -name "*.log"| xargs tail -n +1 """
+
+    output_file = None
+    for line in logs_data.splitlines():
+        if "==>" in line and "<==" in line:
+            filename = line.split("==>")[1].split("<==")[0]
+            logger.info(f"Copy log data from [{filename.strip()}]")
+            output_file = Path(log_folder + filename.strip())
+            output_file.parent.mkdir(exist_ok=True, parents=True)
+        elif output_file is not None:
+            with open(output_file, "a") as out:
+                out.write("{}\n".format(line))
+
 
 def debug_info_ssh(vm_name, ip, user, pem_file, log_folder):
     """ Using SSH connects to VM and extract VM status information """

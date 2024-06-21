@@ -9,6 +9,7 @@ vm_logs:
   install:
     - os_type: linux
       remote-command: |
+        #Wait for the app service up to extract the logs (also app logs)
         curl --head -X GET --retry 5 --max-time 20 --retry-connrefused --retry-delay 2 http://localhost:5985
         find /var/log -type f -name "*.log"| xargs tail -n +1
 

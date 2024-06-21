@@ -12,7 +12,7 @@ Type=simple
 Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
 Environment=DD_TRACE_DEBUG=true
 WorkingDirectory=/home/datadog
-ExecStart=/bin/bash -c 'node index.js >> /home/datadog/app-std.out 2>&1 </dev/null'
+ExecStart=/bin/bash -c 'node index.js >> /var/log/test-app/app-std.out 2>&1 </dev/null'
 ExecStop=/bin/kill -15 $MAINPID
 
 [Install]

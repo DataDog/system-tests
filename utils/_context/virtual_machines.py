@@ -4,6 +4,7 @@ from utils.tools import logger
 
 from utils._context.library_version import Version
 from utils import context
+from utils.onboarding.debug_vm import extract_logs_to_file
 
 
 class AWSInfraConfig:
@@ -120,8 +121,8 @@ class _VirtualMachine:
         self.tested_components = json.loads(components_json.replace("'", '"'))
 
     def set_vm_logs(self, vm_logs):
-        """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
-        logger.debug(f"VM logs: {vm_logs}")
+        """ Extract /var/log/ files to a folder in the host machine """
+        extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
         vm_cached_name = f"{self.name}_"
