@@ -1,0 +1,61 @@
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+from typing import Any
+from enum import IntEnum
+import json
+
+import requests
+
+from utils import interfaces, context
+from utils.tools import logger
+
+# https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc
+class ApplyState(IntEnum):
+    UNKNOWN = 0
+    UNACKNOWLEDGED = 1
+    ACKNOWLEDGED = 2
+    ERROR = 3
+
+
+def send_command(raw_payload) -> dict[str, Any]:
+    """
+        Sends a remote config payload to the library and waits for the config to be applied.
+        Then returns the config state returned by the library :
+
+        1. the first config state acknowledging the config
+        2. else if not acknowledged, the last config state received
+        3. if not config state received, then an harcoded one with apply_state=UNKNOWN
+    """
+
+    assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
+
+    client_configs = raw_payload["client_configs"]
+    assert len(client_configs) == 1, "Only one client config is supported"
+    _, _, product, config_id, _ = client_configs[0].split("/")
+
+    config_state = {
+        "id": config_id,
+        "product": product,
+        "apply_state": ApplyState.UNKNOWN,
+        "apply_error": "<No known response from the library>",
+    }
+
+    def remote_config_applied(data):
+        if data["path"] == "/v0.7/config":
+            config_states = (
+                data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", [])
+            )
+            for state in config_states:
+                if state["id"] == config_id and state["product"] == product:
+                    logger.debug(f"Remote config state: {state}")
+                    config_state.update(state)
+                    if state["apply_state"] == ApplyState.ACKNOWLEDGED:
+                        return True
+
+    requests.post("http://localhost:11111", data=json.dumps(raw_payload), timeout=30)
+
+    interfaces.library.wait_for(remote_config_applied, timeout=30)
+
+    return config_state
