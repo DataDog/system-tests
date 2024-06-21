@@ -1,6 +1,6 @@
 Each test can be flagged with an expected outcomes, with a declaration in [manifests files](../edit/manifest.md) or using inline decorators (`@bug`, `@missing_features` ...).
 
-Those declaration are interpreted by system-tests and impacts the test execution, and the outcome of the entire run : 
+Those declaration are interpreted by system-tests and impacts the test execution, and the outcome of the entire run :
 
 | Declaration            | Test is executed  | Test actual outcome | System test output  | Comment
 | -                      | -                 | -                   | -                   | -

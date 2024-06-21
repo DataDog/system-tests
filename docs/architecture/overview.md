@@ -131,7 +131,7 @@ The first argument to the `./build.sh` script is the language which is built: `.
 The `./run.sh` script runs the tests and relies 1-to-1 on what is built in the `./build.sh` step.
  - [Click for details about the `./run.sh` script and options available](#running-the-system-tests).
 
-The run script ultimately calls the `./docker-compose.yml` file and whichever image is built with the `weblog` tag is tested. 
+The run script ultimately calls the `./docker-compose.yml` file and whichever image is built with the `weblog` tag is tested.
  - [Click for detail about how the images interact with eachother](#what-are-the-components-of-a-running-test)
 
 ## Building the System Tests
