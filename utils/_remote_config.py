@@ -8,7 +8,8 @@ import json
 
 import requests
 
-from utils import interfaces, context
+from utils.interfaces import library
+from utils._context.core import context
 from utils.tools import logger
 
 # https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc
@@ -56,6 +57,6 @@ def send_command(raw_payload) -> dict[str, Any]:
 
     requests.post("http://localhost:11111", data=json.dumps(raw_payload), timeout=30)
 
-    interfaces.library.wait_for(remote_config_applied, timeout=30)
+    library.wait_for(remote_config_applied, timeout=30)
 
     return config_state

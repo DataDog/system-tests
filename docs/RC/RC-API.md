@@ -1,4 +1,4 @@
-The RC API is the official way to interact with remote config. It allows to send RC payload to the library durint setup phase, and send request before/after each state change. Here is an example a scenario activating/deactivating ASM: 
+The RC API is the official way to interact with remote config. It allows to send RC payload to the library durint setup phase, and send request before/after each state change. Here is an example a scenario activating/deactivating ASM:
 
 1. the library starts in an initial state where ASM is disabled. This state is validated with an assertion on a request containing an attack : the request should not been caught by ASM
 2. Then a RC command is sent to activate ASM
@@ -24,7 +24,7 @@ class Test_RemoteConfigSequence:
         # this function will send a RC payload to the library, and wait for a confirmation from the library
         self.config_state_activation = remote_config.send_command(raw_payload=ACTIVATE_ASM_PAYLOAD)
         self.second_request = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        
+
         # now deactivate the WAF, and check that it does not catch anything
         self.config_state_deactivation = remote_config.send_command(raw_payload=DEACTIVATE_ASM_PAYLOAD)
         self.third_request = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
