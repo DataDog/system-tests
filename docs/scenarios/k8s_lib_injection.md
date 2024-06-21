@@ -13,10 +13,10 @@ APM libraries.
 Currently, there are two different ways to have the Datadog library injected
 into the application container:
 
-1) Manually via Kubernetes annotations: 
+1) Manually via Kubernetes annotations:
   * Using Datadog Admission Controller: [Injecting Libraries Kubernetes](https://docs.datadoghq.com/tracing/trace_collection/admission_controller/).
   * Adding library injection specific annotations (without Datadog Admission Controller): [Application Instrumentation](https://docs.datadoghq.com/tracing/trace_collection/), [Add the Datadog Tracing Library](https://docs.datadoghq.com/tracing/trace_collection/)
-2) Automatically with Remote Config via the Datadog UI. 
+2) Automatically with Remote Config via the Datadog UI.
 
 `Remote config is tricky to test in a isolated environment. K8s Lib Injection tests use Kubernetes ConfigMap to emulate the configuration applied through Datadog Remote Config utility. Kubernetes ConfigMaps allows the injection of configuration into an application. ConfigMap can be injected as environment variables or mounted files.`
 
@@ -36,7 +36,7 @@ The Datadog admission controller is a component of the Datadog Cluster Agent. It
 
 # Validating lib-injection images
 
-We have created some simple tests, able to auto inject the tracer library in any application running in a docker container. 
+We have created some simple tests, able to auto inject the tracer library in any application running in a docker container.
 On the test application container (weblog) the lib-init image will be attached as a docker volume and the environment variables, necessary for auto injection, will be attached.
 The only requirement of the weblog application is that it is listening on port 18080.
 The weblog will be deployed next to the APM Test Agent container, which will help us to perform the validations ([APM Test Agent](https://github.com/DataDog/dd-apm-test-agent)).
@@ -49,24 +49,24 @@ Now we can test the auto instrumentation on any image in two simple steps:
 ``` lib-injection/build/build_lib_injection_weblog.sh -w [existing weblog] -l [java,nodejs,dotnet,ruby,python]  ```
 
 2. Run the scenario that checks if weblog app is auto instrumented and sending traces to the _Dev Test Agent_:
-``` 
-TEST_LIBRARY=dotnet 
-LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot 
+```
+TEST_LIBRARY=dotnet
+LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot
 ./run.sh LIB_INJECTION_VALIDATION
 ```
 
 You can also validate weblog applications that the language version is not supported by the tracer. The scenario will check that the app is running although the app is not instrumented:
-``` 
+```
 lib-injection/build/build_lib_injection_weblog.sh -w jdk7-app -l java
-TEST_LIBRARY=java 
-LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot 
+TEST_LIBRARY=java
+LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot
 ./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
-``` 
+```
 
 
 # K8s lib-injection feature testing
 
-Lib injection testing is part of the "system-tests" test suite. 
+Lib injection testing is part of the "system-tests" test suite.
 
 To test lib-injection/autoinstrumentation feature, we run a Kubernetes cluster with the Datadog Cluster Agent and we check that the instrumentation runs smoothly using different sample applications (weblog) in different languages (currently Java, Python, Node, DotNet and Ruby).
 
@@ -94,10 +94,10 @@ The following picture shows the main directories for the k8s lib injection tests
     - Deploy Datadog Admission Controller
     - Apply Kubernetes ConfigMap
     - Extract Datadog Components debug information.
-  * **k8s_weblog.py:**  Manages the weblog application lifecycle. 
+  * **k8s_weblog.py:**  Manages the weblog application lifecycle.
     - Deploy weblog as pod configured to perform library injection manually/without the Datadog admission controller.
     - Deploy weblog as pod configured to automatically perform the library injection using the Datadog admission controler.
-    - Deploy weblog as Kubernetes deployment and prepare the library injection using Kubernetes ConfigMaps and Datadog Admission Controller. 
+    - Deploy weblog as Kubernetes deployment and prepare the library injection using Kubernetes ConfigMaps and Datadog Admission Controller.
     - Extract weblog debug information.
   * **k8s_command_utils.py:** Command line utils to lauch the Helm Chart commands and others shell commands.
 
@@ -120,11 +120,11 @@ You should install the docker desktop on your computer and **be loged into a per
 
 You should install the kind and Helm Chart tool.
 Kind is a tool for running local Kubernetes clusters using Docker container.
-Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources. 
+Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources.
 
 In order to install the kind kubernetes tool you should execute this script:
 
-``` 
+```
 KIND_VERSION='v0.17.0'
 KUBECTL_VERSION='v1.25.3'
 
