@@ -4,7 +4,6 @@ import logging
 import mock
 import os
 import random
-import subprocess
 import threading
 import http.client
 import urllib.request
@@ -1068,9 +1067,7 @@ def test_weak_randomness_secure():
 def view_cmdi_insecure():
     filename = "/"
     command = flask_request.form["cmd"]
-    subp = subprocess.Popen(args=[command, "-la", filename])
-    subp.communicate()
-    subp.wait()
+    os.spawnvp(os.P_WAIT, command, [command, "-la", filename])
 
     return Response("OK")
 
