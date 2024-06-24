@@ -33,7 +33,10 @@ weblog:
             local_path: lib-injection/build/docker/ruby/lib_injection_rails_app  
 
           - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app.service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
           - name: copy-run-weblog-script-ruby
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app-ruby_run.sh

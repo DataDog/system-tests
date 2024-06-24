@@ -1,5 +1,5 @@
 [Unit]
-Description=DotNet Weblog App Service
+Description=Weblog App Service
 After=syslog.target network.target
 
 [Service]
@@ -9,12 +9,17 @@ User=datadog
 
 Type=simple
 
+Environment=DD_CONFIG_SOURCES=LOCAL:/etc/datadog-agent/inject/debug_config.yaml
 Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
+Environment=PYTHONUNBUFFERED=1
+Environment=DJANGO_SETTINGS_MODULE=django_app
+Environment=DD_TRACE_DEBUG=true
 Environment=ASPNETCORE_URLS=http://+:5985
 Environment=DOTNET_DbgEnableMiniDump=1
 Environment=DOTNET_DbgMiniDumpType=4
-WorkingDirectory=/home/datadog/publish
-ExecStart=/bin/bash -c 'dotnet MinimalWebApp.dll >> /home/datadog/app-std.out 2>&1 </dev/null'
+
+WorkingDirectory=/home/datadog
+ExecStart=/bin/bash -c 'APP_RUN_COMMAND >> /var/log/weblog/app.log 2>&1 </dev/null'
 ExecStop=/bin/kill -15 $MAINPID
 
 [Install]
