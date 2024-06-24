@@ -3,21 +3,16 @@
 # Copyright 2021 Datadog, Inc.
 
 from typing import Any
-from enum import IntEnum
 import json
+import os
+import re
 
 import requests
 
 from utils.interfaces import library
 from utils._context.core import context
+from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.tools import logger
-
-# https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc
-class ApplyState(IntEnum):
-    UNKNOWN = 0
-    UNACKNOWLEDGED = 1
-    ACKNOWLEDGED = 2
-    ERROR = 3
 
 
 def send_command(raw_payload) -> dict[str, Any]:
@@ -55,7 +50,18 @@ def send_command(raw_payload) -> dict[str, Any]:
                     if state["apply_state"] == ApplyState.ACKNOWLEDGED:
                         return True
 
-    requests.post("http://localhost:11111", data=json.dumps(raw_payload), timeout=30)
+    if "SYSTEM_TESTS_PROXY_HOST" in os.environ:
+        domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
+    elif "DOCKER_HOST" in os.environ:
+        m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+        if m is not None:
+            domain = m.group(1)
+        else:
+            domain = "localhost"
+    else:
+        domain = "localhost"
+
+    requests.post(f"http://{domain}:11111", data=json.dumps(raw_payload), timeout=30)
 
     library.wait_for(remote_config_applied, timeout=30)
 
