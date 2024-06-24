@@ -17,6 +17,8 @@ Environment=DD_TRACE_DEBUG=true
 Environment=ASPNETCORE_URLS=http://+:5985
 Environment=DOTNET_DbgEnableMiniDump=1
 Environment=DOTNET_DbgMiniDumpType=4
+Environment=DD_PROFILING_UPLOAD_PERIOD=10
+Environment=DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD=1500
 
 WorkingDirectory=/home/datadog
 ExecStart=/bin/bash -c 'APP_RUN_COMMAND >> /var/log/weblog/app.log 2>&1 </dev/null'

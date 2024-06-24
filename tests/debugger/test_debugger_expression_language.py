@@ -54,7 +54,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
             "log170aa-expr-lang-0004-1478a6method": "Accessing complex object int variable. Value is: 1",
             "log170aa-expr-lang-0005-1478a6method": "Accessing complex object double variable. Value is: 1.1",
             "log170aa-expr-lang-0006-1478a6method": "Accessing complex object string variable. Value is: one",
-            "log170aa-expr-lang-0007-1478a6method": "Accessing complex object bool variable. Value is: True",
+            "log170aa-expr-lang-0007-1478a6method": r"Accessing complex object bool variable. Value is: [Tt]rue",
             "log170aa-expr-lang-0008-1478a6method": "Accessing complex object collection first variable. Value is: one",
             "log170aa-expr-lang-0009-1478a6method": "Accessing complex object dictionary 'two' keyword. Value is: 2",
             "log170aa-expr-lang-0010-1478a6method": r"Accessing duration variable. Value is: \d+(\.\d+)?",
