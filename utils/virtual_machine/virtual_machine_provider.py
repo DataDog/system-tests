@@ -97,7 +97,12 @@ class VmProvider:
 
             output_callback = lambda args: args[0].set_vm_logs(args[1])
             last_task = self._remote_install(
-                server_connection, vm, last_task, provision.vm_logs_installation, output_callback=output_callback,
+                server_connection,
+                vm,
+                last_task,
+                provision.vm_logs_installation,
+                logger_name=f"{vm.name}_var_log",
+                output_callback=output_callback,
             )
 
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
