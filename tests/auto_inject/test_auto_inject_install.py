@@ -9,6 +9,8 @@ from utils import bug
 from utils import scenarios, context, features
 from utils.virtual_machine.vm_logger import vm_logger
 import pytest
+import time
+import paramiko
 
 
 class _AutoInjectBaseTest:
@@ -45,17 +47,18 @@ class _AutoInjectBaseTest:
         command_with_env = f"{prefix_env} {command}"
 
         with virtual_machine.ssh_config.get_ssh_connection() as ssh:
-            _, stdout, stderr = ssh.exec_command(command_with_env, timeout=300, get_pty=True)
-            stdout.channel.set_combine_stderr(True)
+            try:
+                _, stdout, stderr = ssh.exec_command(command_with_env, timeout=120)
+                stdout.channel.set_combine_stderr(True)
+            except paramiko.buffered_pipe.PipeTimeout:
+                if not stdout.channel.eof_received:
+                    stdout.channel.close()
+
             # Read the output line by line
             command_output = ""
-            while True:
-                # We read line by line to have partial logs in case of timeout / hanging
-                line = stdout.readline()
+            for line in stdout.readlines():
                 if not line.startswith("export"):
                     command_output += line
-                if stdout.channel.exit_status_ready():
-                    break
             header = "*****************************************************************"
             vm_logger(context.scenario.name, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
