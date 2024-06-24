@@ -1740,7 +1740,7 @@ class scenarios:
     appsec_auto_events_rc = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_RC",
         weblog_env={"DD_APPSEC_ENABLED": "true",},
-        proxy_state={"mock_remote_config_backend": "APPSEC_AUTO_EVENTS_RC"},
+        rc_api_enabled=True,
         doc="""
             Scenario to test User ID collection config change via Remote config
         """,
