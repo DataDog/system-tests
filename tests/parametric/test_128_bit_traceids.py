@@ -119,6 +119,7 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
+    @missing_feature(context.library == "dotnet", reason="Optional feature not implemented")
     @missing_feature(context.library == "golang", reason="Optional feature not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
