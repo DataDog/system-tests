@@ -1,11 +1,11 @@
 package com.datadoghq.system_tests.springboot;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.MediaType;
 // The `debugger` feature allows attachment to specific lines of code. 
 // Due to differences in line numbering between `dotnet` and `java`, 
 // 'dummy lines' are used to standardize this functionality.
-// Dummy line
 // Dummy line
 // Dummy line
 // Dummy line
@@ -60,5 +60,17 @@ public class DebuggerController {
         String value = pii.TestValue;
         String customValue = customPii.TestValue;
         return "PII " + value + ". CustomPII" + customValue;
+    }
+
+    @GetMapping("/expression")
+    public String expression(@RequestParam String inputValue) {
+        ExpressionTestStruct testStruct = new ExpressionTestStruct();
+        int localValue = inputValue.length();
+        return "Great success number " + localValue;
+    }
+
+    @GetMapping("/expression/exception")
+    public Void expressionException() {
+        throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Hello from exception");
     }
 }
