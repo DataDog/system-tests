@@ -191,7 +191,7 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
     if content_type == "text/plain":
         return content.decode("ascii")
 
-    if len(content) == 0:
+    if not content or len(content) == 0:
         return None
 
     return content
