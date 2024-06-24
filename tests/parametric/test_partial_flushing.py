@@ -8,7 +8,13 @@ from utils import missing_feature, bug, features, context, scenarios
 @scenarios.parametric
 class Test_Partial_Flushing:
     @pytest.mark.parametrize(
-        "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
+        "library_env",
+        [
+            {
+                "DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1",
+                "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",
+            }
+        ],
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(
@@ -18,12 +24,19 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
     def test_partial_flushing_one_span(self, test_agent, test_library):
         """
-            Create a trace with a root span and a single child. Finish the child, and ensure
-            partial flushing triggers. This test explicitly enables partial flushing.
+        Create a trace with a root span and a single child. Finish the child, and ensure
+        partial flushing triggers. This test explicitly enables partial flushing.
         """
         do_partial_flush_test(self, test_agent, test_library)
 
-    @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1",}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1",
+            }
+        ],
+    )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(
         context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
@@ -38,26 +51,38 @@ class Test_Partial_Flushing:
     )
     def test_partial_flushing_one_span_default(self, test_agent, test_library):
         """
-            Create a trace with a root span and a single child. Finish the child, and ensure
-            partial flushing triggers. This test assumes partial flushing is enabled by default.
+        Create a trace with a root span and a single child. Finish the child, and ensure
+        partial flushing triggers. This test assumes partial flushing is enabled by default.
         """
         do_partial_flush_test(self, test_agent, test_library)
 
     @pytest.mark.parametrize(
-        "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
+        "library_env",
+        [
+            {
+                "DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5",
+                "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",
+            }
+        ],
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     def test_partial_flushing_under_limit_one_payload(self, test_agent, test_library):
         """
-            Create a trace with a root span and a single child. Finish the child, and ensure
-            partial flushing does NOT trigger, since the partial flushing min spans is set to 5.
+        Create a trace with a root span and a single child. Finish the child, and ensure
+        partial flushing does NOT trigger, since the partial flushing min spans is set to 5.
         """
         no_partial_flush_test(self, test_agent, test_library)
 
     @pytest.mark.parametrize(
-        "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",}]
+        "library_env",
+        [
+            {
+                "DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1",
+                "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",
+            }
+        ],
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(context.library == "java", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
@@ -66,16 +91,16 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "nodejs", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
     def test_partial_flushing_disabled(self, test_agent, test_library):
         """
-            Create a trace with a root span and a single child. Finish the child, and ensure
-            partial flushing does NOT trigger, since it's explicitly disabled.
+        Create a trace with a root span and a single child. Finish the child, and ensure
+        partial flushing does NOT trigger, since it's explicitly disabled.
         """
         no_partial_flush_test(self, test_agent, test_library)
 
 
 def do_partial_flush_test(self, test_agent, test_library):
     """
-        Create a trace with a root span and a single child. Finish the child, and ensure
-        partial flushing triggers.
+    Create a trace with a root span and a single child. Finish the child, and ensure
+    partial flushing triggers.
     """
     with test_library:
         with test_library.start_span(name="root") as parent_span:
@@ -93,8 +118,8 @@ def do_partial_flush_test(self, test_agent, test_library):
 
 def no_partial_flush_test(self, test_agent, test_library):
     """
-        Create a trace with a root span and one child. Finish the child, and ensure
-        partial flushing does NOT trigger.
+    Create a trace with a root span and one child. Finish the child, and ensure
+    partial flushing does NOT trigger.
     """
     with test_library:
         with test_library.start_span(name="root") as parent_span:

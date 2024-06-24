@@ -8,7 +8,6 @@
     nix2containerPkg.url = "github:nlewo/nix2container";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin";
-    nixpkgs-black-pinned.url = "github:NixOS/nixpkgs/6625284c397b44bc9518a5a1567c1b5aae455c08";
 
     nix-github-actions.url = "github:nix-community/nix-github-actions";
     nix-github-actions.inputs.nixpkgs.follows = "nixpkgs";
@@ -20,22 +19,11 @@
     flake-utils,
     treefmt-nix,
     nix2containerPkg,
-    nixpkgs-black-pinned,
     nix-github-actions,
   }:
     (flake-utils.lib.eachDefaultSystem (system: let
-      pkgs-black = import nixpkgs-black-pinned {inherit system;};
-      pinned-black = pkgs-black.black;
-
-      black-overlay = final: prev: {
-        black = pinned-black;
-      };
-
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [
-          black-overlay
-        ];
       };
 
       black = pkgs.black;

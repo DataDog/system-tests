@@ -29,7 +29,12 @@ def main():
     values = flatten(data.json())
 
     series = [
-        Series(metric=name, points=[Point([(datetime.now(timezone.utc)).timestamp(), value]),],)
+        Series(
+            metric=name,
+            points=[
+                Point([(datetime.now(timezone.utc)).timestamp(), value]),
+            ],
+        )
         for name, value in values
     ]
 
@@ -37,7 +42,8 @@ def main():
     with ApiClient(configuration) as api_client:
         api_instance = MetricsApi(api_client)
         response = api_instance.submit_metrics(
-            content_encoding=MetricContentEncoding.DEFLATE, body=MetricsPayload(series=series),
+            content_encoding=MetricContentEncoding.DEFLATE,
+            body=MetricsPayload(series=series),
         )
 
         print(response)

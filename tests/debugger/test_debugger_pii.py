@@ -126,11 +126,15 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         self.assert_all_weblog_responses_ok()
 
         base.validate_probes(
-            {"log170aa-acda-4453-9111-1478a6method": "INSTALLED",}
+            {
+                "log170aa-acda-4453-9111-1478a6method": "INSTALLED",
+            }
         )
 
         base.validate_snapshots(
-            ["log170aa-acda-4453-9111-1478a6method",]
+            [
+                "log170aa-acda-4453-9111-1478a6method",
+            ]
         )
 
         self._validate_pii_keyword_redaction(redacted_keys)
@@ -229,7 +233,8 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
 
     @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
     @bug(
-        weblog_variant="uds" and context.library == "dotnet@2.50.0", reason="bug with UDS protocol on this version",
+        weblog_variant="uds" and context.library == "dotnet@2.50.0",
+        reason="bug with UDS protocol on this version",
     )
     def test_pii_redaction_dotnet_2_50(self):
         self._test(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)

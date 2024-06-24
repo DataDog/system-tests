@@ -30,7 +30,7 @@ DSM_REQUEST_TIMEOUT = 61
 @features.datastreams_monitoring_support_for_kafka
 @scenarios.integrations
 class Test_DsmKafka:
-    """ Verify DSM stats points for Kafka """
+    """Verify DSM stats points for Kafka"""
 
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
@@ -66,10 +66,14 @@ class Test_DsmKafka:
         edge_tags = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=edge_tags,
         )
 
 
@@ -94,7 +98,7 @@ class Test_DsmHttp:
 @features.datastreams_monitoring_support_for_rabbitmq
 @scenarios.integrations
 class Test_DsmRabbitmq:
-    """ Verify DSM stats points for RabbitMQ """
+    """Verify DSM stats points for RabbitMQ"""
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get(
@@ -137,11 +141,15 @@ class Test_DsmRabbitmq:
         edge_tags_out = language_hashes.get("default")["edge_tags_out"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=edge_tags_out,
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=edge_tags_in,
         )
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
@@ -176,7 +184,7 @@ class Test_DsmRabbitmq:
 @features.datastreams_monitoring_support_for_rabbitmq_topicexchange
 @scenarios.integrations
 class Test_DsmRabbitmq_TopicExchange:
-    """ Verify DSM stats points for RabbitMQ Topic Exchange"""
+    """Verify DSM stats points for RabbitMQ Topic Exchange"""
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
@@ -212,7 +220,7 @@ class Test_DsmRabbitmq_TopicExchange:
 @features.datastreams_monitoring_support_for_rabbitmq_fanout
 @scenarios.integrations
 class Test_DsmRabbitmq_FanoutExchange:
-    """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
+    """Verify DSM stats points for RabbitMQ Fanout Exchange"""
 
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange", timeout=DSM_REQUEST_TIMEOUT)
@@ -248,7 +256,7 @@ class Test_DsmRabbitmq_FanoutExchange:
 @features.datastreams_monitoring_support_for_sqs
 @scenarios.integrations
 class Test_DsmSQS:
-    """ Verify DSM stats points for AWS Sqs Service """
+    """Verify DSM stats points for AWS Sqs Service"""
 
     def setup_dsm_sqs(self):
         self.r = weblog.get(f"/dsm?integration=sqs&timeout=60&queue={DSM_QUEUE}", timeout=DSM_REQUEST_TIMEOUT)
@@ -258,8 +266,16 @@ class Test_DsmSQS:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 18206246330825886989, "consumer": 5236533131035234664, "topic": DSM_QUEUE,},
-            "default": {"producer": 7228682205928812513, "consumer": 3767823103515000703, "topic": DSM_QUEUE,},
+            "nodejs": {
+                "producer": 18206246330825886989,
+                "consumer": 5236533131035234664,
+                "topic": DSM_QUEUE,
+            },
+            "default": {
+                "producer": 7228682205928812513,
+                "consumer": 3767823103515000703,
+                "topic": DSM_QUEUE,
+            },
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
@@ -267,21 +283,26 @@ class Test_DsmSQS:
         topic = language_hashes.get(context.library.library, language_hashes.get("default"))["topic"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=("direction:out", f"topic:{topic}", "type:sqs"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{topic}", "type:sqs"),
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=("direction:in", f"topic:{topic}", "type:sqs"),
         )
 
 
 @features.datastreams_monitoring_support_for_sns
 @scenarios.integrations
 class Test_DsmSNS:
-    """ Verify DSM stats points for AWS SNS Service """
+    """Verify DSM stats points for AWS SNS Service"""
 
     def setup_dsm_sns(self):
         self.r = weblog.get(
-            f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,
+            f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}",
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
@@ -290,8 +311,14 @@ class Test_DsmSNS:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
-            "default": {"producer": 5674710414915297150, "consumer": 13847866872847822852,},
+            "nodejs": {
+                "producer": 15583577557400562150,
+                "consumer": 16616233855586708550,
+            },
+            "default": {
+                "producer": 5674710414915297150,
+                "consumer": 13847866872847822852,
+            },
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
@@ -299,20 +326,27 @@ class Test_DsmSNS:
         topic = f"arn:aws:sns:us-east-1:000000000000:{DSM_TOPIC}"
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sns"),
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=("direction:out", f"topic:{topic}", "type:sns"),
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{DSM_QUEUE}", "type:sqs"),
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=("direction:in", f"topic:{DSM_QUEUE}", "type:sqs"),
         )
 
 
 @features.datastreams_monitoring_support_for_kinesis
 @scenarios.integrations
 class Test_DsmKinesis:
-    """ Verify DSM stats points for AWS Kinesis Service """
+    """Verify DSM stats points for AWS Kinesis Service"""
 
     def setup_dsm_kinesis(self):
-        self.r = weblog.get(f"/dsm?integration=kinesis&timeout=60&stream={DSM_STREAM}", timeout=DSM_REQUEST_TIMEOUT,)
+        self.r = weblog.get(
+            f"/dsm?integration=kinesis&timeout=60&stream={DSM_STREAM}",
+            timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     def test_dsm_kinesis(self):
@@ -343,23 +377,30 @@ class Test_DsmKinesis:
         edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=edge_tags_out,
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=edge_tags_in,
         )
 
 
 @features.datastreams_monitoring_support_context_injection_base64
 @scenarios.integrations
 class Test_DsmContext_Injection_Base64:
-    """ Verify DSM context is injected to carrier using correct encoding (base64) """
+    """Verify DSM context is injected to carrier using correct encoding (base64)"""
 
     def setup_dsmcontext_injection_base64(self):
         topic = "dsm-injection-topic"
         integration = "kafka"
 
-        self.r = weblog.get(f"/dsm/inject?topic={topic}&integration={integration}", timeout=DSM_REQUEST_TIMEOUT,)
+        self.r = weblog.get(
+            f"/dsm/inject?topic={topic}&integration={integration}",
+            timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
@@ -367,7 +408,9 @@ class Test_DsmContext_Injection_Base64:
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {"producer": 18431567370843181989},
-            "default": {"producer": 6031446427375485596,},
+            "default": {
+                "producer": 6031446427375485596,
+            },
         }
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         edge_tags = ("direction:out", "topic:dsm-injection-topic", "type:kafka")
@@ -393,14 +436,16 @@ class Test_DsmContext_Injection_Base64:
         # assert producer_hash == decoded_pathway
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=edge_tags,
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=edge_tags,
         )
 
 
 @features.datastreams_monitoring_support_for_base64_encoding
 @scenarios.integrations
 class Test_DsmContext_Extraction_Base64:
-    """ Verify DSM context is extracted using "dd-pathway-ctx-base64" """
+    """Verify DSM context is extracted using "dd-pathway-ctx-base64" """
 
     def setup_dsmcontext_extraction_base64(self):
         topic = "dsm-injection-topic"
@@ -421,14 +466,19 @@ class Test_DsmContext_Extraction_Base64:
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
             # it does not have access to the queue name
             "nodejs": {"producer": 11295735785862509651, "consumer": 18410421833994263340},
-            "default": {"producer": 6031446427375485596, "consumer": 12795903374559614717,},
+            "default": {
+                "producer": 6031446427375485596,
+                "consumer": 12795903374559614717,
+            },
         }
         edge_tags = ("direction:in", "topic:dsm-injection-topic", "type:kafka")
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=edge_tags,
         )
 
 

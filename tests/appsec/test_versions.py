@@ -11,7 +11,7 @@ class Test_Events:
 
     @missing_feature(context.library < "java@0.93.0")
     def test_appsec_in_traces(self):
-        """ AppSec sends event in traces"""
+        """AppSec sends event in traces"""
 
         for _ in interfaces.library.get_legacy_appsec_events():
             raise ValueError("You are using old AppSec communication")

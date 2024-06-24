@@ -28,7 +28,7 @@ def warmup_weblog(app_url):
 
 
 def make_internal_get_request(stdin_file, vm_port):
-    """ This method is exclusively for testing through KrunVm microVM. 
+    """This method is exclusively for testing through KrunVm microVM.
     It is used to make a request to the weblog application inside the VM, using stdin file"""
 
     generated_uuid = str(randint(1, 100000000000000000))

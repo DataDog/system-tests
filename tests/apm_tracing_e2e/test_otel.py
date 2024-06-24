@@ -4,8 +4,7 @@ from utils import context, weblog, scenarios, interfaces, irrelevant, bug, featu
 @features.otel_api
 @scenarios.apm_tracing_e2e_otel
 class Test_Otel_Span:
-    """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API.
-    """
+    """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API."""
 
     def setup_datadog_otel_span(self):
         self.req = weblog.get(
@@ -49,7 +48,8 @@ class Test_Otel_Span:
 
     def setup_distributed_otel_trace(self):
         self.req = weblog.get(
-            "/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"},
+            "/e2e_otel_span/mixed_contrib",
+            {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"},
         )
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")

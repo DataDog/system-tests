@@ -1,6 +1,7 @@
 """
 Test the dynamic configuration via Remote Config (RC) feature of the APM libraries.
 """
+
 import json
 from typing import Any, Dict, List
 
@@ -62,7 +63,8 @@ def _set_rc(test_agent, config: Dict[str, Any]) -> None:
 
     config["id"] = str(cfg_id)
     test_agent.set_remote_config(
-        path="datadog/2/APM_TRACING/%s/config" % cfg_id, payload=config,
+        path="datadog/2/APM_TRACING/%s/config" % cfg_id,
+        payload=config,
     )
 
 
@@ -84,7 +86,8 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
 
     # Wait for both the telemetry event and the RC apply status.
     test_agent.wait_for_telemetry_event(
-        "app-client-configuration-change", clear=True,
+        "app-client-configuration-change",
+        clear=True,
     )
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
 
@@ -152,7 +155,11 @@ class TestDynamicConfigHeaderTags:
         test_library.http_client_request(
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
+            headers=[
+                ("X-Test-Header", "test-value"),
+                ("X-Test-Header-2", "test-value-2"),
+                ("Content-Length", "35"),
+            ],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
@@ -190,7 +197,11 @@ class TestDynamicConfigHeaderTags:
         test_library.http_client_request(
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
+            headers=[
+                ("X-Test-Header", "test-value"),
+                ("X-Test-Header-2", "test-value-2"),
+                ("Content-Length", "35"),
+            ],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
         assert trace[0][0]["meta"]["test_header_env"] == "test-value"
@@ -207,7 +218,11 @@ class TestDynamicConfigTracingEnabled:
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
 
     @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+        "library_env",
+        [
+            {**DEFAULT_ENVVARS},
+            {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},
+        ],
     )
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
@@ -235,7 +250,11 @@ class TestDynamicConfigTracingEnabled:
         assert True, "no traces are sent after RC response with tracing_enabled: false"
 
     @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
+        "library_env",
+        [
+            {**DEFAULT_ENVVARS},
+            {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},
+        ],
     )
     @irrelevant(library="golang")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
@@ -311,20 +330,33 @@ class TestDynamicConfigV1:
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
         set_and_wait_rc(
-            test_agent, config_overrides={"tracing_sampling_rate": 0.5,},
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rate": 0.5,
+            },
         )
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
         # Unset the RC sample rate to ensure the default setting is used.
         set_and_wait_rc(
-            test_agent, config_overrides={"tracing_sampling_rate": None,},
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rate": None,
+            },
         )
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
     @parametrize(
-        "library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": r,
+                **DEFAULT_ENVVARS,
+            }
+            for r in ["0.1", "1.0"]
+        ],
     )
     @bug(library="cpp", reason="Trace sampling RC creates another sampler which makes the computation wrong")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
@@ -398,9 +430,17 @@ class TestDynamicConfigV1:
     @parametrize(
         "library_env",
         [
-            {"DD_TRACE_LOGS_INJECTION": "true", **DEFAULT_ENVVARS,},
-            {"DD_TRACE_LOGS_INJECTION": "false", **DEFAULT_ENVVARS,},
-            {**DEFAULT_ENVVARS,},
+            {
+                "DD_TRACE_LOGS_INJECTION": "true",
+                **DEFAULT_ENVVARS,
+            },
+            {
+                "DD_TRACE_LOGS_INJECTION": "false",
+                **DEFAULT_ENVVARS,
+            },
+            {
+                **DEFAULT_ENVVARS,
+            },
         ],
     )
     def test_log_injection_enabled(self, library_env, test_agent, test_library):
@@ -496,7 +536,11 @@ class TestDynamicConfigV1_ServiceTargets:
 @features.dynamic_configuration
 class TestDynamicConfigV2:
     @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
+        "library_env",
+        [
+            {**DEFAULT_ENVVARS},
+            {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},
+        ],
     )
     def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
         expected_local_tags = {}

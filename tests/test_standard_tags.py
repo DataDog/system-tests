@@ -246,7 +246,8 @@ class Test_StandardTagsClientIp:
 
         attack_headers = {"User-Agent": "Arachni/v1"}
         self.request_with_attack = weblog.get(
-            "/waf/", headers=self.FORWARD_HEADERS | self.FORWARD_HEADERS_VENDOR | attack_headers,
+            "/waf/",
+            headers=self.FORWARD_HEADERS | self.FORWARD_HEADERS_VENDOR | attack_headers,
         )
 
     def _setup_without_attack(self):

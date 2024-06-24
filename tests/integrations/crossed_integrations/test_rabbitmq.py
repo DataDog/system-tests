@@ -208,13 +208,21 @@ class _Test_RabbitMQ:
         # Check that the consumer did not create any producer span
         assert (
             self.get_span(
-                consumer_interface, span_kind="producer", queue=queue, exchange=exchange, operation=["publish"],
+                consumer_interface,
+                span_kind="producer",
+                queue=queue,
+                exchange=exchange,
+                operation=["publish"],
             )
             is None
         )
 
         producer_span = self.get_span(
-            producer_interface, span_kind="producer", queue=queue, exchange=exchange, operation=["publish"],
+            producer_interface,
+            span_kind="producer",
+            queue=queue,
+            exchange=exchange,
+            operation=["publish"],
         )
         consumer_span = self.get_span(
             consumer_interface, span_kind="consumer", queue=queue, exchange=exchange, operation=["deliver", "receive"]

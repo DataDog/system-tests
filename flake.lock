@@ -90,22 +90,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-black-pinned": {
-      "locked": {
-        "lastModified": 1605716121,
-        "narHash": "sha256-CbHicvkzLTfEY+aSUeUY7dfFlDOgZH3uK+PpUfb/DPA=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "6625284c397b44bc9518a5a1567c1b5aae455c08",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "6625284c397b44bc9518a5a1567c1b5aae455c08",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1719099596,
@@ -144,7 +128,6 @@
         "nix-github-actions": "nix-github-actions",
         "nix2containerPkg": "nix2containerPkg",
         "nixpkgs": "nixpkgs_2",
-        "nixpkgs-black-pinned": "nixpkgs-black-pinned",
         "treefmt-nix": "treefmt-nix"
       }
     },

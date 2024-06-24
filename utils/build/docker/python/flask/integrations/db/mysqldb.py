@@ -6,7 +6,9 @@ except ModuleNotFoundError:
 database_mysql_loaded = 0
 
 
-def executeMysqlOperation(operation,):
+def executeMysqlOperation(
+    operation,
+):
     print(f"Executing postgres {operation} operation")
     if operation == "init":
         createDatabase()

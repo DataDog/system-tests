@@ -4,7 +4,7 @@ from utils.tools import logger
 
 
 class VmProviderFactory:
-    """ Use the correct provider specified by Id """
+    """Use the correct provider specified by Id"""
 
     def get_provider(self, provider_id):
         logger.info(f"Using {provider_id} provider")
@@ -25,8 +25,8 @@ class VmProviderFactory:
 
 
 class VmProvider:
-    """ Provider responsible of manage the virtual machines
-        Start up all the stack (group of virtual machines) """
+    """Provider responsible of manage the virtual machines
+    Start up all the stack (group of virtual machines)"""
 
     def __init__(self):
         self.vms = None
@@ -38,16 +38,16 @@ class VmProvider:
         self.vms = required_vms
 
     def stack_up(self):
-        """ Each provider should implement the method that start up all the machines. 
-        After each machine is up, you will call the install_provision method for each machine. """
+        """Each provider should implement the method that start up all the machines.
+        After each machine is up, you will call the install_provision method for each machine."""
         raise NotImplementedError
 
     def stack_destroy(self):
-        """ Stop and destroy machines"""
+        """Stop and destroy machines"""
         raise NotImplementedError
 
     def install_provision(self, vm, server, server_connection, create_cache=True):
-        """ 
+        """
         This method orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
         The provision structure must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Provision
@@ -92,8 +92,8 @@ class VmProvider:
         last_task = self._remote_install(server_connection, vm, last_task, provision.weblog_installation)
 
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
-        """ Manages a installation. 
-        The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation """
+        """Manages a installation.
+        The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation"""
         local_command = None
         command_environment = vm.get_command_environment()
         # Execute local command if we need
@@ -159,43 +159,43 @@ class VmProvider:
 
 
 class Commander:
-    """ Run commands on the VMs. Each provider should implement this class."""
+    """Run commands on the VMs. Each provider should implement this class."""
 
     def create_cache(self, vm, server, last_task):
-        """ Create a cache from existing server. 
-            Use vm.get_cache_name() to get the cache name. 
-            Server is the started server to create the cache from.
-            Use last_task to depend on the last executed task.
-            Return the current task executed."""
+        """Create a cache from existing server.
+        Use vm.get_cache_name() to get the cache name.
+        Server is the started server to create the cache from.
+        Use last_task to depend on the last executed task.
+        Return the current task executed."""
         return last_task
 
     def execute_local_command(self, local_command_id, local_command, env, last_task, logger_name):
-        """ Execute a local command in the current machine. 
-            Env contain environment variables to be used in the command.
-            logger_name is the name of the logger to use to store the output of the command.
-            Use last_task to depend on the last executed task.
-            Return the current task executed."""
+        """Execute a local command in the current machine.
+        Env contain environment variables to be used in the command.
+        logger_name is the name of the logger to use to store the output of the command.
+        Use last_task to depend on the last executed task.
+        Return the current task executed."""
         raise NotImplementedError
 
     def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
-        """ Copy a file from local to remote. 
-            Use last_task to depend on the last executed task.
-            Return the current task executed."""
+        """Copy a file from local to remote.
+        Use last_task to depend on the last executed task.
+        Return the current task executed."""
         raise NotImplementedError
 
     def remote_command(self, id, remote_command, connection, last_task, logger_name, output_callback=None):
-        """ Execute a command in the remote server. 
-            Use last_task to depend on the last executed task.
-            logger_name is the name of the logger to use to store the output of the command.
-            output_callback is a function to be called with the output of the command.
-            Return the current task executed."""
+        """Execute a command in the remote server.
+        Use last_task to depend on the last executed task.
+        logger_name is the name of the logger to use to store the output of the command.
+        output_callback is a function to be called with the output of the command.
+        Return the current task executed."""
         raise NotImplementedError
 
     def remote_copy_folders(
         self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
     ):
-        """ The best option would be zip folder on local system and copy to remote machine
-             There is a weird behaviour synchronizing local command and remote command
-             Uggly workaround: Copy files and folder one by one :-( ) """
+        """The best option would be zip folder on local system and copy to remote machine
+        There is a weird behaviour synchronizing local command and remote command
+        Uggly workaround: Copy files and folder one by one :-( )"""
 
         raise NotImplementedError(f"Copy folders not implemented")

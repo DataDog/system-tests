@@ -34,7 +34,9 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
         env.update(
-            {"DD_TRACE_SAMPLE_RATE": str(sample_rate),}
+            {
+                "DD_TRACE_SAMPLE_RATE": str(sample_rate),
+            }
         )
     return parametrize("library_env", [env])
 
@@ -390,8 +392,11 @@ class Test_Library_Tracestats:
         assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
         for quantile in (0.5, 0.75, 0.95, 0.99, 1):
             assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                numpy.quantile(np_duration, quantile), rel=0.01,
-            ), ("Quantile mismatch for quantile %r" % quantile)
+                numpy.quantile(np_duration, quantile),
+                rel=0.01,
+            ), (
+                "Quantile mismatch for quantile %r" % quantile
+            )
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")

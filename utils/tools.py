@@ -156,7 +156,7 @@ def get_rid_from_user_agent(user_agent):
 
 
 def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
-    """ look for needle in heystack, heystack can be a dict or an array """
+    """look for needle in heystack, heystack can be a dict or an array"""
 
     if isinstance(heystack, str):
         return (needle == heystack) if exact_match else (needle in heystack)

@@ -32,7 +32,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ################################################################
     def wait_for_remote_config_request(self, timeout=30):
-        """ Used in setup functions, wait for a request oremote config endpoint with a non-empty client_config """
+        """Used in setup functions, wait for a request oremote config endpoint with a non-empty client_config"""
 
         def wait_function(data):
             if data["path"] == "/v0.7/config":
@@ -319,7 +319,10 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = _ReportedHeader(header_name)
 
         self.validate_appsec(
-            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
+            request,
+            validator=validator.validate,
+            legacy_validator=validator.validate_legacy,
+            success_by_default=False,
         )
 
     def add_traces_validation(self, validator, success_by_default=False):

@@ -24,7 +24,7 @@ def validate_span_tags(request, expected_meta=[], expected_metrics=[]):
 @features.rasp_span_tags
 @scenarios.appsec_rasp
 class Test_Mandatory_SpanTags:
-    """ Validate span tag generation on exploit attempts """
+    """Validate span tag generation on exploit attempts"""
 
     def setup_lfi_span_tags(self):
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
@@ -52,7 +52,7 @@ class Test_Mandatory_SpanTags:
 @features.rasp_span_tags
 @scenarios.appsec_rasp
 class Test_Optional_SpanTags:
-    """ Validate span tag generation on exploit attempts """
+    """Validate span tag generation on exploit attempts"""
 
     def setup_lfi_span_tags(self):
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})

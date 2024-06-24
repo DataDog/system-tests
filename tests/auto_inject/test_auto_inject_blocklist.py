@@ -11,7 +11,7 @@ from utils.onboarding.injection_log_parser import command_injection_skipped
 
 
 class _AutoInjectBlockListBaseTest:
-    """ Base class to test the block list on auto instrumentation"""
+    """Base class to test the block list on auto instrumentation"""
 
     env_vars_config_mapper = {
         "java": "DD_JAVA_IGNORED_ARGS",
@@ -44,7 +44,7 @@ ignored_arguments:
 """
 
     def _execute_remote_command(self, ssh_client, command, config={}, use_injection_config=False):
-        """ Execute remote command and get remote log file from the vm. You can use this method using env variables or using injection config file  """
+        """Execute remote command and get remote log file from the vm. You can use this method using env variables or using injection config file"""
 
         unique_log_name = f"host_injection_{uuid.uuid4()}.log"
 
@@ -95,7 +95,8 @@ ignored_arguments:
         scp = SCPClient(ssh_client.get_transport())
 
         scp.get(
-            remote_path=f"/opt/datadog/logs_injection/{unique_log_name}", local_path=log_local_path,
+            remote_path=f"/opt/datadog/logs_injection/{unique_log_name}",
+            local_path=log_local_path,
         )
         return log_local_path
 
@@ -258,7 +259,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         reason="Block list not fully implemented ",
     )
     def test_builtIn_block_commands(self, virtual_machine):
-        """ Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block """
+        """Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block"""
 
         ssh_client = virtual_machine.ssh_config.get_ssh_connection()
 
@@ -272,7 +273,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         reason="Block list not fully implemented ",
     )
     def test_builtIn_block_args(self, virtual_machine):
-        """ Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
+        """Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
         language = context.scenario.library.library
         if language in self.buildIn_args_commands_block:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()
@@ -286,7 +287,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         reason="Block list not fully implemented ",
     )
     def test_builtIn_instrument_args(self, virtual_machine):
-        """ Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
+        """Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
         language = context.scenario.library.library
         if language in self.buildIn_args_commands_injected:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()
@@ -309,7 +310,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         reason="Block list not fully implemented ",
     )
     def test_user_ignored_processes(self, virtual_machine):
-        """ Check that we are not instrumenting the commands that match with patterns set by DD_IGNORED_PROCESSES env variable"""
+        """Check that we are not instrumenting the commands that match with patterns set by DD_IGNORED_PROCESSES env variable"""
 
         ssh_client = virtual_machine.ssh_config.get_ssh_connection()
         # Create a simple executable script
@@ -336,7 +337,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         reason="Block list not fully implemented ",
     )
     def test_user_ignored_args(self, virtual_machine):
-        """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
+        """Check that we are not instrumenting the lang commands (java,ruby,dotnet,python) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
         language = context.scenario.library.library
         if language in self.user_args_commands:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()

@@ -108,13 +108,19 @@ class Test_Headers_Precedence:
 
             # 2) Only tracecontext headers
             headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ],
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "foo=1"],
+                ],
             )
 
             # 4) Both tracecontext and Datadog headers
@@ -234,13 +240,19 @@ class Test_Headers_Precedence:
 
             # 2) Only tracecontext headers
             headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ],
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "foo=1"],
+                ],
             )
 
             # 4) Both tracecontext and Datadog headers
@@ -375,13 +387,19 @@ class Test_Headers_Precedence:
 
             # 2) Only tracecontext headers
             headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ],
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "foo=1"],
+                ],
             )
 
             # 4) Both tracecontext and Datadog headers
@@ -507,13 +525,19 @@ class Test_Headers_Precedence:
 
             # 2) Only tracecontext headers
             headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                test_library,
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                ],
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "foo=1"],
+                ],
             )
 
             # 4) Both tracecontext and Datadog headers

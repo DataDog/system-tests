@@ -57,7 +57,7 @@ def validate_stack_traces(request):
 @features.rasp_stack_trace
 @scenarios.appsec_rasp
 class Test_StackTrace:
-    """ Validate stack trace generation on exploit attempts """
+    """Validate stack trace generation on exploit attempts"""
 
     def setup_lfi_stack_trace(self):
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})

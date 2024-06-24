@@ -12,7 +12,13 @@ from utils.parametric.spec.trace import find_trace_by_root, find_span, retrieve_
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1",}],
+    "library_env",
+    [
+        {
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "CORECLR_ENABLE_PROFILING": "1",
+        }
+    ],
 )
 
 TEST_TRACE_ID = "ff0000000000051791e0000000000041"
@@ -43,7 +49,7 @@ class Test_Otel_SDK_Interoperability:
 
     def test_set_update_remove_meta(self, test_agent, test_library):
         """
-            - Test that meta is set/updated/removed across APIs
+        - Test that meta is set/updated/removed across APIs
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
@@ -96,7 +102,7 @@ class Test_Otel_SDK_Interoperability:
 
     def test_set_update_remove_metric(self, test_agent, test_library):
         """
-            - Test that metrics are set/updated/removed across APIs
+        - Test that metrics are set/updated/removed across APIs
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
@@ -149,7 +155,7 @@ class Test_Otel_SDK_Interoperability:
 
     def test_update_resource(self, test_agent, test_library):
         """
-            - Test that the resource is updated across APIs
+        - Test that the resource is updated across APIs
         """
         with test_library:
             with test_library.otel_start_span("my_resource") as otel_span:
@@ -175,7 +181,7 @@ class Test_Otel_SDK_Interoperability:
 
     def test_span_links_basic(self, test_agent, test_library):
         """
-            - Test that links set on a span created with the Datadog API are updated into the OTel API
+        - Test that links set on a span created with the Datadog API are updated into the OTel API
         """
         with test_library:
             with test_library.start_span("dd.span") as dd_span:
@@ -205,7 +211,7 @@ class Test_Otel_SDK_Interoperability:
 
     def test_span_links_add(self, test_agent, test_library):
         """
-            - Test that links set on a span created with the OTel API are updated into the Datadog API
+        - Test that links set on a span created with the OTel API are updated into the Datadog API
         """
         with test_library:
             with test_library.otel_start_span("otel.span") as otel_span:
@@ -237,7 +243,7 @@ class Test_Otel_SDK_Interoperability:
 
     def test_set_attribute_from_datadog(self, test_agent, test_library):
         """
-            - Test that attributes set using the Datadog API are visible in the OTel API
+        - Test that attributes set using the Datadog API are visible in the OTel API
         """
         with test_library:
             with test_library.start_span(name="dd_span") as dd_span:
@@ -263,7 +269,7 @@ class Test_Otel_SDK_Interoperability:
 
     def test_set_attribute_from_otel(self, test_agent, test_library):
         """
-            - Test that attributes set using the OTel API are visible in the Datadog API
+        - Test that attributes set using the OTel API are visible in the Datadog API
         """
         with test_library:
             with test_library.otel_start_span(name="otel_span") as otel_span:

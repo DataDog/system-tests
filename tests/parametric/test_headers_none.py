@@ -38,8 +38,7 @@ def enable_none_invalid() -> Any:
 class Test_Headers_None:
     @enable_none()
     def test_headers_none_extract(self, test_agent, test_library):
-        """Ensure that no distributed tracing headers are extracted.
-        """
+        """Ensure that no distributed tracing headers are extracted."""
         with test_library:
             headers = make_single_request_and_get_inject_headers(
                 test_library,
@@ -147,7 +146,8 @@ class Test_Headers_None:
 
     @enable_none_single_key()
     @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
+        context.library == "ruby",
+        reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
     )
     def test_headers_none_single_key_propagate(self, test_agent, test_library):
         """Ensure that the 'none' propagator is used and

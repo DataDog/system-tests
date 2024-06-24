@@ -5,12 +5,12 @@ from utils.tools import logger
 
 
 class VirtualMachineProvisioner:
-    """ Manages the provision parser for the virtual machines."""
+    """Manages the provision parser for the virtual machines."""
 
     def remove_unsupported_machines(
         self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch, vm_skip_branches
     ):
-        """ Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch  """
+        """Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch"""
 
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
         config_data = None
@@ -83,7 +83,7 @@ class VirtualMachineProvisioner:
             required_vms.remove(vm)
 
     def get_provision(self, library_name, env, weblog, vm_provision_name, os_type, os_distro, os_branch, os_cpu):
-        """ Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
+        """Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
 
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
         provision = Provision()
@@ -221,7 +221,7 @@ class VirtualMachineProvisioner:
 
 
 class Provision:
-    """ Contains all the information about the provision that it will be launched on the vm 1"""
+    """Contains all the information about the provision that it will be launched on the vm 1"""
 
     def __init__(self):
         self.env = {}
@@ -232,7 +232,7 @@ class Provision:
 
 
 class Intallation:
-    """ Generic installation object. It can be a installation, lang_variant installation or weblog installation."""
+    """Generic installation object. It can be a installation, lang_variant installation or weblog installation."""
 
     def __init__(self):
         self.id = False

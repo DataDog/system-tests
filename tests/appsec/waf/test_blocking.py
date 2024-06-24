@@ -164,7 +164,13 @@ class Test_Blocking:
         assert self.r_afh.text in BLOCK_TEMPLATE_HTML_ANY
 
     def setup_json_template_v1(self):
-        self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json",},)
+        self.r_json_v1 = weblog.get(
+            "/waf/",
+            headers={
+                "User-Agent": "Arachni/v1",
+                "Accept": "application/json",
+            },
+        )
 
     @missing_feature(context.library < "java@1.14.0")
     @missing_feature(context.library < "nodejs@4.1.0")
@@ -180,7 +186,13 @@ class Test_Blocking:
         assert self.r_json_v1.text.rstrip() == BLOCK_TEMPLATE_JSON_MIN_V1.rstrip()
 
     def setup_html_template_v2(self):
-        self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html",},)
+        self.r_html_v2 = weblog.get(
+            "/waf/",
+            headers={
+                "User-Agent": "Arachni/v1",
+                "Accept": "text/html",
+            },
+        )
 
     @missing_feature(context.library < "java@1.14.0")
     @missing_feature(context.library < "nodejs@4.1.0")

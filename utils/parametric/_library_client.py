@@ -196,7 +196,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
             },
         )
         resp_json = resp.json()
-        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
+        return StartSpanResponse(
+            span_id=resp_json["span_id"],
+            trace_id=resp_json["trace_id"],
+        )
 
     def current_span(self) -> Union[SpanResponse, None]:
         resp_json = self._session.get(self._url("/trace/span/current")).json()
@@ -205,16 +208,41 @@ class APMLibraryClientHTTP(APMLibraryClient):
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def finish_span(self, span_id: int) -> None:
-        self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
+        self._session.post(
+            self._url("/trace/span/finish"),
+            json={
+                "span_id": span_id,
+            },
+        )
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
-        self._session.post(self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource,})
+        self._session.post(
+            self._url("/trace/span/set_resource"),
+            json={
+                "span_id": span_id,
+                "resource": resource,
+            },
+        )
 
     def span_set_meta(self, span_id: int, key: str, value) -> None:
-        self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,})
+        self._session.post(
+            self._url("/trace/span/set_meta"),
+            json={
+                "span_id": span_id,
+                "key": key,
+                "value": value,
+            },
+        )
 
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
-        self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value,})
+        self._session.post(
+            self._url("/trace/span/set_metric"),
+            json={
+                "span_id": span_id,
+                "key": key,
+                "value": value,
+            },
+        )
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(
@@ -236,19 +264,39 @@ class APMLibraryClientHTTP(APMLibraryClient):
         )
 
     def span_get_meta(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,})
+        resp = self._session.post(
+            self._url("/trace/span/get_meta"),
+            json={
+                "span_id": span_id,
+                "key": key,
+            },
+        )
         return resp.json()["value"]
 
     def span_get_metric(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,})
+        resp = self._session.post(
+            self._url("/trace/span/get_metric"),
+            json={
+                "span_id": span_id,
+                "key": key,
+            },
+        )
         return resp.json()["value"]
 
     def span_get_resource(self, span_id: int):
-        resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,})
+        resp = self._session.post(
+            self._url("/trace/span/get_resource"),
+            json={
+                "span_id": span_id,
+            },
+        )
         return resp.json()["resource"]
 
     def trace_inject_headers(self, span_id):
-        resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
+        resp = self._session.post(
+            self._url("/trace/span/inject_headers"),
+            json={"span_id": span_id},
+        )
         # todo: translate json into list within list
         # so server.xx do not have to
         return resp.json()["http_headers"]
@@ -290,11 +338,22 @@ class APMLibraryClientHTTP(APMLibraryClient):
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def otel_get_attribute(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,})
+        resp = self._session.post(
+            self._url("/trace/otel/get_attribute"),
+            json={
+                "span_id": span_id,
+                "key": key,
+            },
+        )
         return resp.json()["value"]
 
     def otel_get_name(self, span_id: int):
-        resp = self._session.post(self._url("/trace/otel/get_name"), json={"span_id": span_id,})
+        resp = self._session.post(
+            self._url("/trace/otel/get_name"),
+            json={
+                "span_id": span_id,
+            },
+        )
         return resp.json()["name"]
 
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
@@ -564,17 +623,33 @@ class APMLibraryClientGRPC:
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
 
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
-        resp = self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
+        resp = self._client.InjectHeaders(
+            pb.InjectHeadersArgs(
+                span_id=span_id,
+            )
+        )
         return [(header_tuple.key, header_tuple.value) for header_tuple in resp.http_headers.http_headers]
 
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
 
     def span_set_meta(self, span_id: int, key: str, val: str):
-        self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=span_id, key=key, value=val,))
+        self._client.SpanSetMeta(
+            pb.SpanSetMetaArgs(
+                span_id=span_id,
+                key=key,
+                value=val,
+            )
+        )
 
     def span_set_metric(self, span_id: int, key: str, val: float):
-        self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=span_id, key=key, value=val,))
+        self._client.SpanSetMetric(
+            pb.SpanSetMetricArgs(
+                span_id=span_id,
+                key=key,
+                value=val,
+            )
+        )
 
     def span_set_error(self, span_id: int, typestr: str = "", message: str = "", stack: str = ""):
         self._client.SpanSetError(pb.SpanSetErrorArgs(span_id=span_id, type=typestr, message=message, stack=stack))
@@ -591,7 +666,12 @@ class APMLibraryClientGRPC:
         else:
             raise ValueError("Link must have either parent_id or http_headers")
 
-        self._client.SpanAddLink(pb.SpanAddLinkArgs(span_id=span_id, span_link=pb_link,))
+        self._client.SpanAddLink(
+            pb.SpanAddLinkArgs(
+                span_id=span_id,
+                span_link=pb_link,
+            )
+        )
 
     def finish_span(self, span_id: int):
         self._client.FinishSpan(pb.FinishSpanArgs(id=span_id))
@@ -601,7 +681,14 @@ class APMLibraryClientGRPC:
         for key, value in headers:
             hs.http_headers.append(pb.HeaderTuple(key=key, value=value))
 
-        self._client.HTTPClientRequest(pb.HTTPRequestArgs(method=method, url=url, headers=hs, body=body,))
+        self._client.HTTPClientRequest(
+            pb.HTTPRequestArgs(
+                method=method,
+                url=url,
+                headers=hs,
+                body=body,
+            )
+        )
 
     def otel_end_span(self, span_id: int, timestamp: int):
         self._client.OtelEndSpan(pb.OtelEndSpanArgs(id=span_id, timestamp=timestamp))
@@ -758,10 +845,19 @@ class APMLibrary:
         return self._client.trace_inject_headers(span_id)
 
     def http_client_request(
-        self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",
+        self,
+        url: str,
+        method: str = "GET",
+        headers: List[Tuple[str, str]] = None,
+        body: Optional[bytes] = b"",
     ):
         """Do an HTTP request with the given method and headers."""
-        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)
+        return self._client.http_client_request(
+            method=method,
+            url=url,
+            headers=headers or [],
+            body=body,
+        )
 
     def finish_span(self, span_id: int) -> None:
         self._client.finish_span(span_id)

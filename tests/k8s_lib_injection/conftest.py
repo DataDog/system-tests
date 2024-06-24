@@ -29,12 +29,14 @@ def test_k8s_instance(request):
         context.scenario._library_init_image,
         output_folder,
         test_name,
-        library_init_image_tag=context.scenario._library_init_image_tag
-        if hasattr(context.scenario, "_library_init_image_tag")
-        else None,
-        prefix_library_init_image=context.scenario._prefix_library_init_image
-        if hasattr(context.scenario, "_prefix_library_init_image")
-        else None,
+        library_init_image_tag=(
+            context.scenario._library_init_image_tag if hasattr(context.scenario, "_library_init_image_tag") else None
+        ),
+        prefix_library_init_image=(
+            context.scenario._prefix_library_init_image
+            if hasattr(context.scenario, "_prefix_library_init_image")
+            else None
+        ),
     )
     logger.info(f"K8sInstance creating -- {test_name}")
     k8s_instance.start_instance()

@@ -124,7 +124,7 @@ class Test_Dbm:
 
 
 class _Test_Dbm_Comment:
-    """ Verify DBM comment for given integration """
+    """Verify DBM comment for given integration"""
 
     integration = None
     operation = None

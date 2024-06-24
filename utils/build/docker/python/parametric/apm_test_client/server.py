@@ -83,7 +83,12 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         parent = HTTPPropagator.extract(headers)
 
     span = ddtrace.tracer.start_span(
-        args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
+        args.name,
+        service=args.service,
+        span_type=args.type,
+        resource=args.resource,
+        child_of=parent,
+        activate=True,
     )
     for link in args.links:
         link_parent_id = link.get("parent_id", 0)
@@ -96,7 +101,10 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
             span.link_span(context, link.get("attributes"))
 
     spans[span.span_id] = span
-    return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
+    return StartSpanReturn(
+        span_id=span.span_id,
+        trace_id=span.trace_id,
+    )
 
 
 class SpanFinishArgs(BaseModel):
@@ -328,9 +336,11 @@ def otel_start_span(args: OtelStartSpanArgs):
                 ddcontext.trace_id,
                 ddcontext.span_id,
                 True,
-                TraceFlags.SAMPLED
-                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                else TraceFlags.DEFAULT,
+                (
+                    TraceFlags.SAMPLED
+                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
+                    else TraceFlags.DEFAULT
+                ),
                 TraceState.from_header([ddcontext._tracestate]),
             )
         )
@@ -349,9 +359,11 @@ def otel_start_span(args: OtelStartSpanArgs):
                 ddcontext.trace_id,
                 ddcontext.span_id,
                 True,
-                TraceFlags.SAMPLED
-                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                else TraceFlags.DEFAULT,
+                (
+                    TraceFlags.SAMPLED
+                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
+                    else TraceFlags.DEFAULT
+                ),
                 TraceState.from_header([ddcontext._tracestate]),
             )
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))

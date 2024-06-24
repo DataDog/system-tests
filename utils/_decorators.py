@@ -254,7 +254,7 @@ def rfc(link):
 
 
 def _resolve_declaration(released_declaration):
-    """ if the declaration is a dict, resolve it regarding the tested weblog """
+    """if the declaration is a dict, resolve it regarding the tested weblog"""
     if isinstance(released_declaration, str):
         return released_declaration
 

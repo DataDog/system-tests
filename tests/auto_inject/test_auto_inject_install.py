@@ -15,9 +15,10 @@ import paramiko
 
 class _AutoInjectBaseTest:
     def _test_install(self, virtual_machine, profile: bool = False):
-        """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
-            After starting application we can see application HTTP requests traces in the backend.
-            Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
+        """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
+        After starting application we can see application HTTP requests traces in the backend.
+        Using the agent installation script we can install different versions of the software (release or beta) in different OS.
+        """
         vm_ip = virtual_machine.ssh_config.hostname
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
@@ -67,7 +68,7 @@ class _AutoInjectBaseTest:
     def _test_uninstall(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
     ):
-        """ We can unistall the auto injection software. We can start the app again
+        """We can unistall the auto injection software. We can start the app again
         The weblog app should work but no sending traces to the backend.
         We can reinstall the auto inject software. The weblog app should be instrumented
         and reporting traces to the backend."""
@@ -181,7 +182,7 @@ class TestHostAutoInjectInstallScriptProfiling(_AutoInjectBaseTest):
 @scenarios.host_auto_injection_ld_preload
 class TestHostAutoInjectManualLdPreload(_AutoInjectBaseTest):
     def test_install_after_ld_preload(self, virtual_machine):
-        """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
+        """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
@@ -220,10 +221,10 @@ class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
 @features.container_auto_instrumentation
 @scenarios.container_not_supported_auto_injection
 class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
-    """ Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
+    """Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
     def test_app_working(self, virtual_machine):
-        """ Test app is working."""
+        """Test app is working."""
         vm_ip = virtual_machine.ssh_config.hostname
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
@@ -241,7 +242,7 @@ class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
 @scenarios.host_auto_injection
 class TestHostAutoInjectChaos(_AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
-        """ Test break the installation and restore it.
+        """Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
         After breaking the installation, we can restart the app
         After restores the installation, the app should be working and sending traces to the backend."""

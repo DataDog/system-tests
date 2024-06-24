@@ -22,7 +22,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
     serialized_options=b"Z\t./grpcapi",
     create_key=_descriptor._internal_create_key,
     serialized_pb=b'\n\x17utils/grpc/weblog.proto\x12\x06weblog\x1a\x1cgoogle/protobuf/struct.proto2\x89\x02\n\x06Weblog\x12\x39\n\x05Unary\x12\x16.google.protobuf.Value\x1a\x16.google.protobuf.Value"\x00\x12\x42\n\x0cServerStream\x12\x16.google.protobuf.Value\x1a\x16.google.protobuf.Value"\x00\x30\x01\x12\x42\n\x0c\x43lientStream\x12\x16.google.protobuf.Value\x1a\x16.google.protobuf.Value"\x00(\x01\x12<\n\x04\x42idi\x12\x16.google.protobuf.Value\x1a\x16.google.protobuf.Value"\x00(\x01\x30\x01\x42\x0bZ\t./grpcapib\x06proto3',
-    dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,],
+    dependencies=[
+        google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,
+    ],
 )
 
 

@@ -17,12 +17,12 @@ from utils.tools import logger
 
 def send_command(raw_payload) -> dict[str, Any]:
     """
-        Sends a remote config payload to the library and waits for the config to be applied.
-        Then returns the config state returned by the library :
+    Sends a remote config payload to the library and waits for the config to be applied.
+    Then returns the config state returned by the library :
 
-        1. the first config state acknowledging the config
-        2. else if not acknowledged, the last config state received
-        3. if not config state received, then an harcoded one with apply_state=UNKNOWN
+    1. the first config state acknowledging the config
+    2. else if not acknowledged, the last config state received
+    3. if not config state received, then an harcoded one with apply_state=UNKNOWN
     """
 
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"

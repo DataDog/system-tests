@@ -73,12 +73,12 @@ class Test_ConfRuleSet:
         self.r_2 = weblog.get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
 
     def test_requests(self):
-        """ Appsec does not catch any attack """
+        """Appsec does not catch any attack"""
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_waf_attack(self.r_2, pattern="dedicated-value-for-testing-purpose")
 
     def test_log(self):
-        """ Check there is no error reported in logs """
+        """Check there is no error reported in logs"""
         stdout.assert_absence("AppSec could not read the rule file")
         stdout.assert_absence("failed to parse rule")
         stdout.assert_absence("WAF initialization failed")
@@ -88,7 +88,7 @@ class Test_ConfRuleSet:
 @features.threats_configuration
 @features.serialize_waf_rules_without_limiting_their_sizes
 class Test_NoLimitOnWafRules:
-    """ Serialize WAF rules without limiting their sizes """
+    """Serialize WAF rules without limiting their sizes"""
 
     def setup_main(self):
         self.r_1 = weblog.get("/waf", headers={"attack": "first_pattern_of_a_very_long_list"})

@@ -1,6 +1,7 @@
 """
 Test the tracer flare feature of the APM libraries.
 """
+
 import json
 import zipfile
 from base64 import b64decode
@@ -51,8 +52,7 @@ def _flare_log_level_order() -> Dict[str, Any]:
 
 
 def _set_log_level(test_agent, log_level: str) -> None:
-    """Helper to create the appropriate "flare-log-level" config in RC for a given log-level.
-    """
+    """Helper to create the appropriate "flare-log-level" config in RC for a given log-level."""
     cfg_id = f"flare-log-level.{log_level}"
     test_agent.set_remote_config(
         path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={"name": cfg_id, "config": {"log_level": log_level}}
@@ -61,16 +61,14 @@ def _set_log_level(test_agent, log_level: str) -> None:
 
 
 def _clear_log_level(test_agent, log_level: str) -> None:
-    """Helper to clear a previously set "flare-log-level" config from RC.
-    """
+    """Helper to clear a previously set "flare-log-level" config from RC."""
     cfg_id = f"flare-log-level.{log_level}"
     test_agent.set_remote_config(path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={})
     test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, clear=True)
 
 
 def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
-    """Helper to create an agent task in RC with the given task arguments.
-    """
+    """Helper to create an agent task in RC with the given task arguments."""
     task_config["uuid"] = uuid4().hex
     task_id = hash(json.dumps(task_config))
     test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
@@ -79,15 +77,13 @@ def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
 
 
 def _clear_task(test_agent, task_id) -> None:
-    """Helper to clear a previously created agent task config from RC.
-    """
+    """Helper to clear a previously created agent task config from RC."""
     test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload={})
     test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2, clear=True)
 
 
 def trigger_tracer_flare_and_wait(test_agent, task_overrides: Dict[str, Any]) -> Dict:
-    """Creates a "trace_flare" agent task and waits for the tracer flare to be uploaded.
-    """
+    """Creates a "trace_flare" agent task and waits for the tracer flare to be uploaded."""
     task_config = _tracer_flare_task_config()
     task_args = task_config["args"]
     for k, v in task_overrides.items():

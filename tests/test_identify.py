@@ -79,7 +79,7 @@ class Test_Propagate_Legacy:
         self.r_incoming = weblog.get("/waf", headers=headers)
 
     def test_identify_tags_incoming(self):
-        """ with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C """
+        """with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
 
@@ -104,7 +104,7 @@ class Test_Propagate:
         self.r_incoming = weblog.get("/waf", headers=headers)
 
     def test_identify_tags_incoming(self):
-        """ with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C """
+        """with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
 
         def usr_id_not_present(span):
             if "usr.id" in span["meta"]:

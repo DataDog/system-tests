@@ -8,7 +8,7 @@ import json
 
 
 class _Context:
-    """ context is an helper class that exposes directly everyting about tests targets """
+    """context is an helper class that exposes directly everyting about tests targets"""
 
     scenario = None  # will be set by pytest_configure
 

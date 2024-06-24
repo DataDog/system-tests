@@ -18,10 +18,10 @@ def is_ip(value):
 @scenarios.todo
 @features.library_scrubbing
 class Test_NoIpIsReported:
-    """ Used to check that no IP is reported by agent """
+    """Used to check that no IP is reported by agent"""
 
     def test_no_ip(self):
-        """ Check no ip is present """
+        """Check no ip is present"""
         allowed_keys = {
             "request.application.tracer_version",
             "request.payload.dependencies[].version",

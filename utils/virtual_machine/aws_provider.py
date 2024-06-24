@@ -120,20 +120,31 @@ class AWSPulumiProvider(VmProvider):
             )
 
     def _get_cached_ami(self, vm):
-        """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
+        """Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
         ami_id = None
         # Configure name
         ami_name = vm.get_cache_name() + "__" + context.scenario.name
 
         # Check for existing ami
         ami_existing = aws.ec2.get_ami_ids(
-            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[ami_name + "-*"],)], owners=["self"],
+            filters=[
+                aws.ec2.GetAmiIdsFilterArgs(
+                    name="name",
+                    values=[ami_name + "-*"],
+                )
+            ],
+            owners=["self"],
         )
 
         if len(ami_existing.ids) > 0:
             # Latest ami details
             ami_recent = aws.ec2.get_ami(
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[ami_name + "-*"],)],
+                filters=[
+                    aws.ec2.GetAmiIdsFilterArgs(
+                        name="name",
+                        values=[ami_name + "-*"],
+                    )
+                ],
                 owners=["self"],
                 most_recent=True,
             )
@@ -165,7 +176,7 @@ class AWSPulumiProvider(VmProvider):
         return ami_id
 
     def _get_ec2_tags(self, vm):
-        """ Build the ec2 tags for the VM """
+        """Build the ec2 tags for the VM"""
         tags = {"Name": vm.name, "CI": "system-tests"}
 
         if os.getenv("CI_PROJECT_NAME") is not None:
@@ -180,9 +191,14 @@ class AWSPulumiProvider(VmProvider):
         return tags
 
     def _check_running_instances(self):
-        """ Print the instances created by system-tests and still running in the AWS account """
+        """Print the instances created by system-tests and still running in the AWS account"""
 
-        instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
+        instances = aws.ec2.get_instances(
+            instance_tags={
+                "CI": "system-tests",
+            },
+            instance_state_names=["running"],
+        )
 
         logger.info(f"AWS Listing running instances with system-tests tag")
         for instance_id in instances.ids:
@@ -193,7 +209,7 @@ class AWSPulumiProvider(VmProvider):
 
 class AWSCommander(Commander):
     def create_cache(self, vm, server, last_task):
-        """ Create a cache : Create an AMI from the server current status."""
+        """Create a cache : Create an AMI from the server current status."""
         ami_name = vm.get_cache_name() + "__" + context.scenario.name
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.info(f"Creating AMI with name [{ami_name}] from instance ")
@@ -359,7 +375,7 @@ class PulumiSSH:
 
 
 class DatadogEventSender:
-    """ Send events to Datadog ddev organization """
+    """Send events to Datadog ddev organization"""
 
     def __init__(self):
         self.ddev_api_key = os.getenv("DDEV_API_KEY")

@@ -88,7 +88,10 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
     },
-    "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
+    "resteasy-netty3": {
+        "netty.request": ["netty", "jax-rs"],
+        "jax-rs.request": "jax-rs-controller",
+    },
     "akka-http": "akka-http-server",
     "rails": {
         "rails.action_controller": "action_pack",
@@ -99,8 +102,14 @@ VARIANT_COMPONENT_MAP = {
     "ratpack": {"ratpack.handler": "ratpack", "netty.request": "netty"},
     "uds-echo": "labstack/echo.v4",
     "uds-express4": "express",
-    "uds-flask": {"flask.request": "flask",},
-    "uds-sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra",},
+    "uds-flask": {
+        "flask.request": "flask",
+    },
+    "uds-sinatra": {
+        "rack.request": "rack",
+        "sinatra.route": "sinatra",
+        "sinatra.request": "sinatra",
+    },
     "uds-spring-boot": {
         "servlet.request": "tomcat-server",
         "hsqldb.query": "java-jdbc-statement",

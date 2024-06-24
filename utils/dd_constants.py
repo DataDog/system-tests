@@ -27,7 +27,7 @@ PYTHON_RELEASE_GA_1_1 = "1.5.0rc1.dev"
 
 
 class RemoteConfigApplyState(IntEnum):
-    """ https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc """
+    """https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc"""
 
     UNKNOWN = 0
     UNACKNOWLEDGED = 1

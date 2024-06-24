@@ -224,7 +224,11 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             "path": path,
             "query": query,
             "request": {"content": json_payload},
-            "response": {"status_code": r.status_code, "content": r.content, "headers": dict(r.headers),},
+            "response": {
+                "status_code": r.status_code,
+                "content": r.content,
+                "headers": dict(r.headers),
+            },
             "log_filename": f"{self._log_folder}/{self.message_count:03d}_{path.replace('/', '_')}.json",
         }
         self.message_count += 1
@@ -324,7 +328,9 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         request_data = {
             "list": {
-                "search": {"query": f"env:system-tests {query_filter}",},
+                "search": {
+                    "query": f"env:system-tests {query_filter}",
+                },
                 "indexes": ["trace-search"],
                 "time": {
                     # 30 min of window should be plenty

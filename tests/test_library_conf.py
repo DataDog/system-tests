@@ -5,13 +5,14 @@
 from utils import weblog, interfaces, scenarios, features
 from utils._context.header_tag_vars import *
 
+
 # basic / legacy tests, just tests user-agent can be received as a tag
 @features.security_events_metadata
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
 
     def test_trace_header_tags_basic(self):
-        """ Test that http.request.headers.user-agent is in all web spans """
+        """Test that http.request.headers.user-agent is in all web spans"""
 
         for _, span in interfaces.library.get_root_spans():
             if span.get("type") == "web":
@@ -56,7 +57,8 @@ class Test_HeaderTags_Long:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Header:
     """Validates that leading/trailing whitespaces are trimmed on the header values given to DD_TRACE_HEADER_TAGS
-    e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header' """
+    e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header'
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_HEADER: HEADER_VAL_BASIC}
@@ -73,7 +75,7 @@ class Test_HeaderTags_Whitespace_Header:
 @scenarios.library_conf_custom_header_tags
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Tag:
-    """Validates that leading/trailing whitespaces on the Input to DD_TRACE_HEADER_TAGS are 
+    """Validates that leading/trailing whitespaces on the Input to DD_TRACE_HEADER_TAGS are
     trimmed on mapping parts, but whitespaces in between non-whitespace chars are left in-tact."""
 
     def setup_trace_header_tags(self):
@@ -127,7 +129,7 @@ class Test_HeaderTags_Whitespace_Val_Long:
 @scenarios.library_conf_custom_header_tags_invalid
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Colon_Leading:
-    """ Validates that Input to DD_TRACE_HEADER_TAGS with leading colon results in 0 additional span tags """
+    """Validates that Input to DD_TRACE_HEADER_TAGS with leading colon results in 0 additional span tags"""
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_COLON_LEADING: HEADER_VAL_BASIC}
@@ -149,7 +151,7 @@ class Test_HeaderTags_Colon_Leading:
 @scenarios.library_conf_custom_header_tags_invalid
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Colon_Trailing:
-    """ Validates that DD_TRACE_HEADER_TAGS input that contains a leading or trailing colon results in 0 additional span tags """
+    """Validates that DD_TRACE_HEADER_TAGS input that contains a leading or trailing colon results in 0 additional span tags"""
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_COLON_TRAILING: HEADER_VAL_BASIC}
