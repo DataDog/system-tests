@@ -11,7 +11,8 @@ vm_logs:
       remote-command: |
         #Wait for the app service up to extract the logs (also app logs)
         curl --head -X GET --retry 5 --max-time 20 --retry-connrefused --retry-delay 2 http://localhost:5985
-        find /var/log -type f -name "*.log"| xargs tail -n +1
+        find /var/log/datadog -type f -name "*.log"| xargs sudo tail -n +1
+        find /var/log/weblog -type f -name "*.log"| xargs sudo tail -n +1
 
 #Mandatory: Steps to install provision 
 provision_steps:
