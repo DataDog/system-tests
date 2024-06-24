@@ -1,8 +1,7 @@
 import os
+from pathlib import Path
 import paramiko
 from utils.tools import logger
-
-from pathlib import Path
 
 
 def extract_logs_to_file(logs_data, log_folder):
@@ -18,8 +17,8 @@ def extract_logs_to_file(logs_data, log_folder):
             output_file = Path(log_folder + filename.strip())
             output_file.parent.mkdir(exist_ok=True, parents=True)
         elif output_file is not None:
-            with open(output_file, "a") as out:
-                out.write("{}\n".format(line))
+            with open(output_file, "a", encoding="utf-8") as out:
+                out.write(f"{line}\n")
 
 
 def debug_info_ssh(vm_name, ip, user, pem_file, log_folder):
