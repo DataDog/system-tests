@@ -8,7 +8,7 @@ SCRIPT_PATH=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/bin
 export BASE_DIR=$(dirname "${SCRIPT_PATH}")
 
-if [ -z "${TEST_CASE}" ] ; then
+if [ -z "${TEST_CASE}" ]; then
     echo "MUST define TEST_CASE before sourcing this file"
     exit 1
 fi

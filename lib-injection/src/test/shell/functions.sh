@@ -3,53 +3,51 @@
 # -e Exit early for any failed commands
 set -e
 
-
 ## HELPERS
 function echoerr() {
-    echo "$@" 1>&2;
+    echo "$@" 1>&2
 }
 ## end HELPERS
 
-if [ -z "${BASE_DIR}" ] ; then
+if [ -z "${BASE_DIR}" ]; then
     echoerr "MUST define BASE_DIR before sourcing this file"
     exit 1
 fi
-if [ -z "${TEST_LIBRARY}" ] ; then
+if [ -z "${TEST_LIBRARY}" ]; then
     echoerr "MUST define TEST_LIBRARY before sourcing this file"
     exit 1
 fi
 
-if [ -z "${WEBLOG_VARIANT}" ] ; then
+if [ -z "${WEBLOG_VARIANT}" ]; then
     echoerr "You should define WEBLOG_VARIANT before sourcing this file"
 fi
 
-if [ -z "${DOCKER_REGISTRY_IMAGES_PATH}" ] ; then
+if [ -z "${DOCKER_REGISTRY_IMAGES_PATH}" ]; then
     echoerr "MUST define DOCKER_REGISTRY_IMAGES_PATH. For example: ghcr.io/datadog"
     exit 1
 fi
 
-if [ -z "${DOCKER_IMAGE_TAG}" ] ; then
+if [ -z "${DOCKER_IMAGE_TAG}" ]; then
     echo "DOCKER_IMAGE_TAG environment variable is not defined. Using default tag:local"
     export DOCKER_IMAGE_TAG=local
 fi
 
-if [ -z "${DOCKER_IMAGE_WEBLOG_TAG}" ] ; then
+if [ -z "${DOCKER_IMAGE_WEBLOG_TAG}" ]; then
     echo "DOCKER_IMAGE_WEBLOG_TAG environment variable is not defined. Using value of variable DOCKER_IMAGE_TAG:[${DOCKER_IMAGE_TAG}] "
     export DOCKER_IMAGE_WEBLOG_TAG=$DOCKER_IMAGE_TAG
 fi
 
-if [ -z "${DD_API_KEY}" ] ; then
+if [ -z "${DD_API_KEY}" ]; then
     echo "MOCK API KEY"
     export DD_API_KEY=apikey
     export DD_APP_KEY=appkey
 fi
 
 # TODO: homogenize the names of things. nodejs or js? python or py? Source of problems!!!!
- [[ $TEST_LIBRARY = nodejs ]] && init_image_repo_alias=js || init_image_repo_alias=$TEST_LIBRARY
- [[ $init_image_repo_alias = python ]] && init_image_repo_alias=py
- [[ $init_image_repo_alias = ruby ]] && init_image_repo_alias=rb
- [[ $TEST_LIBRARY = nodejs ]] && init_image_alias=js || init_image_alias=$TEST_LIBRARY
-
+[[ $TEST_LIBRARY == nodejs ]] && init_image_repo_alias=js || init_image_repo_alias=$TEST_LIBRARY
+[[ $init_image_repo_alias == python ]] && init_image_repo_alias=py
+[[ $init_image_repo_alias == ruby ]] && init_image_repo_alias=rb
+[[ $TEST_LIBRARY == nodejs ]] && init_image_alias=js || init_image_alias=$TEST_LIBRARY
 
 if [ "$DOCKER_IMAGE_TAG" == "latest" ]; then
     # Release version are published in docker.io
@@ -75,12 +73,12 @@ export LIBRARY_DIR=${BASE_DIR}/${TEST_LIBRARY}
 
 echo "------------------------------------------------------------------------"
 printf '%s\t%s\n' "Library test dir:" "${LIBRARY_DIR}" \
-                  "Test library:" "${TEST_LIBRARY}" \
-                  "Weblog variant:" "${WEBLOG_VARIANT}" \
-                  "Src dir:" "${SRC_DIR}" \
-                  "Init image name: " "${LIBRARY_INJECTION_INIT_IMAGE}" \
-                  "Test app image: " "${LIBRARY_INJECTION_TEST_APP_IMAGE}" |
-  expand -t 20
+    "Test library:" "${TEST_LIBRARY}" \
+    "Weblog variant:" "${WEBLOG_VARIANT}" \
+    "Src dir:" "${SRC_DIR}" \
+    "Init image name: " "${LIBRARY_INJECTION_INIT_IMAGE}" \
+    "Test app image: " "${LIBRARY_INJECTION_TEST_APP_IMAGE}" |
+    expand -t 20
 echo "------------------------------------------------------------------------"
 
 export USE_ADMISSION_CONTROLLER=0
@@ -104,7 +102,7 @@ function use-admission-controller() {
 # ensure-cluster creates a Kind cluster named "lib-injection-testing" if it doesn't exist.
 # It returns when the all the nodes are ready.
 function ensure-cluster() {
-    if ! [[ "$(kind get clusters)" =~ "lib-injection-testing" ]] ;  then
+    if ! [[ "$(kind get clusters)" =~ "lib-injection-testing" ]]; then
         kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name lib-injection-testing --config "${SRC_DIR}/test/resources/kind-config.yaml"
     fi
     # Wait for the nodes to be ready before proceeding... important
@@ -115,7 +113,7 @@ function ensure-cluster() {
 
 # ensure-buildx creates a builder instance named "lib-injection-testing" or use it if it already exists.
 function ensure-buildx() {
-    if ! [[ "$(docker buildx ls)" =~ "lib-injection-testing" ]] ;  then
+    if ! [[ "$(docker buildx ls)" =~ "lib-injection-testing" ]]; then
         docker buildx create --name lib-injection-testing
     fi
     docker buildx use lib-injection-testing
@@ -125,9 +123,9 @@ function ensure-buildx() {
 # It returns when the Cluster Agent pod is ready.
 function deploy-operator() {
     operator_file=${BASE_DIR}/common/operator-helm-values.yaml
-    if [ ${USE_UDS} -eq 1 ] ; then
-      echo "[Deploy operator] Using UDS"
-      operator_file=${BASE_DIR}/common/operator-helm-values-uds.yaml
+    if [ ${USE_UDS} -eq 1 ]; then
+        echo "[Deploy operator] Using UDS"
+        operator_file=${BASE_DIR}/common/operator-helm-values-uds.yaml
     fi
     echo "[Deploy operator] Configuring helm repository"
     helm repo add datadog https://helm.datadoghq.com
@@ -180,7 +178,7 @@ function deploy-test-agent() {
 function deploy-agents-manual() {
     echo "[Deploy] deploy-agents"
     deploy-test-agent
-    if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then
+    if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ]; then
         echo "[Deploy] Using admission controller"
         deploy-operator
     fi
@@ -222,15 +220,15 @@ function deploy-app-manual() {
     echo "[Deploy] Using library alias: ${library}"
 
     helm template lib-injection/common \
-      -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
-      --set library="${library}" \
-      --set as_pod="true" \
-      --set app=${app_name} \
-      --set use_uds=${USE_UDS} \
-      --set use_admission_controller=${USE_ADMISSION_CONTROLLER} \
-      --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
-      --set init_image="${LIBRARY_INJECTION_INIT_IMAGE}" \
-       | kubectl apply -f -
+        -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
+        --set library="${library}" \
+        --set as_pod="true" \
+        --set app=${app_name} \
+        --set use_uds=${USE_UDS} \
+        --set use_admission_controller=${USE_ADMISSION_CONTROLLER} \
+        --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
+        --set init_image="${LIBRARY_INJECTION_INIT_IMAGE}" |
+        kubectl apply -f -
     echo "[Deploy] deploy-app: waiting for pod/${app_name} ready"
     kubectl wait pod/${app_name} --for condition=ready --timeout=5m
     kubectl get pods
@@ -243,12 +241,12 @@ function deploy-app-auto() {
     echo "[Deploy] deploy-app-auto: deploying app for library ${TEST_LIBRARY}"
     deployment_name=test-${TEST_LIBRARY}-deployment
     helm template lib-injection/common \
-      -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
-      --set library="${TEST_LIBRARY}" \
-      --set as_deployment="true" \
-      --set deployment=${deployment_name} \
-      --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" \
-       | kubectl apply -f -
+        -f "lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml" \
+        --set library="${TEST_LIBRARY}" \
+        --set as_deployment="true" \
+        --set deployment=${deployment_name} \
+        --set test_app_image="${LIBRARY_INJECTION_TEST_APP_IMAGE}" |
+        kubectl apply -f -
 
     echo "[Deploy] deploy-app-auto: waiting for deployments/${deployment_name} available"
     kubectl rollout status deployments/${deployment_name} --timeout=5m
@@ -281,7 +279,7 @@ function check-for-env-vars() {
     pod=$(latest-app-pod-auto)
     echo "[Test] test for env vars ${pod}"
     trace_sample_rate="0.90"
-    if [[ $CONFIG_NAME = "config-1" ]] ;  then
+    if [[ $CONFIG_NAME == "config-1" ]]; then
         trace_sample_rate="0.50"
     fi
     # TODO: extend the list of tested env vars
@@ -296,7 +294,7 @@ function check-for-pod-metadata() {
     library=$(get-library)
     # TODO: check for label/annotation values not only the presence
     enabled=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq '."admission.datadoghq.com/enabled"')
-    if [[ $enabled != "\"true\"" ]]; then
+    if [[ $enabled != '"true"' ]]; then
         echo "[Test] annotation 'admission.datadoghq.com/enabled' wasn't \"true\", got \"${enabled}\""
         exit 1
     fi
@@ -325,7 +323,7 @@ function check-for-disabled-pod-metadata() {
     pod=$(latest-app-pod-auto)
     echo "[Test] test for labels/annotations ${pod}"
     enabled=$(kubectl get ${pod} -ojson | jq .metadata.labels | jq '."admission.datadoghq.com/enabled"')
-    if [[ $enabled != "\"false\"" ]]; then
+    if [[ $enabled != '"false"' ]]; then
         echo "[Test] label 'admission.datadoghq.com/enabled' wasn't \"false\", got \"${enabled}\""
         exit 1
     fi
@@ -336,7 +334,7 @@ function check-for-deploy-metadata() {
     deployment_name=test-${TEST_LIBRARY}-deployment
     echo "[Test] test for labels/annotations ${deployment_name}"
     rev="0"
-    if [[ $CONFIG_NAME = "config-1" ]] ;  then
+    if [[ $CONFIG_NAME == "config-1" ]]; then
         rev="1"
     fi
     readonly RC_ID="11777398274940883092"
@@ -353,13 +351,13 @@ function test-for-traces() {
     echo "tmp file in ${tmpfile}"
 
     wget -O $(readlink -f "${tmpfile}") http://localhost:18126/test/traces || true
-    traces=`cat ${tmpfile}`
+    traces=$(cat ${tmpfile})
     echo "[Test] ${traces}"
-    if [[ ${#traces} -lt 3 ]] ; then
+    if [[ ${#traces} -lt 3 ]]; then
         echoerr "No traces reported - ${traces}"
         exit 1
     else
-        count=`jq '. | length' <<< "${traces}"`
+        count=$(jq '. | length' <<<"${traces}")
         echo "Received ${count} traces so far"
     fi
     echo "[Test] test-for-traces completed successfully"
@@ -376,22 +374,22 @@ function print-debug-info-auto() {
     mkdir -p ${log_dir}/pod
     echo "[debug] Generating debug log files (auto lib injection)... (${log_dir})"
     echo "[debug] Export: Current cluster status"
-    kubectl get pods > "${log_dir}/cluster_pods.log"
-    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log"
+    kubectl get pods >"${log_dir}/cluster_pods.log"
+    kubectl get deployments datadog-cluster-agent >"${log_dir}/cluster_deployments.log"
 
     echo "[debug] Export: Daemonset logs"
-    kubectl logs daemonset/datadog > "${log_dir}/daemonset_datadog.log"
+    kubectl logs daemonset/datadog >"${log_dir}/daemonset_datadog.log"
 
     echo "[debug] Library deployment yaml and pod logs"
-    kubectl get deploy test-${TEST_LIBRARY}-deployment -oyaml > "${log_dir}/test-${TEST_LIBRARY}-deployment.yaml"
+    kubectl get deploy test-${TEST_LIBRARY}-deployment -oyaml >"${log_dir}/test-${TEST_LIBRARY}-deployment.yaml"
     kubectl get pods -l app=${TEST_LIBRARY}-app
     pod=$(kubectl get pods -l app=${TEST_LIBRARY}-app -o name)
-    kubectl get ${pod} -oyaml > "${log_dir}/${pod}.yaml"
-    kubectl logs ${pod} > "${log_dir}/${pod}.log"
+    kubectl get ${pod} -oyaml >"${log_dir}/${pod}.yaml"
+    kubectl logs ${pod} >"${log_dir}/${pod}.log"
 
     echo "[debug] Cluster agent logs"
     pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
-    kubectl logs ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}.log"
+    kubectl logs ${pod_cluster_name} >"${log_dir}/${pod_cluster_name}.log"
 }
 
 # print-debug-info-manual prints and zip debug information for manual library injection tests
@@ -400,29 +398,29 @@ function print-debug-info-manual() {
     mkdir -p ${log_dir}/pod
     echo "[debug] Generating debug log files (manual lib injection)... (${log_dir})"
     echo "[debug] Export: Current cluster status"
-    kubectl get pods > "${log_dir}/cluster_pods.log"
-    kubectl get deployments datadog-cluster-agent > "${log_dir}/cluster_deployments.log" || true
+    kubectl get pods >"${log_dir}/cluster_pods.log"
+    kubectl get deployments datadog-cluster-agent >"${log_dir}/cluster_deployments.log" || true
 
     echo "[debug] Export: Describe my-app status"
-    kubectl describe pod my-app > "${log_dir}/my-app_describe.log"
-    kubectl logs pod/my-app > "${log_dir}/my-app.log"
+    kubectl describe pod my-app >"${log_dir}/my-app_describe.log"
+    kubectl logs pod/my-app >"${log_dir}/my-app.log"
 
     echo "[debug] Export: Daemonset logs"
-    kubectl logs daemonset/datadog > "${log_dir}/daemonset_datadog.log"
+    kubectl logs daemonset/datadog >"${log_dir}/daemonset_datadog.log"
 
-    if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then
+    if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ]; then
         pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
 
         echo "[debug] Export: Describe datadog-cluster-agent"
-        kubectl describe ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}_describe.log"
-        kubectl logs ${pod_cluster_name} > "${log_dir}/${pod_cluster_name}.log"
+        kubectl describe ${pod_cluster_name} >"${log_dir}/${pod_cluster_name}_describe.log"
+        kubectl logs ${pod_cluster_name} >"${log_dir}/${pod_cluster_name}.log"
 
         echo "[debug] Export: Telemetry datadog-cluster-agent"
-        kubectl exec -it ${pod_cluster_name} -- agent telemetry > "${log_dir}/${pod_cluster_name}_telemetry.log"
+        kubectl exec -it ${pod_cluster_name} -- agent telemetry >"${log_dir}/${pod_cluster_name}_telemetry.log"
 
         echo "[debug] Export: Status datadog-cluster-agent"
         # Sometimes this command fails. Ignore this error
-        kubectl exec -it ${pod_cluster_name} -- agent status > "${log_dir}/${pod_cluster_name}_status.log" || true
+        kubectl exec -it ${pod_cluster_name} -- agent status >"${log_dir}/${pod_cluster_name}_status.log" || true
     fi
 }
 
@@ -439,8 +437,8 @@ function build-and-push-test-app-image() {
 function build-and-push-init-image() {
     ensure-buildx
 
-    if [ -z "${BUILDX_PLATFORMS}" ] ; then
-        BUILDX_PLATFORMS=`docker buildx imagetools inspect --raw busybox:latest | jq -r 'reduce (.manifests[] | [ .platform.os, .platform.architecture, .platform.variant ] | join("/") | sub("\\/$"; "")) as $item (""; . + "," + $item)' | sed 's/,//'`
+    if [ -z "${BUILDX_PLATFORMS}" ]; then
+        BUILDX_PLATFORMS=$(docker buildx imagetools inspect --raw busybox:latest | jq -r 'reduce (.manifests[] | [ .platform.os, .platform.architecture, .platform.variant ] | join("/") | sub("\/$"; "")) as $item (""; . + "," + $item)' | sed 's/,//')
     fi
 
     echo "Installing tracer"
@@ -465,6 +463,6 @@ function remove-terminating-pods() {
 # get-library prints the library language.
 function get-library() {
     local library
-    [[ $TEST_LIBRARY = nodejs ]] && library=js || library=$TEST_LIBRARY
+    [[ $TEST_LIBRARY == nodejs ]] && library=js || library=$TEST_LIBRARY
     echo ${library}
 }

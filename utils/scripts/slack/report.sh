@@ -4,7 +4,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-
 # Send a notif to slack
 # Take argument from env:
 #   TITLE

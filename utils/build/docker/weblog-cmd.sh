@@ -4,7 +4,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-
 ##########################################################################################
 # This is an entrypoint file that all containers run in system-tests are funneled through.
 ##########################################################################################

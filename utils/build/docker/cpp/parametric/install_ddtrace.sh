@@ -2,7 +2,7 @@
 
 set -eu
 
-git_clone(){
+git_clone() {
     url_to_clone=$1
     branch_to_clone=$2
     current_dir=$(pwd)
@@ -11,25 +11,25 @@ git_clone(){
     cd /binaries/dd-trace-cpp && git checkout "$branch_to_clone" && cd "$current_dir"
 }
 
-git_clone_latest_release (){
-   url_to_clone="https://github.com/DataDog/dd-trace-cpp"
-   latest_release=$(curl -s  https://api.github.com/repos/DataDog/dd-trace-cpp/releases/latest | jq '.tag_name'| tr -d '"')
-   echo "$latest_release" > SYSTEM_TESTS_LIBRARY_VERSION
-   git_clone "$url_to_clone" "$latest_release"    
+git_clone_latest_release() {
+    url_to_clone="https://github.com/DataDog/dd-trace-cpp"
+    latest_release=$(curl -s https://api.github.com/repos/DataDog/dd-trace-cpp/releases/latest | jq '.tag_name' | tr -d '"')
+    echo "$latest_release" >SYSTEM_TESTS_LIBRARY_VERSION
+    git_clone "$url_to_clone" "$latest_release"
 }
 
 get_version_from_binaries() {
     # shellcheck disable=SC2002
     version_line=$(cat /binaries/dd-trace-cpp/src/datadog/version.cpp | grep '^#define DD_TRACE_VERSION *')
-    current_version=$(echo "$version_line" |  awk -F'DD_TRACE_VERSION' '{ print $2 }')
-    echo "$current_version" | tr -d '"'> SYSTEM_TESTS_LIBRARY_VERSION
+    current_version=$(echo "$version_line" | awk -F'DD_TRACE_VERSION' '{ print $2 }')
+    echo "$current_version" | tr -d '"' >SYSTEM_TESTS_LIBRARY_VERSION
 }
 
 cd /usr/app
 
 if [ -e /binaries/cpp-load-from-git ]; then
     echo "install from file cpp-load-from-git"
-    target=$(cat /binaries/cpp-load-from-git) 
+    target=$(cat /binaries/cpp-load-from-git)
     url=$(echo "$target" | cut -d "@" -f 1)
     branch=$(echo "$target" | cut -d "@" -f 2)
     #Clone from git, get version from file version.cpp and configure make to use binaries/dd-trace-cpp folder

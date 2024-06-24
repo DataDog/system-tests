@@ -4,7 +4,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-
 ##########################################################################################
 # The purpose of this script is to download the latest development version of a component.
 #
@@ -26,13 +25,13 @@ set -eu
 
 assert_version_is_dev() {
 
-  if [ $VERSION = 'dev' ]; then
-    return 0
-  fi
+    if [ $VERSION = 'dev' ]; then
+        return 0
+    fi
 
-  echo "Don't know how to load version $VERSION for $TARGET"
+    echo "Don't know how to load version $VERSION for $TARGET"
 
-  exit 1
+    exit 1
 }
 
 get_circleci_artifact() {
@@ -46,7 +45,7 @@ get_circleci_artifact() {
     PIPELINES=$(curl --silent https://circleci.com/api/v2/project/$SLUG/pipeline?branch=master -H "Circle-Token: $CIRCLECI_TOKEN")
 
     for i in {0..30}; do
-        PIPELINE_ID=$(echo $PIPELINES| jq -r ".items[$i].id")
+        PIPELINE_ID=$(echo $PIPELINES | jq -r ".items[$i].id")
         PIPELINE_NUMBER=$(echo $PIPELINES | jq -r ".items[$i].number")
 
         echo "Trying pipeline #$i $PIPELINE_NUMBER/$PIPELINE_ID"
@@ -178,11 +177,11 @@ elif [ "$TARGET" = "dotnet" ]; then
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
+    echo "git+https://github.com/DataDog/dd-trace-py.git" >python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
-    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
+    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" >ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
@@ -201,7 +200,7 @@ elif [ "$TARGET" = "golang" ]; then
     # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
 
     echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
-    echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
+    echo "gopkg.in/DataDog/dd-trace-go.v1@main" >golang-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
@@ -209,16 +208,16 @@ elif [ "$TARGET" = "cpp" ]; then
     # PROFILER: The main version is stored in s3, though we can not access this in CI
     # Not handled for now for system-tests. this handles artifact for parametric
     echo "Using https://github.com/DataDog/dd-trace-cpp@main"
-    echo "https://github.com/DataDog/dd-trace-cpp@main" > cpp-load-from-git
+    echo "https://github.com/DataDog/dd-trace-cpp@main" >cpp-load-from-git
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
-    echo "datadog/agent-dev:master-py3" > agent-image
+    echo "datadog/agent-dev:master-py3" >agent-image
     echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+    echo "DataDog/dd-trace-js#master" >nodejs-load-from-npm
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
@@ -241,4 +240,4 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
 else
     echo "Unknown target: $1"
     exit 1
-fi;
+fi

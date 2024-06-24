@@ -16,7 +16,7 @@ if [ -f docker-compose-agent-prod.yml ]; then
 fi
 sudo -E docker-compose -f docker-compose.yml up -d test-app-java
 
-echo "**************** RUNNING DOCKER SERVICES *****************" 
+echo "**************** RUNNING DOCKER SERVICES *****************"
 sudo docker-compose ps
 if [ -f docker-compose-agent-prod.yml ]; then
     echo "**************** DATADOG AGENT OUTPUT ********************"

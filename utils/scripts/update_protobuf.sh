@@ -11,7 +11,7 @@ export GO111MODULE=off
 function git_clone_or_update() {
     local -r repo="$1" path="$2"
     echo "Updating $repo"
-    if [[ ! -e "$path" ]]; then
+    if [[ ! -e $path ]]; then
         git clone --depth 1 "${repo}" "${path}"
     else
         pushd "$path" &>/dev/null

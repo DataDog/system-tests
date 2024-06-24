@@ -13,15 +13,14 @@ echo "Setting up UDS with $DD_APM_RECEIVER_SOCKET"
 mkdir -p ${SOCKET_DIR}
 chmod -R a+rwX ${SOCKET_DIR}
 
-( socat -d -d UNIX-LISTEN:${DD_APM_RECEIVER_SOCKET},fork TCP:proxy:8126 > /var/log/system-tests/uds-socat.log 2>&1 ) &
+(socat -d -d UNIX-LISTEN:${DD_APM_RECEIVER_SOCKET},fork TCP:proxy:8126 >/var/log/system-tests/uds-socat.log 2>&1) &
 
 # Zero is good!
 script_status=1
 attempts=$((14))
 
-while [ $attempts -gt 0 ]
-do
-   attempts=$(( $attempts - 1 ))
+while [ $attempts -gt 0 ]; do
+    attempts=$((attempts - 1))
 
     echo "Checking /var/log/system-tests/uds-socat.log"
     grep -q "listening on" "/var/log/system-tests/uds-socat.log"

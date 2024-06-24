@@ -24,4 +24,4 @@ hK749VwUoNF2SdGeM1BmiWnCxsDRuf/jgVCzeR/PqfkQWfa1MqRZ+RUy6JXxj0YV
 /OajwOk5BSVx6DDaOv8l/TbiNW43si/3s35RJP2XlON045N5nLYqjfAfRRwwUk35
 E2SRqn5UwJBO
 -----END CERTIFICATE-----
-" >> "$@"
+" >>"$@"

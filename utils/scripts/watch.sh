@@ -51,7 +51,7 @@ function main() {
         die "error: fswatch not found"
     fi
 
-    if ! command -v rsync >/dev/null 2>&1 ; then
+    if ! command -v rsync >/dev/null 2>&1; then
         die "error: rsync not found"
     fi
 
@@ -66,6 +66,6 @@ function main() {
     watch "${src}" sync "${src}" "${dst}"
 }
 
-if [[ "${0}" == "${BASH_SOURCE[0]}" ]]; then
+if [[ ${0} == "${BASH_SOURCE[0]}" ]]; then
     main "${@}"
 fi

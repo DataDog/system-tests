@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "${UDS_WEBLOG:-}" = "1" ]; then
-   ./set-uds-transport.sh
+    ./set-uds-transport.sh
 fi
 
 if [[ $(python -c 'import sys; print(sys.version_info >= (3,12))') == "True" ]]; then

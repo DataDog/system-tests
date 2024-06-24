@@ -3,25 +3,23 @@
 set -e
 
 PHP_VERSION=$1
-PHP_MAJOR_VERSION=`echo $PHP_VERSION | cut -d. -f1`
-
+PHP_MAJOR_VERSION=$(echo $PHP_VERSION | cut -d. -f1)
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata publicsuffix
 
-printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
-	chmod +x /usr/sbin/policy-rc.d && \
-	apt-get install -y curl apache2 libapache2-mod-fcgid software-properties-common jq \
-	&& rm -rf /var/lib/apt/lists/* && \
-	rm -rf /usr/sbin/policy-rc.d
-
+printf '#!/bin/sh\n\nexit 101\n' >/usr/sbin/policy-rc.d &&
+    chmod +x /usr/sbin/policy-rc.d &&
+    apt-get install -y curl apache2 libapache2-mod-fcgid software-properties-common jq &&
+    rm -rf /var/lib/apt/lists/* &&
+    rm -rf /usr/sbin/policy-rc.d
 
 add-apt-repository ppa:ondrej/apache2 -y
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
 apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql
-apt-get install -y 
+apt-get install -y
 
 find /var/www/html -mindepth 1 -delete
 
@@ -40,9 +38,8 @@ a2enconf php$PHP_VERSION-fpm
 a2enmod proxy
 a2enmod proxy_fcgi
 
-
-curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
-	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
+curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb &&
+    dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
 
 sed -i s/80/7777/ /etc/apache2/ports.conf
 sed -i s/PHP_VERSION/$PHP_VERSION/ /entrypoint.sh
@@ -57,5 +54,5 @@ cp /tmp/php/common/install_ddtrace.sh /
 rm -rf /etc/php/$PHP_VERSION/fpm/conf.d/98-ddappsec.ini
 
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
-echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >> /etc/php/$PHP_VERSION/fpm/php.ini
-echo "datadog.trace.sources_path = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/src" >> /etc/php/$PHP_VERSION/fpm/php.ini
+echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >>/etc/php/$PHP_VERSION/fpm/php.ini
+echo "datadog.trace.sources_path = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/src" >>/etc/php/$PHP_VERSION/fpm/php.ini

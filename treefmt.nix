@@ -7,10 +7,11 @@
   # Format py sources
   programs.black.enable = true;
   # Format .sh scripts
-  # programs.beautysh.enable = true;
+  programs.shfmt.enable = true;
+  programs.shfmt.indent_size = null; # read indend from editoconfig
+
   # Format Markdown
   programs.mdformat.enable = true;
-  # set prettier to only format markdown
-  # settings.formatter.prettier.includes = ["*.md"];
+
   settings.global.excludes = ["tests/fuzzer/**" "tests/appsec/waf/blocked*" "utils/parametric/protos/*.py" "lib-injection/common/templates/*"];
 }

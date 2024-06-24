@@ -7,8 +7,7 @@ export BASE_DIR=$(dirname "${SCRIPT_PATH}")
 
 source ${BASE_DIR}/src/test/shell/functions.sh
 
-for func in "${@}"
-do
+for func in "${@}"; do
     echo "**************************"
     echo "* Running ${func} *"
     echo "**************************"

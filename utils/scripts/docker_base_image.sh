@@ -19,5 +19,5 @@ for i in $layers; do
 done
 
 #Done! clean
-rm -rf $target_dir/image.tar $target_dir/manifest.json $target_dir/oci-layout  $target_dir/index.json
+rm -rf $target_dir/image.tar $target_dir/manifest.json $target_dir/oci-layout $target_dir/index.json
 rm -rf $target_dir/blobs/

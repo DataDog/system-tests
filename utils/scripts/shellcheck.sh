@@ -9,7 +9,7 @@ function has() {
     shift
 
     local e
-    for e; do [[ "${e}" == "${needle}" ]] && return 0; done
+    for e; do [[ ${e} == "${needle}" ]] && return 0; done
 
     return 1
 }
@@ -18,9 +18,9 @@ function walk() {
     local candidate="${1}"
     shift
 
-    local names=( "${@}" )
+    local names=("${@}")
 
-    while [[ -n "${candidate}" ]]; do
+    while [[ -n ${candidate} ]]; do
         for file in "${names[@]}"; do
             if [[ -e "${candidate}/${file}" ]]; then
                 echo "${candidate}"
@@ -41,7 +41,10 @@ function lint() {
         fi
 
         files+=("$f")
-    done < <( find utils -name '*.sh'; ls -1 -- *.sh )
+    done < <(
+        find utils -name '*.sh'
+        ls -1 -- *.sh
+    )
 
     shellcheck "${files[@]}"
 }
@@ -59,7 +62,7 @@ function load_config() {
 
     local config="${root}/.shellcheck"
 
-    if [[ -f "${config}" ]]; then
+    if [[ -f ${config} ]]; then
         # shellcheck disable=SC1090
         source "${config}"
     fi
@@ -70,6 +73,6 @@ function main() {
     lint
 }
 
-if [[ "${0}" == "${BASH_SOURCE[0]}" ]]; then
+if [[ ${0} == "${BASH_SOURCE[0]}" ]]; then
     main "${@}"
 fi

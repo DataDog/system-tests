@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 if [[ $# -gt 0 ]]; then
-  "$@"
-  exit $?
+    "$@"
+    exit $?
 fi
 
 # This is required to allow the tracer to open itself
@@ -17,7 +17,7 @@ LOGS_APACHE=(/var/log/apache2/{access.log,error.log})
 touch "${LOGS_APACHE[@]}"
 chown root:adm "${LOGS_APACHE[@]}"
 
-export -p | sed 's@declare -x@export@' | tee /dev/stderr >> /etc/apache2/envvars
+export -p | sed 's@declare -x@export@' | tee /dev/stderr >>/etc/apache2/envvars
 
 service apache2 start
 

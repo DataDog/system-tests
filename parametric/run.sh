@@ -9,4 +9,4 @@ echo "Legacy way to run parametric test. Please use ./run.sh PARAMETRIC"
 cd ..
 export TEST_LIBRARY=$CLIENTS_ENABLED
 ./build.sh -i runner
-./run.sh PARAMETRIC  $@
+./run.sh PARAMETRIC $@

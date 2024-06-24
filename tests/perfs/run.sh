@@ -6,9 +6,7 @@
 
 set -eu
 
-
-for lib in ${1:-dotnet golang java nodejs php python ruby}
-do
+for lib in ${1:-dotnet golang java nodejs php python ruby}; do
     ./build.sh $lib
 
     source venv/bin/activate

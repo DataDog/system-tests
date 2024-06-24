@@ -19,9 +19,9 @@ fi
 
 npm install $target
 
-npm list --json | jq -r '.dependencies."dd-trace".version' > SYSTEM_TESTS_LIBRARY_VERSION
-npm explore @datadog/native-appsec -- cat package.json | jq -r '.libddwaf_version' > SYSTEM_TESTS_LIBDDWAF_VERSION
-npm explore dd-trace -- cat packages/dd-trace/src/appsec/recommended.json | jq -r '.metadata.rules_version // "1.2.5"' > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+npm list --json | jq -r '.dependencies."dd-trace".version' >SYSTEM_TESTS_LIBRARY_VERSION
+npm explore @datadog/native-appsec -- cat package.json | jq -r '.libddwaf_version' >SYSTEM_TESTS_LIBDDWAF_VERSION
+npm explore dd-trace -- cat packages/dd-trace/src/appsec/recommended.json | jq -r '.metadata.rules_version // "1.2.5"' >SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
 echo "libddwaf version: $(cat SYSTEM_TESTS_LIBDDWAF_VERSION)"

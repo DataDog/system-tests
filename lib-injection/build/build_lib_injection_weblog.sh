@@ -4,7 +4,6 @@ set -e
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 
-
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
     echo -e "  Builds Docker images for weblog variants with tracers extracted from lib injection init images."
@@ -22,15 +21,35 @@ print_usage() {
     echo -e ""
 }
 
-while [[ "$#" -gt 0 ]]; do
+while [[ $# -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
-        -l|--library) TEST_LIBRARY="$2"; shift ;;
-        -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
-        -dp|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
-        -pt|--push-tag) PUSH_TAG="$2"; shift ;;
-        -h|--help) print_usage; exit 0 ;;
-        *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
+    cpp | dotnet | golang | java | java_otel | nodejs | nodejs_otel | php | python | python_otel | ruby) TEST_LIBRARY="$1" ;;
+    -l | --library)
+        TEST_LIBRARY="$2"
+        shift
+        ;;
+    -w | --weblog-variant)
+        WEBLOG_VARIANT="$2"
+        shift
+        ;;
+    -dp | --docker-platform)
+        DOCKER_PLATFORM="--platform $2"
+        shift
+        ;;
+    -pt | --push-tag)
+        PUSH_TAG="$2"
+        shift
+        ;;
+    -h | --help)
+        print_usage
+        exit 0
+        ;;
+    *)
+        echo "Invalid argument: ${1:-}"
+        echo
+        print_usage
+        exit 1
+        ;;
     esac
     shift
 done
@@ -43,7 +62,7 @@ fi
 
 WEBLOG_FOLDER="${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}"
 
-if [[ (! -f "${WEBLOG_FOLDER}/Dockerfile") ]]; then
+if [[ ! -f "${WEBLOG_FOLDER}/Dockerfile" ]]; then
     echo "Variant [${WEBLOG_VARIANT}] for library [${TEST_LIBRARY}] not found or WEBLOG_VARIANT is not set"
     print_usage
     exit 1
@@ -57,18 +76,17 @@ fi
 ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 
 case $ARCH in
-    arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
-    *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
+arm64 | aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}" ;;
+*) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}" ;;
 esac
-
 
 echo "Building docker weblog image using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}]"
 CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
 
 if [ -n "${PUSH_TAG+set}" ]; then
-  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
-  docker buildx build ${DOCKER_PLATFORM} -t ${PUSH_TAG} . --push
+    echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
+    docker buildx build ${DOCKER_PLATFORM} -t ${PUSH_TAG} . --push
 else
     docker build ${DOCKER_PLATFORM} -t weblog-injection:latest .
 fi

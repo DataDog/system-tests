@@ -18,7 +18,7 @@ if [ -e "/binaries/dd-trace-rb" ]; then
     # Read the gem name from the gemspec file
     export GEM_NAME=$(find /binaries/dd-trace-rb -name *.gemspec | ruby -ne 'puts Gem::Specification.load($_.chomp).name')
 
-    echo "gem '$GEM_NAME', require: '$GEM_NAME/auto_instrument', path: '/binaries/dd-trace-rb'" >> Gemfile
+    echo "gem '$GEM_NAME', require: '$GEM_NAME/auto_instrument', path: '/binaries/dd-trace-rb'" >>Gemfile
 elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     #
     # Install the gem from https://rubygems.org/
@@ -26,7 +26,7 @@ elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     #
     echo "Install prod version"
     # Support multiple versions of the gem
-    echo "gem 'datadog', '>= 2.0.0.beta2', require: 'datadog/auto_instrument'" >> Gemfile
+    echo "gem 'datadog', '>= 2.0.0.beta2', require: 'datadog/auto_instrument'" >>Gemfile
 
     export GEM_NAME=datadog
 else
@@ -39,7 +39,7 @@ else
     #
     options=$(cat /binaries/ruby-load-from-bundle-add)
     echo "Install from $options"
-    echo $options >> Gemfile
+    echo $options >>Gemfile
 
     # Read the gem name from the Gemfile
     export GEM_NAME=$(ruby -rbundler -e 'puts Bundler::Definition.build("Gemfile", nil, nil).dependencies.find {|x| x.name == "ddtrace" || x.name == "datadog"}.name')
@@ -49,10 +49,10 @@ bundle config set --local without test development
 
 bundle install
 
-bundle info $GEM_NAME | grep -m 1 $GEM_NAME > SYSTEM_TESTS_LIBRARY_VERSION
-bundle list | grep libddwaf > SYSTEM_TESTS_LIBDDWAF_VERSION || true
+bundle info $GEM_NAME | grep -m 1 $GEM_NAME >SYSTEM_TESTS_LIBRARY_VERSION
+bundle list | grep libddwaf >SYSTEM_TESTS_LIBDDWAF_VERSION || true
 
-cat "$(bundle info $GEM_NAME | grep 'Path:' | awk '{ print $2 }')"/lib/datadog/appsec/assets/waf_rules/recommended.json | ruby -rjson -e 'puts JSON.parse(STDIN.read).fetch("metadata", {}).fetch("rules_version", "1.2.5")' > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+cat "$(bundle info $GEM_NAME | grep 'Path:' | awk '{ print $2 }')"/lib/datadog/appsec/assets/waf_rules/recommended.json | ruby -rjson -e 'puts JSON.parse(STDIN.read).fetch("metadata", {}).fetch("rules_version", "1.2.5")' >SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
 echo "libddwaf version: $(cat SYSTEM_TESTS_LIBDDWAF_VERSION)"

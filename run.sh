@@ -101,20 +101,20 @@ function lookup_scenario_group() {
     local python=()
 
     case "${mode}" in
-        'docker')
-            python+=(
-              docker run
-              --rm -i
-              system_tests/runner
-              venv/bin/python
-            )
-            ;;
-        'direct')
-            python+=(python)
-            ;;
-        *)
-            die "unsupported run mode: ${mode}"
-            ;;
+    'docker')
+        python+=(
+            docker run
+            --rm -i
+            system_tests/runner
+            venv/bin/python
+        )
+        ;;
+    'direct')
+        python+=(python)
+        ;;
+    *)
+        die "unsupported run mode: ${mode}"
+        ;;
     esac
 
     python+=(
@@ -123,7 +123,7 @@ function lookup_scenario_group() {
 
     echo "${python[*]}" 1>&2
 
-    cat < scenario_groups.yml | "${python[@]}" "${group}"
+    cat <scenario_groups.yml | "${python[@]}" "${group}"
 }
 
 function upcase() {
@@ -135,7 +135,7 @@ function downcase() {
 }
 
 function is_using_nix() {
-    [[ -n "${IN_NIX_SHELL:-}" ]]
+    [[ -n ${IN_NIX_SHELL:-} ]]
 }
 
 function activate_venv() {
@@ -169,60 +169,60 @@ function run_scenario() {
 
     local cmd=()
 
-    if [[ "${dry}" -gt 0 ]]; then
+    if [[ ${dry} -gt 0 ]]; then
         cmd+=(echo)
     fi
 
     case "${mode}" in
-        'docker')
-            # infer log dir from scenario
-            local log_dir
+    'docker')
+        # infer log dir from scenario
+        local log_dir
 
-            # default scenario does not follow the convention
-            if [[ "${scenario}" == 'DEFAULT' ]]; then
-                log_dir='logs'
-            else
-                # downcase via ${scenario,,} is unsupported on bash 3.x
-                log_dir="logs_$(echo "${scenario}" | downcase )"
-            fi
+        # default scenario does not follow the convention
+        if [[ ${scenario} == 'DEFAULT' ]]; then
+            log_dir='logs'
+        else
+            # downcase via ${scenario,,} is unsupported on bash 3.x
+            log_dir="logs_$(echo "${scenario}" | downcase)"
+        fi
 
+        cmd+=(
+            docker run
+            --network system-tests_default
+            --rm -i
+        )
+        if [ -t 1 ]; then
+            cmd+=(-t)
+        fi
+        if [[ -n ${DD_API_KEY:-} ]]; then
             cmd+=(
-              docker run
-              --network system-tests_default
-              --rm -i
-            )
-            if [ -t 1 ]; then
-                cmd+=(-t)
-            fi
-            if [[ -n "${DD_API_KEY:-}" ]]; then
-              cmd+=(
                 -e DD_API_KEY="${DD_API_KEY}"
-              )
-            fi
-            if [[ -f .env ]]; then
-              cmd+=(
-                -v "${PWD}"/.env:/app/.env
-              )
-            fi
-            cmd+=(
-              -v /var/run/docker.sock:/var/run/docker.sock
-              -v "${PWD}/${log_dir}":"/app/${log_dir}"
-              -e SYSTEM_TESTS_PROXY_HOST=proxy
-              -e SYSTEM_TESTS_WEBLOG_HOST=weblog
-              -e SYSTEM_TESTS_WEBLOG_PORT=7777
-              -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778
-              -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}"
-              --name system-tests-runner
-              system_tests/runner
-              venv/bin/pytest
             )
-            ;;
-        'direct')
-            cmd+=(pytest)
-            ;;
-        *)
-            die "unsupported run mode: ${mode}"
-            ;;
+        fi
+        if [[ -f .env ]]; then
+            cmd+=(
+                -v "${PWD}"/.env:/app/.env
+            )
+        fi
+        cmd+=(
+            -v /var/run/docker.sock:/var/run/docker.sock
+            -v "${PWD}/${log_dir}":"/app/${log_dir}"
+            -e SYSTEM_TESTS_PROXY_HOST=proxy
+            -e SYSTEM_TESTS_WEBLOG_HOST=weblog
+            -e SYSTEM_TESTS_WEBLOG_PORT=7777
+            -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778
+            -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}"
+            --name system-tests-runner
+            system_tests/runner
+            venv/bin/pytest
+        )
+        ;;
+    'direct')
+        cmd+=(pytest)
+        ;;
+    *)
+        die "unsupported run mode: ${mode}"
+        ;;
     esac
 
     cmd+=(
@@ -245,77 +245,77 @@ function main() {
     ## handle environment variables
 
     # split TEST_LIBRARY on ','
-    IFS=',' read -r -a libraries <<< "${TEST_LIBRARY:-}"
+    IFS=',' read -r -a libraries <<<"${TEST_LIBRARY:-}"
 
     ## parse command arguments
 
     # parse flags
-    while [[ "$#" -gt 0 ]]; do
+    while [[ $# -gt 0 ]]; do
         case "$1" in
-            +h|++help)
+        +h | ++help)
+            help
+            exit
+            ;;
+        +v | ++verbose)
+            verbosity=$((verbosity + 1))
+            ;;
+        +y | ++dry)
+            dry=1
+            ;;
+        +d | ++docker)
+            docker=1
+            ;;
+        +G | ++scenario-group)
+            if [[ $# -eq 1 ]]; then
+                error "missing argument value for: $1"
                 help
-                exit
-                ;;
-            +v|++verbose)
-                verbosity=$(( verbosity + 1 ))
-                ;;
-            +y|++dry)
-                dry=1
-                ;;
-            +d|++docker)
-                docker=1
-                ;;
-            +G|++scenario-group)
-                if [[ "$#" -eq 1 ]]; then
-                  error "missing argument value for: $1"
-                  help
-                  exit 64
-                fi
-                # upcase via ${2^^} is unsupported on bash 3.x
-                scenario_args+=("$(echo "$2" | upcase)")
-                shift
-                ;;
-            +S|++scenario|-S|--scenario)
-                # this also catches '-S' even though it's a pytest flag because
-                # there may be special treatment for specific scenarios
-                if [[ "$#" -eq 1 ]]; then
-                  error "missing argument value for: $1"
-                  hint
-                  exit 64
-                fi
-                # upcase via ${2^^} is unsupported on bash 3.x
-                scenario_args+=("$(echo "$2" | upcase)")
-                shift
-                ;;
-            +l|++library)
-                if [[ "$#" -eq 1 ]]; then
-                  error "missing argument value for: $1"
-                  hint
-                  exit 64
-                fi
-                libraries+=("$2")
-                shift
-                ;;
-            ++)
-                # ignore and stop flag processing to force remainder to be captured as is
-                shift
-                break
-                ;;
-            +*)
-                # unknown flag: be helpful
-                error "unknown flag: $1"
+                exit 64
+            fi
+            # upcase via ${2^^} is unsupported on bash 3.x
+            scenario_args+=("$(echo "$2" | upcase)")
+            shift
+            ;;
+        +S | ++scenario | -S | --scenario)
+            # this also catches '-S' even though it's a pytest flag because
+            # there may be special treatment for specific scenarios
+            if [[ $# -eq 1 ]]; then
+                error "missing argument value for: $1"
                 hint
                 exit 64
-                ;;
-            *)
-                # handle positional arguments
-                if [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
-                    scenario_args+=("$1")
-                else
-                    # pass any unmatched arguments to pytest
-                    pytest_args+=("$1")
-                fi
-                ;;
+            fi
+            # upcase via ${2^^} is unsupported on bash 3.x
+            scenario_args+=("$(echo "$2" | upcase)")
+            shift
+            ;;
+        +l | ++library)
+            if [[ $# -eq 1 ]]; then
+                error "missing argument value for: $1"
+                hint
+                exit 64
+            fi
+            libraries+=("$2")
+            shift
+            ;;
+        ++)
+            # ignore and stop flag processing to force remainder to be captured as is
+            shift
+            break
+            ;;
+        +*)
+            # unknown flag: be helpful
+            error "unknown flag: $1"
+            hint
+            exit 64
+            ;;
+        *)
+            # handle positional arguments
+            if [[ $1 =~ ^[A-Z0-9_]+$ ]]; then
+                scenario_args+=("$1")
+            else
+                # pass any unmatched arguments to pytest
+                pytest_args+=("$1")
+            fi
+            ;;
         esac
         shift
     done
@@ -326,14 +326,14 @@ function main() {
     ## prepare commands
 
     # set run mode
-    if [[ "${docker}" == 1 ]]; then
+    if [[ ${docker} == 1 ]]; then
         run_mode='docker'
     else
         run_mode='direct'
     fi
 
     # ensure environment
-    if [[ "${run_mode}" == "docker" ]] || is_using_nix; then
+    if [[ ${run_mode} == "docker" ]] || is_using_nix; then
         : # no venv needed
     else
         activate_venv
@@ -345,17 +345,17 @@ function main() {
     # expand scenario groups
     # bash 3.x does not support mapfile, dance around with tr and IFS
     for i in "${scenario_args[@]}"; do
-        if [[ "${i}" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
-                # bash 3.x does not support mapfile, dance around with tr and IFS
-                IFS=',' read -r -a group <<< "$(lookup_scenario_group "${i}" "${run_mode}" | tr '\n' ',')"
-                scenarios+=("${group[@]}")
+        if [[ ${i} =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
+            # bash 3.x does not support mapfile, dance around with tr and IFS
+            IFS=',' read -r -a group <<<"$(lookup_scenario_group "${i}" "${run_mode}" | tr '\n' ',')"
+            scenarios+=("${group[@]}")
         else
-                scenarios+=("${i}")
+            scenarios+=("${i}")
         fi
     done
 
     # when no scenario is provided, use a nice default
-    if [[ "${#scenarios[@]}" -lt 1 ]]; then
+    if [[ ${#scenarios[@]} -lt 1 ]]; then
         scenarios+=('DEFAULT')
     fi
 
@@ -363,15 +363,15 @@ function main() {
     # TODO: remove once all CIs have been updated
     for i in "${!scenarios[@]}"; do
         case "${scenarios["${i}"]}" in
-            APPSEC_IP_BLOCKING_MAXED|APPSEC_IP_BLOCKING)
-                scenarios+=(APPSEC_BLOCKING_FULL_DENYLIST)
-                unset "scenarios[${i}]"
-                ;;
+        APPSEC_IP_BLOCKING_MAXED | APPSEC_IP_BLOCKING)
+            scenarios+=(APPSEC_BLOCKING_FULL_DENYLIST)
+            unset "scenarios[${i}]"
+            ;;
 
-            LIBRARY_CONF_CUSTOM_HEADERS_SHORT|LIBRARY_CONF_CUSTOM_HEADERS_LONG)
-                scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
-                unset "scenarios[${i}]"
-                ;;
+        LIBRARY_CONF_CUSTOM_HEADERS_SHORT | LIBRARY_CONF_CUSTOM_HEADERS_LONG)
+            scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
+            unset "scenarios[${i}]"
+            ;;
         esac
     done
 
@@ -379,45 +379,44 @@ function main() {
 
     # TODO: upgrade the dependencies to the latest version of pulumi once the protobuf bug is fixed
     # In the meantime remove the warning from the output
-    pytest_args+=( '-p' 'no:warnings' )
+    pytest_args+=('-p' 'no:warnings')
 
     # evaluate max pytest number of process
     for scenario in "${scenarios[@]}"; do
-        if [[ "${scenario}" != "PARAMETRIC" ]]; then
+        if [[ ${scenario} != "PARAMETRIC" ]]; then
             pytest_numprocesses=1
         fi
     done
 
-    if [[ "${#libraries[@]}" -gt 0 ]]; then
-      for library in "${libraries[@]}"; do
-          if [ "${library}" = "dotnet" ]; then
-            pytest_numprocesses=1
-          fi
-      done
+    if [[ ${#libraries[@]} -gt 0 ]]; then
+        for library in "${libraries[@]}"; do
+            if [ "${library}" = "dotnet" ]; then
+                pytest_numprocesses=1
+            fi
+        done
     fi
 
     # evaluate max pytest number of process for K8s_lib_injection
     for scenario in "${scenarios[@]}"; do
         #TODO DELETE WHEN THE SCENARIO IS REMOVED. REPLACED BY K8S_LIBRARY_INJECTION
-        if [[ "${scenario}" == K8S_LIB_INJECTION_* ]]; then
+        if [[ ${scenario} == K8S_LIB_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
         fi
-        if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
+        if [[ ${scenario} == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
         fi
     done
 
     case "${pytest_numprocesses}" in
-        0|1)
-            ;;
-        *)
-            pytest_args+=( '-n' "${pytest_numprocesses}" )
-            ;;
+    0 | 1) ;;
+    *)
+        pytest_args+=('-n' "${pytest_numprocesses}")
+        ;;
     esac
 
     ## run tests
 
-    if [[ "${verbosity}" -gt 0 ]]; then
+    if [[ ${verbosity} -gt 0 ]]; then
         echo "plan:"
         echo "  mode: ${run_mode}"
         echo "  dry run: ${dry}"
@@ -427,7 +426,7 @@ function main() {
         done
     fi
 
-    if [[ "${run_mode}" == "docker" ]]; then
+    if [[ ${run_mode} == "docker" ]]; then
         ensure_network >/dev/null
     fi
 
@@ -436,6 +435,6 @@ function main() {
     done
 }
 
-if [[ "$0" == "${BASH_SOURCE[0]}" ]]; then
+if [[ $0 == "${BASH_SOURCE[0]}" ]]; then
     main "$@"
 fi

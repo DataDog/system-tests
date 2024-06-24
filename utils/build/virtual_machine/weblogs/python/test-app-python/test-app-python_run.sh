@@ -4,7 +4,7 @@ echo "START RUN APP"
 set -e
 
 # shellcheck disable=SC2035
-sudo chmod -R 755 * 
+sudo chmod -R 755 *
 
 sudo cp django_app.py /home/datadog/
 sudo /home/datadog/.pyenv/shims/pip3 install django

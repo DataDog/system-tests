@@ -13,14 +13,13 @@ if [ "$DISTRO" = "deb" ]; then
     sudo curl https://pyenv.run | bash
     export PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init -)"
- else
+else
     #Install pyenv
     sudo yum install -y gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel git
     git clone https://github.com/pyenv/pyenv.git /home/datadog/.pyenv
     export PYENV_ROOT="/home/datadog/.pyenv"
     export PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init -)"
- fi
-
+fi
 
 export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && pyenv install "$PY_VERSION" && pyenv global "$PY_VERSION"

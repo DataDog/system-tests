@@ -15,7 +15,7 @@ WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK:-}}
 
 readonly DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 readonly ALIAS_CACHE_FROM="R" #read cache
-readonly ALIAS_CACHE_TO="W" #write cache
+readonly ALIAS_CACHE_TO="W"   #write cache
 
 readonly DEFAULT_TEST_LIBRARY=nodejs
 readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
@@ -70,7 +70,7 @@ print_usage() {
     echo -e "  Build images for Java and Spring Boot:"
     echo -e "    ${SCRIPT_NAME} --library java --weblog-variant spring-boot"
     echo -e "  Build default images for Dotnet with binary path:"
-    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""    
+    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""
     echo -e "  Build default images for Dotnet with binary url:"
     echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
     echo -e "  List libraries:"
@@ -100,11 +100,11 @@ default-weblog() {
 build() {
     CACHE_TO=
     CACHE_FROM=
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
+    if [[ $DOCKER_CACHE_MODE == *"$ALIAS_CACHE_FROM"* ]]; then
         echo "Setting remote cache for read"
         CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
     fi
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
+    if [[ $DOCKER_CACHE_MODE == *"$ALIAS_CACHE_TO"* ]]; then
         echo "Setting remote cache for write"
         CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
     fi
@@ -122,26 +122,24 @@ build() {
     ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 
     case $ARCH in
-    arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
-    *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
+    arm64 | aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}" ;;
+    *) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}" ;;
     esac
 
     # Build images
-    for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
-    do
+    for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g"); do
 
         echo "-----------------------"
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
-            if [[ -z "${IN_NIX_SHELL:-}" ]]; then
-              if [ ! -d "venv/" ]
-              then
-                  echo "Build virtual env"
-                  python3.9 -m venv venv
-              fi
+            if [[ -z ${IN_NIX_SHELL:-} ]]; then
+                if [ ! -d "venv/" ]; then
+                    echo "Build virtual env"
+                    python3.9 -m venv venv
+                fi
 
-              source venv/bin/activate
-              python -m pip install --upgrade pip
+                source venv/bin/activate
+                python -m pip install --upgrade pip
             fi
             pip install -r requirements.txt
 
@@ -180,7 +178,7 @@ build() {
                 --progress=plain \
                 -f utils/build/docker/agent.Dockerfile \
                 -t system_tests/agent \
-		--pull \
+                --pull \
                 --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
                 $EXTRA_DOCKER_ARGS \
                 .
@@ -191,21 +189,21 @@ build() {
                 find . ! -name 'README.md' -type f -exec rm -f {} +
             }
 
-            if ! [[ -z "$BINARY_URL" ]]; then 
+            if ! [[ -z $BINARY_URL ]]; then
                 cd binaries
                 clean-binaries
                 curl -L -O $BINARY_URL
                 cd ..
             fi
 
-            if ! [[ -z "$BINARY_PATH" ]]; then 
+            if ! [[ -z $BINARY_PATH ]]; then
                 cd binaries
                 clean-binaries
                 cp -r $BINARY_PATH/* ./
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile          
+            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
@@ -269,23 +267,55 @@ build() {
 # Main
 COMMAND=build
 
-while [[ "$#" -gt 0 ]]; do
+while [[ $# -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
-        -l|--library) TEST_LIBRARY="$2"; shift ;;
-        -i|--images) BUILD_IMAGES="$2"; shift ;;
-        -d|--docker) DOCKER_MODE=1;;
-        -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
-        -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
-        -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
-        -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
-        --binary-url) BINARY_URL="$2"; shift ;;
-        --binary-path) BINARY_PATH="$2"; shift ;;
-        --list-libraries) COMMAND=list-libraries ;;
-        --list-weblogs) COMMAND=list-weblogs ;;
-        --default-weblog) COMMAND=default-weblog ;;
-        -h|--help) print_usage; exit 0 ;;
-        *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
+    cpp | dotnet | golang | java | java_otel | nodejs | nodejs_otel | php | python | python_otel | ruby) TEST_LIBRARY="$1" ;;
+    -l | --library)
+        TEST_LIBRARY="$2"
+        shift
+        ;;
+    -i | --images)
+        BUILD_IMAGES="$2"
+        shift
+        ;;
+    -d | --docker) DOCKER_MODE=1 ;;
+    -w | --weblog-variant)
+        WEBLOG_VARIANT="$2"
+        shift
+        ;;
+    -e | --extra-docker-args)
+        EXTRA_DOCKER_ARGS="$2"
+        shift
+        ;;
+    -c | --cache-mode)
+        DOCKER_CACHE_MODE="$2"
+        shift
+        ;;
+    -p | --docker-platform)
+        DOCKER_PLATFORM="--platform $2"
+        shift
+        ;;
+    --binary-url)
+        BINARY_URL="$2"
+        shift
+        ;;
+    --binary-path)
+        BINARY_PATH="$2"
+        shift
+        ;;
+    --list-libraries) COMMAND=list-libraries ;;
+    --list-weblogs) COMMAND=list-weblogs ;;
+    --default-weblog) COMMAND=default-weblog ;;
+    -h | --help)
+        print_usage
+        exit 0
+        ;;
+    *)
+        echo "Invalid argument: ${1:-}"
+        echo
+        print_usage
+        exit 1
+        ;;
     esac
     shift
 done
@@ -300,7 +330,7 @@ TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+if [[ ${BUILD_IMAGES} =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     echo "Library ${TEST_LIBRARY} not found"
     echo "Available libraries: $(echo $(list-libraries))"
     exit 1
@@ -308,7 +338,7 @@ fi
 
 WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
 
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
+if [[ ${BUILD_IMAGES} =~ /weblog/ && (-n $WEBLOG_VARIANT) && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
     echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
     echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
     exit 1

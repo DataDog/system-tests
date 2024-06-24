@@ -3,8 +3,7 @@ set -eu
 
 ATTEMPT=${SYSTEM_TEST_BUILD_ATTEMPTS:=1}
 
-for (( i=1; i<=$ATTEMPT; i++ ))
-do
+for ((i = 1; i <= ATTEMPT; i++)); do
     echo "== Run build script (attempt $i on $ATTEMPT) =="
     if ./utils/build/build.sh "$@"; then
         exit 0
