@@ -9,8 +9,9 @@ The target of this testing feature is to test the distinct injection environment
 ## Library Injection testing scenarios
 
 The automatic libray injection is tested on two scenarios:
-* Datadog Agent and your application deployed on the same host ([host injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=host)).
-* Datadog Agent and your application installed on containers ([containers injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=agentandappinseparatecontainers)).
+
+- Datadog Agent and your application deployed on the same host ([host injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=host)).
+- Datadog Agent and your application installed on containers ([containers injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=agentandappinseparatecontainers)).
 
 > For Kubernetes Datadog library injection capabilities check the [kubernetes injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=kubernetes) or take a look at the [kubernetes injection testing scenarios](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).
 
@@ -18,20 +19,21 @@ The automatic libray injection is tested on two scenarios:
 
 We need to know some terms:
 
-* **Scenario:** In system-tests, a virtual scenario is a set of:
-  * a tested architecture, which can be a set of virtual machines or a single virtual machine. This set of VMs will be supplied thanks to the integration of system-tests framework with different providers of this technology.
-  * a list of setup executed on this tested architecture, we called as a virtual machine provision.
-  * a list of test
+- **Scenario:** In system-tests, a virtual scenario is a set of:
 
-* **Virtual Machine:** A virtual machine (VM) is a replica, in terms of behavior, of a physical computer. There is software capable of emulating these replicas of physical computers running operating systems. In this case, system-tests will be able to handle the integration of the framework itself with the virtual machines, so that we can install our software to be tested on them (provision).
+  - a tested architecture, which can be a set of virtual machines or a single virtual machine. This set of VMs will be supplied thanks to the integration of system-tests framework with different providers of this technology.
+  - a list of setup executed on this tested architecture, we called as a virtual machine provision.
+  - a list of test
 
-* **Provision:** It will be the list of software and configurations to be installed on the virtual machines. The provisions will be specified by using yaml files.
+- **Virtual Machine:** A virtual machine (VM) is a replica, in terms of behavior, of a physical computer. There is software capable of emulating these replicas of physical computers running operating systems. In this case, system-tests will be able to handle the integration of the framework itself with the virtual machines, so that we can install our software to be tested on them (provision).
 
-* **Weblog:** Usually It is a web application that exposes consistent endpoints across all implementations and that will be installed on the Virtual Machine. In the case of weblogs associated to the VMs, it does not always have to be a web application that exposes services, it can also be a specific configuration for the machine we want to test.
+- **Provision:** It will be the list of software and configurations to be installed on the virtual machines. The provisions will be specified by using yaml files.
 
-* **Provider:** It refers to the integration of system-tests with the different technologies that allow interacting with virtual machines. These can be executed locally using software such as vmware, virtual box... or executed in the cloud using services such as Google Cloud or AWS.
+- **Weblog:** Usually It is a web application that exposes consistent endpoints across all implementations and that will be installed on the Virtual Machine. In the case of weblogs associated to the VMs, it does not always have to be a web application that exposes services, it can also be a specific configuration for the machine we want to test.
 
-* **Tests:** Set of tests to run against a virtual machine. For example, we can make remote HTTP requests to an installed web application during the provisioning process or we can connect to it via SSH to execute different commands to check that the installed software provision is running correctly.
+- **Provider:** It refers to the integration of system-tests with the different technologies that allow interacting with virtual machines. These can be executed locally using software such as vmware, virtual box... or executed in the cloud using services such as Google Cloud or AWS.
+
+- **Tests:** Set of tests to run against a virtual machine. For example, we can make remote HTTP requests to an installed web application during the provisioning process or we can connect to it via SSH to execute different commands to check that the installed software provision is running correctly.
 
 ### Define a Virtual Machine scenario
 
@@ -51,9 +53,10 @@ In the following code you can see how we define a new VirtualMachine Scenario, s
         include_amazon_linux_2023_arm64=True,
     )
 ```
+
 ### Virtual Machine
 
-The Virtual Machines are defined in utils/_context/virtual_machines.py.
+The Virtual Machines are defined in utils/\_context/virtual_machines.py.
 There are some  predefined machines. For example:
 
 ```Python
@@ -70,18 +73,20 @@ class Ubuntu22amd64(_VirtualMachine):
             **kwargs,
         )
 ```
+
 ### Provision
+
 We call provision to the configurations applied or the software installed on the machines included in the scenario.
 
 Some properties of the provisions in system-tests are as follows:
 
-* They are defined in the Yaml files.
-* They Yaml file will be located in the folder: utils/build/virtual_machine/provisions/<provision_name>
-* The installation of the Weblog is also defined on Yaml files, but will be located in a different folder: utils/build/virtual_machine/weblogs/<lang>/<weblog_name>
-* Each provision is different, therefore, different installation steps may be defined.
-* All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions will have to define a step that extracts  the names and versions of installed components we want to test.
-* The same provision must be able to be installed on different operating systems and architectures.
-* The selection of the provision to install in a virtual machine, is the responsibility of the python code that can be found at utils/virtual_machine/virtual_machine_provisioner.py
+- They are defined in the Yaml files.
+- They Yaml file will be located in the folder: utils/build/virtual_machine/provisions/\<provision_name>
+- The installation of the Weblog is also defined on Yaml files, but will be located in a different folder: utils/build/virtual_machine/weblogs/<lang>/\<weblog_name>
+- Each provision is different, therefore, different installation steps may be defined.
+- All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions will have to define a step that extracts  the names and versions of installed components we want to test.
+- The same provision must be able to be installed on different operating systems and architectures.
+- The selection of the provision to install in a virtual machine, is the responsibility of the python code that can be found at utils/virtual_machine/virtual_machine_provisioner.py
 
 This is an example of provision file:
 
@@ -156,12 +161,12 @@ install-agent:
 
 Some of the sections listed above are detailed as follows:
 
-* **init-environment:** They are variables that will be loaded depending on the execution environment (env=dev or env=prod). These variables will be populated in all commands executed on the machines.
-* **tested_components:** This is a mandatory field. We should extract the components that we are testing. The result of the command should be a json string. As you can see the install section could be split by “os_type“ and “os_distro“ fields. You could define a command for all the machines or you could define commands by the machine type. The details of the "installation" field are explained later.
-* **provision_steps:** In this section you must define the steps for the whole installation. In this case we have three steps:
-  * init-config: Represent a step that will run the same command for all types of the linux machines.
-  * my-custom-extra-step: We divide the command, one specific for debian machines and another specific for rpm machines. Notice that we have added directives that will copy local files to the remote machine. The details of the "installation" and “copy-files” fields are explained later.
-  * install-agent: It represents the installation of the agent, valid for all Linux machines. Note that we are using the variables defined in the “init-environment“ section.
+- **init-environment:** They are variables that will be loaded depending on the execution environment (env=dev or env=prod). These variables will be populated in all commands executed on the machines.
+- **tested_components:** This is a mandatory field. We should extract the components that we are testing. The result of the command should be a json string. As you can see the install section could be split by “os_type“ and “os_distro“ fields. You could define a command for all the machines or you could define commands by the machine type. The details of the "installation" field are explained later.
+- **provision_steps:** In this section you must define the steps for the whole installation. In this case we have three steps:
+  - init-config: Represent a step that will run the same command for all types of the linux machines.
+  - my-custom-extra-step: We divide the command, one specific for debian machines and another specific for rpm machines. Notice that we have added directives that will copy local files to the remote machine. The details of the "installation" and “copy-files” fields are explained later.
+  - install-agent: It represents the installation of the agent, valid for all Linux machines. Note that we are using the variables defined in the “init-environment“ section.
 
 #### Provision install section
 
@@ -169,9 +174,9 @@ The install section will be part of all main sections of the provision (except t
 
 The install section provides us:
 
-* The ability to execute remote commands.
-* The ability to execute local commands.
-* The ability to copy files from the local machine to remote VM.
+- The ability to execute remote commands.
+- The ability to execute local commands.
+- The ability to copy files from the local machine to remote VM.
 
 ```yaml
 my-step:
@@ -184,12 +189,13 @@ my-step:
           local_path: utils/build/test.service
       remote-command: echo "This command will run on remote machine"
 ```
+
 ### Provider
 
 We currently support two providers:
 
-* **Pulumi AWS:** Using Pulumi AWS we can create and manage EC2 instances.
-* **Vagrant:** Vagrant enables users to create and configure lightweight, reproducible, and portable development local environments.
+- **Pulumi AWS:** Using Pulumi AWS we can create and manage EC2 instances.
+- **Vagrant:** Vagrant enables users to create and configure lightweight, reproducible, and portable development local environments.
 
 We can find the developed providers in the folder: utils/virtual_machine.
 We can select the correct provider for out configured environment using the factory located on utils/virtual_machine/virtual_machine_provider.py.
@@ -198,10 +204,10 @@ We can select the correct provider for out configured environment using the fact
 
 To test scenarios mentioned above, We will use the following utilities:
 
-* AWS as the infrastructure provider: We are testing onboarding installation scenarios on different types of machines and OS. AWS Cli must be configured on your computer in order to launch EC2 instances automatically.
-* Vagrant as the infrastructure local provider: For local executions, we can use Vagrant instead of AWS EC2 instances.
-* Pulumi as the orchestrator of this test infrastructure: Pulumi's open source infrastructure as code SDK enables you to create, deploy, and manage infrastructure on any cloud, using your favorite languages.
-* Pytest as testing tool (Python): System-tests is built on Pytest.
+- AWS as the infrastructure provider: We are testing onboarding installation scenarios on different types of machines and OS. AWS Cli must be configured on your computer in order to launch EC2 instances automatically.
+- Vagrant as the infrastructure local provider: For local executions, we can use Vagrant instead of AWS EC2 instances.
+- Pulumi as the orchestrator of this test infrastructure: Pulumi's open source infrastructure as code SDK enables you to create, deploy, and manage infrastructure on any cloud, using your favorite languages.
+- Pytest as testing tool (Python): System-tests is built on Pytest.
 
 ### AWS
 
@@ -211,10 +217,10 @@ In order to securely store and access AWS credentials in an our test environment
 
 ### Vagrant
 
-* Install Vagrant Install Vagrant | Vagrant | HashiCorp Developer
-* Install QEMU emulator: Download QEMU - QEMU
-* Install python Vagrant plugin: python-vagrant
-* Install Vagrant-QEMU provider: https://github.com/ppggff/vagrant-qemu
+- Install Vagrant Install Vagrant | Vagrant | HashiCorp Developer
+- Install QEMU emulator: Download QEMU - QEMU
+- Install python Vagrant plugin: python-vagrant
+- Install Vagrant-QEMU provider: https://github.com/ppggff/vagrant-qemu
 
 ### Pulumi
 
@@ -260,15 +266,15 @@ Opcionally you can set extra parameters to filter the type of tests that you wil
 The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios.
 The currently supported scenarios are the following:
 
-* **HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario
-* **SIMPLE_HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario (minimal test scenario)
-* **SIMPLE_HOST_AUTO_INJECTION_PROFILING:** Onboarding Host Single Step Instrumentation profiling scenario (minimal test scenario)
-* **HOST_AUTO_INJECTION_BLOCK_LIST:** Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists
-* **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto install script
-* **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with enabling profiling
-* **CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario
-* **SIMPLE_CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario (minimal test scenario)
-* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto install script
+- **HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario
+- **SIMPLE_HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario (minimal test scenario)
+- **SIMPLE_HOST_AUTO_INJECTION_PROFILING:** Onboarding Host Single Step Instrumentation profiling scenario (minimal test scenario)
+- **HOST_AUTO_INJECTION_BLOCK_LIST:** Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists
+- **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto install script
+- **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with enabling profiling
+- **CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario
+- **SIMPLE_CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario (minimal test scenario)
+- **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto install script
 
 The 'onboarding' tests scenarios requiered three mandatory parameters:
 
@@ -279,4 +285,4 @@ The 'onboarding' tests scenarios requiered three mandatory parameters:
 
 The following line shows an example of command line to run the tests:
 
- - './run.sh SIMPLE_HOST_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws'
+- './run.sh SIMPLE_HOST_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws'

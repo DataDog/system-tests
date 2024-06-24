@@ -13,15 +13,16 @@ APM libraries.
 Currently, there are two different ways to have the Datadog library injected
 into the application container:
 
-1) Manually via Kubernetes annotations:
-  * Using Datadog Admission Controller: [Injecting Libraries Kubernetes](https://docs.datadoghq.com/tracing/trace_collection/admission_controller/).
-  * Adding library injection specific annotations (without Datadog Admission Controller): [Application Instrumentation](https://docs.datadoghq.com/tracing/trace_collection/), [Add the Datadog Tracing Library](https://docs.datadoghq.com/tracing/trace_collection/)
-2) Automatically with Remote Config via the Datadog UI.
+1. Manually via Kubernetes annotations:
+
+- Using Datadog Admission Controller: [Injecting Libraries Kubernetes](https://docs.datadoghq.com/tracing/trace_collection/admission_controller/).
+- Adding library injection specific annotations (without Datadog Admission Controller): [Application Instrumentation](https://docs.datadoghq.com/tracing/trace_collection/), [Add the Datadog Tracing Library](https://docs.datadoghq.com/tracing/trace_collection/)
+
+2. Automatically with Remote Config via the Datadog UI.
 
 `Remote config is tricky to test in a isolated environment. K8s Lib Injection tests use Kubernetes ConfigMap to emulate the configuration applied through Datadog Remote Config utility. Kubernetes ConfigMaps allows the injection of configuration into an application. ConfigMap can be injected as environment variables or mounted files.`
 
 [Read more about the Kubernetes ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/)
-
 
 ## What’s the Datadog Cluster Agent and why?
 
@@ -44,11 +45,12 @@ The weblog will be deployed next to the APM Test Agent container, which will hel
 Now we can test the auto instrumentation on any image in two simple steps:
 
 1. Build your app image and tag locally as "weblog-injection:latest". :
-``` docker build  -t weblog-injection:latest .```
-    b. You could use the existing weblog apps under _lib-injection/build/docker_ folder. Use the existing script to build them:
-``` lib-injection/build/build_lib_injection_weblog.sh -w [existing weblog] -l [java,nodejs,dotnet,ruby,python]  ```
+   ` docker build  -t weblog-injection:latest .`
+   b. You could use the existing weblog apps under _lib-injection/build/docker_ folder. Use the existing script to build them:
+   `lib-injection/build/build_lib_injection_weblog.sh -w [existing weblog] -l [java,nodejs,dotnet,ruby,python] `
 
-2. Run the scenario that checks if weblog app is auto instrumented and sending traces to the _Dev Test Agent_:
+1. Run the scenario that checks if weblog app is auto instrumented and sending traces to the _Dev Test Agent_:
+
 ```
 TEST_LIBRARY=dotnet
 LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot
@@ -56,13 +58,13 @@ LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapsho
 ```
 
 You can also validate weblog applications that the language version is not supported by the tracer. The scenario will check that the app is running although the app is not instrumented:
+
 ```
 lib-injection/build/build_lib_injection_weblog.sh -w jdk7-app -l java
 TEST_LIBRARY=java
 LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot
 ./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
 ```
-
 
 # K8s lib-injection feature testing
 
@@ -74,7 +76,7 @@ The following image represents, in general terms, the necessary and dependent ar
 
 ![Architecture overview](../lib-injection/lib-injection-tests.png "Architecture overview")
 
-##  Kubernetes management to automate deployments
+## Kubernetes management to automate deployments
 
 In order to build a simple and automated integration test suite, the "K8s Lib Injection" tests are based on Kubernetes Python Client.
 [Read more about Kubernetes Python Client](https://github.com/kubernetes-client/python)
@@ -85,27 +87,28 @@ The following picture shows the main directories for the k8s lib injection tests
 
 ![Folder structure](../lib-injection/k8s_lib_injections_folders.png "Folder structure")
 
-* **lib-injection/build/docker:** This folder contains the sample applications with the source code and scripts that allow us to build and push docker weblog images.
-* **tests/k8s_lib_injection:** All tests cases are stored on this folder. Conftests.py file manages the kubernetes cluster lifecycle.
-* **utils/k8s_lib_injection:** Here we can find the main utilities for the control and deployment of the components to be tested. For example:
-  * **k8s_kind_cluster.py:** Tools for creating and destroying the Kubernetes cluster.
-  * **k8s_datadog_cluster_agent.py:** Utils for:
+- **lib-injection/build/docker:** This folder contains the sample applications with the source code and scripts that allow us to build and push docker weblog images.
+- **tests/k8s_lib_injection:** All tests cases are stored on this folder. Conftests.py file manages the kubernetes cluster lifecycle.
+- **utils/k8s_lib_injection:** Here we can find the main utilities for the control and deployment of the components to be tested. For example:
+  - **k8s_kind_cluster.py:** Tools for creating and destroying the Kubernetes cluster.
+  - **k8s_datadog_cluster_agent.py:** Utils for:
     - Deploy Datadog Cluster Agent
     - Deploy Datadog Admission Controller
     - Apply Kubernetes ConfigMap
     - Extract Datadog Components debug information.
-  * **k8s_weblog.py:**  Manages the weblog application lifecycle.
+  - **k8s_weblog.py:**  Manages the weblog application lifecycle.
     - Deploy weblog as pod configured to perform library injection manually/without the Datadog admission controller.
     - Deploy weblog as pod configured to automatically perform the library injection using the Datadog admission controler.
     - Deploy weblog as Kubernetes deployment and prepare the library injection using Kubernetes ConfigMaps and Datadog Admission Controller.
     - Extract weblog debug information.
-  * **k8s_command_utils.py:** Command line utils to lauch the Helm Chart commands and others shell commands.
+  - **k8s_command_utils.py:** Command line utils to lauch the Helm Chart commands and others shell commands.
 
 # Run the K8s Lib Injection tests in your Local
 
 These tests can run locally easily. You only have to install the environment and configure it as follow sections detail.
 
 ## Prerequisites:
+
 - Docker environment
 - Kubernetes environment
 - Configure the tests (Configure the container images references)
@@ -114,7 +117,7 @@ These tests can run locally easily. You only have to install the environment and
 
 You should install the docker desktop on your computer and **be loged into a personal Docker Hub account**
 
-```cat ~/my_password.txt | docker login --username my_personal_user --password-stdin ```
+`cat ~/my_password.txt | docker login --username my_personal_user --password-stdin `
 
 ### Kubernetes environment
 
@@ -177,6 +180,7 @@ You need to build and push weblog application to docker registry. You can use th
 ```sh
   lib-injection/build/build_lib_injection_weblog.sh -w $WEBLOG_VARIANT -l $TEST_LIBRARY --push-tag $LIBRARY_INJECTION_TEST_APP_IMAGE
 ```
+
 ## Build and Push init image
 
 If you want to test the latest dd-lib-LANG-init image, you can skip this step.
@@ -207,28 +211,30 @@ A minimum test scenario is also included. You can run it:
 
 All test cases for K8S_LIB_INJECTION will run on an isolated Kubernetes environment. For each test case we are going to start up a Kubernetes Cluster. In this way we can run the tests in parallel.
 Each test case will receive a "test_k8s_instance" object with these main properties loaded:
-* **library:** Current testing library (java, python...)
-* **weblog_variant:** Current sample application name (weblog name)
-* **weblog_variant_image:** Reference to the weblog image in the registry
-* **library_init_image:** Reference to the library init image in the registry
-* **output_folder:** Path to log folder for the current test.
-* **test_name:** Name of the current test.
-* **test_agent:** Instance of the object that contains the main methods to access to Datadog Cluster Agent (Deploy agent, deploy operator, apply configmaps...). See utils/k8s_lib_injection/k8s_datadog_cluster_agent.py.
-* **test_weblog:** Instance of the object that contains the main methods to access to weblog variant funtionalities (Deploy pod, deployments...). See utils/k8s_lib_injection/k8s_weblog.py.
-* **k8s_kind_cluster:** Contains the information of the Kubernetes cluster associated to the test.
+
+- **library:** Current testing library (java, python...)
+- **weblog_variant:** Current sample application name (weblog name)
+- **weblog_variant_image:** Reference to the weblog image in the registry
+- **library_init_image:** Reference to the library init image in the registry
+- **output_folder:** Path to log folder for the current test.
+- **test_name:** Name of the current test.
+- **test_agent:** Instance of the object that contains the main methods to access to Datadog Cluster Agent (Deploy agent, deploy operator, apply configmaps...). See utils/k8s_lib_injection/k8s_datadog_cluster_agent.py.
+- **test_weblog:** Instance of the object that contains the main methods to access to weblog variant funtionalities (Deploy pod, deployments...). See utils/k8s_lib_injection/k8s_weblog.py.
+- **k8s_kind_cluster:** Contains the information of the Kubernetes cluster associated to the test.
   - cluster_name: Random name associated to the cluster.
   - context_name: Kind cluster name
   - agent_port: Agent port
   - weblog_port: Weblog port
 
 The "test_k8s_instance" also contains some basic methods, that you can use directly instead of working with either "k8s_datadog_cluster_agent" or "k8s_weblog":
-* start_instance
-* destroy_instance
-* deploy_test_agent
-* deploy_weblog_as_pod
-* deploy_weblog_as_deployment
-* apply_config_auto_inject
-* export_debug_info
+
+- start_instance
+- destroy_instance
+- deploy_test_agent
+- deploy_weblog_as_pod
+- deploy_weblog_as_deployment
+- apply_config_auto_inject
+- export_debug_info
 
 Feel free to use the methods listed above or use the methods encapsulated in both "k8s_datadog_cluster_agent" and "k8s_weblog" or directly use the Kubernates Python Client to manipulate the Kunernates cluster components.
 
@@ -265,24 +271,24 @@ In the following image you can see the log folder content:
 
 These are the main important log/data files:
 
-* **test.log:** General log generated by system-tests.
-* **report.json:** Pytest results report.
-* **feature_parity.json:** Report to push the results to Feature Parity Dashboard.
-* **lib-injection-testing-xyz-config.yaml:** The kind cluster configuration. In this file you can check the open ports for each cluster and test case.
-* **lib-injection-testing-xyz_help_values:** Helm chart operator values for each test case.
-* **<testcase_folder>/applied_configmaps.log:** ConfigMaps applied in the testcase (it could be empty if there are no configmaps applied).
-* **<testcase_folder>/daemon.set.describe.log:** Datadog Cluster daemon set logs.
-* **<testcase_folder>/datadog-XYZ_events.log:** Kubernetes events for Datadog Agent.
-* **<testcase_folder>/datadog-cluster-agent-XYZ_status.log:** Datadog Cluster Agent current status.
-* **<testcase_folder>/datadog-cluster-agent-XYZ_telemetry.log:** Telemetry for Datadog Cluster Agent.
-* **<testcase_folder>/datadog-cluster-agent.log:** Logs generated by Datadog Cluster Agent.
-* **<testcase_folder>/datadog-cluster-agent-XYZ_event.log:** Kubernetes events for Datadog Cluster Agent.
-* **<testcase_folder>/deployment.describe.log:** Describe all deployment in the Kubernetes cluster.
-* **<testcase_folder>/deployment.logs.log:** All deployments logs.
-* **<testcase_folder>/events_configmaps.log:** Events generated when we apply a configmap.
-* **<testcase_folder>/get.deployments.log:** Deployments list.
-* **<testcase_folder>/get.pods.log:** Current started pod list.
-* **<testcase_folder>/k8s_logger.log:** Specific logs for current test case.
-* **<testcase_folder>/myapp.describe.log:** Describe weblog pod.
-* **<testcase_folder>/myapp.logs.log:** Current weblog pod logs. It could be empty if we are deploying the weblog as Kubernetes deployment.
-* **<testcase_folder>/test-LANG-deployment-XYZ_events.log:** Current weblog deployment events. Here you can see the events generated by auto instrumention process. It could be empty if we are deploying the weblog application as Pod.
+- **test.log:** General log generated by system-tests.
+- **report.json:** Pytest results report.
+- **feature_parity.json:** Report to push the results to Feature Parity Dashboard.
+- **lib-injection-testing-xyz-config.yaml:** The kind cluster configuration. In this file you can check the open ports for each cluster and test case.
+- **lib-injection-testing-xyz_help_values:** Helm chart operator values for each test case.
+- **\<testcase_folder>/applied_configmaps.log:** ConfigMaps applied in the testcase (it could be empty if there are no configmaps applied).
+- **\<testcase_folder>/daemon.set.describe.log:** Datadog Cluster daemon set logs.
+- **\<testcase_folder>/datadog-XYZ_events.log:** Kubernetes events for Datadog Agent.
+- **\<testcase_folder>/datadog-cluster-agent-XYZ_status.log:** Datadog Cluster Agent current status.
+- **\<testcase_folder>/datadog-cluster-agent-XYZ_telemetry.log:** Telemetry for Datadog Cluster Agent.
+- **\<testcase_folder>/datadog-cluster-agent.log:** Logs generated by Datadog Cluster Agent.
+- **\<testcase_folder>/datadog-cluster-agent-XYZ_event.log:** Kubernetes events for Datadog Cluster Agent.
+- **\<testcase_folder>/deployment.describe.log:** Describe all deployment in the Kubernetes cluster.
+- **\<testcase_folder>/deployment.logs.log:** All deployments logs.
+- **\<testcase_folder>/events_configmaps.log:** Events generated when we apply a configmap.
+- **\<testcase_folder>/get.deployments.log:** Deployments list.
+- **\<testcase_folder>/get.pods.log:** Current started pod list.
+- **\<testcase_folder>/k8s_logger.log:** Specific logs for current test case.
+- **\<testcase_folder>/myapp.describe.log:** Describe weblog pod.
+- **\<testcase_folder>/myapp.logs.log:** Current weblog pod logs. It could be empty if we are deploying the weblog as Kubernetes deployment.
+- **\<testcase_folder>/test-LANG-deployment-XYZ_events.log:** Current weblog deployment events. Here you can see the events generated by auto instrumention process. It could be empty if we are deploying the weblog application as Pod.

@@ -15,28 +15,27 @@ class Test_AwesomeFeature:
 
 Several key points:
 
-* One class test one feature
-* One class can have several tests
-* Feature link to the [Feature Parity Dashbaord](https://feature-parity.us1.prod.dog/) is declared with `@features` decorators
-* Files can be nested (`tests/test_product/test_stuffs.py::Test_AwesomeFeature`), and how files are organized does not make any difference. Use you common sense, or ask on [slack](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X).
+- One class test one feature
+- One class can have several tests
+- Feature link to the [Feature Parity Dashbaord](https://feature-parity.us1.prod.dog/) is declared with `@features` decorators
+- Files can be nested (`tests/test_product/test_stuffs.py::Test_AwesomeFeature`), and how files are organized does not make any difference. Use you common sense, or ask on [slack](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X).
 
 ## Skip tests
 
 Three decorators will helps you to skip some test function or class, depending on the skip reason:
 
-* `@irrelevant`: no need to test, the test is skipped
-* `@flaky`: The feature sometimes fails, sometimes passed, the test is skipped
-* `@bug`: known bug, the test is executed, and a warning is reported if it succeed
-* `@missing_feature`: feature or use case is not yet implemented, the test is executed, and a warning is reported if it succeed
+- `@irrelevant`: no need to test, the test is skipped
+- `@flaky`: The feature sometimes fails, sometimes passed, the test is skipped
+- `@bug`: known bug, the test is executed, and a warning is reported if it succeed
+- `@missing_feature`: feature or use case is not yet implemented, the test is executed, and a warning is reported if it succeed
 
 They takes several arguments:
 
-* `condition`: boolean, tell if it's relevant or not. As it's the first argument, you can omit the arguement name
-* `library`: provide library. version numbers are allowed (`java@1.2.4`)
-* `weblog_variant`: if you want to skip the test for a specific weblog
+- `condition`: boolean, tell if it's relevant or not. As it's the first argument, you can omit the arguement name
+- `library`: provide library. version numbers are allowed (`java@1.2.4`)
+- `weblog_variant`: if you want to skip the test for a specific weblog
 
 And then, an `reason` argument with mor details. It's very handy for `@bug`, the best is providing a JIRA tickets number.
-
 
 ```python
 from utils import irrelevant
@@ -62,6 +61,7 @@ class Test_AwesomeFeature:
 ## Declare a RFC
 
 When the RFC exists, you must use this decorator:
+
 ```python
 from utils import rfc
 
@@ -70,4 +70,3 @@ from utils import rfc
 class Test_Millenium:
     """ Test on small details """
 ```
-

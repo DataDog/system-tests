@@ -13,8 +13,9 @@ appsec_api_security_rc = EndToEndScenario(
     """,
 )
 ```
+
 In this code example, we can see that we are defining a proxy for remote config, with the name **APPSEC_API_SECURITY_RC**,
-it means that this scenario will mock calls from libraries to `/v7/config` by the content in *utils/proxy/rc_mocked_responses_**appsec_api_security_rc**.json* file.
+it means that this scenario will mock calls from libraries to `/v7/config` by the content in *utils/proxy/rc_mocked_responses\_**appsec_api_security_rc**.json* file.
 
 ### Create mock file
 

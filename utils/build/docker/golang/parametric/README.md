@@ -1,4 +1,3 @@
-
 Install protobuf:
 
 (Taken from https://developers.google.com/protocol-buffers/docs/gotutorial)

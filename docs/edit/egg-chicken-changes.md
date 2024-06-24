@@ -5,18 +5,18 @@ We are not in a perfect world, so here is the recipes :
 ## The very lazy way
 
 1. Do your PR in your repo, merge it
-2. Do the PR on system-tests, merge it
+1. Do the PR on system-tests, merge it
 
 Totally acceptable, if you accept the risk to do another PR on your repo.
 
 ## The lazy way (but probably the best one)
 
 1. Do a PR in system-tests (it fails)
-2. Do your PR in your repo
-3. Test it locally
-4. Merge your PR on your repo
-5. Re-run system-tests PR. In theory, it should be ok.
-6. Merge it
+1. Do your PR in your repo
+1. Test it locally
+1. Merge your PR on your repo
+1. Re-run system-tests PR. In theory, it should be ok.
+1. Merge it
 
 You have to run system-tests locally. But you will reduces the risk of rework on your repo, and you keep your `main` branch clean.
 
@@ -25,20 +25,20 @@ You have to run system-tests locally. But you will reduces the risk of rework on
 Use the [`-F` option](../execute/force-execute.md):
 
 1. If needed, add the test in system tests, skip it using manifest, merge this PR
-2. Do your PR in your repo
-3. Modify your CI to include the test you want to activate:
-    * `./run.sh MY_SCENARIO -F tests/feature.py::Test_Feature`
-3. Iterate on your PR, merge it
-4. :warning: Add a PR in system-tests repo to unskip the test in manifest file, otherwise we may change the test, and break your CI without noticing it.
+1. Do your PR in your repo
+1. Modify your CI to include the test you want to activate:
+   - `./run.sh MY_SCENARIO -F tests/feature.py::Test_Feature`
+1. Iterate on your PR, merge it
+1. :warning: Add a PR in system-tests repo to unskip the test in manifest file, otherwise we may change the test, and break your CI without noticing it.
 
 And so time to time, removes all the `-F` in your CI.
 
 ## The good way (but so heavy, it's probably not worthy)
 
 1. Do a PR in system-tests (it fails)
-2. Do your PR in your repo. **On this PR, change the CI to use the system-tests branch**
-3. Iterate on both PR until the PR on your repo is ok
-4. Very last commit on your PR : **revert the change on your CI that used the dedicated system-tests branch**
-5. Merge your PR on your repo
-6. Re-run system-tests PR CI. In theory, it should be ok.
-7. Merge it.
+1. Do your PR in your repo. **On this PR, change the CI to use the system-tests branch**
+1. Iterate on both PR until the PR on your repo is ok
+1. Very last commit on your PR : **revert the change on your CI that used the dedicated system-tests branch**
+1. Merge your PR on your repo
+1. Re-run system-tests PR CI. In theory, it should be ok.
+1. Merge it.

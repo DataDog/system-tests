@@ -80,6 +80,7 @@ returned list may be empty.
 
 The Weblog must normally respond to all queries with an `HTTP 200` status code. The response body is a JSON-encoded
 object with the following strucutre:
+
 - `data` - the response of the GraphQL query
 - `errors` - a list of errors produced while resolving the GraphQL Query (may be omitted if empty)
 

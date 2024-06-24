@@ -28,9 +28,7 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
 - Data is flushed to the test agent after the with test_library block closes.
 - Data is retrieved using the `test_agent` fixture and asserted on.
 
-
 ## Usage
-
 
 ### Installation
 
@@ -46,7 +44,6 @@ then, run the following command, which will create a Python virtual environment 
 ```sh
 ./build.sh -i runner
 ```
-
 
 ### Running the tests
 
@@ -90,6 +87,7 @@ Add a file datadog-dotnet-apm-<VERSION>.tar.gz in binaries/. <VERSION> must be a
 ##### Run Parametric tests with a custom Java Tracer version
 
 1. Build Java Tracer artifacts
+
 ```bash
 git clone git@github.com:DataDog/dd-trace-java.git
 cd dd-trace-java
@@ -97,8 +95,9 @@ cd dd-trace-java
 ```
 
 2. Copy both artifacts into the `system-tests/binaries/` folder:
-  * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
-  * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
+
+- The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
+- Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
 
 Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
 
@@ -107,7 +106,6 @@ Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy
 ```bash
 TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
 ```
-
 
 #### PHP
 
@@ -132,11 +130,9 @@ From the repo root folder:
   ],
 ```
 
-
 #### Python
 
-To run the Python tests "locally" push your code to a branch and then specify ``PYTHON_DDTRACE_PACKAGE``.
-
+To run the Python tests "locally" push your code to a branch and then specify `PYTHON_DDTRACE_PACKAGE`.
 
 ```sh
 TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@2.x ./run.sh PARAMETRIC [-k ...]
@@ -145,28 +141,31 @@ TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-tra
 #### NodeJS
 
 There is two ways for running the NodeJS tests with a custom tracer:
+
 1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
-    * `DataDog/dd-trace-js#master`
-2. Clone the dd-trace-js repo inside `binaries`
+   - `DataDog/dd-trace-js#master`
+1. Clone the dd-trace-js repo inside `binaries`
 
 #### Ruby
 
 There is two ways for running the Ruby tests with a custom tracer:
 
 1. Create an file ruby-load-from-bundle-add in binaries/, the content will be installed by bundle add. Content example:
-gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'
-2. Clone the dd-trace-rb repo inside binaries
+   gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'
+1. Clone the dd-trace-rb repo inside binaries
 
 #### C++
 
 There is two ways for running the C++ library tests with a custom tracer:
+
 1. Create a file `cpp-load-from-git` in `binaries/`. Content examples:
-    * `https://github.com/DataDog/dd-trace-cpp@main`
-    * `https://github.com/DataDog/dd-trace-cpp@<COMMIT HASH>`
-2. Clone the dd-trace-cpp repo inside `binaries`
+   - `https://github.com/DataDog/dd-trace-cpp@main`
+   - `https://github.com/DataDog/dd-trace-cpp@<COMMIT HASH>`
+1. Clone the dd-trace-cpp repo inside `binaries`
 
 The parametric shared tests can be run against the C++ library,
 [dd-trace-cpp][1], this way:
+
 ```console
 $ TEST_LIBRARY=cpp ./run.sh PARAMETRIC
 ```
@@ -174,18 +173,21 @@ $ TEST_LIBRARY=cpp ./run.sh PARAMETRIC
 Use the `-k` command line argument, which is forwarded to [pytest][2], to
 specify a substring within a particular test file, class, or method. Then only
 matching tests will run, e.g.
+
 ```console
 $ TEST_LIBRARY=cpp ./run.sh PARAMETRIC -k test_headers
 ```
 
 It's convenient to have a pretty printer for the tests' XML output. I use
 [xunit-viewer][3].
+
 ```console
 $ npm install junit-viewer -g
 ```
 
 My development iterations then involve running the following at the top of the
 repository:
+
 ```console
 $ TEST_LIBRARY=cpp ./run.sh PARAMETRIC -k test_headers; xunit-viewer -r logs_parametric/reportJunit.xml
 ```
@@ -209,7 +211,6 @@ These can be used to debug the test case.
 The output also contains the commands used to build and run the containers which can be run manually to debug the issue
 further.
 
-
 ## Troubleshooting
 
 - Ensure docker is running.
@@ -217,12 +218,10 @@ further.
 - Exiting the tests abruptly maybe leave some docker containers running. Use `docker ps` to find and `docker kill` any
   containers that may still be running.
 
-
 ### Port conflict on 50052
 
 If there is a port conflict with an existing process on the local machine then the default port `50052` can be
 overridden using `APM_LIBRARY_SERVER_PORT`.
-
 
 ### Disable build kit
 
@@ -241,7 +240,6 @@ are being produced then likely build kit has to be disabled.
 
 To do that open the Docker UI > Docker Engine. Change `buildkit: true` to `buildkit: false` and restart Docker.
 
-
 ### Tests failing locally but not in CI
 
 A cause for this can be that the Docker image containing the APM library is cached locally with an older version of the
@@ -250,7 +248,6 @@ library. Deleting the image will force a rebuild which will resolve the issue.
 ```sh
 docker image rm <library>-test-library
 ```
-
 
 ## Developing the tests
 
@@ -294,7 +291,6 @@ http://localhost:8000/openapi.json. The schema can be imported
 into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
 other tooling to assist in development.
 
-
 ### Architecture
 
 - Shared tests are written in Python (pytest).
@@ -302,7 +298,6 @@ other tooling to assist in development.
 - [test agent](https://github.com/DataDog/dd-apm-test-agent/) is started in a container to collect the data from the GRPC servers.
 
 Test cases are written in Python and target the shared GRPC interface. The tests use a GRPC client to query the servers and the servers generate the data which is submitted to the test agent. Test cases can then query the data from the test agent to perform assertions.
-
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
 

@@ -1,16 +1,19 @@
 # Running all tests
 
 From the `/parametric` directory (`cd ../..` from this file's location), run:
+
 ```sh
 CLIENTS_ENABLED=ruby ./run.sh
 ```
 
 To run a single test file:
+
 ```sh
 CLIENTS_ENABLED=ruby ./run.sh test_headers_b3.py
 ```
 
 To run a single test:
+
 ```sh
 CLIENTS_ENABLED=ruby ./run.sh -k test_metrics_msgpack_serialization_TS001
 ```
@@ -26,6 +29,7 @@ RUBY_DDTRACE_SHA=0552ebd49dc5b3bec4e739c2c74b214fb3102c2a ./run.sh ...
 The server runs on Ruby 3.2.1.
 
 To debug the server locally, run:
+
 ```sh
 bundle install
 ./generate_proto.sh

@@ -1,8 +1,8 @@
 # RFC status
 
-* Initiated : June 2023
-* Validated : july 2023
-* Implemented : August 2023
+- Initiated : June 2023
+- Validated : july 2023
+- Implemented : August 2023
 
 ### Context
 
@@ -20,7 +20,7 @@ Unfortunatly, it comes with a major drawback: Activating a single test can becom
 To solve this, we'll try to leverage two points :
 
 1. Often, those declarations involve only one component
-2. Often, a component is modified by only one developper
+1. Often, a component is modified by only one developper
 
 The idea is to offer an alternative way to declare those metadata, using one file per component, also known as manifest file. Those files will be inside system tests repo, declaring for a given component some metadata.
 
@@ -54,11 +54,10 @@ Will support:
 Won't support:
 
 - any complex logic
-  _ because there is not limit on the complexity. We need to draw a line based on the ratio format simplicity / number of occurrences. The cutoff point is only test classes, declaring version for weblog variants, or skip reason for the entire class.
+  \_ because there is not limit on the complexity. We need to draw a line based on the ratio format simplicity / number of occurrences. The cutoff point is only test classes, declaring version for weblog variants, or skip reason for the entire class.
 - declaring metadata (bug, flaky, irrelevant) for test methods
   - because their namings are not stable, it would lead to frequent modifications of manifest files, spaming every team
   - because conflict mostly happen at class level
-
 
 ## Example
 
@@ -79,7 +78,7 @@ tests/:
         "*": missing_feature # All other weblogs: not yet available
 ```
 
-## Format [WIP]
+## Format \[WIP\]
 
 ```json
 {

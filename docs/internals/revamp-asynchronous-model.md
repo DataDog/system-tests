@@ -1,10 +1,9 @@
 ## TL;DR.
 
-* We will revamp tests execution logic.
-* **goal**: Reduce the overall complexity of system test internals
-* **drawback**: Weblog requests will no longer be in the same test function
-* **added values**: It'll be easier to run and debug test logics. And using native pytest feature, we'll be able to include parametric test in system tests.
-
+- We will revamp tests execution logic.
+- **goal**: Reduce the overall complexity of system test internals
+- **drawback**: Weblog requests will no longer be in the same test function
+- **added values**: It'll be easier to run and debug test logics. And using native pytest feature, we'll be able to include parametric test in system tests.
 
 ### Test code before
 
@@ -35,7 +34,6 @@ class Test_Feature(BaseTestCase):
             assert "feature" in trace
 ```
 
-
 ## Revamp description
 
 As now, all validation are made asynchronously, after the end of the test session. It comes with a lot of hack around pytest, and, as a consequence, make harder to debug test logic, and requires a minimum understanding of the asynchronous logic.
@@ -60,4 +58,3 @@ Overwrite test result      | pytest_json_modifyreport, with lot of hacks        
 ## Drawback
 
 One nice feature of the actual system if that if a feature needs an weblog HTTP request to be tested, this request is in the test method. And even if test logic is not **in** the test function (mostly in a nested function, or directly in some system test internal, like `assert_waf_attack(request)`), it's close enough to be easily understable. With the new model, it must be in a separated method. We'll try to mitigate this slighlty bigger distance by organizing test classes to keep every setup method just above the associated test method.
-

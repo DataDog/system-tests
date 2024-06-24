@@ -1,11 +1,10 @@
 The RC API is the official way to interact with remote config. It allows to send RC payload to the library durint setup phase, and send request before/after each state change. Here is an example a scenario activating/deactivating ASM:
 
 1. the library starts in an initial state where ASM is disabled. This state is validated with an assertion on a request containing an attack : the request should not been caught by ASM
-2. Then a RC command is sent to activate ASM
-3. another request containing an attack is sent, this one must be reported by ASM
-4. A second command is sent to deactivate ASM
-5. a thirst request containing an attack is sent, this last one should not be seen
-
+1. Then a RC command is sent to activate ASM
+1. another request containing an attack is sent, this one must be reported by ASM
+1. A second command is sent to deactivate ASM
+1. a thirst request containing an attack is sent, this last one should not be seen
 
 Here is the test code performing that test. Please note the magic constants `ACTIVATE_ASM_PAYLOAD` and `DEACTIVATE_ASM_PAYLOAD`: they are encoded RC payload (exemple [here](https://github.com/DataDog/system-tests/blob/7644ceaa3c7ea44ade8bcca8c3bb2a5991d03e34/utils/proxy/rc_mocked_responses_asm_activate_only.json)). We still miss a tool that generate them from human-readable content, it will come in a near future.
 

@@ -34,4 +34,3 @@ More details in [build documentation](https://github.com/DataDog/system-tests/bl
 ![Output on success](./utils/assets/output.png?raw=true)
 
 **[Complete documentation](https://github.com/DataDog/system-tests/blob/main/docs)**
-

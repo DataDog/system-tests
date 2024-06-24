@@ -7,7 +7,7 @@
   # Format py sources
   programs.black.enable = true;
   # Format .sh scripts
-  programs.shfmt.enable = true;
+  # programs.beautysh.enable = true;
   # Format Markdown
   programs.mdformat.enable = true;
   # set prettier to only format markdown

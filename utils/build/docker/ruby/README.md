@@ -2,7 +2,6 @@
 
 ## Updating lockfiles
 
-
 ```
 # example with rails71
 

@@ -13,13 +13,12 @@ APM libraries.
 Currently, there are two different ways to have the Datadog library injected
 into the application container:
 
-1) Manually via Kubernetes annotations as described here: https://docs.datadoghq.com/tracing/trace_collection/admission_controller/.
-2) Automatically with Remote Config via the Datadog UI.
+1. Manually via Kubernetes annotations as described here: https://docs.datadoghq.com/tracing/trace_collection/admission_controller/.
+1. Automatically with Remote Config via the Datadog UI.
 
 References to "manual" and "auto" in the tests refer to these different
 features, respectively. Under the hood the two mechanisms rely on the same logic
 to instrument the application.
-
 
 ## How does it work?
 
@@ -60,41 +59,41 @@ All that we need to execute lib-injection tests is located under lib-injection t
 
 ![Folder structure](../docs/lib-injection/lib-injection-folder.png "Folder structure")
 
-* **Build/docker:** Folder containing the sample applications with the corresponding files that allow us to build and push docker weblog images.
-* **Common/templates:** Contains kubernetes yaml files to deploy our sample applications. Yaml files are templates that work with helm utililty (see section "lib-injections tests functions" ).
-* **Common:** Contains operator yaml templates. These templates will be used when we are launching tests with the Admission Controller.
-    * **Operator-helm-values-uds.yaml:** Template to configure the Admission Controller using UDS.
-    * **Operator-helm-values.yaml:** Template to configure the Admission Controller without UDS.
-    * **Operator-helm-values-auto.yaml:** Template to configure the Admission Controller for automatic instrumentation.
-* **docker-tags:** GitHub custom and shared actions that helps to "tracer repositories" to create appropiate tag names for init images (see section "How to create init images in your tracer repository")
-* **runner:** GitHub custom and shared actions that helps to run the tests in GitHub Actions CI. (see section "How to run the lib-injection tests in CI")
-* **src/test/resources:** Yaml kubernetes descriptors to create Datadog agent and Cluster agent.
-* **src/test/shell/functions.sh:** Contains the "logic" of these tests. We can found functions to manipulate helm templates and create kubernetes cluster environment (see section "lib-injections tests functions" ).
-* **build.sh:** Install binaries for kubernetes.
-* **execFunction.sh**: Helper to launch the functions that are stored in functions.sh.
-* **run-{manual,auto}-lib-injection.sh**: Orchestrates the differents steps to launch the tests for the manual and auto test cases.
+- **Build/docker:** Folder containing the sample applications with the corresponding files that allow us to build and push docker weblog images.
+- **Common/templates:** Contains kubernetes yaml files to deploy our sample applications. Yaml files are templates that work with helm utililty (see section "lib-injections tests functions" ).
+- **Common:** Contains operator yaml templates. These templates will be used when we are launching tests with the Admission Controller.
+  - **Operator-helm-values-uds.yaml:** Template to configure the Admission Controller using UDS.
+  - **Operator-helm-values.yaml:** Template to configure the Admission Controller without UDS.
+  - **Operator-helm-values-auto.yaml:** Template to configure the Admission Controller for automatic instrumentation.
+- **docker-tags:** GitHub custom and shared actions that helps to "tracer repositories" to create appropiate tag names for init images (see section "How to create init images in your tracer repository")
+- **runner:** GitHub custom and shared actions that helps to run the tests in GitHub Actions CI. (see section "How to run the lib-injection tests in CI")
+- **src/test/resources:** Yaml kubernetes descriptors to create Datadog agent and Cluster agent.
+- **src/test/shell/functions.sh:** Contains the "logic" of these tests. We can found functions to manipulate helm templates and create kubernetes cluster environment (see section "lib-injections tests functions" ).
+- **build.sh:** Install binaries for kubernetes.
+- **execFunction.sh**: Helper to launch the functions that are stored in functions.sh.
+- **run-{manual,auto}-lib-injection.sh**: Orchestrates the differents steps to launch the tests for the manual and auto test cases.
 
 ## lib-injections tests functions
 
 `functions.sh` contains the "logic" of these tests.
 We can find some environment variables that we need to define previously:
 
-* **TEST_LIBRARY:** Language that we want to test. Possible values: java, python, nodejs
-* **WEBLOG_VARIANT:** Sample application that we want to use. We could have more that one application for each language. The sample applications are stored in build/docker folder.
-* **DOCKER_REGISTRY_IMAGES_PATH:** Docker Registry with which we are going to operate. In GitHub CI environment we are going to work with GHCR, but if we run tests in local laptop probably we will use Docker Hub registry.
-* **DOCKER_IMAGE_TAG:** Tag for init image we want to tests.
-* **DOCKER_IMAGE_WEBLOG_TAG:** Tag for weblog image we want to test.
-* **BUILDX_PLATFORMS:** Architectures/Platforms for which we will generate the docker images for the example applications
-* **LIBRARY_INJECTION_CONNECTION:** Test with or without UDS.
-* **LIBRARY_INJECTION_ADMISSION_CONTROLLER:** Test autoinstrumentation with or without admission controller.
+- **TEST_LIBRARY:** Language that we want to test. Possible values: java, python, nodejs
+- **WEBLOG_VARIANT:** Sample application that we want to use. We could have more that one application for each language. The sample applications are stored in build/docker folder.
+- **DOCKER_REGISTRY_IMAGES_PATH:** Docker Registry with which we are going to operate. In GitHub CI environment we are going to work with GHCR, but if we run tests in local laptop probably we will use Docker Hub registry.
+- **DOCKER_IMAGE_TAG:** Tag for init image we want to tests.
+- **DOCKER_IMAGE_WEBLOG_TAG:** Tag for weblog image we want to test.
+- **BUILDX_PLATFORMS:** Architectures/Platforms for which we will generate the docker images for the example applications
+- **LIBRARY_INJECTION_CONNECTION:** Test with or without UDS.
+- **LIBRARY_INJECTION_ADMISSION_CONTROLLER:** Test autoinstrumentation with or without admission controller.
 
 `functions.sh` contains some remarkable functions:
 
-* **ensure-cluster:** It creates a Kubernetes cluster using configuration file: test/resources/kind-config.yaml.
-* **deploy-operator:** Deploys Datadog operator in the case that we are using Admission Controller. It uses common/operator-helm-values.yaml or common/operator-helm-values-uds.yaml to configure Admission Controller.
-* **deploy-test-agent:** Deploys Datadog Agent in Kubernetes cluster, using configuration file: test/resources/dd-apm-test-agent-config.yaml.
-* **deploy-app:** Deploys sample application/weblog in Kubernetes cluster, using template file: lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml.
-* **print-debug-info:** prints and log debug information for kubernertes cluster and library injection tests
+- **ensure-cluster:** It creates a Kubernetes cluster using configuration file: test/resources/kind-config.yaml.
+- **deploy-operator:** Deploys Datadog operator in the case that we are using Admission Controller. It uses common/operator-helm-values.yaml or common/operator-helm-values-uds.yaml to configure Admission Controller.
+- **deploy-test-agent:** Deploys Datadog Agent in Kubernetes cluster, using configuration file: test/resources/dd-apm-test-agent-config.yaml.
+- **deploy-app:** Deploys sample application/weblog in Kubernetes cluster, using template file: lib-injection/build/docker/$TEST_LIBRARY/values-override.yaml.
+- **print-debug-info:** prints and log debug information for kubernertes cluster and library injection tests
 
 ## How to run the lib-injection tests in CI
 
@@ -139,7 +138,7 @@ To run lib-injection tests in your CI you need:
 You can also run the tests locally, but in this case we will create the docker init image using the corresponding tracer library.
 
 The first step is to login in docker hub, either with Docker Desktop app or with CLI (you may need to generate an access token [here](https://hub.docker.com/settings/security)):
-``` docker login --username MY_DOCKERHUB_USERNAME ```
+`docker login --username MY_DOCKERHUB_USERNAME`
 
 The second step is define the environment variables:
 
@@ -155,17 +154,18 @@ export BUILDX_PLATFORMS=linux/arm64
 The next is to download or compile the tracer libray that you want to test. You have to locate binary libary in the system-tests/binaries folder.
 When we have the environment ready, we have to execute this logic:
 
-* Build and push the init image
+- Build and push the init image
 
   To use an existing image, you need to push it to your dockerhub account, for example:
+
 ```sh
 docker pull ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot
 docker tag ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
 docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
 ```
 
-* Build and push the app image
-* Create the Kubernetes cluster
+- Build and push the app image
+- Create the Kubernetes cluster
 
 ```sh
 ./lib-injection/execFunction.sh build-and-push-init-image
@@ -173,16 +173,16 @@ docker push ${DOCKER_REGISTRY_IMAGES_PATH}/dd-lib-js-init:local
 ./lib-injection/build.sh
 ```
 
-* Execute the manual tests
+- Execute the manual tests
 
-  * Make sure that init and app images are public on your dockerhub account.
-  * Comment name, tag and repository in `clusterAgent.image` section of `operator-helm-values*.yaml`
+  - Make sure that init and app images are public on your dockerhub account.
+  - Comment name, tag and repository in `clusterAgent.image` section of `operator-helm-values*.yaml`
 
 ```sh
 ./lib-injection/run-manual-lib-injection.sh
 ```
 
-* Execute the auto tests
+- Execute the auto tests
 
 ```sh
 TEST_CASE=<TestCaseN>  # define the test case

@@ -2,7 +2,7 @@
 
 ## Default behavior
 
-Before running assertions, the system-test will wait a certain amount of time (defined in [_scenarios.py](https://github.com/DataDog/system-tests/blob/9ae1dcff8ca55bcc4157781a406bbcafeb358d54/utils/_context/_scenarios.py#L424)), to wait for all remaining data to be flushed.
+Before running assertions, the system-test will wait a certain amount of time (defined in [\_scenarios.py](https://github.com/DataDog/system-tests/blob/9ae1dcff8ca55bcc4157781a406bbcafeb358d54/utils/_context/_scenarios.py#L424)), to wait for all remaining data to be flushed.
 It will then stop the weblog container, and only then run all the assertions.
 
 ## Implicit flushing

@@ -1,8 +1,8 @@
 In system-tests, a scenario is a set of:
 
-* a tested architecture, which can be a set of docker containers, a single container, or even nothing
-* a list of setup executed on this tested architecture
-* and a list of test
+- a tested architecture, which can be a set of docker containers, a single container, or even nothing
+- a list of setup executed on this tested architecture
+- and a list of test
 
 ## How to identify a scenario?
 

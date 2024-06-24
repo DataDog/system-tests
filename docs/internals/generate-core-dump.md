@@ -1,10 +1,10 @@
 When weblog experiences segmentation fault, it may be difficult to get a core dump. Here is an helpful recipe from @sanchda :
 
-> * Assumes a glibc-compatible container
-> * download https://github.com/sanchda/test_gcr/releases/download/v1.16.1_innerapi/libSegFault.so into the image
-> * Make it executable
-> * LD_PRELOAD the resulting file somewhere in the environment python will pick up
-> * It’ll emit the backtrace at the crash site as well as some useful diagnostic information to stdio
+> - Assumes a glibc-compatible container
+> - download https://github.com/sanchda/test_gcr/releases/download/v1.16.1_innerapi/libSegFault.so into the image
+> - Make it executable
+> - LD_PRELOAD the resulting file somewhere in the environment python will pick up
+> - It’ll emit the backtrace at the crash site as well as some useful diagnostic information to stdio
 
 For instance, on python django weblog :
 
