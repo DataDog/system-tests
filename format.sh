@@ -46,7 +46,7 @@ pylint utils  # pylint does not have a fix mode
 
 # not py, as it's handled by black
 INCLUDE_EXTENSIONS=("*.md" "*.yml" "*.yaml" "*.sh" "*.cs" "*.Dockerfile" "*.java" "*.sql" "*.ts" "*.js" "*.php")
-EXCLUDE_DIRS=("logs*" "*/node_modules/*" "./venv/*" "./manifests/*" "./lib-injection/*" "./utils/*")
+EXCLUDE_DIRS=("logs*" "*/node_modules/*" "./venv/*" "./manifests/*" "./utils/build/*")
 
 INCLUDE_ARGS=()
 for ext in "${INCLUDE_EXTENSIONS[@]}"; do
