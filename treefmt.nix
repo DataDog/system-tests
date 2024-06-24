@@ -7,10 +7,10 @@
   # Format py sources
   programs.black.enable = true;
   # Format .sh scripts
-  # programs.shfmt.enable = true;
+  programs.shfmt.enable = true;
   # Format Markdown
-  # programs.prettier.enable = true;
+  programs.mdformat.enable = true;
   # set prettier to only format markdown
   # settings.formatter.prettier.includes = ["*.md"];
-  settings.global.excludes = ["tests/fuzzer/**" "tests/appsec/waf/blocked*" "utils/parametric/protos/*.py"];
+  settings.global.excludes = ["tests/fuzzer/**" "tests/appsec/waf/blocked*" "utils/parametric/protos/*.py" "lib-injection/common/templates/*"];
 }
