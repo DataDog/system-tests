@@ -500,3 +500,92 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
+    def setup_no_appsec_upstream__no_attack__other_vendors_tracestate_is_kept_with_priority_1__from_2(self):
+        self.r = weblog.get(
+            "/requestdownstream/",
+            headers={
+                "x-datadog-trace-id": "61185",
+                "x-datadog-parent-id": "15",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-origin": "rum",
+                "traceparent": "00-0000000000000000000000000000ef01-0000000000011ef0-01",
+                "tracestate": "other=other_data,dd=t.dm:-4;s:2",
+            },
+        )
+
+    def test_no_appsec_upstream__no_attack__other_vendors_tracestate_is_kept_with_priority_1__from_2(self):
+        spans_checked = 0
+        for _, _, span in interfaces.library.get_spans(request=self.r):
+            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+                continue
+
+            spans_checked += 1
+
+        assert spans_checked == 1
+        # Downstream propagation is fully disabled but keeping tracestate from other vendors
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        assert "tracestate" in downstream_headers
+        assert downstream_headers["tracestate"] == "other=other_data"
+
+    def setup_no_appsec_upstream__no_attack__decision_mechanism_is_appsec(self):
+        self.r = weblog.get(
+            "/requestdownstream/",
+            headers={
+                "x-datadog-trace-id": "61185",
+                "x-datadog-parent-id": "15",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-origin": "rum",
+                "x-datadog-tags": "_dd.p.dm=-4",
+            },
+        )
+
+    def test_no_appsec_upstream__no_attack__decision_mechanism_is_appsec(self):
+        spans_checked = 0
+        for _, _, span in interfaces.library.get_spans(request=self.r):
+            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+                continue
+
+            # Decission mechanism is removed from trace when priority is less than 1
+            if span["metrics"]["_sampling_priority_v1"] >= 1:
+                assert span["meta"]["_dd.p.dm"] == "-5"
+            else:
+                assert "_dd.p.dm" not in span["meta"]
+
+            spans_checked += 1
+
+        assert spans_checked == 1
+        # Downstream propagation is fully disabled but keeping tracestate from other vendors
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+
+        assert "X-Datadog-Tags" not in downstream_headers
+
+    def setup_no_appsec_upstream__with_attack__decision_mechanism_is_appsec(self):
+        self.r = weblog.get(
+            "/requestdownstream/",
+            headers={
+                "x-datadog-trace-id": "61185",
+                "x-datadog-parent-id": "15",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-origin": "rum",
+                "x-datadog-tags": "_dd.p.dm=-4",
+                "User-Agent": "Arachni/v1",
+            },
+        )
+
+    def test_no_appsec_upstream__with_attack__decision_mechanism_is_appsec(self):
+        spans_checked = 0
+        for _, _, span in interfaces.library.get_spans(request=self.r):
+            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+                continue
+
+            assert span["meta"]["_dd.p.dm"] == "-5"
+
+            spans_checked += 1
+
+        assert spans_checked == 1
+        # Downstream propagation is fully disabled but keeping tracestate from other vendors
+        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+
+        assert "x-datadog-tags" in downstream_headers
+        assert "_dd.p.dm=-5" in downstream_headers["x-datadog-tags"]
