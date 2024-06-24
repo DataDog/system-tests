@@ -4,7 +4,17 @@
 
 import tests.debugger.utils as base
 
-from utils import scenarios, interfaces, weblog, features, bug, missing_feature, irrelevant, context
+from utils import (
+    scenarios,
+    interfaces,
+    weblog,
+    features,
+    bug,
+    missing_feature,
+    irrelevant,
+    context,
+    remote_config as rc,
+)
 
 REDACTED_KEYS = [
     "_2fa",
@@ -103,6 +113,17 @@ REDACTED_KEYS = [
 
 REDACTED_TYPES = ["customPii"]
 
+PROBES = [
+    {
+        "language": "",
+        "id": "log170aa-acda-4453-9111-1478a6method",
+        "where": {"typeName": "ACTUAL_TYPE_NAME", "methodName": "Pii", "sourceFile": None},
+        "evaluateAt": "EXIT",
+        "captureSnapshot": True,
+        "capture": {"maxFieldCount": 200},
+    }
+]
+
 
 def filter(keys_to_filter):
     return [item for item in REDACTED_KEYS if item not in keys_to_filter]
@@ -111,16 +132,36 @@ def filter(keys_to_filter):
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
 class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
+    probes_state = None
+
     def _setup(self):
+
         self.expected_probe_ids = [
             "log170aa-acda-4453-9111-1478a6method",
         ]
 
-        interfaces.library.wait_for_remote_config_request()
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.weblog_responses = [weblog.get("/debugger/pii")]
+        # trick to avoid to re-run the setup function for each test: we save the result of weblog_responses/probes_state
+        # in class rather than class instance (each test got it's own class instance)
+        # and if it exists, we pick it from there
+        if Test_Debugger_PII_Redaction.probes_state is None:
+            # setup has not been run yet
+            # rc.send_command(raw_payload=rc.build_debugger_command(probes=None, version=0))
+            payload = rc.build_debugger_command(probes=PROBES, version=1)
+
+            Test_Debugger_PII_Redaction.probes_state = rc.send_command(
+                raw_payload=payload, wait_for_acknowledged_status=False
+            )
+            interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
+
+            Test_Debugger_PII_Redaction.weblog_responses = [weblog.get("/debugger/pii")]
+
+        # get values from class
+        self.weblog_responses = Test_Debugger_PII_Redaction.weblog_responses
+        self.probes_state = Test_Debugger_PII_Redaction.probes_state
 
     def _test(self, redacted_keys, redacted_types):
+        # apply_state is not ACKNOWLEDGED, but UNACKNOWLEDGED
+        # assert self.probes_state is not None and self.probes_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED
         self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()

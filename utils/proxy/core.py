@@ -269,7 +269,6 @@ class _RequestLogger:
                     "DEBUGGER_LINE_PROBES_SNAPSHOT",
                     "DEBUGGER_METHOD_PROBES_SNAPSHOT",
                     "DEBUGGER_MIX_LOG_PROBE",
-                    "DEBUGGER_PII_REDACTION",
                     "DEBUGGER_EXPRESSION_LANGUAGE",
                 ):
                     response = rc_debugger.create_rcm_probe_response(

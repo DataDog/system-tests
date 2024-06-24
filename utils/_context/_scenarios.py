@@ -1902,7 +1902,7 @@ class scenarios:
 
     debugger_pii_redaction = EndToEndScenario(
         "DEBUGGER_PII_REDACTION",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
