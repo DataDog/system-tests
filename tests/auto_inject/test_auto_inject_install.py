@@ -45,13 +45,17 @@ class _AutoInjectBaseTest:
         command_with_env = f"{prefix_env} {command}"
 
         with virtual_machine.ssh_config.get_ssh_connection() as ssh:
-            _, stdout, stderr = ssh.exec_command(command_with_env, timeout=120)
+            _, stdout, stderr = ssh.exec_command(command_with_env, timeout=300, get_pty=True)
             stdout.channel.set_combine_stderr(True)
             # Read the output line by line
             command_output = ""
-            for line in stdout.readlines():
+            while True:
+                # We read line by line to have partial logs in case of timeout / hanging
+                line = stdout.readline()
                 if not line.startswith("export"):
                     command_output += line
+                if stdout.channel.exit_status_ready():
+                    break
             header = "*****************************************************************"
             vm_logger(context.scenario.name, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
