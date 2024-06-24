@@ -84,6 +84,7 @@ class _Scenario:
         self.name = name
         self.replay = False
         self.doc = doc
+        self.rc_api_enabled = False
         self.github_workflow = github_workflow
         self.scenario_groups = scenario_groups or []
 
@@ -281,6 +282,7 @@ class _DockerScenario(_Scenario):
         scenario_groups=None,
         use_proxy=True,
         proxy_state=None,
+        rc_api_enabled=False,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -294,11 +296,18 @@ class _DockerScenario(_Scenario):
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
         self.use_proxy = use_proxy
+        self.rc_api_enabled = rc_api_enabled
+
+        if not self.use_proxy and self.rc_api_enabled:
+            raise ValueError("rc_api_enabled requires use_proxy")
+
         self._required_containers = []
 
         if self.use_proxy:
             self._required_containers.append(
-                ProxyContainer(host_log_folder=self.host_log_folder, proxy_state=proxy_state)
+                ProxyContainer(
+                    host_log_folder=self.host_log_folder, proxy_state=proxy_state, rc_api_enabled=rc_api_enabled
+                )
             )  # we want the proxy being the first container to start
 
         if include_postgres_db:
@@ -382,6 +391,7 @@ class EndToEndScenario(_DockerScenario):
         agent_interface_timeout=5,
         use_proxy=True,
         proxy_state=None,
+        rc_api_enabled=False,
         backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
@@ -404,6 +414,7 @@ class EndToEndScenario(_DockerScenario):
             scenario_groups=scenario_groups,
             use_proxy=use_proxy,
             proxy_state=proxy_state,
+            rc_api_enabled=rc_api_enabled,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -1643,7 +1654,7 @@ class scenarios:
 
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
-        proxy_state={"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"},
+        rc_api_enabled=True,
         appsec_enabled=False,
         weblog_env={
             "DD_RC_TARGETS_KEY_ID": "TEST_KEY_ID",
