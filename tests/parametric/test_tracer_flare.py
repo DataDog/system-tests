@@ -51,27 +51,28 @@ def _flare_log_level_order() -> Dict[str, Any]:
         ],
     }
 
+
 def _java_tracer_flare_filenames() -> Set:
     return {
-    "classpath.txt",
-    "flare_info.txt",
-    "dynamic_config.txt",
-    "flare_info.txt",
-    "initial_config.txt",
-    "instrumenter_metrics.txt",
-    "instrumenter_state.txt",
-    "jvm_args.txt", 
-    "library_path.txt",
-    "span_metrics.txt",
-    "threads.txt",
-    "tracer_health.txt",
-    "tracer_version.txt"
+        "classpath.txt",
+        "flare_info.txt",
+        "dynamic_config.txt",
+        "flare_info.txt",
+        "initial_config.txt",
+        "instrumenter_metrics.txt",
+        "instrumenter_state.txt",
+        "jvm_args.txt",
+        "library_path.txt",
+        "span_metrics.txt",
+        "threads.txt",
+        "tracer_health.txt",
+        "tracer_version.txt",
     }
 
+
 def _java_tracer_flare_xor_filenames() -> List:
-    return [
-        {"tracer.log"},{"tracer_begin.log","tracer_end.log" }
-    ]
+    return [{"tracer.log"}, {"tracer_begin.log", "tracer_end.log"}]
+
 
 def _set_log_level(test_agent, log_level: str) -> None:
     """Helper to create the appropriate "flare-log-level" config in RC for a given log-level.
@@ -128,17 +129,21 @@ def assert_valid_zip(content):
     assert flare_file.testzip() is None, "tracer_file zip must not contain errors"
     assert flare_file.namelist(), "tracer_file zip must contain at least one entry"
 
+
 def assert_expected_files(content, min_files, xor_sets):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
     s = set(flare_file.namelist())
-    assert len(min_files - s) == 0 and any((len(xor_set -s) == 0) for xor_set in xor_sets) , "tracer_file zip must contain a minimum list of files"
+    assert len(min_files - s) == 0 and any(
+        (len(xor_set - s) == 0) for xor_set in xor_sets
+    ), "tracer_file zip must contain a minimum list of files"
 
 
 def assert_java_log_file(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
     myfile = flare_file.open("tracer.log")
-    #file content: 'No tracer log file specified and no prepare flare event received'
+    # file content: 'No tracer log file specified and no prepare flare event received'
     assert flare_file.getinfo("tracer.log").file_size == 64, "tracer flare log file is not as expected"
+
 
 def assert_java_log_file_debug(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
@@ -178,8 +183,7 @@ class TestTracerFlareV1:
             xor_sets = _java_tracer_flare_xor_filenames()
             assert_java_log_file(tracer_flare["flare_file"])
         assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
-            
-            
+
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     # @missing_feature(context.library < "java@1.3?.0", reason="tracer log in flare has been implemented at version 1.3?.0")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -193,7 +197,6 @@ class TestTracerFlareV1:
             xor_sets = _java_tracer_flare_xor_filenames()
             assert_java_log_file_debug(tracer_flare["flare_file"])
         assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
-       
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
