@@ -10,7 +10,7 @@ docker buildx build --load --progress=plain -f utils/build/docker/python/flask-p
 docker buildx build --load --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v2 .
 
 if [ "$1" = "--push" ]; then
-      docker push datadog/system-tests:fastapi.base-v0 
+      docker push datadog/system-tests:fastapi.base-v0
       docker push datadog/system-tests:python3.12.base-v2
       docker push datadog/system-tests:django-poc.base-v1
       docker push datadog/system-tests:flask-poc.base-v4
