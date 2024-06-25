@@ -207,6 +207,7 @@ function run_scenario() {
             cmd+=(
               -v /var/run/docker.sock:/var/run/docker.sock
               -v "${PWD}/${log_dir}":"/app/${log_dir}"
+              -e SYSTEM_TESTS_PROXY_HOST=proxy
               -e SYSTEM_TESTS_WEBLOG_HOST=weblog
               -e SYSTEM_TESTS_WEBLOG_PORT=7777
               -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778

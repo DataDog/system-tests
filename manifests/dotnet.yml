@@ -177,6 +177,7 @@ tests/:
       Test_Login_Events_Extended: v2.33.0
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v2.27.0
       Test_BlockingGraphqlResolvers: missing_feature
@@ -309,7 +310,7 @@ tests/:
       # trace chunk is always the local root span.
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
-      TestTracerFlareV1: missing_feature
+      TestTracerFlareV1: v2.48.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.36.0

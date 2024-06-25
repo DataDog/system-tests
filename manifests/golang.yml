@@ -120,7 +120,11 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_span_tags.py: missing_feature
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson: v1.66.0-dev
+        Test_Sqli_BodyUrlEncoded: v1.66.0-dev
+        Test_Sqli_BodyXml: v1.66.0-dev
+        Test_Sqli_UrlQuery: v1.66.0-dev
       test_ssrf.py:
         Test_Ssrf_BodyJson: v1.65.1-rc.1
         Test_Ssrf_BodyUrlEncoded: v1.65.1-rc.1
@@ -252,6 +256,7 @@ tests/:
       Test_Login_Events_Extended: missing_feature
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
       Test_BlockingGraphqlResolvers: missing_feature

@@ -19,7 +19,7 @@ namespace weblog
             {
                 options.ModelBinderProviders.Insert(0, new ModelBinderSwitcherProvider());
             }).AddXmlSerializerFormatters();
-           
+
             var identityBuilder = services.AddIdentity<IdentityUser, IdentityRole>(
                o =>
                {

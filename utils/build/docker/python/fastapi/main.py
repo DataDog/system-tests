@@ -191,8 +191,8 @@ async def rasp_ssrf(request: Request):
         import sqlite3
 
         DB = sqlite3.connect(":memory:")
-        print(f"SELECT * FROM table WHERE {user_id}")
-        cursor = DB.execute(f"SELECT * FROM table WHERE '{user_id};")
+        print(f"SELECT * FROM users WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
         print("DB request with {len(list(cursor))} results")
         return PlainTextResponse(f"DB request with {len(list(cursor))} results")
     except Exception as e:

@@ -372,10 +372,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
-    )
-    @missing_feature(
         context.library == "python",
         reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
     )
@@ -851,7 +847,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
         """
@@ -923,7 +918,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
         """
@@ -968,7 +962,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_attributes_serialization(self, test_agent, test_library):
         """
