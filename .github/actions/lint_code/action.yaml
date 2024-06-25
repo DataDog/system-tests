@@ -4,8 +4,6 @@ runs:
   using: composite
   steps:
     - uses: cachix/install-nix-action@v27
-      with:
-        github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install runner
       uses: ./.github/actions/install_runner
     - run: source venv/bin/activate

@@ -43,7 +43,7 @@ if [ ! -d "venv/" ]; then
   ./build.sh -i runner
 fi
 
-# shellcheck source=/dev/null
+# shellcheck source=/dev/null 
 source venv/bin/activate
 
 pylint utils  # pylint does not have a fix mode
