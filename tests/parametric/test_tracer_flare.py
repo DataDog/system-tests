@@ -96,7 +96,7 @@ def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
     """
     task_config["uuid"] = uuid4().hex
     task_id = hash(json.dumps(task_config))
-    test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
+    test_agent.add_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
     test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2)
     return task_id
 
@@ -134,6 +134,18 @@ def assert_expected_files(content, min_files, xor_sets):
     assert len(min_files - s) == 0 and any((len(xor_set -s) == 0) for xor_set in xor_sets) , "tracer_file zip must contain a minimum list of files"
 
 
+def assert_log_file(content):
+    flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
+    myfile = flare_file.open("tracer.log")
+    #file content: 'No tracer log file specified and no prepare flare event received'
+    assert flare_file.getinfo("tracer.log").file_size == 64, "tracer flare log file is not as expected"
+
+def assert_log_file_debug(content):
+    flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
+    myfile = flare_file.open("tracer.log")
+    assert flare_file.getinfo("tracer.log").file_size > 64, "tracer flare log file is not as expected"
+
+
 @rfc("https://docs.google.com/document/d/1U9aaYM401mJPTM8YMVvym1zaBxFtS4TjbdpZxhX3c3E")
 @scenarios.parametric
 @features.tracer_flare
@@ -153,29 +165,32 @@ class TestTracerFlareV1:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
-
         assert_valid_zip(tracer_flare["flare_file"])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-   # @missing_feature(context.library < "java@1.35.0", reason="tracer log in flare has been implemented at version 1.35.0")
+    # @missing_feature(context.library < "java@1.35.0", reason="tracer log in flare has been implemented at version 1.35.0")
     def test_tracer_flare_content(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
         if context.library == "java":
             files = _java_tracer_flare_filenames()
             xor_sets = _java_tracer_flare_xor_filenames()
+            assert_log_file(tracer_flare["flare_file"])
         assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
-   
             
             
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    # @missing_feature(context.library < "java@1.3?.0", reason="tracer log in flare has been implemented at version 1.3?.0")
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
         _set_log_level(test_agent, "debug")
-
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
-
         _clear_log_level(test_agent, "debug")
-
         assert_valid_zip(tracer_flare["flare_file"])
+        if context.library == "java":
+            files = _java_tracer_flare_filenames()
+            xor_sets = _java_tracer_flare_xor_filenames()
+            assert_log_file_debug(tracer_flare["flare_file"])
+        assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
+       
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
