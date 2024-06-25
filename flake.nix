@@ -36,21 +36,11 @@
 
     treefmt = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
 
-    lints = pkgs.stdenv.mkDerivation {
-      name = "lint-check";
-      src = ./.;
-      doCheck = true;
-      nativeBuildInputs = with pkgs; [pylint];
-      checkPhase = ''
-        pylint utils
-      '';
-    };
-
     python = pkgs.python39;
   in {
     packages = {
-      default = black;
-      inherit black lints;
+      default = treefmt.config.build.wrapper;
+      inherit black treefmt;
     };
     devShells.default =
       pkgs.mkShell
@@ -65,12 +55,11 @@
 
           treefmt.config.build.wrapper
           python
-          python.pkgs.venvShellHook
 
           pkgs.ruff
         ];
 
-        # buildInputs = [python.pkgs.venvShellHook];
+        buildInputs = [python.pkgs.venvShellHook];
         venvDir = "./venv";
 
         postVenvCreation = ''

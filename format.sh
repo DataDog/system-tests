@@ -29,46 +29,23 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
+echo "Running treefmt-nix ..."
+if [ "$COMMAND" == "fix" ]; then
+  nix fmt
+
+
+else
+  nix flake check
+fi
+
 if [ ! -d "venv/" ]; then
   echo "Runner is not installed, installing it (ETA 60s)"
   ./build.sh -i runner
 fi
 
+# shellcheck source=/dev/null
 source venv/bin/activate
 
-echo "Checking Python files..."
-if [ "$COMMAND" == "fix" ]; then
-  black .
-else
-  black --check --diff .
-fi
 pylint utils  # pylint does not have a fix mode
-
-# not py, as it's handled by black
-INCLUDE_EXTENSIONS=("*.md" "*.yml" "*.yaml" "*.sh" "*.cs" "*.Dockerfile" "*.java" "*.sql" "*.ts" "*.js" "*.php")
-EXCLUDE_DIRS=("logs*" "*/node_modules/*" "./venv/*" "./manifests/*" "./utils/build/virtual_machine/*")
-
-INCLUDE_ARGS=()
-for ext in "${INCLUDE_EXTENSIONS[@]}"; do
-  INCLUDE_ARGS+=(-name "$ext" -o)
-done
-unset 'INCLUDE_ARGS[${#INCLUDE_ARGS[@]}-1]'  # remove last -o
-
-EXCLUDE_ARGS=()
-for dir in "${EXCLUDE_DIRS[@]}"; do
-  EXCLUDE_ARGS+=(-not -path "$dir")
-done
-
-echo "Checking tailing whitespaces..."
-FILES=$(find . "${EXCLUDE_ARGS[@]}" \( "${INCLUDE_ARGS[@]}" \) -exec grep -l " $" {} \;)
-if [ "$COMMAND" == "fix" ]; then
-  echo "$FILES" | xargs -I {} sed -i '' -r 's/ +$//g' {}
-else
-  if [ -n "$FILES" ]; then
-    echo "Some tailing white spaces has been found, please fix them 💥 💔 💥"
-    echo "$FILES"
-    exit 1
-  fi
-fi
 
 echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"

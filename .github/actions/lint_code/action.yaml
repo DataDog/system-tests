@@ -3,11 +3,15 @@ description: "Run lints checks for project"
 runs:
   using: composite
   steps:
+    - uses: cachix/install-nix-action@v27
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install runner
       uses: ./.github/actions/install_runner
     - run: source venv/bin/activate
       shell: bash
-    - name: Black, pylint and tailing whitespaces checks
+
+    - name: All checks + pylint checks
       shell: bash
       run: ./format.sh --check
     - if: ${{ failure() }}
@@ -18,12 +22,6 @@ runs:
         exit 1
 
         '
-    - name: 'Install shellcheck'
-      shell: bash
-      run: sudo apt-get install -y shellcheck
-    - name: 'Run shellcheck'
-      shell: bash
-      run: ./utils/scripts/shellcheck.sh
     - name: Install node
       uses: actions/setup-node@v4
       with:
