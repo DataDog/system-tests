@@ -1,13 +1,12 @@
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
-RUN apt-get update && apt-get install -y dos2unix
-RUN apt-get update && apt-get install -y curl
+# `binutils` is required by 'install_ddtrace.sh' to call 'strings' command
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl binutils
 WORKDIR /app
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
 COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
-RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
@@ -27,7 +26,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 # but don't enable it globally
 ENV CORECLR_ENABLE_PROFILING=0
 ENV CORECLR_PROFILER={846F5F1C-F9AE-4B07-969E-05C26BC060D8}
-ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
+ENV CORECLR_PROFILER_PATH=/opt/datadog/linux-x64/Datadog.Trace.ClrProfiler.Native.so
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
 # disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
