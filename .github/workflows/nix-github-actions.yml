@@ -1,11 +1,11 @@
 name: Nix Flake actions
 
-on: push
-  # pull_request:
-  # push:
-  #   branches:
-  #     - master
-  #     - main
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - main
 
 jobs:
   nix-matrix:
