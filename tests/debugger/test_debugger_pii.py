@@ -145,7 +145,9 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         # and if it exists, we pick it from there
         if Test_Debugger_PII_Redaction.probes_state is None:
             # setup has not been run yet
-            # rc.send_command(raw_payload=rc.build_debugger_command(probes=None, version=0))
+            rc.send_command(
+                raw_payload=rc.build_debugger_command(probes=None, version=0), wait_for_acknowledged_status=False
+            )
             payload = rc.build_debugger_command(probes=PROBES, version=1)
 
             Test_Debugger_PII_Redaction.probes_state = rc.send_command(

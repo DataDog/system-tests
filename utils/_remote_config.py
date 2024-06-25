@@ -35,8 +35,14 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
 
     client_configs = raw_payload["client_configs"]
-    assert len(client_configs) == 1, "Only one client config is supported"
-    _, _, product, config_id, _ = client_configs[0].split("/")
+    if len(client_configs) == 0:
+        config_id, product = None, None
+        if wait_for_acknowledged_status:
+            raise ValueError("Empty client config list is not supported with wait_for_acknowledged_status=True")
+    elif len(client_configs) == 1:
+        _, _, product, config_id, _ = client_configs[0].split("/")
+    else:
+        raise ValueError("Only zero or one client config are supported")
 
     config_state = {
         "id": config_id,
@@ -47,6 +53,9 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
 
     def remote_config_applied(data):
         if data["path"] == "/v0.7/config":
+            if len(client_configs) == 0:  # is there a way to know if the "no-config" is acknowledged ?
+                return True
+
             config_states = (
                 data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", [])
             )
