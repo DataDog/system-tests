@@ -99,7 +99,7 @@ jobs:
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
     - name: Run DEFAULT scenario
-      if: steps.build.outcome == 'success'
+      if: steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
