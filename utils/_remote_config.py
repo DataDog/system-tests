@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from typing import Any
+import base64
 import json
 import os
 import re
@@ -28,6 +29,8 @@ def send_command(raw_payload) -> dict[str, Any]:
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
 
     client_configs = raw_payload["client_configs"]
+    targets = json.loads(base64.b64decode(raw_payload["targets"]))
+    version = targets["signed"]["version"]
     assert len(client_configs) == 1, "Only one client config is supported"
     _, _, product, config_id, _ = client_configs[0].split("/")
 
@@ -44,7 +47,7 @@ def send_command(raw_payload) -> dict[str, Any]:
                 data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", [])
             )
             for state in config_states:
-                if state["id"] == config_id and state["product"] == product:
+                if state["id"] == config_id and state["product"] == product and state["version"] == version:
                     logger.debug(f"Remote config state: {state}")
                     config_state.update(state)
                     if state["apply_state"] == ApplyState.ACKNOWLEDGED:
