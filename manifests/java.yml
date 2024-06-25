@@ -585,7 +585,8 @@ tests/:
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses:
+      Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip:
         '*': v0.111.0
         akka-http: v1.22.0
         jersey-grizzly2: v1.7.0
@@ -596,11 +597,19 @@ tests/:
         spring-boot-openliberty: v0.115.0
         vertx3: v1.7.0
         vertx4: v1.7.0
-      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
         '*': v1.15.0
         akka-http: v1.22.0
         play: v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: bug (blocking not working)
+      Test_Blocking_request_body_multipart:
+        '*': v1.15.0
+        akka-http: v1.22.0
+        jersey-grizzly2: missing_feature
+        play: v1.22.0
+        ratpack: missing_feature
+        resteasy-netty3: missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-payara: bug (blocking not working)
       Test_Blocking_request_cookies:
@@ -689,6 +698,18 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_Blocking_user_id:
+        '*': v0.111.0
+        akka-http: v1.22.0
+        jersey-grizzly2: v1.7.0
+        play: v1.22.0
+        ratpack: v1.6.0
+        resteasy-netty3: v1.7.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: v0.115.0
+        spring-boot-payara: bug (user block results in 500 response)
+        vertx3: v1.7.0
+        vertx4: v1.7.0
       Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0

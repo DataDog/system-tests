@@ -354,13 +354,18 @@ tests/:
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses:
+      Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip:
         '*': v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_request_body_multipart:
         '*': v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0.dev1
@@ -401,6 +406,11 @@ tests/:
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Blocking_response_status:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_user_id:
         '*': v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0.dev1
