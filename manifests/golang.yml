@@ -120,8 +120,16 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_span_tags.py: missing_feature
-      test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson: v1.66.0-dev
+        Test_Sqli_BodyUrlEncoded: v1.66.0-dev
+        Test_Sqli_BodyXml: v1.66.0-dev
+        Test_Sqli_UrlQuery: v1.66.0-dev
+      test_ssrf.py:
+        Test_Ssrf_BodyJson: v1.65.1-rc.1
+        Test_Ssrf_BodyUrlEncoded: v1.65.1-rc.1
+        Test_Ssrf_BodyXml: v1.65.1-rc.1
+        Test_Ssrf_UrlQuery: v1.65.1-rc.1
       test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
@@ -137,6 +145,7 @@ tests/:
           gin: v1.37.0
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: v1.62.0
         Test_Headers:
           '*': v1.34.0
           chi: v1.36.0
@@ -240,9 +249,13 @@ tests/:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
     test_blocking_addresses.py:
       Test_BlockingAddresses: v1.51.0
       Test_BlockingGraphqlResolvers: missing_feature
@@ -341,6 +354,8 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
       Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
   integrations/:
@@ -412,6 +427,8 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
     test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:

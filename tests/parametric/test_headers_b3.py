@@ -164,7 +164,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_valid(self, test_agent, test_library):
-        self.test_headers_b3_extract_invalid(test_agent, test_library)
+        self.test_headers_b3_extract_valid(test_agent, test_library)
 
     @enable_migrated_b3()
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")

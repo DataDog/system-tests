@@ -8,6 +8,7 @@ import subprocess
 import threading
 import http.client
 import urllib.request
+import urllib3
 import xmltodict
 import sys
 
@@ -67,8 +68,8 @@ from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
-# Patch kombu since its not patched automatically
-ddtrace.patch_all(kombu=True)
+# Patch kombu and urllib3 since they are not patched automatically
+ddtrace.patch_all(kombu=True, urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -237,10 +238,41 @@ def rasp_ssrf(*args, **kwargs):
         return Response("missing domain parameter", status=400)
     try:
         with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
-
             return f"url http://{domain} open with {len(url_in.read())} bytes"
     except http.client.HTTPException as e:
         return f"url http://{domain} could not be open: {e!r}"
+
+
+@app.route("/rasp/sqli", methods=["GET", "POST"])
+def rasp_sqli(*args, **kwargs):
+    user_id = None
+    if request.method == "GET":
+        user_id = flask_request.args.get("user_id")
+    elif request.method == "POST":
+        try:
+            user_id = (request.form or request.json or {}).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if user_id is None:
+                user_id = xmltodict.parse(flask_request.data).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if user_id is None:
+        return "missing user_id parameter", 400
+    try:
+        import sqlite3
+
+        DB = sqlite3.connect(":memory:")
+        print(f"SELECT * FROM users WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
+        print("DB request with {len(list(cursor))} results")
+        return f"DB request with {len(list(cursor))} results"
+    except Exception as e:
+        print(f"DB request failure: {e!r}", file=sys.stderr)
+        return f"DB request failure: {e!r}", 201
 
 
 ### END EXPLOIT PREVENTION
@@ -590,9 +622,9 @@ def dsm():
                 logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
         produce_thread = threading.Thread(
-            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,)
+            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,),
         )
-        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",))
+        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",),)
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -600,7 +632,7 @@ def dsm():
         logging.info("[kafka] Returning response")
         response = Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",))
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",),)
         consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
@@ -621,7 +653,7 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",))
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",),)
         consume_thread = threading.Thread(target=sns_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
@@ -1079,3 +1111,22 @@ def create_extra_service():
     if new_service_name:
         Pin.override(Flask, service=new_service_name, tracer=tracer)
     return Response("OK")
+
+
+@app.route("/requestdownstream", methods=["GET", "POST", "OPTIONS"])
+@app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
+def request_downstream():
+    # Propagate the received headers to the downstream service
+    http = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http.request("GET", "http://localhost:7777/returnheaders")
+    return Response(response.data)
+
+
+@app.route("/returnheaders", methods=["GET", "POST", "OPTIONS"])
+@app.route("/returnheaders/", methods=["GET", "POST", "OPTIONS"])
+def return_headers(*args, **kwargs):
+    headers = {}
+    for key, value in flask_request.headers.items():
+        headers[key] = value
+    return jsonify(headers)

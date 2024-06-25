@@ -7,12 +7,12 @@ on:
         description: "Library to test"
         required: true
         type: string
-      scenarios: 
+      scenarios:
         description: "JSON array of scenarios to run"
         default: "[]"
         required: false
         type: string
-      weblogs: 
+      weblogs:
         description: "JSON array of weblogs to run"
         default: "[]"
         required: false
@@ -171,7 +171,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
+      # C++ 1.2.0 freeze when the rules file is missing
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && inputs.library != 'cpp'
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -181,7 +182,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
+      # C++ 1.2.0 freeze when the rules file is missing
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && inputs.library != 'cpp'
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -267,6 +269,11 @@ jobs:
       run: ./run.sh APPSEC_RASP
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_STANDALONE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
+      run: ./run.sh APPSEC_STANDALONE
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
@@ -322,6 +329,11 @@ jobs:
     - name: Run DEBUGGER_PII_REDACTION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run DEBUGGER_EXPRESSION_LANGUAGE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_EXPRESSION_LANGUAGE"')
+      run: ./run.sh DEBUGGER_EXPRESSION_LANGUAGE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

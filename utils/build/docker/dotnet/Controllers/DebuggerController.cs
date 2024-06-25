@@ -63,5 +63,23 @@ namespace weblog
             var customValue = customPii?.TestValue;
             return Content($"PII {value}. CustomPII {customValue}");
         }
+
+        [HttpGet("expression")]
+        [Consumes("application/json", "application/xml")]
+        public async Task<IActionResult> Expression(string inputValue)
+        {
+            var testStruct = await Task.FromResult<ExpressionTestStruct>(new ExpressionTestStruct());
+            var localValue = inputValue.Length;
+
+            return Content($"Great success number {localValue}");
+        }
+
+
+        [HttpGet("expression/exception")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExpressionException()
+        {
+            throw new System.Exception("Hello from exception");
+        }
     }
 }

@@ -9,6 +9,7 @@ const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_con
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
 const { trace, ROOT_CONTEXT } = require('@opentelemetry/api')
+const { millisToHrTime } = require('@opentelemetry/core')
 
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
@@ -75,7 +76,7 @@ app.post('/trace/span/start', (req, res) => {
   for (const [key, value] of http_headers) {
       convertedHeaders[key.toLowerCase()] = value
   }
-  
+
   const extracted = tracer.extract('http_headers', convertedHeaders)
   if (extracted !== null) parent = extracted
 
@@ -87,7 +88,7 @@ app.post('/trace/span/start', (req, res) => {
         service: request.service
     }
   })
-  
+
   for (const link of request.links || []) {
     const linkParentId = link.parent_id;
     if (linkParentId) {
@@ -105,7 +106,7 @@ app.post('/trace/span/start', (req, res) => {
       }
     }
   }
-  
+
   spans[span.context().toSpanId()] = span
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
 });
@@ -185,7 +186,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         spanContext = new OtelSpanContext(extractedContext)
       }
       return {context: spanContext, attributes: link.attributes}
-    });  
+    });
 
     const span = otelTracer.startSpan(request.name, {
         type: request.type,
@@ -285,6 +286,42 @@ app.post('/trace/otel/set_attributes', (req, res) => {
   res.json({});
 });
 
+app.get('/trace/config', (req, res) => {
+  const dummyTracer = require('dd-trace').init()
+  const config = dummyTracer._tracer._config
+  res.json( {
+    config: {
+      'dd_service': config?.service !== undefined ? `${config.service}`.toLowerCase() : 'null',
+      'dd_log_level': config?.logLevel !== undefined ? `${config.logLevel}`.toLowerCase() : 'null',
+      'dd_trace_debug': config?.debug !== undefined ? `${config.debug}`.toLowerCase() : 'null',
+      'dd_trace_sample_rate': config?.sampleRate !== undefined ? `${config.sampleRate}` : 'null',
+      'dd_trace_enabled': config ? 'true' : 'false', // in node if dd_trace_enabled is true the tracer won't have a config object
+      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics}`.toLowerCase() : 'null',
+      'dd_tags': config?.tags !== undefined ? Object.entries(config.tags).map(([key, val]) => `${key}:${val}`).join(',') : 'null',
+      'dd_trace_propagation_style': config?.tracePropagationStyle?.inject.join(',') ?? 'null',
+      'dd_trace_sample_ignore_parent': 'null', // not implemented in node
+      'dd_trace_otel_enabled': 'null', // not exposed in config object in node
+      'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
+      'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null'
+    }
+  });
+});
+
+app.post("/trace/otel/add_event", (req, res) => {
+  const { span_id, name, timestamp, attributes } = req.body;
+  const span = otelSpans[span_id]
+  // convert to TimeInput object using millisToHrTime
+  span.addEvent(name, attributes, millisToHrTime(timestamp / 1000))
+  res.json({})
+})
+
+app.post("/trace/otel/record_exception", (req, res) => {
+  const { span_id, message, attributes } = req.body;
+  const span = otelSpans[span_id]
+  span.recordException(new Error(message))
+  res.json({})
+})
+
 // TODO: implement this endpoint correctly, current blockers:
 // 1. Fails on invalid url
 // 2. does not generate span, because http instrumentation turned off
@@ -305,7 +342,7 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 //         request.end()
 //         res.json({});
 //     }
-    
+
 //   );
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;

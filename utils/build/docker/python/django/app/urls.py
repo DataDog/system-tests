@@ -1,4 +1,5 @@
 # pages/urls.py
+import base64
 import json
 import os
 import random
@@ -14,6 +15,7 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+import urllib3
 from iast import (
     weak_cipher,
     weak_cipher_secure_algorithm,
@@ -23,8 +25,10 @@ from iast import (
     weak_hash_secure_algorithm,
 )
 
-from ddtrace import Pin, tracer
+from ddtrace import Pin, tracer, patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+patch_all(urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -32,6 +36,20 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
+
+
+from app.models import CustomUser
+
+# creating users at start
+for username, email, passwd, last_name, user_id in [
+    ("test", "testuser@ddog.com", "1234", "test", "social-security-id"),
+    ("testuuid", "testuseruuid@ddog.com", "1234", "testuuid", "591dc126-8431-4d0f-9509-b23318d3dce4"),
+]:
+    try:
+        if not CustomUser.objects.filter(id=user_id).exists():
+            CustomUser.objects.create_user(username, email, passwd, last_name=last_name, id=user_id)
+    except Exception as e:
+        pass
 
 
 def hello_world(request):
@@ -60,6 +78,23 @@ def waf(request, *args, **kwargs):
             )
         return HttpResponse("Value tagged", status=int(kwargs["status_code"]), headers=request.GET.dict(),)
     return HttpResponse("Hello, World!")
+
+
+@csrf_exempt
+def return_headers(request, *args, **kwargs):
+    headers = {}
+    for k, v in request.headers.items():
+        headers[k] = v
+    return HttpResponse(json.dumps(headers))
+
+
+@csrf_exempt
+def request_downstream(request, *args, **kwargs):
+    # Propagate the received headers to the downstream service
+    http = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http.request("GET", "http://localhost:7777/returnheaders")
+    return HttpResponse(response.data)
 
 
 ### BEGIN EXPLOIT PREVENTION
@@ -114,6 +149,38 @@ def rasp_ssrf(request, *args, **kwargs):
             return HttpResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
     except http.client.HTTPException as e:
         return HttpResponse(f"url http://{domain} could not be open: {e!r}")
+
+
+@csrf_exempt
+def rasp_sqli(request, *args, **kwargs):
+    user_id = None
+    if request.method == "GET":
+        user_id = request.GET.get("user_id")
+    elif request.method == "POST":
+        try:
+            user_id = (request.POST or json.loads(request.body)).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if user_id is None:
+                user_id = xmltodict.parse(request.body).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if user_id is None:
+        return HttpResponse("missing user_id parameter", status=400)
+    try:
+        import sqlite3
+
+        DB = sqlite3.connect(":memory:")
+        print(f"SELECT * FROM users WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
+        print("DB request with {len(list(cursor))} results")
+        return HttpResponse(f"DB request with {len(list(cursor))} results")
+    except Exception as e:
+        print(f"DB request failure: {e!r}", file=sys.stderr)
+        return HttpResponse(f"DB request failure: {e!r}", status=201)
 
 
 ### END EXPLOIT PREVENTION
@@ -489,6 +556,37 @@ def track_user_login_failure_event(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def login(request):
+    from ddtrace.settings.asm import config as asm_config
+    from django.contrib.auth import authenticate, login
+
+    mode = asm_config._automatic_login_events_mode
+    username = request.POST.get("username")
+    password = request.POST.get("password")
+    sdk_event = request.GET.get("sdk_event")
+    if sdk_event:
+        sdk_user = request.GET.get("sdk_user")
+        sdk_mail = request.GET.get("sdk_mail")
+        sdk_user_exists = request.GET.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
+            return HttpResponse("OK")
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
+            )
+            return HttpResponse("login failure", status=401)
+    authorisation = request.headers.get("Authorization")
+    if authorisation:
+        username, password = base64.b64decode(authorisation[6:]).decode().split(":")
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        login(request, user)
+        return HttpResponse("OK")
+    return HttpResponse("login failure", status=401)
+
+
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
@@ -540,8 +638,13 @@ urlpatterns = [
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
+    path("requestdownstream", request_downstream),
+    path("requestdownstream/", request_downstream),
+    path("returnheaders", return_headers),
+    path("returnheaders/", return_headers),
     path("rasp/lfi", rasp_lfi),
     path("rasp/ssrf", rasp_ssrf),
+    path("rasp/sqli", rasp_sqli),
     path("params/<appscan_fingerprint>", waf),
     path("tag_value/<str:tag_value>/<int:status_code>", waf),
     path("createextraservice", create_extra_service),
@@ -587,6 +690,7 @@ urlpatterns = [
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
+    path("login", login),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
 ]

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios, rfc, bug, features
+from utils import weblog, interfaces, context, missing_feature, scenarios, rfc, bug, features, irrelevant
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
@@ -51,6 +51,10 @@ class Test_Login_Events:
         )
 
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @irrelevant(
+        context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
+        reason="APM reports all user id for now on Django",
+    )
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -65,6 +69,14 @@ class Test_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @irrelevant(
+        context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
+        reason="APM reports all user id for now on Django",
+    )
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -92,6 +104,10 @@ class Test_Login_Events:
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
@@ -128,6 +144,10 @@ class Test_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -169,6 +189,10 @@ class Test_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -206,6 +230,10 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -240,6 +268,10 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -332,6 +364,10 @@ class Test_Login_Events_Extended:
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
@@ -441,6 +477,10 @@ class Test_Login_Events_Extended:
         self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -483,6 +523,10 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -500,6 +544,10 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -565,6 +613,590 @@ class Test_Login_Events_Extended:
     @missing_feature(library="nodejs")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
+    def test_login_failure_headers(self):
+        # Validate that all relevant headers are included on user login failure on extended mode
+
+        def validate_login_failure_headers(span):
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in self.HEADERS:
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r_hdr_failure, validate_login_failure_headers)
+
+
+@rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
+@features.user_monitoring
+class Test_V2_Login_Events:
+    """
+    Test login success/failure use cases
+    By default, mode is identification
+    """
+
+    # User entries in the internal DB:
+    # users = [
+    #     {
+    #         id: 'social-security-id',
+    #         username: 'test',
+    #         password: '1234',
+    #         email: 'testuser@ddog.com'
+    #     },
+    #     {
+    #         id: '591dc126-8431-4d0f-9509-b23318d3dce4',
+    #         username: 'testuuid',
+    #         password: '1234',
+    #         email: 'testuseruuid@ddog.com'
+    #     }
+    # ]
+
+    @property
+    def username_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[username]" if "rails" in context.weblog_variant else "username"
+
+    @property
+    def password_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[password]" if "rails" in context.weblog_variant else "password"
+
+    USER = "test"
+    UUID_USER = "testuuid"
+    PASSWORD = "1234"
+    INVALID_USER = "invalidUser"
+
+    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
+    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
+    BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
+    BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
+
+    def setup_login_pii_success_local(self):
+        self.r_pii_success = weblog.post(
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
+        )
+
+    def test_login_pii_success_local(self):
+        assert self.r_pii_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
+            meta = span.get("meta", {})
+            assert "usr.id" in meta
+            assert meta["usr.id"] == "social-security-id"
+            # deprecated tags
+            assert "appsec.events.users.login.success.email" not in meta
+            assert "appsec.events.users.login.success.username" not in meta
+            assert "appsec.events.users.login.success.login" not in meta
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_pii_success_basic(self):
+        self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_pii_success_basic(self):
+        assert self.r_pii_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
+            meta = span.get("meta", {})
+            assert "usr.id" in meta
+            assert meta["usr.id"] == "social-security-id"
+            # deprecated tags
+            assert "appsec.events.users.login.success.email" not in meta
+            assert "appsec.events.users.login.success.username" not in meta
+            assert "appsec.events.users.login.success.login" not in meta
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_success_local(self):
+        self.r_success = weblog.post(
+            "/login?auth=local", data={self.username_key: self.UUID_USER, self.password_key: self.PASSWORD}
+        )
+
+    def test_login_success_local(self):
+        assert self.r_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+            # deprecated tags
+            assert "appsec.events.users.login.success.email" not in meta
+            assert "appsec.events.users.login.success.username" not in meta
+            assert "appsec.events.users.login.success.login" not in meta
+            assert_priority(span, meta)
+
+    def setup_login_success_basic(self):
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_success_basic(self):
+        assert self.r_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+            # deprecated tags
+            assert "appsec.events.users.login.success.email" not in meta
+            assert "appsec.events.users.login.success.username" not in meta
+            assert "appsec.events.users.login.success.login" not in meta
+            assert_priority(span, meta)
+
+    def setup_login_wrong_user_failure_local(self):
+        self.r_wrong_user_failure = weblog.post(
+            "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
+        )
+
+    def test_login_wrong_user_failure_local(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            if context.library != "nodejs":
+                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+                # this assertion is disabled for this library.
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+            assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
+            assert "appsec.events.users.login.failure.usr.email" not in meta
+            assert "appsec.events.users.login.failure.usr.login" not in meta
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_wrong_user_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}
+        )
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_wrong_user_failure_basic(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            if context.library != "nodejs":
+                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+                # this assertion is disabled for this library.
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+            assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
+            assert "appsec.events.users.login.failure.usr.email" not in meta
+            assert "appsec.events.users.login.failure.usr.login" not in meta
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_wrong_password_failure_local(self):
+        self.r_wrong_user_failure = weblog.post(
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
+        )
+
+    def test_login_wrong_password_failure_local(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            if context.library != "nodejs":
+                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+                # this assertion is disabled for this library.
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+            assert "appsec.events.users.login.failure.usr.id" in meta
+            assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+            # deprecated
+            assert "appsec.events.users.login.failure.usr.email" not in meta
+            assert "appsec.events.users.login.failure.usr.login" not in meta
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_wrong_password_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}
+        )
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_wrong_password_failure_basic(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            if context.library != "nodejs":
+                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+                # this assertion is disabled for this library.
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+            assert "appsec.events.users.login.failure.usr.id" in meta
+            assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+            assert "appsec.events.users.login.failure.usr.email" not in meta
+            assert "appsec.events.users.login.failure.usr.login" not in meta
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_sdk_success_local(self):
+        self.r_sdk_success = weblog.post(
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+        )
+
+    def test_login_sdk_success_local(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "sdkUser"
+            assert_priority(span, meta)
+
+    def setup_login_sdk_success_basic(self):
+        self.r_sdk_success = weblog.get(
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+        )
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_sdk_success_basic(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "sdkUser"
+            assert_priority(span, meta)
+
+    def setup_login_sdk_failure_local(self):
+        self.r_sdk_failure = weblog.post(
+            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD},
+        )
+
+    def test_login_sdk_failure_local(self):
+        assert self.r_sdk_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_sdk_failure_basic(self):
+        self.r_sdk_failure = weblog.get(
+            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
+        )
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_sdk_failure_basic(self):
+        assert self.r_sdk_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert_priority(span, meta)
+
+
+@rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
+@scenarios.appsec_auto_events_extended
+@features.user_monitoring
+class Test_V2_Login_Events_Anon:
+    """Test login success/failure use cases
+       As default mode is identification, this scenario will test anonymization. 
+    """
+
+    @property
+    def username_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[username]" if "rails" in context.weblog_variant else "username"
+
+    @property
+    def password_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[password]" if "rails" in context.weblog_variant else "password"
+
+    USER = "test"
+    USER_HASH = "anon_5f31ffaf95946d2dc703ddc96a100de5"
+    UUID_USER = "testuuid"
+    PASSWORD = "1234"
+
+    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
+    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
+
+    HEADERS = {
+        "Accept": "text/html",
+        "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
+        "Accept-Language": "en-GB, *;q=0.5",
+        "Content-Language": "en-GB",
+        "Content-Length": "0",
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Encoding": "deflate, gzip",
+        "Host": "127.0.0.1:1234",
+        "User-Agent": "Benign User Agent 1.0",
+        "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
+        "X-Client-IP": "42.42.42.42, 43.43.43.43",
+        "X-Real-IP": "42.42.42.42, 43.43.43.43",
+        "X-Forwarded": "42.42.42.42, 43.43.43.43",
+        "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
+        "Forwarded-For": "42.42.42.42, 43.43.43.43",
+        "Forwarded": "42.42.42.42, 43.43.43.43",
+        "Via": "42.42.42.42, 43.43.43.43",
+        "True-Client-IP": "42.42.42.42, 43.43.43.43",
+    }
+
+    def setup_login_success_local(self):
+        self.r_success = weblog.post(
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
+        )
+
+    def test_login_success_local(self):
+        assert self.r_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == self.USER_HASH
+
+            # deprecated
+            "appsec.events.users.login.success.username" not in meta
+            "appsec.events.users.login.success.email" not in meta
+            "usr.email" not in meta
+            "usr.username" not in meta
+            "usr.login" not in meta
+
+            assert_priority(span, meta)
+
+    def setup_login_success_basic(self):
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_success_basic(self):
+        assert self.r_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == self.USER_HASH
+
+            # deprecated
+            "appsec.events.users.login.success.username" not in meta
+            "appsec.events.users.login.success.email" not in meta
+            "usr.email" not in meta
+            "usr.username" not in meta
+            "usr.login" not in meta
+
+            assert_priority(span, meta)
+
+    def setup_login_wrong_user_failure_local(self):
+        self.r_wrong_user_failure = weblog.post(
+            "/login?auth=local", data={self.username_key: "invalidUser", self.password_key: self.PASSWORD}
+        )
+
+    def test_login_wrong_user_failure_local(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            assert meta["appsec.events.users.login.failure.usr.id"] == "anon_2141e3bee69f7de45b4f1d8d1f29258a"
+            assert "appsec.events.users.login.failure.email" not in meta
+            assert "appsec.events.users.login.failure.username" not in meta
+
+            assert_priority(span, meta)
+
+    def setup_login_wrong_user_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}
+        )
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_wrong_user_failure_basic(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            assert meta["appsec.events.users.login.failure.usr.id"] == "anon_2141e3bee69f7de45b4f1d8d1f29258a"
+            assert "appsec.events.users.login.failure.email" not in meta
+            assert "appsec.events.users.login.failure.username" not in meta
+
+            assert_priority(span, meta)
+
+    def setup_login_wrong_password_failure_local(self):
+        self.r_wrong_user_failure = weblog.post(
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
+        )
+
+    def test_login_wrong_password_failure_local(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            assert meta["appsec.events.users.login.failure.usr.id"] == self.USER_HASH
+            assert "appsec.events.users.login.failure.email" not in meta
+            assert "appsec.events.users.login.failure.username" not in meta
+
+            assert_priority(span, meta)
+
+    def setup_login_wrong_password_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_wrong_password_failure_basic(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            assert meta["appsec.events.users.login.failure.usr.id"] == self.USER_HASH
+            assert "appsec.events.users.login.failure.email" not in meta
+            assert "appsec.events.users.login.failure.username" not in meta
+
+            assert_priority(span, meta)
+
+    def setup_login_sdk_success_local(self):
+        self.r_sdk_success = weblog.post(
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+        )
+
+    def test_login_sdk_success_local(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "sdkUser"
+            assert_priority(span, meta)
+
+    def setup_login_sdk_success_basic(self):
+        self.r_sdk_success = weblog.get(
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+        )
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_sdk_success_basic(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "sdkUser"
+            assert_priority(span, meta)
+
+    def setup_login_sdk_failure_basic(self):
+        self.r_sdk_failure = weblog.get(
+            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
+        )
+
+    @irrelevant(
+        context.library == "java",
+        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
+    )
+    def test_login_sdk_failure_basic(self):
+        assert self.r_sdk_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_sdk_failure_local(self):
+        self.r_sdk_failure = weblog.post(
+            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
+        )
+
+    def test_login_sdk_failure_local(self):
+        assert self.r_sdk_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            meta = span.get("meta", {})
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert_priority(span, meta)
+
+    def setup_login_success_headers(self):
+        self.r_hdr_success = weblog.post(
+            "/login?auth=local",
+            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+            headers=self.HEADERS,
+        )
+
+    def test_login_success_headers(self):
+        # Validate that all relevant headers are included on user login success on extended mode
+
+        def validate_login_success_headers(span):
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in self.HEADERS:
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r_hdr_success, validate_login_success_headers)
+
+    def setup_login_failure_headers(self):
+        self.r_hdr_failure = weblog.post(
+            "/login?auth=local",
+            data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
+            headers=self.HEADERS,
+        )
+
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 

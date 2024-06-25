@@ -13,14 +13,14 @@ appsec_api_security_rc = EndToEndScenario(
     """,
 )
 ```
-In this code example, we can see that we are defining a proxy for remote config, with the name **APPSEC_API_SECURITY_RC**, 
+In this code example, we can see that we are defining a proxy for remote config, with the name **APPSEC_API_SECURITY_RC**,
 it means that this scenario will mock calls from libraries to `/v7/config` by the content in *utils/proxy/rc_mocked_responses_**appsec_api_security_rc**.json* file.
 
 ### Create mock file
 
 `utils/proxy/rc_mocked_responses_<defined_mock_rc_backend_name>.json` JSON file contains an array with a list of the responses that config url will return. The items are returned in order, first time it returns the first element in the list, and each time the request is made, it returns the next value in the list.
 
-There is a repository [RC tracer client test generator](https://github.com/DataDog/rc-tracer-client-test-generator) that you can use to generate RC files. 
+There is a repository [RC tracer client test generator](https://github.com/DataDog/rc-tracer-client-test-generator) that you can use to generate RC files.
 
 ### Wait to RC loaded
 

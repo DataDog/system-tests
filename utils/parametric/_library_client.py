@@ -2,7 +2,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator, List, Optional, Tuple, TypedDict, Union
+from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
 
 import grpc
 import requests
@@ -85,6 +85,12 @@ class APMLibraryClient:
     def otel_set_status(self, span_id: int, code: int, description: str) -> None:
         raise NotImplementedError
 
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict) -> None:
+        raise NotImplementedError
+
+    def otel_record_exception(self, span_id: int, message: str, attributes: dict) -> None:
+        raise NotImplementedError
+
     def otel_is_recording(self, span_id: int) -> bool:
         raise NotImplementedError
 
@@ -133,6 +139,9 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def http_request(self, method: str, url: str, headers: List[Tuple[str, str]]) -> None:
+        raise NotImplementedError
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
         raise NotImplementedError
 
 
@@ -307,6 +316,18 @@ class APMLibraryClientHTTP(APMLibraryClient):
             self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code, "description": description}
         )
 
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
+        self._session.post(
+            self._url("/trace/otel/add_event"),
+            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes},
+        )
+
+    def otel_record_exception(self, span_id: int, message: str, attributes) -> None:
+        self._session.post(
+            self._url("/trace/otel/record_exception"),
+            json={"span_id": span_id, "message": message, "attributes": attributes},
+        )
+
     def otel_is_recording(self, span_id: int) -> bool:
         resp = self._session.post(self._url("/trace/otel/is_recording"), json={"span_id": span_id}).json()
         return resp["is_recording"]
@@ -331,6 +352,24 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
         ).json()
         return resp
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        resp = self._session.get(self._url("/trace/config")).json()
+        config_dict = resp["config"]
+        return {
+            "dd_service": config_dict.get("dd_service", None),
+            "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
+            "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
+            "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_tags": config_dict.get("dd_tags", None),
+            "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
+            "dd_trace_debug": config_dict.get("dd_trace_debug", None),
+            "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
+            "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
+            "dd_env": config_dict.get("dd_env", None),
+            "dd_version": config_dict.get("dd_version", None),
+        }
 
 
 class _TestSpan:
@@ -389,6 +428,12 @@ class _TestOtelSpan:
 
     def set_status(self, code, description):
         self._client.otel_set_status(self.span_id, code, description)
+
+    def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
+        self._client.otel_add_event(self.span_id, name, timestamp, attributes)
+
+    def record_exception(self, message: str, attributes: Optional[dict] = None):
+        self._client.otel_record_exception(self.span_id, message, attributes)
 
     def end_span(self, timestamp: int = 0):
         self._client.otel_end_span(self.span_id, timestamp)
@@ -572,6 +617,18 @@ class APMLibraryClientGRPC:
     def otel_set_status(self, span_id: int, code: int, description: str):
         self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code, description=description))
 
+    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes):
+        self._client.OtelAddEvent(
+            pb.OtelAddEventArgs(
+                span_id=span_id, name=name, timestamp=timestamp, attributes=convert_to_proto(attributes)
+            )
+        )
+
+    def otel_record_exception(self, span_id: int, message: str, attributes):
+        self._client.OtelRecordException(
+            pb.OtelRecordExceptionArgs(span_id=span_id, message=message, attributes=convert_to_proto(attributes))
+        )
+
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.OtelIsRecording(pb.OtelIsRecordingArgs(span_id=span_id)).is_recording
 
@@ -587,6 +644,24 @@ class APMLibraryClientGRPC:
 
     def otel_flush(self, timeout: int) -> bool:
         return self._client.OtelFlushSpans(pb.OtelFlushSpansArgs(seconds=timeout)).success
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        resp = self._client.GetTraceConfig(pb.GetTraceConfigArgs())
+        config_dict = resp.config
+        return {
+            "dd_service": config_dict.get("dd_service", None),
+            "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
+            "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
+            "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_tags": config_dict.get("dd_tags", None),
+            "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
+            "dd_trace_debug": config_dict.get("dd_trace_debug", None),
+            "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
+            "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
+            "dd_env": config_dict.get("dd_env", None),
+            "dd_version": config_dict.get("dd_version", None),
+        }
 
 
 class APMLibrary:
@@ -690,3 +765,6 @@ class APMLibrary:
 
     def finish_span(self, span_id: int) -> None:
         self._client.finish_span(span_id)
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        return self._client.get_tracer_config()

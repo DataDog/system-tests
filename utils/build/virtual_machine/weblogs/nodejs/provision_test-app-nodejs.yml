@@ -8,18 +8,18 @@ lang_variant:
         remote-command: curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - && sudo apt-get install -y nodejs  
       - os_type: linux
         os_distro: rpm
-        remote-command: | 
+        remote-command: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm install 16.0.0
+          nvm install --no-progress 16.0.0
           nvm use node
           n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
 
 weblog:
     name: test-app-nodejs
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6]
     install: 
       - os_type: linux
         copy_files:

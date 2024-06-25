@@ -16,7 +16,7 @@ namespace weblog
             {
                 var integration = context.Request.Query["integration"];
 
-                if (integration == "npgsql") 
+                if (integration == "npgsql")
                 {
                     await using (var connection = new NpgsqlConnection(Constants.NpgSqlConnectionString))
                     {
@@ -27,10 +27,10 @@ namespace weblog
                     }
 
                     await context.Response.WriteAsync("NpgSql query executed.");
-                } 
-                else if (integration == "mysql") 
+                }
+                else if (integration == "mysql")
                 {
-                    await using (var connection = new MySqlConnection(Constants.MySqlConnectionString)) 
+                    await using (var connection = new MySqlConnection(Constants.MySqlConnectionString))
                     {
                         var command = new MySqlCommand("SELECT version()", connection);
                         connection.Open();
@@ -39,8 +39,8 @@ namespace weblog
                     }
 
                     await context.Response.WriteAsync("MySql query executed.");
-                } 
-                else if (integration == "sqlclient") 
+                }
+                else if (integration == "sqlclient")
                 {
                     await using (var connection = new SqlConnection(Constants.SqlClientConnectionString))
                     {

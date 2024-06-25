@@ -12,7 +12,8 @@ import requests
 import fastapi
 import psycopg2
 import requests
-from ddtrace import Pin, tracer
+import urllib3
+from ddtrace import Pin, tracer, patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from fastapi import Cookie, FastAPI, Form, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -25,6 +26,8 @@ from iast import (
     weak_hash_secure_algorithm,
 )
 from pydantic import BaseModel
+
+patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
@@ -135,7 +138,6 @@ async def rasp_lfi(request: Request):
 @app.get("/rasp/ssrf")
 @app.post("/rasp/ssrf")
 async def rasp_ssrf(request: Request):
-    print("rasp_ssrf", repr(request), file=sys.stderr)
     domain = None
     if request.method == "GET":
         domain = request.query_params.get("domain")
@@ -162,6 +164,40 @@ async def rasp_ssrf(request: Request):
     except Exception as e:
         print(repr(e), file=sys.stderr)
     return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
+
+
+@app.get("/rasp/sqli")
+@app.post("/rasp/sqli")
+async def rasp_ssrf(request: Request):
+    user_id = None
+    if request.method == "GET":
+        user_id = request.query_params.get("user_id")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            user_id = ((await request.form()) or json.loads(body) or {}).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if user_id is None:
+                user_id = xmltodict.parse(body).get("user_id")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if user_id is None:
+        return PlainTextResponse("missing user_id parameter", status_code=400)
+    try:
+        import sqlite3
+
+        DB = sqlite3.connect(":memory:")
+        print(f"SELECT * FROM users WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
+        print("DB request with {len(list(cursor))} results")
+        return PlainTextResponse(f"DB request with {len(list(cursor))} results")
+    except Exception as e:
+        print(f"DB request failure: {e!r}", file=sys.stderr)
+        return PlainTextResponse(f"DB request failure: {e!r}", status_code=201)
 
 
 ### END EXPLOIT PREVENTION
@@ -537,3 +573,29 @@ def create_extra_service(serviceName: str = ""):
     if serviceName:
         Pin.override(fastapi, service=serviceName, tracer=tracer)
     return "OK"
+
+
+@app.get("/requestdownstream", response_class=PlainTextResponse)
+@app.post("/requestdownstream", response_class=PlainTextResponse)
+@app.options("/requestdownstream", response_class=PlainTextResponse)
+@app.get("/requestdownstream/", response_class=PlainTextResponse)
+@app.post("/requestdownstream/", response_class=PlainTextResponse)
+@app.options("/requestdownstream/", response_class=PlainTextResponse)
+def request_downstream():
+    http_ = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http_.request("GET", "http://localhost:7777/returnheaders")
+    return response.data
+
+
+@app.get("/returnheaders", response_class=PlainTextResponse)
+@app.post("/returnheaders", response_class=PlainTextResponse)
+@app.options("/returnheaders", response_class=PlainTextResponse)
+@app.get("/returnheaders/", response_class=PlainTextResponse)
+@app.post("/returnheaders/", response_class=PlainTextResponse)
+@app.options("/returnheaders/", response_class=PlainTextResponse)
+def return_headers(request: Request):
+    headers = {}
+    for key, value in request.headers.items():
+        headers[key] = value
+    return JSONResponse(headers)

@@ -3,7 +3,7 @@ init-environment: !include utils/build/virtual_machine/provisions/auto-inject/au
 
 # Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
 tested_components:
-  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-installer-tested_components.yml
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
 
 # Mandatory: Steps to provision VM
 provision_steps:
@@ -78,7 +78,7 @@ setup-local-registry:
         if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
           export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INSTALLER_INJECTOR_VERSION}"
         else
-          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/apm-inject-package-dev:0.14.0-beta1-dev.b0d6e40.glci525604904.gc34a05c0-1"
+          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/apm-inject-package-dev:0.13.2-beta1-dev.b0d6e40.glci531210996.g95332787-1"
         fi
         crane copy "${INJECTOR_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
 

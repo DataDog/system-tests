@@ -13,6 +13,7 @@ import (
 	"time"
 	"weblog/internal/common"
 	"weblog/internal/grpc"
+	"weblog/internal/rasp"
 
 	"github.com/Shopify/sarama"
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
@@ -437,6 +438,10 @@ func main() {
 		w.WriteHeader(200)
 		w.Write([]byte("ok"))
 	})
+
+	mux.HandleFunc("/rasp/lfi", rasp.LFI)
+	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
+	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()

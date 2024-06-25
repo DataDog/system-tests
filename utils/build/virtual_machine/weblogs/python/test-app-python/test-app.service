@@ -13,7 +13,7 @@ Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
 Environment=PYTHONUNBUFFERED=1
 Environment=DJANGO_SETTINGS_MODULE=django_app
 WorkingDirectory=/home/datadog
-ExecStart=/bin/bash -c '/home/datadog/.pyenv/shims/python -m django runserver 0.0.0.0:5985'
+ExecStart=/bin/bash -c '/home/datadog/.pyenv/shims/python -m django runserver 0.0.0.0:5985 >> /home/datadog/app-std.out 2>&1 </dev/null'
 ExecStop=/bin/kill -15 $MAINPID
 
 [Install]

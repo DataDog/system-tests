@@ -13,14 +13,13 @@ jobs:
       - uses: actions/setup-go@v2
       - run: sudo apt-get update
       - run: sudo apt-get -y install protobuf-compiler
-      - run: protoc --version && go version  
+      - run: protoc --version && go version
       - name: Generate descriptor
         run: utils/scripts/update_protobuf.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
-        with: 
+        with:
           commit-message: Update protobuf descriptors
           branch: actions/update-protobuf-descriptors
           title: Update protobuf descriptors
           body: Please check locally that everything is ok before merging
-  

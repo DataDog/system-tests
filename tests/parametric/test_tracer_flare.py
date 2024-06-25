@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import pytest
 
-from utils import rfc, context, scenarios, features #, missing_feature
+from utils import rfc, scenarios, features, missing_feature
 
 parametrize = pytest.mark.parametrize
 
@@ -162,13 +162,15 @@ class TestTracerFlareV1:
         )
         test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2)
 
+    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
         assert_valid_zip(tracer_flare["flare_file"])
 
+    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
+    # @missing_feature(context.library < "java@1.3?.0", reason="tracer log in flare has been implemented at version 1.3?.0")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    # @missing_feature(context.library < "java@1.35.0", reason="tracer log in flare has been implemented at version 1.35.0")
     def test_tracer_flare_content(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
         if context.library == "java":
@@ -178,8 +180,9 @@ class TestTracerFlareV1:
         assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
             
             
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     # @missing_feature(context.library < "java@1.3?.0", reason="tracer log in flare has been implemented at version 1.3?.0")
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
         _set_log_level(test_agent, "debug")
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})

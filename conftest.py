@@ -4,6 +4,7 @@
 import json
 import os
 import time
+import types
 
 import pytest
 from pytest_jsonreport.plugin import JSONReport
@@ -128,7 +129,7 @@ def _collect_item_metadata(item):
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
         else:
-            raise ValueError(f"Unexpected test declaration for {result['path']} : {result['details']}")
+            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {result['details']}")
 
     return result
 
@@ -190,7 +191,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
             released(**declaration)(obj)
 
 
-def pytest_collection_modifyitems(session, config, items):
+def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
     """unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
@@ -199,6 +200,9 @@ def pytest_collection_modifyitems(session, config, items):
     deselected = []
 
     declared_scenarios = {}
+
+    def iter_markers(self, name=None):
+        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
     for item in items:
         scenario_markers = list(item.iter_markers("scenario"))
@@ -218,7 +222,11 @@ def pytest_collection_modifyitems(session, config, items):
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
                     logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
-                    item.own_markers = [m for m in item.own_markers if m.name not in ("skip", "skipif")]
+                    # when user specified a test to be forced, we need to run it if it is skipped/xfailed, but also
+                    # if any of it's parent is marked as skipped/xfailed. The trick is to monkey path the
+                    # iter_markers method (this method is used by pytest internally to get all markers of a test item,
+                    # including parent's markers) to exclude the skip, skipif and xfail markers.
+                    item.iter_markers = types.MethodType(iter_markers, item)
 
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")

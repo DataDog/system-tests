@@ -38,6 +38,13 @@ class _VagrantConfig:
         self.box_name = box_name
 
 
+class _KrunVmConfig:
+    def __init__(self, oci_image_name) -> None:
+        self.oci_image_name = oci_image_name
+        # KrunVm doesn't contain a good network capabilities. We use a std.in file to input parameters
+        self.stdin = None
+
+
 class _AWSConfig:
     def __init__(self, ami_id, ami_instance_type, user) -> None:
         self.ami_id = ami_id
@@ -73,11 +80,14 @@ class _SSHConfig:
 
 
 class _VirtualMachine:
-    def __init__(self, name, aws_config, vagrant_config, os_type, os_distro, os_branch, os_cpu, **kwargs,) -> None:
+    def __init__(
+        self, name, aws_config, vagrant_config, krunvm_config, os_type, os_distro, os_branch, os_cpu, **kwargs,
+    ) -> None:
         self.name = name
         self.datadog_config = DataDogConfig()
         self.aws_config = aws_config
         self.vagrant_config = vagrant_config
+        self.krunvm_config = krunvm_config
         self.ssh_config = _SSHConfig()
         self.os_type = os_type
         self.os_distro = os_distro
@@ -153,6 +163,7 @@ class Ubuntu22amd64(_VirtualMachine):
             "Ubuntu_22_amd64",
             aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
             vagrant_config=_VagrantConfig(box_name="bento/ubuntu-22.04"),
+            krunvm_config=None,
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu22_amd64",
@@ -167,6 +178,7 @@ class Ubuntu22arm64(_VirtualMachine):
             "Ubuntu_22_arm64",
             aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.small", user="ubuntu"),
             vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64",),
+            krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/ubuntu_datadog:22"),
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu22_arm64",
@@ -182,6 +194,7 @@ class Ubuntu18amd64(_VirtualMachine):
             aws_config=_AWSConfig(ami_id="ami-0263e4deb427da90e", ami_instance_type="t2.medium", user="ubuntu"),
             # vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
             vagrant_config=None,
+            krunvm_config=None,
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu18_amd64",
@@ -196,6 +209,7 @@ class AmazonLinux2amd64(_VirtualMachine):
             "Amazon_Linux_2_amd64",
             aws_config=_AWSConfig(ami_id="ami-0dfcb1ef8550277af", ami_instance_type="t2.medium", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="generic/centos7"),
+            krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2_amd64",
@@ -210,6 +224,7 @@ class AmazonLinux2DotNet6(_VirtualMachine):
             "Amazon_Linux_2_DotNet6",
             aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t2.medium", user="ec2-user"),
             vagrant_config=None,
+            krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2_dotnet6",
@@ -224,6 +239,7 @@ class AmazonLinux2023amd64(_VirtualMachine):
             "Amazon_Linux_2023_amd64",
             aws_config=_AWSConfig(ami_id="ami-064ed2d3fc01d3ec1", ami_instance_type="t2.medium", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="generic/centos9s"),
+            krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2023_amd64",
@@ -239,9 +255,26 @@ class AmazonLinux2023arm64(_VirtualMachine):
             aws_config=_AWSConfig(ami_id="ami-0a515c154e76934f7", ami_instance_type="t4g.small", user="ec2-user"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
+            krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/amazonlinux_datadog:2023"),
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2023_arm64",
             os_cpu="arm64",
+            **kwargs,
+        )
+
+
+class Centos7amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "CentOS_7_amd64",
+            aws_config=_AWSConfig(ami_id="ami-002070d43b0a4f171", ami_instance_type="t2.medium", user="centos"),
+            # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="centos_7_amd64",
+            os_cpu="amd64",
             **kwargs,
         )
