@@ -1737,6 +1737,16 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_auto_events_rc = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_RC",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        rc_api_enabled=True,
+        doc="""
+            Scenario to test User ID collection config change via Remote config
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
