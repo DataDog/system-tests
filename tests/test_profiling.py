@@ -15,7 +15,7 @@ TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9}
 @features.dd_profiling_enabled
 @scenarios.profiling
 class Test_Profile:
-    """ Basic testing of profiling """
+    """Basic testing of profiling"""
 
     @staticmethod
     def _common_setup():
@@ -32,7 +32,7 @@ class Test_Profile:
         self._common_setup()
 
     def test_library(self):
-        """ All profiling libraries payload have start and end fields"""
+        """All profiling libraries payload have start and end fields"""
         requests = list(interfaces.library.get_profiling_data())
         self._check_requests(requests)
 
@@ -40,7 +40,7 @@ class Test_Profile:
         self._common_setup()
 
     def test_agent(self):
-        """ All profiling agent payload have recording-start and recording-end fields"""
+        """All profiling agent payload have recording-start and recording-end fields"""
         requests = list(interfaces.agent.get_profiling_data())
         self._check_requests(requests)
 

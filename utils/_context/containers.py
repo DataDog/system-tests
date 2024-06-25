@@ -46,7 +46,11 @@ _NETWORK_NAME = "system-tests_default"
 
 
 def create_network():
-    for _ in _get_client().networks.list(names=[_NETWORK_NAME,]):
+    for _ in _get_client().networks.list(
+        names=[
+            _NETWORK_NAME,
+        ]
+    ):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
         return
 
@@ -158,10 +162,10 @@ class TestedContainer:
         self.warmup()
 
     def warmup(self):
-        """ if some stuff must be done after healthcheck """
+        """if some stuff must be done after healthcheck"""
 
     def post_start(self):
-        """ if some stuff must be done after the container is started """
+        """if some stuff must be done after the container is started"""
 
     @property
     def healthcheck_log_file(self):
@@ -176,8 +180,8 @@ class TestedContainer:
 
     def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
         """
-            Execute a command inside a container. Usefull for healthcheck and warmups.
-            test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+        Execute a command inside a container. Usefull for healthcheck and warmups.
+        test is a command to be executed, interval, timeout and start_period are in us (microseconds)
         """
 
         cmd = test
@@ -351,7 +355,10 @@ class ProxyContainer(TestedContainer):
             },
             working_dir="/app",
             volumes={
-                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
+                f"./{host_log_folder}/interfaces/": {
+                    "bind": f"/app/{host_log_folder}/interfaces",
+                    "mode": "rw",
+                },
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
             ports={"11111/tcp": ("127.0.0.1", 11111)},
@@ -459,7 +466,12 @@ class WeblogContainer(TestedContainer):
             name="weblog",
             host_log_folder=host_log_folder,
             environment=environment or {},
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},},
+            volumes={
+                f"./{host_log_folder}/docker/weblog/logs/": {
+                    "bind": "/var/log/system-tests",
+                    "mode": "rw",
+                },
+            },
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
@@ -549,7 +561,8 @@ class WeblogContainer(TestedContainer):
     @property
     def library(self):
         return LibraryVersion(
-            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
+            self.image.env.get("SYSTEM_TESTS_LIBRARY", None),
+            self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
         )
 
     @property
@@ -565,7 +578,7 @@ class WeblogContainer(TestedContainer):
         return 2
 
     def request(self, method, url, **kwargs):
-        """ perform an HTTP request on the weblog, must NOT be used for tests """
+        """perform an HTTP request on the weblog, must NOT be used for tests"""
         return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)
 
 
@@ -595,7 +608,10 @@ class PostgresContainer(SqlDbTestedContainer):
 class MongoContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True,
+            image_name="mongo:latest",
+            name="mongodb",
+            host_log_folder=host_log_folder,
+            allow_old_container=True,
         )
 
 
@@ -617,7 +633,10 @@ class KafkaContainer(TestedContainer):
             },
             allow_old_container=True,
             healthcheck={
-                "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
+                "test": [
+                    "CMD-SHELL",
+                    "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",
+                ],
                 "start_period": 5 * 1_000_000_000,
                 "interval": 2 * 1_000_000_000,
                 "timeout": 2 * 1_000_000_000,
@@ -647,7 +666,9 @@ class ZooKeeperContainer(TestedContainer):
             image_name="bitnami/zookeeper:latest",
             name="zookeeper",
             host_log_folder=host_log_folder,
-            environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
+            environment={
+                "ALLOW_ANONYMOUS_LOGIN": "yes",
+            },
             allow_old_container=True,
         )
 
@@ -744,7 +765,12 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            volumes={
+                self._otel_config_host_path: {
+                    "bind": "/etc/otelcol-config.yml",
+                    "mode": "ro",
+                }
+            },
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},
         )
@@ -814,7 +840,9 @@ class APMTestAgentContainer(TestedContainer):
             image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
-            environment={"SNAPSHOT_CI": "0",},
+            environment={
+                "SNAPSHOT_CI": "0",
+            },
             ports={"8126": ("127.0.0.1", 8126)},
             allow_old_container=True,
         )
@@ -827,7 +855,9 @@ class MountInjectionVolume(TestedContainer):
             name=name,
             host_log_folder=host_log_folder,
             command="/bin/true",
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},},
+            volumes={
+                _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},
+            },
         )
 
     def _lib_init_image(self, lib_init_image):
@@ -855,7 +885,9 @@ class WeblogInjectionInitContainer(TestedContainer):
             host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 8080)},
             allow_old_container=True,
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"},},
+            volumes={
+                _VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"},
+            },
         )
 
     def set_environment_for_library(self, library):

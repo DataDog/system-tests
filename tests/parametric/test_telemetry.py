@@ -1,6 +1,7 @@
 """
 Test the telemetry that should be emitted from the library.
 """
+
 import base64
 import copy
 import json
@@ -219,9 +220,11 @@ class Test_Environment:
         assert len(otelInvalid) == 0
 
         expected_tags = [
-            ["config.datadog:DD_TRACE_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"]
-            if context.library == "nodejs"
-            else ["DD_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"],
+            (
+                ["config.datadog:DD_TRACE_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"]
+                if context.library == "nodejs"
+                else ["DD_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"]
+            ),
             ["config.datadog:DD_TRACE_PROPAGATION_STYLE", "config.opentelemetry:OTEL_PROPAGATORS"],
             ["config.datadog:DD_SERVICE", "config.opentelemetry:OTEL_SERVICE_NAME"],
             ["config.datadog:DD_TRACE_SAMPLE_RATE", "config.opentelemetry:OTEL_TRACES_SAMPLER"],
@@ -284,9 +287,11 @@ class Test_Environment:
         assert len(otelInvalid) == 8
 
         expected_invalid_tags = [
-            ["config.datadog:DD_TRACE_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"]
-            if context.library == "nodejs"
-            else ["config.datadog:DD_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"],
+            (
+                ["config.datadog:DD_TRACE_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"]
+                if context.library == "nodejs"
+                else ["config.datadog:DD_LOG_LEVEL", "config.opentelemetry:OTEL_LOG_LEVEL"]
+            ),
             ["config.datadog:DD_TRACE_PROPAGATION_STYLE", "config.opentelemetry:OTEL_PROPAGATORS"],
             ["config.datadog:DD_TRACE_SAMPLE_RATE", "config.opentelemetry:OTEL_TRACES_SAMPLER"],
             ["config.datadog:DD_TRACE_SAMPLE_RATE", "config.opentelemetry:OTEL_TRACES_SAMPLER_ARG"],
@@ -458,12 +463,54 @@ class Test_TelemetrySCAEnvVar:
     @pytest.mark.parametrize(
         "library_env, specific_libraries_support, outcome_value",
         [
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, False, "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, ("python", "golang"), "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang"), "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, "false"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang"), "false"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), "false"),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_APPSEC_SCA_ENABLED": "true",
+                },
+                False,
+                "true",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_APPSEC_SCA_ENABLED": "True",
+                },
+                ("python", "golang"),
+                "true",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_APPSEC_SCA_ENABLED": "1",
+                },
+                ("python", "golang"),
+                "true",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_APPSEC_SCA_ENABLED": "false",
+                },
+                False,
+                "false",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_APPSEC_SCA_ENABLED": "False",
+                },
+                ("python", "golang"),
+                "false",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_APPSEC_SCA_ENABLED": "0",
+                },
+                ("python", "golang"),
+                "false",
+            ),
         ],
     )
     def test_telemetry_sca_enabled_propagated(

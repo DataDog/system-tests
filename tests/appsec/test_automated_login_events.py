@@ -27,12 +27,12 @@ class Test_Login_Events:
 
     @property
     def username_key(self):
-        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        """In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter]"""
         return "user[username]" if "rails" in context.weblog_variant else "username"
 
     @property
     def password_key(self):
-        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        """In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter]"""
         return "user[password]" if "rails" in context.weblog_variant else "password"
 
     USER = "test"
@@ -292,12 +292,12 @@ class Test_Login_Events_Extended:
 
     @property
     def username_key(self):
-        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        """In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter]"""
         return "user[username]" if "rails" in context.weblog_variant else "username"
 
     @property
     def password_key(self):
-        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        """In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter]"""
         return "user[password]" if "rails" in context.weblog_variant else "password"
 
     USER = "test"
@@ -653,12 +653,12 @@ class Test_V2_Login_Events:
 
     @property
     def username_key(self):
-        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        """In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter]"""
         return "user[username]" if "rails" in context.weblog_variant else "username"
 
     @property
     def password_key(self):
-        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        """In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter]"""
         return "user[password]" if "rails" in context.weblog_variant else "password"
 
     USER = "test"
@@ -924,17 +924,17 @@ class Test_V2_Login_Events:
 @features.user_monitoring
 class Test_V2_Login_Events_Anon:
     """Test login success/failure use cases
-       As default mode is identification, this scenario will test anonymization. 
+    As default mode is identification, this scenario will test anonymization.
     """
 
     @property
     def username_key(self):
-        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        """In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter]"""
         return "user[username]" if "rails" in context.weblog_variant else "username"
 
     @property
     def password_key(self):
-        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        """In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter]"""
         return "user[password]" if "rails" in context.weblog_variant else "password"
 
     USER = "test"

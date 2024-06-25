@@ -9,7 +9,7 @@ from utils import features, weblog, interfaces, scenarios, rfc
 @features.rasp_local_file_inclusion
 @scenarios.appsec_rasp
 class Test_Lfi_UrlQuery:
-    """ Local file inclusion through query parameters """
+    """Local file inclusion through query parameters"""
 
     def setup_lfi_get(self):
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
@@ -31,7 +31,7 @@ class Test_Lfi_UrlQuery:
 @features.rasp_local_file_inclusion
 @scenarios.appsec_rasp
 class Test_Lfi_BodyUrlEncoded:
-    """ Local file inclusion through a url-encoded body parameter """
+    """Local file inclusion through a url-encoded body parameter"""
 
     def setup_lfi_post_urlencoded(self):
         self.r = weblog.post("/rasp/lfi", data={"file": "../etc/passwd"})
@@ -53,7 +53,7 @@ class Test_Lfi_BodyUrlEncoded:
 @features.rasp_local_file_inclusion
 @scenarios.appsec_rasp
 class Test_Lfi_BodyXml:
-    """ Local file inclusion through an xml body parameter """
+    """Local file inclusion through an xml body parameter"""
 
     def setup_lfi_post_xml(self):
         data = "<?xml version='1.0' encoding='utf-8'?><file>../etc/passwd</file>"
@@ -76,7 +76,7 @@ class Test_Lfi_BodyXml:
 @features.rasp_local_file_inclusion
 @scenarios.appsec_rasp
 class Test_Lfi_BodyJson:
-    """ Local file inclusion through a json body parameter """
+    """Local file inclusion through a json body parameter"""
 
     def setup_lfi_post_json(self):
         """AppSec detects attacks in JSON body values"""

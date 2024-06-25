@@ -12,8 +12,8 @@ from utils import irrelevant
 @features.k8s_admission_controller
 @scenarios.k8s_library_injection_full
 class TestConfigMapAutoInject:
-    """ Datadog Agent Auto-injection tests using ConfigMap
-        Check: https://datadoghq.atlassian.net/wiki/spaces/AO/pages/2983035648/Cluster+Agent+Development
+    """Datadog Agent Auto-injection tests using ConfigMap
+    Check: https://datadoghq.atlassian.net/wiki/spaces/AO/pages/2983035648/Cluster+Agent+Development
     """
 
     def _get_dev_agent_traces(self, agent_port, retry=10):
@@ -52,7 +52,7 @@ class TestConfigMapAutoInject:
         ]
 
     def _get_default_auto_inject_config_all_libraries(self, test_k8s_instance, rc_rev=0):
-        """ Returns a list of config objects for all supported libraries. """
+        """Returns a list of config objects for all supported libraries."""
         return [
             {
                 "id": "11777398274940883092",
@@ -157,7 +157,7 @@ class TestConfigMapAutoInject:
         ]
 
     def _check_for_env_vars(self, test_k8s_instance, expected_env_vars):
-        """ evaluates whether the expected tracer config is reflected in the env vars of the targeted pod. """
+        """evaluates whether the expected tracer config is reflected in the env vars of the targeted pod."""
         app_name = f"{test_k8s_instance.library}-app"
         pods = test_k8s_instance.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
         assert len(pods.items) != 0, f"No pods found for app {app_name}"
@@ -223,7 +223,7 @@ class TestConfigMapAutoInject:
 
     def _trigger_app_rolling_update(self, test_k8s_instance):
         """Starts a rolling update of the target deployment by injecting an environment variable.
-          It returns when the deployment is available and the rollout is finished. 
+        It returns when the deployment is available and the rollout is finished.
         """
         deployment_name = f"test-{test_k8s_instance.library}-deployment"
         deploy_data = test_k8s_instance.k8s_wrapper.read_namespaced_deployment(deployment_name)
@@ -236,7 +236,7 @@ class TestConfigMapAutoInject:
         test_k8s_instance.test_weblog.wait_for_weblog_after_apply_configmap(f"{test_k8s_instance.library}-app")
 
     def _check_for_no_pod_metadata(self, test_k8s_instance):
-        """ Ensures the targeted pod doesn't have admission labels. """
+        """Ensures the targeted pod doesn't have admission labels."""
         app_name = f"{test_k8s_instance.library}-app"
         pods = test_k8s_instance.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
         assert len(pods.items) != 0, f"No pods found for app {app_name}"
@@ -246,7 +246,7 @@ class TestConfigMapAutoInject:
         ), "annotation 'admission.datadoghq.com/enabled' is present but it shouldn't be there"
 
     def _check_for_disabled_pod_metadata(self, test_k8s_instance):
-        """ Ensures the targeted pod doesn't have admission labels. """
+        """Ensures the targeted pod doesn't have admission labels."""
 
         app_name = f"{test_k8s_instance.library}-app"
         pods = test_k8s_instance.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
@@ -256,10 +256,10 @@ class TestConfigMapAutoInject:
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
 
     def test_fileprovider_configmap_case1(self, test_k8s_instance):
-        """ Nominal case:
-           - deploy app & agent
-           - apply config
-           - check for traces """
+        """Nominal case:
+        - deploy app & agent
+        - apply config
+        - check for traces"""
 
         logger.info(
             f"Launching test test_fileprovider_configmap_case1: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
@@ -284,12 +284,12 @@ class TestConfigMapAutoInject:
         logger.info(f"Test test_fileprovider_configmap_case1 finished")
 
     def test_fileprovider_configmap_case2(self, test_k8s_instance):
-        """ Config change:
-               - deploy app & agent
-               - apply config
-               - check for traces
-               - apply different tracers config
-               - check for traces """
+        """Config change:
+        - deploy app & agent
+        - apply config
+        - check for traces
+        - apply different tracers config
+        - check for traces"""
 
         logger.info(
             f"Launching test test_fileprovider_configmap_case2: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
@@ -316,13 +316,13 @@ class TestConfigMapAutoInject:
         logger.info(f"Test test_fileprovider_configmap_case2 finished")
 
     def test_fileprovider_configmap_case3(self, test_k8s_instance):
-        """  Config persistence:
-               - deploy app & agent
-               - apply config
-               - check for traces
-               - trigger unrelated rolling-update
-               - check for traces
-         """
+        """Config persistence:
+        - deploy app & agent
+        - apply config
+        - check for traces
+        - trigger unrelated rolling-update
+        - check for traces
+        """
         logger.info(
             f"Launching test test_fileprovider_configmap_case3: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
@@ -358,10 +358,10 @@ class TestConfigMapAutoInject:
         logger.info(f"Test test_fileprovider_configmap_case3 finished")
 
     def test_fileprovider_configmap_case4(self, test_k8s_instance):
-        """  Mismatching config:
-               - deploy app & agent
-               - apply config with non-matching cluster name
-               - check that metadata does not exist """
+        """Mismatching config:
+        - deploy app & agent
+        - apply config with non-matching cluster name
+        - check that metadata does not exist"""
 
         logger.info(
             f"Launching test test_fileprovider_configmap_case4: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
@@ -380,13 +380,13 @@ class TestConfigMapAutoInject:
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
 
     def test_fileprovider_configmap_case5(self, test_k8s_instance):
-        """ Config change to action:disable
-                - deploy app & agent
-                - apply matching config
-                - check that deployment instrumented
-                - apply config with action:disable
-                - check that deployment is not longer instrumented
-       """
+        """Config change to action:disable
+        - deploy app & agent
+        - apply matching config
+        - check that deployment instrumented
+        - apply config with action:disable
+        - check that deployment is not longer instrumented
+        """
         logger.info(
             f"Launching test test_fileprovider_configmap_case5: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
@@ -413,10 +413,10 @@ class TestConfigMapAutoInject:
         reason="Test a discontinued feature",
     )
     def test_fileprovider_configmap_case6(self, test_k8s_instance):
-        """  Inject-all case (for batch instrumentation)
-           - use language name "all" in RC config
-           - all supported language libraries should be injected into the container
-           - ensure traces are produced and the pods are modified correctly 
+        """Inject-all case (for batch instrumentation)
+        - use language name "all" in RC config
+        - all supported language libraries should be injected into the container
+        - ensure traces are produced and the pods are modified correctly
         """
         logger.info(
             f"Launching test test_fileprovider_configmap_case6: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"

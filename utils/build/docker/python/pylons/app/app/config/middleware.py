@@ -1,4 +1,5 @@
 """Pylons middleware initialization"""
+
 from ddtrace import tracer
 from ddtrace.contrib.pylons import PylonsTraceMiddleware
 

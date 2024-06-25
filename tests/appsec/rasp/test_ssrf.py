@@ -9,7 +9,7 @@ from utils import features, weblog, interfaces, scenarios, rfc
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
 class Test_Ssrf_UrlQuery:
-    """ Server-side request forgery through query parameters """
+    """Server-side request forgery through query parameters"""
 
     def setup_ssrf_get(self):
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
@@ -31,7 +31,7 @@ class Test_Ssrf_UrlQuery:
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
 class Test_Ssrf_BodyUrlEncoded:
-    """ Server-side request forgery through a url-encoded body parameter """
+    """Server-side request forgery through a url-encoded body parameter"""
 
     def setup_ssrf_post_urlencoded(self):
         self.r = weblog.post("/rasp/ssrf", data={"domain": "169.254.169.254"})
@@ -53,7 +53,7 @@ class Test_Ssrf_BodyUrlEncoded:
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
 class Test_Ssrf_BodyXml:
-    """ Server-side request forgery through an xml body parameter """
+    """Server-side request forgery through an xml body parameter"""
 
     def setup_ssrf_post_xml(self):
         data = f"<?xml version='1.0' encoding='utf-8'?><domain>169.254.169.254</domain>"
@@ -76,7 +76,7 @@ class Test_Ssrf_BodyXml:
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
 class Test_Ssrf_BodyJson:
-    """ Server-side request forgery through a json body parameter """
+    """Server-side request forgery through a json body parameter"""
 
     def setup_ssrf_post_json(self):
         """AppSec detects attacks in JSON body values"""

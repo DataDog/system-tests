@@ -74,11 +74,15 @@ class Test_Headers_B3multi:
 
     @enable_b3multi()
     def test_headers_b3multi_extract_invalid(self, test_agent, test_library):
-        """Ensure that invalid b3multi distributed tracing headers are not extracted.
-        """
+        """Ensure that invalid b3multi distributed tracing headers are not extracted."""
         with test_library:
             headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+                test_library,
+                [
+                    ["x-b3-traceid", "0"],
+                    ["x-b3-spanid", "0"],
+                    ["x-b3-sampled", "1"],
+                ],
             )
 
         span = get_span(test_agent)
@@ -88,8 +92,7 @@ class Test_Headers_B3multi:
 
     @enable_b3multi()
     def test_headers_b3multi_inject_valid(self, test_agent, test_library):
-        """Ensure that b3multi distributed tracing headers are injected properly.
-        """
+        """Ensure that b3multi distributed tracing headers are injected properly."""
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
 
@@ -138,7 +141,12 @@ class Test_Headers_B3multi:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+                test_library,
+                [
+                    ["x-b3-traceid", "0"],
+                    ["x-b3-spanid", "0"],
+                    ["x-b3-sampled", "1"],
+                ],
             )
 
         span = get_span(test_agent)
@@ -157,7 +165,8 @@ class Test_Headers_B3multi:
 
     @enable_b3multi_single_key()
     @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
+        context.library == "ruby",
+        reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
     )
     def test_headers_b3multi_single_key_propagate_valid(self, test_agent, test_library):
         """Ensure that b3multi distributed tracing headers are extracted

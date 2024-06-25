@@ -70,8 +70,7 @@ class Test_Metadata:
         with pytest.raises(ValueError):
 
             @missing_feature(library="not a lib")
-            def test_method():
-                ...
+            def test_method(): ...
 
 
 class Test_Skips:

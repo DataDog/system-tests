@@ -11,7 +11,8 @@ from utils import missing_feature, irrelevant, context, scenarios, features
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+    "library_env",
+    [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
 )
 
 
@@ -48,7 +49,8 @@ class Test_Otel_Span_With_W3c:
     def test_otel_span_with_w3c_headers(self, test_agent, test_library):
         with test_library:
             with test_library.otel_start_span(
-                name="name", http_headers=[["traceparent", "00-00000000000000001111111111111111-2222222222222222-01"]],
+                name="name",
+                http_headers=[["traceparent", "00-00000000000000001111111111111111-2222222222222222-01"]],
             ) as span:
                 context = span.span_context()
                 assert context.get("trace_flags") == "01"

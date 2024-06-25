@@ -29,7 +29,7 @@ class K8sDatadogClusterTestAgent:
         self.logger.info(f"K8sDatadogClusterTestAgent configured with cluster: {self.k8s_kind_cluster.cluster_name}")
 
     def desploy_test_agent(self):
-        """ Installs the test agent pod."""
+        """Installs the test agent pod."""
 
         self.logger.info(
             f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_kind_cluster.cluster_name}"
@@ -100,8 +100,8 @@ class K8sDatadogClusterTestAgent:
         self.logger.info("[Test agent] Daemonset created")
 
     def deploy_operator_manual(self, use_uds=False):
-        """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
-            It returns when the Cluster Agent pod is ready."""
+        """Installs the Datadog Cluster Agent via helm for manual library injection testing.
+        It returns when the Cluster Agent pod is ready."""
 
         self.logger.info("[Deploy operator] Deploying Datadog Operator")
 
@@ -127,8 +127,8 @@ class K8sDatadogClusterTestAgent:
         self._wait_for_operator_ready()
 
     def deploy_operator_auto(self):
-        """ Installs the Datadog Cluster Agent via helm for auto library injection testing.
-            It returns when the Cluster Agent pod is ready."""
+        """Installs the Datadog Cluster Agent via helm for auto library injection testing.
+        It returns when the Cluster Agent pod is ready."""
 
         self.logger.info("[Deploy operator] Using Patcher")
         operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-auto.yaml"
@@ -156,22 +156,34 @@ class K8sDatadogClusterTestAgent:
         self._wait_for_operator_ready()
 
     def apply_config_auto_inject(self, config_data, rev=0):
-        """ Applies an configuration change for auto injection.
-            It returns when the targeted deployment finishes the rollout."""
+        """Applies an configuration change for auto injection.
+        It returns when the targeted deployment finishes the rollout."""
 
         self.logger.info(f"[Auto Config] Applying config for auto-inject: {config_data}")
-        metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
-        configmap = client.V1ConfigMap(kind="ConfigMap", data={"auto-instru.json": config_data,}, metadata=metadata)
+        metadata = client.V1ObjectMeta(
+            name="auto-instru",
+            namespace="default",
+        )
+        configmap = client.V1ConfigMap(
+            kind="ConfigMap",
+            data={
+                "auto-instru.json": config_data,
+            },
+            metadata=metadata,
+        )
         r = self.k8s_wrapper.replace_namespaced_config_map(name="auto-instru", body=configmap)
         self.logger.info(f"[Auto Config] Configmap replaced!")
         k8s_logger(self.output_folder, self.test_name, "applied_configmaps").info(r)
         self.wait_configmap_auto_inject(timeout=150, rev=rev)
 
     def create_configmap_auto_inject(self):
-        """ Minimal configuration needed when we install operator auto """
+        """Minimal configuration needed when we install operator auto"""
 
         self.logger.info("[Auto Config] Creating configmap for auto-inject")
-        metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
+        metadata = client.V1ObjectMeta(
+            name="auto-instru",
+            namespace="default",
+        )
         configmap = client.V1ConfigMap(
             kind="ConfigMap",
             data={
@@ -184,7 +196,7 @@ class K8sDatadogClusterTestAgent:
         time.sleep(5)
 
     def wait_configmap_auto_inject(self, timeout=90, rev=0):
-        """ wait for the configmap to be read by the datadog-cluster-agent."""
+        """wait for the configmap to be read by the datadog-cluster-agent."""
 
         patch_id = "11777398274940883092"
         self.logger.info("[Auto Config] Waiting for the configmap to be read by the datadog-cluster-agent.")
@@ -222,7 +234,7 @@ class K8sDatadogClusterTestAgent:
             time.sleep(5)
 
     def wait_for_test_agent(self):
-        """ Waits for the test agent to be ready."""
+        """Waits for the test agent to be ready."""
         daemonset_created = False
         daemonset_status = None
         # Wait for the daemonset to be created
@@ -288,7 +300,7 @@ class K8sDatadogClusterTestAgent:
         time.sleep(5)
 
     def export_debug_info(self):
-        """ Exports debug information for the test agent and the operator.
+        """Exports debug information for the test agent and the operator.
         We shouldn't raise any exception here, we just log the errors."""
 
         # Get all pods

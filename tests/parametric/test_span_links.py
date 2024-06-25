@@ -25,7 +25,8 @@ class Test_Span_Links:
                 pass
 
             with test_library.start_span(
-                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+                "second",
+                links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
             ):
                 pass
 
@@ -61,7 +62,8 @@ class Test_Span_Links:
                 pass
 
             with test_library.start_span(
-                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+                "second",
+                links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
             ):
                 pass
 
@@ -171,8 +173,7 @@ class Test_Span_Links:
         assert len(link.get("attributes") or {}) == 0
 
     def test_span_with_attached_links(self, test_agent, test_library):
-        """Test adding a span link from a span to another span.
-        """
+        """Test adding a span link from a span to another span."""
         with test_library:
             with test_library.start_span("first") as s1:
                 with test_library.start_span("second", parent_id=s1.span_id) as s2:

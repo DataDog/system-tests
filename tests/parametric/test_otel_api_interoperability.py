@@ -11,7 +11,13 @@ from utils.parametric.spec.trace import find_trace_by_root, find_span, retrieve_
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1",}],
+    "library_env",
+    [
+        {
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "CORECLR_ENABLE_PROFILING": "1",
+        }
+    ],
 )
 
 TEST_TRACE_ID = "ff0000000000051791e0000000000041"
@@ -28,7 +34,7 @@ TEST_ATTRIBUTES = {"arg1": "val1"}
 class Test_Otel_API_Interoperability:
     def test_span_creation_using_otel(self, test_agent, test_library):
         """
-            - A span created with the OTel API should be visible in the DD API
+        - A span created with the OTel API should be visible in the DD API
         """
         with test_library:
             with test_library.otel_start_span("otel_span") as otel_span:
@@ -39,7 +45,7 @@ class Test_Otel_API_Interoperability:
 
     def test_span_creation_using_datadog(self, test_agent, test_library):
         """
-            - A span created with the DD API should be visible in the OTel API
+        - A span created with the DD API should be visible in the OTel API
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
@@ -50,7 +56,7 @@ class Test_Otel_API_Interoperability:
 
     def test_otel_start_after_datadog_span(self, test_agent, test_library):
         """
-            - Start a span using the OTel API while a span created using the Datadog API already exists
+        - Start a span using the OTel API while a span created using the Datadog API already exists
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
@@ -76,7 +82,7 @@ class Test_Otel_API_Interoperability:
 
     def test_has_ended(self, test_agent, test_library):
         """
-            - Test that the ending status of a span is propagated across APIs
+        - Test that the ending status of a span is propagated across APIs
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
@@ -97,7 +103,7 @@ class Test_Otel_API_Interoperability:
 
     def test_datadog_start_after_otel_span(self, test_agent, test_library):
         """
-            - Start a span using the Datadog API while a span created using the OTel API already exists
+        - Start a span using the Datadog API while a span created using the OTel API already exists
         """
         with test_library:
             with test_library.otel_start_span(name="otel_span", span_kind=SK_INTERNAL) as otel_span:
@@ -124,7 +130,7 @@ class Test_Otel_API_Interoperability:
 
     def test_set_update_remove_meta(self, test_agent, test_library):
         """
-            - Test that meta is set/updated/removed across APIs
+        - Test that meta is set/updated/removed across APIs
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
@@ -165,7 +171,7 @@ class Test_Otel_API_Interoperability:
 
     def test_set_update_remove_metric(self, test_agent, test_library):
         """
-            - Test that metrics are set/updated/removed across APIs
+        - Test that metrics are set/updated/removed across APIs
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
@@ -206,7 +212,7 @@ class Test_Otel_API_Interoperability:
 
     def test_update_resource(self, test_agent, test_library):
         """
-            - Test that the resource is updated across APIs
+        - Test that the resource is updated across APIs
         """
         with test_library:
             with test_library.otel_start_span("my_resource") as otel_span:
@@ -225,7 +231,7 @@ class Test_Otel_API_Interoperability:
 
     def test_span_links_add(self, test_agent, test_library):
         """
-            - Test that links can be added with the Datadog API on a span created with the OTel API
+        - Test that links can be added with the Datadog API on a span created with the OTel API
         """
         with test_library:
             with test_library.otel_start_span("otel.span") as otel_span:
@@ -259,7 +265,7 @@ class Test_Otel_API_Interoperability:
 
     def test_concurrent_traces_in_order(self, test_agent, test_library):
         """
-            - Basic concurrent traces and spans
+        - Basic concurrent traces and spans
         """
         with test_library:
             with test_library.otel_start_span("otel_root", span_kind=SK_SERVER) as otel_root:
@@ -297,7 +303,7 @@ class Test_Otel_API_Interoperability:
 
     def test_concurrent_traces_nested_otel_root(self, test_agent, test_library):
         """
-            - Concurrent traces with nested start/end, with the first trace being opened with the OTel API
+        - Concurrent traces with nested start/end, with the first trace being opened with the OTel API
         """
         with test_library:
             with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
@@ -346,7 +352,7 @@ class Test_Otel_API_Interoperability:
 
     def test_concurrent_traces_nested_dd_root(self, test_agent, test_library):
         """
-            - Concurrent traces with nested start/end, with the first trace being opened with the Datadog API
+        - Concurrent traces with nested start/end, with the first trace being opened with the Datadog API
         """
         with test_library:
             with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
@@ -395,7 +401,7 @@ class Test_Otel_API_Interoperability:
 
     def test_distributed_headers_are_propagated_tracecontext(self, test_agent, test_library):
         """
-            - Test that distributed tracecontext headers are propagated across APIs
+        - Test that distributed tracecontext headers are propagated across APIs
         """
         trace_id = "0000000000000000000000000000002a"  # 42
         parent_id = "0000000000000003"  # 3
@@ -426,7 +432,7 @@ class Test_Otel_API_Interoperability:
 
     def test_distributed_headers_are_propagated_datadog(self, test_agent, test_library):
         """
-            - Test that distributed datadog headers are propagated across APIs
+        - Test that distributed datadog headers are propagated across APIs
         """
 
         headers = [
@@ -438,7 +444,10 @@ class Test_Otel_API_Interoperability:
         ]
 
         with test_library:
-            with test_library.start_span(name="dd_span", http_headers=headers,) as dd_span:
+            with test_library.start_span(
+                name="dd_span",
+                http_headers=headers,
+            ) as dd_span:
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
                 otel_trace_state = otel_context.get("trace_state")
@@ -462,7 +471,7 @@ class Test_Otel_API_Interoperability:
 
     def test_set_attribute_from_otel(self, test_agent, test_library):
         """
-            - Test that attributes can be set on a Datadog span using the OTel API
+        - Test that attributes can be set on a Datadog span using the OTel API
         """
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
@@ -501,7 +510,7 @@ class Test_Otel_API_Interoperability:
 
     def test_set_attribute_from_datadog(self, test_agent, test_library):
         """
-            - Test that attributes can be set on an OTel span using the Datadog API
+        - Test that attributes can be set on an OTel span using the Datadog API
         """
         with test_library:
             with test_library.otel_start_span(name="otel_span") as otel_span:

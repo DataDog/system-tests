@@ -5,10 +5,10 @@ from retry import retry
 
 
 class K8sWrapper:
-    """ Wrap methods from CoreV1Api and AppsV1Api to make it fail-safe.
+    """Wrap methods from CoreV1Api and AppsV1Api to make it fail-safe.
     In a simple execution, the methods used here are usually smooth.
     Problems arise when we run tests with a lot of parallelism.
-    We apply a retry policy """
+    We apply a retry policy"""
 
     def __init__(self, k8s_kind_cluster):
         self.k8s_kind_cluster = k8s_kind_cluster

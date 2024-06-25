@@ -114,20 +114,35 @@ class Test_Otel_Env_Vars:
     @missing_feature(
         context.library <= "php@1.1.0", reason="The always_on sampler mapping is properly implemented in v1.2.0"
     )
-    @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on",}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_TRACES_SAMPLER": "always_on",
+            }
+        ],
+    )
     def test_otel_traces_always_on(self, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
             assert float(resp["dd_trace_sample_rate"]) == 1.0
 
-    @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_off",}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_TRACES_SAMPLER": "always_off",
+            }
+        ],
+    )
     def test_otel_traces_always_off(self, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
         assert float(resp["dd_trace_sample_rate"]) == 0.0
 
     @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_SAMPLER": "traceidratio", "OTEL_TRACES_SAMPLER_ARG": "0.1"}],
+        "library_env",
+        [{"OTEL_TRACES_SAMPLER": "traceidratio", "OTEL_TRACES_SAMPLER_ARG": "0.1"}],
     )
     def test_otel_traces_traceidratio(self, test_agent, test_library):
         with test_library as t:
@@ -137,14 +152,26 @@ class Test_Otel_Env_Vars:
     @missing_feature(
         context.library <= "php@1.1.0", reason="The always_on sampler mapping is properly implemented in v1.2.0"
     )
-    @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_on",}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_TRACES_SAMPLER": "parentbased_always_on",
+            }
+        ],
+    )
     def test_otel_traces_parentbased_on(self, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
         assert float(resp["dd_trace_sample_rate"]) == 1.0
 
     @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off",}],
+        "library_env",
+        [
+            {
+                "OTEL_TRACES_SAMPLER": "parentbased_always_off",
+            }
+        ],
     )
     def test_otel_traces_parentbased_off(self, test_agent, test_library):
         with test_library as t:
@@ -152,7 +179,8 @@ class Test_Otel_Env_Vars:
         assert float(resp["dd_trace_sample_rate"]) == 0.0
 
     @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_traceidratio", "OTEL_TRACES_SAMPLER_ARG": "0.1"}],
+        "library_env",
+        [{"OTEL_TRACES_SAMPLER": "parentbased_traceidratio", "OTEL_TRACES_SAMPLER_ARG": "0.1"}],
     )
     def test_otel_traces_parentbased_ratio(self, test_agent, test_library):
         with test_library as t:
@@ -160,7 +188,8 @@ class Test_Otel_Env_Vars:
         assert float(resp["dd_trace_sample_rate"]) == 0.1
 
     @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_EXPORTER": "none"}],
+        "library_env",
+        [{"OTEL_TRACES_EXPORTER": "none"}],
     )
     def test_otel_traces_exporter_none(self, test_agent, test_library):
         with test_library as t:

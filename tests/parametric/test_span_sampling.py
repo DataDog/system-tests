@@ -85,7 +85,8 @@ class Test_Span_Sampling:
 
     @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
     @pytest.mark.parametrize(
-        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}],
+        "library_env",
+        [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}],
     )
     def test_single_rule_only_service_pattern_match_span_sampling_sss004(self, test_agent, test_library):
         """Test span sampling tags are added when both:
@@ -351,7 +352,8 @@ class Test_Span_Sampling:
     def test_single_rule_always_keep_span_sampling_sss011(self, test_agent, test_library):
         """Test that spans are always kept when the sampling rule matches and has sample_rate:1.0 regardless of tracer decision.
 
-        Basically, if we have a rule for spans with sample_rate:1.0 we should always keep those spans, either due to trace sampling or span sampling"""
+        Basically, if we have a rule for spans with sample_rate:1.0 we should always keep those spans, either due to trace sampling or span sampling
+        """
         # This span is set to be dropped by the tracer/user, however it is kept by span sampling
         with test_library:
             with test_library.start_span(name="web.request", service="webserver") as span:

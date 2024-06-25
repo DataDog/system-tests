@@ -26,7 +26,7 @@ class TestParameterName(BaseSourceTest):
     @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
     @missing_feature(library="dotnet", reason="Tainted as request body")
     def test_source_post_reported(self):
-        """ for use case where only one is reported, we want to keep a test on the one reported """
+        """for use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
@@ -34,7 +34,7 @@ class TestParameterName(BaseSourceTest):
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
     @bug(weblog_variant="resteasy-netty3", reason="Not reported")
     def test_source_get_reported(self):
-        """ for use case where only one is reported, we want to keep a test on the one reported """
+        """for use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["GET"])
 
     @missing_feature(weblog_variant="express4", reason="Tainted as request body")

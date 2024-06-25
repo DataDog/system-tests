@@ -37,8 +37,8 @@ class K8sWeblog:
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
 
     def _get_base_weblog_pod(self):
-        """ Installs a target app for manual library injection testing.
-            It returns when the app pod is ready."""
+        """Installs a target app for manual library injection testing.
+        It returns when the app pod is ready."""
 
         self.logger.info(
             "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
@@ -170,19 +170,23 @@ class K8sWeblog:
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
     def deploy_app_auto(self):
-        """ Installs a target app for auto library injection testing.
-            It returns when the deployment is available and the rollout is finished."""
+        """Installs a target app for auto library injection testing.
+        It returns when the deployment is available and the rollout is finished."""
         deployment_name = f"test-{self.library}-deployment"
 
         deployment_metadata = client.V1ObjectMeta(
-            name=deployment_name, namespace="default", labels={"app": f"{self.library}-app"},
+            name=deployment_name,
+            namespace="default",
+            labels={"app": f"{self.library}-app"},
         )
 
         # Configureate Pod template container
         container = client.V1Container(
             name=f"{self.library}-app",
             image=self.app_image,
-            env=[client.V1EnvVar(name="SERVER_PORT", value="18080"),],
+            env=[
+                client.V1EnvVar(name="SERVER_PORT", value="18080"),
+            ],
             readiness_probe=client.V1Probe(
                 timeout_seconds=5,
                 success_threshold=3,
@@ -207,7 +211,10 @@ class K8sWeblog:
 
         # Instantiate the deployment object
         deployment = client.V1Deployment(
-            api_version="apps/v1", kind="Deployment", metadata=deployment_metadata, spec=spec,
+            api_version="apps/v1",
+            kind="Deployment",
+            metadata=deployment_metadata,
+            spec=spec,
         )
         # Create deployment. retry if it fails
         self.k8s_wrapper.create_namespaced_deployment(body=deployment)
@@ -215,7 +222,7 @@ class K8sWeblog:
         self._wait_for_deployment_complete(deployment_name, timeout=180)
 
     def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
-        """ Waits for the weblog to be ready after applying a configmap. We added a lot of debug traces 
+        """Waits for the weblog to be ready after applying a configmap. We added a lot of debug traces
         because we have seen some flakiness in the past."""
         pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
         self.logger.info(f"[Weblog] Currently running pods [{app_name}]:[{len(pods.items)}]")
@@ -319,7 +326,7 @@ class K8sWeblog:
         raise RuntimeError(f"Waiting timeout for deployment {deployment_name}")
 
     def export_debug_info(self):
-        """ Extracts debug info from the k8s weblog app and logs it to the specified folder."""
+        """Extracts debug info from the k8s weblog app and logs it to the specified folder."""
 
         # check weblog describe pod
         try:

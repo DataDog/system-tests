@@ -105,7 +105,9 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
-            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event,
+            request_headers={"via": r"trace-agent 7\..+"},
+            response_headers=(),
+            check_condition=not_onboarding_event,
         )
 
         self.validate_agent_telemetry_data(header_presence_validator)
@@ -115,7 +117,8 @@ class Test_Telemetry:
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"],
+            path_filter=INTAKE_TELEMETRY_PATH,
+            request_headers=["datadog-container-id"],
         )
 
     @missing_feature(library="cpp")
@@ -123,7 +126,8 @@ class Test_Telemetry:
         """Test telemetry messages contain required headers"""
 
         interfaces.agent.assert_headers_presence(
-            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"],
+            path_filter=INTAKE_TELEMETRY_PATH,
+            request_headers=["dd-api-key"],
         )
         interfaces.library.assert_headers_presence(
             path_filter=AGENT_TELEMETRY_PATH,
@@ -236,7 +240,8 @@ class Test_Telemetry:
             ), "app-started is not the first message by seq_id"
 
     @bug(
-        weblog_variant="spring-boot-openliberty", reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        weblog_variant="spring-boot-openliberty",
+        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
     @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
     @bug(context.agent_version > "7.53.0", reason="Jira missing")
@@ -453,7 +458,8 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
     @missing_feature(
-        context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
+        context.library in ("golang", "php"),
+        reason="Telemetry is not implemented yet. ",
     )
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @bug(

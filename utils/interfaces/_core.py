@@ -40,7 +40,7 @@ class InterfaceValidator:
 
 
 class ProxyBasedInterfaceValidator(InterfaceValidator):
-    """ Interfaces based on proxy container """
+    """Interfaces based on proxy container"""
 
     def __init__(self, name):
         super().__init__(name)
@@ -85,7 +85,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         time.sleep(timeout)
 
     def check_deserialization_errors(self):
-        """ Verify that all proxy deserialization are successful """
+        """Verify that all proxy deserialization are successful"""
 
         for data in self._data_list:
             filename = data["log_filename"]

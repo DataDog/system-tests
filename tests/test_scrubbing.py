@@ -31,7 +31,7 @@ def validate_no_leak(needle, whitelist_pattern=None):
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.library_scrubbing
 class Test_UrlQuery:
-    """ PII values in query parameter are all removed"""
+    """PII values in query parameter are all removed"""
 
     def setup_main(self):
         weblog.get("/", params={"pass": "leak-url-main-v1", "key2": "val2", "key3": "val3"})
@@ -63,7 +63,7 @@ class Test_UrlQuery:
 
 @features.library_scrubbing
 class Test_UrlField:
-    """ PII in url field is removed on client HTTP calls """
+    """PII in url field is removed on client HTTP calls"""
 
     def setup_main(self):
         # This is done against agent:8127 which will return error 404.
@@ -73,10 +73,11 @@ class Test_UrlField:
         self.r = weblog.get("/make_distant_call", params={"url": url})
 
     @missing_feature(
-        context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"), reason="Need weblog endpoint",
+        context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"),
+        reason="Need weblog endpoint",
     )
     def test_main(self):
-        """ check that not data is leaked """
+        """check that not data is leaked"""
         assert self.r.status_code == 200
 
         def validate_report(trace):
@@ -101,7 +102,7 @@ class Test_UrlField:
 
 @features.library_scrubbing
 class Test_EnvVar:
-    """ Environnement variables are not leaked """
+    """Environnement variables are not leaked"""
 
     def test_library(self):
         interfaces.library.validate(validate_no_leak("leaked-env-var"), success_by_default=True)

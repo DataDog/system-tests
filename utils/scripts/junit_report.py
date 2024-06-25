@@ -29,7 +29,12 @@ def junit_modifyreport(json_report, junit_report_path, junit_properties):
         error_trace = ""
 
         _create_testcase_results(
-            junit_report_root, classname, testcasename, outcome, skip_reason, error_trace,
+            junit_report_root,
+            classname,
+            testcasename,
+            outcome,
+            skip_reason,
+            error_trace,
         )
 
     for testsuite in junit_report_root.findall("testsuite"):
@@ -48,7 +53,12 @@ def junit_modifyreport(json_report, junit_report_path, junit_properties):
 
 
 def _create_testcase_results(
-    junit_xml_root, testclass_name, testcase_name, outcome, skip_reason, error_trace,
+    junit_xml_root,
+    testclass_name,
+    testcase_name,
+    outcome,
+    skip_reason,
+    error_trace,
 ):
     testcase = junit_xml_root.find(f"testsuite/testcase[@classname='{testclass_name}'][@name='{testcase_name}']")
     if testcase is not None:

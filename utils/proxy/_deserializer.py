@@ -37,15 +37,16 @@ def _parse_as_unsigned_int(value, size_in_bits):
     """This is necessary because some fields in spans are decribed as a 64 bits unsigned integers, but
     java, and other languages only supports signed integer. As such, they might send trace ids as negative
     number if >2**63 -1. The agent parses it signed and interpret the bytes as unsigned. See
-    https://github.com/DataDog/datadog-agent/blob/778855c6c31b13f9235a42b758a1f7c8ab7039e5/pkg/trace/pb/decoder_bytes.go#L181-L196"""
+    https://github.com/DataDog/datadog-agent/blob/778855c6c31b13f9235a42b758a1f7c8ab7039e5/pkg/trace/pb/decoder_bytes.go#L181-L196
+    """
     if not isinstance(value, int):
         return value
 
     # Asserts that the unsigned is either a no bigger than the size in bits
-    assert -(2 ** size_in_bits - 1) <= value <= 2 ** size_in_bits - 1
+    assert -(2**size_in_bits - 1) <= value <= 2**size_in_bits - 1
 
     # Take two's complement of the number if negative
-    return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
+    return value if value >= 0 else (-value ^ (2**size_in_bits - 1)) + 1
 
 
 def _decode_unsigned_int_traces(content):
@@ -85,7 +86,7 @@ def _decode_v_0_5_traces(content):
 
 
 def deserialize_dd_appsec_s_meta(payload):
-    """ meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings """
+    """meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings"""
 
     try:
         return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
@@ -198,7 +199,7 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
 
 
 def _deserialized_nested_json_from_trace_payloads(content, interface):
-    """ trace payload from agent and library contains strings that are json """
+    """trace payload from agent and library contains strings that are json"""
 
     if interface == "agent":
         for tracer_payload in content.get("tracerPayloads", []):

@@ -656,7 +656,7 @@ class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 
     def setup_request_block_attack(self):
-        """ Currently only monitoring is implemented"""
+        """Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",
@@ -695,7 +695,7 @@ class Test_BlockingGraphqlResolvers:
             assert parameters["value"] == "testblockresolver"
 
     def setup_request_block_attack_directive(self):
-        """ Currently only monitoring is implemented"""
+        """Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",

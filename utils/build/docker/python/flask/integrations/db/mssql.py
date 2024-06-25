@@ -10,7 +10,9 @@ USERNAME = "sa"
 PASSWORD = "yourStrong(!)Password"
 
 
-def executeMssqlOperation(operation,):
+def executeMssqlOperation(
+    operation,
+):
     print(f"Executing postgres {operation} operation")
     if operation == "init":
         createDatabase()

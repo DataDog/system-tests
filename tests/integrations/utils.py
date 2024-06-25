@@ -3,15 +3,15 @@ from utils.tools import logger
 
 
 class BaseDbIntegrationsTestClass:
-    """ define a setup function that perform a request to the weblog for each operation: select, update... """
+    """define a setup function that perform a request to the weblog for each operation: select, update..."""
 
     db_service = None
     requests = {}
 
     def _setup(self):
-        """ 
-            Make request to weblog for each operation: select, update... 
-            those requests will be permored only one time for the entire test run
+        """
+        Make request to weblog for each operation: select, update...
+        those requests will be permored only one time for the entire test run
         """
 
         assert self.db_service is not None, "db_service must be defined"

@@ -39,8 +39,8 @@ class _CGroupInfo:
     TASK_PATTERN = r"[0-9a-f]{32}-\d+"
 
     LINE_RE = re.compile(r"^(\d+):([^:]*):(.+)$")
-    POD_RE = re.compile(fr"pod({UUID_SOURCE_PATTERN})(?:\.slice)?$")
-    CONTAINER_RE = re.compile(fr"(?:.+)?({UUID_SOURCE_PATTERN}|{CONTAINER_SOURCE_PATTERN}|{TASK_PATTERN})(?:\.scope)?$")
+    POD_RE = re.compile(rf"pod({UUID_SOURCE_PATTERN})(?:\.slice)?$")
+    CONTAINER_RE = re.compile(rf"(?:.+)?({UUID_SOURCE_PATTERN}|{CONTAINER_SOURCE_PATTERN}|{TASK_PATTERN})(?:\.scope)?$")
 
     @classmethod
     def from_line(cls, line):

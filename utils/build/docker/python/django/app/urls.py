@@ -67,7 +67,9 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 def waf(request, *args, **kwargs):
     if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]},
+            tracer,
+            event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME,
+            metadata={"value": kwargs["tag_value"]},
         )
         if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
             return HttpResponse(
@@ -76,7 +78,11 @@ def waf(request, *args, **kwargs):
                 status=int(kwargs["status_code"]),
                 headers=request.GET.dict(),
             )
-        return HttpResponse("Value tagged", status=int(kwargs["status_code"]), headers=request.GET.dict(),)
+        return HttpResponse(
+            "Value tagged",
+            status=int(kwargs["status_code"]),
+            headers=request.GET.dict(),
+        )
     return HttpResponse("Hello, World!")
 
 
@@ -551,7 +557,10 @@ def track_user_login_success_event(request):
 
 def track_user_login_failure_event(request):
     appsec_trace_utils.track_user_login_failure_event(
-        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+        tracer,
+        user_id=_TRACK_USER,
+        exists=True,
+        metadata=_TRACK_METADATA,
     )
     return HttpResponse("OK")
 

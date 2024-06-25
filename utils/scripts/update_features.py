@@ -4,7 +4,7 @@ from utils import features
 
 
 def get_known_features():
-    """ return an object feature_id -> attribute name in features decorator """
+    """return an object feature_id -> attribute name in features decorator"""
     result = {}
 
     for attr in dir(features):

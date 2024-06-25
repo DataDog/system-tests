@@ -13,7 +13,7 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
 class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
-    """ Validated communication between open telemetry and datadog backend"""
+    """Validated communication between open telemetry and datadog backend"""
 
     def __init__(self):
         super().__init__("open_telemetry")

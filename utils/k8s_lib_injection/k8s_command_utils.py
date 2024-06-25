@@ -7,7 +7,7 @@ from retry import retry
 
 def execute_command(command, timeout=None, logfile=None):
     """call shell-command and either return its output or kill it
-  if it doesn't normally exit within timeout seconds and return None"""
+    if it doesn't normally exit within timeout seconds and return None"""
     applied_timeout = 90
     if timeout is not None:
         applied_timeout = timeout
@@ -51,7 +51,7 @@ def execute_command(command, timeout=None, logfile=None):
 
 @retry(delay=1, tries=5)
 def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
-    """ Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
+    """Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
 
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}", logfile=logfile)
@@ -108,7 +108,7 @@ def helm_install_chart(
 
 
 def path_clusterrole(k8s_kind_cluster):
-    """ This is a hack until the patching permission is added in the official helm chart."""
+    """This is a hack until the patching permission is added in the official helm chart."""
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
         execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")

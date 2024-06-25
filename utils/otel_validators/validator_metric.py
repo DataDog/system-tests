@@ -2,9 +2,13 @@
 
 import dictdiffer
 
+
 # Validates the JSON logs from backend and returns the OTel log trace attributes
 def validate_metrics(
-    metrics_1: list[dict], metrics_2: list[dict], metrics_source1: str, metrics_source2: str,
+    metrics_1: list[dict],
+    metrics_2: list[dict],
+    metrics_source1: str,
+    metrics_source2: str,
 ):
     diff = list(dictdiffer.diff(metrics_1[0], metrics_2[0]))
     assert len(diff) == 0, f"Diff between count metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"

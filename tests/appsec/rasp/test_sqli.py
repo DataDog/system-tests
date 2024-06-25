@@ -9,7 +9,7 @@ from utils import features, weblog, interfaces, scenarios, rfc
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
 class Test_Sqli_UrlQuery:
-    """ SQL Injection through query parameters """
+    """SQL Injection through query parameters"""
 
     def setup_sqli_get(self):
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
@@ -32,7 +32,7 @@ class Test_Sqli_UrlQuery:
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
 class Test_Sqli_BodyUrlEncoded:
-    """ SQL Injection through a url-encoded body parameter """
+    """SQL Injection through a url-encoded body parameter"""
 
     def setup_sqli_post_urlencoded(self):
         self.r = weblog.post("/rasp/sqli", data={"user_id": "' OR 1 = 1 --"})
@@ -55,7 +55,7 @@ class Test_Sqli_BodyUrlEncoded:
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
 class Test_Sqli_BodyXml:
-    """ SQL Injection through an xml body parameter """
+    """SQL Injection through an xml body parameter"""
 
     def setup_sqli_post_xml(self):
         data = "<?xml version='1.0' encoding='utf-8'?><user_id>' OR 1 = 1 --</user_id>"
@@ -79,7 +79,7 @@ class Test_Sqli_BodyXml:
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
 class Test_Sqli_BodyJson:
-    """ SQL Injection through a json body parameter """
+    """SQL Injection through a json body parameter"""
 
     def setup_sqli_post_json(self):
         """AppSec detects attacks in JSON body values"""
