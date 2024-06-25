@@ -5,13 +5,9 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     treefmt-nix.url = "github:numtide/treefmt-nix";
-    nix2containerPkg.url = "github:nlewo/nix2container";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin";
     nixpkgs-black-pinned.url = "github:NixOS/nixpkgs/6625284c397b44bc9518a5a1567c1b5aae455c08";
-
-    nix-github-actions.url = "github:nix-community/nix-github-actions";
-    nix-github-actions.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
@@ -19,112 +15,79 @@
     nixpkgs,
     flake-utils,
     treefmt-nix,
-    nix2containerPkg,
     nixpkgs-black-pinned,
-    nix-github-actions,
-  }:
-    (flake-utils.lib.eachDefaultSystem (system: let
-      pkgs-black = import nixpkgs-black-pinned {inherit system;};
-      pinned-black = pkgs-black.black;
+  }: (flake-utils.lib.eachDefaultSystem (system: let
+    pkgs-black = import nixpkgs-black-pinned {inherit system;};
 
-      black-overlay = final: prev: {
-        black = pinned-black;
-      };
+    pinned-black = pkgs-black.black;
 
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [
-          black-overlay
-        ];
-      };
+    black-overlay = final: prev: {
+      black = pinned-black;
+    };
 
-      black = pkgs.black;
+    pkgs = import nixpkgs {
+      inherit system;
+      overlays = [
+        black-overlay
+      ];
+    };
 
-      nix2container = nix2containerPkg.packages.${system}.nix2container;
+    black = pkgs.black;
 
-      pythonWithPkgs = pkgs.python39.withPackages (pythonPkgs:
-        with pythonPkgs; [
-          pip
-          virtualenvwrapper
-        ]);
+    treefmt = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
 
-      treefmt = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-
-      previewMarkdown = pkgs.writeScriptBin "preview" ''
-        #!${pkgs.bash}/bin/bash
-        ${pkgs.gh-markdown-preview}/bin/gh-markdown-preview "$@"
+    lints = pkgs.stdenv.mkDerivation {
+      name = "lint-check";
+      src = ./.;
+      doCheck = true;
+      nativeBuildInputs = with pkgs; [pylint];
+      checkPhase = ''
+        pylint utils
       '';
+    };
 
-      devtools = pkgs.symlinkJoin {
-        name = "devtools";
-        paths = [
+    python = pkgs.python39;
+  in {
+    packages = {
+      default = black;
+      inherit black lints;
+    };
+    devShells.default =
+      pkgs.mkShell
+      {
+        packages = [
           pkgs.curl
           pkgs.bash
           pkgs.coreutils
           pkgs.fswatch
           pkgs.rsync
           pkgs.shellcheck
-          pythonWithPkgs
+
           treefmt.config.build.wrapper
+          python
+          python.pkgs.venvShellHook
+
+          pkgs.ruff
         ];
-        postBuild = "echo links added";
+
+        # buildInputs = [python.pkgs.venvShellHook];
+        venvDir = "./venv";
+
+        postVenvCreation = ''
+          unset SOURCE_DATE_EPOCH
+          pip install -r requirements.txt
+        '';
+        postShellHook = ''
+          unset SOURCE_DATE_EPOCH
+          # hack: can't find libstdc++.so.8 otherwise
+          # pawel: hack-disabled as this breaks everything on my system - since my gcc is newer than nixs
+          # export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib"
+        '';
       };
-    in {
-      packages = {
-        default = devtools;
 
-        inherit devtools previewMarkdown black;
-
-        ### Build image usable in CI with dependencies
-        ## nix run .#ciContainer.copyToDockerDaemon
-        ## docker run --rm -it ci # to run the ci image
-        ciContainer = nix2container.buildImage {
-          name = "ci";
-          tag = "latest";
-          config = {
-            entrypoint = ["/bin/bash"];
-          };
-          copyToRoot = pkgs.buildEnv {
-            name = "root";
-            paths = [
-              devtools
-            ];
-            pathsToLink = ["/bin"];
-          };
-        };
-      };
-      devShells.default =
-        pkgs.mkShell
-        {
-          packages = [
-            devtools
-          ];
-          shellHook = ''
-            export PYTHON_VERSION="$(python -c 'import platform; import re; print(re.sub(r"\.\d+$", "", platform.python_version()))')"
-
-            # replicate virtualenv behaviour
-            export PIP_PREFIX="$PWD/vendor/python/$PYTHON_VERSION/packages"
-            export PYTHONPATH="$PIP_PREFIX/lib/python$PYTHON_VERSION/site-packages:$PYTHONPATH"
-            unset SOURCE_DATE_EPOCH
-            export PATH="$PIP_PREFIX/bin:$PATH"
-
-            # hack: can't find libstdc++.so.8 otherwise
-            # pawel: hack-disabled as this breaks everythin on my system
-            # export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib"
-          '';
-        };
-
-      formatter = treefmt.config.build.wrapper;
-      checks = {
-        formatting = treefmt.config.build.check self;
-      };
-    }))
-    // {
-      githubActions = nix-github-actions.lib.mkGithubMatrix {
-        checks = {
-          inherit (self.checks) x86_64-linux;
-          x86_64-darwin = builtins.removeAttrs self.checks.x86_64-darwin ["formatting"];
-        };
-      };
+    formatter = treefmt.config.build.wrapper;
+    checks = {
+      formatting = treefmt.config.build.check self;
     };
+  }));
 }

@@ -1,5 +1,9 @@
 # treefmt.nix
-{pkgs, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: {
   # Used to find the project root
   projectRootFile = "flake.nix";
   # Enable the Nix formatter "alejandra"
@@ -8,9 +12,20 @@
   programs.black.enable = true;
   # Format .sh scripts
   # programs.shfmt.enable = true;
-  # Format Markdown
-  # programs.prettier.enable = true;
-  # set prettier to only format markdown
-  # settings.formatter.prettier.includes = ["*.md"];
   settings.global.excludes = ["tests/fuzzer/**" "tests/appsec/waf/blocked*" "utils/parametric/protos/*.py"];
+
+  settings.formatter.whitespace = {
+    command = "${pkgs.bash}/bin/bash";
+    options = [
+      "-euc"
+      ''
+        ${pkgs.gnused}/bin/sed -i -r 's/ +$//g' "$@"
+      ''
+      "--"
+    ];
+    includes = ["*.md" "*.yml" "*.yaml" "*.sh" "*.cs" "*.Dockerfile" "*.java" "*.sql" "*.ts" "*.js" "*.php"];
+    excludes = ["logs*" "./manifests/*" "./utils/build/virtual_machine/*"];
+
+    settings.global.excludes = ["./venv/*" "*/node_modules/*" "tests/appsec/waf/blocked*" "utils/parametric/protos/*.py"];
+  };
 }
