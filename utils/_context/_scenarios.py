@@ -1737,6 +1737,16 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_auto_events_rc = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_RC",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        rc_api_enabled=True,
+        doc="""
+            Scenario to test User ID collection config change via Remote config
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
@@ -1931,6 +1941,9 @@ class scenarios:
     simple_host_auto_injection = HostAutoInjectionScenario(
         "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
     )
+    simple_host_auto_injection_profiling = HostAutoInjectionScenario(
+        "SIMPLE_HOST_AUTO_INJECTION_PROFILING", "Onboarding Host Single Step Instrumentation scenario with profiling",
+    )
     host_auto_injection_block_list = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
         "Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists",
@@ -1940,6 +1953,13 @@ class scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
     )
+
+    host_auto_injection_install_script_profiling = HostAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling",
+        vm_provision="host-auto-inject-install-script-profiling",
+    )
+
     # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
     host_auto_injection_ld_preload = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_LD_PRELOAD",

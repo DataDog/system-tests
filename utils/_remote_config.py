@@ -5,6 +5,7 @@
 import base64
 import hashlib
 from typing import Any
+import base64
 import json
 import os
 import re
@@ -35,11 +36,14 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
 
     client_configs = raw_payload["client_configs"]
+
     if len(client_configs) == 0:
-        config_id, product = None, None
+        config_id, product, version = None, None, None
         if wait_for_acknowledged_status:
             raise ValueError("Empty client config list is not supported with wait_for_acknowledged_status=True")
     elif len(client_configs) == 1:
+        targets = json.loads(base64.b64decode(raw_payload["targets"]))
+        version = targets["signed"]["version"]
         _, _, product, config_id, _ = client_configs[0].split("/")
     else:
         raise ValueError("Only zero or one client config are supported")
@@ -60,7 +64,7 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
                 data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", [])
             )
             for state in config_states:
-                if state["id"] == config_id and state["product"] == product:
+                if state["id"] == config_id and state["product"] == product and state["version"] == version:
                     logger.debug(f"Remote config state: {state}")
                     config_state.update(state)
                     if wait_for_acknowledged_status:

@@ -120,6 +120,7 @@ jobs:
   end-to-end:
     needs:
       - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.endtoend_scenarios != '[]' }}
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
