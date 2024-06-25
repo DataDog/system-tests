@@ -16,7 +16,7 @@ WORKDIR /app
 
 # Copy application sources and cache dependencies
 COPY ./utils/build/docker/java/spring-boot-3-native/pom.xml .
-RUN /opt/apache-maven-3.8.6/bin/mvn -P native -B dependency:go-offline 
+RUN /opt/apache-maven-3.8.6/bin/mvn -P native -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
 
 # Copy tracer

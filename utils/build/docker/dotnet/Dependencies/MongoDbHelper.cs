@@ -13,19 +13,19 @@ public class MongoDbHelper
         _client = new MongoClient(connectionString);
         _database = _client.GetDatabase(databaseName);
     }
-    
+
     public BsonDocument Find(string collectionName, string json)
     {
         var collection = _database.GetCollection<BsonDocument>(collectionName);
         return collection.Find(json).FirstOrDefault();
     }
-    
+
     public BsonDocument Find(string collectionName, BsonDocument filter)
     {
         var collection = _database.GetCollection<BsonDocument>(collectionName);
         return collection.Find(filter).FirstOrDefault();
     }
-    
+
     public static BsonDocument CreateSimpleDocument(string key, string value)
     {
         return new BsonDocument(key, value);
