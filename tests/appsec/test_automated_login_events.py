@@ -1238,7 +1238,7 @@ class Test_V2_Login_Events_RC:
 
     USER = "test"
     PASSWORD = "1234"
-    # ["disabled", "identification", "anonymization", "anonymization+disabled=conflict", "anonymization"]
+    # ["disabled", "identification", "anonymization"]
     PAYLOADS = [
         {
             "targets": "eyJzaWduZWQiOnsiX3R5cGUiOiJ0YXJnZXRzIiwiY3VzdG9tIjp7Im9wYXF1ZV9iYWNrZW5kX3N0YXRlIjoiZXlKbWIyOGlPaUFpWW1GeUluMD0ifSwiZXhwaXJlcyI6IjMwMDAtMDEtMDFUMDA6MDA6MDBaIiwic3BlY192ZXJzaW9uIjoiMS4wIiwidGFyZ2V0cyI6eyJkYXRhZG9nLzIvQVNNX0ZFQVRVUkVTL2F1dG8tdXNlci1pbnN0cnVtL2NvbmZpZyI6eyJjdXN0b20iOnsidiI6MX0sImhhc2hlcyI6eyJzaGEyNTYiOiJlZDRiNmZmNWRkMmQ3MWI5NjE0YjcxMzMwMTg4MjU2MmNmNGQ4ODk3YWRlMzIzYTZkMmQ5ZGViZDRhNzNhZDA0In0sImxlbmd0aCI6NTZ9fSwidmVyc2lvbiI6MX0sInNpZ25hdHVyZXMiOlt7ImtleWlkIjoiZWQ3NjcyYzlhMjRhYmRhNzg4NzJlZTMyZWU3MWM3Y2IxZDUyMzVlOGRiNGVjYmYxY2EyOGI5YzUwZWI3NWQ5ZSIsInNpZyI6IjIyZDhlOTE0ZWM1NmE0MmQ4MTE4MmE4Y2RkODQyMTI0OTIyMDhlZDllNjRjZjQ2Mjg1ZTIxY2NjMjdhY2NhZDRlZDc3N2Y5MDkwNGVlYmZiODhiNDQ2ZGUxMGNkMjk1YzNjZDJlNjM1NmY4MjMzNDk5MzM1OTQ4YTRkMDI1ZTBkIn1dfQ==",
