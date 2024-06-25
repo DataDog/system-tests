@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios, features, missing_feature
+from utils import rfc, scenarios, features, context, missing_feature
 
 parametrize = pytest.mark.parametrize
 
@@ -134,13 +134,13 @@ def assert_expected_files(content, min_files, xor_sets):
     assert len(min_files - s) == 0 and any((len(xor_set -s) == 0) for xor_set in xor_sets) , "tracer_file zip must contain a minimum list of files"
 
 
-def assert_log_file(content):
+def assert_java_log_file(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
     myfile = flare_file.open("tracer.log")
     #file content: 'No tracer log file specified and no prepare flare event received'
     assert flare_file.getinfo("tracer.log").file_size == 64, "tracer flare log file is not as expected"
 
-def assert_log_file_debug(content):
+def assert_java_log_file_debug(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
     myfile = flare_file.open("tracer.log")
     assert flare_file.getinfo("tracer.log").file_size > 64, "tracer flare log file is not as expected"
@@ -176,7 +176,7 @@ class TestTracerFlareV1:
         if context.library == "java":
             files = _java_tracer_flare_filenames()
             xor_sets = _java_tracer_flare_xor_filenames()
-            assert_log_file(tracer_flare["flare_file"])
+            assert_java_log_file(tracer_flare["flare_file"])
         assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
             
             
@@ -191,7 +191,7 @@ class TestTracerFlareV1:
         if context.library == "java":
             files = _java_tracer_flare_filenames()
             xor_sets = _java_tracer_flare_xor_filenames()
-            assert_log_file_debug(tracer_flare["flare_file"])
+            assert_java_log_file_debug(tracer_flare["flare_file"])
         assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
        
 
