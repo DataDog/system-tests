@@ -23,7 +23,7 @@ else
             artifact=datadog-dotnet-apm-${DDTRACE_VERSION}.arm64.tar.gz
         else
             artifact=datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz
-        fi      
+        fi
 
         echo "Using artifact ${artifact}"
         curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}

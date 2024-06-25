@@ -87,7 +87,7 @@ namespace weblog
             Response.Headers["x-option"] = xOption;
             return Content("Ok");
         }
-        
+
         [HttpPost("api_match_AS00{tag_value}/{status_code}")]
         [Consumes("application/json")]
         // ReSharper disable once InconsistentNaming, system tests demand it
@@ -116,7 +116,7 @@ namespace weblog
             HttpContext.Response.StatusCode = statusCode;
             return Content("Ok");
         }
-        
+
         [HttpPost("api_rc_{element}/{status_code}")]
         [Consumes("application/x-www-form-urlencoded")]
         public IActionResult ApiSecurityRc([FromRoute(Name = "element")] string elementValue,
