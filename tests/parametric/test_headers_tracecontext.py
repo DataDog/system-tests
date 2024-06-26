@@ -983,7 +983,7 @@ class Test_Headers_Tracecontext:
             traces[1][0],
         )
 
-        assert case1["meta"].get("_dd.p.tid") == '3333333333333333'
+        assert case1["meta"].get("_dd.p.tid") == "3333333333333333"
         assert case2["meta"].get("_dd.p.tid") == None
         
     @temporary_enable_optin_tracecontext()
