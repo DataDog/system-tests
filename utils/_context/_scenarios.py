@@ -1737,6 +1737,16 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_auto_events_rc = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_RC",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        rc_api_enabled=True,
+        doc="""
+            Scenario to test User ID collection config change via Remote config
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
@@ -1902,7 +1912,7 @@ class scenarios:
 
     debugger_pii_redaction = EndToEndScenario(
         "DEBUGGER_PII_REDACTION",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
