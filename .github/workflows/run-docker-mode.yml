@@ -91,12 +91,12 @@ jobs:
         include:
           - library: { name: nodejs }
             app: [express4, nextjs, express4-typescript]
-          - library: { name: ruby }
-            app: rack
-          - library: { name: ruby }
-            app: sinatra21
-          - library: { name: ruby }
-            app: rails71
+          - app: rack
+            library: { name: ruby }
+          - app: sinatra21
+            library: { name: ruby }
+          - app: rails71
+            library: { name: ruby }
     runs-on: ubuntu-latest
     name: Build (${{ matrix.app }})
     steps:
