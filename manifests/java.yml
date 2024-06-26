@@ -611,6 +611,7 @@ tests/:
         ratpack: missing_feature
         resteasy-netty3: missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: bug
         spring-boot-payara: bug (blocking not working)
       Test_Blocking_request_cookies:
         '*': missing_feature
