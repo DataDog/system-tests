@@ -945,6 +945,47 @@ class Test_Headers_Tracecontext:
         assert case1["parent_id"] == 987654320
         assert "_dd.parent_id" not in case1["meta"]
 
+    @missing_feature(context.library < "java@1.36", reason="Not implemented")
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
+    def test_tracestate_w3c_context_leak(self, test_agent, test_library):
+        """
+        Ensure high order bits do not leak between traces
+        """
+        with test_library:
+            with test_library.start_span(
+                name="high_order_64_bits_set",
+                http_headers=[
+                    ["traceparent", "00-33333333333333330000000000000003-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:000000000000000a,foo=1"],
+                    ["x-datadog-trace-id", "3"],
+                    ["x-datadog-tags", "_dd.p.tid=3333333333333333"],
+                    ["x-datadog-parent-id", "10"],
+                ],
+            ):
+                pass
+
+            with test_library.start_span(
+                name="high_order_64_bits_unset",
+                http_headers=[
+                    ["traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2,foo=1"],
+                    ["x-datadog-trace-id", "4"],
+                    ["x-datadog-parent-id", "10"],
+                ],
+            ):
+                pass
+
+        traces = test_agent.wait_for_num_traces(2)
+
+        assert len(traces) == 2
+        case1, case2 = (
+            traces[0][0],
+            traces[1][0],
+        )
+
+        assert case1["meta"].get("_dd.p.tid") == '3333333333333333'
+        assert case2["meta"].get("_dd.p.tid") == None
+        
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
         """
