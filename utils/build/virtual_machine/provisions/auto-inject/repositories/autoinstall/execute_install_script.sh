@@ -6,7 +6,7 @@ if [ -z "$INSTALLER_URL" ]; then
     INSTALLER_URL="https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh"
 fi
 
-curl -L $INSTALLER_URL --output install_script_agent7.sh
+curl -L "$INSTALLER_URL" --output install_script_agent7.sh
 chmod 755 install_script_agent7.sh
 # shellcheck disable=SC2154
 sed  "s/\"7\"/\"$DD_injection_major_version\"/g" install_script_agent7.sh > install_script_agent7_autoinject_temp.sh
