@@ -60,9 +60,9 @@ for dir in "${EXCLUDE_DIRS[@]}"; do
 done
 
 echo "Checking tailing whitespaces..."
-FILES=$(find . "${EXCLUDE_ARGS[@]}" \( "${INCLUDE_ARGS[@]}" \) -exec grep -l " $" {} \;)
+FILES=$(find . "${EXCLUDE_ARGS[@]}" \( "${INCLUDE_ARGS[@]}" \) -exec grep -l ' $' {} \;)
 if [ "$COMMAND" == "fix" ]; then
-  echo "$FILES" | xargs -I {} sed -i '' -r 's/ +$//g' {}
+  echo "$FILES" | xargs -I {} sed -i 's/  *$//g' '{}'
 else
   if [ -n "$FILES" ]; then
     echo "Some tailing white spaces has been found, please fix them 💥 💔 💥"
