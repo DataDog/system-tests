@@ -91,6 +91,10 @@ jobs:
         include:
           - library: { name: nodejs }
             app: express4
+          - library: { name: nodejs }
+            app: express4-typescript
+          - library: { name: nodejs }
+            app: nextjs
           - library: { name: ruby }
             app: rack
           - library: { name: ruby }
