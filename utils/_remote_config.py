@@ -149,7 +149,7 @@ def build_debugger_command(probes: list, version: int):
                 elif library_name == "java":
                     probe["where"]["typeName"] = "DebuggerController"
                     probe["where"]["methodName"] = (
-                        probe["where"]["methodName"][0].lower() + probe["where"]["methodName"][1:]
+                            probe["where"]["methodName"][0].lower() + probe["where"]["methodName"][1:]
                     )
             elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                 if library_name == "dotnet":

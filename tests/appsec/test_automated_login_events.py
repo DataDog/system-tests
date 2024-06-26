@@ -20,6 +20,7 @@ from utils import (
 @features.user_monitoring
 class Test_Login_Events:
     "Test login success/failure use cases"
+
     # User entries in the internal DB:
     # users = [
     #     {
@@ -1235,10 +1236,9 @@ def assert_priority(span, meta):
 @features.user_monitoring
 @scenarios.appsec_auto_events_rc
 class Test_V2_Login_Events_RC:
-
     USER = "test"
     PASSWORD = "1234"
-    # ["disabled", "identification", "anonymization"]
+    # ["disabled", "identification", "anonymization", "anonymization+disabled(conflict)", "anonymization"]
     PAYLOADS = [
         {
             "targets": "eyJzaWduZWQiOnsiX3R5cGUiOiJ0YXJnZXRzIiwiY3VzdG9tIjp7Im9wYXF1ZV9iYWNrZW5kX3N0YXRlIjoiZXlKbWIyOGlPaUFpWW1GeUluMD0ifSwiZXhwaXJlcyI6IjMwMDAtMDEtMDFUMDA6MDA6MDBaIiwic3BlY192ZXJzaW9uIjoiMS4wIiwidGFyZ2V0cyI6eyJkYXRhZG9nLzIvQVNNX0ZFQVRVUkVTL2F1dG8tdXNlci1pbnN0cnVtL2NvbmZpZyI6eyJjdXN0b20iOnsidiI6MX0sImhhc2hlcyI6eyJzaGEyNTYiOiJlZDRiNmZmNWRkMmQ3MWI5NjE0YjcxMzMwMTg4MjU2MmNmNGQ4ODk3YWRlMzIzYTZkMmQ5ZGViZDRhNzNhZDA0In0sImxlbmd0aCI6NTZ9fSwidmVyc2lvbiI6MX0sInNpZ25hdHVyZXMiOlt7ImtleWlkIjoiZWQ3NjcyYzlhMjRhYmRhNzg4NzJlZTMyZWU3MWM3Y2IxZDUyMzVlOGRiNGVjYmYxY2EyOGI5YzUwZWI3NWQ5ZSIsInNpZyI6IjIyZDhlOTE0ZWM1NmE0MmQ4MTE4MmE4Y2RkODQyMTI0OTIyMDhlZDllNjRjZjQ2Mjg1ZTIxY2NjMjdhY2NhZDRlZDc3N2Y5MDkwNGVlYmZiODhiNDQ2ZGUxMGNkMjk1YzNjZDJlNjM1NmY4MjMzNDk5MzM1OTQ4YTRkMDI1ZTBkIn1dfQ==",
@@ -1268,6 +1268,23 @@ class Test_V2_Login_Events_RC:
                     "raw": "ewogICJhdXRvX3VzZXJfaW5zdHJ1bSI6IHsKICAgICJtb2RlIjogImFub255bWl6YXRpb24iCiAgfQp9Cg==",
                 }
             ],
+            "client_configs": ["datadog/2/ASM_FEATURES/auto-user-instrum/config"],
+        },
+        {
+            "targets": "eyJzaWduZWQiOnsiX3R5cGUiOiJ0YXJnZXRzIiwiY3VzdG9tIjp7Im9wYXF1ZV9iYWNrZW5kX3N0YXRlIjoiZXlKbWIyOGlPaUFpWW1GeUluMD0ifSwiZXhwaXJlcyI6IjMwMDAtMDEtMDFUMDA6MDA6MDBaIiwic3BlY192ZXJzaW9uIjoiMS4wIiwidGFyZ2V0cyI6eyJkYXRhZG9nLzIvQVNNX0ZFQVRVUkVTL2F1dG8tdXNlci1pbnN0cnVtLWNvbmZsaWN0L2NvbmZpZyI6eyJjdXN0b20iOnsidiI6Mn0sImhhc2hlcyI6eyJzaGEyNTYiOiJlZDRiNmZmNWRkMmQ3MWI5NjE0YjcxMzMwMTg4MjU2MmNmNGQ4ODk3YWRlMzIzYTZkMmQ5ZGViZDRhNzNhZDA0In0sImxlbmd0aCI6NTZ9LCJkYXRhZG9nLzIvQVNNX0ZFQVRVUkVTL2F1dG8tdXNlci1pbnN0cnVtL2NvbmZpZyI6eyJjdXN0b20iOnsidiI6M30sImhhc2hlcyI6eyJzaGEyNTYiOiIwMjRiOGM4MmQxODBkZjc2NzMzNzVjYzYzZDdiYmRjMzRiNWE4YzE3NWQzNzE3ZGQwYjYyMzg2OTRhY2FiNWI3In0sImxlbmd0aCI6NjF9fSwidmVyc2lvbiI6NH0sInNpZ25hdHVyZXMiOlt7ImtleWlkIjoiZWQ3NjcyYzlhMjRhYmRhNzg4NzJlZTMyZWU3MWM3Y2IxZDUyMzVlOGRiNGVjYmYxY2EyOGI5YzUwZWI3NWQ5ZSIsInNpZyI6IjY4ZDYxM2MxNDlmZDUxM2IzOTFhZWM4ZWJjOTNhZDg2NWViZjA5NDYxMWYzNjRmMmE5YjZjNTJmMjQyMTUyN2U5YjM5ZWZhYTk4N2JmZWViZmUyYTVmZDcxMmI1MTA4Mzk3YWEwODNhNzZkZGExMzUyM2U5M2EyZWJiYjdlZTAyIn1dfQ==",
+            "target_files": [
+                {
+                    "path": "datadog/2/ASM_FEATURES/auto-user-instrum-conflict/config",
+                    "raw": "ewogICJhdXRvX3VzZXJfaW5zdHJ1bSI6IHsKICAgICJtb2RlIjogImRpc2FibGVkIgogIH0KfQo=",
+                }
+            ],
+            "client_configs": [
+                "datadog/2/ASM_FEATURES/auto-user-instrum-conflict/config",
+                "datadog/2/ASM_FEATURES/auto-user-instrum/config",
+            ],
+        },
+        {
+            "targets": "eyJzaWduZWQiOnsiX3R5cGUiOiJ0YXJnZXRzIiwiY3VzdG9tIjp7Im9wYXF1ZV9iYWNrZW5kX3N0YXRlIjoiZXlKbWIyOGlPaUFpWW1GeUluMD0ifSwiZXhwaXJlcyI6IjMwMDAtMDEtMDFUMDA6MDA6MDBaIiwic3BlY192ZXJzaW9uIjoiMS4wIiwidGFyZ2V0cyI6eyJkYXRhZG9nLzIvQVNNX0ZFQVRVUkVTL2F1dG8tdXNlci1pbnN0cnVtL2NvbmZpZyI6eyJjdXN0b20iOnsidiI6M30sImhhc2hlcyI6eyJzaGEyNTYiOiIwMjRiOGM4MmQxODBkZjc2NzMzNzVjYzYzZDdiYmRjMzRiNWE4YzE3NWQzNzE3ZGQwYjYyMzg2OTRhY2FiNWI3In0sImxlbmd0aCI6NjF9fSwidmVyc2lvbiI6NX0sInNpZ25hdHVyZXMiOlt7ImtleWlkIjoiZWQ3NjcyYzlhMjRhYmRhNzg4NzJlZTMyZWU3MWM3Y2IxZDUyMzVlOGRiNGVjYmYxY2EyOGI5YzUwZWI3NWQ5ZSIsInNpZyI6IjkzYmY3N2JmMmVjZTg3NzhhNjlkMWEyOTM3YzM5MTFhYjZiNzIxMDU0ZDNlNmNjMzJkMTA2YWIzOWVlM2I0ZDc5MTllNmZmNWU3NWYyN2U5Y2ViNWY3NTJiZjA2OGYwNjk4MjI3Yjg1MTdiNzBiOTdiMzdlMGI2M2QyMzU5ODAwIn1dfQ==",
             "client_configs": ["datadog/2/ASM_FEATURES/auto-user-instrum/config"],
         },
     ]
@@ -1319,3 +1336,7 @@ class Test_V2_Login_Events_RC:
         self._assert_response(self.tests[0], validate_disabled)
         self._assert_response(self.tests[1], validate_iden)
         self._assert_response(self.tests[2], validate_anon)
+        # after adding conflict (anonymization+disabled), fallback to local tracer value (identification)
+        self._assert_response(self.tests[3], validate_iden)
+        # after removing conflict, use the previous remote config value
+        self._assert_response(self.tests[4], validate_anon)
