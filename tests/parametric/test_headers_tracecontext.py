@@ -985,7 +985,7 @@ class Test_Headers_Tracecontext:
 
         assert case1["meta"].get("_dd.p.tid") == "3333333333333333"
         assert case2["meta"].get("_dd.p.tid") == None
-        
+
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
         """
