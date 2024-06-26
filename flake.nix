@@ -40,7 +40,6 @@
   in {
     packages = {
       default = treefmt.config.build.wrapper;
-      inherit black treefmt;
     };
     devShells.default =
       pkgs.mkShell
