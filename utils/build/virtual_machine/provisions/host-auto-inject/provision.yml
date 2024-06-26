@@ -5,14 +5,9 @@ init-environment: !include utils/build/virtual_machine/provisions/auto-inject/au
 tested_components:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
 
+#Optional: Extract the logs from the VM
 vm_logs:
-  install:
-    - os_type: linux
-      remote-command: |
-        #Wait for the app service up to extract the logs (also app logs)
-        curl --head -X GET --retry 5 --max-time 20 --retry-connrefused --retry-delay 2 http://localhost:5985
-        find /var/log/datadog -type f -name "*.log"| xargs sudo tail -n +1
-        find /var/log/weblog -type f -name "*.log"| xargs sudo tail -n +1
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
 
 #Mandatory: Steps to install provision 
 provision_steps:
