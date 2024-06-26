@@ -301,7 +301,7 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
-      Test_ExtraTagsFromRule: 
+      Test_ExtraTagsFromRule:
         '*': v1.62.0
       Test_HttpClientIP:
         '*': v1.34.0
@@ -391,10 +391,10 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: 
+      Test_DsmContext_Extraction_Base64:
         "*": irrelevant
         net-http: v0.1  # real version unknown
-      Test_DsmContext_Injection_Base64: 
+      Test_DsmContext_Injection_Base64:
         "*": irrelevant
         net-http: v0.1  # real version unknown
       Test_DsmHttp: missing_feature
@@ -404,7 +404,7 @@ tests/:
       Test_DsmKinesis:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
-      Test_DsmRabbitmq: 
+      Test_DsmRabbitmq:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
