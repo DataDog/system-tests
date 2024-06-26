@@ -82,21 +82,21 @@ jobs:
         image:
           - weblog
         library:
+          - name: nodejs
+            repository: DataDog/dd-trace-js
+            path: dd-trace-js
           - name: ruby
             repository: DataDog/dd-trace-rb
             path: dd-trace-rb
-        app:
-          - rack
-          # - sinatra14
-          # - sinatra20
-          - sinatra21
-          # - rails50
-          # - rails51
-          # - rails52
-          # - rails60
-          # - rails61
-          # - rails70
-          - rails71
+        include:
+          - library: { name: nodejs }
+            app: express4
+          - library: { name: ruby }
+            app: rack
+          - library: { name: ruby }
+            app: sinatra21
+          - library: { name: ruby }
+            app: rails71
     runs-on: ubuntu-latest
     name: Build (${{ matrix.app }})
     steps:
@@ -148,11 +148,11 @@ jobs:
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:g${{ github.sha }}
       - name: Tag image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main }}
         run:
           docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
       - name: Push image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
 

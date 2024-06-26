@@ -140,7 +140,7 @@ jobs:
     - test_the_test
     - impacted_libraries
     - get_dev_artifacts  # non official set-up, this needs put this job in last
-    if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
+    if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'nodejs') || contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
     secrets: inherit
 
