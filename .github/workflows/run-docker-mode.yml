@@ -90,11 +90,9 @@ jobs:
             path: dd-trace-rb
         include:
           - library: { name: nodejs }
-            app: express4
+            app: [express4, nextjs]
           - library: { name: nodejs }
             app: express4-typescript
-          - library: { name: nodejs }
-            app: nextjs
           - library: { name: ruby }
             app: rack
           - library: { name: ruby }
