@@ -25,27 +25,32 @@ runs:
           df -h
         fi
 
-    - name: Pull images needed for default scenario
+    - name: Add images always needed
       shell: bash
       run: |
-        docker pull datadog/system-tests:proxy-v1 || true
-        docker pull postgres:latest
-    - name: Pull images needed for all scenarios
+        echo "services:" > compose.yaml
+        echo "  proxy:    {image: datadog/system-tests:proxy-v1}" >> compose.yaml
+        echo "  postgres: {image: postgres:latest}" >> compose.yaml
+
+    - name: Add images used in full list of scenario
       shell: bash
       run: |
         if [[ "${{ inputs.pull-all }}" == "true" ]]; then
-          docker pull mongo:latest
-          docker pull bitnami/kafka:3.1
-          docker pull bitnami/zookeeper:latest
-          docker pull cassandra:latest
-          docker pull rabbitmq:3-management-alpine
-          docker pull mysql/mysql-server:latest
-          docker pull mcr.microsoft.com/mssql/server:latest
-          docker pull mcr.microsoft.com/azure-sql-edge:latest
-          docker pull softwaremill/elasticmq:latest
-          docker pull datadog/system-tests:python_buddy-v0
-          docker pull datadog/system-tests:nodejs_buddy-v0
-          docker pull datadog/system-tests:java_buddy-v0
-          docker pull datadog/system-tests:ruby_buddy-v0
-          docker pull datadog/system-tests:golang_buddy-v0
+          echo "  mongo:          { image: "mongo:latest" }" >> compose.yaml
+          echo "  kafka:          { image: "bitnami/kafka:3.1" }" >> compose.yaml
+          echo "  zookeeper:      { image: "bitnami/zookeeper:latest" }" >> compose.yaml
+          echo "  cassandra:      { image: "cassandra:latest" }" >> compose.yaml
+          echo "  rabbitmq:       { image: "rabbitmq:3-management-alpine" }" >> compose.yaml
+          echo "  mysql:          { image: "mysql/mysql-server:latest" }" >> compose.yaml
+          echo "  mssql:          { image: "mcr.microsoft.com/mssql/server:latest" }" >> compose.yaml
+          echo "  azure-sql-edge: { image: "mcr.microsoft.com/azure-sql-edge:latest" }" >> compose.yaml
+          echo "  softwaremill:   { image: "softwaremill/elasticmq:latest" }" >> compose.yaml
+          echo "  python_buddy:   { image: "datadog/system-tests:python_buddy-v0" }" >> compose.yaml
+          echo "  nodejs_buddy:   { image: "datadog/system-tests:nodejs_buddy-v0" }" >> compose.yaml
+          echo "  java_buddy:     { image: "datadog/system-tests:java_buddy-v0" }" >> compose.yaml
+          echo "  ruby_buddy:     { image: "datadog/system-tests:ruby_buddy-v0" }" >> compose.yaml
+          echo "  golang_buddy:   { image: "datadog/system-tests:golang_buddy-v0" }" >> compose.yaml
         fi
+    - name: Pull
+      shell: bash
+      run: docker compose pull
