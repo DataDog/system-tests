@@ -121,14 +121,7 @@ def main():
                 else:
                     scenarios_groups.add(ScenarioGroup.ALL.value)
 
-            elif file in (
-                ".dockerignore",
-                ".gitignore",
-                ".gitlab-ci.yml",
-                ".shellcheck",
-                ".shellcheckrc",
-                "CHANGELOG.md",
-            ):
+            elif file in (".dockerignore", ".gitignore", ".gitlab-ci.yml", "CHANGELOG.md",):
                 # nothing to do
                 pass
 
@@ -146,7 +139,7 @@ def main():
             elif file in ("requirements.txt", "run.sh"):
                 scenarios_groups.add(ScenarioGroup.ALL.value)
 
-            elif file in ("scenario_groups.yml", "shell.nix"):
+            elif file in ("scenario_groups.yml", "shell.nix", "flake.nix", "flake.lock", "treefmt.nix"):
                 # nothing to do
                 pass
 
