@@ -40,8 +40,12 @@ class GrpcRequest:
 
 class GrpcResponse:
     def __init__(self, data):
+        self._data = data
         self.request = GrpcRequest(data["request"])
         self.response = data["response"]
+
+    def serialize(self) -> dict:
+        return self._data | {"__class__": "GrpcResponse"}
 
 
 class HttpRequest:
@@ -56,10 +60,14 @@ class HttpRequest:
 
 class HttpResponse:
     def __init__(self, data):
+        self._data = data
         self.request = HttpRequest(data["request"])
         self.status_code = data["status_code"]
         self.headers = CaseInsensitiveDict(data.get("headers", {}))
         self.text = data["text"]
+
+    def serialize(self) -> dict:
+        return self._data | {"__class__": "HttpResponse"}
 
 
 class _Weblog:

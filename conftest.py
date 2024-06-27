@@ -16,6 +16,7 @@ from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
 from utils._decorators import released
+from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
@@ -247,7 +248,7 @@ def _item_is_skipped(item):
     return any(item.iter_markers("skip"))
 
 
-def pytest_collection_finish(session):
+def pytest_collection_finish(session: pytest.Session):
     from utils import weblog
 
     if session.config.option.collectonly:
@@ -262,6 +263,10 @@ def pytest_collection_finish(session):
             return
         except Exception as e:
             raise e
+
+    setup_properties = SetupProperties()
+    if session.config.option.replay:
+        setup_properties.load(context.scenario.host_log_folder)
 
     last_item_file = ""
     for item in session.items:
@@ -289,10 +294,15 @@ def pytest_collection_finish(session):
             last_item_file = item_file
 
         setup_method = getattr(item.instance, setup_method_name)
-        logger.debug(f"Call {setup_method} for {item}")
         try:
             weblog.current_nodeid = item.nodeid
-            setup_method()
+            if session.config.option.replay:
+                logger.debug(f"Restore properties of {setup_method} for {item}")
+                setup_properties.restore_test_item(item)
+            else:
+                logger.debug(f"Call {setup_method} for {item}")
+                setup_method()
+                setup_properties.add_test_item(item)
             weblog.current_nodeid = None
         except Exception:
             logger.exception("Unexpected failure during setup method call")
@@ -305,6 +315,9 @@ def pytest_collection_finish(session):
             weblog.current_nodeid = None
 
     logger.terminal.write("\n\n")
+
+    if not session.config.option.replay:
+        setup_properties.dump(context.scenario.host_log_folder)
 
     context.scenario.post_setup()
 
