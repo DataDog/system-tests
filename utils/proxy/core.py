@@ -165,6 +165,8 @@ class _RequestLogger:
                     interface = "ruby_buddy"
                 elif port == 9005:
                     interface = "golang_buddy"
+                elif port == 9006:
+                    interface = "python_otel_buddy"
                 else:
                     raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
             else:

@@ -469,7 +469,14 @@ class EndToEndScenario(_DockerScenario):
 
         if include_buddies:
             # so far, only python, nodejs, java, ruby and golang are supported
-            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+            supported_languages = [
+                ("python", 9001),
+                ("nodejs", 9002),
+                ("java", 9003),
+                ("ruby", 9004),
+                ("golang", 9005),
+                ("python-otel", 9006),
+            ]
 
             self.buddies += [
                 BuddyContainer(

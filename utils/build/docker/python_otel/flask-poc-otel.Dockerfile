@@ -20,6 +20,9 @@ RUN pip install opentelemetry-distro==0.42b0 opentelemetry-exporter-otlp
 
 RUN opentelemetry-bootstrap -a install
 
+# Install Otel Instrumentations
+RUN pip install opentelemetry-instrumentation-confluent-kafka
+
 RUN pip show opentelemetry-distro | grep Version: | cut -d' ' -f2 > SYSTEM_TESTS_LIBRARY_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION

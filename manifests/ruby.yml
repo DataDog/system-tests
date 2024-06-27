@@ -254,6 +254,9 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           rails70: v0.1 # real version unknown
+        Test_Kafka_Otel:
+          "*": irrelevant
+          rails70: v0.1 # real version unknown
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant

@@ -885,6 +885,9 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           spring-boot: v0.1 # real version not known
+        Test_Kafka_Otel:
+          "*": irrelevant
+          spring-boot: v0.1 # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
