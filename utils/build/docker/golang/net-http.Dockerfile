@@ -24,7 +24,7 @@ RUN go build -v -tags appsec -o weblog ./net-http
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
-RUN echo "#!/bin/bash\n./weblog" > app.sh
+RUN printf "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 
