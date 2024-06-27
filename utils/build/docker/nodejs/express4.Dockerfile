@@ -1,6 +1,6 @@
-FROM node:18-slim
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y jq curl git
+RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 
@@ -24,7 +24,7 @@ ENV PGPORT=5433
 ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
-RUN echo '#!/bin/bash\nnode app.js' > app.sh
+RUN printf '#!/bin/bash\nnode app.js' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 

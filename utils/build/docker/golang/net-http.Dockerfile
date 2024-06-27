@@ -1,10 +1,10 @@
-FROM golang:1.20
+FROM golang:1.20-alpine
+
+# install system dependencies
+RUN apk add --no-cache bash curl git jq
 
 # print important lib versions
 RUN go version && curl --version
-
-# install jq
-RUN apt-get update && apt-get -y install jq
 
 # download go dependencies
 RUN mkdir -p /app
