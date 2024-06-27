@@ -596,7 +596,7 @@ class Test_Login_Events_Extended:
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
-    @missing_feature(context.library < "nodejs@6.0.0-pre")
+    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_success_headers(self):
@@ -621,7 +621,7 @@ class Test_Login_Events_Extended:
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
-    @missing_feature(context.library < "nodejs@6.0.0-pre")
+    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_failure_headers(self):
