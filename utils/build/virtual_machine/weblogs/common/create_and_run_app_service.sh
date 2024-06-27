@@ -11,7 +11,7 @@ APP_ENV="${2:-''}"
 #ENV variables set on the scenario definition
 SCENARIO_APP_ENV="${DD_APP_ENV:-''}"
 
-sudo echo $APP_ENV > /var/log/datadog_weblog/app.env
+sudo echo $APP_ENV | tr '[:space:]' '\n' > /var/log/datadog_weblog/app.env
 sudo chmod 777 /var/log/datadog_weblog/app.env
 
 sudo echo $SCENARIO_APP_ENV > /var/log/datadog_weblog/scenario_app.env

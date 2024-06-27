@@ -1199,10 +1199,12 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="installer-auto-inject") -> None:
+    def __init__(self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
             doc=doc,
             github_workflow=None,
             include_ubuntu_22_amd64=True,
