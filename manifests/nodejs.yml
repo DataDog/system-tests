@@ -454,7 +454,7 @@ tests/:
       TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: *ref_4_11_0
-      TestDynamicConfigV1_ServiceTargets: *ref_5_16_0
+      TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: *ref_4_23_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
@@ -473,7 +473,7 @@ tests/:
       Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: *ref_3_21_0
