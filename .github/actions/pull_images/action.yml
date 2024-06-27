@@ -1,56 +1,34 @@
 name: "Pull docker images"
 description: "Pull docker images"
 inputs:
-  pull-all:
-    description: "True to pull all images required for all scenarios"
+  scenarios:
+    description: "JSON array of scenarios that will be executed"
+    default: "[]"
     required: true
-    default: "false"
+
 runs:
   using: composite
   steps:
-    - name: Let's free some place
+    - name: Free some place for scenarios known to require lot of images
+      if: ${{ contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"') }}
       shell: bash
       run: |
-        if [[ "${{ inputs.pull-all }}" == "true" ]]; then
-          df -h
+        df -h
 
-          echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
+        echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
 
-          sudo rm -rf /usr/local/lib/android  # 9Gb!
-          sudo rm -rf /opt/hostedtoolcache/CodeQL  # 5Gb !
-          sudo rm -rf /usr/share/dotnet # 1Gb
+        sudo rm -rf /usr/local/lib/android  # 9Gb!
+        sudo rm -rf /opt/hostedtoolcache/CodeQL  # 5Gb !
+        sudo rm -rf /usr/share/dotnet # 1Gb
 
-          # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
+        # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
 
-          df -h
-        fi
+        df -h
 
-    - name: Add images always needed
+    - name: Get image list
       shell: bash
-      run: |
-        echo "services:" > compose.yaml
-        echo "  proxy:    {image: datadog/system-tests:proxy-v1}" >> compose.yaml
-        echo "  postgres: {image: postgres:latest}" >> compose.yaml
+      run: python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' > compose.yaml
 
-    - name: Add images used in full list of scenario
-      shell: bash
-      run: |
-        if [[ "${{ inputs.pull-all }}" == "true" ]]; then
-          echo "  mongo:          { image: "mongo:latest" }" >> compose.yaml
-          echo "  kafka:          { image: "bitnami/kafka:3.1" }" >> compose.yaml
-          echo "  zookeeper:      { image: "bitnami/zookeeper:latest" }" >> compose.yaml
-          echo "  cassandra:      { image: "cassandra:latest" }" >> compose.yaml
-          echo "  rabbitmq:       { image: "rabbitmq:3-management-alpine" }" >> compose.yaml
-          echo "  mysql:          { image: "mysql/mysql-server:latest" }" >> compose.yaml
-          echo "  mssql:          { image: "mcr.microsoft.com/mssql/server:latest" }" >> compose.yaml
-          echo "  azure-sql-edge: { image: "mcr.microsoft.com/azure-sql-edge:latest" }" >> compose.yaml
-          echo "  softwaremill:   { image: "softwaremill/elasticmq:latest" }" >> compose.yaml
-          echo "  python_buddy:   { image: "datadog/system-tests:python_buddy-v0" }" >> compose.yaml
-          echo "  nodejs_buddy:   { image: "datadog/system-tests:nodejs_buddy-v0" }" >> compose.yaml
-          echo "  java_buddy:     { image: "datadog/system-tests:java_buddy-v0" }" >> compose.yaml
-          echo "  ruby_buddy:     { image: "datadog/system-tests:ruby_buddy-v0" }" >> compose.yaml
-          echo "  golang_buddy:   { image: "datadog/system-tests:golang_buddy-v0" }" >> compose.yaml
-        fi
     - name: Pull
       shell: bash
       run: docker compose pull

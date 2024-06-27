@@ -37,6 +37,7 @@ from utils._context.containers import (
     WeblogInjectionInitContainer,
     MountInjectionVolume,
     create_inject_volume,
+    TestedContainer,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -301,7 +302,7 @@ class _DockerScenario(_Scenario):
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
 
-        self._required_containers = []
+        self._required_containers: list[TestedContainer] = []
 
         if self.use_proxy:
             self._required_containers.append(
@@ -338,6 +339,10 @@ class _DockerScenario(_Scenario):
 
         if include_localstack:
             self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+    @property
+    def image_list(self) -> list[str]:
+        return [container.image.name for container in self._required_containers]
 
     def configure(self, config):
         super().configure(config)
