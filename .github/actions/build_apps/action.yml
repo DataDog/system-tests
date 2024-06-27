@@ -16,6 +16,9 @@ inputs:
   app:
     description: "The name of the app being built"
     required: true
+  token:
+    description: "The GitHub token with access to the container registry"
+    required: true
 runs:
   using: composite
   steps:
@@ -38,7 +41,7 @@ runs:
     - name: Log in to the Container registry
       shell: bash
       run: |
-        echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+        echo ${{ inputs.token }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build
       shell: bash
       run: |
