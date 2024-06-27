@@ -68,7 +68,7 @@ namespace weblog
         [Consumes("application/json", "application/xml")]
         public async Task<IActionResult> Expression(string inputValue)
         {
-            var testStruct = await Task.FromResult<ExpressionTestStruct>(ExpressionTestStruct.CreateDefault());
+            var testStruct = await Task.FromResult<ExpressionTestStruct>(new ExpressionTestStruct());
             var localValue = inputValue.Length;
 
             return Content($"Great success number {localValue}");
