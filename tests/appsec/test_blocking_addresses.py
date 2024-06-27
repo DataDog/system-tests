@@ -476,7 +476,6 @@ class Test_Blocking_response_status:
         reason="Happens on a subsequent WAF run",
     )
     @missing_feature(context.library == "ruby", reason="Not working")
-    @missing_feature(context.library < "nodejs@5.17.0", reason="Not supported yet")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_not_found(self):
         """can block on server.response.status"""
