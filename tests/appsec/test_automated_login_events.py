@@ -324,8 +324,8 @@ class Test_Login_Events_Extended:
         "Accept-Language": "en-GB, *;q=0.5",
         "Content-Language": "en-GB",
         "Content-Length": "0",
-        "Content-Type": "text/html; charset=utf-8",
-        "Content-Encoding": "deflate, gzip",
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+        # "Content-Encoding": "deflate, gzip", # removed because the request is not using this encoding to make the request and makes the test fail
         "Host": "127.0.0.1:1234",
         "User-Agent": "Benign User Agent 1.0",
         "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
@@ -596,7 +596,7 @@ class Test_Login_Events_Extended:
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_success_headers(self):
@@ -621,7 +621,7 @@ class Test_Login_Events_Extended:
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_failure_headers(self):
