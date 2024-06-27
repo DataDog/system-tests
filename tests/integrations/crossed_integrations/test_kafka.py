@@ -39,7 +39,12 @@ class _Test_Kafka:
     @staticmethod
     def get_topic(span) -> str | None:
         """Extracts the topic from a span by trying various fields"""
-        topic = span["meta"].get("kafka.topic")  # this is in python
+        topic = span["meta"].get("kafka.topic")
+
+        if topic is None:
+            # otel uses messaging.destination
+            topic = span["meta"].get("messaging.destination")
+
         if topic is None:
             if "Topic" in span["resource"]:
                 # in go and java, the topic is the last "word" of the resource name
