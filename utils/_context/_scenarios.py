@@ -37,6 +37,7 @@ from utils._context.containers import (
     WeblogInjectionInitContainer,
     MountInjectionVolume,
     create_inject_volume,
+    TestedContainer,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -301,7 +302,7 @@ class _DockerScenario(_Scenario):
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
 
-        self._required_containers = []
+        self._required_containers: list[TestedContainer] = []
 
         if self.use_proxy:
             self._required_containers.append(
@@ -338,6 +339,10 @@ class _DockerScenario(_Scenario):
 
         if include_localstack:
             self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+    @property
+    def image_list(self) -> list[str]:
+        return [container.image.name for container in self._required_containers]
 
     def configure(self, config):
         super().configure(config)
@@ -1029,6 +1034,8 @@ class _VirtualMachineScenario(_Scenario):
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
         include_centos_7_amd64=False,
+        agent_env=None,
+        app_env=None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow)
         self.vm_provision_name = vm_provision
@@ -1037,6 +1044,10 @@ class _VirtualMachineScenario(_Scenario):
         self.required_vms = []
         self.required_vm_names = []
         self._tested_components = {}
+        # Variables that will populate for the agent installation
+        self.agent_env = agent_env
+        # Variables that will populate for the app installation
+        self.app_env = app_env
 
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
@@ -1100,6 +1111,8 @@ class _VirtualMachineScenario(_Scenario):
                     vm.os_cpu,
                 )
             )
+            vm.add_agent_env(self.agent_env)
+            vm.add_app_env(self.app_env)
             self.required_vm_names.append(vm.name)
         self.vm_provider.configure(self.required_vms)
 
@@ -1155,10 +1168,12 @@ class _VirtualMachineScenario(_Scenario):
 
 
 class HostAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="host-auto-inject") -> None:
+    def __init__(self, name, doc, vm_provision="host-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
             doc=doc,
             github_workflow=None,
             include_ubuntu_22_amd64=True,
@@ -1189,10 +1204,12 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="installer-auto-inject") -> None:
+    def __init__(self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
             doc=doc,
             github_workflow=None,
             include_ubuntu_22_amd64=True,
@@ -1942,7 +1959,13 @@ class scenarios:
         "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
     )
     simple_host_auto_injection_profiling = HostAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION_PROFILING", "Onboarding Host Single Step Instrumentation scenario with profiling",
+        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
+        "Onboarding Host Single Step Instrumentation scenario with profiling activated by the app env var",
+        app_env={
+            "DD_PROFILING_ENABLED": "auto",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+        },
     )
     host_auto_injection_block_list = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
@@ -1956,8 +1979,10 @@ class scenarios:
 
     host_auto_injection_install_script_profiling = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
-        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling",
-        vm_provision="host-auto-inject-install-script-profiling",
+        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
+        vm_provision="host-auto-inject-install-script",
+        agent_env={"DD_PROFILING_ENABLED": "auto"},
+        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
     )
 
     # TODO Add the provision of this scenario to the default host scenario (when fixes are released)

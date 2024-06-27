@@ -897,7 +897,7 @@ tests/:
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: 
+      Test_Debugger_PII_Redaction:
         '*': missing_feature
         spring-boot: v1.33.0
         uds-spring-boot: v1.33.0
