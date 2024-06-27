@@ -1,4 +1,4 @@
-﻿using Datadog.Trace;
+using Datadog.Trace;
 using Datadog.Trace.Configuration;
 using System.Reflection;
 using Newtonsoft.Json;
