@@ -134,7 +134,7 @@ jobs:
       _experimental_parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
 
   system_tests_docker_mode:
-    name: Ruby Docker Mode
+    name: Docker Mode
     needs:
     - lint
     - test_the_test

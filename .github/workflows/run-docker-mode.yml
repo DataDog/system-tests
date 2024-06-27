@@ -75,7 +75,7 @@ jobs:
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest
 
-  build-apps:
+  build-node-apps:
     strategy:
       fail-fast: false
       matrix:
@@ -85,76 +85,53 @@ jobs:
           - name: nodejs
             repository: DataDog/dd-trace-js
             path: dd-trace-js
-          - name: ruby
-            repository: DataDog/dd-trace-rb
-            path: dd-trace-rb
-        include:
-          - library: { name: nodejs }
-            app: [express4, nextjs, express4-typescript]
-          - app: rack
-            library: { name: ruby }
-          - app: sinatra21
-            library: { name: ruby }
-          - app: rails71
-            library: { name: ruby }
+        app:
+          - express4
+          - express4-typescript
+          - nextjs
     runs-on: ubuntu-latest
     name: Build (${{ matrix.app }})
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: ./.github/actions/build_apps
         with:
-          repository: 'DataDog/system-tests'
-          fetch-depth: 2
-      - name: Checkout ${{ matrix.library.repository }}
-        uses: actions/checkout@v4
+          image: ${{ matrix.image }}
+          library: ${{ matrix.library.name }}
+          repository: ${{ matrix.library.repository }}
+          path: ${{ matrix.library.path }}
+          app: ${{ matrix.app }}
+
+  build-ruby-apps:
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - weblog
+        library:
+          - name: ruby
+            repository: DataDog/dd-trace-rb
+            path: dd-trace-rb
+        app:
+          - rack
+          # - sinatra14
+          # - sinatra20
+          - sinatra21
+          # - rails50
+          # - rails51
+          # - rails52
+          # - rails60
+          # - rails61
+          # - rails70
+          - rails71
+    runs-on: ubuntu-latest
+    name: Build (${{ matrix.app }})
+    steps:
+      - uses: ./.github/actions/build_apps
         with:
-          repository: '${{ matrix.library.repository }}'
-          path: 'binaries/${{ matrix.library.path }}'
-          fetch-depth: 2
-      - name: Pull released image
-        run: |
-          if docker pull ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest; then
-            docker tag ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest system_tests/${{ matrix.image }}:latest
-          fi
-          parents="$(git rev-list --parents -n 1 ${{ github.sha }})"
-          for sha in $parents; do
-            docker pull "${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:g${sha}" || true
-          done
-      - name: Log in to the Container registry
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-      - name: Build
-        run: |
-          cache_from=()
-          for tag in latest; do
-            cache_from+=(--cache-from "${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:${tag}")
-          done
-          parents="$(git rev-list --parents -n 1 ${{ github.sha }})"
-          for sha in $parents; do
-            cache_from+=(--cache-from ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:g${sha})
-          done
-          echo "cache args: ${cache_from[*]}"
-          ./build.sh --library ${{ matrix.library.name }} --weblog-variant ${{ matrix.app }} --images ${{ matrix.image }} --extra-docker-args "${cache_from[*]}"
-      - name: Tag image for CI run
-        run:
-          docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }}
-      - name: Push image for CI run
-        run: |
-          docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:gha${{ github.run_id }}-g${{ github.sha }}
-      - name: Tag image for commit
-        run:
-          docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:g${{ github.sha }}
-      - name: Push image for commit
-        run: |
-          docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:g${{ github.sha }}
-      - name: Tag image for release
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        run:
-          docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
-      - name: Push image for release
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        run: |
-          docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
+          image: ${{ matrix.image }}
+          library: ${{ matrix.library.name }}
+          repository: ${{ matrix.library.repository }}
+          path: ${{ matrix.library.path }}
+          app: ${{ matrix.app }}
 
   test:
     strategy:

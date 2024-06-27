@@ -1,0 +1,85 @@
+name: "Build apps"
+description: "Build apps"
+inputs:
+  image:
+    description: "The name of the base image being built"
+    required: true
+  library:
+    description: "The name of the library language being built"
+    required: true
+  repository:
+    description: "The repository of the library being built"
+    required: true
+  path:
+    description: "The path of the library being built"
+    required: true
+  app:
+    description: "The name of the app being built"
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
+        fetch-depth: 2
+    - name: Checkout ${{ inputs.repository }}
+      uses: actions/checkout@v4
+      with:
+        repository: '${{ inputs.repository }}'
+        path: 'binaries/${{ inputs.path }}'
+        fetch-depth: 2
+    - name: Pull released image
+      shell: bash
+      run: |
+        if docker pull ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:latest; then
+          docker tag ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:latest system_tests/${{ inputs.image }}:latest
+        fi
+        parents="$(git rev-list --parents -n 1 ${{ github.sha }})"
+        for sha in $parents; do
+          docker pull "${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:g${sha}" || true
+        done
+    - name: Log in to the Container registry
+      shell: bash
+      run: |
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+    - name: Build
+      shell: bash
+      run: |
+        cache_from=()
+        for tag in latest; do
+          cache_from+=(--cache-from "${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:${tag}")
+        done
+        parents="$(git rev-list --parents -n 1 ${{ github.sha }})"
+        for sha in $parents; do
+          cache_from+=(--cache-from ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:g${sha})
+        done
+        echo "cache args: ${cache_from[*]}"
+        ./build.sh --library ${{ inputs.library }} --weblog-variant ${{ inputs.app }} --images ${{ inputs.image }} --extra-docker-args "${cache_from[*]}"
+    - name: Tag image for CI run
+      shell: bash
+      run:
+        docker tag system_tests/${{ inputs.image }}:latest ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:gha${{ github.run_id }}-g${{ github.sha }}
+    - name: Push image for CI run
+      shell: bash
+      run: |
+        docker push ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:gha${{ github.run_id }}-g${{ github.sha }}
+    - name: Tag image for commit
+      shell: bash
+      run:
+        docker tag system_tests/${{ inputs.image }}:latest ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:g${{ github.sha }}
+    - name: Push image for commit
+      shell: bash
+      run: |
+        docker push ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:g${{ github.sha }}
+    - name: Tag image for release
+      if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+      shell: bash
+      run:
+        docker tag system_tests/${{ inputs.image }}:latest ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:latest
+    - name: Push image for release
+      if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+      shell: bash
+      run: |
+        docker push ${{ env.REPO }}/docker/${{ inputs.library }}/${{ inputs.image }}-${{ inputs.app }}:latest
