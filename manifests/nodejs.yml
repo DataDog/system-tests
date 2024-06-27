@@ -452,9 +452,9 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
-      TestDynamicConfigTracingEnabled: missing_feature
+      TestDynamicConfigTracingEnabled: *ref_5_16_0
       TestDynamicConfigV1: *ref_4_11_0
-      TestDynamicConfigV1_ServiceTargets: missing_feature
+      TestDynamicConfigV1_ServiceTargets: *ref_5_16_0
       TestDynamicConfigV2: *ref_4_23_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
@@ -468,8 +468,8 @@ tests/:
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: missing_feature
-      Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Basic: *ref_5_16_0
+      Test_Trace_Sampling_Globs: *ref_5_16_0
       Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
@@ -486,7 +486,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: *ref_3_9_0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
@@ -505,7 +505,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
-    Test_Profile: bug (Not receiving profiles)
+    Test_Profile: *ref_5_16_0
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
     Test_UrlQuery:
@@ -529,14 +529,14 @@ tests/:
     Test_StandardTagsUserAgent: v2.9.0
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
-    Test_Log_Generation: missing_feature
+    Test_Log_Generation: *ref_5_16_0
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
-    Test_ProductsDisabled: missing_feature
+    Test_ProductsDisabled: *ref_5_16_0
     Test_Telemetry:
       '*': *ref_3_2_0
       nextjs: missing_feature
       uds-express4: *ref_3_7_0
     Test_TelemetrySCAEnvVar: missing_feature
-    Test_TelemetryV2: missing_feature
+    Test_TelemetryV2: *ref_5_16_0
