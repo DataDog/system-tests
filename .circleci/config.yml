@@ -4,7 +4,7 @@ jobs:
   system-tests:
     machine:
       # https://support.circleci.com/hc/en-us/articles/360007324514-How-can-I-use-Docker-volume-mounting-on-CircleCI-
-      image: ubuntu-2004:current
+      image: ubuntu-2404:current
     resource_class: large
     steps:
       - checkout
@@ -12,8 +12,6 @@ jobs:
       - run:
           name: Install python 3.11
           command: |
-            sudo add-apt-repository ppa:deadsnakes/ppa
-            sudo apt-get update
             sudo apt-get install python3.11-venv python3.11-dev
 
       - run:
