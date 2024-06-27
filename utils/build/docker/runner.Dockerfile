@@ -1,6 +1,6 @@
-FROM python:3.11
+FROM python:3.12
 
-RUN apt-get update && apt-get install -y python3.11-dev \
+RUN apt-get update && apt-get install -y python3.12-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /app
