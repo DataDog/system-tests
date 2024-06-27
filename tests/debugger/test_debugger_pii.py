@@ -113,17 +113,6 @@ REDACTED_KEYS = [
 
 REDACTED_TYPES = ["customPii"]
 
-PROBES = [
-    {
-        "language": "",
-        "id": "log170aa-acda-4453-9111-1478a6method",
-        "where": {"typeName": "ACTUAL_TYPE_NAME", "methodName": "Pii", "sourceFile": None},
-        "evaluateAt": "EXIT",
-        "captureSnapshot": True,
-        "capture": {"maxFieldCount": 200},
-    }
-]
-
 
 def filter(keys_to_filter):
     return [item for item in REDACTED_KEYS if item not in keys_to_filter]
@@ -145,13 +134,9 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         # and if it exists, we pick it from there
         if Test_Debugger_PII_Redaction.probes_state is None:
             # setup has not been run yet
-            rc.send_command(
-                raw_payload=rc.build_debugger_command(probes=None, version=0), wait_for_acknowledged_status=False
-            )
-            payload = rc.build_debugger_command(probes=PROBES, version=1)
 
-            Test_Debugger_PII_Redaction.probes_state = rc.send_command(
-                raw_payload=payload, wait_for_acknowledged_status=False
+            Test_Debugger_PII_Redaction.probes_state = rc.send_debugger_command(
+                probes=base.read_probes("pii"), version=1
             )
             interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
 
@@ -164,7 +149,6 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     def _test(self, redacted_keys, redacted_types):
         # apply_state is not ACKNOWLEDGED, but UNACKNOWLEDGED
         # assert self.probes_state is not None and self.probes_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED
-        self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
 

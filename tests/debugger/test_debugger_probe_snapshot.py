@@ -4,34 +4,13 @@
 
 import tests.debugger.utils as base
 
-from utils import scenarios, interfaces, weblog, features
-
-
-@features.debugger
-@scenarios.debugger_probes_status
-class Test_Debugger_Probe_Statuses:
-    def test_method_probe_status(self):
-        expected_probes = {
-            "loga0cf2-meth-45cf-9f39-591received": "RECEIVED",
-            "loga0cf2-meth-45cf-9f39-59installed": "INSTALLED",
-            "metricf2-meth-45cf-9f39-591received": "RECEIVED",
-            "metricf2-meth-45cf-9f39-59installed": "INSTALLED",
-            "span0cf2-meth-45cf-9f39-591received": "RECEIVED",
-            "span0cf2-meth-45cf-9f39-59installed": "INSTALLED",
-            "decorcf2-meth-45cf-9f39-591received": "RECEIVED",
-            "decorcf2-meth-45cf-9f39-59installed": "INSTALLED",
-        }
-
-        base.validate_probes(expected_probes)
-
-    def test_line_probe_status(self):
-        expected_probes = {
-            "loga0cf2-line-45cf-9f39-59installed": "INSTALLED",
-            "metricf2-line-45cf-9f39-59installed": "INSTALLED",
-            "decorcf2-line-45cf-9f39-59installed": "INSTALLED",
-        }
-
-        base.validate_probes(expected_probes)
+from utils import (
+    scenarios,
+    interfaces,
+    weblog,
+    features,
+    remote_config as rc,
+)
 
 
 @features.debugger
@@ -45,8 +24,9 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
             "decor0aa-acda-4453-9111-1478a6method",
         ]
 
-        interfaces.library.wait_for_remote_config_request()
+        rc.send_debugger_command(probes=base.read_probes("probe_snapshot_method"), version=1)
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
+
         self.weblog_responses = [
             weblog.get("/debugger/log"),
             weblog.get("/debugger/metric/1"),
@@ -55,7 +35,6 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
         ]
 
     def test_method_probe_snaphots(self):
-        self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
 
@@ -83,8 +62,9 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
             "decor0aa-acda-4453-9111-1478a697line",
         ]
 
-        interfaces.library.wait_for_remote_config_request()
+        rc.send_debugger_command(probes=base.read_probes("probe_snapshot_method"), version=1)
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
+
         self.weblog_responses = [
             weblog.get("/debugger/log"),
             weblog.get("/debugger/metric/1"),
@@ -92,7 +72,6 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
         ]
 
     def test_line_probe_snaphots(self):
-        self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
 
@@ -118,12 +97,11 @@ class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
             "logfb5a-1974-4cdb-b1dd-77dba2f1line",
         ]
 
-        interfaces.library.wait_for_remote_config_request()
+        rc.send_debugger_command(probes=base.read_probes("probe_snapshot_mix_log"), version=1)
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.weblog_responses = [weblog.get("/debugger/mix/asd/1")]
 
     def test_mix_probe(self):
-        self.assert_remote_config_is_sent()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
 

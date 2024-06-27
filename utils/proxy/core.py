@@ -9,7 +9,6 @@ from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError, Flow
 
-import rc_debugger
 from rc_mock import MOCKED_RESPONSES
 from _deserializer import deserialize
 
@@ -264,20 +263,7 @@ class _RequestLogger:
             if self.config_request_count[runtime_id] + 1 > len(mocked_responses):
                 response = {}  # default content when there isn't an RC update
             else:
-                if self.state.get("mock_remote_config_backend") in (
-                    "DEBUGGER_PROBES_STATUS",
-                    "DEBUGGER_LINE_PROBES_SNAPSHOT",
-                    "DEBUGGER_METHOD_PROBES_SNAPSHOT",
-                    "DEBUGGER_MIX_LOG_PROBE",
-                    "DEBUGGER_EXPRESSION_LANGUAGE",
-                ):
-                    response = rc_debugger.create_rcm_probe_response(
-                        request_content["client"]["client_tracer"]["language"],
-                        mocked_responses[self.config_request_count[runtime_id]],
-                        self.config_request_count[runtime_id],
-                    )
-                else:
-                    response = mocked_responses[self.config_request_count[runtime_id]]
+                response = mocked_responses[self.config_request_count[runtime_id]]
 
             flow.response.status_code = 200
             flow.response.content = json.dumps(response).encode()

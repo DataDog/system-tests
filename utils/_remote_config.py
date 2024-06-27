@@ -179,6 +179,6 @@ def build_debugger_command(probes: list, version: int):
     return rcm
 
 
-def send_debbuger_command(probes: list, version: int) -> dict:
+def send_debugger_command(probes: list, version: int) -> dict:
     raw_payload = build_debugger_command(probes, version)
     return send_command(raw_payload)
