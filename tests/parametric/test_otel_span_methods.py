@@ -638,7 +638,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @bug(context.library == "ruby", reason="The ruby parametric app returns incorrect span ids on start span")
     @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
