@@ -9,8 +9,10 @@ from ddtrace.opentelemetry import TracerProvider
 set_tracer_provider(TracerProvider())
 
 from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
 ConfluentKafkaInstrumentor().instrument()
+FlaskInstrumentor().instrument()
 
 import psycopg2
 import requests
@@ -63,6 +65,7 @@ def produce_kafka_message():
     topic = flask_request.args.get("topic", "DistributedTracing")
     message = b"Distributed Tracing Test from Python OpenTelemetry for Kafka!"
     output = kafka_produce(topic, message)
+    print(output)
     if "error" in output:
         return output, 400
     else:
@@ -77,6 +80,7 @@ def consume_kafka_message():
     topic = flask_request.args.get("topic", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
     output = kafka_consume(topic, "apm_test", timeout)
+    print(output)
     if "error" in output:
         return output, 400
     else:

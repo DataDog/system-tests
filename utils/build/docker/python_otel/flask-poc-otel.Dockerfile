@@ -20,6 +20,7 @@ RUN pip install opentelemetry-distro==0.42b0 opentelemetry-exporter-otlp
 
 # Install Otel Instrumentations
 RUN pip install opentelemetry-instrumentation-confluent-kafka==0.42b0
+RUN pip install opentelemetry-instrumentation-flask==0.42b0
 
 RUN opentelemetry-bootstrap -a install
 
@@ -32,6 +33,8 @@ RUN pip show opentelemetry-distro | grep Version: | cut -d' ' -f2 > SYSTEM_TESTS
 RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
+ENV DD_TRACE_OTEL_ENABLED=true
+ENV OTEL_TRACES_SAMPLER=always_on
 ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 ENV FLASK_APP=app.py
 CMD ./app.sh

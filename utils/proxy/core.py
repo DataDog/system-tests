@@ -306,6 +306,7 @@ def start_proxy() -> None:
         "regular@9003",  # java_buddy
         "regular@9004",  # ruby_buddy
         "regular@9005",  # golang_buddy
+        "regular@9006",  # python_otel_buddy
         "regular@11111",  # RC payload API
     ]
 
