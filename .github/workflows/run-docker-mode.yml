@@ -133,7 +133,7 @@ jobs:
           path: ${{ matrix.library.path }}
           app: ${{ matrix.app }}
 
-  test:
+  test-ruby:
     strategy:
       fail-fast: false
       matrix:
@@ -217,7 +217,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-harness
-      - build-apps
+      - build-ruby-apps
     name: Test (${{ matrix.app }}, ${{ matrix.scenario }})
     steps:
       - name: Checkout
@@ -254,7 +254,7 @@ jobs:
           name: system-tests-${{ matrix.library }}-${{ matrix.app }}-${{ matrix.scenario }}-logs-gha${{ github.run_id }}-g${{ github.sha }}
           path: logs*
 
-  aggregate:
+  aggregate-ruby:
     strategy:
       fail-fast: false
       matrix:
@@ -274,7 +274,7 @@ jobs:
           - rails71
     runs-on: ubuntu-latest
     needs:
-      - test
+      - test-ruby
     if: ${{ always() }}
     name: Aggregate (${{ matrix.app }})
     steps:
