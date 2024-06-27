@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from collections import defaultdict
 import json
 import os
 import random
@@ -93,26 +92,6 @@ class _Weblog:
         else:
             self.domain = "localhost"
 
-        self.responses = defaultdict(list)
-        self.current_nodeid = None  # will be used to store request made by a given nodeid
-        self.replay = False
-
-    def init_replay_mode(self, log_folder):
-        self.replay = True
-
-        with open(f"{log_folder}/weblog_responses.json", "r", encoding="utf-8") as f:
-            self.responses = json.load(f)
-
-    def save_requests(self, log_folder):
-        if self.replay:
-            return
-
-        try:
-            with open(f"{log_folder}/weblog_responses.json", "w", encoding="utf-8") as f:
-                json.dump(dict(self.responses), f, indent=2, cls=ResponseEncoder)
-        except:
-            logger.exception("Can't save responses log")
-
     def get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
         return self.request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
 
@@ -137,13 +116,6 @@ class _Weblog:
         rid_in_user_agent=True,
         **kwargs,
     ):
-
-        if self.current_nodeid is None:
-            raise ValueError("Weblog calls can only be done during setup")
-
-        if self.replay:
-            return self.get_request_from_logs()
-
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
         headers = {**headers} if headers else {}  # get our own copy of headers, as we'll modify them
 
@@ -188,28 +160,7 @@ class _Weblog:
         else:
             logger.debug(f"Request {rid}: {r.status_code}")
 
-        self.responses[self.current_nodeid].append(response_data)
-
         return HttpResponse(response_data)
-
-    def get_request_from_logs(self):
-        return HttpResponse(self._pop_response_data_from_logs())
-
-    def get_grpc_request_from_logs(self):
-        return GrpcResponse(self._pop_response_data_from_logs())
-
-    def _pop_response_data_from_logs(self):
-        if self.current_nodeid not in self.responses:
-            raise ValueError(
-                f"I do not have any request made by {self.current_nodeid}. You may need to relaunch it in normal mode"
-            )
-
-        if len(self.responses[self.current_nodeid]) == 0:
-            raise ValueError(
-                f"I have no more request made by {self.current_nodeid}. You may need to relaunch it in normal mode"
-            )
-
-        return self.responses[self.current_nodeid].pop(0)
 
     def warmup_request(self, domain=None, port=None, timeout=10):
         requests.get(self._get_url("/", domain, port), timeout=timeout)
@@ -233,12 +184,6 @@ class _Weblog:
         return res
 
     def grpc(self, string_value, streaming=False):
-
-        if self.replay:
-            return self.get_grpc_request_from_logs()
-
-        if self.current_nodeid is None:
-            raise ValueError("Weblog calls can only be done during setup")
 
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
@@ -269,8 +214,6 @@ class _Weblog:
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
             response_data["response"] = None
-
-        self.responses[self.current_nodeid].append(response_data)
 
         return GrpcResponse(response_data)
 

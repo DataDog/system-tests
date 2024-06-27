@@ -51,18 +51,18 @@ class SetupProperties:
     def __init__(self):
         self._store = {}
 
-    def add_test_item(self, item: pytest.Item):
-        if properties := self._serialize(item.instance):
+    def store_properties(self, item: pytest.Item):
+        if properties := self._get_properties(item.instance):
             self._store[item.nodeid] = properties
 
-    def restore_test_item(self, item: pytest.Item):
+    def restore_properties(self, item: pytest.Item):
         if properties := self._store.get(item.nodeid):
             for name, value in properties.items():
                 logger.debug(f"Restoring {name} for {item.nodeid}")
                 setattr(item.instance, name, value)
 
     @staticmethod
-    def _serialize(instance) -> dict:
+    def _get_properties(instance) -> dict:
 
         properties = {
             name: getattr(instance, name)
@@ -86,6 +86,21 @@ class SetupProperties:
     def load(self, host_log_folder: str):
         with open(f"{host_log_folder}/setup_properties.json", "r", encoding="utf-8") as f:
             self._store = json.load(f, cls=_PropertiesDecoder)
+
+    def log_requests(self, item: pytest.Item) -> None:
+        if properties := self._store.get(item.nodeid):
+            self._log_requests(properties)
+
+    def _log_requests(self, o) -> None:
+        if isinstance(o, HttpResponse):
+            logger.info(f"weblog {o.request.method} {o.request.url} -> {o.status_code}")
+        elif isinstance(o, GrpcResponse):
+            logger.info("weblog GRPC request")
+        elif isinstance(o, dict):
+            self._log_requests(list(o.values()))
+        elif isinstance(o, list):
+            for value in o:
+                self._log_requests(value)
 
 
 if __name__ == "__main__":

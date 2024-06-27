@@ -23,6 +23,7 @@ JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
 _deselected_items = []
+setup_properties = SetupProperties()
 
 
 def pytest_addoption(parser):
@@ -249,7 +250,6 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session: pytest.Session):
-    from utils import weblog
 
     if session.config.option.collectonly:
         return
@@ -264,7 +264,6 @@ def pytest_collection_finish(session: pytest.Session):
         except Exception as e:
             raise e
 
-    setup_properties = SetupProperties()
     if session.config.option.replay:
         setup_properties.load(context.scenario.host_log_folder)
 
@@ -295,15 +294,13 @@ def pytest_collection_finish(session: pytest.Session):
 
         setup_method = getattr(item.instance, setup_method_name)
         try:
-            weblog.current_nodeid = item.nodeid
             if session.config.option.replay:
                 logger.debug(f"Restore properties of {setup_method} for {item}")
-                setup_properties.restore_test_item(item)
+                setup_properties.restore_properties(item)
             else:
                 logger.debug(f"Call {setup_method} for {item}")
                 setup_method()
-                setup_properties.add_test_item(item)
-            weblog.current_nodeid = None
+                setup_properties.store_properties(item)
         except Exception:
             logger.exception("Unexpected failure during setup method call")
             logger.terminal.write("x", bold=True, red=True)
@@ -311,8 +308,6 @@ def pytest_collection_finish(session: pytest.Session):
             raise
         else:
             logger.terminal.write(".", bold=True, green=True)
-        finally:
-            weblog.current_nodeid = None
 
     logger.terminal.write("\n\n")
 
@@ -323,15 +318,8 @@ def pytest_collection_finish(session: pytest.Session):
 
 
 def pytest_runtest_call(item):
-    from utils import weblog
-
-    if item.nodeid in weblog.responses:
-        for response in weblog.responses[item.nodeid]:
-            request = response["request"]
-            if "method" in request:
-                logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
-            else:
-                logger.info("weblog GRPC request")
+    # add a log line for each request made by the setup, to help debugging
+    setup_properties.log_requests(item)
 
 
 @pytest.hookimpl(optionalhook=True)
