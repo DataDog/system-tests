@@ -1283,16 +1283,20 @@ class Test_V2_Login_Events_RC:
         return "user[password]" if "rails" in context.weblog_variant else "password"
 
     def _send_rc_and_execute_request(self, rc_payload):
-        config_state = rc.send_command(raw_payload=rc_payload)
+        config_states = rc.send_command(raw_payload=rc_payload)
         request = weblog.post(
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
         )
-        return {"config_state": config_state, "request": request}
+        return {"config_states": config_states, "request": request}
 
     def _assert_response(self, test, validation):
-        config_state, request = test["config_state"], test["request"]
-        assert config_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED, config_state
+        config_states, request = test["config_states"], test["request"]
+
+        for config_state in config_states.values():
+            assert config_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED, config_state
+
         assert request.status_code == 200
+
         spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
         assert spans, "No spans to validate"
         for span in spans:

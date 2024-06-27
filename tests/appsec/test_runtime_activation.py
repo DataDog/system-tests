@@ -39,6 +39,7 @@ class Test_RuntimeActivation:
         self.response_with_activated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_asm_features(self):
-        assert self.config_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED, self.config_state
+        activation_state = self.config_state["asm_features_activation"]
+        assert activation_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED, self.config_state
         interfaces.library.assert_no_appsec_event(self.response_with_deactivated_waf)
         interfaces.library.assert_waf_attack(self.response_with_activated_waf)

@@ -31,8 +31,8 @@ class Test_RemoteConfigSequence:
 
     def test_asm_switch_on_switch_off():
         # first check that both config state are ok, otherwise, next assertions will fail with cryptic messages
-        assert self.config_state_activation["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_state_activation
-        assert self.config_state_deactivation["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_state_deactivation
+        assert self.config_state_activation["asm_features_activation"]["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_state_activation
+        assert self.config_state_deactivation["asm_features_activation"]["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_state_deactivation
 
         interfaces.library.assert_no_appsec_event(self.first_request)
         interfaces.library.assert_waf_attack(self.second_request)
