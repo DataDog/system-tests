@@ -5,6 +5,10 @@ inputs:
     description: "JSON array of scenarios that will be executed"
     default: "[]"
     required: true
+  exclude_buddies_images:
+    description: "Exclude buddies images"
+    default: "false"
+    required: false
 
 runs:
   using: composite
@@ -29,7 +33,7 @@ runs:
       shell: bash
       run: |
         source venv/bin/activate
-        python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' > compose.yaml
+        python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' ${{ inputs.exclude_buddies_images }} > compose.yaml
       env:
         PYTHONPATH: "."
 

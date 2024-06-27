@@ -74,6 +74,7 @@ jobs:
       uses: ./.github/actions/pull_images
       with:
         scenarios: ${{ inputs.scenarios }}
+        exclude_buddies_images: ${{ inputs.build_buddies_images }}
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
