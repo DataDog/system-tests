@@ -1,6 +1,6 @@
-FROM node:18
+FROM node:18-slim
 
-RUN apt-get update && apt-get install -y jq
+RUN apt-get update && apt-get install -y jq curl
 
 RUN uname -r
 
