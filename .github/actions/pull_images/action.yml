@@ -27,7 +27,9 @@ runs:
 
     - name: Get image list
       shell: bash
-      run: python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' > compose.yaml
+      run: |
+        source venv/bin/activate
+        python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' > compose.yaml
 
     - name: Pull
       shell: bash
