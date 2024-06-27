@@ -539,4 +539,4 @@ tests/:
       nextjs: missing_feature
       uds-express4: *ref_3_7_0
     Test_TelemetrySCAEnvVar: missing_feature
-    Test_TelemetryV2: *ref_5_16_0
+    Test_TelemetryV2: *ref_4_21_0
