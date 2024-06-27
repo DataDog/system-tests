@@ -23,7 +23,7 @@ For Homebrew users :
 
 ```
 brew install python@3.11
-pip3.12 install virtualenv
+pip3.11 install virtualenv
 ```
 
 ## Bash based terminal for Windows
