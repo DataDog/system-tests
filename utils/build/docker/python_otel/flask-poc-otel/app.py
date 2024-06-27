@@ -2,6 +2,12 @@ import os
 import random
 import subprocess
 
+# set Datadog as Otel Trace Provider
+from opentelemetry.trace import set_tracer_provider
+from ddtrace.opentelemetry import TracerProvider
+
+set_tracer_provider(TracerProvider())
+
 from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
 
 ConfluentKafkaInstrumentor().instrument()

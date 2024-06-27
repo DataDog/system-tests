@@ -18,10 +18,15 @@ RUN pip install psycopg2
 #Set opentelemetry-distro to 0.42b0 due this bug: https://github.com/open-telemetry/opentelemetry-python-contrib/issues/2046
 RUN pip install opentelemetry-distro==0.42b0 opentelemetry-exporter-otlp
 
+# Install Otel Instrumentations
+RUN pip install opentelemetry-instrumentation-confluent-kafka==0.42b0
+
 RUN opentelemetry-bootstrap -a install
 
-# Install Otel Instrumentations
-RUN pip install opentelemetry-instrumentation-confluent-kafka
+RUN pip install ddtrace
+
+# Install normal libs
+RUN pip install confluent-kafka==2.1.1
 
 RUN pip show opentelemetry-distro | grep Version: | cut -d' ' -f2 > SYSTEM_TESTS_LIBRARY_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
