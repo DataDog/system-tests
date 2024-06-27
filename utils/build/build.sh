@@ -137,7 +137,7 @@ build() {
               if [ ! -d "venv/" ]
               then
                   echo "Build virtual env"
-                  python3.12 -m venv venv
+                  python3.11 -m venv venv
               fi
 
               source venv/bin/activate

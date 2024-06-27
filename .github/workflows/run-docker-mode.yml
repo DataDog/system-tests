@@ -301,10 +301,10 @@ jobs:
     if: ${{ always() }}
     name: Aggregate (${{ matrix.app }})
     steps:
-      - name: Setup python 3.12
+      - name: Setup python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
       - name: Checkout
         uses: actions/checkout@v4
         with:

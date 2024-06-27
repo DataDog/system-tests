@@ -39,7 +39,7 @@ Make sure you're in the root of the repository before running these commands.
 The following dependencies are required to run the tests locally:
 
 - Docker
-- Python >= 3.7 (for Windows users, Python 3.12 seems to run best without issues)
+- Python >= 3.7 (for Windows users, Python 3.11 seems to run best without issues)
 
 then, run the following command, which will create a Python virtual environment and install the Python dependencies from the root directory:
 

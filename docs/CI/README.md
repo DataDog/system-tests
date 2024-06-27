@@ -2,7 +2,7 @@ All information you need to add System Tests in your CI.
 
 ## How to integrate in a CI?
 
-You'll need a CI that with `docker` and `python 3.12` installed, among with very common UNIX tools.
+You'll need a CI that with `docker` and `python 3.11` installed, among with very common UNIX tools.
 
 A valid `DD_API_KEY` env var for staging must be set.
 
