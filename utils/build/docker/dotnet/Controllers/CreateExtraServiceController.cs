@@ -4,16 +4,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Datadog.Trace;
 
-namespace weblog;
-
-public class CreateExtraServiceController: Controller
+namespace weblog
 {
-    [HttpGet]
-    public IActionResult Index(string? serviceName)
+    public class CreateExtraServiceController: Controller
     {
-        using var scope = Tracer.Instance.StartActive("create-extra-service");
-        scope.Span.ServiceName = serviceName;
+        [HttpGet]
+        public IActionResult Index(string? serviceName)
+        {
+            using var scope = Tracer.Instance.StartActive("create-extra-service");
+            scope.Span.ServiceName = serviceName;
 
-        return Content("Created: " + serviceName);
+            return Content("Created: " + serviceName);
+        }
     }
 }
