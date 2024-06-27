@@ -17,14 +17,18 @@ from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.tools import logger
 
 
-def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, Any]:
+def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
     """
         Sends a remote config payload to the library and waits for the config to be applied.
-        Then returns the config state returned by the library :
+        Then returns a dictionary with the state of each requested file as returned by the library.
+        
+        The dictionary keys are the IDs from the files that can be extracted from the path,
+        e.g: datadog/2/ASM_FEATURES/asm_features_activation/config => asm_features_activation
+        and the values contain the actual state for each file:
 
-        1. the first config state acknowledging the config
+        1. a config state acknowledging the config
         2. else if not acknowledged, the last config state received
-        3. if not config state received, then an harcoded one with apply_state=UNKNOWN
+        3. if no config state received, then a hardcoded one with apply_state=UNKNOWN
 
         Arguments:
             wait_for_acknowledge_status
