@@ -141,7 +141,7 @@ build() {
               fi
 
               source venv/bin/activate
-              python -m pip install --upgrade pip
+              python -m pip install --upgrade pip wheel
             fi
             pip install -r requirements.txt
 
