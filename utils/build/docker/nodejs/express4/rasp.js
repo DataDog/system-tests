@@ -7,8 +7,9 @@ function initRaspEndpoints (app) {
       res.end('end')
     })
     clientRequest.on('error', (e) => {
-      // TODO when blocking is supported, throw e when is aborted
-      //  to check that we are blocking as expected
+      if (e.name === 'AbortError') {
+        throw e
+      }
       res.writeHead(500).end(e.message)
     })
   })
@@ -18,8 +19,9 @@ function initRaspEndpoints (app) {
       res.end('end')
     })
     clientRequest.on('error', (e) => {
-      // TODO when blocking is supported, throw e when is aborted
-      //  to check that we are blocking as expected
+      if (e.name === 'AbortError') {
+        throw e
+      }
       res.writeHead(500).end(e.message)
     })
   })
