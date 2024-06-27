@@ -60,9 +60,21 @@ for dir in "${EXCLUDE_DIRS[@]}"; do
 done
 
 echo "Checking tailing whitespaces..."
-FILES=$(find . "${EXCLUDE_ARGS[@]}" \( "${INCLUDE_ARGS[@]}" \) -exec grep -l " $" {} \;)
+FILES="$(find . "${EXCLUDE_ARGS[@]}" \( "${INCLUDE_ARGS[@]}" \) -exec grep -l ' $' {} \;)"
+
+# shim for sed -i on GNU sed (Linux) and BSD sed (macOS)
+_sed_i() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
 if [ "$COMMAND" == "fix" ]; then
-  echo "$FILES" | xargs -I {} sed -i '' -r 's/ +$//g' {}
+  echo "$FILES" | while read file ; do
+    _sed_i 's/  *$//g' "$file"
+  done
 else
   if [ -n "$FILES" ]; then
     echo "Some tailing white spaces has been found, please fix them 💥 💔 💥"
