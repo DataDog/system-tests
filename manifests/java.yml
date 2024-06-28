@@ -579,7 +579,7 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
-        akka-http: missing_feature (Endpoints not implemented)
+        akka-http:  bug (work in progress)
         jersey-grizzly2: bug (span not available on appsec events drives into no propagation tags)
         play: missing_feature (Endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
