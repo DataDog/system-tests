@@ -9,7 +9,5 @@ sudo systemctl daemon-reload
 sudo systemctl enable test-app.service
 sudo systemctl start test-app.service
 sudo systemctl status test-app.service
-sleep 5
-sudo cat /home/datadog/app-std.out
 
 echo "RUN DONE"

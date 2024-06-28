@@ -34,15 +34,17 @@ onboarding_nodejs:
   stage: nodejs_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  when: always
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-profiling]
+          SCENARIO: [SIMPLE_HOST_AUTO_INJECTION_PROFILING]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT, SIMPLE_HOST_AUTO_INJECTION_PROFILING, HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT, HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]
@@ -65,8 +67,7 @@ onboarding_java:
   stage: java_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  when: always
   variables:
     TEST_LIBRARY: "java"
   parallel:
@@ -96,8 +97,7 @@ onboarding_python:
   stage: python_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  when: always
   variables:
     TEST_LIBRARY: "python"
   parallel:
@@ -126,8 +126,7 @@ onboarding_dotnet:
   stage: dotnet_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  when: always
   variables:
     TEST_LIBRARY: "dotnet"
   parallel:
@@ -153,8 +152,7 @@ onboarding_ruby:
   stage: ruby_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  when: always
   variables:
     TEST_LIBRARY: "ruby"
   parallel:
@@ -179,8 +177,7 @@ onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
-  only:
-    - schedules
+  when: always
   before_script:
     #We need authenticate on git repository
     - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)

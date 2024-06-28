@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "START ruby APP"
+echo "START RUN APP"
 
 # shellcheck disable=SC2035
 sudo chmod -R 755 *
@@ -15,7 +15,14 @@ sudo chmod -R 755 /home/datadog
 sudo chown -R datadog:datadog /home/datadog
 #Ubuntu work without this, but Amazon Linux needs bundle install executed with datadog user
 sudo su - datadog -c 'DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install'
+sudo cp test-app.service /etc/systemd/system/test-app.service
+sudo systemctl daemon-reload
+sudo systemctl enable test-app.service
+sudo systemctl start test-app.service
+sudo systemctl status test-app.service
 
-./create_and_run_app_service.sh "rails server -b 0.0.0.0 -p 5985"
+#TODO Extract the output file in other step
+sleep 5
+sudo cat /home/datadog/app-std.out
 
-echo "RUN ruby DONE"
+echo "RUN DONE"

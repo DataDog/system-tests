@@ -4,7 +4,6 @@ from utils.tools import logger
 
 from utils._context.library_version import Version
 from utils import context
-from utils.onboarding.debug_vm import extract_logs_to_file
 
 
 class AWSInfraConfig:
@@ -97,8 +96,6 @@ class _VirtualMachine:
         self._vm_provision = None
         self.tested_components = {}
         self.deffault_open_port = 5985
-        self.agent_env = None
-        self.app_env = None
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
@@ -113,25 +110,14 @@ class _VirtualMachine:
         return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
 
     def add_provision(self, provision):
-
         self._vm_provision = provision
 
     def get_provision(self):
         return self._vm_provision
 
-    def add_agent_env(self, agent_env):
-        self.agent_env = agent_env
-
-    def add_app_env(self, app_env):
-        self.app_env = app_env
-
     def set_tested_components(self, components_json):
         """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
         self.tested_components = json.loads(components_json.replace("'", '"'))
-
-    def set_vm_logs(self, vm_logs):
-        """ Extract /var/log/ files to a folder in the host machine """
-        extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
         vm_cached_name = f"{self.name}_"
@@ -168,20 +154,6 @@ class _VirtualMachine:
         command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
         # VM name
         command_env["DD_VM_NAME"] = self.name
-        # Scenario custom environment: agent and app env variables
-        command_env["DD_AGENT_ENV"] = ""
-        command_env["DD_APP_ENV"] = ""
-        if self.agent_env:
-            agent_env_values = ""
-            for key, value in self.agent_env.items():
-                agent_env_values += f"{key}={value} \r"
-            command_env["DD_AGENT_ENV"] = agent_env_values
-        if self.app_env:
-            app_env_values = ""
-            for key, value in self.app_env.items():
-                app_env_values += f"{key}={value} \r"
-            command_env["DD_APP_ENV"] = app_env_values
-
         return command_env
 
 
