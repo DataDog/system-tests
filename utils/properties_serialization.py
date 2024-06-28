@@ -4,7 +4,8 @@ import json
 import pytest
 from requests.structures import CaseInsensitiveDict
 
-from utils._weblog import HttpResponse, GrpcResponse
+from utils._weblog import HttpResponse, GrpcResponse, _Weblog
+from utils.interfaces._core import InterfaceValidator
 from utils.tools import logger
 
 
@@ -78,7 +79,7 @@ class SetupProperties:
             if not inspect.ismethod(value)
             and not inspect.isfunction(value)
             and not isinstance(getattr(type(instance), name, None), property)
-            and value != getattr(type(instance), name, None)
+            and not isinstance(value, (_Weblog, InterfaceValidator))  # values that do not carry any tested data
         }
 
     def dump(self, host_log_folder: str):
