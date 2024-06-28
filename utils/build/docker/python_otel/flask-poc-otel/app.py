@@ -32,8 +32,8 @@ if os.environ.get("INCLUDE_KAFKA", "true") == "true":
     from integrations.messaging.kafka import kafka_produce
 
 
-from integrations.messaging.sqs import sqs_consume
-from integrations.messaging.sqs import sqs_produce
+from integrations.messaging.aws.sqs import sqs_consume
+from integrations.messaging.aws.sqs import sqs_produce
 
 
 app = Flask(__name__)

@@ -1915,7 +1915,7 @@ class features:
         """
         pytest.mark.features(feature_id=264)(test_object)
         return test_object
-    
+
     @staticmethod
     def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace_with_otel(test_object):
         """
