@@ -30,4 +30,6 @@ sudo systemctl enable test-app.service
 sudo systemctl start test-app.service
 sudo systemctl status test-app.service
 
+sleep 5 # Let the app start
+
 echo "RUN DONE"
