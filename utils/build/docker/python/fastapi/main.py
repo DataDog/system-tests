@@ -477,9 +477,7 @@ async def login(request: Request):
     authorisation = request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
-    print(">>>>> login", username, password, file=sys.stderr)
     success, user_id = check(username, password)
-    print(">>>>> login", success, user_id, file=sys.stderr)
     if success:
         # login_user(user)
         appsec_trace_utils.track_user_login_success_event(tracer, user_id=user_id, login_events_mode="auto")
