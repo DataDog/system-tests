@@ -7,14 +7,6 @@
       local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
 
   remote-command: |
-
-    #Env variables set on the scenario definition. Write to file and load  
-    SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
-    echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
-    echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
-    cat scenario_agent.env
-    export $(cat scenario_agent.env | xargs) 
-    
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && echo \"api_key: ${DD_API_KEY}\" > /etc/datadog-agent/datadog.yaml"
     DD_INSTALLER_REGISTRY_URL="localhost:12345/datadog" DD_REPO_URL=datad0g.com DD_INSTALLER=true DD_NO_AGENT_INSTALL=true bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 

@@ -5,10 +5,6 @@ init-environment: !include utils/build/virtual_machine/provisions/auto-inject/au
 tested_components:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
 
-#Optional: Extract the logs from the VM
-vm_logs:
-  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
-  
 # Mandatory: Steps to provision VM
 provision_steps:
   - init-config # Init the VM configuration

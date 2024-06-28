@@ -112,10 +112,6 @@ class VirtualMachineProvisioner:
         provision.tested_components_installation = self._get_tested_components(
             env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data
         )
-        # Load vm logs extractor installation
-        provision.vm_logs_installation = self._get_vm_logs(
-            env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data
-        )
         # Load lang variant installation if exists. Lang variant is denfined in the weblog provision file
         provision.lang_variant_installation = self._get_lang_variant_provision(
             env, library_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data
@@ -159,17 +155,6 @@ class VirtualMachineProvisioner:
         installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
         installation.id = "tested_components"
         return installation
-
-    def _get_vm_logs(self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data):
-        if "vm_logs" in provsion_raw_data:
-            tested_components = provsion_raw_data["vm_logs"]
-            installations = tested_components["install"]
-            installation = self._get_installation(
-                env, library_name, os_type, os_distro, os_branch, os_cpu, installations
-            )
-            installation.id = "vm_logs"
-            return installation
-        return None
 
     def _get_lang_variant_provision(self, env, library_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data):
         if "lang_variant" not in weblog_raw_data:
@@ -244,7 +229,6 @@ class Provision:
         self.lang_variant_installation = None
         self.weblog_installation = None
         self.tested_components_installation = None
-        self.vm_logs_installation = None
 
 
 class Intallation:
