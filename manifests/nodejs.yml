@@ -529,11 +529,11 @@ tests/:
     Test_StandardTagsUserAgent: v2.9.0
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
-    Test_Log_Generation: *ref_5_16_0
+    Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
-    Test_ProductsDisabled: *ref_5_16_0
+    Test_ProductsDisabled: *ref_4_21_0
     Test_Telemetry:
       '*': *ref_3_2_0
       nextjs: missing_feature

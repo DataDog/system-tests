@@ -687,8 +687,7 @@ class Test_Log_Generation:
     def test_log_generation_disabled(self):
         """When DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false, no log should be sent"""
         assert len(self._get_filename_with_logs()) == 0, "Library shouldn't have sent any log"
-
-    @missing_feature(library="nodejs")
+        
     def test_log_generation_enabled(self):
         """By default, some logs should be sent"""
         assert len(self._get_filename_with_logs()) != 0
