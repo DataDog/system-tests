@@ -70,7 +70,7 @@ public abstract class ApmTestApi
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
 
-    internal static ILogger<ApmTestApi> _logger;
+    internal static ILogger<ApmTestApi>? _logger;
 
     internal static readonly SpanContextExtractor _spanContextExtractor = new();
 
