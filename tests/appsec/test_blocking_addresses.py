@@ -17,194 +17,6 @@ from utils import (
 )
 
 
-@scenarios.appsec_blocking
-@features.appsec_request_blocking
-class Test_BlockingAddresses:
-    """Test the addresses supported for blocking"""
-
-    def setup_block_ip(self):
-        self.block_ip_req = weblog.get(headers={"X-Forwarded-For": "1.1.1.1"})
-
-    def test_block_ip(self):
-        """can block the request forwarded for the ip"""
-
-        assert self.block_ip_req.status_code == 403
-
-    def setup_block_user(self):
-        self.block_user_req = weblog.get("/users", params={"user": "blockedUser"})
-
-    @missing_feature(library="java", reason="Missing /users endpoint")
-    @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
-    def test_block_user(self):
-        """can block the request from the user"""
-
-        assert self.block_user_req.status_code == 403
-
-    def setup_request_method(self):
-        self.rm_req = weblog.request("OPTIONS")
-
-    @missing_feature(context.library < "ruby@1.12.0")
-    def test_request_method(self):
-        """can block on server.request.method"""
-
-        interfaces.library.assert_waf_attack(self.rm_req, rule="tst-037-006")
-        assert self.rm_req.status_code == 403
-
-    def setup_request_uri(self):
-        self.ruri_req = weblog.get("/waf/foo.git")
-
-    def test_request_uri(self):
-        """can block on server.request.uri.raw"""
-
-        interfaces.library.assert_waf_attack(self.ruri_req, rule="tst-037-002")
-        assert self.ruri_req.status_code == 403
-
-    def setup_path_params(self):
-        self.pp_req = weblog.get("/params/AiKfOeRcvG45")
-
-    @missing_feature(
-        context.library < "java@1.15.0", reason="When supported, path parameter detection happens on subsequent WAF run"
-    )
-    @missing_feature(library="nodejs", reason="Not supported yet")
-    @missing_feature(
-        context.library == "java" and context.weblog_variant == "akka-http", reason="path parameters not supported"
-    )
-    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-52335")
-    @irrelevant(context.library == "ruby" and context.weblog_variant == "rack")
-    @irrelevant(context.library == "golang" and context.weblog_variant == "net-http")
-    def test_path_params(self):
-        """can block on server.request.path_params"""
-
-        interfaces.library.assert_waf_attack(self.pp_req, rule="tst-037-007")
-        assert self.pp_req.status_code == 403
-
-    def setup_request_query(self):
-        self.rq_req = weblog.get("/waf", params={"foo": "xtrace"})
-
-    @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
-    def test_request_query(self):
-        """can block on server.request.query"""
-
-        interfaces.library.assert_waf_attack(self.rq_req, rule="tst-037-001")
-        assert self.rq_req.status_code == 403
-
-    def setup_cookies(self):
-        self.c_req = weblog.get("/", headers={"Cookie": "mycookie=jdfoSDGFkivRG_234"})
-
-    @missing_feature(context.library < "nodejs@4.16.0", reason="Not supported yet")
-    @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
-    def test_cookies(self):
-        """can block on server.request.cookies"""
-
-        interfaces.library.assert_waf_attack(self.c_req, rule="tst-037-008")
-        assert self.c_req.status_code == 403
-
-    def setup_request_body_urlencoded(self):
-        self.rbue_req = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
-
-    @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
-    @missing_feature(weblog_variant="nextjs", reason="Not supported yet")
-    @bug(weblog_variant="spring-boot-payara", reason="Not blocking")
-    @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
-    def test_request_body_urlencoded(self):
-        """can block on server.request.body (urlencoded variant)"""
-
-        interfaces.library.assert_waf_attack(self.rbue_req, rule="tst-037-004")
-        assert self.rbue_req.status_code == 403
-
-    def setup_request_body_multipart(self):
-        self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
-
-    @missing_feature(context.library == "dotnet", reason="Don't support multipart yet")
-    @missing_feature(context.library == "php", reason="Don't support multipart yet")
-    @missing_feature(context.library < "java@1.15.0", reason="Happens on a subsequent WAF run")
-    @missing_feature(library="nodejs", reason="Not supported yet")
-    @missing_feature(
-        context.weblog_variant
-        in (
-            "spring-boot-jetty",
-            "spring-boot-undertow",
-            "spring-boot-openliberty",
-            "spring-boot-payara",
-            "jersey-grizzly2",
-            "resteasy-netty3",
-            "ratpack",
-        ),
-        reason="Blocking on multipart not supported yet",
-    )
-    @irrelevant(context.library == "golang", reason="Body blocking happens through SDK")
-    def test_request_body_multipart(self):
-        """can block on server.request.body (multipart/form-data variant)"""
-
-        interfaces.library.assert_waf_attack(self.rbmp_req, rule="tst-037-004")
-        assert self.rbmp_req.status_code == 403
-
-    def setup_response_status(self):
-        self.rss_req = weblog.get(path="/status", params={"code": "418"})
-
-    @missing_feature(context.library < "dotnet@2.32.0")
-    @missing_feature(context.library < "java@1.18.0" and context.weblog_variant in ("spring-boot", "uds-spring-boot"))
-    @missing_feature(
-        context.library < "java@1.19.0"
-        and context.weblog_variant in ("spring-boot-jetty", "spring-boot-undertow", "spring-boot-wildfly")
-    )
-    @missing_feature(
-        context.library == "java"
-        and context.weblog_variant
-        not in (
-            "akka-http",
-            "play",
-            "spring-boot",
-            "uds-spring-boot",
-            "spring-boot-jetty",
-            "spring-boot-undertow",
-            "spring-boot-wildfly",
-        )
-    )
-    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
-    @missing_feature(context.library < "ruby@1.10.0")
-    @missing_feature(context.library < "nodejs@5.17.0", reason="Not supported yet")
-    def test_response_status(self):
-        """can block on server.response.status"""
-
-        interfaces.library.assert_waf_attack(self.rss_req, rule="tst-037-005")
-        assert self.rss_req.status_code == 403
-
-    def setup_not_found(self):
-        self.rnf_req = weblog.get(path="/finger_print")
-
-    @missing_feature(
-        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
-        reason="Happens on a subsequent WAF run",
-    )
-    @missing_feature(context.library == "ruby", reason="Not working")
-    @missing_feature(context.library < "nodejs@5.17.0", reason="Not supported yet")
-    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
-    def test_not_found(self):
-        """can block on server.response.status"""
-
-        interfaces.library.assert_waf_attack(self.rnf_req, rule="tst-037-010")
-        assert self.rnf_req.status_code == 403
-
-    def setup_response_header(self):
-        self.rsh_req = weblog.get(path="/headers")
-
-    @missing_feature(context.library < "dotnet@2.32.0")
-    @missing_feature(
-        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
-        reason="Happens on a subsequent WAF run",
-    )
-    @missing_feature(context.library == "ruby")
-    @missing_feature(context.library == "php", reason="Headers already sent at this stage")
-    @missing_feature(context.library < "nodejs@5.17.0", reason="Not supported yet")
-    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
-    def test_response_header(self):
-        """can block on server.response.headers.no_cookies"""
-
-        interfaces.library.assert_waf_attack(self.rsh_req, rule="tst-037-009")
-        assert self.rsh_req.status_code == 403
-
-
 def _assert_custom_event_tag_presence(expected_value):
     def wrapper(span):
         tag = "appsec.events.system_tests_appsec_event.value"
@@ -223,6 +35,47 @@ def _assert_custom_event_tag_absence():
         return True
 
     return wrapper
+
+
+@scenarios.appsec_blocking
+@features.appsec_request_blocking
+class Test_Blocking_client_ip:
+    """Test if blocking is supported on http.client_ip address"""
+
+    def setup_blocking(self):
+        self.rm_req_block = weblog.get(headers={"X-Forwarded-For": "1.1.1.1"})
+
+    def test_blocking(self):
+        """can block the request forwarded for the ip"""
+
+        assert self.rm_req_block.status_code == 403
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+
+    def setup_blocking_before(self):
+        self.block_req2 = weblog.get("/tag_value/tainted_value_6512/200", headers={"X-Forwarded-For": "1.1.1.1"})
+
+    @bug(weblog_variant="spring-boot-openliberty", reason="tag present")
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # second request should block and must not set the tag in span
+        assert self.block_req2.status_code == 403
+        interfaces.library.assert_waf_attack(self.block_req2, rule="blk-001-001")
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
+
+
+@scenarios.appsec_blocking
+@features.appsec_request_blocking
+class Test_Blocking_user_id:
+    """Test if blocking is supported on usr.id address"""
+
+    def setup_block_user(self):
+        self.rm_req_block = weblog.get("/users", params={"user": "blockedUser"})
+
+    def test_block_user(self):
+        """can block the request from the user"""
+
+        assert self.rm_req_block.status_code == 403
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="block-users")
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -574,6 +427,21 @@ class Test_Blocking_request_body:
         interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
+@scenarios.appsec_blocking
+@features.appsec_request_blocking
+class Test_Blocking_request_body_multipart:
+    """Test if blocking is supported on server.request.body address for multipart body"""
+
+    def setup_blocking(self):
+        self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
+
+    def test_blocking(self):
+        """can block on server.request.body (multipart/form-data variant)"""
+
+        interfaces.library.assert_waf_attack(self.rbmp_req, rule="tst-037-004")
+        assert self.rbmp_req.status_code == 403
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @features.appsec_response_blocking
@@ -599,6 +467,21 @@ class Test_Blocking_response_status:
         self.test_blocking()
         for code, response in self.rm_req_nonblock.items():
             assert response.status_code == code, response.request.url
+
+    def setup_not_found(self):
+        self.rnf_req = weblog.get(path="/finger_print")
+
+    @missing_feature(
+        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
+        reason="Happens on a subsequent WAF run",
+    )
+    @missing_feature(context.library == "ruby", reason="Not working")
+    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
+    def test_not_found(self):
+        """can block on server.response.status"""
+
+        interfaces.library.assert_waf_attack(self.rnf_req, rule="tst-037-010")
+        assert self.rnf_req.status_code == 403
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
