@@ -41,10 +41,10 @@
         <PackageReference Include="NodaTime" Version="3.1.6"/>
         <PackageReference Include="Confluent.Kafka" Version="1.9.3"/>
         <PackageReference Include="RabbitMQ.Client" Version="6.4.0"/>
-        <Reference Include="Datadog.Trace">
-            <HintPath>/opt/datadog/netcoreapp3.1/Datadog.Trace.dll</HintPath>
-        </Reference>
         <PackageReference Include="MongoDB.Driver" Version="2.23.1"/>
+
+        <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
+        <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" Condition="'$(Configuration)' == 'Release'" />
     </ItemGroup>
 
     <ItemGroup>
