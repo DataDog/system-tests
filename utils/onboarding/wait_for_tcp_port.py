@@ -20,21 +20,26 @@ SOFTWARE.
 
 import socket
 import time
+from utils.tools import logger
 
 
-def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0):
+def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0, min_retries: int = 1):
     """Wait until a port starts accepting TCP connections.
     Args:
         port: Port number.
         host: Host address on which the port should exist.
         timeout: In seconds. How long to wait before raising errors.
+        min_retries: Minimum number of retries. Used to define the per-try timeout.
     Raises:
         TimeoutError: The port isn't accepting connection after time specified in `timeout`.
     """
     start_time = time.perf_counter()
+    try_count = 0
     while True:
+        try_count+=1
+        logger.info(f"Waiting for [{host}:{port}] to accept connections. Try #{try_count}, {timeout - (time.perf_counter() - start_time):.2f}s left.")
         try:
-            with socket.create_connection((host, port), timeout=timeout):
+            with socket.create_connection((host, port), timeout=timeout / min_retries):
                 break
         except OSError as ex:
             time.sleep(0.01)

@@ -126,8 +126,7 @@ onboarding_dotnet:
   stage: dotnet_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  when: always
   variables:
     TEST_LIBRARY: "dotnet"
   parallel:
@@ -135,15 +134,6 @@ onboarding_dotnet:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
           SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws

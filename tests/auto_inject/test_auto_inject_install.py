@@ -29,7 +29,7 @@ class _AutoInjectBaseTest:
             request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
-            wait_for_port(vm_port, vm_ip, 80.0)
+            wait_for_port(vm_port, vm_ip, 80.0, 5)
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
             warmup_weblog(f"http://{vm_ip}:{vm_port}/")
             logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
