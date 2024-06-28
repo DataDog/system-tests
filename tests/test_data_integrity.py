@@ -165,7 +165,7 @@ class Test_LibraryHeaders:
                 assert all(
                     c in string.hexdigits for c in val[3:]
                 ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
-            # The cid prefix is deprecated and should
+            # The cid prefix is deprecated and will be removed in a future version of the agent
             elif val.startswith("cid-"):
                 assert all(
                     c in string.hexdigits for c in val[4:]
