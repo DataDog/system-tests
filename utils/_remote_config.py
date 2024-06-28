@@ -17,14 +17,18 @@ from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.tools import logger
 
 
-def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, Any]:
+def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
     """
         Sends a remote config payload to the library and waits for the config to be applied.
-        Then returns the config state returned by the library :
+        Then returns a dictionary with the state of each requested file as returned by the library.
+        
+        The dictionary keys are the IDs from the files that can be extracted from the path,
+        e.g: datadog/2/ASM_FEATURES/asm_features_activation/config => asm_features_activation
+        and the values contain the actual state for each file:
 
-        1. the first config state acknowledging the config
+        1. a config state acknowledging the config
         2. else if not acknowledged, the last config state received
-        3. if not config state received, then an harcoded one with apply_state=UNKNOWN
+        3. if no config state received, then a hardcoded one with apply_state=UNKNOWN
 
         Arguments:
             wait_for_acknowledge_status
@@ -36,41 +40,42 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
 
     client_configs = raw_payload["client_configs"]
 
+    current_states = {}
     if len(client_configs) == 0:
-        config_id, product, version = None, None, None
         if wait_for_acknowledged_status:
             raise ValueError("Empty client config list is not supported with wait_for_acknowledged_status=True")
-    elif len(client_configs) == 1:
+    else:
         targets = json.loads(base64.b64decode(raw_payload["targets"]))
         version = targets["signed"]["version"]
-        _, _, product, config_id, _ = client_configs[0].split("/")
-    else:
-        raise ValueError("Only zero or one client config are supported")
-
-    config_state = {
-        "id": config_id,
-        "product": product,
-        "apply_state": ApplyState.UNKNOWN,
-        "apply_error": "<No known response from the library>",
-    }
+        for client_config in client_configs:
+            _, _, product, config_id, _ = client_config.split("/")
+            current_states[config_id] = {
+                "id": config_id,
+                "product": product,
+                "apply_state": ApplyState.UNKNOWN,
+                "apply_error": "<No known response from the library>",
+            }
 
     def remote_config_applied(data):
         if data["path"] == "/v0.7/config":
             if len(client_configs) == 0:  # is there a way to know if the "no-config" is acknowledged ?
                 return True
 
-            config_states = (
-                data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", [])
-            )
-            for state in config_states:
-                if state["id"] == config_id and state["product"] == product and state["version"] == version:
-                    logger.debug(f"Remote config state: {state}")
-                    config_state.update(state)
-                    if wait_for_acknowledged_status:
-                        if state["apply_state"] == ApplyState.ACKNOWLEDGED:
-                            return True
-                    else:
-                        return True
+            state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+            if state["targets_version"] == version:
+                config_states = state.get("config_states", [])
+                for state in config_states:
+                    config_state = current_states.get(state["id"])
+                    if config_state and state["product"] == product:
+                        logger.debug(f"Remote config state: {state}")
+                        config_state.update(state)
+
+                if wait_for_acknowledged_status:
+                    for state in current_states.values():
+                        if state["apply_state"] == ApplyState.UNKNOWN:
+                            return False
+
+                return True
 
     if "SYSTEM_TESTS_PROXY_HOST" in os.environ:
         domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
@@ -87,7 +92,7 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
 
     library.wait_for(remote_config_applied, timeout=30)
 
-    return config_state
+    return current_states
 
 
 def build_debugger_command(probes: list, version: int):
