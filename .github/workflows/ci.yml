@@ -134,13 +134,13 @@ jobs:
       _experimental_parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
 
   system_tests_docker_mode:
-    name: Ruby Docker Mode
+    name: Docker Mode
     needs:
     - lint
     - test_the_test
     - impacted_libraries
     - get_dev_artifacts  # non official set-up, this needs put this job in last
-    if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
+    if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'nodejs') || contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
     secrets: inherit
 
