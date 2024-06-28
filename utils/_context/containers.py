@@ -308,7 +308,7 @@ class ImageInfo:
         try:
             self._image = _get_client().images.get(self.name)
         except docker.errors.ImageNotFound:
-            logger.info(f"Image {self.name} has not been found locally")
+            logger.stdout(f"Pulling {self.name}")
             self._image = _get_client().images.pull(self.name)
 
         self._init_from_attrs(self._image.attrs)
