@@ -73,7 +73,7 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
-        pull-all: ${{ contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"') }}
+        scenarios: ${{ inputs.scenarios }}
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |

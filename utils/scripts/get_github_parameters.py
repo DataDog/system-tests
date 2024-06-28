@@ -120,6 +120,9 @@ def main():
     opentelemetry_weblogs = get_opentelemetry_weblogs(os.environ["LIBRARY"])
     print(f"opentelemetry_weblogs={json.dumps(opentelemetry_weblogs)}")
 
+    _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
+    print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
+
 
 if __name__ == "__main__":
     main()
