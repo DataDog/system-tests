@@ -8,6 +8,7 @@
   injection_major_version: apm
   deb_repo_name: beta
   rpm_repo_name: datadog-staging
+  oci_registry_template: "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/%s-package-dev:latest"
 
 - env: prod
   agent_repo_url: datadoghq.com
@@ -18,3 +19,4 @@
   injection_major_version: "7"
   deb_repo_name: stable
   rpm_repo_name: datadog-stable
+  oci_registry_template: "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/%s-package:latest"
