@@ -61,6 +61,11 @@
             <artifactId>opentracing-util</artifactId>
             <version>LATEST</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>LATEST</version>
+        </dependency>
     </dependencies>
 
     <build>
