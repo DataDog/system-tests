@@ -414,6 +414,7 @@ def apm_test_server_definition() -> APMLibraryTestServer:
 
 
 def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer,) -> str:
+    start_time = time.time()
     log_path = f"{context.scenario.host_log_folder}/outputs/docker_build_log.log"
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     log_file = open(log_path, "w+")
@@ -458,7 +459,8 @@ def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer
         log_file.seek(0)
         failure_text = "".join(log_file.readlines())
     log_file.close()
-
+    end_time = time.time()
+    logger.info(f"RMM. Time to build docker image: {end_time - start_time:.2f} seconds")
     return failure_text
 
 
@@ -819,7 +821,7 @@ def docker_run(
     log_file.write("$ " + " ".join(_cmd) + "\n")
     log_file.flush()
     docker = shutil.which("docker")
-
+    start_time = time.time()
     # Run the docker container
     r = subprocess.run(_cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout)
     if r.returncode != 0:
@@ -828,7 +830,8 @@ def docker_run(
             "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file.name),
             pytrace=False,
         )
-
+    end_time_run = time.time()
+    logger.info(f"RMM. Time to run docker container: {end_time_run - start_time:.2f}  seconds")
     # Start collecting the logs of the container
     _cmd = [
         "docker",
@@ -837,9 +840,12 @@ def docker_run(
         name,
     ]
     docker_logs = subprocess.Popen(_cmd, stdout=log_file, stderr=log_file)
+    end_time_docker_logs = time.time()
+    logger.info(f"RMM. Time to get docker logs: {end_time_docker_logs - end_time_run:.2f}  seconds")
     try:
         yield
     finally:
+        start_kill_time = time.time()
         docker_logs.kill()
         _cmd = [docker, "kill", name]
         log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
@@ -852,6 +858,8 @@ def docker_run(
             logger.stdout(f"Parametric docker_run ERROR for {cmd}  -  {log_file}")
             logger.error(e)
         # logger.stdout(f"Parametric: docker_run: After kill the container: {log_file} ")
+        end_kill_time = time.time()
+        logger.info(f"RMM. Time to kill docker container: {end_kill_time - start_kill_time:.2f}  seconds")
 
 
 @pytest.fixture(scope="session")

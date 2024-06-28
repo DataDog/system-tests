@@ -966,7 +966,7 @@ class ParametricScenario(_Scenario):
     def configure(self, config):
         super().configure(config)
         assert "TEST_LIBRARY" in os.environ
-
+        start_time = time.time()
         # get tracer version info building and executing the ddtracer-version.docker file
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
@@ -994,6 +994,8 @@ class ParametricScenario(_Scenario):
                     check=False,
                 )
                 self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
+                end_time = time.time()
+                logger.info(f"RMM Time to extract library version: {end_time - start_time:.2f}s")
             except subprocess.CalledProcessError as e:
                 logger.error(f"{e}")
                 raise RuntimeError(e)
