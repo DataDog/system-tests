@@ -71,12 +71,14 @@ class SetupProperties:
         }
 
         # removes methods, functions and computed properties
+        # also removes properties that already exists on the class
         return {
             name: value
             for name, value in properties.items()
             if not inspect.ismethod(value)
             and not inspect.isfunction(value)
             and not isinstance(getattr(type(instance), name, None), property)
+            and value != getattr(type(instance), name, None)
         }
 
     def dump(self, host_log_folder: str):
