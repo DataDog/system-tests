@@ -67,11 +67,11 @@ jobs:
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.image.name }}:g${{ github.sha }}
       - name: Tag image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
         run:
           docker tag ${{ matrix.image.internal }} ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest
       - name: Push image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest
 
@@ -148,11 +148,11 @@ jobs:
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:g${{ github.sha }}
       - name: Tag image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
         run:
           docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
       - name: Push image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
 
