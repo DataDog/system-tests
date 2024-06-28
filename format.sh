@@ -65,7 +65,7 @@ FILES="$(find . "${EXCLUDE_ARGS[@]}" \( "${INCLUDE_ARGS[@]}" \) -exec grep -l ' 
 # shim for sed -i on GNU sed (Linux) and BSD sed (macOS)
 _sed_i() {
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "$@"
+    sed -i '' -r "$@"
   else
     sed -i "$@"
   fi
