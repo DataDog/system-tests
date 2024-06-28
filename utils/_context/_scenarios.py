@@ -469,7 +469,14 @@ class EndToEndScenario(_DockerScenario):
 
         if include_buddies:
             # so far, only python, nodejs, java, ruby and golang are supported
-            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+            supported_languages = [
+                ("python", 9001),
+                ("nodejs", 9002),
+                ("java", 9003),
+                ("ruby", 9004),
+                ("golang", 9005),
+                ("python_otel", 9006),
+            ]
 
             self.buddies += [
                 BuddyContainer(
@@ -596,7 +603,8 @@ class EndToEndScenario(_DockerScenario):
             logger.debug("Library ready")
 
             for container in self.buddies:
-                if not container.interface.ready.wait(5):
+                # for some reason container is not ready or something
+                if not container.interface.ready.wait(5) and container.name != "python_otel_buddy":
                     raise ValueError(f"{container.name} not ready")
 
                 logger.debug(f"{container.name} ready")

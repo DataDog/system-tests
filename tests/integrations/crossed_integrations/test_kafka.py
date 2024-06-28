@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 from utils import interfaces, scenarios, weblog, missing_feature, features
-from utils.buddies import java_buddy
+from utils.buddies import java_buddy, python_otel_buddy
 from utils.tools import logger
 
 
@@ -39,7 +39,12 @@ class _Test_Kafka:
     @staticmethod
     def get_topic(span) -> str | None:
         """Extracts the topic from a span by trying various fields"""
-        topic = span["meta"].get("kafka.topic")  # this is in python
+        topic = span["meta"].get("kafka.topic")
+
+        if topic is None:
+            # otel uses messaging.destination
+            topic = span["meta"].get("messaging.destination")
+
         if topic is None:
             if "Topic" in span["resource"]:
                 # in go and java, the topic is the last "word" of the resource name
@@ -166,6 +171,23 @@ class Test_Kafka(_Test_Kafka):
     buddy = java_buddy
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
+
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality()
+
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality()
+
+
+@scenarios.crossed_tracing_libraries
+@features.kafkaspan_creationcontext_propagation_with_dd_trace_and_otel
+class Test_Kafka_Otel(_Test_Kafka):
+    buddy_interface = interfaces.python_otel_buddy
+    buddy = python_otel_buddy
+    WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy_otel"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog_otel"
 
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):

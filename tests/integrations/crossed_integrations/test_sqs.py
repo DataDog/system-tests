@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from utils.buddies import python_buddy, java_buddy
+from utils.buddies import python_buddy, java_buddy, python_otel_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -40,18 +40,22 @@ class _Test_SQS:
                     continue
 
                 # we want to skip all the kafka spans
-                if "aws.service" not in span["meta"] and "aws_service" not in span["meta"]:
+                if (
+                    "aws.service" not in span["meta"]
+                    and "aws_service" not in span["meta"]
+                    and "aws.region" not in span["meta"]
+                ):
                     continue
 
                 if (
                     "sqs" not in span["meta"].get("aws.service", "").lower()
                     and "sqs" not in span["meta"].get("aws_service", "").lower()
+                    and "sqs" not in span["meta"].get("rpc.service", "").lower()
                 ):
                     continue
 
-                if operation.lower() != span["meta"].get("aws.operation", "").lower():
+                if operation.lower() != _Test_SQS.get_operation(span).lower():
                     continue
-
                 elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
@@ -69,6 +73,19 @@ class _Test_SQS:
         return None
 
     @staticmethod
+    def get_operation(span) -> str | None:
+        """Extracts the operation from a span by trying various fields"""
+        op = span["meta"].get("aws.operation", None)
+
+        if op is None:
+            if "rpc.method" in span["meta"]:
+                op = span["meta"]["rpc.method"]
+
+            if op is None:
+                logger.error(f"could not extract operation from this span:\n{span}")
+        return op
+
+    @staticmethod
     def get_queue(span) -> str | None:
         """Extracts the queue from a span by trying various fields"""
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
@@ -76,6 +93,8 @@ class _Test_SQS:
         if queue is None:
             if "aws.queue.url" in span["meta"]:
                 queue = span["meta"]["aws.queue.url"].split("/")[-1]
+            elif "messaging.destination" in span["meta"]:
+                queue = span["meta"]["messaging.destination"]
             elif "messaging.url" in span["meta"]:
                 queue = span["meta"]["messaging.url"].split("/")[-1]
 
@@ -219,6 +238,15 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy = python_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
+
+
+@scenarios.crossed_tracing_libraries
+@features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace_with_otel
+class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL(_Test_SQS):
+    buddy_interface = interfaces.python_otel_buddy
+    buddy = python_otel_buddy
+    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy_otel"
+    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog_otel"
 
 
 @scenarios.crossed_tracing_libraries

@@ -1,5 +1,11 @@
 tests/:
   integrations/:
+    crossed_integrations/:
+      test_kafka.py:
+        Test_Kafka:
+          "*": v0.1
+        Test_Kafka_Otel:
+          "*": v0.1
     test_open_telemetry.py:
       Test_MsSql: missing_feature
 
