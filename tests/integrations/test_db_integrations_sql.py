@@ -223,7 +223,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
 
 @features.postgres_support
-@scenarios.integrations
+@scenarios.postgres
 class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
     """ Postgres integration with Datadog tracer+agent """
 
@@ -236,7 +236,7 @@ class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
 
 
 @features.mysql_support
-@scenarios.integrations
+@scenarios.mysql
 class Test_MySql(_BaseDatadogDbIntegrationTestClass):
     """ MySql integration with Datadog tracer+agent """
 
@@ -253,7 +253,7 @@ class Test_MySql(_BaseDatadogDbIntegrationTestClass):
 
 
 @features.mssql_support
-@scenarios.integrations
+@scenarios.mssql
 class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     """ MsSql integration with Datadog tracer+agent """
 
