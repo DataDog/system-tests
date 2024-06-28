@@ -28,7 +28,7 @@ DSM_REQUEST_TIMEOUT = 61
 
 
 @features.datastreams_monitoring_support_for_kafka
-@scenarios.integrations
+@scenarios.kafka
 class Test_DsmKafka:
     """ Verify DSM stats points for Kafka """
 
@@ -92,7 +92,7 @@ class Test_DsmHttp:
 
 
 @features.datastreams_monitoring_support_for_rabbitmq
-@scenarios.integrations
+@scenarios.rabbitmq
 class Test_DsmRabbitmq:
     """ Verify DSM stats points for RabbitMQ """
 
@@ -174,7 +174,7 @@ class Test_DsmRabbitmq:
 
 
 @features.datastreams_monitoring_support_for_rabbitmq_topicexchange
-@scenarios.integrations
+@scenarios.rabbitmq
 class Test_DsmRabbitmq_TopicExchange:
     """ Verify DSM stats points for RabbitMQ Topic Exchange"""
 
@@ -210,7 +210,7 @@ class Test_DsmRabbitmq_TopicExchange:
 
 
 @features.datastreams_monitoring_support_for_rabbitmq_fanout
-@scenarios.integrations
+@scenarios.rabbitmq
 class Test_DsmRabbitmq_FanoutExchange:
     """ Verify DSM stats points for RabbitMQ Fanout Exchange"""
 
@@ -246,7 +246,7 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 
 @features.datastreams_monitoring_support_for_sqs
-@scenarios.integrations
+@scenarios.aws
 class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
 
@@ -275,7 +275,7 @@ class Test_DsmSQS:
 
 
 @features.datastreams_monitoring_support_for_sns
-@scenarios.integrations
+@scenarios.aws
 class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
@@ -307,7 +307,7 @@ class Test_DsmSNS:
 
 
 @features.datastreams_monitoring_support_for_kinesis
-@scenarios.integrations
+@scenarios.aws
 class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
 
@@ -351,7 +351,7 @@ class Test_DsmKinesis:
 
 
 @features.datastreams_monitoring_support_context_injection_base64
-@scenarios.integrations
+@scenarios.kafka
 class Test_DsmContext_Injection_Base64:
     """ Verify DSM context is injected to carrier using correct encoding (base64) """
 
@@ -398,7 +398,7 @@ class Test_DsmContext_Injection_Base64:
 
 
 @features.datastreams_monitoring_support_for_base64_encoding
-@scenarios.integrations
+@scenarios.kafka
 class Test_DsmContext_Extraction_Base64:
     """ Verify DSM context is extracted using "dd-pathway-ctx-base64" """
 

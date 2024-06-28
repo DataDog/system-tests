@@ -7,7 +7,7 @@ from utils import weblog, interfaces, context, missing_feature, scenarios, featu
 
 @missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
 @features.cassandra_support
-@scenarios.integrations
+@scenarios.cassandra
 class Test_Cassandra:
     """ Verify that a cassandra span is created """
 

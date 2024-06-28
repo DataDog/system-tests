@@ -6,7 +6,7 @@ from utils import context, missing_feature, scenarios, features
 from ..utils import BaseSinkTest
 
 
-@scenarios.integrations
+@scenarios.mongo
 @features.iast_sink_mongodb_injection
 class TestNoSqlMongodbInjection(BaseSinkTest):
     """Verify NoSQL injection detection in mongodb database."""

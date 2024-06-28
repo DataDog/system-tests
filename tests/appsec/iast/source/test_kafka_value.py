@@ -7,7 +7,7 @@ from ..utils import BaseSourceTest, get_all_iast_events, get_iast_sources
 
 
 @features.iast_source_kafka_value
-@scenarios.integrations
+@scenarios.kafka
 class TestKafkaValue(BaseSourceTest):
     """Verify that kafka message value is tainted"""
 

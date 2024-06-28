@@ -123,6 +123,51 @@ jobs:
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run AWS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AWS"')
+      run: ./run.sh AWS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run CASSANDRA scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"CASSANDRA"')
+      run: ./run.sh CASSANDRA
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run ELASTICMQ scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"ELASTICMQ"')
+      run: ./run.sh ELASTICMQ
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run KAFKA scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"KAFKA"')
+      run: ./run.sh KAFKA
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run MONGO scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"MONGO"')
+      run: ./run.sh MONGO
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run MSSQL scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"MSSQL"')
+      run: ./run.sh MSSQL
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run MYSQL scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"MYSQL"')
+      run: ./run.sh MYSQL
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run POSTGRES scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"POSTGRES"')
+      run: ./run.sh POSTGRES
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run RABBITMQ scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RABBITMQ"')
+      run: ./run.sh RABBITMQ
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL

@@ -7,7 +7,7 @@ from utils import weblog, interfaces, context, missing_feature, scenarios, featu
 
 @features.mongo_support
 @missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
-@scenarios.integrations
+@scenarios.mongo
 class Test_Mongo:
     """ Verify that a mongodb span is created """
 
