@@ -577,7 +577,12 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation:
+        '*': v1.36.0
+        akka-http: missing_feature (Endpoints not implemented)
+        jersey-grizzly2: bug (span not available on appsec events drives into no propagation tags)
+        play: missing_feature (Endpoints not implemented)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
