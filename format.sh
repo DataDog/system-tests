@@ -73,7 +73,10 @@ _sed_i() {
 
 if [ "$COMMAND" == "fix" ]; then
   echo "$FILES" | while read file ; do
-    _sed_i 's/  *$//g' "$file"
+    if [ $FILES ]; then
+      echo "Fixing $file"
+      _sed_i 's/  *$//g' "$file"
+    fi
   done
 else
   if [ -n "$FILES" ]; then
