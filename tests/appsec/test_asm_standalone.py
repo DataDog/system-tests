@@ -66,7 +66,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -107,7 +107,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -148,7 +148,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -230,7 +230,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -271,7 +271,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -310,7 +310,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -427,7 +427,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -466,7 +466,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
