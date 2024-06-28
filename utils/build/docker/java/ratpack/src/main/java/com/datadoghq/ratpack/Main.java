@@ -198,9 +198,14 @@ public class Main {
                                 ctx.getResponse().send("ok");
                             })
                             .get("requestdownstream", ctx -> {
-                                String url = "http://localhost:7777/returnheaders";
-                                String json = Utils.sendGetRequest(url);
-                                ctx.getResponse().send(json);
+                                final Promise<String> res = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/returnheaders";
+                                    return Utils.sendGetRequest(url);
+                                });
+                                res.then((r) -> {
+                                    Response response = ctx.getResponse();
+                                    response.send("application/json", r);
+                                });
                             })
                             .get("returnheaders", ctx -> {
                                 Headers headers = ctx.getRequest().getHeaders();
