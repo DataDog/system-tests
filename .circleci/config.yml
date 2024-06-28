@@ -11,8 +11,7 @@ jobs:
 
       - run:
           name: Install python 3.12
-          command: |
-            sudo apt-get install python3.12-venv python3.12-dev
+          command: sudo apt-get install python3.12-venv
 
       - run:
           name: versions
