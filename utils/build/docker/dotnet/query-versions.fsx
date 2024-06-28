@@ -7,7 +7,7 @@ open Microsoft.FSharp.NativeInterop
 
 // <= waf1.3.0 it was a struct and not a string, < tracer version 15
 module NativeOld =
-    [<DllImport("ddwaf.so")>]    
+    [<DllImport("ddwaf.so")>]
     extern IntPtr ddwaf_get_version(nativeint version)
 
 module Native =
@@ -24,7 +24,7 @@ module QueryVersions =
     [<Struct>]
     [<StructLayout(LayoutKind.Sequential, Pack=1)>]
     type WafVersion =
-        struct 
+        struct
             val mutable Major: uint16
             val mutable Minor: uint16
             val mutable Patch: uint16
@@ -34,7 +34,7 @@ module QueryVersions =
 
     let unknownRulesDefault = "1.2.5"
     let assem = Assembly.LoadFrom("/opt/datadog/netcoreapp3.1/Datadog.Trace.dll")
-   
+
     let writeRulesVersion () =
         let ruleVersion =
             let mutable stream = assem.GetManifestResourceStream("Datadog.Trace.AppSec.Waf.rule-set.json")
@@ -61,12 +61,12 @@ module QueryVersions =
             let nativeInt = NativePtr.toNativeInt verPtr
             NativeOld.ddwaf_get_version(nativeInt) |> ignore
             ver.ToString()
-        
+
         let getWafVersion () =
             let buffer = Native.ddwaf_get_version()
             Marshal.PtrToStringAnsi(buffer)
-        
-        let version = 
+
+        let version =
             if assem.GetName().Version.Major <= 2 && assem.GetName().Version.Minor <= 14 then getOldWafVersion()
             else getWafVersion()
         File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", version)
