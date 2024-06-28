@@ -8,9 +8,11 @@ from ddtrace.opentelemetry import TracerProvider
 
 set_tracer_provider(TracerProvider())
 
+from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
 from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
+BotocoreInstrumentor().instrument()
 ConfluentKafkaInstrumentor().instrument()
 FlaskInstrumentor().instrument()
 
@@ -28,6 +30,10 @@ from integrations.db.postgres import executePostgresOperation
 if os.environ.get("INCLUDE_KAFKA", "true") == "true":
     from integrations.messaging.kafka import kafka_consume
     from integrations.messaging.kafka import kafka_produce
+
+
+from integrations.messaging.sqs import sqs_consume
+from integrations.messaging.sqs import sqs_produce
 
 
 app = Flask(__name__)
@@ -81,6 +87,28 @@ def consume_kafka_message():
     timeout = int(flask_request.args.get("timeout", 60))
     output = kafka_consume(topic, "apm_test", timeout)
     print(output)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/sqs/produce")
+def produce_sqs_message():
+    queue = flask_request.args.get("queue", "DistributedTracing")
+    message = "Hello from Python Otel SQS"
+    output = sqs_produce(queue, message)
+    if "error" in output:
+        return output, 400
+    else:
+        return output, 200
+
+
+@app.route("/sqs/consume")
+def consume_sqs_message():
+    queue = flask_request.args.get("queue", "DistributedTracing")
+    timeout = int(flask_request.args.get("timeout", 60))
+    output = sqs_consume(queue, timeout)
     if "error" in output:
         return output, 400
     else:

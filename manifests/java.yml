@@ -907,6 +907,9 @@ tests/:
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
           spring-boot: v0.1 # real version not known
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL:
+          "*": irrelevant
+          spring-boot: v0.1 # real version not known
     test_cassandra.py:
       Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
     test_db_integrations_sql.py:

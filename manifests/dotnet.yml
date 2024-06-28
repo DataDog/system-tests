@@ -258,6 +258,8 @@ tests/:
           "*": v0.1  # version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": v2.48.0
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL:
+          "*": v2.48.0
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
