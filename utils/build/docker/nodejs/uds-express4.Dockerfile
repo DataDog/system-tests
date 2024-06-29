@@ -1,6 +1,6 @@
-FROM node:18-slim
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y jq curl git
+RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 

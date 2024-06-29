@@ -1,10 +1,10 @@
-FROM golang:1.20
+FROM golang:1.20-alpine
+
+# install system dependencies
+RUN apk add --no-cache bash curl git jq
 
 # print important lib versions
 RUN go version && curl --version
-
-# install jq
-RUN apt-get update && apt-get -y install jq
 
 # download go dependencies
 RUN mkdir -p /app
@@ -24,7 +24,7 @@ RUN go build -v -tags appsec -o weblog ./net-http
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
-RUN echo "#!/bin/bash\n./weblog" > app.sh
+RUN printf "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 

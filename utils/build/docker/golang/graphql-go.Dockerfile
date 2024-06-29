@@ -1,10 +1,10 @@
-FROM golang:1.20
+FROM golang:1.20-alpine
+
+# install system dependencies
+RUN apk add --no-cache bash curl git jq
 
 # print important lib versions
 RUN go version && curl --version
-
-# install jq
-RUN apt-get update && apt-get -y install jq
 
 # download go dependencies
 RUN mkdir -p /app
@@ -22,7 +22,7 @@ ENV DD_TRACE_HEADER_TAGS='user-agent'
 
 RUN go build -v -tags appsec -o weblog ./graphql-go
 
-RUN echo "#!/bin/bash\n./weblog" > app.sh
+RUN printf "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 
