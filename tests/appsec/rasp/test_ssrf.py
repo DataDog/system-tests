@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
@@ -17,11 +17,15 @@ class Test_Ssrf_UrlQuery:
     def test_ssrf_get(self):
         assert self.r.status_code == 403
 
+        expected_http_value = "http://169.254.169.254"
+        if context.library == "nodejs":
+            expected_http_value += "/"
+
         interfaces.library.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                "resource": {"address": "server.io.net.url", "value": expected_http_value},
                 "params": {"address": "server.request.query", "value": "169.254.169.254"},
             },
         )
@@ -39,11 +43,15 @@ class Test_Ssrf_BodyUrlEncoded:
     def test_ssrf_post_urlencoded(self):
         assert self.r.status_code == 403
 
+        expected_http_value = "http://169.254.169.254"
+        if context.library == "nodejs":
+            expected_http_value += "/"
+
         interfaces.library.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                "resource": {"address": "server.io.net.url", "value": expected_http_value},
                 "params": {"address": "server.request.body", "value": "169.254.169.254"},
             },
         )
@@ -85,11 +93,15 @@ class Test_Ssrf_BodyJson:
     def test_ssrf_post_json(self):
         assert self.r.status_code == 403
 
+        expected_http_value = "http://169.254.169.254"
+        if context.library == "nodejs":
+            expected_http_value += "/"
+
         interfaces.library.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254"},
+                "resource": {"address": "server.io.net.url", "value": expected_http_value},
                 "params": {"address": "server.request.body", "value": "169.254.169.254"},
             },
         )
