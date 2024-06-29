@@ -74,7 +74,7 @@ class Test_Otel_Env_Vars:
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
 
-        if context.library in ("dotnet", "php"):
+        if context.library in ("dotnet", "php", "golang"):
             assert resp["dd_trace_propagation_style"] == "b3 single header,tracecontext"
         else:
             assert resp["dd_trace_propagation_style"] == "b3,tracecontext"
@@ -85,6 +85,7 @@ class Test_Otel_Env_Vars:
     @missing_feature(context.library == "python", reason="DD_LOG_LEVEL is not supported in Python")
     @missing_feature(context.library == "dotnet", reason="DD_LOG_LEVEL is not supported in .NET")
     @missing_feature(context.library == "ruby", reason="DD_LOG_LEVEL is not supported in ruby")
+    @missing_feature(context.library == "golang", reason="DD_LOG_LEVEL is not supported in go")
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "error"}])
     def test_otel_log_level_env(self, test_agent, test_library):
         with test_library as t:
@@ -183,6 +184,7 @@ class Test_Otel_Env_Vars:
     @missing_feature(
         context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
     )
+    @irrelevant(context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}])
     def test_dd_trace_otel_enabled_takes_precedence(self, test_agent, test_library):
         with test_library as t:
@@ -192,6 +194,9 @@ class Test_Otel_Env_Vars:
     @missing_feature(context.library == "nodejs", reason="this setting is not exposed in the Node.js config object")
     @missing_feature(
         context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
+    )
+    @missing_feature(
+        context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
     )
     @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true"}])
     def test_otel_sdk_disabled_set(self, test_agent, test_library):
