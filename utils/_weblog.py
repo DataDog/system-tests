@@ -15,7 +15,7 @@ from requests.structures import CaseInsensitiveDict
 import grpc
 import google.protobuf.struct_pb2 as pb
 
-from utils.tools import logger
+from utils.tools import logger, generate_curl_command
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 # monkey patching header validation in requests module, as we want to be able to send anything to weblog
@@ -168,7 +168,9 @@ class _Weblog:
             req = requests.Request(method, url, params=params, data=data, headers=headers, cookies=cookies, **kwargs)
             r = req.prepare()
             r.url = url
+            curl_command = generate_curl_command(method, url, headers, params)
             logger.debug(f"Sending request {rid}: {method} {url}")
+            logger.info(f"Here is a curl command to try it out: {curl_command}")
 
             r = requests.Session().send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
             response_data["status_code"] = r.status_code
@@ -177,8 +179,11 @@ class _Weblog:
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
+            logger.info(f"Here is the culprit:  {curl_command}")
+
         else:
             logger.debug(f"Request {rid}: {r.status_code}")
+            logger.info(f"To try it out: {curl_command} {curl_command}")
 
         self.responses[self.current_nodeid].append(response_data)
 
