@@ -62,7 +62,7 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
             "decor0aa-acda-4453-9111-1478a697line",
         ]
 
-        rc.send_debugger_command(probes=base.read_probes("probe_snapshot_method"), version=1)
+        rc.send_debugger_command(probes=base.read_probes("probe_snapshot_line"), version=1)
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
 
         self.weblog_responses = [
