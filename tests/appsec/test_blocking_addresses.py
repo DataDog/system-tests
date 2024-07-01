@@ -492,7 +492,7 @@ class Test_Blocking_response_headers:
 
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
-            self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=en-us")
+            self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=fo-fo")
         if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.get(f"/tag_value/anything/200?content-language=krypton")
 
@@ -504,7 +504,7 @@ class Test_Blocking_response_headers:
 
     def setup_non_blocking(self):
         self.setup_blocking()
-        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=en-us")
+        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=fo-fo")
         self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
 
     def test_non_blocking(self):
