@@ -1,5 +1,7 @@
 package com.datadoghq.resteasy;
 
+import com.datadoghq.system_tests.iast.utils.*;
+
 import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -10,6 +12,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
@@ -19,6 +23,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
@@ -230,6 +236,28 @@ public class MyResource {
         result.response_headers = response_headers;
 
         return result;
+    }
+
+    @GET
+    @Path("/requestdownstream")
+    public String requestdownstream() {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GET
+    @Path("/returnheaders")
+    public String returnheaders(@Context final HttpHeaders headers) {
+        Map<String, String> headerMap = new HashMap<>();
+        headers.getRequestHeaders().forEach((key, value) -> headerMap.put(key, value.get(0)));
+        String json = "";
+        try {
+            json = new ObjectMapper().writeValueAsString(headerMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return json;
     }
 
     public static final class DistantCallResponse {

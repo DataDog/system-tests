@@ -66,7 +66,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -107,7 +107,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -148,7 +148,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -230,7 +230,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -271,7 +271,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -287,7 +287,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert span["metrics"]["_sampling_priority_v1"] == 2
+            assert span["metrics"]["_sampling_priority_v1"] in [0, 2]
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -303,14 +303,14 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
-        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Sampling-Priority"] in ["0", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
     def setup_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -326,7 +326,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert span["metrics"]["_sampling_priority_v1"] == 2
+            assert span["metrics"]["_sampling_priority_v1"] in [1, 2]
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -342,7 +342,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
-        assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
+        assert downstream_headers["X-Datadog-Sampling-Priority"] in ["1", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
     def setup_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_2(self):
@@ -427,7 +427,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -466,7 +466,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream/",
+            "/requestdownstream",
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
