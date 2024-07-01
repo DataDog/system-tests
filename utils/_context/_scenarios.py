@@ -16,6 +16,7 @@ from utils._context.library_version import LibraryVersion, Version
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 
 from utils._context.containers import (
+    TestedContainer,
     WeblogContainer,
     AgentContainer,
     ProxyContainer,
@@ -529,14 +530,14 @@ class EndToEndScenario(_DockerScenario):
 
         try:
             code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
-            if code:
+            if code or stdout is None:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:
                 message = stdout.decode()
-        except BaseException as e:
-            message = f"Unexpected exception {e}"
-
-        logger.stdout(f"Weblog system: {message}")
+        except BaseException:
+            logger.exception("can't get weblog system info")
+        else:
+            logger.stdout(f"Weblog system: {message}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -1365,7 +1366,7 @@ class WeblogInjectionScenario(_Scenario):
         )
         self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
 
-        self._required_containers = []
+        self._required_containers: list(TestedContainer) = []
         self._required_containers.append(self._mount_injection_volume)
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
