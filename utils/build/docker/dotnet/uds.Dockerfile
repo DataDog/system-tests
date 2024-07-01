@@ -24,6 +24,8 @@ RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
+
 COPY --from=build /app/out .
 COPY --from=build /app/SYSTEM_TESTS_*_VERSION /app/
 COPY --from=build /opt/datadog /opt/datadog
