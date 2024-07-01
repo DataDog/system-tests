@@ -1,32 +1,68 @@
 import base64
 import sys
 import json
-import hashlib
+from black import format_str, FileMode
+from utils._remote_config import RemoteConfigCommand
 
 
-def _json_to_base64(json_object):
-    json_string = json.dumps(json_object).encode("utf-8")
-    base64_string = base64.b64encode(json_string).decode("utf-8")
-    return base64_string
+def from_payload(payload):
+    targets = json.loads(base64.b64decode(payload["targets"]).decode("utf-8"))
+
+    result = RemoteConfigCommand(version=targets["signed"]["version"])
+
+    # base64 -> bytes -> json -> dict
+    configs = {t["path"]: t["raw"] for t in payload.get("target_files", [])}
+
+    assert result.opaque_backend_state == targets["signed"]["custom"]["opaque_backend_state"]
+    assert result.spec_version == targets["signed"]["spec_version"]
+    assert result.expires == targets["signed"]["expires"]
+    assert result.version == targets["signed"]["version"], f"{result.version} != {targets['signed']['version']}"
+    # assert result.signatures == targets["signatures"], f"{result.signatures} != {targets['signatures']}"
+
+    for config_name in payload.get("client_configs", []):
+        target = targets["signed"]["targets"][config_name]
+        raw_config = configs.get(config_name, None)
+
+        config = result.add_client_config(config_name, raw_config)
+
+        assert config.version == target["custom"]["v"]
+        assert (
+            config.raw_length == target["length"]
+        ), f"Length mismatch for {config_name}: {len(config.raw_length)} != {target['length']}"
+        assert (
+            config.raw_sha256 == target["hashes"]["sha256"]
+        ), f"SHA256 mismatch for {config_name}: {config.raw_sha256} != {target['hashes']['sha256']}"
+
+    return result
 
 
-def _sha256(value):
-    return hashlib.sha256(base64.b64decode(value)).hexdigest()
+def get_python_code(command: RemoteConfigCommand):
+    result = f"command = RemoteConfigCommand(version={command.version!r})"
+
+    for config in command.targets:
+        result += f"\ncommand.add_client_config({config.path!r}, {config.raw_deserialized!r})"
+
+    return format_str(result, mode=FileMode(line_length=120))
 
 
 def main(filename):
     with open(filename, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    for payload in data:
-        encoded_targets = payload["targets"]
-        decoded_targets = json.loads(base64.b64decode(encoded_targets).decode("utf-8"))
-        targets = decoded_targets["signed"]["targets"]
-        for name, value in targets.items():
-            print(json.dumps(name, indent=2))
-            print(json.dumps(value, indent=2))
-            print(len(json.dumps(value).encode("utf-8")))
+    for item in data:
+        print("#" * 120)
+        if item is None:
+            print("None")
+        else:
+            command = from_payload(item)
+            print(get_python_code(command))
+        # print("-" * 120)
+        # print(json.dumps(item, indent=2))
+        # print("-" * 120)
+        # print(json.dumps(command.serialize(deserialized=True), indent=2))
+    return
 
 
 if __name__ == "__main__":
+    # main("utils/proxy/rc_mocked_responses_appsec_api_security_rc.json")
     main(sys.argv[1])
