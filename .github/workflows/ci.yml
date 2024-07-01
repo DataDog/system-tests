@@ -131,6 +131,7 @@ jobs:
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
+      _experimental_parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
 
   system_tests_docker_mode:
     name: Ruby Docker Mode

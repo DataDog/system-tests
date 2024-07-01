@@ -1,0 +1,25 @@
+[Unit]
+Description=Weblog App Service
+After=syslog.target network.target
+
+[Service]
+SuccessExitStatus=143
+
+User=datadog
+
+Type=simple
+
+Environment=DD_CONFIG_SOURCES=LOCAL:/etc/datadog-agent/inject/debug_config.yaml
+Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
+Environment=DD_TRACE_DEBUG=true
+
+EnvironmentFile=/var/log/datadog_weblog/app.env
+EnvironmentFile=/var/log/datadog_weblog/scenario_app.env
+EnvironmentFile=/etc/environment
+
+WorkingDirectory=/home/datadog
+ExecStart=/bin/bash -c 'APP_RUN_COMMAND >> /var/log/datadog_weblog/app.log 2>&1 </dev/null'
+ExecStop=/bin/kill -15 $MAINPID
+
+[Install]
+WantedBy=multi-user.target

@@ -87,3 +87,16 @@ def create_rcm_probe_response(library, probes, version):
 
         rcm["targets"] = _json_to_base64(signed)
     return rcm
+
+
+if __name__ == "__main__":
+    # utility to generate a mocked response for a specific probe, to help RC API migration
+    from utils.proxy.rc_mock import MOCKED_RESPONSES
+
+    rc_config = "DEBUGGER_PII_REDACTION"
+    mocked_responses = MOCKED_RESPONSES.get(rc_config)
+
+    i = 1
+    payload = create_rcm_probe_response(library="java", probes=mocked_responses[i], version=i)
+    print(mocked_responses[i])
+    print(payload)

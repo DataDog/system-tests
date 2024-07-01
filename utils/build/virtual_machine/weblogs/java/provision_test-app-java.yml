@@ -18,7 +18,10 @@ weblog:
 
         copy_files:
           - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/test-app.service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
           - name: copy-run-weblog-script
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java/test-app-java_run.sh

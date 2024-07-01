@@ -287,13 +287,14 @@ tests/:
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: *ref_3_19_0
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
         nextjs: irrelevant # nextjs is not related with graphql
+      Test_Blocking_client_ip: *ref_3_19_0
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         nextjs: missing_feature
+      Test_Blocking_request_body_multipart: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
         nextjs: missing_feature
@@ -306,6 +307,9 @@ tests/:
       Test_Blocking_request_uri: *ref_3_19_0
       Test_Blocking_response_headers: *ref_5_17_0
       Test_Blocking_response_status: *ref_5_17_0
+      Test_Blocking_user_id:
+        '*': *ref_3_19_0
+        nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': missing_feature (v3.19.0, but test is not implemented)
         nextjs: missing_feature
@@ -355,7 +359,7 @@ tests/:
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
-      Test_CollectDefaultRequestHeader: missing_feature
+      Test_CollectDefaultRequestHeader: *ref_5_18_0
       Test_CollectRespondHeaders: v2.0.0
       Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: *ref_5_7_0

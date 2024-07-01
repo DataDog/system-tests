@@ -22,7 +22,7 @@ namespace weblog
         public string path{get; set;}
         public string url{get; set;}
     };
-    
+
     public class BodyForIast
     {
         public string name { get; set; }
@@ -58,26 +58,26 @@ namespace weblog
             _ = GetSHA1(byteArg);
             return Content(result.ToString());
         }
-        
+
         private byte[] GetSHA1(byte[] array)
         {
             return SHA1.Create().ComputeHash(array);
         }
-        
+
         [HttpGet("insecure_hashing/deduplicate")]
         public IActionResult deduplicate(string user)
         {
             var byteArg = new byte[] { 3, 5, 6 };
-            
+
             byte[] result = null;
             for (int i = 0; i < 10; i++)
             {
                 result = MD5.Create().ComputeHash(byteArg);
             }
-            
+
             return Content(result.ToString());
         }
-        
+
         [HttpPost("source/parameter/test")]
         public IActionResult parameterTestPost([FromForm] RequestData data)
         {
@@ -107,14 +107,14 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
-        
+
         [HttpPost("source/parametername/test")]
         public IActionResult parameterNameTestPost([FromForm] RequestData data)
         {
             try
             {
                 System.Diagnostics.Process.Start(data.user);
-                
+
                 return Content("Ok");
             }
             catch
@@ -129,7 +129,7 @@ namespace weblog
             try
             {
                 System.Diagnostics.Process.Start(Request.Query.First().Key);
-                
+
                 return Content("Ok");
             }
             catch
@@ -137,14 +137,14 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
-        
+
         [HttpGet("/iast/source/path/test")]
         public IActionResult pathTest()
         {
             try
             {
                 System.Diagnostics.Process.Start(Request.Path);
-                
+
                 return Content("Ok");
             }
             catch
@@ -159,7 +159,7 @@ namespace weblog
             DES.Create();
             return StatusCode(200);
         }
-        
+
         [HttpGet("insecure_cipher/test_secure_algorithm")]
         public IActionResult test_secure_weakCipher()
         {
@@ -171,7 +171,7 @@ namespace weblog
         public IActionResult test_insecure_cmdI([FromForm] RequestData data)
         {
             try
-            {            
+            {
                 if (!string.IsNullOrEmpty(data.cmd))
                 {
                     var result = Process.Start(data.cmd);
@@ -187,7 +187,7 @@ namespace weblog
                 return StatusCode(500, "Error launching process.");
             }
         }
-        
+
         [HttpPost("cmdi/test_secure")]
         public IActionResult test_secure_cmdI([FromForm] RequestData data)
         {
@@ -214,8 +214,8 @@ namespace weblog
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
-        }        
-        
+        }
+
         [HttpGet("hstsmissing/test_insecure")]
         public IActionResult test_insecure_hstsmissing()
         {
@@ -231,21 +231,21 @@ namespace weblog
             Response.Headers.Append("X-Forwarded-Proto", "https");
             return Content("Ok", "text/html");
         }
-        
+
         [HttpGet("no-samesite-cookie/test_insecure")]
         public IActionResult test_insecure_noSameSiteCookie()
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;HttpOnly;Secure");
             return StatusCode(200);
         }
-        
+
         [HttpGet("no-samesite-cookie/test_secure")]
         public IActionResult test_secure_noSameSiteCookie()
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
         }
-        
+
         [HttpGet("no-httponly-cookie/test_empty_cookie")]
         [HttpGet("no-samesite-cookie/test_empty_cookie")]
         [HttpGet("insecure-cookie/test_empty_cookie")]
@@ -261,14 +261,14 @@ namespace weblog
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;SameSite=Strict");
             return StatusCode(200);
         }
-        
+
         [HttpGet("no-httponly-cookie/test_secure")]
         public IActionResult test_secure_noHttpOnly()
         {
             Response.Headers.Append("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict");
             return StatusCode(200);
-        }        
-        
+        }
+
         [HttpPost("path_traversal/test_insecure")]
         public IActionResult TestInsecurePathTraversal([FromForm] RequestData data)
         {
@@ -308,19 +308,19 @@ namespace weblog
                 return StatusCode(500, "Error reading file.");
             }
         }
-        
+
         [HttpPost("ssrf/test_insecure")]
         public IActionResult TestInsecureSSRF([FromForm] RequestData data)
         {
             return MakeRequest(data.url);
         }
-        
+
         [HttpPost("ssrf/test_secure")]
         public IActionResult TestSecureSSRF([FromForm] RequestData data)
         {
             return MakeRequest("https://www.datadoghq.com");
         }
-        
+
         private IActionResult MakeRequest(string url)
         {
             try
@@ -333,7 +333,7 @@ namespace weblog
                 return StatusCode(500, "Error in request.");
             }
         }
-        
+
         [HttpPost("ldapi/test_insecure")]
         public IActionResult TestInsecureLdap([FromForm] string username, [FromForm] string password)
         {
@@ -348,19 +348,19 @@ namespace weblog
                 return Content("Error creating connection");
             }
         }
-        
+
         [HttpPost("ldapi/test_secure")]
         public IActionResult TestSecureLdap([FromForm] string username, [FromForm] string password)
         {
             try
-            {        
+            {
                 _ = new System.DirectoryServices.DirectoryEntry("LDAP://ldap.example.com/OU=Users,DC=example,DC=com", username, password);
                 return Content("Connection created");
             }
             catch
             {
                 return Content("Error creating connection");
-            }                
+            }
         }
 
         [HttpPost("header_injection/test_insecure")]
@@ -369,14 +369,14 @@ namespace weblog
             Response.Headers.Add("returnedHeaderKey", test);
             return Content("Ok");
         }
-        
+
         [HttpPost("header_injection/test_secure")]
         public IActionResult test_secure_header_injection([FromForm] string test)
         {
             Response.Headers.Add("returnedHeaderKey", "notTainted");
             return Content("Ok");
-        }        
-        
+        }
+
         [HttpPost("sqli/test_insecure")]
         public IActionResult test_insecure_sqlI([FromForm] string username, [FromForm] string password)
         {
@@ -408,9 +408,9 @@ namespace weblog
             {
                 Console.WriteLine(e);
                 return StatusCode(500, "Error executing query.");
-            }        
+            }
         }
-        
+
         [HttpPost("sqli/test_secure")]
         public IActionResult test_secure_sqlI([FromForm] string username, [FromForm] string password)
         {
@@ -470,7 +470,7 @@ namespace weblog
         {
             return Content("Nothing added to session");
         }
-        
+
         [HttpPost("unvalidated_redirect/test_insecure_header")]
         public IActionResult test_insecure_redirect_header([FromForm]string location)
         {
@@ -507,7 +507,7 @@ namespace weblog
             var process = Request.Cookies["table"];
             try
             {
-                System.Diagnostics.Process.Start(process);                
+                System.Diagnostics.Process.Start(process);
                 return Content("Ok");
             }
             catch
@@ -515,21 +515,21 @@ namespace weblog
                 return StatusCode(500, "NotOk");
             }
         }
-        
+
         [HttpGet("source/cookiename/test")]
         public IActionResult test_cookie_name()
         {
             var process = Request.Cookies.Keys.First();
             try
             {
-                System.Diagnostics.Process.Start(process);                
+                System.Diagnostics.Process.Start(process);
                 return Content("Ok");
             }
             catch
             {
                 return StatusCode(500, "NotOk");
             }
-        }                
+        }
 
         [HttpPost("source/body/test")]
         public IActionResult test_source_body([FromBody]BodyForIast body)
@@ -542,9 +542,9 @@ namespace weblog
             catch
             {
                 return StatusCode(500, "Error executing query.");
-            }               
+            }
         }
-        
+
         [HttpGet("source/header/test")]
         public IActionResult test_headerValue()
         {
@@ -557,7 +557,7 @@ namespace weblog
             catch
             {
                 return StatusCode(500, "Error executing query.");
-            }               
+            }
         }
 
         [HttpPost("mongodb-nosql-injection/test_insecure")]
@@ -568,7 +568,7 @@ namespace weblog
                 var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
                 var filter = "{ \"user\": \"" + key + "\" }";
                 mongoDbHelper.Find("users", filter);
-                
+
                 return Content("Executed injection");
             }
             catch (Exception e)
@@ -577,7 +577,7 @@ namespace weblog
                 return StatusCode(500, "Error executing query.");
             }
         }
-        
+
         [HttpPost("mongodb-nosql-injection/test_secure")]
         public IActionResult test_secure_mongodb_injection([FromForm]string key)
         {
@@ -586,7 +586,7 @@ namespace weblog
                 var mongoDbHelper = new MongoDbHelper("mongodb://mongodb:27017", "test-db");
                 var filter = MongoDbHelper.CreateSimpleDocument("user", key);
                 mongoDbHelper.Find("users", filter);
-                
+
                 return Content("Executed secure injection");
             }
             catch (Exception e)
@@ -595,13 +595,13 @@ namespace weblog
                 return StatusCode(500, "Error executing query.");
             }
         }
-        
+
         private class ReflectionInjection { } // Class name passed as parameter in the reflection injection test
-        
+
         [HttpPost("reflection_injection/test_insecure")]
         public IActionResult test_insecure_reflection_injection([FromForm]string param)
         {
-            
+
             try
             {
                 var type = Type.GetType(param);
@@ -614,7 +614,7 @@ namespace weblog
 
             return Content("Executed reflection injection");
         }
-        
+
         [HttpPost("reflection_injection/test_secure")]
         public IActionResult test_secure_reflection_injection([FromForm]string param)
         {
@@ -630,7 +630,7 @@ namespace weblog
                 return StatusCode(500, "Error executing safe reflection.");
             }
         }
-        
+
         [HttpGet("insecure-auth-protocol/test")]
         public IActionResult test_insecure_auth_protocol()
         {
@@ -639,7 +639,7 @@ namespace weblog
             var instance = type.GetProperty("Instance")!.GetValue(null);
             var field = type.GetField("_vulnerabilityHashes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             field!.SetValue(instance, new HashSet<int>());
-            
+
             return StatusCode(200);
         }
     }

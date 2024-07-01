@@ -4,15 +4,7 @@ RUN apt-get update && apt-get install dos2unix
 
 WORKDIR /app
 
-COPY utils/build/docker/dotnet/app.csproj app.csproj
-
-COPY utils/build/docker/dotnet/*.cs ./
-COPY utils/build/docker/dotnet/Dependencies/*.cs ./Dependencies/
-COPY utils/build/docker/dotnet/Endpoints/*.cs ./Endpoints/
-COPY utils/build/docker/dotnet/Controllers/*.cs ./Controllers/
-COPY utils/build/docker/dotnet/Models/*.cs ./Models/
-COPY utils/build/docker/dotnet/Models/*/*.cs ./Models/
-COPY utils/build/docker/dotnet/IdentityStores/*.cs ./IdentityStores/
+COPY utils/build/docker/dotnet/weblog/* .
 
 COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
 RUN dos2unix /binaries/install_ddtrace.sh
@@ -32,7 +24,7 @@ COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VE
 COPY --from=build /app/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_VERSION
 COPY --from=build /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
-COPY utils/build/docker/dotnet/app.sh app.sh
+COPY utils/build/docker/dotnet/weblog/app.sh app.sh
 RUN apt-get update && apt-get install socat -y
 COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 

@@ -59,6 +59,10 @@ def stdout(self, message, *args, **kws):
         if hasattr(self, "terminal"):
             self.terminal.write_line(message)
             self.terminal.flush()
+        else:
+            # at this point, the logger may not yet be configured with the pytest terminal
+            # so directly print in stdout
+            print(message)
 
 
 logging.Logger.stdout = stdout

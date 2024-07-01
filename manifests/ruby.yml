@@ -183,9 +183,10 @@ tests/:
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: v1.0.0
       Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip: v1.0.0
       Test_Blocking_request_body: v1.0.0
+      Test_Blocking_request_body_multipart: v1.0.0
       Test_Blocking_request_cookies: v1.0.0
       Test_Blocking_request_headers: v1.0.0
       Test_Blocking_request_method: v1.12.0
@@ -196,6 +197,7 @@ tests/:
       Test_Blocking_request_uri: v1.0.0
       Test_Blocking_response_headers: v1.0.0
       Test_Blocking_response_status: v1.10.0
+      Test_Blocking_user_id: v1.0.0
       Test_Suspicious_Request_Blocking: missing_feature (v1.0.0 but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.8.0
@@ -283,7 +285,7 @@ tests/:
       Test_DsmContext_Extraction_Base64:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
-      Test_DsmContext_Injection_Base64: 
+      Test_DsmContext_Injection_Base64:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmHttp: missing_feature
@@ -330,7 +332,7 @@ tests/:
         (The "_sampling_priority_v1" numeric tag is missing from the local
         root span when the trace was extracted without a sampling decision.
         See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782693568?pr=2005>.)
-    test_span_links.py: 
+    test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
       Test_Defaults: missing_feature

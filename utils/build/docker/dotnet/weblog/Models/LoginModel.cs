@@ -14,7 +14,7 @@ public class LoginModel
     public string? Password { get; set; }
 
     public string? Auth { get; set; }
-    
+
     [FromQuery(Name = "sdk_event")]public string? SdkEvent { get; set; }
 
     [FromQuery(Name = "sdk_user")] public string? SdkUser { get; set; }

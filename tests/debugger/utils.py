@@ -146,12 +146,16 @@ class _Base_Debugger_Test:
 
     def _is_all_probes_installed(self, probes_map):
         if probes_map is None:
+            logger.debug("Probes map is None?")
             return False
 
         installed_ids = set()
+        logger.debug(f"Look for this probes: {self.expected_probe_ids}")
         for expected_id in self.expected_probe_ids:
             if expected_id in probes_map:
-                if probes_map[expected_id]["status"] == "INSTALLED":
+                status = probes_map[expected_id]["status"]
+                logger.debug(f"Probe {expected_id} observed status is {status}")
+                if status == "INSTALLED":
                     installed_ids.add(expected_id)
 
         if set(self.expected_probe_ids).issubset(installed_ids):

@@ -179,9 +179,10 @@ tests/:
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: v2.27.0
       Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip: v2.27.0
       Test_Blocking_request_body: v2.29.0
+      Test_Blocking_request_body_multipart: missing_feature
       Test_Blocking_request_cookies: v2.29.0
       Test_Blocking_request_headers: v2.29.0
       Test_Blocking_request_method: v2.29.0
@@ -190,6 +191,7 @@ tests/:
       Test_Blocking_request_uri: v2.32.0
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
+      Test_Blocking_user_id: v2.27.0
       Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0

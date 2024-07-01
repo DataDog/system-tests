@@ -123,6 +123,7 @@ def main():
 
             elif file in (
                 ".dockerignore",
+                ".gitattributes",
                 ".gitignore",
                 ".gitlab-ci.yml",
                 ".shellcheck",
