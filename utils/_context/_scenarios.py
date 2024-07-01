@@ -1663,7 +1663,7 @@ class scenarios:
 
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",
-        proxy_state={"mock_remote_config_backend": "ASM"},
+        rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],

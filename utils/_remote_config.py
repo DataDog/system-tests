@@ -283,6 +283,6 @@ class RemoteConfigCommand:
         result["client_configs"] = [target.path for target in self.targets]
         return result
 
-    def send_command(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
+    def send(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
         command = self.to_payload()
         return send_command(command, wait_for_acknowledged_status=wait_for_acknowledged_status)
