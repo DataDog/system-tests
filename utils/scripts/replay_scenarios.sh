@@ -4,7 +4,7 @@ set -e
 
 
 # scenario getting backedn data are not yet supported
-NOT_SUPPPORTED=("K8S_LIB_INJECTION_BASIC" "K8S_LIB_INJECTION_FULL" "APM_TRACING_E2E_OTEL", "PARAMETRIC")
+NOT_SUPPPORTED=("K8S_LIB_INJECTION_BASIC" "K8S_LIB_INJECTION_FULL" "APM_TRACING_E2E_OTEL" "PARAMETRIC")
 
 if [ -d "logs/" ]; then
     echo "[DEFAULT] Running replay mode"
