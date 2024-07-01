@@ -147,11 +147,6 @@ class _Scenario:
 
         logger.addHandler(handler)
 
-        if self.replay:
-            from utils import weblog
-
-            weblog.init_replay_mode(self.host_log_folder)
-
     def session_start(self):
         """called at the very begning of the process"""
 
@@ -669,13 +664,6 @@ class EndToEndScenario(_DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
-
-    def close_targets(self):
-        from utils import weblog
-
-        super().close_targets()
-
-        weblog.save_requests(self.host_log_folder)
 
     @property
     def dd_site(self):

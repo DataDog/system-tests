@@ -22,7 +22,7 @@ class Test_Dbm:
 
     # Helper Methods
     def weblog_trace_payload(self):
-        self.library_name = context.library
+        self.library_name = context.library.library
         self.scenario_name = context.scenario.name
         self.requests = []
 
