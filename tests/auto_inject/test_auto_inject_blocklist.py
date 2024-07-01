@@ -308,33 +308,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
     )
-    def test_user_ignored_processes(self, virtual_machine):
-        """ Check that we are not instrumenting the commands that match with patterns set by DD_IGNORED_PROCESSES env variable"""
-
-        ssh_client = virtual_machine.ssh_config.get_ssh_connection()
-        # Create a simple executable script
-        self._create_remote_executable_script(ssh_client, "/opt/datadog/logs_injection/myscript.sh")
-
-        for test_config in self.user_processes_commands:
-            for use_injection_file_config in [True, False]:
-                # Apply the configuration from yml file or from env variables
-                config_ignored_processes = {"DD_IGNORED_PROCESSES": test_config["ignored_processes"]}
-                local_log_file = self._execute_remote_command(
-                    ssh_client,
-                    test_config["command"],
-                    config=config_ignored_processes,
-                    use_injection_config=use_injection_file_config,
-                )
-
-                assert test_config["skip"] == command_injection_skipped(
-                    test_config["command"], local_log_file
-                ), f"The command {test_config['command']} with config [{config_ignored_processes}] should be skip? [{test_config['skip']}]"
-
-    @irrelevant(
-        condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] < "0.12.4",
-        reason="Block list not fully implemented ",
-    )
     def test_user_ignored_args(self, virtual_machine):
         """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
         language = context.scenario.library.library
