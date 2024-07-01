@@ -1,10 +1,10 @@
 #!/bin/bash
 
-NOT_SUPPPORTED=()
+set -e
 
-#if test -f "logs/tests.log"; then
-#    sh run.sh DEFAULT --replay
-#fi
+
+# scenario getting backedn data are not yet supported
+NOT_SUPPPORTED=("APM_TRACING_E2E_OTEL")
 
 if [ -d "logs/" ]; then
     echo "[DEFAULT] Running replay mode"
