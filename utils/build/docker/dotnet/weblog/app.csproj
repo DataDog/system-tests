@@ -47,12 +47,4 @@
         <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
         <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" Condition="'$(Configuration)' == 'Release'" />
     </ItemGroup>
-
-    <ItemGroup>
-        <!-- exclude "parametric" folder from build -->
-        <Compile Remove="parametric/**"/>
-        <EmbeddedResource Remove="parametric/**"/>
-        <Content Remove="parametric/**"/>
-        <None Remove="parametric/**"/>
-    </ItemGroup>
 </Project>
