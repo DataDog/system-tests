@@ -17,6 +17,7 @@
         -->
         <NoWarn>NU1902;NU1903;CA1416</NoWarn>
     </PropertyGroup>
+
     <PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.7.0'">
         <DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
     </PropertyGroup>
@@ -47,4 +48,8 @@
         <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
         <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" Condition="'$(Configuration)' == 'Release'" />
     </ItemGroup>
+
+    <Target Name="EnsureDDTraceVersionIsDefined" BeforeTargets="PrepareForBuild">
+        <Warning Condition="'$(DDTRACE_VERSION)' == ''" Text="DDTRACE_VERSION is not defined." />
+    </Target>
 </Project>
