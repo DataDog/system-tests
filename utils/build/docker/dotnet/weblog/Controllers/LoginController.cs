@@ -5,6 +5,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.SecurityToken.Model;
 using Datadog.Trace.AppSec;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -42,21 +43,25 @@ public class LoginController : Controller
             }
 
             var authorizationHeader = this.Request.Headers["Authorization"][0];
-            var authBase64Decoded = Encoding.UTF8.GetString(
-                Convert.FromBase64String(authorizationHeader.Replace("Basic ", "",
-                    StringComparison.OrdinalIgnoreCase)));
-            var authSplit = authBase64Decoded.Split(new[] { ':' }, 2);
-            var result = await _signInManager.PasswordSignInAsync(authSplit[0], authSplit[1], false, lockoutOnFailure: false);
-            if (result.Succeeded)
+
+            if(authorizationHeader is not null)
             {
-                return Content("Successfully login as " + authSplit[0]);
+                var authBase64Decoded = Encoding.UTF8.GetString(
+                    Convert.FromBase64String(authorizationHeader.Replace("Basic ", "",
+                        StringComparison.OrdinalIgnoreCase)));
+                var authSplit = authBase64Decoded.Split(new[] { ':' }, 2);
+                var result = await _signInManager.PasswordSignInAsync(authSplit[0], authSplit[1], false, lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    return Content("Successfully login as " + authSplit[0]);
+                }
             }
 
             Response.StatusCode = 401;
             return Content("Invalid login attempt");
         }
 
-        if (User.Identity.IsAuthenticated)
+        if (User.Identity?.IsAuthenticated == true)
         {
             return Content($"Logged in as{User.Identity.Name}");
         }
@@ -78,13 +83,16 @@ public class LoginController : Controller
                 EventTrackingSdk.TrackUserLoginFailureEvent(model.SdkUser, model.SdkUserExists ?? false);
             }
 
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false,
-                lockoutOnFailure: false);
-            if (result.Succeeded)
+            if(model is { UserName: not null, Password: not null })
             {
-                return Content("Successfully login as " + model.UserName);
+                // This doesn't count login failures towards account lockout
+                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+                var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false,
+                    lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    return Content("Successfully login as " + model.UserName);
+                }
             }
 
             Response.StatusCode = 401;

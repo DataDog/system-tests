@@ -139,7 +139,7 @@ public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserC
         return Task.FromResult(IdentityResult.Failed(new IdentityError { Description = "user did not exist" }));
     }
 
-    public override IQueryable<IdentityUser>? Users { get; }
+    public override IQueryable<IdentityUser> Users { get; } = Enumerable.Empty<IdentityUser>().AsQueryable();
 
     protected override Task<IdentityUserToken<string>?> FindTokenAsync(IdentityUser user, string loginProvider, string name, CancellationToken cancellationToken)
     {
