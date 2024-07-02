@@ -1176,10 +1176,12 @@ class HostAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class ContainerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="container-auto-inject") -> None:
+    def __init__(self, name, doc, vm_provision="container-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
             doc=doc,
             github_workflow=None,
             include_ubuntu_22_amd64=True,
@@ -2001,7 +2003,9 @@ class scenarios:
     container_auto_injection_install_script_profiling = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
-        vm_provision="container-auto-inject-install-script-profiling",
+        vm_provision="container-auto-inject-install-script",
+        agent_env={"DD_PROFILING_ENABLED": "auto"},
+        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
     )
     k8s_lib_injection_basic = _KubernetesScenario(
         "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario. DEPRECATED"
