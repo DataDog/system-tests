@@ -9,7 +9,16 @@
       "type": "string"
     },
     "language_name": {
-      "type": "string"
+      "enum": [
+        "cpp", 
+        "dotnet", 
+        "go", 
+        "nodejs", 
+        "jvm", 
+        "php", 
+        "python", 
+        "ruby"
+      ]
     },
     "language_version": {
       "type": "string"

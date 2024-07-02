@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import time
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
+from enum import Enum
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
