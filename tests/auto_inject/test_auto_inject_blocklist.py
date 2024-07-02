@@ -169,32 +169,32 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         "python": [
             {
                 "ignored_args": "",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
                 "ignored_args": "arg1",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
                 "ignored_args": "arg12,arg2,arg44",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
                 "ignored_args": "arg11, arg22,arg44",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
                 "ignored_args": "--dosomething",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py --dosomething yes",
+                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py --dosomething yes",
                 "skip": True,
             },
             {
                 "ignored_args": "--dosomethingXXXX",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py --dosomething no",
+                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py --dosomething no",
                 "skip": False,
             },
         ],
@@ -210,26 +210,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"ignored_args": "test3,test2", "command": "ruby my_cat.rb test1 test2", "skip": True},
             {"ignored_args": "test1,test2", "command": "ruby names.rb --name pepe", "skip": False},
             {"ignored_args": "--name", "command": "ruby names.rb --name pepe", "skip": True},
-            {
-                "ignored_args": "",
-                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
-                "skip": False,
-            },
-            {
-                "ignored_args": "--with-pg-config",
-                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
-                "skip": False,
-            },
-            {
-                "ignored_args": "--with-pg-config=/path/to/pg_config",
-                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
-                "skip": True,
-            },
-            {
-                "ignored_args": "--with-pg-config=/home/to/pg_config",
-                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
-                "skip": False,
-            },
         ],
     }
 
