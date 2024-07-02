@@ -12,8 +12,8 @@ RUN apt-get update \
     && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
     && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev 
-    
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+
 #pip install driver pymysql and pyodbc(mssql)
 RUN pip install pymysql cryptography pyodbc
 
@@ -25,6 +25,10 @@ RUN pip install 'flask[async]'==2.2.4 flask-login gunicorn gevent requests pycry
 RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config
 
 RUN pip install boto3 kombu mock asyncpg aiomysql mysql-connector-python pymysql mysqlclient urllib3
+
+# Install Rust toolchain
+RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v4 .
 # docker push datadog/system-tests:flask-poc.base-v4

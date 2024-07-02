@@ -31,7 +31,7 @@ def handle_labels(labels: list[str], scenarios_groups: set[str]):
 
 
 def main():
-    scenarios = set()
+    scenarios = set(["DEFAULT"])  # always run the default scenario
     scenarios_groups = set()
 
     event_name = os.environ["GITHUB_EVENT_NAME"]
@@ -123,6 +123,7 @@ def main():
 
             elif file in (
                 ".dockerignore",
+                ".gitattributes",
                 ".gitignore",
                 ".gitlab-ci.yml",
                 ".shellcheck",

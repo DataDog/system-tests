@@ -58,7 +58,6 @@ class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(
         context.library == "ruby", reason="Ruby is instrumenting telemetry calls, creating 2 spans instead of 1"
     )

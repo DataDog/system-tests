@@ -2,7 +2,18 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios, rfc, bug, features, irrelevant
+from utils import (
+    weblog,
+    interfaces,
+    context,
+    missing_feature,
+    scenarios,
+    rfc,
+    bug,
+    features,
+    irrelevant,
+    remote_config as rc,
+)
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
@@ -313,8 +324,8 @@ class Test_Login_Events_Extended:
         "Accept-Language": "en-GB, *;q=0.5",
         "Content-Language": "en-GB",
         "Content-Length": "0",
-        "Content-Type": "text/html; charset=utf-8",
-        "Content-Encoding": "deflate, gzip",
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+        # "Content-Encoding": "deflate, gzip", # removed because the request is not using this encoding to make the request and makes the test fail
         "Host": "127.0.0.1:1234",
         "User-Agent": "Benign User Agent 1.0",
         "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
@@ -585,7 +596,7 @@ class Test_Login_Events_Extended:
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_success_headers(self):
@@ -610,7 +621,7 @@ class Test_Login_Events_Extended:
 
     @missing_feature(library="dotnet")
     @missing_feature(library="java")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_failure_headers(self):
@@ -1218,3 +1229,93 @@ def assert_priority(span, meta):
         assert (
             meta["manual.keep"] == "true"
         ), 'meta.manual.keep should be "true" when _sampling_priority_v1 is not MANUAL_KEEP'
+
+
+@rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
+@features.user_monitoring
+@scenarios.appsec_auto_events_rc
+class Test_V2_Login_Events_RC:
+
+    USER = "test"
+    PASSWORD = "1234"
+    # ["disabled", "identification", "anonymization"]
+    PAYLOADS = [
+        {
+            "targets": "eyJzaWduZWQiOnsiX3R5cGUiOiJ0YXJnZXRzIiwiY3VzdG9tIjp7Im9wYXF1ZV9iYWNrZW5kX3N0YXRlIjoiZXlKbWIyOGlPaUFpWW1GeUluMD0ifSwiZXhwaXJlcyI6IjMwMDAtMDEtMDFUMDA6MDA6MDBaIiwic3BlY192ZXJzaW9uIjoiMS4wIiwidGFyZ2V0cyI6eyJkYXRhZG9nLzIvQVNNX0ZFQVRVUkVTL2F1dG8tdXNlci1pbnN0cnVtL2NvbmZpZyI6eyJjdXN0b20iOnsidiI6MX0sImhhc2hlcyI6eyJzaGEyNTYiOiJlZDRiNmZmNWRkMmQ3MWI5NjE0YjcxMzMwMTg4MjU2MmNmNGQ4ODk3YWRlMzIzYTZkMmQ5ZGViZDRhNzNhZDA0In0sImxlbmd0aCI6NTZ9fSwidmVyc2lvbiI6MX0sInNpZ25hdHVyZXMiOlt7ImtleWlkIjoiZWQ3NjcyYzlhMjRhYmRhNzg4NzJlZTMyZWU3MWM3Y2IxZDUyMzVlOGRiNGVjYmYxY2EyOGI5YzUwZWI3NWQ5ZSIsInNpZyI6IjIyZDhlOTE0ZWM1NmE0MmQ4MTE4MmE4Y2RkODQyMTI0OTIyMDhlZDllNjRjZjQ2Mjg1ZTIxY2NjMjdhY2NhZDRlZDc3N2Y5MDkwNGVlYmZiODhiNDQ2ZGUxMGNkMjk1YzNjZDJlNjM1NmY4MjMzNDk5MzM1OTQ4YTRkMDI1ZTBkIn1dfQ==",
+            "target_files": [
+                {
+                    "path": "datadog/2/ASM_FEATURES/auto-user-instrum/config",
+                    "raw": "ewogICJhdXRvX3VzZXJfaW5zdHJ1bSI6IHsKICAgICJtb2RlIjogImRpc2FibGVkIgogIH0KfQo=",
+                }
+            ],
+            "client_configs": ["datadog/2/ASM_FEATURES/auto-user-instrum/config"],
+        },
+        {
+            "targets": "eyJzaWduZWQiOnsiX3R5cGUiOiJ0YXJnZXRzIiwiY3VzdG9tIjp7Im9wYXF1ZV9iYWNrZW5kX3N0YXRlIjoiZXlKbWIyOGlPaUFpWW1GeUluMD0ifSwiZXhwaXJlcyI6IjMwMDAtMDEtMDFUMDA6MDA6MDBaIiwic3BlY192ZXJzaW9uIjoiMS4wIiwidGFyZ2V0cyI6eyJkYXRhZG9nLzIvQVNNX0ZFQVRVUkVTL2F1dG8tdXNlci1pbnN0cnVtL2NvbmZpZyI6eyJjdXN0b20iOnsidiI6Mn0sImhhc2hlcyI6eyJzaGEyNTYiOiIyZWY2ZDVjMGZhNTQ4NTY0YTRjNWI3NTBjZmRkMDhkOWE4ODk2MmNhZTZkY2M5NDk0MjM4OWMxZDkwOTNkMTBhIn0sImxlbmd0aCI6NjJ9fSwidmVyc2lvbiI6Mn0sInNpZ25hdHVyZXMiOlt7ImtleWlkIjoiZWQ3NjcyYzlhMjRhYmRhNzg4NzJlZTMyZWU3MWM3Y2IxZDUyMzVlOGRiNGVjYmYxY2EyOGI5YzUwZWI3NWQ5ZSIsInNpZyI6ImYzOTMxZDliODk4NWIzNTgxNjc1NWI4N2RjNmFmM2UxYzMzYWJmMjhjZDhkYzVmYWM2ZmMwMzgyZjNlMjUwOGU4ZmZmNzMxMDI2NWFhNDk3NjU2NjAyZDIxMTlhODFhNTViMjkwM2VkMjJlM2IzMzU0MmNhMWZiYmUxYWRhMjBhIn1dfQ==",
+            "target_files": [
+                {
+                    "path": "datadog/2/ASM_FEATURES/auto-user-instrum/config",
+                    "raw": "ewogICJhdXRvX3VzZXJfaW5zdHJ1bSI6IHsKICAgICJtb2RlIjogImlkZW50aWZpY2F0aW9uIgogIH0KfQo=",
+                }
+            ],
+            "client_configs": ["datadog/2/ASM_FEATURES/auto-user-instrum/config"],
+        },
+        {
+            "targets": "eyJzaWduZWQiOnsiX3R5cGUiOiJ0YXJnZXRzIiwiY3VzdG9tIjp7Im9wYXF1ZV9iYWNrZW5kX3N0YXRlIjoiZXlKbWIyOGlPaUFpWW1GeUluMD0ifSwiZXhwaXJlcyI6IjMwMDAtMDEtMDFUMDA6MDA6MDBaIiwic3BlY192ZXJzaW9uIjoiMS4wIiwidGFyZ2V0cyI6eyJkYXRhZG9nLzIvQVNNX0ZFQVRVUkVTL2F1dG8tdXNlci1pbnN0cnVtL2NvbmZpZyI6eyJjdXN0b20iOnsidiI6M30sImhhc2hlcyI6eyJzaGEyNTYiOiIwMjRiOGM4MmQxODBkZjc2NzMzNzVjYzYzZDdiYmRjMzRiNWE4YzE3NWQzNzE3ZGQwYjYyMzg2OTRhY2FiNWI3In0sImxlbmd0aCI6NjF9fSwidmVyc2lvbiI6M30sInNpZ25hdHVyZXMiOlt7ImtleWlkIjoiZWQ3NjcyYzlhMjRhYmRhNzg4NzJlZTMyZWU3MWM3Y2IxZDUyMzVlOGRiNGVjYmYxY2EyOGI5YzUwZWI3NWQ5ZSIsInNpZyI6IjZlN2FkNDY1MDBiOGU0MTlkZDEyOTQyMjRiMGMzODM0OTZkZjc5OTJhOTliNDkwYWY0MmU1YjRkOTdjZWYxNTI3ZmRjNTAxMGVmYmI2NmYyY2VjMjgyY2Y4NzU5YmFlZThmOWY0ZjA4OWJjODJjNDk3NDUzYjc3YmM4Y2RiYTBkIn1dfQ==",
+            "target_files": [
+                {
+                    "path": "datadog/2/ASM_FEATURES/auto-user-instrum/config",
+                    "raw": "ewogICJhdXRvX3VzZXJfaW5zdHJ1bSI6IHsKICAgICJtb2RlIjogImFub255bWl6YXRpb24iCiAgfQp9Cg==",
+                }
+            ],
+            "client_configs": ["datadog/2/ASM_FEATURES/auto-user-instrum/config"],
+        },
+    ]
+
+    @property
+    def username_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[username]" if "rails" in context.weblog_variant else "username"
+
+    @property
+    def password_key(self):
+        """ In Rails the parametesr are group by scope. In the case of the test the scope is user. The syntax to group parameters in a POST request is scope[parameter] """
+        return "user[password]" if "rails" in context.weblog_variant else "password"
+
+    def _send_rc_and_execute_request(self, rc_payload):
+        config_states = rc.send_command(raw_payload=rc_payload)
+        request = weblog.post(
+            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
+        )
+        return {"config_states": config_states, "request": request}
+
+    def _assert_response(self, test, validation):
+        config_states, request = test["config_states"], test["request"]
+
+        for config_state in config_states.values():
+            assert config_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED, config_state
+
+        assert request.status_code == 200
+
+        spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
+        assert spans, "No spans to validate"
+        for span in spans:
+            meta = span.get("meta", {})
+            validation(meta)
+
+    def setup_rc(self):
+        self.tests = [self._send_rc_and_execute_request(rc) for rc in self.PAYLOADS]
+
+    def test_rc(self):
+        def validate_disabled(meta):
+            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+
+        def validate_anon(meta):
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+
+        def validate_iden(meta):
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+
+        self._assert_response(self.tests[0], validate_disabled)
+        self._assert_response(self.tests[1], validate_iden)
+        self._assert_response(self.tests[2], validate_anon)

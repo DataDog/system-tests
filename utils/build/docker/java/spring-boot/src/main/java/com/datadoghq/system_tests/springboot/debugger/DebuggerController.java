@@ -3,8 +3,8 @@ package com.datadoghq.system_tests.springboot;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.MediaType;
-// The `debugger` feature allows attachment to specific lines of code. 
-// Due to differences in line numbering between `dotnet` and `java`, 
+// The `debugger` feature allows attachment to specific lines of code.
+// Due to differences in line numbering between `dotnet` and `java`,
 // 'dummy lines' are used to standardize this functionality.
 // Dummy line
 // Dummy line
@@ -43,7 +43,7 @@ public class DebuggerController {
         intLocal = intArg * arg.length();
         return "Span Decoration Probe " + intLocal;
     }
-    
+
 // Dummy line
 // Dummy line
     private int intMixLocal = 0;

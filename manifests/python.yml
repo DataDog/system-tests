@@ -350,16 +350,22 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0.dev but will be replaced by V2)
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events: v2.11.0.dev
+      Test_V2_Login_Events_Anon: v2.11.0.dev
+      Test_V2_Login_Events_RC: v2.11.0.dev
     test_blocking_addresses.py:
-      Test_BlockingAddresses:
+      Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip:
         '*': v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_request_body_multipart:
         '*': v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0.dev1
@@ -400,6 +406,11 @@ tests/:
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
       Test_Blocking_response_status:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_user_id:
         '*': v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0.dev1
@@ -512,49 +523,49 @@ tests/:
         flask-poc: v0.1
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Aiomysql: 
+      Test_Dbm_Comment_Batch_Python_Aiomysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_MysqlConnector: 
+      Test_Dbm_Comment_Batch_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Mysqldb: 
+      Test_Dbm_Comment_Batch_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Psycopg: 
+      Test_Dbm_Comment_Batch_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Pymysql: 
+      Test_Dbm_Comment_Batch_Python_Pymysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Aiomysql: 
+      Test_Dbm_Comment_Python_Aiomysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Asyncpg: 
+      Test_Dbm_Comment_Python_Asyncpg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_MysqlConnector: 
+      Test_Dbm_Comment_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Python_Mysqldb: 
+      Test_Dbm_Comment_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Python_Psycopg: 
+      Test_Dbm_Comment_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Pymysql: 
+      Test_Dbm_Comment_Python_Pymysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0

@@ -70,7 +70,7 @@ print_usage() {
     echo -e "  Build images for Java and Spring Boot:"
     echo -e "    ${SCRIPT_NAME} --library java --weblog-variant spring-boot"
     echo -e "  Build default images for Dotnet with binary path:"
-    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""    
+    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""
     echo -e "  Build default images for Dotnet with binary url:"
     echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
     echo -e "  List libraries:"
@@ -78,7 +78,7 @@ print_usage() {
     echo -e "  List weblogs for PHP:"
     echo -e "    ${SCRIPT_NAME} --list-weblogs --library php"
     echo -e "  Print default weblog for Python:"
-    echo -e "    ${SCRIPT_NAME} --default-weblogs --library python"
+    echo -e "    ${SCRIPT_NAME} --default-weblog --library python"
     echo
     echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
@@ -191,21 +191,21 @@ build() {
                 find . ! -name 'README.md' -type f -exec rm -f {} +
             }
 
-            if ! [[ -z "$BINARY_URL" ]]; then 
+            if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
                 clean-binaries
                 curl -L -O $BINARY_URL
                 cd ..
             fi
 
-            if ! [[ -z "$BINARY_PATH" ]]; then 
+            if ! [[ -z "$BINARY_PATH" ]]; then
                 cd binaries
                 clean-binaries
                 cp -r $BINARY_PATH/* ./
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile          
+            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \

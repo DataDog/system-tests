@@ -16,6 +16,7 @@ from utils._context.library_version import LibraryVersion, Version
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 
 from utils._context.containers import (
+    TestedContainer,
     WeblogContainer,
     AgentContainer,
     ProxyContainer,
@@ -37,6 +38,7 @@ from utils._context.containers import (
     WeblogInjectionInitContainer,
     MountInjectionVolume,
     create_inject_volume,
+    TestedContainer,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -144,11 +146,6 @@ class _Scenario:
         handler.setFormatter(get_log_formatter())
 
         logger.addHandler(handler)
-
-        if self.replay:
-            from utils import weblog
-
-            weblog.init_replay_mode(self.host_log_folder)
 
     def session_start(self):
         """called at the very begning of the process"""
@@ -301,7 +298,7 @@ class _DockerScenario(_Scenario):
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
 
-        self._required_containers = []
+        self._required_containers: list[TestedContainer] = []
 
         if self.use_proxy:
             self._required_containers.append(
@@ -338,6 +335,10 @@ class _DockerScenario(_Scenario):
 
         if include_localstack:
             self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+    @property
+    def image_list(self) -> list[str]:
+        return [container.image.name for container in self._required_containers]
 
     def configure(self, config):
         super().configure(config)
@@ -524,14 +525,14 @@ class EndToEndScenario(_DockerScenario):
 
         try:
             code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
-            if code:
+            if code or stdout is None:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:
                 message = stdout.decode()
-        except BaseException as e:
-            message = f"Unexpected exception {e}"
-
-        logger.stdout(f"Weblog system: {message}")
+        except BaseException:
+            logger.exception("can't get weblog system info")
+        else:
+            logger.stdout(f"Weblog system: {message}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -663,13 +664,6 @@ class EndToEndScenario(_DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
-
-    def close_targets(self):
-        from utils import weblog
-
-        super().close_targets()
-
-        weblog.save_requests(self.host_log_folder)
 
     @property
     def dd_site(self):
@@ -1029,6 +1023,8 @@ class _VirtualMachineScenario(_Scenario):
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
         include_centos_7_amd64=False,
+        agent_env=None,
+        app_env=None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow)
         self.vm_provision_name = vm_provision
@@ -1037,6 +1033,10 @@ class _VirtualMachineScenario(_Scenario):
         self.required_vms = []
         self.required_vm_names = []
         self._tested_components = {}
+        # Variables that will populate for the agent installation
+        self.agent_env = agent_env
+        # Variables that will populate for the app installation
+        self.app_env = app_env
 
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
@@ -1100,6 +1100,8 @@ class _VirtualMachineScenario(_Scenario):
                     vm.os_cpu,
                 )
             )
+            vm.add_agent_env(self.agent_env)
+            vm.add_app_env(self.app_env)
             self.required_vm_names.append(vm.name)
         self.vm_provider.configure(self.required_vms)
 
@@ -1155,10 +1157,12 @@ class _VirtualMachineScenario(_Scenario):
 
 
 class HostAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="host-auto-inject") -> None:
+    def __init__(self, name, doc, vm_provision="host-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
             doc=doc,
             github_workflow=None,
             include_ubuntu_22_amd64=True,
@@ -1189,10 +1193,12 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="installer-auto-inject") -> None:
+    def __init__(self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
             doc=doc,
             github_workflow=None,
             include_ubuntu_22_amd64=True,
@@ -1348,7 +1354,7 @@ class WeblogInjectionScenario(_Scenario):
         )
         self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
 
-        self._required_containers = []
+        self._required_containers: list(TestedContainer) = []
         self._required_containers.append(self._mount_injection_volume)
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
@@ -1737,6 +1743,16 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_auto_events_rc = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_RC",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        rc_api_enabled=True,
+        doc="""
+            Scenario to test User ID collection config change via Remote config
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
@@ -1902,7 +1918,7 @@ class scenarios:
 
     debugger_pii_redaction = EndToEndScenario(
         "DEBUGGER_PII_REDACTION",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
@@ -1932,7 +1948,13 @@ class scenarios:
         "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
     )
     simple_host_auto_injection_profiling = HostAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION_PROFILING", "Onboarding Host Single Step Instrumentation scenario with profiling",
+        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
+        "Onboarding Host Single Step Instrumentation scenario with profiling activated by the app env var",
+        app_env={
+            "DD_PROFILING_ENABLED": "auto",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+        },
     )
     host_auto_injection_block_list = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
@@ -1946,8 +1968,10 @@ class scenarios:
 
     host_auto_injection_install_script_profiling = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
-        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling",
-        vm_provision="host-auto-inject-install-script-profiling",
+        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
+        vm_provision="host-auto-inject-install-script",
+        agent_env={"DD_PROFILING_ENABLED": "auto"},
+        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
     )
 
     # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
