@@ -16,6 +16,7 @@ from utils._context.library_version import LibraryVersion, Version
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 
 from utils._context.containers import (
+    TestedContainer,
     WeblogContainer,
     AgentContainer,
     ProxyContainer,
@@ -145,11 +146,6 @@ class _Scenario:
         handler.setFormatter(get_log_formatter())
 
         logger.addHandler(handler)
-
-        if self.replay:
-            from utils import weblog
-
-            weblog.init_replay_mode(self.host_log_folder)
 
     def session_start(self):
         """called at the very begning of the process"""
@@ -529,14 +525,14 @@ class EndToEndScenario(_DockerScenario):
 
         try:
             code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
-            if code:
+            if code or stdout is None:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:
                 message = stdout.decode()
-        except BaseException as e:
-            message = f"Unexpected exception {e}"
-
-        logger.stdout(f"Weblog system: {message}")
+        except BaseException:
+            logger.exception("can't get weblog system info")
+        else:
+            logger.stdout(f"Weblog system: {message}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -668,13 +664,6 @@ class EndToEndScenario(_DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
-
-    def close_targets(self):
-        from utils import weblog
-
-        super().close_targets()
-
-        weblog.save_requests(self.host_log_folder)
 
     @property
     def dd_site(self):
@@ -1365,7 +1354,7 @@ class WeblogInjectionScenario(_Scenario):
         )
         self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
 
-        self._required_containers = []
+        self._required_containers: list(TestedContainer) = []
         self._required_containers.append(self._mount_injection_volume)
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
@@ -1648,7 +1637,7 @@ class scenarios:
 
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST"},
+        rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
@@ -1663,7 +1652,7 @@ class scenarios:
 
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",
-        proxy_state={"mock_remote_config_backend": "ASM"},
+        rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
@@ -1888,7 +1877,7 @@ class scenarios:
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_PROBES_STATUS"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
@@ -1902,7 +1891,7 @@ class scenarios:
 
     debugger_method_probes_snapshot = EndToEndScenario(
         "DEBUGGER_METHOD_PROBES_SNAPSHOT",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
@@ -1911,7 +1900,7 @@ class scenarios:
 
     debugger_line_probes_snapshot = EndToEndScenario(
         "DEBUGGER_LINE_PROBES_SNAPSHOT",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
@@ -1920,7 +1909,7 @@ class scenarios:
 
     debugger_mix_log_probe = EndToEndScenario(
         "DEBUGGER_MIX_LOG_PROBE",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_MIX_LOG_PROBE"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
         doc="Set both method and line probes at the same code",
@@ -1943,7 +1932,7 @@ class scenarios:
 
     debugger_expression_language = EndToEndScenario(
         "DEBUGGER_EXPRESSION_LANGUAGE",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_EXPRESSION_LANGUAGE"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
         doc="Check expression language",

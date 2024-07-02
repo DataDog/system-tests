@@ -50,20 +50,20 @@ def _flare_log_level_order() -> Dict[str, Any]:
     }
 
 
-def _set_log_level(test_agent, log_level: str) -> None:
+def _set_log_level(test_agent, log_level: str) -> int:
     """Helper to create the appropriate "flare-log-level" config in RC for a given log-level.
     """
-    cfg_id = f"flare-log-level.{log_level}"
+    cfg_id = uuid4().hex
     test_agent.set_remote_config(
         path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={"name": cfg_id, "config": {"log_level": log_level}}
     )
     test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2)
+    return cfg_id
 
 
-def _clear_log_level(test_agent, log_level: str) -> None:
+def _clear_log_level(test_agent, cfg_id: int) -> None:
     """Helper to clear a previously set "flare-log-level" config from RC.
     """
-    cfg_id = f"flare-log-level.{log_level}"
     test_agent.set_remote_config(path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={})
     test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, clear=True)
 
@@ -132,11 +132,11 @@ class TestTracerFlareV1:
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
-        _set_log_level(test_agent, "debug")
+        log_cfg_id = _set_log_level(test_agent, "debug")
 
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
 
-        _clear_log_level(test_agent, "debug")
+        _clear_log_level(test_agent, log_cfg_id)
 
         assert_valid_zip(tracer_flare["flare_file"])
 

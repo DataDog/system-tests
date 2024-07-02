@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 
 
+### 2024-06 (92 PR merged)
+
+* 2024-06-26 [add pytest-split to allow splitting test running in groups](https://github.com/DataDog/system-tests/pull/2589) by @rochdev
+* 2024-06-24 [Remote config test API](https://github.com/DataDog/system-tests/pull/2586) by @cbeauchesne
+* 2024-06-20 [[golang] Enable RASP SSRF tests](https://github.com/DataDog/system-tests/pull/2576) by @eliottness
+* 2024-06-24 [RASP SQLi: enhance test & activate for Go](https://github.com/DataDog/system-tests/pull/2574) by @Hellzy
+* 2024-06-19 [[go] implement RASP endpoints](https://github.com/DataDog/system-tests/pull/2551) by @eliottness
+* 2024-06-03 [[python] RASP sqli tests for python](https://github.com/DataDog/system-tests/pull/2514) by @christophe-papazian
+
+
 ### 2024-05 (90 PR merged)
 
 * 2024-05-27 [Use semver for version parser](https://github.com/DataDog/system-tests/pull/2487) by @cbeauchesne

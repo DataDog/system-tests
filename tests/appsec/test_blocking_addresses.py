@@ -454,19 +454,21 @@ class Test_Blocking_response_status:
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        for code, response in self.rm_req_block.items():
+        for response in self.rm_req_block.values():
             assert response.status_code == 403, response.request.url
             interfaces.library.assert_waf_attack(response, rule="tst-037-005")
 
     def setup_non_blocking(self):
         self.setup_blocking()
-        self.rm_req_nonblock = {status: weblog.get(f"/tag_value/anything/{status}") for status in (411, 412, 413, 414)}
+        self.rm_req_nonblock = {
+            str(status): weblog.get(f"/tag_value/anything/{status}") for status in (411, 412, 413, 414)
+        }
 
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         self.test_blocking()
         for code, response in self.rm_req_nonblock.items():
-            assert response.status_code == code, response.request.url
+            assert str(response.status_code) == code, response.request.url
 
     def setup_not_found(self):
         self.rnf_req = weblog.get(path="/finger_print")
@@ -492,7 +494,7 @@ class Test_Blocking_response_headers:
 
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
-            self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=en-us")
+            self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=fo-fo")
         if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.get(f"/tag_value/anything/200?content-language=krypton")
 
@@ -504,7 +506,7 @@ class Test_Blocking_response_headers:
 
     def setup_non_blocking(self):
         self.setup_blocking()
-        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=en-us")
+        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=fo-fo")
         self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
 
     def test_non_blocking(self):

@@ -4,6 +4,8 @@
 
 import json
 import re
+import os
+import os.path
 
 from packaging import version
 
@@ -14,6 +16,13 @@ _CONFIG_PATH = "/v0.7/config"
 _DEBUGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
+
+_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def read_probes(test_name: str):
+    with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def read_diagnostic_data():
@@ -136,14 +145,6 @@ class _Base_Debugger_Test:
     expected_probe_ids = []
     all_probes_installed = False
 
-    def assert_remote_config_is_sent(self):
-        for data in interfaces.library.get_data(_CONFIG_PATH):
-            logger.debug(f"Found config in {data['log_filename']}")
-            if "client_configs" in data.get("response", {}).get("content", {}):
-                return
-
-        raise ValueError("I was expecting a remote config")
-
     def _is_all_probes_installed(self, probes_map):
         if probes_map is None:
             logger.debug("Probes map is None?")
@@ -162,9 +163,9 @@ class _Base_Debugger_Test:
             logger.debug(f"Succes: found probes {installed_ids}")
             return True
 
-        missings_ids = set(self.expected_probe_ids) - set(installed_ids)
+        missing_probes = set(self.expected_probe_ids) - set(installed_ids)
 
-        logger.debug(f"Found some probes, but not all of them. Missing probes are {missings_ids}")
+        logger.debug(f"Found some probes, but not all of them. Missing probes are {missing_probes}")
 
     def wait_for_all_probes_installed(self, data):
         if data["path"] == _DEBUGER_PATH or data["path"] == _LOGS_PATH:

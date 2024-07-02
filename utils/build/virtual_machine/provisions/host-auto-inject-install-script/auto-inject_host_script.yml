@@ -14,9 +14,6 @@
     cat scenario_agent.env
     export $(cat scenario_agent.env | xargs) 
 
-    #workaround /etc/environment failures on installer script on Amazon Linux
-    printf "BOGUS=foo\n" | sudo tee -a /etc/environment   
-
     printf "DD_APM_RECEIVER_SOCKET=/opt/datadog/apm/inject/run/apm.socket\nDD_DOGSTATSD_SOCKET=/opt/datadog/apm/inject/run/dsd.socket\nDD_USE_DOGSTATSD=true\n" | sudo tee /var/run/datadog-installer/environment
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo mkdir -p /var/run/datadog-installer
