@@ -38,7 +38,7 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
 
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
 
-    client_configs = raw_payload["client_configs"]
+    client_configs = raw_payload.get("client_configs", [])
 
     current_states = {}
     if len(client_configs) == 0:
@@ -228,6 +228,9 @@ class ClientConfig:
 
 
 class RemoteConfigCommand:
+    """
+    https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/remoteconfig/remoteconfig.proto#L180
+    """
 
     backend_state = '{"foo": "bar"}'
     expires = "3000-01-01T00:00:00Z"
@@ -235,13 +238,14 @@ class RemoteConfigCommand:
     signatures = [
         {
             "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
-            "sig": "f5f2f27035339ed841447713eb93e5c62c34f4fa709fac0f9edca4ef5dc77340e1e81e779c5b536304fe568173c9c0e9125b17c84ce8a58a907bb2f27e7d890b",
+            "sig": "f5f2f27035339ed841447713eb93e5c62c34f4fa709fac0f9edca4ef5dc77340e1e81e779c5b536304fe568173c9c0e9125b17c84ce8a58a907bb2f27e7d890b",  # pylint: disable=line-too-long
         }
     ]
 
-    def __init__(self, version: int, client_configs=()) -> None:
+    def __init__(self, version: int, client_configs=(), expires=None) -> None:
         self.targets: list[ClientConfig] = []
         self.version = version
+        self.expires = expires or self.expires
 
         for args in client_configs:
             self.add_client_config(*args)
@@ -280,7 +284,9 @@ class RemoteConfigCommand:
         if len(target_files) > 0:
             result["target_files"] = target_files
 
-        result["client_configs"] = [target.path for target in self.targets]
+        if len(self.targets) > 0:
+            result["client_configs"] = [target.path for target in self.targets]
+
         return result
 
     def send(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:

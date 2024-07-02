@@ -1648,7 +1648,7 @@ class scenarios:
 
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST"},
+        rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.

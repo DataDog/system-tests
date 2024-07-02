@@ -8,14 +8,14 @@ from utils._remote_config import RemoteConfigCommand
 def from_payload(payload):
     targets = json.loads(base64.b64decode(payload["targets"]).decode("utf-8"))
 
-    result = RemoteConfigCommand(version=targets["signed"]["version"])
+    result = RemoteConfigCommand(version=targets["signed"]["version"], expires=targets["signed"]["expires"])
 
     # base64 -> bytes -> json -> dict
     configs = {t["path"]: t["raw"] for t in payload.get("target_files", [])}
 
     assert result.opaque_backend_state == targets["signed"]["custom"]["opaque_backend_state"]
     assert result.spec_version == targets["signed"]["spec_version"]
-    assert result.expires == targets["signed"]["expires"]
+    assert result.expires == targets["signed"]["expires"], f"{result.expires} != {targets['signed']['expires']}"
     assert result.version == targets["signed"]["version"], f"{result.version} != {targets['signed']['version']}"
     # assert result.signatures == targets["signatures"], f"{result.signatures} != {targets['signatures']}"
 
@@ -37,7 +37,13 @@ def from_payload(payload):
 
 
 def get_python_code(command: RemoteConfigCommand):
-    result = f"command = RemoteConfigCommand(version={command.version!r})"
+    kwargs = {"version": command.version}
+    if command.expires != RemoteConfigCommand.expires:
+        kwargs["expires"] = command.expires
+
+    args = ",".join(f"{k}={v!r}" for k, v in kwargs.items())
+
+    result = f"command = RemoteConfigCommand({args})"
 
     for config in command.targets:
         result += f"\ncommand.add_client_config({config.path!r}, {config.raw_deserialized!r})"
@@ -56,13 +62,14 @@ def main(filename):
         else:
             command = from_payload(item)
             print(get_python_code(command))
+
         # print("-" * 120)
         # print(json.dumps(item, indent=2))
         # print("-" * 120)
-        # print(json.dumps(command.serialize(deserialized=True), indent=2))
+        print(json.dumps(command.to_payload(deserialized=True), indent=2))
     return
 
 
 if __name__ == "__main__":
-    # main("utils/proxy/rc_mocked_responses_appsec_api_security_rc.json")
-    main(sys.argv[1])
+    main("utils/proxy/rc_mocked_responses_asm_data_full_denylist.json")
+    # main(sys.argv[1])
