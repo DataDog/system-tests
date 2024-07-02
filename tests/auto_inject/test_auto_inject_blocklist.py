@@ -233,25 +233,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         ],
     }
 
-    user_processes_commands = [
-        {
-            "ignored_processes": "/opt/datadog/logs_injection/*,other",
-            "command": "/opt/datadog/logs_injection/myscript.sh",
-            "skip": True,
-        },
-        {"ignored_processes": "**/myscript.sh", "command": "/opt/datadog/logs_injection/myscript.sh", "skip": True},
-        {
-            "ignored_processes": "/opt/**/myscript.sh",
-            "command": "/opt/datadog/logs_injection/myscript.sh",
-            "skip": True,
-        },
-        {
-            "ignored_processes": "myscript.sh,otherscript.sh",
-            "command": "/opt/datadog/logs_injection/myscript.sh",
-            "skip": False,
-        },
-    ]
-
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
