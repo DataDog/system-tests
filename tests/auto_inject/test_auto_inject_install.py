@@ -224,6 +224,13 @@ class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
+@features.container_auto_instrumentation_profiling
+@scenarios.simple_container_auto_injection_profiling
+class TestSimpleContainerAutoInjectManualProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine, profile=True)
+
+
 @features.container_auto_instrumentation
 @scenarios.container_not_supported_auto_injection
 class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):

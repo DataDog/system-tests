@@ -1995,6 +1995,17 @@ class scenarios:
         "SIMPLE_CONTAINER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
     )
+
+    simple_container_auto_injection_profiling = ContainerAutoInjectionScenario(
+        "SIMPLE_CONTAINER_AUTO_INJECTION_PROFILING",
+        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+        app_env={
+            "DD_PROFILING_ENABLED": "auto",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+        },
+    )
+
     container_auto_injection_install_script = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
