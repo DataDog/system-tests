@@ -9,6 +9,9 @@
         <Nullable>enable</Nullable>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
 
+        <!-- set a default value for DDTRACE_VERSION property if not provided -->
+        <DDTRACE_VERSION Condition="'$(DDTRACE_VERSION)' == ''">2.23.0</DDTRACE_VERSION>
+
         <!--
           Ignore the following warnings:
             NU1902: Package 'System.Data.SqlClient' 4.6.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-8g2p-5pqh-5jmc
@@ -48,8 +51,4 @@
         <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
         <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" Condition="'$(Configuration)' == 'Release'" />
     </ItemGroup>
-
-    <Target Name="EnsureDDTraceVersionIsDefined" BeforeTargets="PrepareForBuild">
-        <Warning Condition="'$(DDTRACE_VERSION)' == ''" Text="DDTRACE_VERSION is not defined." />
-    </Target>
 </Project>
