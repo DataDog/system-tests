@@ -21,6 +21,7 @@ RUN dotnet publish --no-restore --configuration Release --output out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 as runtime
 COPY --from=build /app/out /app
+COPY --from=build /opt/datadog /opt/datadog
 WORKDIR /app
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
