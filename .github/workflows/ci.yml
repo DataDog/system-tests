@@ -47,26 +47,27 @@ jobs:
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
-  # commenting, as python 3.9 is not available anymore
-  # test_the_test_platforms:
-  #   strategy:
-  #     matrix:
-  #       os:
-  #         - macos-latest
-  #   name: Test the test (${{ matrix.os }})
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Install runner
-  #       uses: ./.github/actions/install_runner
-  #     # force /bin/bash in order to test against bash 3.2 on macOS
-  #     - name: Test the test (direct)
-  #       run: /bin/bash run.sh TEST_THE_TEST
-  #     - name: Test group parsing
-  #       run: |
-  #         /bin/bash run.sh ++dry APPSEC_SCENARIOS
-  #         /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
+  test_the_test_legacy_39:
+    runs-on:
+      group: "APM Larger Runners"
+    name: Test the test legacy python3.9
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+        with:
+          legacy_python_39: true
+      - name: Test the test (direct)
+        run: ./run.sh TEST_THE_TEST
+      - name: Build
+        run: ./build.sh
+      - name: Test idiomatics scenarios
+        run: |
+          ./run.sh DEFAULT
+          TEST_LIBRARY=golang ./run.sh PARAMETRIC
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
   scenarios:
     name: Get scenarios and groups
