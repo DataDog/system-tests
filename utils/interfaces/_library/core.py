@@ -378,7 +378,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
-    def assert_rc_apply_state(self, config_id: str, product: str, apply_state: RemoteConfigApplyState) -> None:
+    def assert_rc_apply_state(self, product: str, config_id: str, apply_state: RemoteConfigApplyState) -> None:
         """ check that all config_id/product have the expected apply_state returned by the library """
         found = False
         for data in self.get_data(path_filters="/v0.7/config"):
@@ -397,6 +397,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             check that for a given targets_version, the config states is the one expected
             EXPERIMENTAL (is it the good testing API ?)
         """
+        found = False
         for data in self.get_data(path_filters="/v0.7/config"):
             states = data["request"]["content"]["client"]["state"]
 
@@ -409,6 +410,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"expected: {config_states}")
 
             assert config_states == states["config_states"]
+            found = True
+
+        assert found, f"Nothing has been found for targets_version {targets_version}"
 
     def assert_rasp_attack(self, request, rule: str, parameters=None):
         def validator(_, appsec_data):

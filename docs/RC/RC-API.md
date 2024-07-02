@@ -57,6 +57,10 @@ from utils import remote_config, interfaces
 
 class Test_RemoteConfig:
     BLOCKED_IP = "1.2.3.4"
+    PRODUCT_ID = "ASM_DATA"
+    CONFIG_ID = "ASM_DATA-base"
+
+    TARGETS_VERSION = 42
 
     def setup_main(self):
         config = {
@@ -70,14 +74,14 @@ class Test_RemoteConfig:
         }
 
         command = remote_config.RemoteConfigCommand(version=self.TARGETS_VERSION)
-        command.add_client_config("datadog/2/ASM_DATA/ASM_DATA-base/config", config)
+        command.add_client_config(f"datadog/2/{self.PRODUCT_ID}/{self.CONFIG_ID}/config", config)
 
         command.send()
 
         self.blocked_request = weblog.get(headers={"X-Forwarded-For": BLOCKED_IP})
 
     def test_main(self):
-        interfaces.library.assert_rc_apply_state("ASM_DATA-base", "ASM_DATA", RemoteConfigApplyState.ACKNOWLEDGED)
+        interfaces.library.assert_rc_apply_state(self.PRODUCT_ID, self.CONFIG_ID, RemoteConfigApplyState.ACKNOWLEDGED)
         assert self.blocked_request.status_code == 403
         interfaces.library.assert_waf_attack(self.blocked_request)
 ```

@@ -36,7 +36,7 @@ class BaseFullDenyListTest:
         self.blocked_ips = [BLOCKED_IPS[0], BLOCKED_IPS[2500], BLOCKED_IPS[-1]]
 
     def test_protocol(self):
-        interfaces.library.assert_rc_apply_state("ASM_DATA-base", "ASM_DATA", RemoteConfigApplyState.ACKNOWLEDGED)
+        interfaces.library.assert_rc_apply_state("ASM_DATA", "ASM_DATA-base", RemoteConfigApplyState.ACKNOWLEDGED)
         interfaces.library.assert_rc_targets_version_states(targets_version=0, config_states=[])
         interfaces.library.assert_rc_targets_version_states(
             targets_version=self.TARGETS_VERSION,
