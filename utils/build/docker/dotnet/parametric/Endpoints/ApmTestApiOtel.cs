@@ -144,8 +144,8 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
                     var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
                     var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
-                    var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext });
-                    var tracestate = (string)httpHeadersToken[1][0] == "tracestate" ? (string)httpHeadersToken[1][1] : datadogHeadersTracestate;
+                    var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext! });
+                    var tracestate = (string?)httpHeadersToken[1][0] == "tracestate" ? (string?)httpHeadersToken[1][1] : datadogHeadersTracestate;
 
                     contextToLink = new ActivityContext(
                         parentTraceId,
