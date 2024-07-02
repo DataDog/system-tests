@@ -5,6 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 
+// nullability annotations changed between .NET versions, suppress warnings for now
+#pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
+#pragma warning disable CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
+
 namespace weblog.IdentityStores;
 
 public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserClaim<string>, IdentityUserLogin<string>, IdentityUserToken<string>>

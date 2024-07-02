@@ -135,15 +135,17 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 }
                 else
                 {
+                    var httpHeadersToken = (JArray)spanLink["http_headers"]!;
+
                     var extractedContext = _spanContextExtractor.Extract(
-                            ((Newtonsoft.Json.Linq.JArray)spanLink["http_headers"]).ToObject<string[][]>(),
+                            httpHeadersToken.ToObject<string[][]>(),
                             getter: GetHeaderValues!);
 
                     var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
                     var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
                     var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
                     var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext });
-                    var tracestate = (string)spanLink["http_headers"][1][0] == "tracestate" ? (string)spanLink["http_headers"][1][1] : datadogHeadersTracestate;
+                    var tracestate = (string)httpHeadersToken[1][0] == "tracestate" ? (string)httpHeadersToken[1][1] : datadogHeadersTracestate;
 
                     contextToLink = new ActivityContext(
                         parentTraceId,
@@ -329,7 +331,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         var activity = FindActivity(requestBodyObject["span_id"]);
-        activity.AddEvent(new ActivityEvent(name, timestamp, tags));
+        activity.AddEvent(new ActivityEvent(name!, timestamp, tags));
     }
 
     private static async Task OtelRecordException(HttpRequest request)

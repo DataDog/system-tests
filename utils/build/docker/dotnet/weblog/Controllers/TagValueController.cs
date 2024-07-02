@@ -28,7 +28,7 @@ namespace weblog
         {
             DoHeaders();
 
-            if (tag != null)
+            if (tag != null!)
             {
                 var details = new Dictionary<string, string>()
                 {
