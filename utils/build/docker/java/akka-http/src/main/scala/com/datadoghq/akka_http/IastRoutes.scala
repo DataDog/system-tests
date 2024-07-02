@@ -1,18 +1,14 @@
 package com.datadoghq.akka_http
 
-import akka.http.javadsl.marshallers.jackson.Jackson
-import akka.http.scaladsl.marshalling.Marshaller
-import akka.http.scaladsl.model.{RequestEntity, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import com.datadoghq.system_tests.iast.infra.{LdapServer, SqlServer}
+import com.datadoghq.akka_http.Resources.{dataSource, ldapContext}
 import com.datadoghq.system_tests.iast.utils._
 
 import java.sql.Statement
 
 object IastRoutes {
-  private val dataSource = new SqlServer().start
-  private val ldapContext = new LdapServer().start
 
   private val superSecretAccessKey = "insecure"
   private val cmd = new CmdExamples()
