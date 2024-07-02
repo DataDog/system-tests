@@ -16,6 +16,13 @@ if [ -f docker-compose-agent-prod.yml ]; then
     sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
     sleep 30
 fi
+#Env variables set on the scenario definition. Write to file and load  
+SCENARIO_APP_ENV="${DD_APP_ENV:-''}"
+echo "${SCENARIO_APP_ENV}" > scenario_app.env
+echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
+cat scenario_app.env
+export $(cat scenario_app.env | xargs) 
+
 sudo -E docker-compose -f docker-compose.yml up -d test-app-nodejs
 
 echo "**************** RUNNING DOCKER SERVICES *****************" 
