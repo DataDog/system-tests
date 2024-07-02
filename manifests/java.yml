@@ -624,7 +624,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-payara: v1.35.0 # earlier, but real version not known
         spring-boot-undertow: v0.111.0
+        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
       Test_Blocking_request_headers:
@@ -638,7 +641,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-payara: v1.35.0 # earlier, but real version not known
         spring-boot-undertow: v0.111.0
+        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
       Test_Blocking_request_method:
@@ -652,7 +658,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-payara: v1.35.0 # earlier, but real version not known
         spring-boot-undertow: v0.111.0
+        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
       Test_Blocking_request_path_params:
@@ -672,7 +681,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-payara: v1.35.0 # earlier, but real version not known
         spring-boot-undertow: v0.111.0
+        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
       Test_Blocking_request_uri:
@@ -686,7 +698,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
+        spring-boot-payara: v1.35.0 # earlier, but real version not known
         spring-boot-undertow: v0.111.0
+        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
       Test_Blocking_response_headers:
@@ -699,6 +714,7 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: v1.20.0
       Test_Blocking_user_id:
         '*': v0.111.0
         akka-http: v1.22.0
