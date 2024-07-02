@@ -9,7 +9,7 @@ RUN python --version && curl --version
 # install python deps
 ENV PIP_ROOT_USER_ACTION=ignore
 RUN pip install --upgrade pip
-RUN pip install django==4.2.11 pycryptodome gunicorn gevent requests
+RUN pip install django pycryptodome gunicorn==21.2.0 gevent requests
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
