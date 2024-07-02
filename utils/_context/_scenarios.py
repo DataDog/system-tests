@@ -1944,6 +1944,10 @@ class scenarios:
     host_auto_injection = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario",
     )
+    host_not_supported_auto_injection = HostAutoInjectionScenario(
+        "HOST_NOT_SUPPORTED_AUTO_INJECTION",
+        "Onboarding host Single Step Instrumentation scenario for not supported languages",
+    )
     simple_host_auto_injection = HostAutoInjectionScenario(
         "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
     )
