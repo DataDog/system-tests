@@ -2,7 +2,7 @@
 
 ## Run tests
 
-You will need a bash based terminal, python3.9, git and docker. Clone this folder, and at root level, create a `.env` file with `DD_API_KEY=<a_valid_staging_api_key>`. Then: 
+You will need a bash based terminal, python3.9, git and docker. Clone this folder, and at root level, create a `.env` file with `DD_API_KEY=<a_valid_staging_api_key>`. Then:
 
 ```bash
 ./build.sh   # build all images

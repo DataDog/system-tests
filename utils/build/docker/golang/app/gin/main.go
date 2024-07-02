@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"weblog/internal/common"
 	"weblog/internal/grpc"
+	"weblog/internal/rasp"
 
 	"github.com/gin-gonic/gin"
 
@@ -147,9 +148,19 @@ func main() {
 		ctx.Writer.Write(content)
 	})
 
+	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
+	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
+	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
 	http.ListenAndServe(":7777", r)
+}
+
+func ginHandleFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		handlerFunc(ctx.Writer, ctx.Request)
+	}
 }
 
 func headers(ctx *gin.Context) {

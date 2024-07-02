@@ -1,4 +1,4 @@
-FROM maven:3.9-eclipse-temurin-11 
+FROM maven:3.9-eclipse-temurin-11
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

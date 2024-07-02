@@ -1,8 +1,8 @@
-## What is the issue to solve ? 
+## What is the issue to solve ?
 
-System tests are slow to execute (at least compared to unit testing). Once everything is build, depending on the scenario/weblog/tracer you tests, it can takes up to 3 or 4 minutes to run. This times is mostly used for actions to prepare the test session, not tests themselves : 
+System tests are slow to execute (at least compared to unit testing). Once everything is build, depending on the scenario/weblog/tracer you tests, it can takes up to 3 or 4 minutes to run. This times is mostly used for actions to prepare the test session, not tests themselves :
 
-* Starting docker containers 
+* Starting docker containers
 * Waiting for healthy status
 * Execute setup methods
 * Wait for each components to process everything
@@ -13,7 +13,7 @@ This delay makes the iteration painful when writing new tests. And if nothing ha
 
 ## How to use it ?
 
-Once you have ran a scenario, you can replay it using : 
+Once you have ran a scenario, you can replay it using :
 
 ```bash
 ./run.sh <SCENARIO_NAME> --replay
@@ -26,7 +26,7 @@ Once you have ran a scenario, you can replay it using :
 3. run the scenario with `./run.sh <SCENARIO_NAME>`
 4. you can now iterate on your test method using `./run.sh <SCENARIO_NAME> --replay`
 
-In particular, if you need to remove/add `@missing_feature` or `@bug`, or modify a manifest file, you can load an artifact from your CI and directly use it. 
+In particular, if you need to remove/add `@missing_feature` or `@bug`, or modify a manifest file, you can load an artifact from your CI and directly use it.
 
 ## When it can't help ?
 

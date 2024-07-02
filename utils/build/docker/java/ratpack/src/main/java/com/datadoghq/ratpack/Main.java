@@ -153,6 +153,16 @@ public class Main {
                                 int code = Integer.parseInt(codeParam);
                                 ctx.getResponse().status(code).send();
                             })
+                            .get("users", ctx -> {
+                                final String user = ctx.getRequest().getQueryParams().get("user");
+                                final Span span = GlobalTracer.get().activeSpan();
+                                if ((span instanceof MutableSpan)) {
+                                    MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+                                    localRootSpan.setTag("usr.id", user);
+                                }
+                                datadog.appsec.api.blocking.Blocking.forUser(user).blockIfMatch();
+                                ctx.getResponse().send("text/plain", "Hello " + user);
+                            })
                             .get("user_login_success_event", ctx -> {
                                 MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
                                 datadog.trace.api.GlobalTracer.getEventTracker()

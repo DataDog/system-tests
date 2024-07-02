@@ -120,7 +120,7 @@ tests/:
         Test_Ssrf_BodyXml: v2.51.0
         Test_Ssrf_UrlQuery: v2.51.0
       test_stack_traces.py:
-        Test_StackTrace: v2.51.0     
+        Test_StackTrace: v2.51.0
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -170,13 +170,19 @@ tests/:
       Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: v2.32.0
       Test_Login_Events_Extended: v2.33.0
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: v2.27.0
       Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip: v2.27.0
       Test_Blocking_request_body: v2.29.0
+      Test_Blocking_request_body_multipart: missing_feature
       Test_Blocking_request_cookies: v2.29.0
       Test_Blocking_request_headers: v2.29.0
       Test_Blocking_request_method: v2.29.0
@@ -185,6 +191,7 @@ tests/:
       Test_Blocking_request_uri: v2.32.0
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
+      Test_Blocking_user_id: v2.27.0
       Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
@@ -228,13 +235,16 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
-    test_debugger.py:
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: v2.50.0
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: v2.50.0
+    test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: v2.53.0
       Test_Debugger_Method_Probe_Snaphots: v2.53.0
       Test_Debugger_Mix_Log_Probe: v2.53.0
+    test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: v2.53.0
-    test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: v2.50.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -270,14 +280,14 @@ tests/:
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
-      TestDynamicConfigSamplingRules: missing_feature
+      TestDynamicConfigSamplingRules: v2.53.2
       TestDynamicConfigTracingEnabled: v2.49.0
       TestDynamicConfigV1: v2.33.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
-      Test_Otel_Env_Vars: missing_feature
+      Test_Otel_Env_Vars: v2.53.0
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v2.42.0
@@ -290,20 +300,20 @@ tests/:
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: missing_feature
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_With_W3C: missing_feature
+      Test_Trace_Sampling_Basic: v2.46.0
+      Test_Trace_Sampling_Globs: v2.46.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v2.48.0
+      Test_Trace_Sampling_Resource: v2.46.0
+      Test_Trace_Sampling_Tags: v2.46.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v2.48.0
+      Test_Trace_Sampling_With_W3C: v2.46.0
     test_tracer.py:
       # The dotnet parametric app generates trace chunks in a way that differs from the other languages
       # This causes the sci tests to fail. Before enabling these tests we must ensure that the first span in the
       # trace chunk is always the local root span.
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
-      TestTracerFlareV1: missing_feature
+      TestTracerFlareV1: v2.48.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.36.0

@@ -9,6 +9,7 @@ const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_con
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
 const { trace, ROOT_CONTEXT } = require('@opentelemetry/api')
+const { millisToHrTime } = require('@opentelemetry/core')
 
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
@@ -75,7 +76,7 @@ app.post('/trace/span/start', (req, res) => {
   for (const [key, value] of http_headers) {
       convertedHeaders[key.toLowerCase()] = value
   }
-  
+
   const extracted = tracer.extract('http_headers', convertedHeaders)
   if (extracted !== null) parent = extracted
 
@@ -87,7 +88,7 @@ app.post('/trace/span/start', (req, res) => {
         service: request.service
     }
   })
-  
+
   for (const link of request.links || []) {
     const linkParentId = link.parent_id;
     if (linkParentId) {
@@ -105,7 +106,7 @@ app.post('/trace/span/start', (req, res) => {
       }
     }
   }
-  
+
   spans[span.context().toSpanId()] = span
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
 });
@@ -185,7 +186,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         spanContext = new OtelSpanContext(extractedContext)
       }
       return {context: spanContext, attributes: link.attributes}
-    });  
+    });
 
     const span = otelTracer.startSpan(request.name, {
         type: request.type,
@@ -288,7 +289,7 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 app.get('/trace/config', (req, res) => {
   const dummyTracer = require('dd-trace').init()
   const config = dummyTracer._tracer._config
-  res.json( { 
+  res.json( {
     config: {
       'dd_service': config?.service !== undefined ? `${config.service}`.toLowerCase() : 'null',
       'dd_log_level': config?.logLevel !== undefined ? `${config.logLevel}`.toLowerCase() : 'null',
@@ -305,6 +306,21 @@ app.get('/trace/config', (req, res) => {
     }
   });
 });
+
+app.post("/trace/otel/add_event", (req, res) => {
+  const { span_id, name, timestamp, attributes } = req.body;
+  const span = otelSpans[span_id]
+  // convert to TimeInput object using millisToHrTime
+  span.addEvent(name, attributes, millisToHrTime(timestamp / 1000))
+  res.json({})
+})
+
+app.post("/trace/otel/record_exception", (req, res) => {
+  const { span_id, message, attributes } = req.body;
+  const span = otelSpans[span_id]
+  span.recordException(new Error(message))
+  res.json({})
+})
 
 // TODO: implement this endpoint correctly, current blockers:
 // 1. Fails on invalid url
@@ -326,7 +342,7 @@ app.get('/trace/config', (req, res) => {
 //         request.end()
 //         res.json({});
 //     }
-    
+
 //   );
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;

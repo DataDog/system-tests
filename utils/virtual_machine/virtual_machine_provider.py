@@ -16,6 +16,10 @@ class VmProviderFactory:
             from utils.virtual_machine.vagrant_provider import VagrantProvider
 
             return VagrantProvider()
+        elif provider_id == "krunvm":
+            from utils.virtual_machine.krunvm_provider import KrunVmProvider
+
+            return KrunVmProvider()
         else:
             raise ValueError("Not supported provided", provider_id)
 
@@ -87,6 +91,20 @@ class VmProvider:
         logger.stdout(f"[{vm.name}] Installing {provision.weblog_installation.id}")
         last_task = self._remote_install(server_connection, vm, last_task, provision.weblog_installation)
 
+        # Extract logs
+        if provision.vm_logs_installation:
+            logger.stdout(f"[{vm.name}] Extracting logs {provision.vm_logs_installation.id}")
+
+            output_callback = lambda args: args[0].set_vm_logs(args[1])
+            last_task = self._remote_install(
+                server_connection,
+                vm,
+                last_task,
+                provision.vm_logs_installation,
+                logger_name=f"{vm.name}_var_log",
+                output_callback=output_callback,
+            )
+
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
         """ Manages a installation. 
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation """
@@ -129,6 +147,7 @@ class VmProvider:
                         remote_path,
                         server_connection,
                         last_task,
+                        vm=vm,
                     )
                 else:
                     last_task = self.commander.remote_copy_folders(
@@ -137,6 +156,7 @@ class VmProvider:
                         f"-{vm.name}-{installation.id}",
                         server_connection,
                         last_task,
+                        vm=vm,
                     )
 
         # Execute a basic command on our server.
@@ -171,7 +191,7 @@ class Commander:
             Return the current task executed."""
         raise NotImplementedError
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task):
+    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
         """ Copy a file from local to remote. 
             Use last_task to depend on the last executed task.
             Return the current task executed."""
@@ -186,7 +206,7 @@ class Commander:
         raise NotImplementedError
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False
+        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
     ):
         """ The best option would be zip folder on local system and copy to remote machine
              There is a weird behaviour synchronizing local command and remote command

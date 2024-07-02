@@ -576,11 +576,17 @@ tests/:
         '*': v0.87.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses:
+      Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip:
         '*': v0.111.0
         akka-http: v1.22.0
         jersey-grizzly2: v1.7.0
@@ -591,12 +597,21 @@ tests/:
         spring-boot-openliberty: v0.115.0
         vertx3: v1.7.0
         vertx4: v1.7.0
-      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
         '*': v1.15.0
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: bug (blocking not working)
+      Test_Blocking_request_body_multipart:
+        '*': v1.15.0
+        akka-http: v1.22.0
+        jersey-grizzly2: missing_feature
+        play: v1.22.0
+        ratpack: missing_feature
+        resteasy-netty3: missing_feature
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: bug
         spring-boot-payara: bug (blocking not working)
       Test_Blocking_request_cookies:
         '*': missing_feature
@@ -684,6 +699,18 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_Blocking_user_id:
+        '*': v0.111.0
+        akka-http: v1.22.0
+        jersey-grizzly2: v1.7.0
+        play: v1.22.0
+        ratpack: v1.6.0
+        resteasy-netty3: v1.7.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: v0.115.0
+        spring-boot-payara: bug (user block results in 500 response)
+        vertx3: v1.7.0
+        vertx4: v1.7.0
       Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
@@ -737,16 +764,15 @@ tests/:
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: bug (RC payload limit)
-        # '*': missing_feature
-        # jersey-grizzly2: v1.7.0
-        # ratpack: v1.7.0
-        # resteasy-netty3: v1.7.0
-        # spring-boot: v0.110.0
-        # spring-boot-openliberty: v0.115.0
-        # spring-boot-undertow: v0.111.0
-        # spring-boot-jetty: v0.111.0
-        # vertx3: v1.7.0
+      Test_AppSecIPBlockingFullDenylist:
+        '*': v0.111.0
+        jersey-grizzly2: v1.7.0
+        ratpack: v1.7.0
+        resteasy-netty3: v1.7.0
+        spring-boot: v0.110.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: v0.115.0
+        vertx3: v1.7.0
     test_logs.py:
       Test_Standardization:
         akka-http: v1.22.0
@@ -836,20 +862,29 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: bug (RC payload limit)
-        # '*': missing_feature
-        # jersey-grizzly2: v1.7.0
-        # ratpack: v1.7.0
-        # resteasy-netty3: v1.7.0
-        # spring-boot: v0.110.0
-        # spring-boot-openliberty: v0.115.0
-        # spring-boot-undertow: v0.111.0
-        # spring-boot-jetty: v0.111.0
-        # vertx3: v1.7.0
+      Test_UserBlocking_FullDenylist:
+        '*': v0.111.0
+        jersey-grizzly2: v1.7.0
+        ratpack: v1.7.0
+        resteasy-netty3: v1.7.0
+        spring-boot: v0.110.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: v0.115.0
+        vertx3: v1.7.0
     test_versions.py:
       Test_Events: v0.90.0
   debugger/:
-    test_debugger.py:
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language:
+        '*': missing_feature
+        spring-boot: v0.1  # real version not known
+        uds-spring-boot: v0.1  # real version not known
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction:
+        '*': missing_feature
+        spring-boot: v1.33.0
+        uds-spring-boot: v1.33.0
+    test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
@@ -862,15 +897,11 @@ tests/:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
+    test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
         uds-spring-boot: v0.1  # real version not known
-    test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: 
-        '*': missing_feature
-        spring-boot: v1.33.0
-        uds-spring-boot: v1.33.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:

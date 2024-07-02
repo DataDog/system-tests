@@ -10,6 +10,10 @@
       - name: copy-agent-docker-compose
         local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
   remote-command: |
-    bash execute_install_script.sh docker
+    sudo mkdir -p /var/run/datadog-installer
+    sudo mkdir -p /opt/datadog/apm/inject/run
+    sudo chmod 777 /opt/datadog/apm/inject/run
+    printf "DD_APM_RECEIVER_SOCKET=/opt/datadog/apm/inject/run/apm.socket\nDD_DOGSTATSD_SOCKET=/opt/datadog/apm/inject/run/dsd.socket\nDD_USE_DOGSTATSD=true\n" | sudo tee /var/run/datadog-installer/environment
+    DD_APM_INSTRUMENTATION_ENABLED=docker bash execute_install_script.sh
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml

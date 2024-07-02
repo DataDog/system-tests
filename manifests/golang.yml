@@ -120,8 +120,16 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_span_tags.py: missing_feature
-      test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson: v1.66.0-dev
+        Test_Sqli_BodyUrlEncoded: v1.66.0-dev
+        Test_Sqli_BodyXml: v1.66.0-dev
+        Test_Sqli_UrlQuery: v1.66.0-dev
+      test_ssrf.py:
+        Test_Ssrf_BodyJson: v1.65.1-rc.1
+        Test_Ssrf_BodyUrlEncoded: v1.65.1-rc.1
+        Test_Ssrf_BodyXml: v1.65.1-rc.1
+        Test_Ssrf_UrlQuery: v1.65.1-rc.1
       test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
@@ -241,13 +249,19 @@ tests/:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: v1.51.0
       Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip: v1.51.0
       Test_Blocking_request_body: missing_feature
+      Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
       Test_Blocking_request_cookies:
         '*': v1.51.0
         net-http: irrelevant
@@ -268,6 +282,7 @@ tests/:
         net-http: irrelevant
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
+      Test_Blocking_user_id: v1.51.0
       Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
@@ -288,7 +303,7 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
-      Test_ExtraTagsFromRule: 
+      Test_ExtraTagsFromRule:
         '*': v1.62.0
       Test_HttpClientIP:
         '*': v1.34.0
@@ -337,13 +352,16 @@ tests/:
         '*': v1.36.0
         gin: v1.37.0
   debugger/:
-    test_debugger.py:
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: missing_feature (feature not implented)
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
+    test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
       Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
       Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+    test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
-    test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -376,10 +394,10 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
-      Test_DsmContext_Extraction_Base64: 
+      Test_DsmContext_Extraction_Base64:
         "*": irrelevant
         net-http: v0.1  # real version unknown
-      Test_DsmContext_Injection_Base64: 
+      Test_DsmContext_Injection_Base64:
         "*": irrelevant
         net-http: v0.1  # real version unknown
       Test_DsmHttp: missing_feature
@@ -389,7 +407,7 @@ tests/:
       Test_DsmKinesis:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
-      Test_DsmRabbitmq: 
+      Test_DsmRabbitmq:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:

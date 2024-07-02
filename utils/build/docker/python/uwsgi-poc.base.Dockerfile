@@ -13,7 +13,11 @@ RUN pip install 'flask[async]'==2.2.4 flask-login uwsgi gevent requests pycrypto
 # this is necessary for the mysqlclient install
 RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config
 
-RUN pip install boto3 kombu mock asyncpg aiomysql mysql-connector-python pymysql mysqlclient
+RUN pip install boto3 kombu mock asyncpg aiomysql mysql-connector-python pymysql mysqlclient urllib3
+
+# Install Rust toolchain
+RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v2 .
 # docker push datadog/system-tests:uwsgi-poc.base-v2

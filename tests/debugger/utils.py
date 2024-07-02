@@ -4,6 +4,8 @@
 
 import json
 import re
+import os
+import os.path
 
 from packaging import version
 
@@ -14,6 +16,13 @@ _CONFIG_PATH = "/v0.7/config"
 _DEBUGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
+
+_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def read_probes(test_name: str):
+    with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def read_diagnostic_data():
@@ -136,31 +145,27 @@ class _Base_Debugger_Test:
     expected_probe_ids = []
     all_probes_installed = False
 
-    def assert_remote_config_is_sent(self):
-        for data in interfaces.library.get_data(_CONFIG_PATH):
-            logger.debug(f"Found config in {data['log_filename']}")
-            if "client_configs" in data.get("response", {}).get("content", {}):
-                return
-
-        raise ValueError("I was expecting a remote config")
-
     def _is_all_probes_installed(self, probes_map):
         if probes_map is None:
+            logger.debug("Probes map is None?")
             return False
 
         installed_ids = set()
+        logger.debug(f"Look for this probes: {self.expected_probe_ids}")
         for expected_id in self.expected_probe_ids:
             if expected_id in probes_map:
-                if probes_map[expected_id]["status"] == "INSTALLED":
+                status = probes_map[expected_id]["status"]
+                logger.debug(f"Probe {expected_id} observed status is {status}")
+                if status == "INSTALLED":
                     installed_ids.add(expected_id)
 
         if set(self.expected_probe_ids).issubset(installed_ids):
             logger.debug(f"Succes: found probes {installed_ids}")
             return True
 
-        missings_ids = set(self.expected_probe_ids) - set(installed_ids)
+        missing_probes = set(self.expected_probe_ids) - set(installed_ids)
 
-        logger.debug(f"Found some probes, but not all of them. Missing probes are {missings_ids}")
+        logger.debug(f"Found some probes, but not all of them. Missing probes are {missing_probes}")
 
     def wait_for_all_probes_installed(self, data):
         if data["path"] == _DEBUGER_PATH or data["path"] == _LOGS_PATH:
@@ -170,10 +175,6 @@ class _Base_Debugger_Test:
         return self.all_probes_installed
 
     def assert_all_probes_are_installed(self):
-        data_debug = interfaces.agent.get_data(_DEBUGER_PATH)
-        for data in data_debug:
-            self.wait_for_all_probes_installed(data)
-
         if not self.all_probes_installed:
             raise ValueError("At least one probe is missing")
 

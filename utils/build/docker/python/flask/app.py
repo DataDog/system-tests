@@ -1,15 +1,18 @@
 import base64
+import http.client
 import json
 import logging
-import mock
 import os
 import random
 import subprocess
-import threading
-import http.client
-import urllib.request
-import xmltodict
 import sys
+import threading
+import urllib.request
+
+import mock
+import urllib3
+import xmltodict
+
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
     import asyncpg
@@ -18,25 +21,24 @@ if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
 if os.environ.get("INCLUDE_MYSQL", "true") == "true":
     import aiomysql
     import mysql
-    import pymysql
     import MySQLdb
+    import pymysql
 
-import requests
-from flask import Flask, Response, jsonify
+from flask import Flask
+from flask import Response
+from flask import jsonify
 from flask import request
 from flask import request as flask_request
+from flask_login import LoginManager
+from flask_login import login_user
+from iast import weak_cipher
+from iast import weak_cipher_secure_algorithm
+from iast import weak_hash
+from iast import weak_hash_duplicates
+from iast import weak_hash_multiple
+from iast import weak_hash_secure_algorithm
+import requests
 
-from flask_login import login_user, logout_user, LoginManager
-
-
-from iast import (
-    weak_cipher,
-    weak_cipher_secure_algorithm,
-    weak_hash,
-    weak_hash_duplicates,
-    weak_hash_multiple,
-    weak_hash_secure_algorithm,
-)
 
 if os.environ.get("INCLUDE_SQLSERVER", "true") == "true":
     from integrations.db.mssql import executeMssqlOperation
@@ -51,6 +53,7 @@ from integrations.messaging.aws.sns import sns_produce
 from integrations.messaging.aws.sqs import sqs_consume
 from integrations.messaging.aws.sqs import sqs_produce
 
+
 if os.environ.get("INCLUDE_KAFKA", "true") == "true":
     from integrations.messaging.kafka import kafka_consume
     from integrations.messaging.kafka import kafka_produce
@@ -59,16 +62,15 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-
+from ddtrace import Pin
 from ddtrace import tracer
-from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
-# Patch kombu since its not patched automatically
-ddtrace.patch_all(kombu=True)
+
+# Patch kombu and urllib3 since they are not patched automatically
+ddtrace.patch_all(kombu=True, urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -237,7 +239,6 @@ def rasp_ssrf(*args, **kwargs):
         return Response("missing domain parameter", status=400)
     try:
         with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
-
             return f"url http://{domain} open with {len(url_in.read())} bytes"
     except http.client.HTTPException as e:
         return f"url http://{domain} could not be open: {e!r}"
@@ -266,8 +267,8 @@ def rasp_sqli(*args, **kwargs):
         import sqlite3
 
         DB = sqlite3.connect(":memory:")
-        print(f"SELECT * FROM table WHERE {user_id}")
-        cursor = DB.execute(f"SELECT * FROM table WHERE '{user_id};")
+        print(f"SELECT * FROM users WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
         print("DB request with {len(list(cursor))} results")
         return f"DB request with {len(list(cursor))} results"
     except Exception as e:
@@ -622,9 +623,9 @@ def dsm():
                 logging.info("[kafka] Message delivered to topic %s and partition %s", msg.topic(), msg.partition())
 
         produce_thread = threading.Thread(
-            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,)
+            target=kafka_produce, args=(queue, b"Hello, Kafka from DSM python!", delivery_report,),
         )
-        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",))
+        consume_thread = threading.Thread(target=kafka_consume, args=(queue, "testgroup1",),)
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -632,7 +633,7 @@ def dsm():
         logging.info("[kafka] Returning response")
         response = Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",))
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",),)
         consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
@@ -653,7 +654,7 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",))
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",),)
         consume_thread = threading.Thread(target=sns_consume, args=(queue,))
         produce_thread.start()
         consume_thread.start()
@@ -858,6 +859,7 @@ def view_iast_ssrf_insecure():
 @app.route("/iast/ssrf/test_secure", methods=["POST"])
 def view_iast_ssrf_secure():
     from urllib.parse import urlparse
+
     import requests
 
     url = flask_request.form["url"]
@@ -917,9 +919,6 @@ def track_user_login_failure_event():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    from ddtrace.settings.asm import config as asm_config
-
-    mode = asm_config._automatic_login_events_mode
     username = flask_request.form.get("username")
     password = flask_request.form.get("password")
     sdk_event = flask_request.args.get("sdk_event")
@@ -941,23 +940,15 @@ def login():
     success, user = User.check(username, password)
     if success:
         login_user(user)
-        appsec_trace_utils.track_user_login_success_event(
-            tracer, name=user.login, login=user.login, user_id=user.uid, email=user.email, login_events_mode=mode
-        )
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user.uid, login_events_mode="auto")
         return Response("OK")
     elif user:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer,
-            user_id=user.uid,
-            name=user.login,
-            login=user.login,
-            email=user.email,
-            exists=True,
-            login_events_mode=mode,
+            tracer, user_id=user.uid, exists=True, login_events_mode="auto",
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode=mode
+            tracer, user_id=username, exists=False, login_events_mode="auto"
         )
     return Response("login failure", status=401)
 
@@ -1111,3 +1102,22 @@ def create_extra_service():
     if new_service_name:
         Pin.override(Flask, service=new_service_name, tracer=tracer)
     return Response("OK")
+
+
+@app.route("/requestdownstream", methods=["GET", "POST", "OPTIONS"])
+@app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
+def request_downstream():
+    # Propagate the received headers to the downstream service
+    http = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http.request("GET", "http://localhost:7777/returnheaders")
+    return Response(response.data)
+
+
+@app.route("/returnheaders", methods=["GET", "POST", "OPTIONS"])
+@app.route("/returnheaders/", methods=["GET", "POST", "OPTIONS"])
+def return_headers(*args, **kwargs):
+    headers = {}
+    for key, value in flask_request.headers.items():
+        headers[key] = value
+    return jsonify(headers)

@@ -60,6 +60,10 @@ class BaseDbIntegrationsTestClass:
     setup_db_name = _setup
     setup_error_type_and_stack = _setup
     setup_error_message = _setup
+    setup_obfuscate_query = _setup
+    setup_sql_query = _setup
+    setup_sql_success = _setup
+    setup_NOT_obfuscate_query = _setup
 
     def get_requests(self, excluded_operations=(), operations=None):
         for db_operation, request in self.requests[self.db_service].items():

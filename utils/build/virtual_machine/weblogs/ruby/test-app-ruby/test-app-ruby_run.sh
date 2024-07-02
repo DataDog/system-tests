@@ -1,9 +1,10 @@
 #!/bin/bash
-echo "START RUN APP"
+echo "START ruby APP"
 
-sudo sed -i "s/3.1.3/>= 3.0.0\", \"< 3.3.0/g" Gemfile
+# shellcheck disable=SC2035
+sudo chmod -R 755 *
 
-sudo DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
+DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install
 
 # shellcheck disable=SC2035
 sudo cp -R * /home/datadog
@@ -12,10 +13,9 @@ sudo cp -R * /home/datadog
 sudo chmod -R 755 /home/datadog
 
 sudo chown -R datadog:datadog /home/datadog
-sudo cp test-app.service /etc/systemd/system/test-app.service
-sudo systemctl daemon-reload
-sudo systemctl enable test-app.service
-sudo systemctl start test-app.service
-sudo systemctl status test-app.service
+#Ubuntu work without this, but Amazon Linux needs bundle install executed with datadog user
+sudo su - datadog -c 'DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install'
 
-echo "RUN DONE"
+./create_and_run_app_service.sh "rails server -b 0.0.0.0 -p 5985"
+
+echo "RUN ruby DONE"

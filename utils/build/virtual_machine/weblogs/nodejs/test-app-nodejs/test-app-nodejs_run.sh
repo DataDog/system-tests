@@ -1,13 +1,8 @@
 #!/bin/bash
-echo "START RUN APP"
-
+echo "START nodejs APP"
 
 sudo sed -i "s/18080/5985/g" index.js 
 sudo cp index.js /home/datadog
-sudo cp test-app.service /etc/systemd/system/test-app.service
-sudo systemctl daemon-reload
-sudo systemctl enable test-app.service
-sudo systemctl start test-app.service
-sudo systemctl status test-app.service
-
-echo "RUN DONE"
+sudo chmod 755 create_and_run_app_service.sh
+./create_and_run_app_service.sh "node index.js"
+echo "RUN nodejs DONE"

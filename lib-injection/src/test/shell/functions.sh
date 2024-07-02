@@ -126,7 +126,7 @@ function ensure-buildx() {
 function deploy-operator() {
     operator_file=${BASE_DIR}/common/operator-helm-values.yaml
     if [ ${USE_UDS} -eq 1 ] ; then
-      echo "[Deploy operator] Using UDS"  
+      echo "[Deploy operator] Using UDS"
       operator_file=${BASE_DIR}/common/operator-helm-values-uds.yaml
     fi
     echo "[Deploy operator] Configuring helm repository"
@@ -134,7 +134,7 @@ function deploy-operator() {
     helm repo update
 
     echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
-    helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog 
+    helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog
     kubectl get pods
 
     pod_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
@@ -154,7 +154,7 @@ function deploy-operator-auto() {
 
     echo "[Deploy operator] helm install datadog with config file [${operator_file}]"
     helm install datadog --wait --set datadog.apiKey=${DD_API_KEY} --set datadog.appKey=${DD_APP_KEY} -f "${operator_file}" datadog/datadog
-    
+
     # TODO: This is a hack until the patching permission is added in the official helm chart.
     echo "[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole"
     kubectl patch clusterrole datadog-cluster-agent --type='json' -p '[{"op": "add", "path": "/rules/0", "value":{ "apiGroups": ["apps"], "resources": ["deployments"], "verbs": ["patch"]}}]'
@@ -260,7 +260,7 @@ function deploy-app-auto() {
 }
 
 # trigger-app-rolling-update starts a rolling update of the target deployment by injecting an environment variable.
-# It returns when the deployment is available and the rollout is finished. 
+# It returns when the deployment is available and the rollout is finished.
 function trigger-app-rolling-update() {
     echo "[Deploy] trigger-app-rolling-update: updating deployment app ${TEST_LIBRARY}"
     deployment_name=test-${TEST_LIBRARY}-deployment
@@ -410,7 +410,7 @@ function print-debug-info-manual() {
     echo "[debug] Export: Daemonset logs"
     kubectl logs daemonset/datadog > "${log_dir}/daemonset_datadog.log"
 
-    if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then 
+    if [ ${USE_ADMISSION_CONTROLLER} -eq 1 ] ;  then
         pod_cluster_name=$(kubectl get pods -l app=datadog-cluster-agent -o name)
 
         echo "[debug] Export: Describe datadog-cluster-agent"
@@ -427,7 +427,7 @@ function print-debug-info-manual() {
 }
 
 # build-and-push-test-app-image prepares the test app image.
-function build-and-push-test-app-image() { 
+function build-and-push-test-app-image() {
     current_dir=$(pwd)
     cd lib-injection/build/docker/$TEST_LIBRARY/$WEBLOG_VARIANT
     ./build.sh
@@ -447,9 +447,9 @@ function build-and-push-init-image() {
     sh $(pwd)/lib-injection/build/docker/${TEST_LIBRARY}/install_ddtrace.sh $(pwd)/binaries
 
     #TODO change this. Two options: 1) not build the image, pull it (best option). 2) change to main branch
-    echo "Building init image"  
+    echo "Building init image"
     echo "docker buildx build https://github.com/DataDog/dd-trace-${init_image_repo_alias}.git#robertomonteromiguel/lib_injection_system_tests_integration:lib-injection --build-context ${TEST_LIBRARY}_agent=$(pwd)/binaries/ --platform ${BUILDX_PLATFORMS} -t "${INIT_DOCKER_IMAGE_REPO}:${DOCKER_IMAGE_TAG}" --push "
-   
+
 }
 
 # latest-app-pod-auto prints the latest pod name of the target app.

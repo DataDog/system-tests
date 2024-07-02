@@ -16,6 +16,7 @@ from utils._context.library_version import LibraryVersion, Version
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 
 from utils._context.containers import (
+    TestedContainer,
     WeblogContainer,
     AgentContainer,
     ProxyContainer,
@@ -37,6 +38,7 @@ from utils._context.containers import (
     WeblogInjectionInitContainer,
     MountInjectionVolume,
     create_inject_volume,
+    TestedContainer,
 )
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -84,6 +86,7 @@ class _Scenario:
         self.name = name
         self.replay = False
         self.doc = doc
+        self.rc_api_enabled = False
         self.github_workflow = github_workflow
         self.scenario_groups = scenario_groups or []
 
@@ -143,11 +146,6 @@ class _Scenario:
         handler.setFormatter(get_log_formatter())
 
         logger.addHandler(handler)
-
-        if self.replay:
-            from utils import weblog
-
-            weblog.init_replay_mode(self.host_log_folder)
 
     def session_start(self):
         """called at the very begning of the process"""
@@ -281,6 +279,7 @@ class _DockerScenario(_Scenario):
         scenario_groups=None,
         use_proxy=True,
         proxy_state=None,
+        rc_api_enabled=False,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -294,11 +293,18 @@ class _DockerScenario(_Scenario):
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
         self.use_proxy = use_proxy
-        self._required_containers = []
+        self.rc_api_enabled = rc_api_enabled
+
+        if not self.use_proxy and self.rc_api_enabled:
+            raise ValueError("rc_api_enabled requires use_proxy")
+
+        self._required_containers: list[TestedContainer] = []
 
         if self.use_proxy:
             self._required_containers.append(
-                ProxyContainer(host_log_folder=self.host_log_folder, proxy_state=proxy_state)
+                ProxyContainer(
+                    host_log_folder=self.host_log_folder, proxy_state=proxy_state, rc_api_enabled=rc_api_enabled
+                )
             )  # we want the proxy being the first container to start
 
         if include_postgres_db:
@@ -329,6 +335,10 @@ class _DockerScenario(_Scenario):
 
         if include_localstack:
             self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+    @property
+    def image_list(self) -> list[str]:
+        return [container.image.name for container in self._required_containers]
 
     def configure(self, config):
         super().configure(config)
@@ -382,6 +392,7 @@ class EndToEndScenario(_DockerScenario):
         agent_interface_timeout=5,
         use_proxy=True,
         proxy_state=None,
+        rc_api_enabled=False,
         backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
@@ -404,6 +415,7 @@ class EndToEndScenario(_DockerScenario):
             scenario_groups=scenario_groups,
             use_proxy=use_proxy,
             proxy_state=proxy_state,
+            rc_api_enabled=rc_api_enabled,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -513,14 +525,14 @@ class EndToEndScenario(_DockerScenario):
 
         try:
             code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
-            if code:
+            if code or stdout is None:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:
                 message = stdout.decode()
-        except BaseException as e:
-            message = f"Unexpected exception {e}"
-
-        logger.stdout(f"Weblog system: {message}")
+        except BaseException:
+            logger.exception("can't get weblog system info")
+        else:
+            logger.stdout(f"Weblog system: {message}")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -652,13 +664,6 @@ class EndToEndScenario(_DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
-
-    def close_targets(self):
-        from utils import weblog
-
-        super().close_targets()
-
-        weblog.save_requests(self.host_log_folder)
 
     @property
     def dd_site(self):
@@ -1018,6 +1023,8 @@ class _VirtualMachineScenario(_Scenario):
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
         include_centos_7_amd64=False,
+        agent_env=None,
+        app_env=None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow)
         self.vm_provision_name = vm_provision
@@ -1026,6 +1033,10 @@ class _VirtualMachineScenario(_Scenario):
         self.required_vms = []
         self.required_vm_names = []
         self._tested_components = {}
+        # Variables that will populate for the agent installation
+        self.agent_env = agent_env
+        # Variables that will populate for the app installation
+        self.app_env = app_env
 
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
@@ -1089,6 +1100,8 @@ class _VirtualMachineScenario(_Scenario):
                     vm.os_cpu,
                 )
             )
+            vm.add_agent_env(self.agent_env)
+            vm.add_app_env(self.app_env)
             self.required_vm_names.append(vm.name)
         self.vm_provider.configure(self.required_vms)
 
@@ -1144,10 +1157,12 @@ class _VirtualMachineScenario(_Scenario):
 
 
 class HostAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="host-auto-inject") -> None:
+    def __init__(self, name, doc, vm_provision="host-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
             doc=doc,
             github_workflow=None,
             include_ubuntu_22_amd64=True,
@@ -1178,10 +1193,12 @@ class ContainerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="installer-auto-inject") -> None:
+    def __init__(self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
             doc=doc,
             github_workflow=None,
             include_ubuntu_22_amd64=True,
@@ -1337,7 +1354,7 @@ class WeblogInjectionScenario(_Scenario):
         )
         self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
 
-        self._required_containers = []
+        self._required_containers: list(TestedContainer) = []
         self._required_containers.append(self._mount_injection_volume)
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
@@ -1643,7 +1660,7 @@ class scenarios:
 
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
-        proxy_state={"mock_remote_config_backend": "ASM_ACTIVATE_ONLY"},
+        rc_api_enabled=True,
         appsec_enabled=False,
         weblog_env={
             "DD_RC_TARGETS_KEY_ID": "TEST_KEY_ID",
@@ -1716,9 +1733,30 @@ class scenarios:
 
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended"},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+        },
         appsec_enabled=True,
         doc="Scenario for checking extended mode in automatic user events",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_auto_events_rc = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_RC",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        rc_api_enabled=True,
+        doc="""
+            Scenario to test User ID collection config change via Remote config
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
@@ -1839,7 +1877,7 @@ class scenarios:
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_PROBES_STATUS"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
@@ -1853,7 +1891,7 @@ class scenarios:
 
     debugger_method_probes_snapshot = EndToEndScenario(
         "DEBUGGER_METHOD_PROBES_SNAPSHOT",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
@@ -1862,7 +1900,7 @@ class scenarios:
 
     debugger_line_probes_snapshot = EndToEndScenario(
         "DEBUGGER_LINE_PROBES_SNAPSHOT",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
@@ -1871,7 +1909,7 @@ class scenarios:
 
     debugger_mix_log_probe = EndToEndScenario(
         "DEBUGGER_MIX_LOG_PROBE",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_MIX_LOG_PROBE"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
         doc="Set both method and line probes at the same code",
@@ -1880,7 +1918,7 @@ class scenarios:
 
     debugger_pii_redaction = EndToEndScenario(
         "DEBUGGER_PII_REDACTION",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_PII_REDACTION"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
@@ -1892,6 +1930,15 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_expression_language = EndToEndScenario(
+        "DEBUGGER_EXPRESSION_LANGUAGE",
+        rc_api_enabled=True,
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        library_interface_timeout=5,
+        doc="Check expression language",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
     fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     host_auto_injection = HostAutoInjectionScenario(
@@ -1899,6 +1946,15 @@ class scenarios:
     )
     simple_host_auto_injection = HostAutoInjectionScenario(
         "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
+    )
+    simple_host_auto_injection_profiling = HostAutoInjectionScenario(
+        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
+        "Onboarding Host Single Step Instrumentation scenario with profiling activated by the app env var",
+        app_env={
+            "DD_PROFILING_ENABLED": "auto",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+        },
     )
     host_auto_injection_block_list = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
@@ -1909,6 +1965,15 @@ class scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
     )
+
+    host_auto_injection_install_script_profiling = HostAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
+        vm_provision="host-auto-inject-install-script",
+        agent_env={"DD_PROFILING_ENABLED": "auto"},
+        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+    )
+
     # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
     host_auto_injection_ld_preload = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_LD_PRELOAD",

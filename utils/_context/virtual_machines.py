@@ -4,6 +4,7 @@ from utils.tools import logger
 
 from utils._context.library_version import Version
 from utils import context
+from utils.onboarding.debug_vm import extract_logs_to_file
 
 
 class AWSInfraConfig:
@@ -36,6 +37,13 @@ class DataDogConfig:
 class _VagrantConfig:
     def __init__(self, box_name) -> None:
         self.box_name = box_name
+
+
+class _KrunVmConfig:
+    def __init__(self, oci_image_name) -> None:
+        self.oci_image_name = oci_image_name
+        # KrunVm doesn't contain a good network capabilities. We use a std.in file to input parameters
+        self.stdin = None
 
 
 class _AWSConfig:
@@ -73,11 +81,14 @@ class _SSHConfig:
 
 
 class _VirtualMachine:
-    def __init__(self, name, aws_config, vagrant_config, os_type, os_distro, os_branch, os_cpu, **kwargs,) -> None:
+    def __init__(
+        self, name, aws_config, vagrant_config, krunvm_config, os_type, os_distro, os_branch, os_cpu, **kwargs,
+    ) -> None:
         self.name = name
         self.datadog_config = DataDogConfig()
         self.aws_config = aws_config
         self.vagrant_config = vagrant_config
+        self.krunvm_config = krunvm_config
         self.ssh_config = _SSHConfig()
         self.os_type = os_type
         self.os_distro = os_distro
@@ -86,6 +97,8 @@ class _VirtualMachine:
         self._vm_provision = None
         self.tested_components = {}
         self.deffault_open_port = 5985
+        self.agent_env = None
+        self.app_env = None
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
@@ -100,14 +113,25 @@ class _VirtualMachine:
         return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
 
     def add_provision(self, provision):
+
         self._vm_provision = provision
 
     def get_provision(self):
         return self._vm_provision
 
+    def add_agent_env(self, agent_env):
+        self.agent_env = agent_env
+
+    def add_app_env(self, app_env):
+        self.app_env = app_env
+
     def set_tested_components(self, components_json):
         """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
         self.tested_components = json.loads(components_json.replace("'", '"'))
+
+    def set_vm_logs(self, vm_logs):
+        """ Extract /var/log/ files to a folder in the host machine """
+        extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
         vm_cached_name = f"{self.name}_"
@@ -144,6 +168,20 @@ class _VirtualMachine:
         command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
         # VM name
         command_env["DD_VM_NAME"] = self.name
+        # Scenario custom environment: agent and app env variables
+        command_env["DD_AGENT_ENV"] = ""
+        command_env["DD_APP_ENV"] = ""
+        if self.agent_env:
+            agent_env_values = ""
+            for key, value in self.agent_env.items():
+                agent_env_values += f"{key}={value} \r"
+            command_env["DD_AGENT_ENV"] = agent_env_values
+        if self.app_env:
+            app_env_values = ""
+            for key, value in self.app_env.items():
+                app_env_values += f"{key}={value} \r"
+            command_env["DD_APP_ENV"] = app_env_values
+
         return command_env
 
 
@@ -153,6 +191,7 @@ class Ubuntu22amd64(_VirtualMachine):
             "Ubuntu_22_amd64",
             aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t2.medium", user="ubuntu"),
             vagrant_config=_VagrantConfig(box_name="bento/ubuntu-22.04"),
+            krunvm_config=None,
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu22_amd64",
@@ -167,6 +206,7 @@ class Ubuntu22arm64(_VirtualMachine):
             "Ubuntu_22_arm64",
             aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.small", user="ubuntu"),
             vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64",),
+            krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/ubuntu_datadog:22"),
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu22_arm64",
@@ -182,6 +222,7 @@ class Ubuntu18amd64(_VirtualMachine):
             aws_config=_AWSConfig(ami_id="ami-0263e4deb427da90e", ami_instance_type="t2.medium", user="ubuntu"),
             # vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
             vagrant_config=None,
+            krunvm_config=None,
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu18_amd64",
@@ -196,6 +237,7 @@ class AmazonLinux2amd64(_VirtualMachine):
             "Amazon_Linux_2_amd64",
             aws_config=_AWSConfig(ami_id="ami-0dfcb1ef8550277af", ami_instance_type="t2.medium", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="generic/centos7"),
+            krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2_amd64",
@@ -210,6 +252,7 @@ class AmazonLinux2DotNet6(_VirtualMachine):
             "Amazon_Linux_2_DotNet6",
             aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t2.medium", user="ec2-user"),
             vagrant_config=None,
+            krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2_dotnet6",
@@ -224,6 +267,7 @@ class AmazonLinux2023amd64(_VirtualMachine):
             "Amazon_Linux_2023_amd64",
             aws_config=_AWSConfig(ami_id="ami-064ed2d3fc01d3ec1", ami_instance_type="t2.medium", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="generic/centos9s"),
+            krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2023_amd64",
@@ -239,6 +283,7 @@ class AmazonLinux2023arm64(_VirtualMachine):
             aws_config=_AWSConfig(ami_id="ami-0a515c154e76934f7", ami_instance_type="t4g.small", user="ec2-user"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
+            krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/amazonlinux_datadog:2023"),
             os_type="linux",
             os_distro="rpm",
             os_branch="amazon_linux2023_arm64",
@@ -254,6 +299,7 @@ class Centos7amd64(_VirtualMachine):
             aws_config=_AWSConfig(ami_id="ami-002070d43b0a4f171", ami_instance_type="t2.medium", user="centos"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
+            krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
             os_branch="centos_7_amd64",

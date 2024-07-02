@@ -18,6 +18,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
@@ -103,7 +104,7 @@ public class App {
     String home(HttpServletResponse response) {
         // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
         // if a java engineer knows how to remove this?
-        // waiting for that, just set a random value 
+        // waiting for that, just set a random value
         response.setHeader("Content-Language", "not-set");
         return "Hello World!";
     }
@@ -164,6 +165,19 @@ public class App {
         h.put("metadata0", "value0");
         h.put("metadata1", "value1");
         return h;
+    }
+
+    @GetMapping("/users")
+    String users(@RequestParam String user) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if ((span instanceof MutableSpan)) {
+            MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+            localRootSpan.setTag("usr.id", user);
+        }
+        Blocking
+                .forUser(user)
+                .blockIfMatch();
+        return "Hello " + user;
     }
 
     @GetMapping("/user_login_success_event")
@@ -645,7 +659,7 @@ public class App {
 
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
-        try { 
+        try {
             Object expr = Ognl.parseExpression("[1]");
             String value = (String) Ognl.getValue(expr, list);
             return "hi OGNL, " + value;
@@ -929,17 +943,17 @@ public class App {
 
     @Bean
     @ConditionalOnProperty(
-        value="spring.native", 
-        havingValue = "false", 
+        value="spring.native",
+        havingValue = "false",
         matchIfMissing = true)
-    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) { 
+    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) {
         return new SynchronousWebLogGrpc(localInterface.getPort());
    }
 
     @Bean
     @ConditionalOnProperty(
-        value="spring.native", 
-        havingValue = "false", 
+        value="spring.native",
+        havingValue = "false",
         matchIfMissing = true)
     WebLogInterface localInterface() throws IOException {
         return new WebLogInterface();

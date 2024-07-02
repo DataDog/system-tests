@@ -15,6 +15,7 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+import urllib3
 from iast import (
     weak_cipher,
     weak_cipher_secure_algorithm,
@@ -24,8 +25,10 @@ from iast import (
     weak_hash_secure_algorithm,
 )
 
-from ddtrace import Pin, tracer
+from ddtrace import Pin, tracer, patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+patch_all(urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -75,6 +78,23 @@ def waf(request, *args, **kwargs):
             )
         return HttpResponse("Value tagged", status=int(kwargs["status_code"]), headers=request.GET.dict(),)
     return HttpResponse("Hello, World!")
+
+
+@csrf_exempt
+def return_headers(request, *args, **kwargs):
+    headers = {}
+    for k, v in request.headers.items():
+        headers[k] = v
+    return HttpResponse(json.dumps(headers))
+
+
+@csrf_exempt
+def request_downstream(request, *args, **kwargs):
+    # Propagate the received headers to the downstream service
+    http = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http.request("GET", "http://localhost:7777/returnheaders")
+    return HttpResponse(response.data)
 
 
 ### BEGIN EXPLOIT PREVENTION
@@ -154,8 +174,8 @@ def rasp_sqli(request, *args, **kwargs):
         import sqlite3
 
         DB = sqlite3.connect(":memory:")
-        print(f"SELECT * FROM table WHERE {user_id}")
-        cursor = DB.execute(f"SELECT * FROM table WHERE '{user_id};")
+        print(f"SELECT * FROM users WHERE {user_id}")
+        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
         print("DB request with {len(list(cursor))} results")
         return HttpResponse(f"DB request with {len(list(cursor))} results")
     except Exception as e:
@@ -618,6 +638,10 @@ urlpatterns = [
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
+    path("requestdownstream", request_downstream),
+    path("requestdownstream/", request_downstream),
+    path("returnheaders", return_headers),
+    path("returnheaders/", return_headers),
     path("rasp/lfi", rasp_lfi),
     path("rasp/ssrf", rasp_ssrf),
     path("rasp/sqli", rasp_sqli),

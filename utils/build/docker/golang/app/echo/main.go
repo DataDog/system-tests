@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"weblog/internal/common"
 	"weblog/internal/grpc"
+	"weblog/internal/rasp"
 
 	"github.com/labstack/echo/v4"
 
@@ -153,9 +154,20 @@ func main() {
 		return ctx.String(http.StatusOK, string(content))
 	})
 
+	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
+	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
+	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
 	r.Start(":7777")
+}
+
+func echoHandleFunc(handlerFunc http.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		handlerFunc(c.Response().Writer, c.Request())
+		return nil
+	}
 }
 
 func headers(c echo.Context) error {
