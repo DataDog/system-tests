@@ -10,13 +10,13 @@ RUN /binaries/install_ddtrace.sh
 # dotnet restore
 COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
 
-RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") && \
+RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") \
     dotnet restore
 
 # dotnet publish
 COPY utils/build/docker/dotnet/weblog/* .
 
-RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") && \
+RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") \
     dotnet publish --no-restore -c Release -f net8.0 -o out
 
 #########
