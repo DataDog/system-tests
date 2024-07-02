@@ -18,7 +18,7 @@ namespace weblog
 
             if (!string.IsNullOrWhiteSpace(contentLang))
             {
-                HttpContext.Response.Headers.Add(contentLangHeader, contentLang);
+                HttpContext.Response.Headers[contentLangHeader] = contentLang;
             }
         }
 
