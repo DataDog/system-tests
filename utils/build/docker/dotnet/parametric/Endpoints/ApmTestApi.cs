@@ -249,7 +249,9 @@ public abstract class ApmTestApi
             }));
 
             // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
+#pragma warning disable CS8974 // Converting method group to non-delegate type
             SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, httpHeaders, Setter });
+#pragma warning restore CS8974 // Converting method group to non-delegate type
         }
 
         return JsonConvert.SerializeObject(new
