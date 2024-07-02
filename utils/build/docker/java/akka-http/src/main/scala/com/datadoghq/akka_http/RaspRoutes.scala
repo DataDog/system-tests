@@ -52,7 +52,7 @@ object RaspRoutes {
   private def executeSql(userId: String): Try[String] = {
     Using(dataSource.getConnection()) { conn =>
       val stmt = conn.createStatement()
-      val set = stmt.executeQuery("select * from user where username = '" + userId + "'")
+      val set = stmt.executeQuery("SELECT * FROM users WHERE '" + userId)
       if (set.next()) {
         "ID: " + set.getLong("ID")
       } else {

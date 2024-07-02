@@ -44,7 +44,7 @@ public class RaspRouteProvider implements Consumer<Router> {
     private void executeSql(final RoutingContext rc, final String userId) {
         try (final Connection conn = dataSource.getConnection()) {
             final Statement stmt = conn.createStatement();
-            final ResultSet set = stmt.executeQuery("select * from user where username = '" + userId + "'");
+            final ResultSet set = stmt.executeQuery("SELECT * FROM users WHERE '" + userId);
             if (set.next()) {
                 rc.response().end("ID: " + set.getLong("ID"));
             } else {

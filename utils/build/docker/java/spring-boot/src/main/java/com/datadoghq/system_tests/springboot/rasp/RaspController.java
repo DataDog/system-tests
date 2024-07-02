@@ -46,7 +46,7 @@ public class RaspController {
     private ResponseEntity<String> execSql(final String userId) throws SQLException {
         try (final Connection conn = dataSource.getConnection()) {
             final Statement stmt = conn.createStatement();
-            final ResultSet set = stmt.executeQuery("select * from user where username = '" + userId + "'");
+            final ResultSet set = stmt.executeQuery("SELECT * FROM users WHERE '" + userId);
             if (set.next()) {
                 return ResponseEntity.ok("ID: " + set.getLong("ID"));
             }

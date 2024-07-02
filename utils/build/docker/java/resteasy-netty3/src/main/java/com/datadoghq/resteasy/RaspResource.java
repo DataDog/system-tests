@@ -48,7 +48,7 @@ public class RaspResource {
     private String executeSql(final String userId) throws Exception {
         try (final Connection conn = DATA_SOURCE.getConnection()) {
             final Statement stmt = conn.createStatement();
-            final ResultSet set = stmt.executeQuery("select * from user where username = '" + userId + "'");
+            final ResultSet set = stmt.executeQuery("SELECT * FROM users WHERE '" + userId);
             if (set.next()) {
                 return "ID: " + set.getLong("ID");
             } else {
