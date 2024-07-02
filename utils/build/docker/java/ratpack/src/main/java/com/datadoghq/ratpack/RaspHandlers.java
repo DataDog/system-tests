@@ -25,6 +25,7 @@ import ratpack.registry.Registry;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class RaspHandlers {
 
@@ -106,8 +107,8 @@ public class RaspHandlers {
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private static void executeSql(final Context ctx, final String userId) throws Exception {
         try (final Connection conn = DATA_SOURCE.getConnection()) {
-            final CallableStatement stmt = conn.prepareCall("select * from user where username = '" + userId + "'");
-            final ResultSet set = stmt.executeQuery();
+            final Statement stmt = conn.createStatement();
+            final ResultSet set = stmt.executeQuery("SELECT * FROM users WHERE id='" + userId + "'");
             if (set.next()) {
                 ctx.getResponse().send("text/plain", "ID: " + set.getLong("ID"));
             } else {

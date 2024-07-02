@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.sql.DataSource;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 @Controller
 @RequestMapping("/rasp")
@@ -45,8 +45,8 @@ public class RaspController {
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private ResponseEntity<String> execSql(final String userId) throws SQLException {
         try (final Connection conn = dataSource.getConnection()) {
-            final CallableStatement stmt = conn.prepareCall("select * from user where username = '" + userId + "'");
-            final ResultSet set = stmt.executeQuery();
+            final Statement stmt = conn.createStatement();
+            final ResultSet set = stmt.executeQuery("SELECT * FROM users WHERE id='" + userId + "'");
             if (set.next()) {
                 return ResponseEntity.ok("ID: " + set.getLong("ID"));
             }

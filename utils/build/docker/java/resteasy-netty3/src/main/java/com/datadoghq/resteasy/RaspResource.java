@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlValue;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.Statement;
 
 @Path("/rasp")
 @Produces(MediaType.TEXT_PLAIN)
@@ -46,8 +47,8 @@ public class RaspResource {
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private String executeSql(final String userId) throws Exception {
         try (final Connection conn = DATA_SOURCE.getConnection()) {
-            final CallableStatement stmt = conn.prepareCall("select * from user where username = '" + userId + "'");
-            final ResultSet set = stmt.executeQuery();
+            final Statement stmt = conn.createStatement();
+            final ResultSet set = stmt.executeQuery("SELECT * FROM users WHERE id='" + userId + "'");
             if (set.next()) {
                 return "ID: " + set.getLong("ID");
             } else {
