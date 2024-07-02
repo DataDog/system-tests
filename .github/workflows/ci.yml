@@ -66,6 +66,8 @@ jobs:
         run: |
           ./run.sh DEFAULT
           TEST_LIBRARY=golang ./run.sh PARAMETRIC
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
   scenarios:
     name: Get scenarios and groups
