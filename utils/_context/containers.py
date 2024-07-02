@@ -80,6 +80,7 @@ class TestedContainer:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
         self.host_log_folder = host_log_folder
+        self.display_logs_on_remove = False  # in case of error, it may be convenient to display logs
         self.allow_old_container = allow_old_container
 
         self.image = ImageInfo(image_name)
@@ -206,6 +207,8 @@ class TestedContainer:
 
             except APIError as e:
                 logger.exception(f"Try #{i} failed")
+                self.display_logs_on_remove = True
+
                 pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
 
             except Exception as e:
@@ -236,11 +239,22 @@ class TestedContainer:
         self._container.stop()
 
     def collect_logs(self):
+        stdout = self._container.logs(stdout=True, stderr=False)
+        stderr = self._container.logs(stdout=False, stderr=True)
+
         with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(self._container.logs(stdout=True, stderr=False))
+            f.write(stdout)
 
         with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(self._container.logs(stdout=False, stderr=True))
+            f.write(stderr)
+
+        if self.display_logs_on_remove:
+            sep = "=" * 30
+            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
+            logger.stdout(stdout.decode("utf-8"))
+            logger.stdout(f"\n{sep} {self.name} STDERR {sep}")
+            logger.stdout(stderr.decode("utf-8"))
+            logger.stdout("")
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")
