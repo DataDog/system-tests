@@ -416,6 +416,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Observed: {observed_config_states}")
             logger.debug(f"expected: {config_states}")
 
+            # apply_error is optional, and can be none or empty string.
+            # remove it in that situation to simplify the comparison
+            observed_config_states = copy.deepcopy(observed_config_states)  # copy to not mess up futur checks
+            for observed_config_state in observed_config_states:
+                if "apply_error" in observed_config_state and observed_config_state["apply_error"] in (None, ""):
+                    del observed_config_state["apply_error"]
+
             assert config_states == observed_config_states
             found = True
 
