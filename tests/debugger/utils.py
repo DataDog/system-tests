@@ -209,7 +209,7 @@ class _Base_Debugger_Test:
             logger.debug(f"Checking RC state for: {full_id}")
 
             if full_id not in self.rc_state:
-                
+
                 errors.append(f"ID {full_id} not found in state")
             else:
                 apply_state = self.rc_state[full_id]["apply_state"]

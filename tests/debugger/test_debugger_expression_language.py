@@ -41,7 +41,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
             "log170aa-expr-lang-0009-1478a6method",
             "log170aa-expr-lang-0010-1478a6method",
         ]
-                
+
         self._setup("expression_language_access_variables", "/debugger/expression?inputValue=asd")
 
     def test_expression_language_access_variables(self):
@@ -68,7 +68,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self.expected_probe_ids = [
             "log170aa-expr-lang-0011-1478a6method",
         ]
-                
+
         self._setup("expression_language_access_exception", "/debugger/expression/exception")
 
     def test_expression_language_access_exception(self):
