@@ -129,7 +129,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
                 ActivityContext contextToLink = new ActivityContext();
 
-                if (parentSpanLink != null && parentSpanLink > 0)
+                if (parentSpanLink > 0)
                 {
                     contextToLink = FindActivity(parentSpanLink).Context;
                 }
