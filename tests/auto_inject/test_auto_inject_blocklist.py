@@ -169,32 +169,32 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         "python": [
             {
                 "ignored_args": "",
-                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
                 "ignored_args": "arg1",
-                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
                 "ignored_args": "arg12,arg2,arg44",
-                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
                 "ignored_args": "arg11, arg22,arg44",
-                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
                 "ignored_args": "--dosomething",
-                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py --dosomething yes",
+                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py --dosomething yes",
                 "skip": True,
             },
             {
                 "ignored_args": "--dosomethingXXXX",
-                "command": "sudo /home/datadog/.pyenv/shims/python myscript.py --dosomething no",
+                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py --dosomething no",
                 "skip": False,
             },
         ],
