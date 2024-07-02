@@ -379,10 +379,14 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
     def assert_rc_apply_state(self, product: str, config_id: str, apply_state: RemoteConfigApplyState) -> None:
-        """ check that all config_id/product have the expected apply_state returned by the library """
+        """
+            Check that all config_id/product have the expected apply_state returned by the library
+            Very simplified version of the assert_rc_targets_version_states
+
+        """
         found = False
         for data in self.get_data(path_filters="/v0.7/config"):
-            config_states = data["request"]["content"]["client"]["state"]["config_states"]
+            config_states = data["request"]["content"]["client"]["state"].get("config_states", [])
 
             for config_state in config_states:
                 if config_state["id"] == config_id and config_state["product"] == product:
@@ -399,17 +403,20 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         """
         found = False
         for data in self.get_data(path_filters="/v0.7/config"):
-            states = data["request"]["content"]["client"]["state"]
+            state = data["request"]["content"]["client"]["state"]
 
-            if states["targets_version"] != targets_version:
+            if state["targets_version"] != targets_version:
                 continue
 
             logger.debug(f"In {data['log_filename']}: found targets_version {targets_version}")
 
-            logger.debug(f"Observed: {states['config_states']}")
+            assert not state.get("has_error", False), f"State error found: {state.get('error')}"
+
+            observed_config_states = state.get("config_states", [])
+            logger.debug(f"Observed: {observed_config_states}")
             logger.debug(f"expected: {config_states}")
 
-            assert config_states == states["config_states"]
+            assert config_states == observed_config_states
             found = True
 
         assert found, f"Nothing has been found for targets_version {targets_version}"
