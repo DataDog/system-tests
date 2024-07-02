@@ -14,14 +14,15 @@ from utils import (
 
 @features.debugger
 @scenarios.debugger_probes_status
-class Test_Debugger_Probe_Statuses:
+class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
     version = 0
 
     def _setup(self, probes_name: str):
-        probes = base.read_probes(probes_name)
+        Test_Debugger_Probe_Statuses.version += 1
 
-        self.version += 1
-        rc.send_debugger_command(probes=probes, version=self.version)
+        self.rc_state = rc.send_debugger_command(
+            probes=base.read_probes(probes_name), version=Test_Debugger_Probe_Statuses.version
+        )
 
     def setup_method_probe_status_method_log(self):
         self._setup("probe_status_method_log")
@@ -32,6 +33,7 @@ class Test_Debugger_Probe_Statuses:
             "loga0cf2-meth-45cf-9f39-59installed": "INSTALLED",
         }
 
+        self.assert_all_states_not_error()
         base.validate_probes(expected_probes)
 
     def setup_method_probe_status_method_metric(self):
@@ -43,6 +45,7 @@ class Test_Debugger_Probe_Statuses:
             "metricf2-meth-45cf-9f39-59installed": "INSTALLED",
         }
 
+        self.assert_all_states_not_error()
         base.validate_probes(expected_probes)
 
     def setup_method_probe_status_method_span(self):
@@ -54,6 +57,7 @@ class Test_Debugger_Probe_Statuses:
             "span0cf2-meth-45cf-9f39-59installed": "INSTALLED",
         }
 
+        self.assert_all_states_not_error()
         base.validate_probes(expected_probes)
 
     def setup_method_probe_status_method_spandecoration(self):
@@ -65,4 +69,5 @@ class Test_Debugger_Probe_Statuses:
             "decorcf2-meth-45cf-9f39-59installed": "INSTALLED",
         }
 
+        self.assert_all_states_not_error()
         base.validate_probes(expected_probes)
