@@ -4,6 +4,7 @@ import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
+import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -161,12 +162,16 @@ public class Main {
                 });
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
-
+        raspRouteProviders().forEach(provider -> provider.accept(router));
         server.requestHandler(router::accept).listen(7777);
     }
 
     private static Stream<Consumer<Router>> iastRouteProviders() {
         return Stream.of(new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT), new IastSourceRouteProvider(DATA_SOURCE));
+    }
+
+    private static Stream<Consumer<Router>> raspRouteProviders() {
+        return Stream.of(new RaspRouteProvider(DATA_SOURCE));
     }
 
     private static final Map<String, String> METADATA = createMetadata();
