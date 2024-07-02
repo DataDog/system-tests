@@ -43,6 +43,7 @@ reportJunit.xml
 .vs/
 **/dotnet/**/*.user
 **/dotnet/**/*.suo
+*.DotSettings.user
 
 # .NET SDK
 **/dotnet/**/bin/
