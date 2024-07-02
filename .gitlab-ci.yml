@@ -38,6 +38,7 @@ onboarding_nodejs:
     - schedules
   variables:
     TEST_LIBRARY: "nodejs"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
