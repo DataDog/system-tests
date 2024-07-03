@@ -618,7 +618,7 @@ class WeblogContainer(TestedContainer):
 class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="postgres:latest",
+            image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
             user="postgres",
@@ -824,7 +824,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class ElasticMQContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="softwaremill/elasticmq:latest",
+            image_name="softwaremill/elasticmq-native:latest",
             name="elasticmq",
             host_log_folder=host_log_folder,
             environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
