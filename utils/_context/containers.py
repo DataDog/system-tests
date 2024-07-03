@@ -64,13 +64,13 @@ def start_parallel_containers(containers):
     threads = []
 
     for container in containers:
-        thread = Thread(target = start_container, args = (container,))
+        thread = Thread(target=start_container, args=(container,))
         thread.start()
         threads.append(thread)
-    
+
     for thread in threads:
         thread.join()
-        
+
 
 def start_container(container):
     container.start()
@@ -81,7 +81,7 @@ def start_container(container):
 #     for container in containers:
 #         thread = Thread(target = container.remove, args = (container))
 #         threads.append(thread)
-    
+
 #     for thread in threads:
 #         thread.join()
 
