@@ -6,8 +6,7 @@ on:
 
 jobs:
   prune-init-images:
-    if: ${{ false }} #Enable when Github support fix the problem related to the image versions.
-    name: Prune dd-lib-java-init docker images
+    name: Prune dd-lib-xxxx-init docker images
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,7 +26,7 @@ jobs:
         organization: Datadog
         container: system-tests/${{ matrix.weblog-variant }}
         keep-younger-than: 7 # days
-        keep-last: 10
+        keep-last: 20
         keep-tags: |
           latest
         prune-tags-regexes: |
