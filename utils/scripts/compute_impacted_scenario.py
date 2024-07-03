@@ -142,7 +142,7 @@ def main():
             elif file == "conftest.py":
                 scenarios_groups.add(ScenarioGroup.ALL.value)
 
-            elif file in ("format.sh", "pyproject.toml"):
+            elif file in ("format.sh", "pull.sh", "pyproject.toml"):
                 # nothing to do
                 pass
 
