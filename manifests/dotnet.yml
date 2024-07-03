@@ -73,7 +73,7 @@ tests/:
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
         test_xpath_injection.py:
-          TestXPathInjection: missing_feature
+          TestXPathInjection: v2.47.0
         test_xss.py:
           TestXSS: missing_feature
       source/:
