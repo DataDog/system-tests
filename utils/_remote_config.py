@@ -38,7 +38,7 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
 
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
 
-    client_configs = raw_payload["client_configs"]
+    client_configs = raw_payload.get("client_configs", [])
 
     current_states = {}
     if len(client_configs) == 0:
@@ -179,6 +179,117 @@ def build_debugger_command(probes: list, version: int):
     return rcm
 
 
-def send_debbuger_command(probes: list, version: int) -> dict:
+def send_debugger_command(probes: list, version: int) -> dict:
     raw_payload = build_debugger_command(probes, version)
     return send_command(raw_payload)
+
+
+def _json_to_base64(json_object):
+    json_string = json.dumps(json_object, indent=2).encode("utf-8")
+    base64_string = base64.b64encode(json_string).decode("utf-8")
+    return base64_string
+
+
+class ClientConfig:
+    _store: dict[str, "ClientConfig"] = {}
+    version: int = 1
+
+    def __init__(self, path: str, config):
+        self.path = path
+
+        self.raw = config if isinstance(config, str) else _json_to_base64(config)
+        self.raw_decoded = base64.b64decode(self.raw).decode("utf-8")
+
+        if config is not None:
+            self._store[path] = self
+            self.raw_length = len(self.raw_decoded)
+            self.raw_sha256 = hashlib.sha256(base64.b64decode(self.raw)).hexdigest()
+        else:
+            stored_config = self._store.get(path, None)
+            self.raw_length = stored_config.raw_length
+            self.raw_sha256 = stored_config.raw_sha256
+
+    @property
+    def raw_deserialized(self):
+        return json.loads(self.raw_decoded)
+
+    def get_target_file(self, deserialized=False):
+        return {"path": self.path, "raw": self.raw_deserialized if deserialized else self.raw}
+
+    def get_target(self):
+        return {
+            "custom": {"v": self.version},
+            "hashes": {"sha256": self.raw_sha256},
+            "length": self.raw_length,
+        }
+
+    def __repr__(self) -> str:
+        return f"""({self.path!r}, {self.raw_deserialized!r})"""
+
+
+class RemoteConfigCommand:
+    """
+    https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph
+    https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/remoteconfig/remoteconfig.proto#L180
+    """
+
+    backend_state = '{"foo": "bar"}'
+    expires = "3000-01-01T00:00:00Z"
+    spec_version = "1.0"
+    signatures = [
+        {
+            "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
+            "sig": "f5f2f27035339ed841447713eb93e5c62c34f4fa709fac0f9edca4ef5dc77340e1e81e779c5b536304fe568173c9c0e9125b17c84ce8a58a907bb2f27e7d890b",  # pylint: disable=line-too-long
+        }
+    ]
+
+    def __init__(self, version: int, client_configs=(), expires=None) -> None:
+        self.targets: list[ClientConfig] = []
+        self.version = version
+        self.expires = expires or self.expires
+
+        for args in client_configs:
+            self.add_client_config(*args)
+
+        self.opaque_backend_state = base64.b64encode(self.backend_state.encode("utf-8")).decode("utf-8")
+
+    def add_client_config(self, path, config) -> ClientConfig:
+        client_config = ClientConfig(path=path, config=config)
+        self.targets.append(client_config)
+
+        return client_config
+
+    def serialize_targets(self, deserialized=False):
+        result = {
+            "signed": {
+                "_type": "targets",
+                "custom": {"opaque_backend_state": self.opaque_backend_state},
+                "expires": self.expires,
+                "spec_version": self.spec_version,
+                "targets": {target.path: target.get_target() for target in self.targets},
+                "version": self.version,
+            },
+            "signatures": self.signatures,
+        }
+
+        return _json_to_base64(result) if not deserialized else result
+
+    def to_payload(self, deserialized=False):
+        result = {"targets": self.serialize_targets(deserialized=deserialized)}
+
+        target_files = [
+            target.get_target_file(deserialized=deserialized)
+            for target in self.targets
+            if target.raw_deserialized is not None
+        ]
+        if len(target_files) > 0:
+            result["target_files"] = target_files
+
+        if len(self.targets) > 0:
+            result["client_configs"] = [target.path for target in self.targets]
+
+        return result
+
+    def send(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
+        command = self.to_payload()
+        return send_command(command, wait_for_acknowledged_status=wait_for_acknowledged_status)

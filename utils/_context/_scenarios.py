@@ -1639,7 +1639,7 @@ class scenarios:
 
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
-        proxy_state={"mock_remote_config_backend": "ASM_DATA_FULL_DENYLIST"},
+        rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
@@ -1654,7 +1654,7 @@ class scenarios:
 
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",
-        proxy_state={"mock_remote_config_backend": "ASM"},
+        rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
@@ -1879,7 +1879,7 @@ class scenarios:
 
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_PROBES_STATUS"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
@@ -1893,7 +1893,7 @@ class scenarios:
 
     debugger_method_probes_snapshot = EndToEndScenario(
         "DEBUGGER_METHOD_PROBES_SNAPSHOT",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_METHOD_PROBES_SNAPSHOT"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
@@ -1902,7 +1902,7 @@ class scenarios:
 
     debugger_line_probes_snapshot = EndToEndScenario(
         "DEBUGGER_LINE_PROBES_SNAPSHOT",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_LINE_PROBES_SNAPSHOT"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=30,
         doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
@@ -1911,7 +1911,7 @@ class scenarios:
 
     debugger_mix_log_probe = EndToEndScenario(
         "DEBUGGER_MIX_LOG_PROBE",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_MIX_LOG_PROBE"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
         doc="Set both method and line probes at the same code",
@@ -1934,7 +1934,7 @@ class scenarios:
 
     debugger_expression_language = EndToEndScenario(
         "DEBUGGER_EXPRESSION_LANGUAGE",
-        proxy_state={"mock_remote_config_backend": "DEBUGGER_EXPRESSION_LANGUAGE"},
+        rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
         doc="Check expression language",
@@ -1945,6 +1945,10 @@ class scenarios:
 
     host_auto_injection = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario",
+    )
+    host_not_supported_auto_injection = HostAutoInjectionScenario(
+        "HOST_NOT_SUPPORTED_AUTO_INJECTION",
+        "Onboarding host Single Step Instrumentation scenario for not supported languages",
     )
     simple_host_auto_injection = HostAutoInjectionScenario(
         "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",

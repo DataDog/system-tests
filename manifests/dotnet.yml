@@ -235,15 +235,16 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
-    test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: v2.53.0
-      Test_Debugger_Method_Probe_Snaphots: v2.53.0
-      Test_Debugger_Mix_Log_Probe: v2.53.0
-      Test_Debugger_Probe_Statuses: v2.53.0
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: v2.50.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
+    test_debugger_probe_snapshot.py:
+      Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots: v2.53.0
+      Test_Debugger_Mix_Log_Probe: v2.53.0
+    test_debugger_probe_status.py:
+      Test_Debugger_Probe_Statuses: v2.53.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
