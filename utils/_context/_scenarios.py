@@ -54,6 +54,7 @@ from utils.tools import logger, get_log_formatter, update_environ_with_local_env
 
 update_environ_with_local_env()
 
+
 class ScenarioGroup(Enum):
     ALL = "all"
     APPSEC = "appsec"
@@ -1476,9 +1477,7 @@ class scenarios:
 
     aws = EndToEndScenario(
         "AWS",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_localstack=True,
         doc="Spawns tracer, agent, and an instance of LocalStack. Test the AWS integration with tracers",
         scenario_groups=[ScenarioGroup.AWS],
@@ -1486,9 +1485,7 @@ class scenarios:
 
     cassandra = EndToEndScenario(
         "CASSANDRA",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_cassandra_db=True,
         doc="Spawns tracer, agent, and an instance of Cassandra. Test its integration with tracers",
         scenario_groups=[ScenarioGroup.CASSANDRA],
@@ -1496,9 +1493,7 @@ class scenarios:
 
     elasticmq = EndToEndScenario(
         "ELASTICMQ",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_cassandra_db=True,
         doc="Spawns tracer, agent, and an instance of ElasticMQ. Test its integration with tracers",
         scenario_groups=[ScenarioGroup.ELASTICMQ],
@@ -1506,9 +1501,7 @@ class scenarios:
 
     kafka = EndToEndScenario(
         "KAFKA",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_mongo_db=True,
         doc="Spawns tracer, agent, and an instance of Kafka. Test its integration with tracers",
         scenario_groups=[ScenarioGroup.KAFKA],
@@ -1516,9 +1509,7 @@ class scenarios:
 
     mongo = EndToEndScenario(
         "MONGO",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_mongo_db=True,
         doc="Spawns tracer, agent, and an instance of MongoDB. Test its integration with tracers",
         scenario_groups=[ScenarioGroup.MONGO],
@@ -1526,9 +1517,7 @@ class scenarios:
 
     mssql = EndToEndScenario(
         "MSSQL",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_sqlserver=True,
         doc="Spawns tracer, agent, and an instance of SQL Server. Test its integration with tracers",
         scenario_groups=[ScenarioGroup.MSSQL],
@@ -1536,9 +1525,7 @@ class scenarios:
 
     mysql = EndToEndScenario(
         "MYSQL",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_mysql_db=True,
         doc="Spawns tracer, agent, and an instance of MySQL. Test its integration with tracers",
         scenario_groups=[ScenarioGroup.MYSQL],
@@ -1546,9 +1533,7 @@ class scenarios:
 
     postgres = EndToEndScenario(
         "POSTGRES",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_postgres_db=True,
         doc="Spawns tracer, agent, and an instance of Postgres. Test its integration with tracers",
         scenario_groups=[ScenarioGroup.POSTGRES],
@@ -1556,9 +1541,7 @@ class scenarios:
 
     rabbitmq = EndToEndScenario(
         "RABBITMQ",
-        weblog_env={
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-        },
+        weblog_env={"DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",},
         include_rabbitmq=True,
         doc="Spawns tracer, agent, and an instance of RabbitMQ. Test its integration with tracers",
         scenario_groups=[ScenarioGroup.RABBITMQ],
