@@ -397,6 +397,7 @@ class Test_Otel_Span_Methods:
         assert span.get("resource") == "ok_span"
 
     @bug(context.library < "ruby@2.2.0", reason="Older versions do not generate datadog spans with the correct ids")
+    @bug(context.library == "dotnet", reason="Flaky due to span order, tests should never use traces[0] when there are multiple spans")
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
