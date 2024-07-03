@@ -1,6 +1,7 @@
 import os
 import time
 import json
+from threading import Thread
 
 import pytest
 from watchdog.observers.polling import PollingObserver
@@ -25,6 +26,8 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     SqlServerContainer,
     create_network,
+    start_parallel_containers,
+    start_sequential_containers,
     # SqlDbTestedContainer,
     BuddyContainer,
     APMTestAgentContainer,
@@ -106,7 +109,8 @@ class _DockerScenario(_Scenario):
             raise ValueError("rc_api_enabled requires use_proxy")
 
         self._required_containers: list[TestedContainer] = []
-        # TODO : ADD self._database_containers: list[TestedContainer] and put all DB in it rather than _required_containers
+        self._external_containers: list[TestedContainer] = []
+        self._internal_containers: list[TestedContainer] = []
 
         if self.use_proxy:
             self._required_containers.append(
@@ -116,49 +120,50 @@ class _DockerScenario(_Scenario):
             )  # we want the proxy being the first container to start
 
         if include_postgres_db:
-            self._required_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
 
         if include_mongo_db:
-            self._required_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
 
         if include_cassandra_db:
-            self._required_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
 
         if include_kafka:
             # kafka requires zookeeper
-            self._required_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
-            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
 
         if include_rabbitmq:
-            self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
 
         if include_mysql_db:
-            self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
         if include_sqlserver:
-            self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
         if include_elasticmq:
-            self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
         if include_localstack:
-            self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+            self._external_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+    @property
+    def containers(self) -> list[TestedContainer]:
+        return self._required_containers + self._external_containers + self._internal_containers
 
     @property
     def image_list(self) -> list[str]:
-        return [container.image.name for container in self._required_containers]  # + _database_containers
+        return [container.image.name for container in self.containers]
 
     def configure(self, config):
         super().configure(config)
 
-        for container in reversed(self._database_containers):  # question, should it be in first ? 
+        for container in reversed(self.containers):
             container.configure(self.replay)
 
-        for container in reversed(self._required_containers):
-            container.configure(self.replay)
-
-    def get_container_by_dd_integration_name(self, name):  # what is used for ? 
-        for container in self._required_containers:
+    def get_container_by_dd_integration_name(self, name):
+        for container in self.containers:
             if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
                 return container
         return None
@@ -168,19 +173,24 @@ class _DockerScenario(_Scenario):
 
         if not self.replay:
             warmups.append(create_network)
-
-            warmups.append(start_db_containers_in_parallel)  # fun stuff
-
-            for container in self._required_containers:
-                warmups.append(container.start)
-
-        for container in self._required_containers:
-            warmups.append(container.post_start)
+            warmups.append(self._start_containers)
 
         return warmups
+    
+    def _start_containers(self):
+        required_thread = Thread(target = start_parallel_containers, args = (self._external_containers,))
+        required_thread.start()
+        external_thread = Thread(target = start_sequential_containers, args = (self._required_containers,))
+        external_thread.start()
 
+        required_thread.join()
+        external_thread.join()
+
+        start_parallel_containers(self._internal_containers)
+    
+    # TODO: remove in parallel
     def close_targets(self):
-        for container in reversed(self._required_containers):  # + db containers
+        for container in reversed(self.containers):
             try:
                 container.remove()
             except:
@@ -291,7 +301,7 @@ class EndToEndScenario(_DockerScenario):
                 for language, port in supported_languages
             ]
 
-            self._required_containers += self.buddies
+            self._internal_containers += self.buddies
 
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout

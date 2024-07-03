@@ -7,6 +7,7 @@ from subprocess import run
 import time
 from functools import lru_cache
 import platform
+from threading import Thread
 
 import docker
 from docker.errors import APIError, DockerException
@@ -52,6 +53,37 @@ def create_network():
 
     logger.debug(f"Create network {_NETWORK_NAME}")
     _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+
+
+def start_sequential_containers(containers):
+    for container in containers:
+        start_container(container)
+
+
+def start_parallel_containers(containers):
+    threads = []
+
+    for container in containers:
+        thread = Thread(target = start_container, args = (container,))
+        thread.start()
+        threads.append(thread)
+    
+    for thread in threads:
+        thread.join()
+        
+
+def start_container(container):
+    container.start()
+    container.post_start()
+
+
+# def remove_all(containers):
+#     for container in containers:
+#         thread = Thread(target = container.remove, args = (container))
+#         threads.append(thread)
+    
+#     for thread in threads:
+#         thread.join()
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"

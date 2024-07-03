@@ -4,6 +4,7 @@
 __pycache__
 binaries/*
 !binaries/README.md
+compose.yaml
 
 venv
 venv.
