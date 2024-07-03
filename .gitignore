@@ -61,3 +61,5 @@ node_modules/
 # vim
 /*.vim
 *.swp
+
+utils/build/docker/*/parametric/Dockerfile
