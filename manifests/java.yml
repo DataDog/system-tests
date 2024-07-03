@@ -579,9 +579,9 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
-        akka-http:  bug (work in progress)
-        jersey-grizzly2: bug (span not available on appsec events drives into no propagation tags)
-        play: bug (work in progress)
+        akka-http:  bug (KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags)
+        jersey-grizzly2: bug (KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags)
+        play: bug (KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
