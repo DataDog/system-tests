@@ -2,7 +2,9 @@ name: Prune Injection images
 on:
   schedule:
     - cron: '15 3 * * *'
-  workflow_dispatch:
+  push:
+      # only trigger on branches, not on tags
+    branches: '**'
 
 jobs:
   prune-init-images:
