@@ -21,7 +21,6 @@ SCENARIO_APP_ENV="${DD_APP_ENV:-''}"
 echo "$SCENARIO_APP_ENV" | tr '[:space:]' '\n' > scenario_app.env
 echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
 cat scenario_app.env
-export $(cat scenario_app.env | xargs) 
 
 sudo -E docker-compose -f docker-compose.yml up -d test-app-nodejs
 
