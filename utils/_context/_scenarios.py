@@ -63,6 +63,7 @@ class ScenarioGroup(Enum):
     ELASTICMQ = "elasticmq"
     END_TO_END = "end-to-end"
     GRAPHQL = "graphql"
+    INTEGRATIONS = "integrations"
     KAFKA = "kafka"
     LIB_INJECTION = "lib-injection"
     MONGO = "mongo"
