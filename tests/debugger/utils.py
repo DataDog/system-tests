@@ -26,6 +26,10 @@ def read_probes(test_name: str):
         return json.load(f)
 
 
+def extract_probe_ids(probes):
+    return [probe["id"] for probe in probes]
+
+
 def read_diagnostic_data():
     tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
 
