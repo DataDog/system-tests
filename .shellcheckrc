@@ -2,4 +2,4 @@
 #
 # SC1091: Not following <file>
 # https://github.com/koalaman/shellcheck/wiki/SC1091
-# disable=SC1091
+disable=SC1091
