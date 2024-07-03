@@ -2226,3 +2226,23 @@ class features:
         """
         pytest.mark.features(feature_id=306)(test_object)
         return test_object
+
+    @staticmethod
+    def host_guardrail(test_object):
+        """
+        When in SSI, bail out if our version of language is incompatible.
+
+        https://feature-parity.us1.prod.dog/#/?feature=308
+        """
+        pytest.mark.features(feature_id=308)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_guardrail(test_object):
+        """
+        When in SSI, bail out if our version of language is incompatible or container is incompatible.
+
+        https://feature-parity.us1.prod.dog/#/?feature=309
+        """
+        pytest.mark.features(feature_id=309)(test_object)
+        return test_object

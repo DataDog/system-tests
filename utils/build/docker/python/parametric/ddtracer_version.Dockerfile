@@ -1,7 +1,6 @@
-FROM python:3.9-slim
+FROM ghcr.io/datadog/dd-trace-py/testrunner:9e3bd1fb9e42a4aa143cae661547517c7fbd8924
 
-# install bin dependancies
-RUN apt-get update && apt-get install -y git gcc g++ make cmake curl
+RUN pyenv global 3.9.16
 
 WORKDIR /app
 

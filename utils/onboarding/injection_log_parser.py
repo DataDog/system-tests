@@ -1,4 +1,5 @@
 import json
+import os
 
 from utils.tools import logger
 
@@ -59,7 +60,7 @@ def _parse_command(command):
         if "=" in com:
             command_args.remove(com)
             continue
-        return com, command_args
+        return os.path.basename(com), command_args
 
 
 def _get_command_props_values(command_instrumentation_desc, command_args_check):
