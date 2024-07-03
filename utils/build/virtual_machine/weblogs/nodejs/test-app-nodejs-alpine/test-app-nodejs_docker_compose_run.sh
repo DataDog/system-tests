@@ -18,7 +18,7 @@ if [ -f docker-compose-agent-prod.yml ]; then
 fi
 #Env variables set on the scenario definition. Write to file and load  
 SCENARIO_APP_ENV="${DD_APP_ENV:-''}"
-echo "${SCENARIO_APP_ENV}" > scenario_app.env
+echo "$SCENARIO_APP_ENV" | tr '[:space:]' '\n' > scenario_app.env
 echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
 cat scenario_app.env
 export $(cat scenario_app.env | xargs) 

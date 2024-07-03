@@ -2245,6 +2245,7 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=310
         """
         pytest.mark.features(feature_id=310)(test_object)
+        return test_object
 
     @staticmethod
     def host_guardrail(test_object):

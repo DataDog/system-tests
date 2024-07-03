@@ -179,7 +179,7 @@ class _VirtualMachine:
         if self.app_env:
             app_env_values = ""
             for key, value in self.app_env.items():
-                app_env_values += f"{key}={value} \r"
+                app_env_values += f"{key}={value} "
             command_env["DD_APP_ENV"] = app_env_values
 
         return command_env

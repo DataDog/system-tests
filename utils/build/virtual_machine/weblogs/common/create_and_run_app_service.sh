@@ -14,7 +14,7 @@ SCENARIO_APP_ENV="${DD_APP_ENV:-''}"
 echo "$APP_ENV" | tr '[:space:]' '\n' > /var/log/datadog_weblog/app.env
 sudo chmod 777 /var/log/datadog_weblog/app.env
 
-echo "$SCENARIO_APP_ENV" > /var/log/datadog_weblog/scenario_app.env
+echo "$SCENARIO_APP_ENV" | tr '[:space:]' '\n' > /var/log/datadog_weblog/scenario_app.env
 sudo chmod 777 /var/log/datadog_weblog/scenario_app.env
 
 echo "Using app environment variables:"
