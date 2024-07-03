@@ -233,7 +233,7 @@ class TestSimpleContainerAutoInjectManualProfiling(_AutoInjectBaseTest):
 
 @features.container_auto_instrumentation
 @scenarios.container_not_supported_auto_injection
-class _AutoInjectNotSupportedBaseTest(_AutoInjectBaseTest):
+class _AutoInjectNotSupportedBaseTest:
     """ Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
     def test_app_working(self, virtual_machine):
