@@ -13,7 +13,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
-from utils import bug, features, missing_feature, irrelevant, context, scenarios
+from utils import bug, features, missing_feature, irrelevant, flaky, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -397,7 +397,7 @@ class Test_Otel_Span_Methods:
         assert span.get("resource") == "ok_span"
 
     @bug(context.library < "ruby@2.2.0", reason="Older versions do not generate datadog spans with the correct ids")
-    @bug(
+    @flaky(
         context.library == "dotnet",
         reason="Flaky due to span order, tests should never use traces[0] when there are multiple spans",
     )
