@@ -169,32 +169,32 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         "python": [
             {
                 "ignored_args": "",
-                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
                 "ignored_args": "arg1",
-                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
                 "ignored_args": "arg12,arg2,arg44",
-                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
                 "ignored_args": "arg11, arg22,arg44",
-                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
                 "ignored_args": "--dosomething",
-                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py --dosomething yes",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py --dosomething yes",
                 "skip": True,
             },
             {
                 "ignored_args": "--dosomethingXXXX",
-                "command": "sudo -E /home/datadog/.pyenv/shims/python myscript.py --dosomething no",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py --dosomething no",
                 "skip": False,
             },
         ],
