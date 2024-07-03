@@ -973,6 +973,8 @@ class ParametricScenario(_Scenario):
                 ".",
                 "-t",
                 "ddtracer_version",
+                "--progress",
+                "plain",
                 "-f",
                 f"{tracer_version_dockerfile}",
             ]
