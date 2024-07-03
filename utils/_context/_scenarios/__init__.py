@@ -106,6 +106,7 @@ class _DockerScenario(_Scenario):
             raise ValueError("rc_api_enabled requires use_proxy")
 
         self._required_containers: list[TestedContainer] = []
+        # TODO : ADD self._database_containers: list[TestedContainer] and put all DB in it rather than _required_containers
 
         if self.use_proxy:
             self._required_containers.append(
@@ -145,15 +146,18 @@ class _DockerScenario(_Scenario):
 
     @property
     def image_list(self) -> list[str]:
-        return [container.image.name for container in self._required_containers]
+        return [container.image.name for container in self._required_containers]  # + _database_containers
 
     def configure(self, config):
         super().configure(config)
 
+        for container in reversed(self._database_containers):  # question, should it be in first ? 
+            container.configure(self.replay)
+
         for container in reversed(self._required_containers):
             container.configure(self.replay)
 
-    def get_container_by_dd_integration_name(self, name):
+    def get_container_by_dd_integration_name(self, name):  # what is used for ? 
         for container in self._required_containers:
             if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
                 return container
@@ -165,6 +169,8 @@ class _DockerScenario(_Scenario):
         if not self.replay:
             warmups.append(create_network)
 
+            warmups.append(start_db_containers_in_parallel)  # fun stuff
+
             for container in self._required_containers:
                 warmups.append(container.start)
 
@@ -174,7 +180,7 @@ class _DockerScenario(_Scenario):
         return warmups
 
     def close_targets(self):
-        for container in reversed(self._required_containers):
+        for container in reversed(self._required_containers):  # + db containers
             try:
                 container.remove()
             except:
