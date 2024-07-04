@@ -74,12 +74,18 @@ namespace weblog
             return Content($"Great success number {localValue}");
         }
 
-
         [HttpGet("expression/exception")]
         [Consumes("application/json", "application/xml")]
         public IActionResult ExpressionException()
         {
             throw new System.Exception("Hello from exception");
+        }
+
+        [HttpGet("expression/comparison-operators")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExpressionComparisonOperators(int inputValue)
+        {
+            return Content($"Input value was {inputValue}");
         }
     }
 }
