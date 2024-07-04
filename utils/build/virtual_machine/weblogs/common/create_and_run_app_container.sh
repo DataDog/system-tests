@@ -25,6 +25,6 @@ if [ -f docker-compose-agent-prod.yml ]; then
     echo "..:: DATADOG AGENT OUTPUT ::.."
     sudo docker-compose -f docker-compose-agent-prod.yml logs datadog
 fi
-echo "..:: WEBLOG APP OUTPUT ::..
+echo "..:: WEBLOG APP OUTPUT ::.."
 sudo docker-compose logs
 echo "RUN DONE"
