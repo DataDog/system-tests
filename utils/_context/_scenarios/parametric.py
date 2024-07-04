@@ -104,7 +104,8 @@ class ParametricScenario(_Scenario):
             "docker",
             "run",
             "--rm",
-            self.apm_test_server_definition.container_name,
+            "-t",
+            self.apm_test_server_definition.container_tag,
             "cat",
             "SYSTEM_TESTS_LIBRARY_VERSION",
         ]
