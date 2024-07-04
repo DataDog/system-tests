@@ -36,14 +36,23 @@ reportJunit.xml
 
 !lib-injection/build/docker/ruby/lib_injection_rails_app/bin
 !utils/build/docker/ruby/rails52/bin
-/utils/build/docker/dotnet/.vs/app/*
-/utils/build/docker/dotnet/app.csproj.user
 
 .ionide/
 
 # Visual Studio
 .vs/
-.config/dotnet-tools.json
+**/dotnet/**/*.user
+**/dotnet/**/*.suo
+*.DotSettings.user
+
+# .NET SDK
+**/dotnet/**/bin/
+**/dotnet/**/obj/
+**/dotnet/**/packages/
+**/dotnet/**/out/
+**/.config/dotnet-tools.json
+
+# Created automatically by vscode's C# extension
 /system-tests.sln
 
 # Node.js
