@@ -179,8 +179,12 @@ class _VirtualMachine:
         if self.app_env:
             app_env_values = ""
             for key, value in self.app_env.items():
-                app_env_values += f"{key}={value} \r"
+                app_env_values += f"{key}={value} "
             command_env["DD_APP_ENV"] = app_env_values
+        else:
+            # Containers are taking the generated file with this, and we need some value to be present to avoid failures like:
+            # failed to read /home/ubuntu/scenario_app.env: line 1: unexpected character "'" in variable name "''"
+            command_env["DD_APP_ENV"] = "foo=bar"
 
         return command_env
 
