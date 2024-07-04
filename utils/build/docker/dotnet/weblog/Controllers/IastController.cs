@@ -221,7 +221,7 @@ namespace weblog
         [HttpGet("hstsmissing/test_insecure")]
         public IActionResult test_insecure_hstsmissing()
         {
-            Response.Headers.Add("Strict-Transport-Security", "max-age=-3153");
+            Response.Headers["Strict-Transport-Security"] = "max-age=-3153";
             Response.Headers.Append("X-Forwarded-Proto", "https");
             return Content("Ok", "text/html");
         }
@@ -368,14 +368,14 @@ namespace weblog
         [HttpPost("header_injection/test_insecure")]
         public IActionResult test_insecure_header_injection([FromForm] string test)
         {
-            Response.Headers.Add("returnedHeaderKey", test);
+            Response.Headers["returnedHeaderKey"] = test;
             return Content("Ok");
         }
 
         [HttpPost("header_injection/test_secure")]
         public IActionResult test_secure_header_injection([FromForm] string test)
         {
-            Response.Headers.Add("returnedHeaderKey", "notTainted");
+            Response.Headers["returnedHeaderKey"] = "notTainted";
             return Content("Ok");
         }
 

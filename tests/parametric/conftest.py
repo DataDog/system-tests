@@ -106,9 +106,9 @@ def python_library_factory() -> APMLibraryTestServer:
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
+FROM ghcr.io/datadog/dd-trace-py/testrunner:9e3bd1fb9e42a4aa143cae661547517c7fbd8924
 WORKDIR /app
-RUN pyenv global 3.9.11
+RUN pyenv global 3.9.16
 RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
 COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -199,26 +199,30 @@ def dotnet_library_factory():
         container_name="dotnet-test-api",
         container_tag="dotnet8_0-test-api",
         container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
 
-RUN apt-get update && apt-get install -y dos2unix
-RUN apt-get update && apt-get install -y curl
+# `binutils` is required by 'install_ddtrace.sh' to call 'strings' command
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl binutils
 WORKDIR /app
 
 # ensure that the Datadog.Trace.dlls are installed from /binaries
 COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
-RUN dos2unix /binaries/install_ddtrace.sh
 RUN /binaries/install_ddtrace.sh
 
 # restore nuget packages
-COPY ["{dotnet_reldir}/ApmTestApi.csproj", "{dotnet_reldir}/nuget.config", "{dotnet_reldir}/*.nupkg", "./"]
+COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
 RUN dotnet restore "./ApmTestApi.csproj"
 
 # build and publish
 COPY {dotnet_reldir} ./
 RUN dotnet publish --no-restore --configuration Release --output out
-WORKDIR /app/out
 
+##################
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 as runtime
+COPY --from=build /app/out /app
+COPY --from=build /opt/datadog /opt/datadog
+WORKDIR /app
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -239,9 +243,9 @@ ENV DD_TRACE_OTEL_ENABLED=false
 # "disable" rate limiting by default by setting it to a large value
 ENV DD_TRACE_RATE_LIMIT=10000000
 
-ENTRYPOINT ["dotnet", "ApmTestApi.dll"]
+CMD ["./ApmTestApi"]
 """,
-        container_cmd=["./ApmTestApi"],
+        container_cmd=[],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes=[],

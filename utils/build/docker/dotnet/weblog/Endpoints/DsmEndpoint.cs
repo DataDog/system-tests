@@ -20,10 +20,10 @@ namespace weblog
             routeBuilder.MapGet("/dsm", async context =>
             {
                 var integration = context.Request.Query["integration"];
-                var queue = context.Request.Query["queue"];
-                var exchange = context.Request.Query["exchange"];
-                var routing_key = context.Request.Query["routing_key"];
-                var group = context.Request.Query["group"];
+                string queue = context.Request.Query["queue"]!;
+                string exchange = context.Request.Query["exchange"]!;
+                string routing_key = context.Request.Query["routing_key"]!;
+                string group = context.Request.Query["group"]!;
 
                 Console.WriteLine("Hello World! Received dsm call with integration " + integration);
                 if ("kafka".Equals(integration)) {
