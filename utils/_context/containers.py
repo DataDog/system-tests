@@ -79,15 +79,6 @@ def start_container(container, replay=False):
     container.post_start()
 
 
-# def remove_all(containers):
-#     for container in containers:
-#         thread = Thread(target = container.remove, args = (container))
-#         threads.append(thread)
-
-#     for thread in threads:
-#         thread.join()
-
-
 _VOLUME_INJECTOR_NAME = "volume-inject"
 
 
