@@ -41,11 +41,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] < 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
             assert "_dd.p.other" in span["meta"]
@@ -86,11 +82,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] < 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
             assert "_dd.p.other" in span["meta"]
@@ -131,11 +123,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] < 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
             assert "_dd.p.other" in span["meta"]
@@ -176,11 +164,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] < 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert "_dd.p.appsec" not in span["meta"]
             assert "_dd.p.other" in span["meta"]
@@ -222,11 +206,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] == 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -267,11 +247,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] == 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -311,11 +287,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] in [0, 2]
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] in [0, 2]
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] in [0, 2]
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -354,11 +326,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] in [1, 2]
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] in [1, 2]
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] in [1, 2]
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -397,11 +365,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] == 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -440,11 +404,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] == 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -483,11 +443,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] == 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
@@ -526,11 +482,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if span["metrics"].get("_sampling_priority_v1") is None:
-                assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
-            else:
-                assert span["metrics"]["_sampling_priority_v1"] == 2
-
+            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
