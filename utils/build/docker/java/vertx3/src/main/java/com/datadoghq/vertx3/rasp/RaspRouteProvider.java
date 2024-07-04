@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlValue;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.function.Consumer;
 
 public class RaspRouteProvider implements Consumer<Router> {
@@ -42,8 +43,8 @@ public class RaspRouteProvider implements Consumer<Router> {
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private void executeSql(final RoutingContext rc, final String userId) {
         try (final Connection conn = dataSource.getConnection()) {
-            final CallableStatement stmt = conn.prepareCall("select * from user where username = '" + userId + "'");
-            final ResultSet set = stmt.executeQuery();
+            final Statement stmt = conn.createStatement();
+            final ResultSet set = stmt.executeQuery("SELECT * FROM users WHERE id='" + userId + "'");
             if (set.next()) {
                 rc.response().end("ID: " + set.getLong("ID"));
             } else {
