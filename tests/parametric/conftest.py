@@ -400,7 +400,7 @@ def docker_run(
     for k, v in volumes:
         _cmd.extend(["-v", "%s:%s" % (k, v)])
     for k, v in ports:
-        _cmd.extend(["-p", "%s:%s" % (k, v)])
+        _cmd.extend(["-p", f"127.0.0.1:{k}:{v}"])
     _cmd += [image]
     _cmd.extend(cmd)
 
