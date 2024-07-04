@@ -119,7 +119,7 @@ class ParametricScenario(_Scenario):
         if result.returncode != 0:
             message = f"======== STDOUT ========\n{result.stdout.decode('utf-8')}\n\n"
             message += f"======== STDERR ========\n{result.stderr.decode('utf-8')}"
-            pytest.exit(f"Can't get the tracer version image:\n{message}", 1)
+            pytest.exit(f"Can't get the tracer version image. Please read tested container {self.apm_test_server_definition.container_tag} output:\n{message}", 1)
 
         self._library = LibraryVersion(library, result.stdout.decode("utf-8"))
 
@@ -319,6 +319,7 @@ RUN dotnet publish --no-restore --configuration Release --output out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 as runtime
 COPY --from=build /app/out /app
+COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /opt/datadog /opt/datadog
 WORKDIR /app
 
@@ -470,6 +471,7 @@ RUN cd /binaries/dd-trace-cpp \
 
 FROM ubuntu:22.04
 COPY --from=build /usr/app/bin/parametric-http-server /usr/local/bin/parametric-http-server
+COPY --from=build /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VERSION
 """
 
     return APMLibraryTestServer(
