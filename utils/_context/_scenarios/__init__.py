@@ -189,7 +189,7 @@ class _DockerScenario(_Scenario):
 
         start_parallel_containers(self._internal_containers, self.replay)
 
-    # TODO: remove in parallel
+    # TODO: remove containers in parallel
     def close_targets(self):
         for container in reversed(self.containers):
             try:
