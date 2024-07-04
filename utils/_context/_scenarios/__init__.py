@@ -16,7 +16,6 @@ from utils._context.library_version import LibraryVersion, Version
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 
 from utils._context.containers import (
-    TestedContainer,
     WeblogContainer,
     AgentContainer,
     ProxyContainer,
@@ -965,34 +964,44 @@ class ParametricScenario(_Scenario):
         parametric_appdir = os.path.join("utils", "build", "docker", os.getenv("TEST_LIBRARY"), "parametric")
         tracer_version_dockerfile = os.path.join(parametric_appdir, "ddtracer_version.Dockerfile")
         if os.path.isfile(tracer_version_dockerfile):
-            try:
-                subprocess.run(
-                    [
-                        "docker",
-                        "build",
-                        ".",
-                        "-t",
-                        "ddtracer_version",
-                        "-f",
-                        f"{tracer_version_dockerfile}",
-                        "--quiet",
-                    ],
-                    stdout=subprocess.DEVNULL,
-                    # stderr=subprocess.DEVNULL,
-                    check=True,
-                )
-                result = subprocess.run(
-                    ["docker", "run", "--rm", "-t", "ddtracer_version"],
-                    cwd=parametric_appdir,
-                    stdout=subprocess.PIPE,
-                    check=False,
-                )
-                self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
-            except subprocess.CalledProcessError as e:
-                logger.error(f"{e}")
-                raise RuntimeError(e)
+
+            logger.stdout(f"Build container to get {os.getenv('TEST_LIBRARY')} library version...")
+            # TODO : reuse the image build by the test, it'll save 4 mn on python.
+            cmd = [
+                "docker",
+                "build",
+                ".",
+                "-t",
+                "ddtracer_version",
+                "--progress",
+                "plain",
+                "-f",
+                f"{tracer_version_dockerfile}",
+            ]
+            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+
+            if result.returncode != 0:
+                message = f"======== STDOUT ========\n{result.stdout.decode('utf-8')}\n\n"
+                message += f"======== STDERR ========\n{result.stderr.decode('utf-8')}"
+                pytest.exit(f"Can't build the tracer version image:\n{message}", 1)
+
+            result = subprocess.run(
+                ["docker", "run", "--rm", "-t", "ddtracer_version"],
+                cwd=parametric_appdir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+
+            if result.returncode != 0:
+                message = f"======== STDOUT ========\n{result.stdout.decode('utf-8')}\n\n"
+                message += f"======== STDERR ========\n{result.stderr.decode('utf-8')}"
+                pytest.exit(f"Can't get the tracer version image:\n{message}", 1)
+
+            self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), result.stdout.decode("utf-8"))
         else:
             self._library = LibraryVersion(os.getenv("TEST_LIBRARY", "**not-set**"), "99999.99999.99999")
+
         logger.stdout(f"Library: {self.library}")
 
     def _get_warmups(self):

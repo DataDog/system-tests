@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -21,6 +22,7 @@ namespace weblog
         public string table{get; set;}
         public string path{get; set;}
         public string url{get; set;}
+        public string expression{get; set;}
     };
 
     public class BodyForIast
@@ -219,7 +221,7 @@ namespace weblog
         [HttpGet("hstsmissing/test_insecure")]
         public IActionResult test_insecure_hstsmissing()
         {
-            Response.Headers.Add("Strict-Transport-Security", "max-age=-3153");
+            Response.Headers["Strict-Transport-Security"] = "max-age=-3153";
             Response.Headers.Append("X-Forwarded-Proto", "https");
             return Content("Ok", "text/html");
         }
@@ -366,14 +368,14 @@ namespace weblog
         [HttpPost("header_injection/test_insecure")]
         public IActionResult test_insecure_header_injection([FromForm] string test)
         {
-            Response.Headers.Add("returnedHeaderKey", test);
+            Response.Headers["returnedHeaderKey"] = test;
             return Content("Ok");
         }
 
         [HttpPost("header_injection/test_secure")]
         public IActionResult test_secure_header_injection([FromForm] string test)
         {
-            Response.Headers.Add("returnedHeaderKey", "notTainted");
+            Response.Headers["returnedHeaderKey"] = "notTainted";
             return Content("Ok");
         }
 
@@ -642,5 +644,36 @@ namespace weblog
 
             return StatusCode(200);
         }
+		
+		private readonly string xmlContent = @"<?xml version=""1.0"" encoding=""ISO-8859-1""?>
+		<data><user><name>jaime</name><password>1234</password><account>administrative_account</account></user>
+		<user><name>tom</name><password>12345</password><account>toms_acccount</account></user>
+		<user><name>guest</name><password>anonymous1234</password><account>guest_account</account></user>
+		</data>";
+		
+        [HttpPost("xpathi/test_insecure")]
+        public IActionResult test_insecure_xpath_injection([FromForm] RequestData data)
+        {
+            
+            var findUserXPath = "/data/user[name/text()='" + data.expression + "' and password/text()='" + data.expression + "}']";
+            var doc = new XmlDocument();
+            doc.LoadXml(xmlContent);
+            var result = doc.SelectSingleNode(findUserXPath);
+            return result is null ?
+                Content($"Invalid user/password") :
+                Content($"User " + result.ChildNodes[0].InnerText + " successfully logged.");
+        }
+        
+        [HttpPost("xpathi/test_secure")]
+        public IActionResult test_secure_xpath_injection([FromForm] RequestData data)
+        {
+            var findUserXPath = "/data/user[name/text()='user' and password/text()='value']";
+            var doc = new XmlDocument();
+            doc.LoadXml(xmlContent);
+            var result = doc.SelectSingleNode(findUserXPath);
+            return result is null ?
+                Content($"Invalid user/password") :
+                Content($"User " + result.ChildNodes[0].InnerText + " successfully logged.");
+        }		
     }
 }

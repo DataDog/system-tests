@@ -121,34 +121,18 @@ def filter(keys_to_filter):
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
 class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
-    probes_state = None
-
     def _setup(self):
-
         self.expected_probe_ids = [
             "log170aa-acda-4453-9111-1478a6method",
         ]
 
-        # trick to avoid to re-run the setup function for each test: we save the result of weblog_responses/probes_state
-        # in class rather than class instance (each test got it's own class instance)
-        # and if it exists, we pick it from there
-        if Test_Debugger_PII_Redaction.probes_state is None:
-            # setup has not been run yet
+        self.rc_state = rc.send_debugger_command(probes=base.read_probes("pii"), version=1)
 
-            Test_Debugger_PII_Redaction.probes_state = rc.send_debugger_command(
-                probes=base.read_probes("pii"), version=1
-            )
-            interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-
-            Test_Debugger_PII_Redaction.weblog_responses = [weblog.get("/debugger/pii")]
-
-        # get values from class
-        self.weblog_responses = Test_Debugger_PII_Redaction.weblog_responses
-        self.probes_state = Test_Debugger_PII_Redaction.probes_state
+        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
+        self.weblog_responses = [weblog.get("/debugger/pii")]
 
     def _test(self, redacted_keys, redacted_types):
-        # apply_state is not ACKNOWLEDGED, but UNACKNOWLEDGED
-        # assert self.probes_state is not None and self.probes_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED
+        self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
 
@@ -162,6 +146,45 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
 
         self._validate_pii_keyword_redaction(redacted_keys)
         self._validate_pii_type_redaction(redacted_types)
+
+    def setup_pii_redaction_full(self):
+        self._setup()
+
+    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
+    @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
+    def test_pii_redaction_full(self):
+        self._test(REDACTED_KEYS, REDACTED_TYPES)
+
+    def setup_pii_redaction_java_1_33(self):
+        self._setup()
+
+    @irrelevant(context.library != "java@1.33", reason="not relevant for other version")
+    def test_pii_redaction_java_1_33(self):
+        self._test(
+            filter(
+                [
+                    "address",
+                    "connectionstring",
+                    "connectsid",
+                    "geolocation",
+                    "ipaddress",
+                    "oauthtoken",
+                    "secretkey",
+                    "xsrf",
+                ]
+            ),
+            REDACTED_TYPES,
+        )
+
+    def setup_pii_redaction_dotnet_2_50(self):
+        self._setup()
+
+    @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
+    @bug(
+        weblog_variant="uds" and context.library == "dotnet@2.50.0", reason="bug with UDS protocol on this version",
+    )
+    def test_pii_redaction_dotnet_2_50(self):
+        self._test(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)
 
     def _validate_pii_keyword_redaction(self, should_redact_field_names):
         agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
@@ -221,42 +244,3 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
 
         if error_message != "":
             raise ValueError(error_message)
-
-    def setup_pii_redaction_full(self):
-        self._setup()
-
-    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
-    @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
-    def test_pii_redaction_full(self):
-        self._test(REDACTED_KEYS, REDACTED_TYPES)
-
-    def setup_pii_redaction_java_1_33(self):
-        self._setup()
-
-    @irrelevant(context.library != "java@1.33", reason="not relevant for other version")
-    def test_pii_redaction_java_1_33(self):
-        self._test(
-            filter(
-                [
-                    "address",
-                    "connectionstring",
-                    "connectsid",
-                    "geolocation",
-                    "ipaddress",
-                    "oauthtoken",
-                    "secretkey",
-                    "xsrf",
-                ]
-            ),
-            REDACTED_TYPES,
-        )
-
-    def setup_pii_redaction_dotnet_2_50(self):
-        self._setup()
-
-    @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
-    @bug(
-        weblog_variant="uds" and context.library == "dotnet@2.50.0", reason="bug with UDS protocol on this version",
-    )
-    def test_pii_redaction_dotnet_2_50(self):
-        self._test(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)
