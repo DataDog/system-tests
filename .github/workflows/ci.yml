@@ -128,6 +128,7 @@ jobs:
       scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
       binaries_artifact: ${{ matrix.version == 'dev' && format('binaries_dev_{0}', matrix.library) || '' }}
       ci_environment: ${{ matrix.version }}
+      build_nodejs_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-nodejs-base-images') }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}

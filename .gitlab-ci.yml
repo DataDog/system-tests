@@ -274,6 +274,7 @@ generate_system_tests_images:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
       - ./utils/build/build_tracer_buddies.sh --push
+      - ./utils/build/build_nodejs_base_images.sh --push
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual

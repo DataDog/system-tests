@@ -1,6 +1,4 @@
-FROM node:18-alpine
-
-RUN apk add --no-cache bash curl git jq
+FROM datadog/system-tests:express4.base-v0
 
 RUN uname -r
 
