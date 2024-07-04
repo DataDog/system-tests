@@ -35,7 +35,10 @@ class BaseDbIntegrationsTestClass:
                 "/db", params={"service": self.db_service, "operation": db_operation}
             )
         if self.db_service == "mssql":
-            logger.debug("RMM Perform select query for mssql .....")
+            # Nodejs opentelemetry-instrumentation-mssql is too old and select query is not tracer allways
+            # see https://github.com/mnadeem/opentelemetry-instrumentation-mssql
+            # Retry to avoid flakyness
+            logger.debug("Retry select query for mssql .....")
             BaseDbIntegrationsTestClass.requests[self.db_service]["select"] = weblog.get(
                 "/db", params={"service": self.db_service, "operation": "select"}
             )
