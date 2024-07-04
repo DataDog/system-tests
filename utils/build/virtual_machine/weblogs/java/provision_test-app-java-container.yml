@@ -16,17 +16,20 @@ weblog:
     install:
       - os_type: linux
         copy_files:
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/test-app-java_docker_compose_run.sh
+
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-file
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/Dockerfile.jdk11
             remote_path: Dockerfile.template
-
+            
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
-        remote-command: sh test-app-java_docker_compose_run.sh
+        remote-command: |
+          ./gradlew build
+          sh create_and_run_app_container.sh

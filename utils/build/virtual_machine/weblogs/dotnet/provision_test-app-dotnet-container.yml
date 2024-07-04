@@ -4,13 +4,13 @@ weblog:
     install: 
       - os_type: linux
         copy_files:
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-container/test-app-dotnet_docker_compose_run.sh
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-container/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
           - name: copy-dotnet-app
             local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
 
-        remote-command: sh test-app-dotnet_docker_compose_run.sh
+        remote-command: sh create_and_run_app_container.sh

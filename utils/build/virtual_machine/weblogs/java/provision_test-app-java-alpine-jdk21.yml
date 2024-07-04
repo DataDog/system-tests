@@ -27,8 +27,11 @@ weblog:
           - name: copy-entrypoint-docker
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/docker_entrypoint_docker.sh
 
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
