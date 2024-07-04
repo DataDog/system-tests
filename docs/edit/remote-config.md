@@ -105,7 +105,7 @@ Arguments:
     wait_for_acknowledge_status
         If True, waits for the config to be acknowledged by the library.
         Else, only wait for the next request sent to /v0.7/config
-        
+
 ## Assertions
 
 During the test phase `interfaces.library` offers some helpers to perform high level assertions
@@ -124,7 +124,7 @@ Very simplified version of the assert_rc_targets_version_states
 
 Check that for a given targets_version, the config states is the one expected
 
-Example : 
+Example :
 
 ``` python
 interfaces.library.assert_rc_targets_version_states(
