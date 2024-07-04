@@ -173,20 +173,21 @@ class _DockerScenario(_Scenario):
 
         if not self.replay:
             warmups.append(create_network)
-            warmups.append(self._start_containers)
+
+        warmups.append(self._start_containers)
 
         return warmups
 
     def _start_containers(self):
-        required_thread = Thread(target=start_parallel_containers, args=(self._external_containers,))
+        required_thread = Thread(target=start_parallel_containers, args=(self._external_containers, self.replay,))
         required_thread.start()
-        external_thread = Thread(target=start_sequential_containers, args=(self._required_containers,))
+        external_thread = Thread(target=start_sequential_containers, args=(self._required_containers, self.replay))
         external_thread.start()
 
         required_thread.join()
         external_thread.join()
 
-        start_parallel_containers(self._internal_containers)
+        start_parallel_containers(self._internal_containers, self.replay)
 
     # TODO: remove in parallel
     def close_targets(self):

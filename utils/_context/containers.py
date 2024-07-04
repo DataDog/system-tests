@@ -55,16 +55,16 @@ def create_network():
     _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
-def start_sequential_containers(containers):
+def start_sequential_containers(containers, replay):
     for container in containers:
-        start_container(container)
+        start_container(container, replay)
 
 
-def start_parallel_containers(containers):
+def start_parallel_containers(containers, replay):
     threads = []
 
     for container in containers:
-        thread = Thread(target=start_container, args=(container,))
+        thread = Thread(target=start_container, args=(container, replay,))
         thread.start()
         threads.append(thread)
 
@@ -72,8 +72,10 @@ def start_parallel_containers(containers):
         thread.join()
 
 
-def start_container(container):
-    container.start()
+def start_container(container, replay=False):
+    if not replay:
+        container.start()
+
     container.post_start()
 
 
