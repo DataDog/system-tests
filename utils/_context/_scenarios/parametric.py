@@ -414,6 +414,7 @@ RUN composer install
 ADD {php_reldir}/../common/install_ddtrace.sh .
 COPY binaries /binaries
 RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
+RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
 ADD {php_reldir}/server.php .
 """,
         container_cmd=["php", "server.php"],
