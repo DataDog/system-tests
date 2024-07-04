@@ -12,7 +12,7 @@ public class RequestBodyModel
 
 public class RequestMailModel
 {
-    public string mail { get; set; }
+    public string? mail { get; set; }
 }
 
 public class KeyValueItem

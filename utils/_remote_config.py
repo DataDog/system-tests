@@ -41,6 +41,7 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
     client_configs = raw_payload.get("client_configs", [])
 
     current_states = {}
+    version = None
     if len(client_configs) == 0:
         if wait_for_acknowledged_status:
             raise ValueError("Empty client config list is not supported with wait_for_acknowledged_status=True")
