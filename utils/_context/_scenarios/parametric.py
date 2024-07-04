@@ -98,7 +98,11 @@ class ParametricScenario(_Scenario):
         }[library]
 
         self.apm_test_server_definition = factory()
-        self._build_apm_test_server_image()
+
+        if not hasattr(config, "workerinput"):
+            # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
+            # we are in the main worker, not in a xdist sub-worker
+            self._build_apm_test_server_image()
 
         command = [
             "docker",
