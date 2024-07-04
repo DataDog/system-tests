@@ -100,28 +100,30 @@ class ParametricScenario(_Scenario):
         self.apm_test_server_definition = factory()
         self._build_apm_test_server_image()
 
+        command = [
+            "docker",
+            "run",
+            "--rm",
+            self.apm_test_server_definition.container_name,
+            "cat",
+            "SYSTEM_TESTS_LIBRARY_VERSION",
+        ]
+
+        logger.debug(f"Get library version: {' '.join(command)}")
         result = subprocess.run(
-            [
-                "docker",
-                "run",
-                "--rm",
-                "-t",
-                self.apm_test_server_definition.container_tag,
-                "cat",
-                "SYSTEM_TESTS_LIBRARY_VERSION",
-            ],
-            cwd=parametric_appdir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
+            command, cwd=parametric_appdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
         )
 
         if result.returncode != 0:
             message = f"======== STDOUT ========\n{result.stdout.decode('utf-8')}\n\n"
             message += f"======== STDERR ========\n{result.stderr.decode('utf-8')}"
-            pytest.exit(f"Can't get the tracer version image. Please read tested container {self.apm_test_server_definition.container_tag} output:\n{message}", 1)
+            pytest.exit(
+                f"Can't get the tracer version image. Please read tested container {self.apm_test_server_definition.container_tag} output:\n{message}",
+                1,
+            )
 
         self._library = LibraryVersion(library, result.stdout.decode("utf-8"))
+        logger.debug(f"Library version is {self._library}")
 
     def _get_warmups(self):
         result = super()._get_warmups()
@@ -187,6 +189,8 @@ class ParametricScenario(_Scenario):
                 log_file.seek(0)
                 failure_text = "".join(log_file.readlines())
                 pytest.exit(f"Failed to build the container: {failure_text}", 1)
+
+            logger.debug("Build tested container finished")
 
 
 def _get_base_directory():
@@ -363,6 +367,7 @@ def java_library_factory():
     java_reldir = java_appdir.replace("\\", "/")
     protofile = os.path.join("utils", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
 
+    # TODO : use official install_ddtrace.sh
     return APMLibraryTestServer(
         lang="java",
         protocol="grpc",
@@ -372,6 +377,7 @@ def java_library_factory():
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
 RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
+RUN java -jar ./tracer/dd-java-agent.jar > SYSTEM_TESTS_LIBRARY_VERSION
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
