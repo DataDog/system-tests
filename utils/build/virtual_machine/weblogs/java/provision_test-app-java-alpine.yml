@@ -16,8 +16,6 @@ weblog:
     install:
       - os_type: linux
         copy_files:
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/test-app-java_docker_compose_run.sh
 
           - name: copy-docker-file
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/Dockerfile.alpine
@@ -35,4 +33,6 @@ weblog:
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
-        remote-command: sh test-app-java_docker_compose_run.sh
+        remote-command: |
+          ./gradlew build
+          sh create_and_run_app_container.sh

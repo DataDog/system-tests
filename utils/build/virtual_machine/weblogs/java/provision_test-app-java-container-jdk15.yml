@@ -34,4 +34,6 @@ weblog:
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
 
-        remote-command: sh create_and_run_app_container.sh
+        remote-command: |
+          ./gradlew build
+          sh create_and_run_app_container.sh
