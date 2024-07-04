@@ -1,7 +1,47 @@
-The RC API is the official way to interact with remote config. It allows to send RC payload to the library durint setup phase, and send request before/after each state change.
+The RC API is the official way to interact with remote config. It allows to build and send RC payloads to the library durint setup phase, and send request before/after each state change.
+
+## Building RC payload
+
+### Example
+
+``` python
+from utils import remote_config
+
+
+command = remote_config.RemoteConfigCommand(version=1)
+
+config = {
+    "rules_data": [
+        {
+            "id": "blocked_ips",
+            "type": "ip_with_expiration",
+            "data": [{"value": BLOCKED_IP, "expiration": 9999999999}],
+        },
+    ]
+}
+
+command.add_client_config(f"datadog/2/ASM_DATA-base/ASM_DATA-base/config", config)
+```
+
+### API
+
+#### class `remote_config.RemoteConfigCommand`
+
+This class will be serialized as a valid `ClientGetConfigsResponse`.
+
+* constructor `__init__(self, version: int, client_configs=(), expires=None)`
+  * `version: int`: `version` property of `signed` object
+  * `client_configs`[optional]: list of configuration path / config object.
+  * `expires` [optional]: expiration date of the config (default `3000-01-01T00:00:00Z`)
+* `add_client_config(self, path, config) -> ClientConfig:`
+  * `path`: configuration path
+  * `config`: config object
+* `send()`: send the command using the `send_command` function (see below)
 
 
 ## Sending command
+
+### Example
 
 Here is an example a scenario activating/deactivating ASM:
 
@@ -12,7 +52,7 @@ Here is an example a scenario activating/deactivating ASM:
 5. a thirst request containing an attack is sent, this last one should not be seen
 
 
-Here is the test code performing that test. Please note variables `activate_ASM_command` and `deactivate_ASM_command`: see the next paragrpah to understand how to build them.
+Here is the test code performing that test. Please note variables `activate_ASM_command` and `deactivate_ASM_command`: see the previous paragraph to understand how to build them.
 
 ```python
 from utils import weblog, interfaces, scenarios, remote_config
@@ -46,43 +86,56 @@ class Test_RemoteConfigSequence:
 
 To use this feature, you must use an `EndToEndScenario` with `rc_api_enabled=True`.
 
-## Crafting commands
+### API
 
-Building remote config command is not an easy task. System-tests provides an high level API that allow you to easily craft those commands. Here is an example :
+#### `send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]`
 
+Sends a remote config payload to the library and waits for the config to be applied.
+Then returns a dictionary with the state of each requested file as returned by the library.
+
+The dictionary keys are the IDs from the files that can be extracted from the path,
+e.g: datadog/2/ASM_FEATURES/asm_features_activation/config => asm_features_activation
+and the values contain the actual state for each file:
+
+1. a config state acknowledging the config
+2. else if not acknowledged, the last config state received
+3. if no config state received, then a hardcoded one with apply_state=UNKNOWN
+
+Arguments:
+    wait_for_acknowledge_status
+        If True, waits for the config to be acknowledged by the library.
+        Else, only wait for the next request sent to /v0.7/config
+        
+## Assertions
+
+During the test phase `interfaces.library` offers some helpers to perform high level assertions
+
+### `interfaces.library.assert_rc_apply_state`
+
+Check that all config_id/product have the expected apply_state returned by the library
+Very simplified version of the assert_rc_targets_version_states
+
+* `product`: product part of the configuration path
+* `config_id`: config_id part of the configuration path
+* `apply_state`: expected apply_state for this config.
+
+
+### `interfaces.library.assert_rc_targets_version_states`
+
+Check that for a given targets_version, the config states is the one expected
+
+Example : 
 
 ``` python
-from utils import remote_config, interfaces
-
-
-class Test_RemoteConfig:
-    BLOCKED_IP = "1.2.3.4"
-    PRODUCT_ID = "ASM_DATA"
-    CONFIG_ID = "ASM_DATA-base"
-
-    TARGETS_VERSION = 42
-
-    def setup_main(self):
-        config = {
-            "rules_data": [
-                {
-                    "id": "blocked_ips",
-                    "type": "ip_with_expiration",
-                    "data": [{"value": BLOCKED_IP, "expiration": 9999999999}],
-                },
-            ]
+interfaces.library.assert_rc_targets_version_states(
+    targets_version=self.TARGETS_VERSION,
+    config_states=[
+        {
+            "id": "ASM_DATA-base",
+            "version": 1,
+            "product": "ASM_DATA",
+            "apply_state": RemoteConfigApplyState.ACKNOWLEDGED.value,
         }
-
-        command = remote_config.RemoteConfigCommand(version=self.TARGETS_VERSION)
-        command.add_client_config(f"datadog/2/{self.PRODUCT_ID}/{self.CONFIG_ID}/config", config)
-
-        command.send()
-
-        self.blocked_request = weblog.get(headers={"X-Forwarded-For": BLOCKED_IP})
-
-    def test_main(self):
-        interfaces.library.assert_rc_apply_state(self.PRODUCT_ID, self.CONFIG_ID, RemoteConfigApplyState.ACKNOWLEDGED)
-        assert self.blocked_request.status_code == 403
-        interfaces.library.assert_waf_attack(self.blocked_request)
+    ],
+)
 ```
-
