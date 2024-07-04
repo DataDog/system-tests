@@ -34,6 +34,11 @@ class BaseDbIntegrationsTestClass:
             BaseDbIntegrationsTestClass.requests[self.db_service][db_operation] = weblog.get(
                 "/db", params={"service": self.db_service, "operation": db_operation}
             )
+        if self.db_service == "mssql":
+            logger.debug("RMM Perform select query for mssql .....")
+            BaseDbIntegrationsTestClass.requests[self.db_service]["select"] = weblog.get(
+                "/db", params={"service": self.db_service, "operation": "select"}
+            )
 
     # Setup methods. We set here to avoid duplication in child classes, even if some test metohs doesn't exists
     setup_properties = _setup
