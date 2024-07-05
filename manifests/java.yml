@@ -382,7 +382,11 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_span_tags.py: missing_feature
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson: v1.38.0
+        Test_Sqli_BodyUrlEncoded: v1.38.0
+        Test_Sqli_BodyXml: v1.38.0
+        Test_Sqli_UrlQuery: v1.38.0
       test_ssrf.py: missing_feature
       test_stack_traces.py: missing_feature
     waf/:
