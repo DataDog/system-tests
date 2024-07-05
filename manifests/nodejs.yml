@@ -275,7 +275,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
     test_automated_login_events.py:
       Test_Login_Events:
         '*': *ref_4_4_0
@@ -318,7 +318,6 @@ tests/:
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
       Test_RuleSet_1_3_1: v2.5.0
-      Test_StaticRuleSet: v2.0.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
       Test_MissingRules: missing_feature
