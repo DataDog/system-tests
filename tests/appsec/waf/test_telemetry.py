@@ -75,40 +75,6 @@ class Test_TelemetryMetrics:
         p = s["points"][0]
         assert p[1] == 1
 
-    setup_metric_waf_updates = _setup
-
-    @irrelevant(reason="Test not implemented")
-    @bug(context.library < "java@1.13.0", reason="Missing tags")
-    def test_metric_waf_updates(self):
-        """Test waf.updates metric."""
-        expected_metric_name = "waf.updates"
-        mandatory_tag_prefixes = {
-            "waf_version",
-            "event_rules_version",
-        }
-        valid_tag_prefixes = {
-            "waf_version",
-            "event_rules_version",
-            "version",
-            "lib_language",
-        }
-        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
-        assert len(series) == 1
-        s = series[0]
-        assert s["_computed_namespace"] == "appsec"
-        assert s["metric"] == expected_metric_name
-        assert s["common"] is True
-        assert s["type"] == "count"
-
-        full_tags = set(s["tags"])
-        self._assert_valid_tags(
-            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
-        )
-
-        assert len(s["points"]) == 1
-        p = s["points"][0]
-        assert p[1] == 1
-
     setup_metric_waf_requests = _setup
 
     @bug(context.library < "java@1.13.0", reason="Missing tags")

@@ -227,7 +227,6 @@ tests/:
       Test_AppSecObfuscator: v2.7.0
       Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v2.5.1
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v2.50.0
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
