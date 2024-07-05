@@ -84,10 +84,6 @@ class Test_Login_Events:
         context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
         reason="APM reports all user id for now on Django",
     )
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -115,10 +111,6 @@ class Test_Login_Events:
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
@@ -138,8 +130,8 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -155,16 +147,12 @@ class Test_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -183,8 +171,8 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
@@ -200,16 +188,12 @@ class Test_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
@@ -241,10 +225,6 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -279,10 +259,6 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -375,10 +351,6 @@ class Test_Login_Events_Extended:
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
@@ -410,8 +382,8 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -440,8 +412,8 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -469,8 +441,8 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library == "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library == "nodejs" or context.library == "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
             else:
@@ -488,16 +460,12 @@ class Test_Login_Events_Extended:
         self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
@@ -534,10 +502,6 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -555,10 +519,6 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -595,7 +555,6 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(library="dotnet")
-    @missing_feature(library="java")
     @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
@@ -620,7 +579,6 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(library="dotnet")
-    @missing_feature(library="java")
     @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
@@ -704,10 +662,6 @@ class Test_V2_Login_Events:
     def setup_login_pii_success_basic(self):
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -743,10 +697,6 @@ class Test_V2_Login_Events:
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
@@ -769,8 +719,8 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -786,16 +736,12 @@ class Test_V2_Login_Events:
             "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}
         )
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -815,13 +761,17 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
             assert "appsec.events.users.login.failure.usr.id" in meta
-            assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+            if context.library == "java":
+                # in case of failure java only has access to the original username sent in the request
+                assert meta["appsec.events.users.login.failure.usr.id"] == "test"
+            else:
+                assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
             # deprecated
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
@@ -834,21 +784,21 @@ class Test_V2_Login_Events:
             "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs":
-                # Currently in nodejs there is no way to check if the user exists upon authentication failure so
+            if context.library != "nodejs" and context.library != "java":
+                # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
             assert "appsec.events.users.login.failure.usr.id" in meta
-            assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+            if context.library == "java":
+                # in case of failure java only has access to the original username sent in the request
+                assert meta["appsec.events.users.login.failure.usr.id"] == "test"
+            else:
+                assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
@@ -877,10 +827,6 @@ class Test_V2_Login_Events:
             headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
         )
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -914,10 +860,6 @@ class Test_V2_Login_Events:
             headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -950,6 +892,7 @@ class Test_V2_Login_Events_Anon:
 
     USER = "test"
     USER_HASH = "anon_5f31ffaf95946d2dc703ddc96a100de5"
+    USERNAME_HASH = "anon_9f86d081884c7d659a2feaa0c55ad015"
     UUID_USER = "testuuid"
     PASSWORD = "1234"
 
@@ -1002,10 +945,6 @@ class Test_V2_Login_Events_Anon:
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
@@ -1048,10 +987,6 @@ class Test_V2_Login_Events_Anon:
             "/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}
         )
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -1076,11 +1011,19 @@ class Test_V2_Login_Events_Anon:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            if context.library != "java":
+                # Currently in java there is no way to check if the user exists upon authentication failure so
+                # this assertion is disabled for this library.
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
-            assert meta["appsec.events.users.login.failure.usr.id"] == self.USER_HASH
+            if context.library == "java":
+                # in case of failure java only has access to the original username sent in the request
+                assert meta["appsec.events.users.login.failure.usr.id"] == self.USERNAME_HASH
+            else:
+                assert meta["appsec.events.users.login.failure.usr.id"] == self.USER_HASH
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
@@ -1089,19 +1032,23 @@ class Test_V2_Login_Events_Anon:
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            if context.library != "java":
+                # Currently in java there is no way to check if the user exists upon authentication failure so
+                # this assertion is disabled for this library.
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
-            assert meta["appsec.events.users.login.failure.usr.id"] == self.USER_HASH
+            if context.library == "java":
+                # in case of failure java only has access to the original username sent in the request
+                assert meta["appsec.events.users.login.failure.usr.id"] == self.USERNAME_HASH
+            else:
+                assert meta["appsec.events.users.login.failure.usr.id"] == self.USER_HASH
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
@@ -1129,10 +1076,6 @@ class Test_V2_Login_Events_Anon:
             headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
         )
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -1149,10 +1092,6 @@ class Test_V2_Login_Events_Anon:
             headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
         )
 
-    @irrelevant(
-        context.library == "java",
-        reason="Basic auth makes insecure protocol test fail due to dedup, fixed in the next tracer release",
-    )
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):

@@ -321,7 +321,6 @@ class Test_MetaDatadogTags:
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
-    @bug(context.library >= "java@1.3.0", reason="process_id set as tag, not metric")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
         spans = [s for _, s in interfaces.library.get_root_spans()]

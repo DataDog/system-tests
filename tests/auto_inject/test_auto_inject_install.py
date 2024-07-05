@@ -210,6 +210,13 @@ class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
+@features.container_auto_installation_script_profiling
+@scenarios.container_auto_injection_install_script_profiling
+class TestContainerAutoInjectInstallScriptProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine, profile=True)
+
+
 @features.container_auto_instrumentation
 @scenarios.simple_container_auto_injection
 class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
@@ -217,9 +224,14 @@ class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
-@features.container_auto_instrumentation
-@scenarios.container_not_supported_auto_injection
-class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
+@features.container_auto_instrumentation_profiling
+@scenarios.simple_container_auto_injection_profiling
+class TestSimpleContainerAutoInjectManualProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine, profile=True)
+
+
+class _AutoInjectNotSupportedBaseTest:
     """ Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
     def test_app_working(self, virtual_machine):
@@ -235,6 +247,18 @@ class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
         logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
         request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Http request done for ip [{vm_ip}]")
+
+
+@features.container_guardrail
+@scenarios.container_not_supported_auto_injection
+class TestContainerNotSupported(_AutoInjectNotSupportedBaseTest):
+    pass
+
+
+@features.host_guardrail
+@scenarios.host_not_supported_auto_injection
+class TestHostNotSupported(_AutoInjectNotSupportedBaseTest):
+    pass
 
 
 @features.host_auto_instrumentation

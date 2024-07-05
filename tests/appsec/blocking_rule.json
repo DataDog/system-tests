@@ -208,7 +208,7 @@
                 ]
               }
             ],
-            "regex": "en-us|krypton"
+            "regex": "fo-fo|krypton"
           },
           "operator": "match_regex",
           "options": {

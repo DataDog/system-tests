@@ -24,16 +24,16 @@ class TestNoHttponlyCookie(BaseSinkTest):
     def setup_empty_cookie(self):
         self.request_empty_cookie = weblog.get("/iast/no-httponly-cookie/test_empty_cookie", data={})
 
-    @missing_feature(library="java", reason="Endpoint not implemented")
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)
 
-    @missing_feature(library="java", reason="Metrics not implemented")
+    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     @missing_feature(library="python", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(library="java", reason="Metrics not implemented")
+    @missing_feature(context.library < "java@1.22.0", reason="Metric not implemented")
+    @missing_feature(weblog_variant="vertx4", reason="Metric not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()

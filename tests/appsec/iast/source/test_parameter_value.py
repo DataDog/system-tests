@@ -40,9 +40,6 @@ class TestParameterValue(BaseSourceTest):
 
     @missing_feature(context.library < "java@1.9.0", reason="Not implemented")
     @missing_feature(
-        context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented"
-    )
-    @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",
     )

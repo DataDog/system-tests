@@ -1,31 +1,37 @@
+import base64
 import json
-import http.client
 import logging
 import os
 import random
 import subprocess
 import sys
 import typing
-import xmltodict
-import requests
 
 import fastapi
+from fastapi import Cookie
+from fastapi import FastAPI
+from fastapi import Form
+from fastapi import Header
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.responses import PlainTextResponse
+from iast import weak_cipher
+from iast import weak_cipher_secure_algorithm
+from iast import weak_hash
+from iast import weak_hash_duplicates
+from iast import weak_hash_multiple
+from iast import weak_hash_secure_algorithm
 import psycopg2
+from pydantic import BaseModel
 import requests
 import urllib3
-from ddtrace import Pin, tracer, patch_all
+import xmltodict
+
+from ddtrace import Pin
+from ddtrace import patch_all
+from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from fastapi import Cookie, FastAPI, Form, Header, Request
-from fastapi.responses import JSONResponse, PlainTextResponse
-from iast import (
-    weak_cipher,
-    weak_cipher_secure_algorithm,
-    weak_hash,
-    weak_hash_duplicates,
-    weak_hash_multiple,
-    weak_hash_secure_algorithm,
-)
-from pydantic import BaseModel
+
 
 patch_all(urllib3=True)
 
@@ -47,7 +53,7 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, _):
-    logger.critical(f"request {request.url} failed with 404")
+    logger.critical("request %s failed with 404", request.url)
     return JSONResponse({"error": 404}, status_code=404)
 
 
@@ -163,12 +169,12 @@ async def rasp_ssrf(request: Request):
             return PlainTextResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
     except Exception as e:
         print(repr(e), file=sys.stderr)
-    return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
+        return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
 
 
 @app.get("/rasp/sqli")
 @app.post("/rasp/sqli")
-async def rasp_ssrf(request: Request):
+async def rasp_sqli(request: Request):
     user_id = None
     if request.method == "GET":
         user_id = request.query_params.get("user_id")
@@ -191,8 +197,8 @@ async def rasp_ssrf(request: Request):
         import sqlite3
 
         DB = sqlite3.connect(":memory:")
-        print(f"SELECT * FROM users WHERE {user_id}")
-        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
+        print(f"SELECT * FROM users WHERE id='{user_id}'")
+        cursor = DB.execute(f"SELECT * FROM users WHERE id='{user_id}'")
         print("DB request with {len(list(cursor))} results")
         return PlainTextResponse(f"DB request with {len(list(cursor))} results")
     except Exception as e:
@@ -330,7 +336,7 @@ def view_weak_cipher_secure():
     return "OK"
 
 
-def _sink_point(table="user", id="1"):
+def _sink_point(table="user", id="1"):  # noqa: A002
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
@@ -435,6 +441,56 @@ def track_user_login_failure_event():
         tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
     )
     return "OK"
+
+
+@app.get("/login")
+@app.post("/login")
+async def login(request: Request):
+    # FakeDB
+    DB_USER = {
+        "test": ("social-security-id", "test", "1234", "testuser@ddog.com"),
+        "testuuid": ("591dc126-8431-4d0f-9509-b23318d3dce4", "testuuid", "1234", "testuseruuid@ddog.com"),
+    }
+
+    def check(username, password):
+        if username in DB_USER:
+            return (DB_USER[username][2] == password), DB_USER[username][0]
+        return False, None
+
+    form = (await request.form()) or {}
+
+    username = form.get("username")
+    password = form.get("password")
+    sdk_event = request.query_params.get("sdk_event")
+    if sdk_event:
+        sdk_user = request.query_params.get("sdk_user")
+        sdk_mail = request.query_params.get("sdk_mail")
+        sdk_user_exists = request.query_params.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
+            return PlainTextResponse("OK")
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
+            )
+            return PlainTextResponse("login failure", status_code=401)
+    authorisation = request.headers.get("Authorization")
+    if authorisation:
+        username, password = base64.b64decode(authorisation[6:]).decode().split(":")
+    success, user_id = check(username, password)
+    if success:
+        # login_user(user)
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user_id, login_events_mode="auto")
+        return PlainTextResponse("OK")
+    elif user_id:
+        appsec_trace_utils.track_user_login_failure_event(
+            tracer, user_id=user_id, exists=True, login_events_mode="auto",
+        )
+    else:
+        appsec_trace_utils.track_user_login_failure_event(
+            tracer, user_id=username, exists=False, login_events_mode="auto"
+        )
+    return PlainTextResponse("login failure", status_code=401)
 
 
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"

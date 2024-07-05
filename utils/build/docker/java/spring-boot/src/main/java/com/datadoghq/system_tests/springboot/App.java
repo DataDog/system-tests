@@ -11,6 +11,7 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
+import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -670,36 +671,6 @@ public class App {
         return "hi OGNL";
     }
 
-    // E.g. curl "http://localhost:8080/sqli?q=%271%27%20union%20select%20%2A%20from%20display_names"
-    @RequestMapping("/rasp/sqli")
-    String raspSQLi(@RequestParam(required = false, name="q") String param) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        // NOTE: see README.md for setting up the docker image to quickly test this
-        String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
-        try (Connection pgConn = DriverManager.getConnection(url)) {
-            String query = "SELECT * FROM display_names WHERE full_name = ";
-            Statement st = pgConn.createStatement();
-            ResultSet rs = st.executeQuery(query + param);
-
-            int i = 0;
-            while (rs.next()) {
-                i++;
-            }
-            System.out.printf("Read %d rows", i);
-            rs.close();
-            st.close();
-        } catch (SQLException e) {
-            e.printStackTrace(System.err);
-            return "pgsql exception :(";
-        }
-
-        return "Done SQL injection with param: " + param;
-    }
-
     @RequestMapping("/rasp/ssrf")
     String raspSSRF(@RequestParam(required = false, name="url") String url) {
         final Span span = GlobalTracer.get().activeSpan();
@@ -940,6 +911,18 @@ public class App {
 
         return "OK";
     }
+
+    @GetMapping(value = "/requestdownstream")
+    public String requestdownstream(HttpServletResponse response) throws IOException {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GetMapping(value = "/returnheaders", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> returnheaders(@RequestHeader Map<String, String> headers) {
+        return ResponseEntity.ok(headers);
+    }
+
 
     @Bean
     @ConditionalOnProperty(

@@ -46,7 +46,7 @@ pylint utils  # pylint does not have a fix mode
 
 # not py, as it's handled by black
 INCLUDE_EXTENSIONS=("*.md" "*.yml" "*.yaml" "*.sh" "*.cs" "*.Dockerfile" "*.java" "*.sql" "*.ts" "*.js" "*.php")
-EXCLUDE_DIRS=("logs*" "*/node_modules/*" "./venv/*" "./utils/build/virtual_machine/*")
+EXCLUDE_DIRS=("logs*" "*/node_modules/*" "./venv/*" "./utils/build/virtual_machine/*" "./binaries/*")
 
 INCLUDE_ARGS=()
 for ext in "${INCLUDE_EXTENSIONS[@]}"; do
@@ -73,7 +73,10 @@ _sed_i() {
 
 if [ "$COMMAND" == "fix" ]; then
   echo "$FILES" | while read file ; do
-    _sed_i 's/  *$//g' "$file"
+    if [ $FILES ]; then
+      echo "Fixing $file"
+      _sed_i 's/  *$//g' "$file"
+    fi
   done
 else
   if [ -n "$FILES" ]; then
