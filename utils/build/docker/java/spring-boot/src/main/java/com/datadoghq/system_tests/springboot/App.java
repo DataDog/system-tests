@@ -11,6 +11,7 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
+import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -910,6 +911,18 @@ public class App {
 
         return "OK";
     }
+
+    @GetMapping(value = "/requestdownstream")
+    public String requestdownstream(HttpServletResponse response) throws IOException {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GetMapping(value = "/returnheaders", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> returnheaders(@RequestHeader Map<String, String> headers) {
+        return ResponseEntity.ok(headers);
+    }
+
 
     @Bean
     @ConditionalOnProperty(

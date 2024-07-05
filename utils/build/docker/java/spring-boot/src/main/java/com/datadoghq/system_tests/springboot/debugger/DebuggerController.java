@@ -73,4 +73,9 @@ public class DebuggerController {
     public Void expressionException() {
         throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Hello from exception");
     }
+
+    @GetMapping("/expression/comparison-operators")
+    public String expressionComparisonOperators(@RequestParam int inputValue) {
+        return "Input value was " + inputValue;
+    }
 }

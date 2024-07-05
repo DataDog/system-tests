@@ -9,9 +9,9 @@ namespace weblog
         {
             routeBuilder.MapGet("/headers", async context =>
             {
-                context.Response.Headers.Add("content-type", "text");
-                context.Response.Headers.Add("content-length", "16");
-                context.Response.Headers.Add("content-language", "en-US");
+                context.Response.Headers["content-type"] = "text";
+                context.Response.Headers["content-length"] = "16";
+                context.Response.Headers["content-language"] = "en-US";
                 await context.Response.WriteAsync("Hello headers!\\n");
             });
         }

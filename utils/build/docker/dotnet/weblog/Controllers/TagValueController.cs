@@ -18,7 +18,7 @@ namespace weblog
 
             if (!string.IsNullOrWhiteSpace(contentLang))
             {
-                HttpContext.Response.Headers.Add(contentLangHeader, contentLang);
+                HttpContext.Response.Headers[contentLangHeader] = contentLang;
             }
         }
 
@@ -28,7 +28,7 @@ namespace weblog
         {
             DoHeaders();
 
-            if (tag != null)
+            if (tag != null!)
             {
                 var details = new Dictionary<string, string>()
                 {
