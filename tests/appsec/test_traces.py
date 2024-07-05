@@ -328,6 +328,7 @@ class Test_CollectDefaultRequestHeader:
 class Test_DistributedTraceInfo:
     """Distributed traces info (Services, URL, trace id)"""
 
+    @irrelevant(True, reason="test non implemented")
     def test_main(self):
         assert False, "Test not implemented"
 
