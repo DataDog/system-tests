@@ -10,7 +10,7 @@ rm -rf Dockerfile || true
 cp Dockerfile.template Dockerfile || true
 
 #The parameter RUNTIME is used only for dotnet
-sudo docker build --no-cache -t --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
+sudo docker build --no-cache --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
 
 if [ -f docker-compose-agent-prod.yml ]; then
     # Agent may be installed in a different way
