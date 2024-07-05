@@ -26,6 +26,12 @@ import java.net.URL;
 import java.util.Map;
 import java.util.List;
 import ratpack.util.MultiValueMap;
+import ratpack.handling.Context;
+import ratpack.handling.Handler;
+import ratpack.http.Headers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.datadoghq.system_tests.iast.utils.Utils;
 
 import javax.sql.DataSource;
 
@@ -190,6 +196,26 @@ public class Main {
                                         .trackCustomEvent(
                                                 qp.getOrDefault("event_name", "system_tests_event"), METADATA);
                                 ctx.getResponse().send("ok");
+                            })
+                            .get("requestdownstream", ctx -> {
+                                final Promise<String> res = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/returnheaders";
+                                    return Utils.sendGetRequest(url);
+                                });
+                                res.then((r) -> {
+                                    Response response = ctx.getResponse();
+                                    response.send("application/json", r);
+                                });
+                            })
+                            .get("returnheaders", ctx -> {
+                                Headers headers = ctx.getRequest().getHeaders();
+                                Map<String, String> headerMap = new HashMap<>();
+                                headers.getNames().forEach(name -> headerMap.put(name, headers.get(name)));
+
+                                ObjectMapper mapper = new ObjectMapper();
+                                String json = mapper.writeValueAsString(headerMap);
+
+                                ctx.getResponse().send("application/json", json);
                             });
                         iastHandlers.setup(chain);
                         raspHandlers.setup(chain);
