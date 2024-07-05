@@ -21,9 +21,9 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     # TODO downstream propagation
 
-    # This methods exist to test the 2 different ways of setting the propagation tags in the tracers.
+    # This methods exist to test the 2 different ways of setting the tags in the tracers.
     # In some tracers, the propagation tags are set in the first span of every trace chunk,
-    # while in others they are set in the local root span.
+    # while in others they are set in the local root span. (same for the sampling priority tag)
     # This method test the first case and if it fails, it will test the second case. When both cases fail, the test will fail.
     #
     # first_trace is the first span of every trace chunk
@@ -44,23 +44,24 @@ class Test_AppSecStandalone_UpstreamPropagation:
                 if value is None:
                     assert tag not in struct
                 else:
-                    if tag == "_sampling_priority_v1": # special case, it's a lambda to check for a condition
+                    if tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
                         assert value(struct[tag])
                     else:
                         assert struct[tag] == value
 
+        # Case 1: The tags are set on the first span of every trace chunk
         try:
-            # Case 1: The tags are set on the first span of every trace chunk
-            if first_trace:
-                _assert_tags_value(first_trace, obj, expected_tags)
+            _assert_tags_value(first_trace, obj, expected_tags)
+            return True
+        except (KeyError, AssertionError) as e:
+            pass  # should try the second case
 
-            # Case 2: The tags are set on the local root span
-            else:
-                _assert_tags_value(span, obj, expected_tags)
+        # Case 2: The tags are set on the local root span
+        try:
+            _assert_tags_value(span, obj, expected_tags)
+            return True
         except (KeyError, AssertionError) as e:
             return False
-        
-        return True
 
     def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         trace_id = 1212121212121212121
@@ -80,30 +81,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -138,30 +126,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -196,30 +171,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -254,31 +216,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            # The propagated tags are set on the first span of every trace chunk
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -314,31 +262,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            # The propagated tags are set on the first span of every trace chunk
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -374,31 +308,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            # The propagated tags are set on the first span of every trace chunk
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -433,31 +353,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            # The propagated tags are set on the first span of every trace chunk
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -491,31 +397,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            # The propagated tags are set on the first span of every trace chunk
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -549,31 +441,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            # The propagated tags are set on the first span of every trace chunk
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -607,30 +485,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -664,31 +529,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            # The propagated tags are set on the first span of every trace chunk
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -722,30 +573,17 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
-        ok_meta = False
-        ok_metrics = False
-        i = 0
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if i == 0:
-                ok_meta = self._assert_tags(trace[0], None, "meta", tested_meta)
-                ok_metrics = self._assert_tags(trace[0], None, "metrics", tested_metrics)
-                assert trace[0]["trace_id"] == 1212121212121212121
-                i += 1
-
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            if not ok_meta:
-                ok_meta = self._assert_tags(None, span, "meta", tested_meta)
-            assert ok_meta
-
-            if not ok_metrics:
-                ok_metrics = self._assert_tags(None, span, "metrics", tested_metrics)
-            assert ok_metrics
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
