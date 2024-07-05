@@ -318,7 +318,6 @@ tests/:
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
       Test_RuleSet_1_3_1: v2.5.0
-      Test_StaticRuleSet: v2.0.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
       Test_MissingRules: missing_feature
