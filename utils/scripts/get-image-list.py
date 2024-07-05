@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 import yaml
@@ -12,6 +13,9 @@ if __name__ == "__main__":
     for scenario in get_all_scenarios():
         if f'"{scenario.name}"' in executed_scenarios and isinstance(scenario, _DockerScenario):
             images.update(scenario.image_list)
+
+    if os.environ.get('EXTRA_IMAGES'):
+        images.update(os.environ['EXTRA_IMAGES'].split(','))
 
     # remove images that will be built locally
     images = [image for image in images if not image.startswith("system_tests/")]
