@@ -5,6 +5,10 @@ inputs:
     description: "JSON array of scenarios that will be executed"
     default: "[]"
     required: true
+  extra-images:
+    description: "Comma-separated list of extra images to pull"
+    default: ""
+    required: false
 
 runs:
   using: composite
@@ -32,6 +36,7 @@ runs:
         python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' > compose.yaml
       env:
         PYTHONPATH: "."
+        EXTRA_IMAGES: "${{ matrix.extra-images }}"
 
     - name: Pull
       shell: bash
