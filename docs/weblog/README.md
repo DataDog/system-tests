@@ -409,7 +409,7 @@ The following query parameters are required for each endpoint:
 This endpoint will be used to validate debugger pii redaction feature.
 
 #### GET /expression
-#### GET /expression/exception
+#### GET /expression_exception
 These endpoints will be used to validate debugger expression language feature.
 
 ### GET /createextraservice

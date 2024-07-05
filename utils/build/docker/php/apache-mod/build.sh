@@ -29,8 +29,12 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 
 a2enmod rewrite
 
-curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
-	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
+if [[ $(uname -m) == "aarch64" ]]; then
+  curl -Lf -o /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_aarch64 && chmod +x /usr/local/bin/dumb-init
+else
+  curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
+	  dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
+fi
 
 
 if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]]; then
