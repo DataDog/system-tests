@@ -4,7 +4,16 @@
 
 import tests.debugger.utils as base
 
-from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug
+from utils import (
+    scenarios,
+    interfaces,
+    weblog,
+    features,
+    missing_feature,
+    context,
+    remote_config as rc,
+    bug,
+)
 
 
 @features.debugger
@@ -50,6 +59,7 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
             weblog.get("/debugger/span-decoration/asd/1"),
         ]
 
+    @missing_feature(context.library == "php", reason="Line probes not yet implemented")
     def test_line_probe_snaphots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
@@ -74,6 +84,7 @@ class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
         self.weblog_responses = [weblog.get("/debugger/mix/asd/1")]
 
     @bug(library="python", reason="DEBUG-2710")
+    @missing_feature(context.library == "php", reason="Line probes not yet implemented")
     def test_mix_probe(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()

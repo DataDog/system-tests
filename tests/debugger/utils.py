@@ -15,7 +15,7 @@ from utils.tools import logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
 _CONFIG_PATH = "/v0.7/config"
-_DEBUGER_PATH = "/api/v2/debugger"
+_DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 
@@ -51,18 +51,18 @@ def read_diagnostic_data():
     tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
     if tracer["language"] == "java":
         if tracer_version > version.parse("1.27.0"):
-            path = _DEBUGER_PATH
+            path = _DEBUGGER_PATH
         else:
             path = _LOGS_PATH
     elif tracer["language"] == "dotnet":
         if tracer_version > version.parse("2.49.0"):
-            path = _DEBUGER_PATH
+            path = _DEBUGGER_PATH
         else:
             path = _LOGS_PATH
     elif tracer["language"] == "python":
         path = _DEBUGER_PATH
     else:
-        path = _LOGS_PATH
+        path = _DEBUGGER_PATH
 
     return list(interfaces.agent.get_data(path))
 
@@ -133,7 +133,7 @@ class _Base_Debugger_Test:
             return False
 
         if not self.all_probes_installed:
-            if data["path"] == _DEBUGER_PATH or data["path"] == _LOGS_PATH:
+            if data["path"] == _DEBUGGER_PATH or data["path"] == _LOGS_PATH:
                 self.all_probes_installed = _all_probes_installed(self, get_probes_map([data]))
 
         return self.all_probes_installed

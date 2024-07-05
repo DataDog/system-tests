@@ -77,7 +77,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/exception")
+        self._setup(probes, "/debugger/expression_exception")
 
     def test_expression_language_access_exception(self):
         self._assert(expected_code=500)
@@ -100,7 +100,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["intValue ne 5", False, Dsl("ne", [Dsl("ref", "intValue"), 5])],
                 ["intValue le 0", False, Dsl("le", [Dsl("ref", "intValue"), 0])],
                 ["intValue ge 10", False, Dsl("ge", [Dsl("ref", "intValue"), 10])],
-                ["floatValue ne 0", True, Dsl("ne", [Dsl("ref", "floatValue"), 3.14])],
+                ["floatValue ne 0", True, Dsl("ne", [Dsl("ref", "floatValue"), 0])],
                 ["floatValue ne 0.1", True, Dsl("ne", [Dsl("ref", "floatValue"), 0.1])],
                 ["floatValue lt 10", True, Dsl("lt", [Dsl("ref", "floatValue"), 10])],
                 ["floatValue lt 10.10", True, Dsl("lt", [Dsl("ref", "floatValue"), 10.10])],
@@ -137,7 +137,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+        self._setup(probes, "/debugger/expression_operators?intValue=5&floatValue=3.14&strValue=haha")
 
     def test_expression_language_comparison_operators(self):
         self._assert()
@@ -165,7 +165,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 [
                     "intValue instanceof float",
                     False,
-                    Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("int")]),
+                    Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("float")]),
                 ],
                 [
                     "floatValue instanceof int",
@@ -182,7 +182,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+        self._setup(probes, "/debugger/expression_operators?intValue=5&floatValue=3.14&strValue=haha")
 
     @bug(library="java", reason="DEBUG-2527")
     @bug(library="dotnet", reason="DEBUG-2530")
@@ -220,7 +220,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+        self._setup(probes, "/debugger/expression_operators?intValue=5&floatValue=3.14&strValue=haha")
 
     def test_expression_language_logical_operators(self):
         self._assert()
@@ -228,7 +228,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
     def setup_expression_language_string_operations(self):
 
         message_map, probes = self._create_expression_probes(
-            methodName="StringOperations",
+            methodName="ExpressionStrings",
             expressions=[
                 ##### isempty
                 ["strValue isEmpty", False, Dsl("isEmpty", Dsl("ref", "strValue"))],
@@ -240,7 +240,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["strValue substring 0 5", "veryl", Dsl("substring", [Dsl("ref", "strValue"), 0, 5])],
                 ["strValue substring 5 10", "ongst", Dsl("substring", [Dsl("ref", "strValue"), 5, 10])],
                 ["strValue substring 0 0", "", Dsl("substring", [Dsl("ref", "strValue"), 0, 0])],
-                ["emptyStr substring 0 0", "", Dsl("substring", [Dsl("ref", "emptyStr"), 0, 0])],
+                ["emptyString substring 0 0", "", Dsl("substring", [Dsl("ref", "emptyString"), 0, 0])],
                 ##### startsWith
                 ["strValue startsWith very", True, Dsl("startsWith", [Dsl("ref", "strValue"), "very"])],
                 ["strValue startsWith foo", False, Dsl("startsWith", [Dsl("ref", "strValue"), "foo"])],
@@ -265,7 +265,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/strings?strValue=verylongstring")
+        self._setup(probes, "/debugger/expression_strings?strValue=verylongstring")
 
     @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
@@ -430,6 +430,11 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 intance_type = "java.lang.String"
             elif value_type == "controller":
                 intance_type = "com.datadoghq.system_tests.springboot.DebuggerController"
+            else:
+                intance_type = value_type
+        elif tracer["language"] == "php":
+            if value_type == "controller":
+                intance_type = "DebuggerController"
             else:
                 intance_type = value_type
         else:
