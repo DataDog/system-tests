@@ -441,7 +441,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env",
         [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
     )
-    @missing_feature(library="nodejs")
+    @bug(library="nodejs")
     def test_globs_different_casing(self, test_agent, test_library):
         """Test tag matching with string of matching case"""
         with test_library:
@@ -501,7 +501,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
     )
     @missing_feature(library="cpp", reason="No metric interface")
-    @missing_feature(library="nodejs")
+    @bug(library="nodejs")
     def test_metric_matching(self, test_agent, test_library):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library:
