@@ -1,6 +1,6 @@
 version: '3'
 services:
-  test-app-ruby:
+  test-app:
     container_name: test-app
     image: system-tests/local:latest
     ports:
