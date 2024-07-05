@@ -1,5 +1,4 @@
 import base64
-import sys
 import json
 from black import format_str, FileMode
 from utils._remote_config import RemoteConfigCommand
@@ -23,9 +22,11 @@ def from_payload(payload):
         target = targets["signed"]["targets"][config_name]
         raw_config = configs.get(config_name, None)
 
-        config = result.add_client_config(config_name, raw_config)
+        config = result.add_client_config(config_name, raw_config, target["custom"]["v"])
 
-        assert config.version == target["custom"]["v"]
+        assert (
+            config.config_file_version == target["custom"]["v"]
+        ), f"{config.config_file_version} != {target['custom']['v']}"
         assert (
             config.raw_length == target["length"]
         ), f"Length mismatch for {config_name}: {len(config.raw_length)} != {target['length']}"
@@ -46,7 +47,7 @@ def get_python_code(command: RemoteConfigCommand):
     result = f"command = RemoteConfigCommand({args})"
 
     for config in command.targets:
-        result += f"\ncommand.add_client_config({config.path!r}, {config.raw_deserialized!r})"
+        result += f"\ncommand.add_client_config{config!r}"
 
     return format_str(result, mode=FileMode(line_length=120))
 
@@ -66,10 +67,9 @@ def main(filename):
         # print("-" * 120)
         # print(json.dumps(item, indent=2))
         # print("-" * 120)
-        print(json.dumps(command.to_payload(deserialized=True), indent=2))
+        # print(json.dumps(command.to_payload(deserialized=True), indent=2))
     return
 
 
 if __name__ == "__main__":
-    main("utils/proxy/rc_mocked_responses_asm_data_full_denylist.json")
-    # main(sys.argv[1])
+    main("utils/proxy/rc_mocked_responses_asm_nocache.json")
