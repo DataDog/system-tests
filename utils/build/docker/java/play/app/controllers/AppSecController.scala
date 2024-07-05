@@ -16,6 +16,7 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
+
 @Singleton
 class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient, mat: Materializer)
                                 (implicit ec: ExecutionContext) extends AbstractController(cc) {
@@ -144,6 +145,21 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   def customEvent(event_name: Option[String]) = Action {
     eventTracker.trackCustomEvent(event_name.getOrElse("system_tests_event"), metadata)
     Results.Ok("ok")
+  }
+
+  def requestdownstream =  Action.async {
+    var url = "http://localhost:7777/returnheaders"
+    val remoteReq: WSRequest = ws.url(url).withMethod("GET")
+    val ahcRequest: AHCRequest = remoteReq.asInstanceOf[AhcWSRequest].underlying.buildRequest()
+    executeAHCRequest(ahcRequest).map { resp: StandaloneAhcWSResponse =>
+      resp.bodyAsSource.runWith(Sink.ignore[ByteString]())(mat)
+      Results.Ok(resp.body)
+    }
+  }
+
+  def returnheaders = Action { request =>
+    val headers = request.headers.headers.toMap
+    Ok(Json.toJson(headers))
   }
 
   case class DistantCallResponse(

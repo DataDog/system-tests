@@ -8,9 +8,15 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling._
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import scala.collection.JavaConverters._
 import datadog.appsec.api.blocking.Blocking
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
+import scala.concurrent.duration._
+import com.datadoghq.system_tests.iast.utils.Utils;
+import scala.concurrent.blocking
 
 import java.util
 import scala.concurrent.Future
@@ -152,7 +158,23 @@ object AppSecRoutes {
             complete("ok")
           }
         }
+      } ~
+      path("requestdownstream") {
+        blocking {
+            var url = "http://localhost:7777/returnheaders";
+            var json = Utils.sendGetRequest(url);
+            complete(json)
+          }
+      } ~
+      path("returnheaders") {
+        get {
+          extractRequest { request =>
+            val headers = request.headers.map(header => header.name() -> header.value()).toMap
+            complete(StatusCodes.OK, headers)(jsonMarshaller)
+          }
+        }
       }
+
 
   case class XmlObject(value: String, attack: String)
 
