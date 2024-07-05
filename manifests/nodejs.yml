@@ -470,12 +470,12 @@ tests/:
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: *ref_5_16_0
-      Test_Trace_Sampling_Globs: *ref_5_16_0
+      Test_Trace_Sampling_Basic: *ref_5_16_0 #actual version unknown
+      Test_Trace_Sampling_Globs: *ref_5_16_0 #actual version unknown
       Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0 #actual version unknown
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: *ref_3_21_0
@@ -488,7 +488,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: *ref_3_9_0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
@@ -507,7 +507,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
-    Test_Profile: *ref_5_16_0
+    Test_Profile: *ref_5_16_0 #actual version unknown
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
     Test_UrlQuery:
