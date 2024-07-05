@@ -343,7 +343,6 @@ tests/:
       Test_Main: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
-      Test_HttpClientIP: v2.0.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v2.0.0
       Test_StatusCode: v2.0.0
@@ -360,7 +359,6 @@ tests/:
       Test_AppSecObfuscator: v2.6.0
       Test_CollectDefaultRequestHeader: *ref_5_18_0
       Test_CollectRespondHeaders: v2.0.0
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: *ref_5_7_0
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
