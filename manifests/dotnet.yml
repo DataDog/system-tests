@@ -213,7 +213,6 @@ tests/:
       Test_Main: v2.6.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
-      Test_HttpClientIP: v1.30.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v1.30.0
       Test_StatusCode: v1.28.6

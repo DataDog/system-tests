@@ -807,11 +807,6 @@ tests/:
       Test_ExtraTagsFromRule:
         '*': v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_HttpClientIP:
-        '*': v0.98.1
-        akka-http: v1.22.0
-        play: v1.22.0
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Info:
         '*': v0.87.0
         akka-http: v1.22.0

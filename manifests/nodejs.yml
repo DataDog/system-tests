@@ -343,7 +343,6 @@ tests/:
       Test_Main: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
-      Test_HttpClientIP: v2.0.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v2.0.0
       Test_StatusCode: v2.0.0
