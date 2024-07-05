@@ -74,23 +74,23 @@ namespace weblog
             return Content($"Great success number {localValue}");
         }
 
-        [HttpGet("expression/exception")]
+        [HttpGet("expression_exception")]
         [Consumes("application/json", "application/xml")]
         public IActionResult ExpressionException()
         {
             throw new System.Exception("Hello from exception");
         }
 
-        [HttpGet("expression/operators")]
+        [HttpGet("expression_operators")]
         [Consumes("application/json", "application/xml")]
         public IActionResult ExpressionOperators(int intValue, float floatValue, string strValue)
         {
             return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}");
         }
 
-        [HttpGet("expression/strings")]
+        [HttpGet("expression_strings")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult StringOperations(string strValue, string emptyString = "", string nullString = null)
+        public IActionResult ExpressionStrings(string strValue, string emptyString = "", string nullString = null)
         {
             return Content($"strValue {strValue}. emptyString {emptyString}. nullString {nullString}");
         }
