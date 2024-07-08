@@ -52,7 +52,11 @@ def execute_command(command, timeout=None, logfile=None):
 
 def _clean_secrets(data_to_clean):
     """ Clean secrets from the output."""
-    return data_to_clean.replace(context.scenario.api_key, "DD_API_KEY").replace(context.scenario.app_key, "DD_APP_KEY")
+    if context.scenario.api_key and context.scenario.app_key:
+        data_to_clean = data_to_clean.replace(context.scenario.api_key, "DD_API_KEY").replace(
+            context.scenario.app_key, "DD_APP_KEY"
+        )
+    return data_to_clean
 
 
 @retry(delay=1, tries=5)
