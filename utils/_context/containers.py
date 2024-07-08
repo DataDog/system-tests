@@ -536,13 +536,24 @@ class WeblogContainer(TestedContainer):
         return result
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
+        """ parse the Dockerfile and extract all images reference in a FROM section """
         result = []
+        args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
+        arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
         with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", "r", encoding="utf-8") as f:
             for line in f.readlines():
+                if match := arg_pattern.match(line):
+                    args[match.group("arg_name")] = match.group("arg_value")
+
                 if match := pattern.match(line):
-                    result.append(match.group("image_name"))
+                    image_name = match.group("image_name")
+
+                    for name, value in args.items():
+                        image_name = image_name.replace(f"${name}", value)
+
+                    result.append(image_name)
 
         return result
 
