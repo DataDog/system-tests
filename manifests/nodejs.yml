@@ -320,7 +320,7 @@ tests/:
       Test_RuleSet_1_3_1: v2.5.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
-      Test_MissingRules: missing_feature
+      Test_MissingRules: v2.0.0
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
       Test_CustomEvent:
