@@ -28,7 +28,7 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/docker-compose.yml
 
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
