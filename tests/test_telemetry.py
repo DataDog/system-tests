@@ -666,6 +666,7 @@ class Test_MessageBatch:
         weblog.get("/enable_product")
 
     # CPP: false-positive. we send batch message for app-started.
+    @bug(library="nodejs")
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
         event_list = []
