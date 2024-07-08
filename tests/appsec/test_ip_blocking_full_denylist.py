@@ -28,7 +28,6 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
         context.library >= "java@1.22.0" and context.library < "java@1.35.0",
         reason="Failed on large expiration values, which are used in this test",
     )
-    @missing_feature(library="python")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

@@ -37,7 +37,6 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         reason="Failed on large expiration values, which are used in this test",
     )
     @bug(library="java", reason="Request blocked but appsec.blocked tag not set")
-    @missing_feature(library="python")
     def test_blocking_test(self):
         """Test with a denylisted user"""
 
