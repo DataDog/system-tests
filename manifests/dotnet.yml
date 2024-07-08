@@ -197,7 +197,6 @@ tests/:
       Test_StandardTagsClientIp: v2.20.0
     test_conf.py:
       Test_RuleSet_1_3_1: v2.7.0
-      Test_StaticRuleSet: v1.29.0
     test_customconf.py:
       Test_NoLimitOnWafRules: v2.4.4
     test_event_tracking.py:
@@ -214,7 +213,6 @@ tests/:
       Test_Main: v2.6.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
-      Test_HttpClientIP: v1.30.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v1.30.0
       Test_StatusCode: v1.28.6
@@ -229,7 +227,6 @@ tests/:
       Test_AppSecObfuscator: v2.7.0
       Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v2.5.1
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v2.50.0
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:

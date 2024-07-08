@@ -203,7 +203,6 @@ tests/:
       Test_StandardTagsClientIp: v1.8.0
     test_conf.py:
       Test_RuleSet_1_3_1: v1.0.0
-      Test_StaticRuleSet: v1.8.0
     test_customconf.py:
       Test_ConfRuleSet: v1.0.0.beta2
       Test_CorruptedRules: v1.0.0.beta2
@@ -233,7 +232,6 @@ tests/:
       Test_AppSecObfuscator: v1.0.0
       Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v1.0.0.beta1
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v1.22.0
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:

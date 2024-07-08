@@ -425,7 +425,6 @@ tests/:
       Test_RuleSet_1_3_1:
         '*': v1.2.1
         fastapi: v2.4.0.dev1
-      Test_StaticRuleSet: missing_feature
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0rc2.dev
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
@@ -444,7 +443,6 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
-      Test_HttpClientIP: v1.5.0rc1.dev
       Test_Info: v1.1.0rc2.dev
       Test_RequestHeaders: v1.1.0rc2.dev
       Test_StatusCode: v1.1.0rc2.dev
@@ -465,7 +463,6 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v2.9.0.dev1
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:

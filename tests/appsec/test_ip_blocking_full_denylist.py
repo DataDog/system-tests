@@ -32,6 +32,8 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 
+        self.assert_protocol_is_respected()
+
         for r in self.blocked_requests:
             assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-001")

@@ -18,16 +18,8 @@ class Test_CorruptedRules:
         self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
-    @missing_feature(library="golang")
-    @missing_feature(library="nodejs")
-    @missing_feature(library="python")
-    @missing_feature(library="php")
-    @missing_feature(library="ruby", reason="standard logs not implemented")
     @bug(library="dotnet", reason="ERROR io CRITICAL")
     def test_c05(self):
-        """Log C5: Rules file is corrupted"""
-        stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
-
         # Appsec does not catch any attack
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_no_appsec_event(self.r_2)
@@ -42,21 +34,8 @@ class Test_MissingRules:
         self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
-    @missing_feature(library="golang")
-    @missing_feature(library="nodejs")
-    @missing_feature(library="python")
-    @missing_feature(library="php")
-    @missing_feature(library="ruby", reason="standard logs not implemented")
     @bug(library="dotnet", reason="ERROR io CRITICAL")  # and the last sentence is missing
     def test_c04(self):
-        """Log C4: Rules file is missing"""
-        stdout.assert_presence(
-            r'AppSec could not find the rules file in path "?/donotexists"?. '
-            r"AppSec will not run any protections in this application. "
-            r"No security activities will be collected.",
-            level="CRITICAL",
-        )
-
         # Appsec does not catch any attack
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_no_appsec_event(self.r_2)

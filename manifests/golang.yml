@@ -305,11 +305,6 @@ tests/:
     test_reports.py:
       Test_ExtraTagsFromRule:
         '*': v1.62.0
-      Test_HttpClientIP:
-        '*': v1.34.0
-        chi: v1.36.0
-        echo: v1.36.0
-        gin: v1.37.0
       Test_Info:
         '*': v1.34.0
         chi: v1.36.0
@@ -340,7 +335,6 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v1.63.0-dev
       Test_RetainTraces:
         '*': v1.36.0
