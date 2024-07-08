@@ -90,6 +90,10 @@ class TestedContainer:
         self._container = None
         self.stdout_interface = stdout_interface
 
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        """ returns the image list that will be loaded to be able to run/build the container """
+        return [self.image.name]
+
     def configure(self, replay):
 
         if not replay:
@@ -404,6 +408,18 @@ class AgentContainer(TestedContainer):
 
         self.agent_version = None
 
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        try:
+            with open("binaries/agent-image", "r", encoding="utf-8") as f:
+                return [
+                    f.read().strip(),
+                ]
+        except FileNotFoundError:
+            # not the cleanest way to do it, but we save ARG parsing
+            return [
+                "datadog/agent:latest",
+            ]
+
     def configure(self, replay):
         super().configure(replay)
 
@@ -506,6 +522,29 @@ class WeblogContainer(TestedContainer):
         else:
             self.environment["DD_AGENT_HOST"] = "agent"
             self.environment["DD_TRACE_AGENT_PORT"] = 8127
+
+    @staticmethod
+    def _get_image_list_from_dockerfile(dockerfile) -> list[str]:
+        result = []
+
+        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
+        with open(dockerfile, "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                if match := pattern.match(line):
+                    result.append(match.group("image_name"))
+
+        return result
+
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        result = []
+
+        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
+        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                if match := pattern.match(line):
+                    result.append(match.group("image_name"))
+
+        return result
 
     def configure(self, replay):
         super().configure(replay)

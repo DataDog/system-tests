@@ -73,6 +73,8 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
+        library: ${{ inputs.library }}
+        weblog: ${{ matrix.weblog }}
         scenarios: ${{ inputs.scenarios }}
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images

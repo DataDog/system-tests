@@ -6,12 +6,15 @@ from utils._context._scenarios import get_all_scenarios, _DockerScenario
 
 
 if __name__ == "__main__":
-    executed_scenarios = sys.argv[1]
+    library = sys.argv[1]
+    weblog = sys.argv[2]
+    executed_scenarios = sys.argv[3]
+
     images = set("")
 
     for scenario in get_all_scenarios():
         if f'"{scenario.name}"' in executed_scenarios and isinstance(scenario, _DockerScenario):
-            images.update(scenario.image_list)
+            images.update(scenario.get_image_list(library, weblog))
 
     # remove images that will be built locally
     images = [image for image in images if not image.startswith("system_tests/")]
