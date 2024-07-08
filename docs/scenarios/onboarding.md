@@ -262,8 +262,10 @@ The currently supported scenarios are the following:
 
 * **HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario
 * **SIMPLE_HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario (minimal test scenario)
+* **SIMPLE_HOST_AUTO_INJECTION_PROFILING:** Onboarding Host Single Step Instrumentation profiling scenario (minimal test scenario)
 * **HOST_AUTO_INJECTION_BLOCK_LIST:** Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists
 * **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto install script
+* **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with enabling profiling
 * **CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario
 * **SIMPLE_CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario (minimal test scenario)
 * **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto install script

@@ -12,3 +12,7 @@ GET  /users                    controllers.AppSecController.users(user: String)
 GET  /user_login_success_event controllers.AppSecController.loginSuccess(event_user_id: Option[String])
 GET  /user_login_failure_event controllers.AppSecController.loginFailure(event_user_id: Option[String], event_user_exists: Option[Boolean])
 GET  /custom_event             controllers.AppSecController.customEvent(event_name: Option[String])
+GET  /rasp/sqli                controllers.RaspController.sqli
+POST /rasp/sqli                controllers.RaspController.sqli
+GET  /requestdownstream        controllers.AppSecController.requestdownstream
+GET  /returnheaders            controllers.AppSecController.returnheaders

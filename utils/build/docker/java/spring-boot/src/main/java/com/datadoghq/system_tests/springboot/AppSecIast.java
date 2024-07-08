@@ -226,6 +226,7 @@ public class AppSecIast {
         response.addHeader("Set-Cookie", "");
         return "ok";
     }
+
     @GetMapping("/insecure-cookie/test_insecure")
     String insecureCookie(final HttpServletResponse response) {
         response.addHeader("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
@@ -256,7 +257,7 @@ public class AppSecIast {
         return "ok";
     }
 
-    @GetMapping("/no-httponly-cookie-cookie/test_empty_cookie")
+    @GetMapping("/no-httponly-cookie/test_empty_cookie")
     String noHttpOnlyCookieEmptyCookie(final HttpServletResponse response) {
         response.addHeader("Set-Cookie", "");
         return "ok";

@@ -324,14 +324,6 @@ class Test_CollectDefaultRequestHeader:
         interfaces.library.validate_spans(self.r, validate_request_headers)
 
 
-@features.security_events_metadata
-class Test_DistributedTraceInfo:
-    """Distributed traces info (Services, URL, trace id)"""
-
-    def test_main(self):
-        assert False, "Test not implemented"
-
-
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
 @features.security_events_metadata
 class Test_ExternalWafRequestsIdentification:

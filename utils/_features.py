@@ -2198,6 +2198,16 @@ class features:
         return test_object
 
     @staticmethod
+    def host_auto_instrumentation_profiling(test_object):
+        """
+        Host auto-instrumentation with profiling
+
+        https://feature-parity.us1.prod.dog/#/?feature=302
+        """
+        pytest.mark.features(feature_id=302)(test_object)
+        return test_object
+
+    @staticmethod
     def appsec_standalone(test_object):
         """
         Appsec Standalone Billing
@@ -2205,4 +2215,54 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=305
         """
         pytest.mark.features(feature_id=305)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_auto_installation_script_profiling(test_object):
+        """
+        Profiling works when enabled through the agent installer script in Host environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=306
+        """
+        pytest.mark.features(feature_id=306)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_installation_script_profiling(test_object):
+        """
+        Profiling works when enabled through the agent installer script in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=307
+        """
+        pytest.mark.features(feature_id=307)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_instrumentation_profiling(test_object):
+        """
+        Profiling works when manually enabled with library injection in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=310
+        """
+        pytest.mark.features(feature_id=310)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_guardrail(test_object):
+        """
+        When in SSI, bail out if our version of language is incompatible.
+
+        https://feature-parity.us1.prod.dog/#/?feature=308
+        """
+        pytest.mark.features(feature_id=308)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_guardrail(test_object):
+        """
+        When in SSI, bail out if our version of language is incompatible or container is incompatible.
+
+        https://feature-parity.us1.prod.dog/#/?feature=309
+        """
+        pytest.mark.features(feature_id=309)(test_object)
         return test_object

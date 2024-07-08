@@ -16,3 +16,4 @@ scenario_groups.yml
 **/dotnet/**/out/
 **/dotnet/**/*.user
 **/dotnet/**/*.suo
+/system-tests.sln

@@ -4,16 +4,30 @@
 
 import json
 import re
+import os
+import os.path
 
 from packaging import version
 
 from utils import interfaces
 from utils.tools import logger
+from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
 _CONFIG_PATH = "/v0.7/config"
 _DEBUGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
+
+_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def read_probes(test_name: str):
+    with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def extract_probe_ids(probes):
+    return [probe["id"] for probe in probes]
 
 
 def read_diagnostic_data():
@@ -134,38 +148,35 @@ def validate_spans(expected_spans):
 class _Base_Debugger_Test:
     weblog_responses = []
     expected_probe_ids = []
+    rc_state = None
     all_probes_installed = False
 
-    def assert_remote_config_is_sent(self):
-        for data in interfaces.library.get_data(_CONFIG_PATH):
-            logger.debug(f"Found config in {data['log_filename']}")
-            if "client_configs" in data.get("response", {}).get("content", {}):
-                return
+    def wait_for_all_probes_installed(self, data):
+        def _all_probes_installed(self, probes_map):
+            if not probes_map:
+                logger.debug("Probes map is empty")
+                return False
 
-        raise ValueError("I was expecting a remote config")
+            installed_ids = set()
+            logger.debug(f"Look for these probes: {self.expected_probe_ids}")
+            for expected_id in self.expected_probe_ids:
+                if expected_id in probes_map:
+                    status = probes_map[expected_id]["status"]
 
-    def _is_all_probes_installed(self, probes_map):
-        if probes_map is None:
+                    logger.debug(f"Probe {expected_id} observed status is {status}")
+                    if status == "INSTALLED":
+                        installed_ids.add(expected_id)
+
+            if set(self.expected_probe_ids).issubset(installed_ids):
+                logger.debug(f"Succes: found all probes")
+                return True
+
+            missing_probes = set(self.expected_probe_ids) - set(installed_ids)
+            logger.debug(f"Found some probes, but not all of them. Missing probes are {missing_probes}")
             return False
 
-        installed_ids = set()
-        for expected_id in self.expected_probe_ids:
-            if expected_id in probes_map:
-                if probes_map[expected_id]["status"] == "INSTALLED":
-                    installed_ids.add(expected_id)
-
-        if set(self.expected_probe_ids).issubset(installed_ids):
-            logger.debug(f"Succes: found probes {installed_ids}")
-            return True
-
-        missings_ids = set(self.expected_probe_ids) - set(installed_ids)
-
-        logger.debug(f"Found some probes, but not all of them. Missing probes are {missings_ids}")
-
-    def wait_for_all_probes_installed(self, data):
         if data["path"] == _DEBUGER_PATH or data["path"] == _LOGS_PATH:
-            if self._is_all_probes_installed(get_probes_map([data])):
-                self.all_probes_installed = True
+            self.all_probes_installed = _all_probes_installed(self, get_probes_map([data]))
 
         return self.all_probes_installed
 
@@ -178,3 +189,37 @@ class _Base_Debugger_Test:
 
         for respone in self.weblog_responses:
             assert respone.status_code == 200
+
+    def assert_all_states_not_error(self):
+        def _get_full_id(probe_id):
+            if probe_id.startswith("log"):
+                prefix = "logProbe"
+            elif probe_id.startswith("metric"):
+                prefix = "metricProbe"
+            elif probe_id.startswith("span"):
+                prefix = "spanProbe"
+            elif probe_id.startswith("decor"):
+                prefix = "spanDecorationProbe"
+            else:
+                prefix = "notSupported"
+
+            return f"{prefix}_{probe_id}"
+
+        assert self.rc_state is not None, "State cannot be None"
+
+        errors = []
+        for id in self.expected_probe_ids:
+            full_id = _get_full_id(id)
+            logger.debug(f"Checking RC state for: {full_id}")
+
+            if full_id not in self.rc_state:
+
+                errors.append(f"ID {full_id} not found in state")
+            else:
+                apply_state = self.rc_state[full_id]["apply_state"]
+                logger.debug(f"RC stace for {full_id} is {apply_state}")
+
+                if apply_state == ApplyState.ERROR:
+                    errors.append(f"State for {full_id} is error: {self.rc_state[full_id]['apply_error']}")
+
+        assert not errors, "\n".join(errors)

@@ -1,13 +1,8 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import json
 
-from utils import weblog, interfaces, scenarios, features
-from utils.tools import logger
-
-with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
-    EXPECTED_REQUESTS = json.load(f)
+from utils import weblog, interfaces, scenarios, features, remote_config
 
 
 @scenarios.appsec_request_blocking
@@ -15,32 +10,20 @@ with open("tests/appsec/rc_expected_requests_asm.json", encoding="utf-8") as f:
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 
-    request_number = 0
-
     def setup_request_blocking(self):
-        def remote_config_is_applied(data):
+        command = remote_config.RemoteConfigCommand(version=0)
+        command.add_client_config(
+            "datadog/2/ASM/ASM-base/config",
+            {"rules_override": [{"on_match": ["block"], "rules_target": [{"tags": {"confidence": "1"}}]}]},
+        )
+        command.add_client_config(
+            "datadog/2/ASM/ASM-second/config",
+            {"rules_override": [{"rules_target": [{"rule_id": "crs-913-110"}], "on_match": []}]},
+        )
+        self.first_states = command.send()
 
-            if data["path"] != "/v0.7/config":
-                return False
-
-            logger.info(f"waiting rc request number {self.request_number}")
-            if self.request_number < len(EXPECTED_REQUESTS):
-                self.request_number += 1
-                return False
-
-            state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
-            if len(state.get("config_states", [])) == 0 or state.get("has_error"):
-                logger.info(f"rc request contains an error or no configs:\n{state}")
-                return False
-
-            for s in state["config_states"]:
-                if s["id"] != "ASM-base" or s.get("apply_error") or s.get("apply_state", 0) != 2:
-                    logger.info(f"rc request contains an error or wrong config:\n{state}")
-                    return False
-
-            return True
-
-        interfaces.library.wait_for(remote_config_is_applied, timeout=30)
+        command.add_client_config("datadog/2/ASM/ASM-base/config", None)
+        self.second_states = command.send()
 
         self.blocked_requests1 = weblog.get(headers={"user-agent": "Arachni/v1"})
         self.blocked_requests2 = weblog.get(params={"random-key": "/netsparker-"})

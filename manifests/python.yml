@@ -350,16 +350,22 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0.dev but will be replaced by V2)
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events: v2.11.0.dev
+      Test_V2_Login_Events_Anon: v2.11.0.dev
+      Test_V2_Login_Events_RC: v2.11.0.dev
     test_blocking_addresses.py:
-      Test_BlockingAddresses:
+      Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip:
         '*': v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
+      Test_Blocking_request_body_multipart:
         '*': v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0.dev1
@@ -404,6 +410,11 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
+      Test_Blocking_user_id:
+        '*': v1.16.1
+        django-poc: v1.10
+        fastapi: v2.4.0.dev1
+        flask-poc: v1.10
       Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
@@ -414,7 +425,6 @@ tests/:
       Test_RuleSet_1_3_1:
         '*': v1.2.1
         fastapi: v2.4.0.dev1
-      Test_StaticRuleSet: missing_feature
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0rc2.dev
       Test_NoLimitOnWafRules: v1.1.0rc2.dev
@@ -433,7 +443,6 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
-      Test_HttpClientIP: v1.5.0rc1.dev
       Test_Info: v1.1.0rc2.dev
       Test_RequestHeaders: v1.1.0rc2.dev
       Test_StatusCode: v1.1.0rc2.dev
@@ -454,7 +463,6 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.4.0rc1.dev
         fastapi: v2.4.0.dev1
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v2.9.0.dev1
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
@@ -462,15 +470,16 @@ tests/:
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
-    test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: missing_feature
-      Test_Debugger_Method_Probe_Snaphots: missing_feature
-      Test_Debugger_Mix_Log_Probe: missing_feature
-      Test_Debugger_Probe_Statuses: missing_feature
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature
+    test_debugger_probe_snapshot.py:
+      Test_Debugger_Line_Probe_Snaphots: missing_feature
+      Test_Debugger_Method_Probe_Snaphots: missing_feature
+      Test_Debugger_Mix_Log_Probe: missing_feature
+    test_debugger_probe_status.py:
+      Test_Debugger_Probe_Statuses: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -512,49 +521,49 @@ tests/:
         flask-poc: v0.1
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Aiomysql: 
+      Test_Dbm_Comment_Batch_Python_Aiomysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_MysqlConnector: 
+      Test_Dbm_Comment_Batch_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Mysqldb: 
+      Test_Dbm_Comment_Batch_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Psycopg: 
+      Test_Dbm_Comment_Batch_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Batch_Python_Pymysql: 
+      Test_Dbm_Comment_Batch_Python_Pymysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Aiomysql: 
+      Test_Dbm_Comment_Python_Aiomysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Asyncpg: 
+      Test_Dbm_Comment_Python_Asyncpg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_MysqlConnector: 
+      Test_Dbm_Comment_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Python_Mysqldb: 
+      Test_Dbm_Comment_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
-      Test_Dbm_Comment_Python_Psycopg: 
+      Test_Dbm_Comment_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-      Test_Dbm_Comment_Python_Pymysql: 
+      Test_Dbm_Comment_Python_Pymysql:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
         uds-flask: v2.9.0

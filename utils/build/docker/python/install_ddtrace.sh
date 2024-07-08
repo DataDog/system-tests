@@ -2,10 +2,6 @@
 
 set -eu
 
-# Install Rust toolchain
-curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-export PATH="/root/.cargo/bin:$PATH"
-
 cd /binaries
 
 if [ -e "dd-trace-py" ]; then

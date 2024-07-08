@@ -17,23 +17,23 @@ public class MssqlCRUDOperation extends BaseCRUDOperation {
     @Override
     public void createProcedureData() {
       try (Connection con = getConnector().getConnection()) {
-  
+
         Statement stmt = con.createStatement();
         String procedure = "CREATE PROCEDURE helloworld "
         + " @Name VARCHAR(100), @Test VARCHAR(100) "
         + " AS "
         + " BEGIN "
         + " SET NOCOUNT ON; "
-        
+
         + " SELECT id from demo where id=1"
         + " END "
         ;
-  
+
         stmt.execute(procedure);
         System.out.println("MSSQL Initial data created");
       } catch (Exception e) {
         System.out.println("Error creating mssql procedure data: " + e.getMessage());
-  
+
       }
     }
 

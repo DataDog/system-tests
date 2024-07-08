@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "START RUN APP"
+echo "START python APP"
 
 set -e
 
@@ -10,11 +10,7 @@ sudo cp django_app.py /home/datadog/
 sudo /home/datadog/.pyenv/shims/pip3 install django
 echo "Testing weblog with python version:"
 sudo /home/datadog/.pyenv/shims/python --version
-sudo cp test-app.service /etc/systemd/system/test-app.service
-sudo systemctl daemon-reload
-sudo systemctl enable test-app.service
-sudo systemctl start test-app.service
-sudo systemctl status test-app.service
-sleep 5
-cat /home/datadog/app-std.out
-echo "RUN DONE"
+./create_and_run_app_service.sh "/home/datadog/.pyenv/shims/python -m django runserver 0.0.0.0:5985" "PYTHONUNBUFFERED=1 DJANGO_SETTINGS_MODULE=django_app"
+echo "RUN AFTER THE SERVICE"
+cat test-app.service
+echo "RUN python DONE"

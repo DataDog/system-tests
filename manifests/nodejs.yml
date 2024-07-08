@@ -275,7 +275,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
     test_automated_login_events.py:
       Test_Login_Events:
         '*': *ref_4_4_0
@@ -285,14 +285,16 @@ tests/:
         nextjs: missing_feature
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: *ref_3_19_0
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
         nextjs: irrelevant # nextjs is not related with graphql
+      Test_Blocking_client_ip: *ref_3_19_0
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         nextjs: missing_feature
+      Test_Blocking_request_body_multipart: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
         nextjs: missing_feature
@@ -305,6 +307,9 @@ tests/:
       Test_Blocking_request_uri: *ref_3_19_0
       Test_Blocking_response_headers: *ref_5_17_0
       Test_Blocking_response_status: *ref_5_17_0
+      Test_Blocking_user_id:
+        '*': *ref_3_19_0
+        nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': missing_feature (v3.19.0, but test is not implemented)
         nextjs: missing_feature
@@ -313,7 +318,6 @@ tests/:
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
       Test_RuleSet_1_3_1: v2.5.0
-      Test_StaticRuleSet: v2.0.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
       Test_MissingRules: missing_feature
@@ -339,7 +343,6 @@ tests/:
       Test_Main: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
-      Test_HttpClientIP: v2.0.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v2.0.0
       Test_StatusCode: v2.0.0
@@ -354,9 +357,8 @@ tests/:
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
-      Test_CollectDefaultRequestHeader: missing_feature
+      Test_CollectDefaultRequestHeader: *ref_5_18_0
       Test_CollectRespondHeaders: v2.0.0
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: *ref_5_7_0
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
@@ -366,15 +368,16 @@ tests/:
     test_versions.py:
       Test_Events: v2.0.0
   debugger/:
-    test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
-      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
+    test_debugger_probe_snapshot.py:
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+    test_debugger_probe_status.py:
+      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
