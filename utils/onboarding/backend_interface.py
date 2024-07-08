@@ -12,7 +12,7 @@ def _headers():
     }
 
 
-def _query_for_trace_id(trace_id):
+def _query_for_trace_id(trace_id, validator=None):
     path = f"/api/v1/trace/{trace_id}"
     host = "https://dd.datadoghq.com"
 
@@ -23,6 +23,13 @@ def _query_for_trace_id(trace_id):
             logger.debug(f" Backend response for trace_id [{trace_id}]: [{r.text}]")
             # Check if it's  not a old trace
             trace_data = r.json()
+            if validator:
+                logger.info("Validating backend trace...")
+                if not validator(trace_id, trace_data):
+                    logger.info("Backend trace is not valid")
+                    return -1, None
+                else:
+                    logger.info("Backend trace is valid")
             root_id = trace_data["trace"]["root_id"]
             start_time = trace_data["trace"]["spans"][root_id]["start"]
             start_date = datetime.fromtimestamp(start_time)
@@ -71,10 +78,10 @@ def _query_for_profile(runtime_id):
         return -1
 
 
-def wait_backend_trace_id(trace_id, timeout: float = 5.0, profile: bool = False):
+def wait_backend_trace_id(trace_id, timeout: float = 5.0, profile: bool = False, validator=None):
     start_time = time.perf_counter()
     while True:
-        status, runtime_id = _query_for_trace_id(trace_id)
+        status, runtime_id = _query_for_trace_id(trace_id, validator=validator)
         if status != 200:
             time.sleep(2)
         else:

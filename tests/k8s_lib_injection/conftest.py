@@ -6,7 +6,7 @@ from utils import context
 from utils.tools import logger
 import json
 from utils.k8s_lib_injection.k8s_kind_cluster import ensure_cluster, destroy_cluster
-from utils.k8s_lib_injection.k8s_datadog_cluster_agent import K8sDatadogClusterTestAgent
+from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.k8s_lib_injection.k8s_wrapper import K8sWrapper
 from kubernetes import config
@@ -35,6 +35,8 @@ def test_k8s_instance(request):
         prefix_library_init_image=context.scenario._prefix_library_init_image
         if hasattr(context.scenario, "_prefix_library_init_image")
         else None,
+        api_key=context.scenario.api_key,
+        app_key=context.scenario.app_key,
     )
     logger.info(f"K8sInstance creating -- {test_name}")
     k8s_instance.start_instance()
@@ -59,6 +61,8 @@ class K8sInstance:
         # TODO remove these two parameters
         library_init_image_tag=None,
         prefix_library_init_image=None,
+        api_key=None,
+        app_key=None,
     ):
         self.library = library
         self.weblog_variant = weblog_variant
@@ -76,7 +80,9 @@ class K8sInstance:
         )
         self.output_folder = output_folder
         self.test_name = test_name
-        self.test_agent = K8sDatadogClusterTestAgent(self.prefix_library_init_image, output_folder, test_name)
+        self.test_agent = K8sDatadog(
+            self.prefix_library_init_image, output_folder, test_name, api_key=api_key, app_key=app_key
+        )
         self.test_weblog = K8sWeblog(weblog_variant_image, library, library_init_image, output_folder, test_name)
         self.k8s_kind_cluster = None
         self.k8s_wrapper = None
@@ -93,19 +99,25 @@ class K8sInstance:
             logger.error(f"Error loading kube config: {e}")
 
     def destroy_instance(self):
-        destroy_cluster(self.k8s_kind_cluster)
+        pass
+
+    # destroy_cluster(self.k8s_kind_cluster)
+
+    def deploy_datadog_cluster_agent(self, use_uds=False, features=None):
+        """ Deploys datadog cluster agent with admission controller and given features."""
+        self.test_agent.deploy_datadog_cluster_agent(features=features)
 
     def deploy_test_agent(self):
         self.test_agent.desploy_test_agent()
-        return self.test_agent
 
-    def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False):
+    def deploy_agent(self):
+        self.test_agent.desploy_agent()
+
+    def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False, env=None):
         if with_admission_controller:
-            self.test_weblog.install_weblog_pod_with_admission_controller()
+            self.test_weblog.install_weblog_pod_with_admission_controller(env=env)
         else:
-            self.test_weblog.install_weblog_pod_without_admission_controller(use_uds)
-
-        return self.test_weblog
+            self.test_weblog.install_weblog_pod_without_admission_controller(use_uds, env=env)
 
     def deploy_weblog_as_deployment(self):
         self.test_weblog.deploy_app_auto()
@@ -118,6 +130,9 @@ class K8sInstance:
         time.sleep(5)
         self.test_weblog.wait_for_weblog_after_apply_configmap(f"{self.library}-app", timeout=timeout)
         return self.test_agent
+
+    def deploy_operator_auto(self):
+        self.test_agent.deploy_operator_auto()
 
     def export_debug_info(self):
         self.test_agent.export_debug_info()

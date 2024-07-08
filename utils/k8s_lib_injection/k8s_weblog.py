@@ -36,7 +36,7 @@ class K8sWeblog:
         self.k8s_wrapper = k8s_wrapper
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
 
-    def _get_base_weblog_pod(self):
+    def _get_base_weblog_pod(self, env=None):
         """ Installs a target app for manual library injection testing.
             It returns when the app pod is ready."""
 
@@ -59,35 +59,39 @@ class K8sWeblog:
         )
 
         containers = []
+        # Set the default environment variables for all pods
+        default_pod_env = [
+            client.V1EnvVar(name="SERVER_PORT", value="18080"),
+            client.V1EnvVar(
+                name="DD_ENV",
+                value_from=client.V1EnvVarSource(
+                    field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/env']")
+                ),
+            ),
+            client.V1EnvVar(
+                name="DD_SERVICE",
+                value_from=client.V1EnvVarSource(
+                    field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/service']")
+                ),
+            ),
+            client.V1EnvVar(
+                name="DD_VERSION",
+                value_from=client.V1EnvVarSource(
+                    field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/version']")
+                ),
+            ),
+            client.V1EnvVar(name="DD_TRACE_DEBUG", value="1"),
+        ]
+        # Add custom env vars if provided
+        if env:
+            for k, v in env.items():
+                default_pod_env.append(client.V1EnvVar(name=k, value=v))
+
+        self.logger.info(f"RMM Default pod env: {default_pod_env}")
         container1 = client.V1Container(
             name="my-app",
             image=self.app_image,
-            env=[
-                client.V1EnvVar(name="SERVER_PORT", value="18080"),
-                client.V1EnvVar(
-                    name="DD_ENV",
-                    value_from=client.V1EnvVarSource(
-                        field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/env']")
-                    ),
-                ),
-                client.V1EnvVar(
-                    name="DD_SERVICE",
-                    value_from=client.V1EnvVarSource(
-                        field_ref=client.V1ObjectFieldSelector(
-                            field_path="metadata.labels['tags.datadoghq.com/service']"
-                        )
-                    ),
-                ),
-                client.V1EnvVar(
-                    name="DD_VERSION",
-                    value_from=client.V1EnvVarSource(
-                        field_ref=client.V1ObjectFieldSelector(
-                            field_path="metadata.labels['tags.datadoghq.com/version']"
-                        )
-                    ),
-                ),
-                client.V1EnvVar(name="DD_TRACE_DEBUG", value="1"),
-            ],
+            env=default_pod_env,
             readiness_probe=client.V1Probe(
                 timeout_seconds=5,
                 success_threshold=3,
@@ -107,14 +111,14 @@ class K8sWeblog:
         self.logger.info("[Deploy weblog] Weblog pod configuration done.")
         return pod_body
 
-    def install_weblog_pod_with_admission_controller(self):
+    def install_weblog_pod_with_admission_controller(self, env=None):
         self.logger.info("[Deploy weblog] Installing weblog pod using admission controller")
-        pod_body = self._get_base_weblog_pod()
+        pod_body = self._get_base_weblog_pod(env=env)
         self.k8s_wrapper.create_namespaced_pod(body=pod_body)
         self.logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
-    def install_weblog_pod_without_admission_controller(self, use_uds):
+    def install_weblog_pod_without_admission_controller(self, use_uds, env=None):
         pod_body = self._get_base_weblog_pod()
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(
