@@ -193,13 +193,14 @@ def _json_to_base64(json_object):
 
 class ClientConfig:
     _store: dict[str, "ClientConfig"] = {}
-    version: int = 1
+    config_file_version: int = 1
 
-    def __init__(self, path: str, config):
+    def __init__(self, path: str, config, config_file_version=None) -> None:
         self.path = path
 
         self.raw = config if isinstance(config, str) else _json_to_base64(config)
         self.raw_decoded = base64.b64decode(self.raw).decode("utf-8")
+        self.config_file_version = self.config_file_version if config_file_version is None else config_file_version
 
         if config is not None:
             self._store[path] = self
@@ -219,13 +220,16 @@ class ClientConfig:
 
     def get_target(self):
         return {
-            "custom": {"v": self.version},
+            "custom": {"v": self.config_file_version},
             "hashes": {"sha256": self.raw_sha256},
             "length": self.raw_length,
         }
 
     def __repr__(self) -> str:
-        return f"""({self.path!r}, {self.raw_deserialized!r})"""
+        if self.config_file_version == ClientConfig.config_file_version:
+            return f"""({self.path!r}, {self.raw_deserialized!r})"""
+
+        return f"""({self.path!r}, {self.raw_deserialized!r}, {self.config_file_version})"""
 
 
 class RemoteConfigCommand:
@@ -254,8 +258,8 @@ class RemoteConfigCommand:
 
         self.opaque_backend_state = base64.b64encode(self.backend_state.encode("utf-8")).decode("utf-8")
 
-    def add_client_config(self, path, config) -> ClientConfig:
-        client_config = ClientConfig(path=path, config=config)
+    def add_client_config(self, path, config, config_file_version=None) -> ClientConfig:
+        client_config = ClientConfig(path=path, config=config, config_file_version=config_file_version)
         self.targets.append(client_config)
 
         return client_config
