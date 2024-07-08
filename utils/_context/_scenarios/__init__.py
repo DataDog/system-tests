@@ -1420,7 +1420,7 @@ class scenarios:
     appsec_api_security_rc = EndToEndScenario(
         "APPSEC_API_SECURITY_RC",
         weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0",},
-        proxy_state={"mock_remote_config_backend": "APPSEC_API_SECURITY_RC"},
+        rc_api_enabled=True,
         doc="""
             Scenario to test API Security Remote config
         """,
@@ -1529,15 +1529,6 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
-    )
-
-    remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
-        library_interface_timeout=100,
-        doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
