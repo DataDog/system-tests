@@ -275,7 +275,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
     test_automated_login_events.py:
       Test_Login_Events:
         '*': *ref_4_4_0
@@ -318,7 +318,6 @@ tests/:
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
       Test_RuleSet_1_3_1: v2.5.0
-      Test_StaticRuleSet: v2.0.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
       Test_MissingRules: missing_feature
@@ -344,7 +343,6 @@ tests/:
       Test_Main: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
-      Test_HttpClientIP: v2.0.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v2.0.0
       Test_StatusCode: v2.0.0
@@ -361,7 +359,6 @@ tests/:
       Test_AppSecObfuscator: v2.6.0
       Test_CollectDefaultRequestHeader: *ref_5_18_0
       Test_CollectRespondHeaders: v2.0.0
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: *ref_5_7_0
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
