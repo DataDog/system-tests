@@ -159,7 +159,11 @@ class K8sDatadog:
 
         self.logger.info(f"[Deploy datadog cluster]helm install datadog with config file [{operator_file}]")
         datadog_keys = {"datadog.apiKey": self._api_key, "datadog.appKey": self._app_key}
-        features = features | datadog_keys
+        if features:
+            features = features | datadog_keys
+        else:
+            features = datadog_keys
+
         helm_install_chart(
             self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
         )
