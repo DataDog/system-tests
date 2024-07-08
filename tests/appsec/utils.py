@@ -35,7 +35,7 @@ class BaseFullDenyListTest:
         self.states = BaseFullDenyListTest.states
         self.blocked_ips = [BLOCKED_IPS[0], BLOCKED_IPS[2500], BLOCKED_IPS[-1]]
 
-    def test_protocol(self):
+    def assert_protocol_is_respected(self):
         interfaces.library.assert_rc_targets_version_states(targets_version=0, config_states=[])
         interfaces.library.assert_rc_targets_version_states(
             targets_version=self.TARGETS_VERSION,
