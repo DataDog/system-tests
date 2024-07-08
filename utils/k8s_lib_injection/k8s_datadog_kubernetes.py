@@ -161,12 +161,7 @@ class K8sDatadog:
         datadog_keys = {"datadog.apiKey": self._api_key, "datadog.appKey": self._app_key}
         features = features | datadog_keys
         helm_install_chart(
-            self.k8s_kind_cluster,
-            "datadog",
-            "datadog/datadog",
-            value_file=operator_file,
-            set_dict=features,
-            # set_dict={"datadog.apiKey": os.getenv("DD_API_KEY"), "datadog.appKey": os.getenv("DD_APP_KEY")},
+            self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
         )
 
         self.logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")

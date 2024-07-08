@@ -28,8 +28,7 @@ def _query_for_trace_id(trace_id, validator=None):
                 if not validator(trace_id, trace_data):
                     logger.info("Backend trace is not valid")
                     return -1, None
-                else:
-                    logger.info("Backend trace is valid")
+                logger.info("Backend trace is valid")
             root_id = trace_data["trace"]["root_id"]
             start_time = trace_data["trace"]["spans"][root_id]["start"]
             start_date = datetime.fromtimestamp(start_time)
