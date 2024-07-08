@@ -538,7 +538,7 @@ class WeblogContainer(TestedContainer):
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         result = []
 
-        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
+        pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
         with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", "r", encoding="utf-8") as f:
             for line in f.readlines():
                 if match := pattern.match(line):
