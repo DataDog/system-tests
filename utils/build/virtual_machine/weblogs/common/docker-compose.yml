@@ -1,6 +1,7 @@
 version: '3'
 services:
   test-app:
+    env_file: "scenario_app.env"
     container_name: test-app
     image: system-tests/local:latest
     ports:
