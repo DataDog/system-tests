@@ -679,11 +679,11 @@ tests/:
     Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0.dev
     Test_HeaderTags_Long: v1.2.1
-    Test_HeaderTags_Short: missing_feature
-    Test_HeaderTags_Whitespace_Header: missing_feature
-    Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
+    Test_HeaderTags_Short: v2.10.0
+    Test_HeaderTags_Whitespace_Header: v2.10.0
+    Test_HeaderTags_Whitespace_Tag: v2.10.0
     Test_HeaderTags_Whitespace_Val_Long: v1.2.1
-    Test_HeaderTags_Whitespace_Val_Short: missing_feature
+    Test_HeaderTags_Whitespace_Val_Short: v2.10.0
   test_profiling.py:
     Test_Profile:
       '*': v0.1 # actual version unknown
