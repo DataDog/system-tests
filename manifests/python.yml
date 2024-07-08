@@ -437,7 +437,7 @@ tests/:
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: v1.10.0 # partially missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_AppSecIPBlockingFullDenylist: v2.11.0.dev
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
@@ -466,7 +466,7 @@ tests/:
       Test_ExternalWafRequestsIdentification: v2.9.0.dev1
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v1.10.0 # partially missing_feature missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_UserBlocking_FullDenylist: v2.11.0.dev
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
