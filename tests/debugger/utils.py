@@ -6,6 +6,7 @@ import json
 import re
 import os
 import os.path
+import uuid
 
 from packaging import version
 
@@ -24,6 +25,10 @@ _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 def read_probes(test_name: str):
     with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def generate_probe_id(probe_type: str):
+    return probe_type + str(uuid.uuid4())[len(probe_type) :]
 
 
 def extract_probe_ids(probes):
@@ -188,6 +193,7 @@ class _Base_Debugger_Test:
         assert len(self.weblog_responses) > 0, "No responses available."
 
         for respone in self.weblog_responses:
+            logger.debug(f"Response is {respone.text}")
             assert respone.status_code == 200
 
     def assert_all_states_not_error(self):
