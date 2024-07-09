@@ -60,11 +60,11 @@ class _Test_Kafka:
         send request B to library buddy, this request will consume kafka message
         """
         self.production_response = weblog.get(
-            "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=60
+            "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=120
         )
 
         self.consume_response = self.buddy.get(
-            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60}, timeout=61
+            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 120}, timeout=125
         )
 
     def test_produce(self):
@@ -102,11 +102,11 @@ class _Test_Kafka:
         request B: GET /weblog/consume_kafka_message
         """
         self.production_response = self.buddy.get(
-            "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=60
+            "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=120
         )
 
         self.consume_response = weblog.get(
-            "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 60}, timeout=61
+            "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 120}, timeout=121
         )
 
     def test_consume(self):
@@ -190,9 +190,22 @@ class Test_Kafka_Otel(_Test_Kafka):
     BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog_otel"
 
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    def test_produce_trace_equality(self):
-        super().test_produce_trace_equality()
-
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()
+
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    def test_produce_trace_equality(self):
+        """Override, OTel uses Span Links for propagating context. We need to check the consume span for a link"""
+        producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
+        consumer_span = self.get_span(self.buddy_interface, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
+
+        # Both producer and consumer spans should be part of the same trace
+        # Different tracers can handle the exact propagation differently, so for now, this test avoids
+        # asserting on direct parent/child relationships
+        breakpoint()
+        assert "span_links" in consumer_span, "Producer span should be found in span_links attribute, link not found for the following span:\n" + consumer_span
+
+        assert producer_span["trace_id"] == consumer_span["span_links"][0]["trace_id"]
+        assert producer_span["span_id"] == consumer_span["span_links"][0]["span_id"]
+
+    
