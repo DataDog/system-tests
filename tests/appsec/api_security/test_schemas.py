@@ -73,6 +73,7 @@ class Test_Schema_Request_Headers:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@flaky(context.library > "php@1.1.0", reason="APPSEC-53993")
 class Test_Schema_Request_Cookies:
     """Test API Security - Request Cookies Schema"""
 
@@ -137,7 +138,7 @@ class Test_Schema_Request_Path_Parameters:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
-@flaky(context.library > "php@7.54.1")
+@flaky(context.library > "php@1.1.0", reason="APPSEC-53993")
 class Test_Schema_Request_Json_Body:
     """Test API Security - Request Body and list length"""
 
@@ -158,6 +159,7 @@ class Test_Schema_Request_Json_Body:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@flaky(context.library > "php@1.1.0", reason="APPSEC-53993")
 class Test_Schema_Request_FormUrlEncoded_Body:
     """Test API Security - Request Body and list length"""
 
@@ -217,6 +219,7 @@ class Test_Schema_Response_Headers:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@flaky(context.library > "php@1.1.0", reason="APPSEC-53993")
 class Test_Schema_Response_Body:
     """Test API Security - Response Body Schema with urlencoded body"""
 
