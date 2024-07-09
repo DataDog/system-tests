@@ -143,9 +143,12 @@ class _DockerScenario(_Scenario):
         if include_localstack:
             self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
 
-    @property
-    def image_list(self) -> list[str]:
-        return [container.image.name for container in self._required_containers]
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        return [
+            image_name
+            for container in self._required_containers
+            for image_name in container.get_image_list(library, weblog)
+        ]
 
     def configure(self, config):
         super().configure(config)

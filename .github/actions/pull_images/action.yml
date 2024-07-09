@@ -1,9 +1,14 @@
 name: "Pull docker images"
 description: "Pull docker images"
 inputs:
+  library:
+    description: "Which library will be tested (python, cpp, java, ...)"
+    required: true
+  weblog:
+    description: "Which weblog will be tested"
+    required: true
   scenarios:
     description: "JSON array of scenarios that will be executed"
-    default: "[]"
     required: true
 
 runs:
@@ -29,7 +34,7 @@ runs:
       shell: bash
       run: |
         source venv/bin/activate
-        python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' > compose.yaml
+        python utils/scripts/get-image-list.py ${{ inputs.library }} ${{ inputs.weblog }} '${{ inputs.scenarios }}' > compose.yaml
       env:
         PYTHONPATH: "."
 
