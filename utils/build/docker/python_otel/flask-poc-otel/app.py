@@ -19,8 +19,7 @@ FlaskInstrumentor().instrument()
 import psycopg2
 import requests
 
-from flask import Flask, Response, jsonify
-from flask import request
+from flask import Flask
 from flask import request as flask_request
 
 from integrations.db.mssql import executeMssqlOperation
