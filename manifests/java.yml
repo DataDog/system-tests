@@ -584,8 +584,26 @@ tests/:
         play: bug (KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
-      Test_Login_Events: missing_feature
-      Test_Login_Events_Extended: missing_feature
+      Test_Login_Events:
+        '*': 1.36.0
+        akka-http: missing_feature (login endpoints not implemented)
+        jersey-grizzly2: missing_feature (login endpoints not implemented)
+        play: missing_feature (login endpoints not implemented)
+        ratpack: missing_feature (login endpoints not implemented)
+        resteasy-netty3: missing_feature (login endpoints not implemented)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        vertx3: missing_feature (login endpoints not implemented)
+        vertx4: missing_feature (login endpoints not implemented)
+      Test_Login_Events_Extended:
+        '*': 1.36.0
+        akka-http: missing_feature (login endpoints not implemented)
+        jersey-grizzly2: missing_feature (login endpoints not implemented)
+        play: missing_feature (login endpoints not implemented)
+        ratpack: missing_feature (login endpoints not implemented)
+        resteasy-netty3: missing_feature (login endpoints not implemented)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        vertx3: missing_feature (login endpoints not implemented)
+        vertx4: missing_feature (login endpoints not implemented)
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
