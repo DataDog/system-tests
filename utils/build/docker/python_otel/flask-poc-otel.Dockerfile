@@ -19,17 +19,31 @@ RUN pip install psycopg2
 #Set opentelemetry-distro to 0.42b0 due this bug: https://github.com/open-telemetry/opentelemetry-python-contrib/issues/2046
 # RUN pip install opentelemetry-distro==0.42b0 opentelemetry-exporter-otlp
 
+RUN git clone https://github.com/open-telemetry/opentelemetry-python.git
+
+WORKDIR /app/opentelemetry-python
+
+RUN pip install ./opentelemetry-api
+RUN pip install ./opentelemetry-semantic-conventions
+RUN pip install ./opentelemetry-sdk
+
+WORKDIR /app
+
 RUN git clone https://github.com/open-telemetry/opentelemetry-python-contrib.git
-RUN cd opentelemetry-python-contrib
-RUN pip install -e instrumentation/opentelemetry-instrumentation
-RUN pip install -e instrumentation/opentelemetry-instrumentation-confluent-kafka
 
-RUN cd ..
+WORKDIR /app/opentelemetry-python-contrib
 
-# Install Otel Instrumentations
-RUN pip install opentelemetry-instrumentation-confluent-kafka==0.42b0
-RUN pip install opentelemetry-instrumentation-flask==0.42b0
-RUN pip install opentelemetry-instrumentation-botocore==0.42b0
+RUN pip install ./opentelemetry-instrumentation
+RUN pip install ./opentelemetry-distro
+RUN pip install ./instrumentation/opentelemetry-instrumentation-confluent-kafka
+RUN pip install ./util/opentelemetry-util-http
+RUN pip install ./instrumentation/opentelemetry-instrumentation-wsgi
+RUN pip install ./instrumentation/opentelemetry-instrumentation-flask
+RUN pip install ./instrumentation/opentelemetry-instrumentation-botocore
+
+# RUN pip install opentelemetry-exporter-otlp
+
+WORKDIR /app
 
 RUN opentelemetry-bootstrap -a install
 

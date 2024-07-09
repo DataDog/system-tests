@@ -11,6 +11,7 @@ def kafka_produce(topic, message, callback=None):
     else:
         producer.produce(topic, value=message)
     producer.flush()
+    producer.close()
     return {"result": "ok"}
 
 
