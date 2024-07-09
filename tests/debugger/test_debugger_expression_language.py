@@ -4,32 +4,26 @@
 
 import tests.debugger.utils as base
 import re
-from utils import (
-    scenarios,
-    interfaces,
-    weblog,
-    features,
-    remote_config as rc,
-)
+from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug
 
 
 @features.debugger_expression_language
 @scenarios.debugger_expression_language
 class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
     version = 0
+    message_map = {}
 
-    def _setup(self, probes_name: str, request_path: str):
-        Test_Debugger_Expression_Language.version += 1
-
-        probes = base.read_probes(probes_name)
+    def _setup(self, probes, request_path):
         self.expected_probe_ids = base.extract_probe_ids(probes)
+
+        Test_Debugger_Expression_Language.version += 1
         self.rc_state = rc.send_debugger_command(probes=probes, version=Test_Debugger_Expression_Language.version)
 
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.weblog_responses = [weblog.get(request_path)]
 
     def setup_expression_language_access_variables(self):
-        self._setup("expression_language_access_variables", "/debugger/expression?inputValue=asd")
+        self._setup(base.read_probes("expression_language_access_variables"), "/debugger/expression?inputValue=asd")
 
     def test_expression_language_access_variables(self):
         self.assert_all_states_not_error()
@@ -52,7 +46,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._validate_expression_language_messages(expected_messages)
 
     def setup_expression_language_access_exception(self):
-        self._setup("expression_language_access_exception", "/debugger/expression/exception")
+        self._setup(base.read_probes("expression_language_access_exception"), "/debugger/expression/exception")
 
     def test_expression_language_access_exception(self):
         self.assert_all_states_not_error()
@@ -65,40 +59,102 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._validate_expression_language_messages(expected_messages)
 
     def setup_expression_language_comparison_operators(self):
-        self._setup(
-            "expression_language_comparison_operators", "/debugger/expression/comparison-operators?inputValue=5"
+        def _create_comparison_probes(replacements):
+            probes = []
+            message_map = {}
+
+            for replacement in replacements:
+                ref_value_name, ref_value, operator, value, expected_result = replacement
+
+                probe = base.read_probes("expression_language_comparison_operators")[0]
+                probe["id"] = base.generate_probe_id("log")
+
+                str_segment = probe["segments"][0]
+                str_segment["str"] = str_segment["str"].replace("[REF_VALUE_NAME]", str(ref_value_name))
+                str_segment["str"] = str_segment["str"].replace("[REF_VALUE]", str(ref_value))
+                str_segment["str"] = str_segment["str"].replace("[VALUE]", str(value))
+                str_segment["str"] = str_segment["str"].replace("[OPERATOR]", str(operator))
+
+                message_map[probe["id"]] = str_segment["str"] + "[Tt]rue" if expected_result else "[Ff]alse"
+
+                comparison_segment = probe["segments"][1]
+                comparison_segment["json"]["[OPERATOR]"][0]["ref"] = ref_value_name
+                comparison_segment["json"]["[OPERATOR]"][1] = value
+                comparison_segment["json"][str(operator)] = comparison_segment["json"].pop("[OPERATOR]")
+
+                probes.append(probe)
+
+            return message_map, probes
+
+        message_map, probes = _create_comparison_probes(
+            [
+                ["intValue", 5, "eq", 5, True],
+                ["intValue", 5, "ne", 0, True],
+                ["intValue", 5, "lt", 10, True],
+                ["intValue", 5, "gt", 0, True],
+                ["intValue", 5, "le", 10, True],
+                ["intValue", 5, "le", 5, True],
+                ["intValue", 5, "ge", 0, True],
+                ["intValue", 5, "ge", 5, True],
+                ["intValue", 5, "eq", 0, False],
+                ["intValue", 5, "lt", 0, False],
+                ["intValue", 5, "gt", 10, False],
+                ["intValue", 5, "ne", 5, False],
+                ["intValue", 5, "le", 0, False],
+                ["intValue", 5, "ge", 10, False],
+                ["floatValue", 3.14, "ne", 0, True],
+                ["floatValue", 3.14, "ne", 0.1, True],
+                ["floatValue", 3.14, "lt", 10, True],
+                ["floatValue", 3.14, "lt", 10.10, True],
+                ["floatValue", 3.14, "gt", 0, True],
+                ["floatValue", 3.14, "gt", 0.0, True],
+                ["floatValue", 3.14, "le", 5, True],
+                ["floatValue", 3.14, "le", 5.5, True],
+                ["floatValue", 3.14, "ge", 0, True],
+                ["floatValue", 3.14, "ge", 0.0, True],
+                ["floatValue", 3.14, "eq", 0, False],
+                ["floatValue", 3.14, "eq", 0.0, False],
+                ["floatValue", 3.14, "lt", 0, False],
+                ["floatValue", 3.14, "lt", 0.0, False],
+                ["floatValue", 3.14, "gt", 10, False],
+                ["floatValue", 3.14, "gt", 10.10, False],
+                ["floatValue", 3.14, "le", 0, False],
+                ["floatValue", 3.14, "le", 0.0, False],
+                ["floatValue", 3.14, "ge", 10, False],
+                ["floatValue", 3.14, "ge", 10.10, False],
+                ["strValue", "haha", "eq", "haha", True],
+                ["strValue", "haha", "ne", "hoho", True],
+                ["strValue", "haha", "lt", "z", True],
+                ["strValue", "haha", "gt", "a", True],
+                ["strValue", "haha", "le", "haha", True],
+                ["strValue", "haha", "le", "z", True],
+                ["strValue", "haha", "ge", "a", True],
+                ["strValue", "haha", "ge", "haha", True],
+                ["strValue", "haha", "eq", "hoho", False],
+                ["strValue", "haha", "lt", "a", False],
+                ["strValue", "haha", "gt", "z", False],
+                ["strValue", "haha", "le", "a", False],
+                ["strValue", "haha", "ge", "z", False],
+            ]
         )
 
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/comparison-operators?intValue=5&floatValue=3.14&strValue=haha")
+
+    @bug(library="dotnet", reason="Comparison operators on float and string values are buggy")
     def test_expression_language_comparison_operators(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
 
-        expected_messages = {
-            "log170aa-expr-lang-0001-1479a6method": r"Testing 5 eq 5. Result is: [Tt]rue",
-            "log170aa-expr-lang-0002-1479a6method": r"Testing 5 lt 10. Result is: [Tt]rue",
-            "log170aa-expr-lang-0003-1479a6method": r"Testing 5 gt 0. Result is: [Tt]rue",
-            "log170aa-expr-lang-0004-1479a6method": r"Testing 5 ne 0. Result is: [Tt]rue",
-            "log170aa-expr-lang-0005-1479a6method": r"Testing 5 le 10. Result is: [Tt]rue",
-            "log170aa-expr-lang-0006-1479a6method": r"Testing 5 le 5. Result is: [Tt]rue",
-            "log170aa-expr-lang-0007-1479a6method": r"Testing 5 ge 0. Result is: [Tt]rue",
-            "log170aa-expr-lang-0008-1479a6method": r"Testing 5 ge 5. Result is: [Tt]rue",
-            "log170aa-expr-lang-0011-1479a6method": r"Testing 5 eq 0. Result is: [Ff]alse",
-            "log170aa-expr-lang-0012-1479a6method": r"Testing 5 lt 0. Result is: [Ff]alse",
-            "log170aa-expr-lang-0013-1479a6method": r"Testing 5 gt 10. Result is: [Ff]alse",
-            "log170aa-expr-lang-0014-1479a6method": r"Testing 5 ne 5. Result is: [Ff]alse",
-            "log170aa-expr-lang-0015-1479a6method": r"Testing 5 le 0. Result is: [Ff]alse",
-            "log170aa-expr-lang-0016-1479a6method": r"Testing 5 le 0. Result is: [Ff]alse",
-            "log170aa-expr-lang-0017-1479a6method": r"Testing 5 ge 10. Result is: [Ff]alse",
-            "log170aa-expr-lang-0018-1479a6method": r"Testing 5 ge 10. Result is: [Ff]alse",
-        }
-
-        self._validate_expression_language_messages(expected_messages)
+        self._validate_expression_language_messages(self.message_map)
 
     def _validate_expression_language_messages(self, expected_message_map):
         agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
 
         not_found_ids = set(self.expected_probe_ids)
+        error_messages = []
+
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
 
@@ -108,8 +164,17 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
                     if probe_id in expected_message_map:
                         not_found_ids.remove(probe_id)
-                        assert re.search(
-                            expected_message_map[probe_id], content["message"]
-                        ), f"Message for probe id {probe_id} not found"
 
+                        if not re.search(expected_message_map[probe_id], content["message"]):
+                            error_messages.append(
+                                f"Message for probe id {probe_id} is worng. \n Expected: {expected_message_map[probe_id]}. \n Found: {content['message']}"
+                            )
+
+                            evaluation_errors = content["debugger"]["snapshot"].get("evaluationErrors", [])
+                            for error in evaluation_errors:
+                                error_messages.append(
+                                    f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
+                                )
+
+        assert not error_messages, "Errors occurred during validation:\n" + "\n".join(error_messages)
         assert not not_found_ids, f"The following probes were not found: {', '.join(not_found_ids)}"

@@ -83,9 +83,9 @@ namespace weblog
 
         [HttpGet("expression/comparison-operators")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExpressionComparisonOperators(int inputValue)
+        public IActionResult ExpressionComparisonOperators(int intValue, float floatValue, string strValue)
         {
-            return Content($"Input value was {inputValue}");
+            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}");
         }
     }
 }

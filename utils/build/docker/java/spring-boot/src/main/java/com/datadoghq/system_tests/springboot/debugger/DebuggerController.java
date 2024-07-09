@@ -75,7 +75,7 @@ public class DebuggerController {
     }
 
     @GetMapping("/expression/comparison-operators")
-    public String expressionComparisonOperators(@RequestParam int inputValue) {
-        return "Input value was " + inputValue;
+    public String expressionComparisonOperators(@RequestParam int intValue, @RequestParam float floatValue, @RequestParam String strValue) {
+        return "Int value " + intValue + ". Float value " + floatValue + ". String value is " + strValue;
     }
 }
