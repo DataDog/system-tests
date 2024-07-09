@@ -2,10 +2,10 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
-  #- ruby_tracer
-  #- nodejs_tracer
+  - ruby_tracer
+  - nodejs_tracer
   - java_tracer
-  #- python_tracer
+  - python_tracer
   - dotnet_tracer
   - parse_results
   - before_tests
@@ -29,7 +29,7 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
 
-.onboarding_nodejs:
+onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -93,7 +93,7 @@ onboarding_java:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -104,12 +104,12 @@ onboarding_java:
     TEST_LIBRARY: "python"
   parallel:
       matrix:
-        #- ONBOARDING_FILTER_ENV: [dev, prod]
-        #  ONBOARDING_FILTER_WEBLOG: [test-app-python]
-        #  SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        #- ONBOARDING_FILTER_ENV: [dev, prod]
-        #  ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-        #  SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python]
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine-libgcc]
           SCENARIO: [CONTAINER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
@@ -134,12 +134,12 @@ onboarding_dotnet:
     TEST_LIBRARY: "dotnet"
   parallel:
       matrix:
-       # - ONBOARDING_FILTER_ENV: [dev, prod]
-       #   ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-       #   SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-       # - ONBOARDING_FILTER_ENV: [dev, prod]
-       #   ONBOARDING_FILTER_WEBLOG: [test-shell-script]
-       #   SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
+          SCENARIO: [HOST_AUTO_INJECTION, HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [HOST_AUTO_INJECTION_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
@@ -150,7 +150,7 @@ onboarding_dotnet:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_ruby:
+onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true

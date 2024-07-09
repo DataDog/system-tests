@@ -13,4 +13,8 @@ weblog:
           - name: copy-dotnet-app
             local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
 
+          - name: copy-dotnet-dockerfile
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app/Dockerfile
+            remote_path: Dockerfile.template
+
         remote-command: sh create_and_run_app_container.sh

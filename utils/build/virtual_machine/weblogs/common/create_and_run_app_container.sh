@@ -25,9 +25,6 @@ then
     echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_app.env
 fi
-
-
-
 sudo -E docker-compose -f docker-compose.yml up -d test-app
 
 echo "..:: RUNNING DOCKER SERVICES ::.." 
