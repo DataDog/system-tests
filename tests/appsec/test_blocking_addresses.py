@@ -523,7 +523,11 @@ class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
     def setup_blocking(self):
-        self.rm_req_block = weblog.get(f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ", cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"}, headers={"content-type": "text/plain", "client":"kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"})
+        self.rm_req_block = weblog.get(
+            f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
+        )
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -531,8 +535,16 @@ class Test_Suspicious_Request_Blocking:
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-012")
 
     def setup_blocking_before(self):
-        self.set_req1 = weblog.post("/tag_value/clean_value_3882/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ", data={"good": "value"}, cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"})
-        self.block_req2 = weblog.get(f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ", cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"}, headers={"content-type": "text/plain", "client":"kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"})
+        self.set_req1 = weblog.post(
+            "/tag_value/clean_value_3882/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            data={"good": "value"},
+            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+        )
+        self.block_req2 = weblog.get(
+            f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
+        )
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
@@ -552,7 +564,7 @@ class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 
     def setup_request_block_attack(self):
-        """ Currently only monitoring is implemented"""
+        """Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",
@@ -591,7 +603,7 @@ class Test_BlockingGraphqlResolvers:
             assert parameters["value"] == "testblockresolver"
 
     def setup_request_block_attack_directive(self):
-        """ Currently only monitoring is implemented"""
+        """Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",
