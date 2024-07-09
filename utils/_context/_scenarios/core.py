@@ -57,7 +57,7 @@ VALID_GITHUB_WORKFLOWS = {
 }
 
 
-class _Scenario:
+class Scenario:
     def __init__(self, name, github_workflow, doc, scenario_groups=None) -> None:
         self.name = name
         self.replay = False
@@ -222,7 +222,7 @@ class _Scenario:
 
 
 
-class _DockerScenario(_Scenario):
+class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
 
     def __init__(
@@ -331,7 +331,7 @@ class _DockerScenario(_Scenario):
                 logger.exception(f"Failed to remove container {container}")
 
 
-class EndToEndScenario(_DockerScenario):
+class EndToEndScenario(DockerScenario):
     """Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent"""
 
     def __init__(

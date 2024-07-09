@@ -34,13 +34,13 @@ from utils._context.virtual_machines import (
 
 from utils.tools import logger, update_environ_with_local_env
 
-from .core import _Scenario, ScenarioGroup, _DockerScenario, EndToEndScenario
+from .core import Scenario, ScenarioGroup, DockerScenario, EndToEndScenario
 from .parametric import ParametricScenario
 
 update_environ_with_local_env()
 
 
-class TestTheTestScenario(_Scenario):
+class TestTheTestScenario(Scenario):
     library = LibraryVersion("java", "0.66.0")
 
     def __init__(self, name, doc) -> None:
@@ -62,7 +62,7 @@ class TestTheTestScenario(_Scenario):
     def weblog_variant(self):
         return "spring"
 
-class OpenTelemetryScenario(_DockerScenario):
+class OpenTelemetryScenario(DockerScenario):
     """Scenario for testing opentelemetry"""
 
     def __init__(
@@ -247,7 +247,7 @@ class PerformanceScenario(EndToEndScenario):
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
 
-class _VirtualMachineScenario(_Scenario):
+class _VirtualMachineScenario(Scenario):
     """Scenario that tests virtual machines"""
 
     def __init__(
@@ -455,7 +455,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         )
 
 
-class _KubernetesScenario(_Scenario):
+class _KubernetesScenario(Scenario):
     """ DEPRECATED: Replaced by Kubernetes Scenario. 
         Scenario that tests kubernetes lib injection"""
 
@@ -548,7 +548,7 @@ class _KubernetesScenario(_Scenario):
         return self._weblog_variant
 
 
-class KubernetesScenario(_Scenario):
+class KubernetesScenario(Scenario):
     """ Scenario that tests kubernetes lib injection """
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
@@ -586,7 +586,7 @@ class KubernetesScenario(_Scenario):
         return self._weblog_variant
 
 
-class WeblogInjectionScenario(_Scenario):
+class WeblogInjectionScenario(Scenario):
     """Scenario that runs APM test agent """
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
@@ -661,7 +661,7 @@ class scenarios:
 
         return test_object
 
-    todo = _Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
+    todo = Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
@@ -1173,7 +1173,7 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    fuzzer = _DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
+    fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     host_auto_injection = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario",
@@ -1296,12 +1296,12 @@ class scenarios:
     )
 
 
-def get_all_scenarios() -> list[_Scenario]:
+def get_all_scenarios() -> list[Scenario]:
     result = []
     for name in dir(scenarios):
         if not name.startswith("_"):
-            scenario: _Scenario = getattr(scenarios, name)
-            if issubclass(scenario.__class__, _Scenario):
+            scenario: Scenario = getattr(scenarios, name)
+            if issubclass(scenario.__class__, Scenario):
                 result.append(scenario)
 
     return result
