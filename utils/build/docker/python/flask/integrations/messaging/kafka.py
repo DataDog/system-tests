@@ -35,6 +35,7 @@ def kafka_consume(topic, group_id, timeout=120):
         elif msg.error():
             logging.info("[kafka] Consumed message but got error " + msg.error().str())
         else:
+            print(msg)
             logging.info("[kafka] Consumed message")
 
     consumer.close()
