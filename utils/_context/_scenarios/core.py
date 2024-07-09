@@ -31,7 +31,6 @@ from utils._context.library_version import LibraryVersion
 from utils.tools import logger, get_log_formatter
 
 
-
 class ScenarioGroup(Enum):
     ALL = "all"
     APPSEC = "appsec"
@@ -219,7 +218,6 @@ class Scenario:
 
     def is_part_of(self, declared_scenario):
         return self.name == declared_scenario
-
 
 
 class DockerScenario(Scenario):
@@ -687,4 +685,3 @@ class EndToEndScenario(DockerScenario):
             "libddwaf": self.weblog_container.libddwaf_version,
             "appsec_rules": self.appsec_rules_version,
         }
-

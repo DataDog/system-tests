@@ -1,5 +1,4 @@
 import os
-import time
 import json
 
 import pytest
@@ -36,6 +35,8 @@ from utils.tools import logger, update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup, DockerScenario, EndToEndScenario
 from .parametric import ParametricScenario
+from .performance import PerformanceScenario
+
 
 update_environ_with_local_env()
 
@@ -61,6 +62,7 @@ class TestTheTestScenario(Scenario):
     @property
     def weblog_variant(self):
         return "spring"
+
 
 class OpenTelemetryScenario(DockerScenario):
     """Scenario for testing opentelemetry"""
@@ -214,37 +216,6 @@ class OpenTelemetryScenario(DockerScenario):
     @property
     def weblog_variant(self):
         return self.weblog_container.weblog_variant
-
-
-class PerformanceScenario(EndToEndScenario):
-    def __init__(self, name, doc) -> None:
-        super().__init__(name, doc=doc, appsec_enabled=self.appsec_enabled, use_proxy=False)
-
-    @property
-    def appsec_enabled(self):
-        return os.environ.get("DD_APPSEC_ENABLED") == "true"
-
-    @property
-    def host_log_folder(self):
-        return "logs_with_appsec" if self.appsec_enabled else "logs_without_appsec"
-
-    def _get_warmups(self):
-        result = super()._get_warmups()
-        result.append(self._extra_weblog_warmup)
-
-        return result
-
-    def _extra_weblog_warmup(self):
-        from utils import weblog
-
-        WARMUP_REQUEST_COUNT = 10
-        WARMUP_LAST_SLEEP_DURATION = 3
-
-        for _ in range(WARMUP_REQUEST_COUNT):
-            weblog.warmup_request(timeout=10)
-            time.sleep(0.6)
-
-        time.sleep(WARMUP_LAST_SLEEP_DURATION)
 
 
 class _VirtualMachineScenario(Scenario):
