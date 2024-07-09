@@ -76,12 +76,6 @@ jobs:
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
-    - name: Pull images
-      uses: ./.github/actions/pull_images
-      with:
-        library: ${{ inputs.library }}
-        weblog: ${{ matrix.weblog }}
-        scenarios: ${{ inputs.scenarios }}
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
@@ -92,6 +86,12 @@ jobs:
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
+    - name: Pull images
+      uses: ./.github/actions/pull_images
+      with:
+        library: ${{ inputs.library }}
+        weblog: ${{ matrix.weblog }}
+        scenarios: ${{ inputs.scenarios }}
     - name: Log in to the Container registry
       if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
