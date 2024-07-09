@@ -2,7 +2,7 @@ import re
 import sys
 import yaml
 
-from utils._context._scenarios import get_all_scenarios, _DockerScenario
+from utils._context._scenarios import get_all_scenarios, DockerScenario
 
 
 if __name__ == "__main__":
@@ -13,7 +13,7 @@ if __name__ == "__main__":
     images = set("")
 
     for scenario in get_all_scenarios():
-        if f'"{scenario.name}"' in executed_scenarios and isinstance(scenario, _DockerScenario):
+        if f'"{scenario.name}"' in executed_scenarios and isinstance(scenario, DockerScenario):
             images.update(scenario.get_image_list(library, weblog))
 
     # remove images that will be built locally
