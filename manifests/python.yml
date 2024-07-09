@@ -415,7 +415,7 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
+      Test_Suspicious_Request_Blocking: v2.4.0.dev1
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:

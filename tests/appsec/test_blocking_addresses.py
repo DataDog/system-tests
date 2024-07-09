@@ -517,22 +517,33 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@scenarios.appsec_blocking
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
+    def setup_blocking(self):
+        self.rm_req_block = weblog.get(f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ", cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"}, headers={"content-type": "text/plain", "client":"kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"})
+
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        assert False, "TODO"
+        assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-012")
 
-    def test_non_blocking(self):
-        """Test if requests that should not be blocked are not blocked"""
-        self.test_blocking()
-        assert False, "TODO"
+    def setup_blocking_before(self):
+        self.set_req1 = weblog.post("/tag_value/clean_value_3882/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ", data={"good": "value"}, cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"})
+        self.block_req2 = weblog.get(f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ", cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"}, headers={"content-type": "text/plain", "client":"kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"})
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
-        assert False, "TODO"
+        # first request should not block and must set the tag in span accordingly
+        assert self.set_req1.status_code == 200
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3882"))
+        """Test that blocked requests are blocked before being processed"""
+        assert self.block_req2.status_code == 403
+        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-012")
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @scenarios.graphql_appsec
