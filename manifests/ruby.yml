@@ -113,7 +113,6 @@ tests/:
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.8.0
-        Test_BodyRaw: v1.1.0
         Test_BodyUrlEncoded: v1.8.0
         Test_BodyXml: irrelevant (unsupported by framework)
         Test_ClientIP: missing_feature

@@ -207,11 +207,6 @@ tests/:
         Test_BodyJson:
           '*': v1.4.0rc1.dev
           fastapi: v2.4.0.dev1
-        Test_BodyRaw:
-          '*': missing_feature
-          django-poc: v1.5.2
-          fastapi: v2.4.0.dev1
-          python3.12: v1.5.2
         Test_BodyUrlEncoded:
           '*': v1.4.0rc1.dev
           fastapi: v2.4.0.dev1

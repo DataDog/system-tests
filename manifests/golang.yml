@@ -134,7 +134,6 @@ tests/:
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0
-        Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded: v1.37.0
         Test_BodyXml: v1.37.0
         Test_ClientIP: missing_feature

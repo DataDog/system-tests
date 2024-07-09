@@ -210,7 +210,6 @@ tests/:
         Test_BodyJson:
           '*': v2.2.0
           nextjs: *ref_4_17_0
-        Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded:
           '*': v2.2.0
           nextjs: *ref_5_3_0

@@ -232,19 +232,6 @@ class Test_Cookies:
         interfaces.library.assert_waf_attack(self.r_cwsc2cc, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
-@features.appsec_request_blocking
-class Test_BodyRaw:
-    """Appsec supports <body>"""
-
-    def setup_raw_body(self):
-        self.r = weblog.post("/waf", data="/.adsensepostnottherenonobook")
-
-    @missing_feature(reason="no rule with body raw yet")
-    def test_raw_body(self):
-        """AppSec detects attacks in raw body"""
-        interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
-
-
 @bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
 @features.appsec_request_blocking
 class Test_BodyUrlEncoded:

@@ -112,7 +112,6 @@ tests/:
     waf/:
       test_addresses.py:
         Test_BodyJson: v0.98.1 # TODO what is the earliest version?
-        Test_BodyRaw: v0.68.3
         Test_BodyUrlEncoded: v0.68.3
         Test_BodyXml: missing_feature
         Test_ClientIP: missing_feature
