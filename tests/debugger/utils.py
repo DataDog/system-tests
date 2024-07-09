@@ -22,6 +22,10 @@ _TRACES_PATH = "/api/v0.2/traces"
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+def get_tracer():
+    return list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
+
+
 def read_probes(test_name: str):
     with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
         return json.load(f)
@@ -36,7 +40,7 @@ def extract_probe_ids(probes):
 
 
 def read_diagnostic_data():
-    tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
+    tracer = get_tracer()
 
     tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
     if tracer["language"] == "java":
