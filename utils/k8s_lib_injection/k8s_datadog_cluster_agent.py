@@ -34,6 +34,10 @@ class K8sDatadogClusterTestAgent:
         self.logger.info(
             f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_kind_cluster.cluster_name}"
         )
+        self.logger.info(f"[Test agent] Checking nodes")
+        v1_mio = client.CoreV1Api()
+        test_result = v1_mio.list_node()
+        self.logger.info(f"[Test agent] check nodes Result : {test_result}")
 
         container = client.V1Container(
             name="trace-agent",
