@@ -6,7 +6,7 @@ A weblog is a web app that system uses to test the library. It mimics what would
 
 ## Disclaimer
 
-This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contains mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
+This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contain mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
 
 **You are strongly encouraged to help others by submitting corrections when you notice issues with this document.**
 

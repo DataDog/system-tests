@@ -54,7 +54,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         # TODO: Move this in test class
 
         for data in self.get_data():
-            domain = data["host"][-len(expected_domain) :]
+            domain = data["host"][-len(expected_domain):]
 
             if domain != expected_domain:
                 raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
@@ -141,3 +141,29 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")
+
+    def get_stats(self, resource=""):
+        """Attempts to fetch the stats the agent will submit to the backend.
+
+        When a valid request is given, then we filter the stats to the ones sampled
+        during that request's execution, and only return those.
+        """
+        logger.debug("WE GETTIN THE STATS")
+
+        for data in self.get_data(path_filters="/api/v0.2/stats"):
+            logger.debug(f"WHATS THE DATA {data}")
+            if "Stats" not in data["request"]["content"]:
+                raise ValueError("Stats property is missing in agent payload")
+
+            client_stats_payloads = data["request"]["content"]["Stats"]
+
+            for client_stats_payload in client_stats_payloads:
+                for client_stats_buckets in client_stats_payload["Stats"]:
+                    for client_grouped_stat in client_stats_buckets["Stats"]:
+                        logger.debug(f"client_grouped_stats {client_grouped_stat}")
+                        if resource == "":
+                            yield client_grouped_stat
+                        elif client_grouped_stat["Resource"] == resource:
+                            yield client_grouped_stat
+
+

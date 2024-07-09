@@ -1,6 +1,6 @@
 ## System tests
 
-Workbench designed to run advanced tests (integration, smoke, functionnal, fuzzing and performance)
+Workbench designed to run advanced tests (integration, smoke, functional, fuzzing and performance)
 
 ## Requirements
 
