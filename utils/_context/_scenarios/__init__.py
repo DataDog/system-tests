@@ -29,34 +29,13 @@ from utils._context.virtual_machines import (
 from utils.tools import logger, update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup, DockerScenario, EndToEndScenario
+from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
+from .test_the_test import TestTheTestScenario
 
 
 update_environ_with_local_env()
-
-
-class TestTheTestScenario(Scenario):
-    library = LibraryVersion("java", "0.66.0")
-
-    def __init__(self, name, doc) -> None:
-        super().__init__(name, doc=doc, github_workflow="testthetest")
-
-    @property
-    def agent_version(self):
-        return "0.77.0"
-
-    @property
-    def components(self):
-        return {"mock_comp1": "mock_comp1_value"}
-
-    @property
-    def parametrized_tests_metadata(self):
-        return {"tests/test_the_test/test_json_report.py::Test_Mock::test_mock": {"meta1": "meta1"}}
-
-    @property
-    def weblog_variant(self):
-        return "spring"
 
 
 class _VirtualMachineScenario(Scenario):
