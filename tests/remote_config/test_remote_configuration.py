@@ -21,9 +21,6 @@ from utils import (
 
 from utils.tools import logger
 
-with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
-    LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
-
 
 @features.agent_remote_configuration
 class Test_Agent:
@@ -286,14 +283,29 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
     # that spawns multiple worker processes, each running its own RCM client.
     request_number = defaultdict(int)
 
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_live_debugging.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        remote_config.send_sequential_commands(payloads)
+
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
+            LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
 
         self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
+            status_code = data["response"]["status_code"]
+
+            if status_code == 404:
+                # the proxy did not yet overwrite response
+                return False
+
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {self.request_number[runtime_id]}")
             if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
@@ -429,6 +441,9 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
+            LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
 
         self.assert_client_fields()
 

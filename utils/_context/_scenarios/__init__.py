@@ -811,7 +811,7 @@ class scenarios:
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
-        proxy_state={"mock_remote_config_backend": "LIVE_DEBUGGING"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
