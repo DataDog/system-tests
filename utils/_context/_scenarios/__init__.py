@@ -801,7 +801,7 @@ class scenarios:
 
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
-        proxy_state={"mock_remote_config_backend": "ASM_FEATURES"},
+        rc_api_enabled=True,
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         library_interface_timeout=100,
