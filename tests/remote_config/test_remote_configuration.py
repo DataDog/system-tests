@@ -16,7 +16,9 @@ from utils import (
     scenarios,
     weblog,
     features,
+    remote_config,
 )
+
 from utils.tools import logger
 
 with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
@@ -336,9 +338,23 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @scenarios.remote_config_mocked_backend_asm_features_nocache
 @features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
-    """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
+    """
+        Tests that over a sequence of related updates, tracers follow the RFC for the Features product
+        This test is not relevant for all tracers but C++ and ruby (missing feature). It may be never used
+        if those languages directly implements  cache feature.
+
+        It may be brokken as it's using the new RC API, and thus may have a additional
+        RC request between each payload. But we do not have a way to check that.
+    """
 
     request_number = 0
+
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_asm_features_nocache.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        for payload in payloads:
+            remote_config.send_command(payload, wait_for_acknowledged_status=False)
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
@@ -364,9 +380,21 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 @scenarios.remote_config_mocked_backend_live_debugging_nocache
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
-    """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
+    """
+        Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product
+    
+        It may be brokken as it's using the new RC API, and thus may have a additional
+        RC request between each payload. But we do not have a way to check that.
+    """
 
     request_number = defaultdict(int)
+
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_live_debugging_nocache.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        for payload in payloads:
+            remote_config.send_command(payload, wait_for_acknowledged_status=False)
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
@@ -393,9 +421,20 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 @scenarios.remote_config_mocked_backend_asm_dd_nocache
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
-    """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
+    """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product
+    
+        It may be brokken as it's using the new RC API, and thus may have a additional
+        RC request between each payload. But we do not have a way to check that.
+    """
 
     request_number = 0
+
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_asm_dd_nocache.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        for payload in payloads:
+            remote_config.send_command(payload, wait_for_acknowledged_status=False)
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
