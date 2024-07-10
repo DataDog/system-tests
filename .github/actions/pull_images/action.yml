@@ -10,12 +10,17 @@ inputs:
   scenarios:
     description: "JSON array of scenarios that will be executed"
     required: true
+  cleanup:
+    description: "Whether to cleanup the disk to free up more space. Should be disabled when a larger machine can be used instead."
+    type: boolean
+    required: false
+    default: true
 
 runs:
   using: composite
   steps:
     - name: Free some place for scenarios known to require lot of images
-      if: ${{ contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"') }}
+      if: ${{ inputs.cleanup && (contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')) }}
       shell: bash
       run: |
         df -h
