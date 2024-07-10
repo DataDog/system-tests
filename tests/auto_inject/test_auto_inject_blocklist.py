@@ -101,7 +101,7 @@ ignored_arguments:
 
 
 @features.host_user_managed_block_list
-@scenarios.host_auto_injection_block_list
+@scenarios.installer_auto_injection_block_list
 class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
 
     buildIn_args_commands_block = {

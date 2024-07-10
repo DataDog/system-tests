@@ -26,6 +26,7 @@ DD_AGENT_MAJOR_VERSION=$DD_injection_major_version \
 DD_APM_INSTRUMENTATION_LANGUAGES="$DD_LANG" \
 DD_APM_INSTRUMENTATION_ENABLED="$DD_APM_INSTRUMENTATION_ENABLED" \
 DD_PROFILING_ENABLED="$DD_PROFILING_ENABLED" \
+DD_INSTALLER=true
 ./install_script_agent7_autoinject.sh
 
 echo "lib-injection install done"

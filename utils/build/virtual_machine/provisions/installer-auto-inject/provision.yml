@@ -28,78 +28,13 @@ prepare-docker:
 
 setup-testing-dependencies:
   cache: true
-  install:
-    - os_type: linux
-      os_distro: deb
-      remote-command: |
-        sudo rm -rf /usr/local/go
-        sudo curl https://dl.google.com/go/go1.22.1.linux-$(dpkg --print-architecture).tar.gz --output go.tar.gz
-        sudo tar -C /usr/local -xzf go.tar.gz
-        export PATH=$PATH:/usr/local/go/bin
-        export PATH=$PATH:$(go env GOPATH)/bin
-        go install github.com/google/go-containerregistry/cmd/crane@latest
-        go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
-        sudo mkdir -p ~/.docker
-        echo '{"credHelpers":{"669783387624.dkr.ecr.us-east-1.amazonaws.com": "ecr-login"}}' | sudo tee ~/.docker/config.json
-        sudo mkdir -p /root/.docker
-        echo '{"credHelpers":{"669783387624.dkr.ecr.us-east-1.amazonaws.com": "ecr-login"}}' | sudo tee /root/.docker/config.json
-        sudo PATH="$PATH:$(/usr/local/go/bin/go env GOPATH)/bin" docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/registry:2
-    - os_type: linux
-      os_distro: rpm
-      remote-command: |
-        sudo rm -rf /usr/local/go
-        sudo curl https://dl.google.com/go/go1.22.1.linux-$(rpm --eval '%{_arch}' | sed s/aarch64/arm64/ | sed s/x86_64/amd64/).tar.gz --output go.tar.gz
-        sudo tar -C /usr/local -xzf go.tar.gz
-        export PATH=$PATH:/usr/local/go/bin
-        export PATH=$PATH:$(go env GOPATH)/bin
-        go install github.com/google/go-containerregistry/cmd/crane@latest
-        go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
-        sudo mkdir -p ~/.docker
-        echo '{"credHelpers":{"669783387624.dkr.ecr.us-east-1.amazonaws.com": "ecr-login"}}' | sudo tee ~/.docker/config.json
-        sudo mkdir -p /root/.docker
-        echo '{"credHelpers":{"669783387624.dkr.ecr.us-east-1.amazonaws.com": "ecr-login"}}' | sudo tee /root/.docker/config.json
-        sudo PATH="$PATH:$(/usr/local/go/bin/go env GOPATH)/bin" docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/registry:2
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-setup_testing_dependencies.yml
 
 setup-local-registry:
-  install:
-    - os_type: linux
-      remote-command: |
-        export PATH=$PATH:/usr/local/go/bin
-        export PATH=$PATH:$(go env GOPATH)/bin
-        sudo systemctl start docker
-        sudo docker run -d -p 12345:5000 --restart=always --name registry 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/registry:2
-        sleep 10
-
-        if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
-          export LIBRARY_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-library-${DD_LANG}-package:${DD_INSTALLER_LIBRARY_VERSION}"
-        else
-          export LIBRARY_OCI_URL=$(printf $DD_oci_registry_template "apm-library-${DD_LANG}")
-        fi
-        crane copy "${LIBRARY_OCI_URL}" localhost:12345/datadog/apm-library-${DD_LANG}-package:latest
-
-        if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
-          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INSTALLER_INJECTOR_VERSION}"
-        else
-          export INJECTOR_OCI_URL=$(printf $DD_oci_registry_template "apm-inject")
-        fi
-        crane copy "${INJECTOR_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
-
-        if [ -n "${DD_INSTALLER_AGENT_VERSION}" ]; then
-          export AGENT_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/agent-package:${DD_INSTALLER_AGENT_VERSION}"
-        else
-          export AGENT_OCI_URL=$(printf $DD_oci_registry_template "agent")
-        fi
-        crane copy "${AGENT_OCI_URL}" localhost:12345/datadog/agent-package:latest
-
-        if [ -n "${DD_INSTALLER_INSTALLER_VERSION}" ]; then
-          export INSTALLER_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/installer-package:${DD_INSTALLER_INSTALLER_VERSION}"
-        else
-          export INSTALLER_OCI_URL=$(printf $DD_oci_registry_template "installer")
-        fi
-        crane copy "${INSTALLER_OCI_URL}" localhost:12345/datadog/installer-package:latest
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-setup_local_registry.yml
 
 install-installer:
-  install: !include utils/build/virtual_machine/provisions/installer-auto-inject/auto-inject_installer_script.yml
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml
 
 installer-bootstrap:
   install:

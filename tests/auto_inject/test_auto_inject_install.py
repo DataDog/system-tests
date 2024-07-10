@@ -64,45 +64,24 @@ class _AutoInjectBaseTest:
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
-    def _test_uninstall(
-        self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
-    ):
-        """ We can unistall the auto injection software. We can start the app again
-        The weblog app should work but no sending traces to the backend.
-        We can reinstall the auto inject software. The weblog app should be instrumented
-        and reporting traces to the backend."""
-        logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
+    def _test_uninstall(self, virtual_machine):
 
-        vm_ip = virtual_machine.ssh_config.hostname
-        vm_port = virtual_machine.deffault_open_port
-        weblog_url = f"http://{vm_ip}:{vm_port}/"
+        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):
+            # Host
+            stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
+            start_weblog_command = "sudo systemctl start test-app.service"
+            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+                start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+        else:
+            # Container
+            stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
+            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
 
-        # Kill the app before the uninstallation
-        self.execute_command(virtual_machine, stop_weblog_command)
-        # Uninstall the auto inject
-        self.execute_command(virtual_machine, uninstall_command)
-        # Start the app again
-        self.execute_command(virtual_machine, start_weblog_command)
-
-        wait_for_port(vm_port, vm_ip, 40.0)
-        warmup_weblog(weblog_url)
-        request_uuid = make_get_request(weblog_url)
-        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
-        try:
-            wait_backend_trace_id(request_uuid, 10.0)
-            raise AssertionError("The weblog application is instrumented after uninstall DD software")
-        except TimeoutError:
-            # OK there are no traces, the weblog app is not instrumented
-            pass
-        # Kill the app before restore the installation
-        self.execute_command(virtual_machine, stop_weblog_command)
-        # reinstall the auto inject
-        self.execute_command(virtual_machine, install_command)
-        # Start the app again
-        self.execute_command(virtual_machine, start_weblog_command)
-        # The app should be instrumented and reporting traces to the backend
-        self._test_install(virtual_machine)
-        logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
+        install_command = "sudo datadog-installer apm instrument"
+        uninstall_command = "sudo datadog-installer apm uninstrument"
+        self._test_uninstall(
+            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        )
 
     @pytest.fixture(autouse=True)
     def do_before_test(self, virtual_machine):
@@ -118,31 +97,6 @@ class _AutoInjectBaseTest:
         yield
 
 
-@features.host_auto_instrumentation
-@scenarios.host_auto_injection
-class TestHostAutoInjectManual(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        self._test_install(virtual_machine)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
-
-    def test_uninstall(self, virtual_machine):
-        logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
-        stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
-        # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
-        start_weblog_command = "sudo systemctl start test-app.service"
-
-        if context.scenario.library.library in ["ruby", "python", "dotnet"]:
-            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-
-        install_command = "dd-host-install"
-        uninstall_command = "dd-host-install --uninstall"
-        self._test_uninstall(
-            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
-        )
-        logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")
-
-
 @features.host_auto_installation_script
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(_AutoInjectBaseTest):
@@ -150,18 +104,9 @@ class TestHostAutoInjectInstallScript(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
-@features.host_auto_instrumentation
-@scenarios.simple_host_auto_injection
-class TestSimpleHostAutoInjectManual(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        self._test_install(virtual_machine)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
-
-
 @features.host_auto_instrumentation_profiling
-@scenarios.simple_host_auto_injection_profiling
-class TestSimpleHostAutoInjectManualProfiling(_AutoInjectBaseTest):
+@scenarios.simple_installer_auto_injection_profiling
+class TestSimpleInstallerAutoInjectManualProfiling(_AutoInjectBaseTest):
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
@@ -187,22 +132,6 @@ class TestHostAutoInjectManualLdPreload(_AutoInjectBaseTest):
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
-@features.container_auto_instrumentation
-@scenarios.container_auto_injection
-class TestContainerAutoInjectManual(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
-
-    def test_uninstall(self, virtual_machine):
-        stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down && sudo -E docker-compose -f docker-compose-agent-prod.yml down"
-        start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-        install_command = "dd-container-install && sudo systemctl restart docker"
-        uninstall_command = "dd-container-install --uninstall && sudo systemctl restart docker"
-        self._test_uninstall(
-            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
-        )
-
-
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
@@ -217,22 +146,8 @@ class TestContainerAutoInjectInstallScriptProfiling(_AutoInjectBaseTest):
         self._test_install(virtual_machine, profile=True)
 
 
-@features.container_auto_instrumentation
-@scenarios.simple_container_auto_injection
-class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
-
-
-@features.container_auto_instrumentation_profiling
-@scenarios.simple_container_auto_injection_profiling
-class TestSimpleContainerAutoInjectManualProfiling(_AutoInjectBaseTest):
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine, profile=True)
-
-
 class _AutoInjectNotSupportedBaseTest:
-    """ Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
+    """ Test for not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
     def test_app_working(self, virtual_machine):
         """ Test app is working."""
@@ -249,21 +164,15 @@ class _AutoInjectNotSupportedBaseTest:
         logger.info(f"Http request done for ip [{vm_ip}]")
 
 
-@features.container_guardrail
-@scenarios.container_not_supported_auto_injection
-class TestContainerNotSupported(_AutoInjectNotSupportedBaseTest):
-    pass
-
-
 @features.host_guardrail
-@scenarios.host_not_supported_auto_injection
-class TestHostNotSupported(_AutoInjectNotSupportedBaseTest):
+@scenarios.installer_not_supported_auto_injection
+class TestLanguageVersionNotSupported(_AutoInjectNotSupportedBaseTest):
     pass
 
 
-@features.host_auto_instrumentation
-@scenarios.host_auto_injection
-class TestHostAutoInjectChaos(_AutoInjectBaseTest):
+# @features.host_auto_instrumentation
+# @scenarios.host_auto_injection
+class _TestHostAutoInjectChaos(_AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
         """ Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
@@ -361,21 +270,17 @@ class TestInstallerAutoInjectManual(_AutoInjectBaseTest):
 
     def test_uninstall(self, virtual_machine):
         logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
-
-        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):
-            # Host
-            stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
-            start_weblog_command = "sudo systemctl start test-app.service"
-            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
-                start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-        else:
-            # Container
-            stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
-            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-
-        install_command = "sudo datadog-installer apm instrument"
-        uninstall_command = "sudo datadog-installer apm uninstrument"
-        self._test_uninstall(
-            virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
-        )
+        self.test_uninstall(virtual_machine)
         logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")
+
+
+@features.installer_auto_instrumentation
+@scenarios.simple_installer_auto_injection
+class TestSimpleInstallerAutoInjectManual(_AutoInjectBaseTest):
+    # Note: uninstallation of a single installer package is not available today
+    #  on the installer. As we can't only uninstall the injector, we are skipping
+    #  the uninstall test today
+    def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")

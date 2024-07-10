@@ -966,28 +966,25 @@ class scenarios:
 
     fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
-    host_auto_injection = HostAutoInjectionScenario(
-        "HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario",
-    )
-    host_not_supported_auto_injection = HostAutoInjectionScenario(
-        "HOST_NOT_SUPPORTED_AUTO_INJECTION",
+    # Single Step Instrumentation scenarios (HOST and CONTAINER)
+    installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
     )
-    simple_host_auto_injection = HostAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
-    )
-    simple_host_auto_injection_profiling = HostAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
-        "Onboarding Host Single Step Instrumentation scenario with profiling activated by the app env var",
+
+    simple_installer_auto_injection_profiling = InstallerAutoInjectionScenario(
+        "SIMPLE_INSTALLER_AUTO_INJECTION_PROFILING",
+        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
             "DD_PROFILING_ENABLED": "auto",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
     )
-    host_auto_injection_block_list = HostAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_BLOCK_LIST",
-        "Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists",
+
+    installer_auto_injection_block_list = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION_BLOCK_LIST",
+        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
     )
     host_auto_injection_install_script = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
@@ -1003,36 +1000,16 @@ class scenarios:
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
     )
 
-    # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
     host_auto_injection_ld_preload = HostAutoInjectionScenario(
         "HOST_AUTO_INJECTION_LD_PRELOAD",
         "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
         vm_provision="host-auto-inject-ld-preload",
     )
 
-    container_auto_injection = ContainerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
-    )
-    container_not_supported_auto_injection = ContainerAutoInjectionScenario(
-        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
-        "Onboarding Container Single Step Instrumentation scenario for not supported languages or containers",
-    )
-
-    simple_container_auto_injection = ContainerAutoInjectionScenario(
-        "SIMPLE_CONTAINER_AUTO_INJECTION",
+    simple_installer_auto_injection = InstallerAutoInjectionScenario(
+        "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
     )
-
-    simple_container_auto_injection_profiling = ContainerAutoInjectionScenario(
-        "SIMPLE_CONTAINER_AUTO_INJECTION_PROFILING",
-        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-    )
-
     container_auto_injection_install_script = ContainerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
@@ -1045,6 +1022,11 @@ class scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
     )
+    installer_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
+    )
+
+    # K8s LIB INJECTION SCENARIOS
     k8s_lib_injection_basic = _KubernetesScenario(
         "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario. DEPRECATED"
     )
@@ -1071,10 +1053,6 @@ class scenarios:
         doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    installer_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
 
     appsec_rasp = EndToEndScenario(
