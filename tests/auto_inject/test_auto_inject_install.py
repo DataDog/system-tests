@@ -64,6 +64,46 @@ class _AutoInjectBaseTest:
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
+    def _test_uninstall_commands(
+        self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+    ):
+        """ We can unistall the auto injection software. We can start the app again
+        The weblog app should work but no sending traces to the backend.
+        We can reinstall the auto inject software. The weblog app should be instrumented
+        and reporting traces to the backend."""
+        logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
+
+        vm_ip = virtual_machine.ssh_config.hostname
+        vm_port = virtual_machine.deffault_open_port
+        weblog_url = f"http://{vm_ip}:{vm_port}/"
+
+        # Kill the app before the uninstallation
+        self.execute_command(virtual_machine, stop_weblog_command)
+        # Uninstall the auto inject
+        self.execute_command(virtual_machine, uninstall_command)
+        # Start the app again
+        self.execute_command(virtual_machine, start_weblog_command)
+
+        wait_for_port(vm_port, vm_ip, 40.0)
+        warmup_weblog(weblog_url)
+        request_uuid = make_get_request(weblog_url)
+        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
+        try:
+            wait_backend_trace_id(request_uuid, 10.0)
+            raise AssertionError("The weblog application is instrumented after uninstall DD software")
+        except TimeoutError:
+            # OK there are no traces, the weblog app is not instrumented
+            pass
+        # Kill the app before restore the installation
+        self.execute_command(virtual_machine, stop_weblog_command)
+        # reinstall the auto inject
+        self.execute_command(virtual_machine, install_command)
+        # Start the app again
+        self.execute_command(virtual_machine, start_weblog_command)
+        # The app should be instrumented and reporting traces to the backend
+        self._test_install(virtual_machine)
+        logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
+
     def _test_uninstall(self, virtual_machine):
 
         if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):
@@ -79,7 +119,7 @@ class _AutoInjectBaseTest:
 
         install_command = "sudo datadog-installer apm instrument"
         uninstall_command = "sudo datadog-installer apm uninstrument"
-        self._test_uninstall(
+        self._test_uninstall_commands(
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
 
