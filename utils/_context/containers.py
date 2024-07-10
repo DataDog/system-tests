@@ -523,6 +523,8 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_AGENT_HOST"] = "agent"
             self.environment["DD_TRACE_AGENT_PORT"] = 8127
 
+        self.environment["DD_IAST_ENABLED"] = "false"
+
     @staticmethod
     def _get_image_list_from_dockerfile(dockerfile) -> list[str]:
         result = []
