@@ -1,7 +1,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, scenarios, features, rfc
+from utils import weblog, interfaces, scenarios, features, rfc, bug
 from utils._context.header_tag_vars import *
 from requests.structures import CaseInsensitiveDict
 
@@ -35,6 +35,11 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -200,6 +205,21 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -241,6 +261,21 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -398,6 +433,21 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -437,6 +487,21 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
         spans_checked = 0
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -476,6 +541,21 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
         spans_checked = 0
         for data, trace, span in interfaces.library.get_spans(request=self.r):
