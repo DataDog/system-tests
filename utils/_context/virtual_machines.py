@@ -134,7 +134,7 @@ class _VirtualMachine:
         extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
-        vm_cached_name = f"{self.name}_"
+        vm_cached_name = f"v2_{self.name}_"
         if self.get_provision().lang_variant_installation:
             vm_cached_name += f"{self.get_provision().lang_variant_installation.id}_"
         for installation in self.get_provision().installations:

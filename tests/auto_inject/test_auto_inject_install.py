@@ -270,7 +270,7 @@ class TestInstallerAutoInjectManual(_AutoInjectBaseTest):
 
     def test_uninstall(self, virtual_machine):
         logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
-        self.test_uninstall(virtual_machine)
+        self._test_uninstall(virtual_machine)
         logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")
 
 
