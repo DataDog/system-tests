@@ -230,6 +230,13 @@ class AWSCommander(Commander):
     def remote_command(
         self, vm, installation_id, remote_command, env, connection, last_task, logger_name=None, output_callback=None
     ):
+        if (
+            "init-config" in installation_id
+        ):  ##error: Unable to set 'DD_env'. This only works if your SSH server is configured to accept
+            logger.info(f"RMM AVOID ENV")
+            env = {}
+        logger.info(f"RMM TEST: {installation_id}")
+
         cmd_exec_install = command.remote.Command(
             f"-{vm.name}-{installation_id}",
             connection=connection,

@@ -972,8 +972,8 @@ class scenarios:
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
     )
 
-    simple_installer_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_INSTALLER_AUTO_INJECTION_PROFILING",
+    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
+        "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
             "DD_PROFILING_ENABLED": "auto",
