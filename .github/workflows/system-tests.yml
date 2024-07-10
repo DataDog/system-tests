@@ -6,12 +6,12 @@ on:
         description: "Library to test"
         required: true
         type: string
-      scenarios: 
+      scenarios:
         description: "Comma-separated list scenarios to run"
         default: DEFAULT
         required: false
         type: string
-      scenarios_groups: 
+      scenarios_groups:
         description: "Comma-separated list of scenarios groups to run"
         default: ''
         required: false
@@ -51,6 +51,11 @@ on:
         default: false
         required: false
         type: boolean
+      _experimental_parametric_job_count:
+        description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
+        default: 1
+        required: false
+        type: number
 
 jobs:
   compute_parameters:
@@ -65,6 +70,7 @@ jobs:
       opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
       opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
+      _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -82,6 +88,7 @@ jobs:
         SCENARIOS: ${{ inputs.scenarios }}
         SCENARIOS_GROUPS: ${{ inputs.scenarios_groups }}
         LIBRARY: ${{ inputs.library }}
+        _EXPERIMENTAL_PARAMETRIC_JOB_COUNT: ${{ inputs._experimental_parametric_job_count }}
 
   parametric:
     needs:
@@ -93,6 +100,8 @@ jobs:
       library: ${{ inputs.library }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
+      _experimental_job_count: ${{ inputs._experimental_parametric_job_count }}
+      _experimental_job_matrix: ${{ needs.compute_parameters.outputs._experimental_parametric_job_matrix }}
 
   graphql:
     needs:
@@ -120,6 +129,7 @@ jobs:
   end-to-end:
     needs:
       - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.endtoend_scenarios != '[]' }}
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:

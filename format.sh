@@ -1,31 +1,89 @@
 #!/bin/bash
 set -eu
 
-readonly BLACK_VERSION=19.10b0
-readonly IMAGE=black:${BLACK_VERSION}
+readonly CYAN='\033[0;36m'
+readonly NC='\033[0m'
+readonly WHITE_BOLD='\033[1;37m'
 
-if [[ -z "$(docker images -q "${IMAGE}")" ]]; then
-  echo "Building ${IMAGE}"
-  docker build -t "${IMAGE}" - <<EOF
-FROM python:3.10
-RUN pip install click==7.1.2 black==${BLACK_VERSION}
-EOF
+print_usage() {
+    echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
+    echo -e "  Try to fix everything that can be fixed to make the system-tests CI happy."
+    echo
+    echo -e "${WHITE_BOLD}USAGE${NC}"
+    echo -e "  ./format.sh [options...]"
+    echo
+    echo -e "${WHITE_BOLD}OPTIONS${NC}"
+    echo -e "  ${CYAN}--check${NC}     Only performs checks without modifying files. Command unsed in the CI."
+    echo -e "  ${CYAN}--help${NC}      Prints this message and exits."
+    echo
+}
+
+COMMAND=fix
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -c|--check) COMMAND=check ;;
+        -h|--help) print_usage; exit 0 ;;
+        *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
+    esac
+    shift
+done
+
+if [ ! -d "venv/" ]; then
+  echo "Runner is not installed, installing it (ETA 60s)"
+  ./build.sh -i runner
 fi
 
-if [[ -z ${1:-} ]]; then
-	set -- .
-fi
+source venv/bin/activate
 
-# Run as the current user, but only if docker is not "rootless".
-# To determine whether docker is rootless, examine the permissions of the file
-# referred to by DOCKER_HOST. If it's owned by the current user, then assume
-# that docker is rootless.
-DOCKER_HOST="${DOCKER_HOST:-}"
-if [[ "${DOCKER_HOST}" == unix://* && -O "${DOCKER_HOST#unix://}" ]]; then
-  user_arg=""
+echo "Checking Python files..."
+if [ "$COMMAND" == "fix" ]; then
+  black .
 else
-  user_arg="--user=$(id -u):$(id -g)"
+  black --check --diff .
+fi
+pylint utils  # pylint does not have a fix mode
+
+# not py, as it's handled by black
+INCLUDE_EXTENSIONS=("*.md" "*.yml" "*.yaml" "*.sh" "*.cs" "*.Dockerfile" "*.java" "*.sql" "*.ts" "*.js" "*.php")
+EXCLUDE_DIRS=("logs*" "*/node_modules/*" "./venv/*" "./utils/build/virtual_machine/*" "./binaries/*")
+
+INCLUDE_ARGS=()
+for ext in "${INCLUDE_EXTENSIONS[@]}"; do
+  INCLUDE_ARGS+=(-name "$ext" -o)
+done
+unset 'INCLUDE_ARGS[${#INCLUDE_ARGS[@]}-1]'  # remove last -o
+
+EXCLUDE_ARGS=()
+for dir in "${EXCLUDE_DIRS[@]}"; do
+  EXCLUDE_ARGS+=(-not -path "$dir")
+done
+
+echo "Checking tailing whitespaces..."
+FILES="$(find . "${EXCLUDE_ARGS[@]}" \( "${INCLUDE_ARGS[@]}" \) -exec grep -l ' $' {} \;)"
+
+# shim for sed -i on GNU sed (Linux) and BSD sed (macOS)
+_sed_i() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' -r "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
+if [ "$COMMAND" == "fix" ]; then
+  echo "$FILES" | while read file ; do
+    if [ $FILES ]; then
+      echo "Fixing $file"
+      _sed_i 's/  *$//g' "$file"
+    fi
+  done
+else
+  if [ -n "$FILES" ]; then
+    echo "Some tailing white spaces has been found, please fix them 💥 💔 💥"
+    echo "$FILES"
+    exit 1
+  fi
 fi
 
-# shellcheck disable=SC2086
-exec docker run -it --rm $user_arg --workdir "$(pwd)" -v "$(pwd):$(pwd)" "${IMAGE}" black "$@"
+echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"

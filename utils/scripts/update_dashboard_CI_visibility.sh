@@ -3,7 +3,7 @@
 set +e
 
 if [ "$#" -ne 2 ] ; then
-  echo "Script execution requires 2 parameter.  Repo Identification ,  Pipeline id + pipeline run attemp " 
+  echo "Script execution requires 2 parameter.  Repo Identification ,  Pipeline id + pipeline run attemp "
   echo "Repositoriy identification examples: system-tests, night-tracer, night-agent, tracer-java, tracer-nodejs"
   exit 1
 fi
@@ -24,7 +24,7 @@ curl -X GET "https://api.datadoghq.com/api/v1/dashboard/${dashboard_id}" \
 -H "DD-API-KEY: ${DD_API_KEY}" \
 -H "DD-APPLICATION-KEY: ${DD_APP_KEY}")
 
-# We search for previous dashboard variable using "origin repo"  
+# We search for previous dashboard variable using "origin repo"
 available_value_before=$(
 jq -c '.template_variables[0].available_values[]' <<< "$dashboard_json"| while read available_value; do
     if [[ "$available_value" == *"$SYS_ORIGIN_REPO"* ]]; then

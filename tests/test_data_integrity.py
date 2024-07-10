@@ -161,12 +161,34 @@ class Test_LibraryHeaders:
             val = request_headers["datadog-entity-id"]
             if val.startswith("in-"):
                 assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
+            elif val.startswith("ci-"):
+                assert all(
+                    c in string.hexdigits for c in val[3:]
+                ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+            # The cid prefix is deprecated and will be removed in a future version of the agent
             elif val.startswith("cid-"):
                 assert all(
                     c in string.hexdigits for c in val[4:]
                 ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
             else:
-                raise ValueError(f"Datadog-Entity-ID header value {val} doesn't start with either 'in-' or 'cid-'")
+                raise ValueError(
+                    f"Datadog-Entity-ID header value {val} doesn't start with either 'in-', 'ci-' or 'cid-'"
+                )
+
+        interfaces.library.validate(validator, success_by_default=True)
+
+    def test_datadog_external_env(self):
+        """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
+
+        def validator(data):
+            for header, value in data["request"]["headers"]:
+                if header.lower() == "datadog-external-env":
+                    assert value, "Datadog-External-Env header is empty"
+                    items = value.split(",")
+                    for item in items:
+                        assert (
+                            item[2] == "-"
+                        ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
 
         interfaces.library.validate(validator, success_by_default=True)
 

@@ -21,7 +21,7 @@ class Test_Sqli_UrlQuery:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM table WHERE ? OR ? = ? --;"},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.query", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -44,7 +44,7 @@ class Test_Sqli_BodyUrlEncoded:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM table WHERE ? OR ? = ? --;"},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -68,7 +68,7 @@ class Test_Sqli_BodyXml:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM table WHERE ? OR ? = ? --;"},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -92,7 +92,7 @@ class Test_Sqli_BodyJson:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM table WHERE ? OR ? = ? --;"},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },

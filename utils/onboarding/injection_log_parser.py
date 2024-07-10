@@ -1,4 +1,5 @@
 import json
+import os
 
 from utils.tools import logger
 
@@ -28,8 +29,13 @@ def command_injection_skipped(command_line, log_local_path):
 
             # Perhaps the command was instrumented or could be skipped by its arguments. Checking
             elif _get_command_props_values(command_desc, command_args) is True:
-                if last_line_json["msg"] in ["error when parsing", "skipping"] and last_line_json["error"].startswith(
-                    "skipping due to ignore rules for language"
+                if last_line_json["msg"] in ["error injecting", "error when parsing", "skipping"] and (
+                    last_line_json["error"].startswith(
+                        (
+                            "skipping due to ignore rules for language",
+                            "error when parsing: skipping due to ignore rules for language",
+                        )
+                    )
                 ):
                     logger.info(f"    Command {command_args} was skipped by ignore arguments")
                     return True
@@ -54,7 +60,7 @@ def _parse_command(command):
         if "=" in com:
             command_args.remove(com)
             continue
-        return com, command_args
+        return os.path.basename(com), command_args
 
 
 def _get_command_props_values(command_instrumentation_desc, command_args_check):

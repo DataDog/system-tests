@@ -18,8 +18,8 @@ public class PostgresCRUDOperation extends BaseCRUDOperation {
     try (Connection con = getConnector().getConnection()) {
 
       Statement stmt = con.createStatement();
-      String procedure = "CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10)) LANGUAGE plpgsql " 
-      + " AS " 
+      String procedure = "CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10)) LANGUAGE plpgsql "
+      + " AS "
       + " $$ "
       + " BEGIN "
       + " raise info 'Hello World'; "

@@ -7,12 +7,12 @@ on:
         description: "Library to test"
         required: true
         type: string
-      scenarios: 
+      scenarios:
         description: "JSON array of scenarios to run"
         default: "[]"
         required: false
         type: string
-      weblogs: 
+      weblogs:
         description: "JSON array of weblogs to run"
         default: "[]"
         required: false
@@ -70,10 +70,12 @@ jobs:
         repository: 'DataDog/system-tests'
     - name: Install runner
       uses: ./.github/actions/install_runner
-    - name: Pull images
-      uses: ./.github/actions/pull_images
+    - name: Get binaries artifact
+      if : ${{ inputs.binaries_artifact != '' }}
+      uses: actions/download-artifact@v4
       with:
-        pull-all: ${{ contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"') }}
+        name: ${{ inputs.binaries_artifact }}
+        path: binaries/
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
@@ -84,12 +86,12 @@ jobs:
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
-    - name: Get binaries artifact
-      if : ${{ inputs.binaries_artifact != '' }}
-      uses: actions/download-artifact@v4
+    - name: Pull images
+      uses: ./.github/actions/pull_images
       with:
-        name: ${{ inputs.binaries_artifact }}
-        path: binaries/
+        library: ${{ inputs.library }}
+        weblog: ${{ matrix.weblog }}
+        scenarios: ${{ inputs.scenarios }}
     - name: Log in to the Container registry
       if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
@@ -99,7 +101,7 @@ jobs:
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
     - name: Run DEFAULT scenario
-      if: steps.build.outcome == 'success'
+      if: steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -262,6 +264,11 @@ jobs:
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_EXTENDED"')
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_AUTO_EVENTS_RC scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_RC"')
+      run: ./run.sh APPSEC_AUTO_EVENTS_RC
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_RASP scenario

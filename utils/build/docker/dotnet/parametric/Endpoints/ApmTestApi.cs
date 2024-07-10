@@ -1,8 +1,6 @@
-﻿using Datadog.Trace;
+using Datadog.Trace;
 using Datadog.Trace.Configuration;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
@@ -27,7 +25,7 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
     }
-    
+
     // Core types
     private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
     private static readonly Type SpanContextType = Type.GetType("Datadog.Trace.SpanContext, Datadog.Trace", throwOnError: true)!;
@@ -72,7 +70,7 @@ public abstract class ApmTestApi
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
 
-    internal static ILogger<ApmTestApi> _logger;
+    internal static ILogger<ApmTestApi>? _logger;
 
     internal static readonly SpanContextExtractor _spanContextExtractor = new();
 
@@ -89,7 +87,7 @@ public abstract class ApmTestApi
 
         return values.AsReadOnly();
     }
-    
+
     public static async Task StopTracer()
     {
         await Tracer.Instance.ForceFlushAsync();
@@ -117,7 +115,7 @@ public abstract class ApmTestApi
         if (parsedDictionary!.TryGetValue("parent_id", out var parentId))
         {
             var longParentId = Convert.ToUInt64(parentId);
-            
+
             if (creationSettings.Parent is null && longParentId > 0 )
             {
                 var parentSpan = Spans[longParentId];
@@ -150,15 +148,26 @@ public abstract class ApmTestApi
             Origin.SetValue(spanContext, origin);
         }
 
+        if (parsedDictionary.TryGetValue("span_tags", out var tagsToken))
+        {
+            foreach (var tag in (Newtonsoft.Json.Linq.JArray)tagsToken)
+            {
+                var key = (string)tag[0]!;
+                var value = (string?)tag[1];
+
+                span.SetTag(key, value);
+            }
+        }
+
         Spans[span.SpanId] = span;
-        
+
         return JsonConvert.SerializeObject(new
         {
             span_id = span.SpanId.ToString(),
             trace_id = span.TraceId.ToString(),
         });
     }
-    
+
     private static async Task SpanSetMeta(HttpRequest request)
     {
         var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
@@ -240,15 +249,17 @@ public abstract class ApmTestApi
             }));
 
             // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
+#pragma warning disable CS8974 // Converting method group to non-delegate type
             SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, httpHeaders, Setter });
+#pragma warning restore CS8974 // Converting method group to non-delegate type
         }
-        
+
         return JsonConvert.SerializeObject(new
         {
             http_headers = httpHeaders
         });
     }
-        
+
     private static async Task FinishSpan(HttpRequest request)
     {
         var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
@@ -263,13 +274,13 @@ public abstract class ApmTestApi
         }
 
         var tracerSettings = Tracer.Instance.Settings;
-        var globalSettings = (GlobalSettings)GetGlobalSettingsInstance.GetValue(null);
+        var globalSettings = (GlobalSettings)GetGlobalSettingsInstance.GetValue(null)!;
 
-        var propagationStyleInject = (string[])PropagationStyleInject.GetValue(tracerSettings);
-        var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(tracerSettings);
-        var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(tracerSettings);
+        var propagationStyleInject = (string[])PropagationStyleInject.GetValue(tracerSettings)!;
+        var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(tracerSettings)!;
+        var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(tracerSettings)!;
 
-        Dictionary<string, object> config = new()
+        Dictionary<string, object?> config = new()
         {
             { "dd_service", tracerSettings.ServiceName },
             { "dd_env", tracerSettings.Environment },
@@ -333,7 +344,7 @@ public abstract class ApmTestApi
             await flushTask!;
         }
     }
-    
+
     private static MethodInfo? GenerateInjectMethod()
     {
         if (SpanContextPropagatorType is null)

@@ -3,11 +3,12 @@ import contextlib
 import dataclasses
 import os
 import shutil
+import json
 import socket
 import subprocess
 import tempfile
 import time
-from typing import Callable, Dict, Generator, List, Literal, TextIO, Tuple, TypedDict, Union
+from typing import Dict, Generator, List, TextIO, Tuple, TypedDict
 import urllib.parse
 
 import requests
@@ -21,11 +22,10 @@ from utils.parametric._library_client import APMLibraryClientGRPC
 from utils.parametric._library_client import APMLibraryClientHTTP
 from utils.parametric._library_client import APMLibrary
 
-from utils import context
+from utils import context, scenarios
 from utils.tools import logger
-import json
 
-from filelock import FileLock
+from utils._context._scenarios.parametric import APMLibraryTestServer
 
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
@@ -66,334 +66,9 @@ def _request_token(request):
     return token
 
 
-@dataclasses.dataclass
-class APMLibraryTestServer:
-    # The library of the interface.
-    lang: str
-    # The interface that this test server implements.
-    protocol: Union[Literal["grpc"], Literal["http"]]
-    container_name: str
-    container_tag: str
-    container_img: str
-    container_cmd: List[str]
-    container_build_dir: str
-    container_build_context: str = "."
-    port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
-    env: Dict[str, str] = dataclasses.field(default_factory=dict)
-    volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
-
-
 @pytest.fixture
 def library_env() -> Dict[str, str]:
     return {}
-
-
-ClientLibraryServerFactory = Callable[[], APMLibraryTestServer]
-
-
-def _get_base_directory():
-    """Workaround until the parametric tests are fully migrated"""
-    current_directory = os.getcwd()
-    return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
-
-
-def python_library_factory() -> APMLibraryTestServer:
-    python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
-    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    return APMLibraryTestServer(
-        lang="python",
-        protocol="http",
-        container_name="python-test-library",
-        container_tag="python-test-library",
-        container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:7ce49bd78b0d510766fc5db12756a8840724febc
-WORKDIR /app
-RUN pyenv global 3.9.11
-RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
-COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-ENV DD_PATCH_MODULES="fastapi:false"
-""",
-        container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
-        container_build_dir=python_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
-        env={},
-        port="",
-    )
-
-
-def node_library_factory() -> APMLibraryTestServer:
-    nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
-    nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
-    nodejs_reldir = nodejs_appdir.replace("\\", "/")
-
-    return APMLibraryTestServer(
-        lang="nodejs",
-        protocol="http",
-        container_name="node-test-client",
-        container_tag="node-test-client",
-        container_img=f"""
-FROM node:18.10-slim
-RUN apt-get update && apt-get install -y jq git
-WORKDIR /usr/app
-COPY {nodejs_reldir}/package.json /usr/app/
-COPY {nodejs_reldir}/package-lock.json /usr/app/
-COPY {nodejs_reldir}/*.js /usr/app/
-COPY {nodejs_reldir}/npm/* /usr/app/
-
-RUN npm install
-
-COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-
-""",
-        container_cmd=["node", "server.js"],
-        container_build_dir=nodejs_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        env={},
-        port="",
-    )
-
-
-def golang_library_factory():
-    golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
-    golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
-    golang_reldir = golang_appdir.replace("\\", "/")
-    return APMLibraryTestServer(
-        lang="golang",
-        protocol="grpc",
-        container_name="go-test-library",
-        container_tag="go118-test-library",
-        container_img=f"""
-FROM golang:1.20
-
-# install jq
-RUN apt-get update && apt-get -y install jq
-WORKDIR /app
-COPY {golang_reldir}/go.mod /app
-COPY {golang_reldir}/go.sum /app
-COPY {golang_reldir}/. /app
-# download the proper tracer version
-COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-
-RUN go install
-""",
-        container_cmd=["main"],
-        container_build_dir=golang_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
-        env={},
-        port="",
-    )
-
-
-def dotnet_library_factory():
-    dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
-    dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
-    dotnet_reldir = dotnet_appdir.replace("\\", "/")
-    server = APMLibraryTestServer(
-        lang="dotnet",
-        protocol="http",
-        container_name="dotnet-test-api",
-        container_tag="dotnet8_0-test-api",
-        container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:8.0
-
-RUN apt-get update && apt-get install -y dos2unix
-RUN apt-get update && apt-get install -y curl
-WORKDIR /app
-
-# ensure that the Datadog.Trace.dlls are installed from /binaries
-COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/query-versions.fsx binaries* /binaries/
-RUN dos2unix /binaries/install_ddtrace.sh
-RUN /binaries/install_ddtrace.sh
-
-# restore nuget packages
-COPY ["{dotnet_reldir}/ApmTestApi.csproj", "{dotnet_reldir}/nuget.config", "{dotnet_reldir}/*.nupkg", "./"]
-RUN dotnet restore "./ApmTestApi.csproj"
-
-# build and publish
-COPY {dotnet_reldir} ./
-RUN dotnet publish --no-restore --configuration Release --output out
-WORKDIR /app/out
-
-
-# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-
-# Set up automatic instrumentation (required for OpenTelemetry tests),
-# but don't enable it globally
-ENV CORECLR_ENABLE_PROFILING=0
-ENV CORECLR_PROFILER={{846F5F1C-F9AE-4B07-969E-05C26BC060D8}}
-ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
-ENV DD_DOTNET_TRACER_HOME=/opt/datadog
-
-# disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
-ENV DD_TRACE_Grpc_ENABLED=false
-ENV DD_TRACE_AspNetCore_ENABLED=false
-ENV DD_TRACE_Process_ENABLED=false
-ENV DD_TRACE_OTEL_ENABLED=false
-
-# "disable" rate limiting by default by setting it to a large value
-ENV DD_TRACE_RATE_LIMIT=10000000
-
-ENTRYPOINT ["dotnet", "ApmTestApi.dll"]
-""",
-        container_cmd=["./ApmTestApi"],
-        container_build_dir=dotnet_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        volumes=[],
-        env={},
-        port="",
-    )
-
-    return server
-
-
-def java_library_factory():
-    java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
-    java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
-
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
-    java_reldir = java_appdir.replace("\\", "/")
-    protofile = os.path.join("utils", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
-
-    return APMLibraryTestServer(
-        lang="java",
-        protocol="grpc",
-        container_name="java-test-client",
-        container_tag="java-test-client",
-        container_img=f"""
-FROM maven:3.9.2-eclipse-temurin-17
-WORKDIR /client
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
-COPY {java_reldir}/src src
-COPY {java_reldir}/build.sh .
-COPY {java_reldir}/pom.xml .
-COPY {protofile} src/main/proto/
-COPY binaries /binaries
-RUN bash build.sh
-COPY {java_reldir}/run.sh .
-""",
-        container_cmd=["./run.sh"],
-        container_build_dir=java_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        volumes=[],
-        env={},
-        port="",
-    )
-
-
-def php_library_factory() -> APMLibraryTestServer:
-    php_appdir = os.path.join("utils", "build", "docker", "php", "parametric")
-    php_absolute_appdir = os.path.join(_get_base_directory(), php_appdir)
-    php_reldir = php_appdir.replace("\\", "/")
-    return APMLibraryTestServer(
-        lang="php",
-        protocol="http",
-        container_name="php-test-library",
-        container_tag="php-test-library",
-        container_img=f"""
-FROM datadog/dd-trace-ci:php-8.2_buster
-WORKDIR /binaries
-ENV DD_TRACE_CLI_ENABLED=1
-ADD {php_reldir}/composer.json .
-ADD {php_reldir}/composer.lock .
-RUN composer install
-ADD {php_reldir}/../common/install_ddtrace.sh .
-COPY binaries /binaries
-RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
-ADD {php_reldir}/server.php .
-""",
-        container_cmd=["php", "server.php"],
-        container_build_dir=php_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
-        env={},
-        port="",
-    )
-
-
-def ruby_library_factory() -> APMLibraryTestServer:
-    ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
-    ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
-    ruby_reldir = ruby_appdir.replace("\\", "/")
-
-    shutil.copyfile(
-        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-        os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
-    )
-    return APMLibraryTestServer(
-        lang="ruby",
-        protocol="grpc",
-        container_name="ruby-test-client",
-        container_tag="ruby-test-client",
-        container_img=f"""
-            FROM --platform=linux/amd64 ruby:3.2.1-bullseye
-            WORKDIR /app
-            COPY {ruby_reldir} .
-            COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
-            RUN bundle install
-            RUN /binaries/install_ddtrace.sh
-            COPY {ruby_reldir}/apm_test_client.proto /app/
-            COPY {ruby_reldir}/generate_proto.sh /app/
-            RUN bash generate_proto.sh
-            COPY {ruby_reldir}/server.rb /app/
-            """,
-        container_cmd=["bundle", "exec", "ruby", "server.rb"],
-        container_build_dir=ruby_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        env={},
-        port="",
-    )
-
-
-def cpp_library_factory() -> APMLibraryTestServer:
-    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
-    cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
-    cpp_reldir = cpp_appdir.replace("\\", "/")
-    dockerfile_content = f"""
-FROM datadog/docker-library:dd-trace-cpp-ci AS build
-
-RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
-WORKDIR /usr/app
-COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
-RUN sh /binaries/install_ddtrace.sh
-RUN cd /binaries/dd-trace-cpp \
- && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DDD_TRACE_BUILD_TESTING=1 . \
- && cmake --build .build -j $(nproc) \
- && cmake --install .build --prefix /usr/app/
-
-FROM ubuntu:22.04
-COPY --from=build /usr/app/bin/parametric-http-server /usr/local/bin/parametric-http-server
-"""
-
-    return APMLibraryTestServer(
-        lang="cpp",
-        protocol="http",
-        container_name="cpp-test-client",
-        container_tag="cpp-test-client",
-        container_img=dockerfile_content,
-        container_cmd=["parametric-http-server"],
-        container_build_dir=cpp_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        env={},
-        port="",
-    )
-
-
-_libs: Dict[str, ClientLibraryServerFactory] = {
-    "cpp": cpp_library_factory,
-    "dotnet": dotnet_library_factory,
-    "golang": golang_library_factory,
-    "java": java_library_factory,
-    "nodejs": node_library_factory,
-    "php": php_library_factory,
-    "python": python_library_factory,
-    "ruby": ruby_library_factory,
-}
 
 
 def get_open_port():
@@ -406,97 +81,10 @@ def get_open_port():
     return port
 
 
-@pytest.fixture(scope="session")
-def apm_test_server_definition() -> APMLibraryTestServer:
-    """Session level definition of the library test server"""
-    # There is only one language at a time in a pytest run
-    yield _libs[context.scenario.library.library]()
-
-
-def build_apm_test_server_image(apm_test_server_definition: APMLibraryTestServer,) -> str:
-    log_path = f"{context.scenario.host_log_folder}/outputs/docker_build_log.log"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
-    log_file = open(log_path, "w+")
-    # Write dockerfile to the build directory
-    # Note that this needs to be done as the context cannot be
-    # specified if Dockerfiles are read from stdin.
-    dockf_path = os.path.join(apm_test_server_definition.container_build_dir, "Dockerfile")
-    with open(dockf_path, "w") as dockf:
-        dockf.write(apm_test_server_definition.container_img)
-    # Build the container
-    docker = shutil.which("docker")
-    root_path = ".."
-    cmd = [
-        docker,
-        "build",
-        "--progress=plain",  # use plain output to assist in debugging
-        "-t",
-        apm_test_server_definition.container_tag,
-        "-f",
-        dockf_path,
-        apm_test_server_definition.container_build_context,
-    ]
-    log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
-    log_file.flush()
-
-    env = os.environ.copy()
-    env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
-
-    p = subprocess.run(
-        cmd,
-        cwd=root_path,
-        text=True,
-        input=apm_test_server_definition.container_img,
-        stdout=log_file,
-        stderr=log_file,
-        env=env,
-        timeout=default_subprocess_run_timeout,
-    )
-
-    failure_text: str = None
-    if p.returncode != 0:
-        log_file.seek(0)
-        failure_text = "".join(log_file.readlines())
-    log_file.close()
-
-    return failure_text
-
-
-@pytest.fixture(scope="session")
-def apm_test_server_image(
-    docker, apm_test_server_definition: APMLibraryTestServer, worker_id, tmp_path_factory
-) -> APMLibraryTestServer:
-    """Session level definition of the library test server with the Docker image built"""
-    # all this is only needed since xdist will execute session scopes once for every worker
-    # and here we want to make sure that we build the Docker image once and only once
-    failure_text: str = None
-    if worker_id == "master":
-        # not executing with multiple workers just build the image
-        failure_text = build_apm_test_server_image(apm_test_server_definition)
-    else:
-        # get the temp directory shared by all workers
-        root_tmp_dir = tmp_path_factory.getbasetemp().parent
-        fn = root_tmp_dir / apm_test_server_definition.container_tag
-        with FileLock(str(fn) + ".lock"):
-            if not fn.is_file():
-                failure_text = build_apm_test_server_image(apm_test_server_definition)
-                if failure_text == None:
-                    fn.write_text("success")
-                else:
-                    fn.write_text("failure")
-            else:
-                if fn.read_text() == "failure":
-                    failure_text = "Failed to build docker image. See output from other worker."
-
-    if failure_text != None:
-        pytest.fail(failure_text, pytrace=False)
-
-    yield apm_test_server_definition
-
-
 @pytest.fixture
-def apm_test_server(request, library_env, test_id, apm_test_server_image):
+def apm_test_server(request, library_env, test_id):
     """Request level definition of the library test server with the session Docker image built"""
+    apm_test_server_image = scenarios.parametric.apm_test_server_definition
     new_env = dict(library_env)
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
 
@@ -812,7 +400,7 @@ def docker_run(
     for k, v in volumes:
         _cmd.extend(["-v", "%s:%s" % (k, v)])
     for k, v in ports:
-        _cmd.extend(["-p", "%s:%s" % (k, v)])
+        _cmd.extend(["-p", f"127.0.0.1:{k}:{v}"])
     _cmd += [image]
     _cmd.extend(cmd)
 
@@ -859,7 +447,11 @@ def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
     r = subprocess.run(
-        ["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=default_subprocess_run_timeout
+        ["docker", "info"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        timeout=default_subprocess_run_timeout,
+        check=False,
     )
     if r.returncode != 0:
         pytest.fail(
@@ -907,9 +499,14 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
         docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
         docker_network_log_file.flush()
         r = subprocess.run(
-            cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+            cmd,
+            stdout=docker_network_log_file,
+            stderr=docker_network_log_file,
+            timeout=default_subprocess_run_timeout,
+            check=False,
         )
         if r.returncode != 0:
+            # TODO : as it runs in CI, temp file are mnstly not available -> write this in stdout
             pytest.fail(
                 "Could not create docker network %r, see the log file %r"
                 % (docker_network_name, docker_network_log_file.name),
@@ -925,7 +522,11 @@ def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_
     docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
     docker_network_log_file.flush()
     r = subprocess.run(
-        cmd, stdout=docker_network_log_file, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout
+        cmd,
+        stdout=docker_network_log_file,
+        stderr=docker_network_log_file,
+        timeout=default_subprocess_run_timeout,
+        check=False,
     )
     if r.returncode != 0:
         pytest.fail(

@@ -9,11 +9,13 @@ from utils import bug
 from utils import scenarios, context, features
 from utils.virtual_machine.vm_logger import vm_logger
 import pytest
+import time
+import paramiko
 
 
 class _AutoInjectBaseTest:
-    def _test_install(self, virtual_machine):
-        """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.  
+    def _test_install(self, virtual_machine, profile: bool = False):
+        """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         vm_ip = virtual_machine.ssh_config.hostname
@@ -34,19 +36,24 @@ class _AutoInjectBaseTest:
             request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
 
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, 120.0)
+        wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
     def execute_command(self, virtual_machine, command):
         # Env for the command
         prefix_env = ""
         for key, value in virtual_machine.get_command_environment().items():
-            prefix_env += f" {key}={value}"
+            prefix_env += f"export {key}={value} \n"
 
         command_with_env = f"{prefix_env} {command}"
 
         with virtual_machine.ssh_config.get_ssh_connection() as ssh:
-            _, stdout, stderr = ssh.exec_command(command_with_env, timeout=120)
-            stdout.channel.set_combine_stderr(True)
+            try:
+                _, stdout, stderr = ssh.exec_command(command_with_env, timeout=120)
+                stdout.channel.set_combine_stderr(True)
+            except paramiko.buffered_pipe.PipeTimeout:
+                if not stdout.channel.eof_received:
+                    stdout.channel.close()
+
             # Read the output line by line
             command_output = ""
             for line in stdout.readlines():
@@ -60,9 +67,9 @@ class _AutoInjectBaseTest:
     def _test_uninstall(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
     ):
-        """ We can unistall the auto injection software. We can start the app again 
+        """ We can unistall the auto injection software. We can start the app again
         The weblog app should work but no sending traces to the backend.
-        We can reinstall the auto inject software. The weblog app should be instrumented 
+        We can reinstall the auto inject software. The weblog app should be instrumented
         and reporting traces to the backend."""
         logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
 
@@ -152,6 +159,24 @@ class TestSimpleHostAutoInjectManual(_AutoInjectBaseTest):
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
+@features.host_auto_instrumentation_profiling
+@scenarios.simple_host_auto_injection_profiling
+class TestSimpleHostAutoInjectManualProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine, profile=True)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+
+@features.host_auto_installation_script_profiling
+@scenarios.host_auto_injection_install_script_profiling
+class TestHostAutoInjectInstallScriptProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine, profile=True)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+
 @features.host_auto_instrumentation
 @scenarios.host_auto_injection_ld_preload
 class TestHostAutoInjectManualLdPreload(_AutoInjectBaseTest):
@@ -185,6 +210,13 @@ class TestContainerAutoInjectInstallScript(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
+@features.container_auto_installation_script_profiling
+@scenarios.container_auto_injection_install_script_profiling
+class TestContainerAutoInjectInstallScriptProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine, profile=True)
+
+
 @features.container_auto_instrumentation
 @scenarios.simple_container_auto_injection
 class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
@@ -192,9 +224,14 @@ class TestSimpleContainerAutoInjectManual(_AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
-@features.container_auto_instrumentation
-@scenarios.container_not_supported_auto_injection
-class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
+@features.container_auto_instrumentation_profiling
+@scenarios.simple_container_auto_injection_profiling
+class TestSimpleContainerAutoInjectManualProfiling(_AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine, profile=True)
+
+
+class _AutoInjectNotSupportedBaseTest:
     """ Test for container not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
     def test_app_working(self, virtual_machine):
@@ -210,6 +247,18 @@ class TestContainerNotSupportedAutoInjectManual(_AutoInjectBaseTest):
         logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
         request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Http request done for ip [{vm_ip}]")
+
+
+@features.container_guardrail
+@scenarios.container_not_supported_auto_injection
+class TestContainerNotSupported(_AutoInjectNotSupportedBaseTest):
+    pass
+
+
+@features.host_guardrail
+@scenarios.host_not_supported_auto_injection
+class TestHostNotSupported(_AutoInjectNotSupportedBaseTest):
+    pass
 
 
 @features.host_auto_instrumentation

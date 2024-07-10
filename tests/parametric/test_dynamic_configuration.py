@@ -690,6 +690,7 @@ class TestDynamicConfigSamplingRules:
         reason="JSON tag format in RC differs from the JSON tag format used in DD_TRACE_SAMPLING_RULES",
     )
     @bug(context.library == "ruby", reason="RC_SAMPLING_TAGS_RULE_RATE is not respected")
+    @bug(context.library <= "dotnet@2.53.2", reason="Applies rate from local sampling rule when no remote rules match.")
     @missing_feature(library="nodejs")
     @missing_feature(library="python")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):

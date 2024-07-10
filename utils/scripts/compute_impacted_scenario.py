@@ -31,7 +31,7 @@ def handle_labels(labels: list[str], scenarios_groups: set[str]):
 
 
 def main():
-    scenarios = set()
+    scenarios = set(["DEFAULT"])  # always run the default scenario
     scenarios_groups = set()
 
     event_name = os.environ["GITHUB_EVENT_NAME"]
@@ -118,11 +118,16 @@ def main():
             elif file.startswith("utils/"):
                 if file.startswith("utils/interfaces/schemas"):
                     scenarios_groups.add(ScenarioGroup.END_TO_END.value)
+                elif file == "utils/_context/_scenarios/parametric.py":
+                    scenarios_groups.add(ScenarioGroup.PARAMETRIC.value)
+                elif file == "utils/_context/_scenarios/open_telemetry.py":
+                    scenarios_groups.add(ScenarioGroup.OPEN_TELEMETRY.value)
                 else:
                     scenarios_groups.add(ScenarioGroup.ALL.value)
 
             elif file in (
                 ".dockerignore",
+                ".gitattributes",
                 ".gitignore",
                 ".gitlab-ci.yml",
                 ".shellcheck",
@@ -132,7 +137,7 @@ def main():
                 # nothing to do
                 pass
 
-            elif file in ("LICENSE", "LICENSE-3rdparty.csv", "NOTICE", "Pulumi.yaml", "README.md", "build.sh"):
+            elif file in ("LICENSE", "LICENSE-3rdparty.csv", "NOTICE", "Pulumi.yaml", "README.md"):
                 # nothing to do
                 pass
 

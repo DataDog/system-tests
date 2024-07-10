@@ -1,51 +1,43 @@
 name: "Pull docker images"
 description: "Pull docker images"
 inputs:
-  pull-all:
-    description: "True to pull all images required for all scenarios"
+  library:
+    description: "Which library will be tested (python, cpp, java, ...)"
     required: true
-    default: "false"
+  weblog:
+    description: "Which weblog will be tested"
+    required: true
+  scenarios:
+    description: "JSON array of scenarios that will be executed"
+    required: true
+
 runs:
   using: composite
   steps:
-    - name: Let's free some place
+    - name: Free some place for scenarios known to require lot of images
+      if: ${{ contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"') }}
       shell: bash
       run: |
-        if [[ "${{ inputs.pull-all }}" == "true" ]]; then
-          df -h
+        df -h
 
-          echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
+        echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
 
-          sudo rm -rf /usr/local/lib/android  # 9Gb!
-          sudo rm -rf /opt/hostedtoolcache/CodeQL  # 5Gb !
-          sudo rm -rf /usr/share/dotnet # 1Gb
+        sudo rm -rf /usr/local/lib/android  # 9Gb!
+        sudo rm -rf /opt/hostedtoolcache/CodeQL  # 5Gb !
+        sudo rm -rf /usr/share/dotnet # 1Gb
 
-          # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
+        # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
 
-          df -h
-        fi
+        df -h
 
-    - name: Pull images needed for default scenario
+    - name: Get image list
       shell: bash
       run: |
-        docker pull datadog/system-tests:proxy-v1 || true
-        docker pull postgres:latest
-    - name: Pull images needed for all scenarios
+        source venv/bin/activate
+        python utils/scripts/get-image-list.py ${{ inputs.library }} ${{ inputs.weblog }} '${{ inputs.scenarios }}' > compose.yaml
+      env:
+        PYTHONPATH: "."
+
+    - name: Pull
       shell: bash
-      run: |
-        if [[ "${{ inputs.pull-all }}" == "true" ]]; then
-          docker pull mongo:latest
-          docker pull bitnami/kafka:3.1
-          docker pull bitnami/zookeeper:latest
-          docker pull cassandra:latest
-          docker pull rabbitmq:3-management-alpine
-          docker pull mysql/mysql-server:latest
-          docker pull mcr.microsoft.com/mssql/server:latest
-          docker pull mcr.microsoft.com/azure-sql-edge:latest
-          docker pull softwaremill/elasticmq:latest
-          docker pull datadog/system-tests:python_buddy-v0
-          docker pull datadog/system-tests:nodejs_buddy-v0
-          docker pull datadog/system-tests:java_buddy-v0
-          docker pull datadog/system-tests:ruby_buddy-v0
-          docker pull datadog/system-tests:golang_buddy-v0
-        fi
+      run: docker compose pull

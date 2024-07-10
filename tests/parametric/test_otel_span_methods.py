@@ -13,7 +13,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
-from utils import bug, features, missing_feature, irrelevant, context, scenarios
+from utils import bug, features, missing_feature, irrelevant, flaky, context, scenarios
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -372,10 +372,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation and OpenTelemetry implementation do not enforce this and allow the status to be changed.",
-    )
-    @missing_feature(
         context.library == "python",
         reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
     )
@@ -400,6 +396,11 @@ class Test_Otel_Span_Methods:
         assert span.get("name") == "internal"
         assert span.get("resource") == "ok_span"
 
+    @bug(context.library < "ruby@2.2.0", reason="Older versions do not generate datadog spans with the correct ids")
+    @flaky(
+        context.library == "dotnet",
+        reason="Flaky due to span order, tests should never use traces[0] when there are multiple spans",
+    )
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -407,9 +408,9 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
         """
         with test_library:
-            with test_library.otel_start_span(name="operation") as parent:
+            with test_library.otel_start_span(name="op1") as parent:
                 parent.end_span()
-                with test_library.otel_start_span(name="operation", parent_id=parent.span_id) as span:
+                with test_library.otel_start_span(name="op2", parent_id=parent.span_id) as span:
                     span.end_span()
                     context = span.span_context()
                     assert context.get("trace_id") == parent.span_context().get("trace_id")
@@ -425,6 +426,14 @@ class Test_Otel_Span_Methods:
                         # due to 64-bit integers being too large.
                         assert context.get("span_id") == "{:016x}".format(int(span.span_id))
                     assert context.get("trace_flags") == "01"
+
+        # compare the values of the span context with the values of the trace sent to the agent
+        traces = test_agent.wait_for_num_traces(1)
+        _, op2 = traces[0]
+        assert op2["resource"] == "op2"
+        assert op2["span_id"] == int(context["span_id"], 16)
+        op2_tidhex = op2["meta"].get("_dd.p.tid", "") + "{:016x}".format(op2["trace_id"])
+        assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
@@ -842,7 +851,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
         """
@@ -914,7 +922,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
         """
@@ -959,7 +966,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_attributes_serialization(self, test_agent, test_library):
         """

@@ -80,6 +80,7 @@ class TestedContainer:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
         self.host_log_folder = host_log_folder
+        self.display_logs_on_remove = False  # in case of error, it may be convenient to display logs
         self.allow_old_container = allow_old_container
 
         self.image = ImageInfo(image_name)
@@ -88,6 +89,10 @@ class TestedContainer:
         self.kwargs = kwargs
         self._container = None
         self.stdout_interface = stdout_interface
+
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        """ returns the image list that will be loaded to be able to run/build the container """
+        return [self.image.name]
 
     def configure(self, replay):
 
@@ -206,6 +211,8 @@ class TestedContainer:
 
             except APIError as e:
                 logger.exception(f"Try #{i} failed")
+                self.display_logs_on_remove = True
+
                 pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
 
             except Exception as e:
@@ -236,11 +243,22 @@ class TestedContainer:
         self._container.stop()
 
     def collect_logs(self):
+        stdout = self._container.logs(stdout=True, stderr=False)
+        stderr = self._container.logs(stdout=False, stderr=True)
+
         with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(self._container.logs(stdout=True, stderr=False))
+            f.write(stdout)
 
         with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(self._container.logs(stdout=False, stderr=True))
+            f.write(stderr)
+
+        if self.display_logs_on_remove:
+            sep = "=" * 30
+            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
+            logger.stdout(stdout.decode("utf-8"))
+            logger.stdout(f"\n{sep} {self.name} STDERR {sep}")
+            logger.stdout(stderr.decode("utf-8"))
+            logger.stdout("")
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")
@@ -308,7 +326,7 @@ class ImageInfo:
         try:
             self._image = _get_client().images.get(self.name)
         except docker.errors.ImageNotFound:
-            logger.info(f"Image {self.name} has not been found locally")
+            logger.stdout(f"Pulling {self.name}")
             self._image = _get_client().images.pull(self.name)
 
         self._init_from_attrs(self._image.attrs)
@@ -333,7 +351,10 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder, proxy_state) -> None:
+    def __init__(self, host_log_folder, proxy_state, rc_api_enabled: bool) -> None:
+        if rc_api_enabled and proxy_state is not None:
+            raise ValueError("rc_api_enabled and proxy_state cannot be used together")
+
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
             name="proxy",
@@ -344,6 +365,7 @@ class ProxyContainer(TestedContainer):
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "PROXY_STATE": json.dumps(proxy_state or {}),
+                "RC_API_ENABLED": str(rc_api_enabled),
             },
             working_dir="/app",
             volumes={
@@ -385,6 +407,18 @@ class AgentContainer(TestedContainer):
         )
 
         self.agent_version = None
+
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        try:
+            with open("binaries/agent-image", "r", encoding="utf-8") as f:
+                return [
+                    f.read().strip(),
+                ]
+        except FileNotFoundError:
+            # not the cleanest way to do it, but we save ARG parsing
+            return [
+                "datadog/agent:latest",
+            ]
 
     def configure(self, replay):
         super().configure(replay)
@@ -488,6 +522,40 @@ class WeblogContainer(TestedContainer):
         else:
             self.environment["DD_AGENT_HOST"] = "agent"
             self.environment["DD_TRACE_AGENT_PORT"] = 8127
+
+    @staticmethod
+    def _get_image_list_from_dockerfile(dockerfile) -> list[str]:
+        result = []
+
+        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
+        with open(dockerfile, "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                if match := pattern.match(line):
+                    result.append(match.group("image_name"))
+
+        return result
+
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        """ parse the Dockerfile and extract all images reference in a FROM section """
+        result = []
+        args = {}
+
+        pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
+        arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
+        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                if match := arg_pattern.match(line):
+                    args[match.group("arg_name")] = match.group("arg_value")
+
+                if match := pattern.match(line):
+                    image_name = match.group("image_name")
+
+                    for name, value in args.items():
+                        image_name = image_name.replace(f"${name}", value)
+
+                    result.append(image_name)
+
+        return result
 
     def configure(self, replay):
         super().configure(replay)

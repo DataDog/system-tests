@@ -387,7 +387,7 @@ Additionally both methods support the following query parameters to use the sdk 
 - `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
 
 ### GET /debugger
-These endpoints are used for the Live Debugger tests in `test_debugger.py`. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
+These endpoints are used for the Live Debugger tests. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
 
 #### GET /debugger/log
 This endpoint will be used to validate the log probe.

@@ -3,6 +3,9 @@ package controllers
 import akka.stream.Materializer
 import akka.stream.javadsl.Sink
 import akka.util.ByteString
+import datadog.appsec.api.blocking.Blocking
+import datadog.trace.api.interceptor.MutableSpan
+import io.opentracing.util.GlobalTracer
 import play.api.libs.json.{Json, Writes}
 import play.api.libs.ws.ahc.{AhcWSClient, AhcWSRequest, StandaloneAhcWSResponse}
 import play.api.libs.ws.{WSClient, WSRequest}
@@ -12,6 +15,7 @@ import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpCli
 import java.util
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future, Promise}
+
 
 @Singleton
 class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient, mat: Materializer)
@@ -113,6 +117,20 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     Results.Status(code)
   }
 
+  def users(user: String) = Action {
+    var span = GlobalTracer.get().activeSpan()
+    span match {
+      case span1: MutableSpan =>
+        var localRootSpan = span1.getLocalRootSpan()
+        localRootSpan.setTag("usr.id", user);
+      case _ =>
+    }
+    Blocking
+      .forUser(user)
+      .blockIfMatch();
+    Results.Ok(s"Hello $user")
+  }
+
   def loginSuccess(event_user_id: Option[String]) = Action {
     eventTracker.trackLoginSuccessEvent(event_user_id.getOrElse("system_tests_user"), metadata)
     Results.Ok("ok")
@@ -127,6 +145,21 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   def customEvent(event_name: Option[String]) = Action {
     eventTracker.trackCustomEvent(event_name.getOrElse("system_tests_event"), metadata)
     Results.Ok("ok")
+  }
+
+  def requestdownstream =  Action.async {
+    var url = "http://localhost:7777/returnheaders"
+    val remoteReq: WSRequest = ws.url(url).withMethod("GET")
+    val ahcRequest: AHCRequest = remoteReq.asInstanceOf[AhcWSRequest].underlying.buildRequest()
+    executeAHCRequest(ahcRequest).map { resp: StandaloneAhcWSResponse =>
+      resp.bodyAsSource.runWith(Sink.ignore[ByteString]())(mat)
+      Results.Ok(resp.body)
+    }
+  }
+
+  def returnheaders = Action { request =>
+    val headers = request.headers.headers.toMap
+    Ok(Json.toJson(headers))
   }
 
   case class DistantCallResponse(

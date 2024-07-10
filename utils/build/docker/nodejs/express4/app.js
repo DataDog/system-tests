@@ -420,6 +420,19 @@ app.get('/flush', (req, res) => {
   })
 })
 
+app.get('/requestdownstream', async (req, res) => {
+  try {
+    const resFetch = await axios.get('http://localhost:7777/returnheaders')
+    return res.json(resFetch.data)
+  } catch (e) {
+    return res.status(500).send(e)
+  }
+})
+
+app.get('/returnheaders', (req, res) => {
+  res.json({ ...req.headers })
+})
+
 require('./rasp')(app)
 
 require('./graphql')(app).then(() => {

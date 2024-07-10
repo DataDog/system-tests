@@ -167,9 +167,11 @@ tests/:
       Test_Login_Events_Extended: v0.89.0
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
+      Test_Blocking_request_body_multipart: missing_feature
       Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
       Test_Blocking_response_status: irrelevant (On php it is not possible change the status code once its header is sent)
       Test_Suspicious_Request_Blocking: missing_feature (v0.86.0 but test is not implemented)
@@ -186,20 +188,20 @@ tests/:
       Test_ShellExecution: v0.95.0
     test_traces.py:
       Test_CollectDefaultRequestHeader: missing_feature
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: missing_feature
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
-    test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
-      Test_Debugger_Probe_Statuses: irrelevant
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: irrelevant
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
+    test_debugger_probe_snapshot.py:
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
+      Test_Debugger_Mix_Log_Probe: irrelevant
+    test_debugger_probe_status.py:
+      Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:
