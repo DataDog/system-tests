@@ -1584,13 +1584,14 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
-    # disable_trace_stats = EndToEndScenario(
-    #     "TRACESTATS",
-    #     doc="Scenario with client stats computation explicitly disabled",
-    #     weblog_env={
-    #         "DD_TRACE_STATS_COMPUTATION_ENABLED": "0",
-    #     }
-    # )
+    library_conf_client_stats = EndToEndScenario(
+        "LIBRARY_CONF_CLIENT_STATS",
+        doc="Scenario with client stats computation enabled",
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_FEATURES": "discovery",
+        }
+    )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
