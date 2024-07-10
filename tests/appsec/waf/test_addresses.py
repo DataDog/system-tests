@@ -387,7 +387,6 @@ class Test_PathParams:
         )
 
 
-@features.appsec_request_blocking
 @features.grpc_threats_management
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""
@@ -408,7 +407,6 @@ class Test_gRPC:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
-@features.appsec_request_blocking
 @features.grpc_threats_management
 class Test_FullGrpc:
     """Full gRPC support"""
@@ -517,7 +515,6 @@ class Test_Lambda:
         assert False, "Need to write a test"
 
 
-@features.appsec_request_blocking
 @features.grpc_threats_management
 @scenarios.appsec_custom_rules
 class Test_GrpcServerMethod:
