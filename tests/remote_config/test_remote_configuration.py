@@ -27,9 +27,6 @@ with open("tests/remote_config/rc_expected_requests_live_debugging.json", encodi
 with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
     ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
 
-with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
-    ASM_DD_EXPECTED_REQUESTS = json.load(f)
-
 
 @features.agent_remote_configuration
 class Test_Agent:
@@ -307,6 +304,12 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
     request_number = 0
 
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_asm_dd.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        remote_config.send_sequential_commands(payloads)
+
     @bug(context.library >= "java@1.1.0" and context.library < "java@1.4.0", reason="?")
     @irrelevant(
         context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
@@ -319,8 +322,17 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
         self.assert_client_fields()
 
+        with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
+            ASM_DD_EXPECTED_REQUESTS = json.load(f)
+
         def validate(data):
-            """Helper to validate config request content"""
+            """ Helper to validate config request content """
+            status_code = data["response"]["status_code"]
+
+            if status_code == 404:
+                # the proxy did not yet overwrite response
+                return False
+
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
@@ -353,8 +365,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         with open("tests/remote_config/rc_mocked_responses_asm_features_nocache.json", "r", encoding="utf-8") as f:
             payloads = json.load(f)
 
-        for payload in payloads:
-            remote_config.send_command(payload, wait_for_acknowledged_status=False)
+        remote_config.send_sequential_commands(payloads)
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
@@ -362,6 +373,12 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         self.assert_client_fields()
 
         def validate(data):
+            status_code = data["response"]["status_code"]
+
+            if status_code == 404:
+                # the proxy did not yet overwrite response
+                return False
+
             """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
@@ -393,8 +410,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
         with open("tests/remote_config/rc_mocked_responses_live_debugging_nocache.json", "r", encoding="utf-8") as f:
             payloads = json.load(f)
 
-        for payload in payloads:
-            remote_config.send_command(payload, wait_for_acknowledged_status=False)
+        remote_config.send_sequential_commands(payloads)
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
@@ -403,6 +419,13 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
         def validate(data):
             """Helper to validate config request content"""
+
+            status_code = data["response"]["status_code"]
+
+            if status_code == 404:
+                # the proxy did not yet overwrite response
+                return False
+
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {self.request_number[runtime_id]}")
             if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
@@ -433,16 +456,24 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
         with open("tests/remote_config/rc_mocked_responses_asm_dd_nocache.json", "r", encoding="utf-8") as f:
             payloads = json.load(f)
 
-        for payload in payloads:
-            remote_config.send_command(payload, wait_for_acknowledged_status=False)
+        remote_config.send_sequential_commands(payloads)
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
         self.assert_client_fields()
 
+        with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
+            ASM_DD_EXPECTED_REQUESTS = json.load(f)
+
         def validate(data):
             """Helper to validate config request content"""
+            status_code = data["response"]["status_code"]
+
+            if status_code == 404:
+                # the proxy did not yet overwrite response
+                return False
+
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
