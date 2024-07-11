@@ -448,7 +448,7 @@ tests/:
         '*': v1.10.0
         fastapi: v2.4.0.dev1
     test_runtime_activation.py:
-      Test_RuntimeActivation: missing_feature
+      Test_RuntimeActivation: v2.0.0
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:
