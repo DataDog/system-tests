@@ -93,6 +93,7 @@ jobs:
         library: ${{ inputs.library }}
         weblog: ${{ matrix.weblog }}
         scenarios: ${{ inputs.scenarios }}
+        exclude_buddies_images: ${{ inputs.build_buddies_images }}
     - name: Log in to the Container registry
       if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
