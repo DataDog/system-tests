@@ -21,12 +21,6 @@ from utils import (
 
 from utils.tools import logger
 
-with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
-    LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
-
-with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
-    ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
-
 
 @features.agent_remote_configuration
 class Test_Agent:
@@ -186,6 +180,12 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     request_number = 0
     python_request_number = 0
 
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_asm_features.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        remote_config.send_sequential_commands(payloads)
+
     @bug(context.library == "python@1.9.2")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(
@@ -197,10 +197,19 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
+            ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
+
         self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
+            status_code = data["response"]["status_code"]
+
+            if status_code == 404:
+                # the proxy did not yet overwrite response
+                return False
+
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -270,26 +279,41 @@ class Test_RemoteConfigurationExtraServices:
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
-    # Index the request number by runtime ID so that we can support applications
-    # that spawns multiple worker processes, each running its own RCM client.
-    request_number = defaultdict(int)
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_live_debugging.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        remote_config.send_sequential_commands(payloads)
 
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        # Index the request number by runtime ID so that we can support applications
+        # that spawns multiple worker processes, each running its own RCM client.
+        request_number = defaultdict(int)
+
+        with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
+            LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
+
         self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
+            status_code = data["response"]["status_code"]
+
+            if status_code == 404:
+                # the proxy did not yet overwrite response
+                return False
+
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
-            logger.info(f"validating request number {self.request_number[runtime_id]}")
-            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            logger.info(f"validating request number {request_number[runtime_id]}")
+            if request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=True)
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[request_number[runtime_id]], caching=True)
 
-            self.request_number[runtime_id] += 1
+            request_number[runtime_id] += 1
 
             return False
 
@@ -370,6 +394,9 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
+        with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
+            ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
+
         self.assert_client_fields()
 
         def validate(data):
@@ -414,6 +441,9 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
+            LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
 
         self.assert_client_fields()
 

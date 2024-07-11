@@ -351,9 +351,7 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder, proxy_state, rc_api_enabled: bool) -> None:
-        if rc_api_enabled and proxy_state is not None:
-            raise ValueError("rc_api_enabled and proxy_state cannot be used together")
+    def __init__(self, host_log_folder, rc_api_enabled: bool) -> None:
 
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
@@ -364,8 +362,7 @@ class ProxyContainer(TestedContainer):
                 "DD_API_KEY": os.environ.get("DD_API_KEY"),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
-                "PROXY_STATE": json.dumps(proxy_state or {}),
-                "RC_API_ENABLED": str(rc_api_enabled),
+                "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
             },
             working_dir="/app",
             volumes={
