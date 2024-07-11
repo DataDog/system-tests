@@ -262,12 +262,7 @@ app.get('/flush', (req: Request, res: Response) => {
 
 app.get('/requestdownstream', async (req: Request, res: Response) => {
   try {
-    const resFetch = await axios.get('http://localhost:7777/returnheaders', {
-      headers: {
-        ...req.headers
-      }
-    })
-
+    const resFetch = await axios.get('http://localhost:7777/returnheaders')
     return res.json(resFetch.data)
   } catch (e) {
     return res.status(500).send(e)

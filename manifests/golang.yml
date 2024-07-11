@@ -137,7 +137,6 @@ tests/:
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded: v1.37.0
         Test_BodyXml: v1.37.0
-        Test_ClientIP: missing_feature
         Test_Cookies:
           '*': v1.34.0
           chi: v1.36.0
@@ -151,8 +150,6 @@ tests/:
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           '*': v1.36.0
           gin: v1.37.0
@@ -258,9 +255,10 @@ tests/:
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: v1.51.0
       Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip: v1.51.0
       Test_Blocking_request_body: missing_feature
+      Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
       Test_Blocking_request_cookies:
         '*': v1.51.0
         net-http: irrelevant
@@ -281,6 +279,7 @@ tests/:
         net-http: irrelevant
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
+      Test_Blocking_user_id: v1.51.0
       Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
@@ -303,11 +302,6 @@ tests/:
     test_reports.py:
       Test_ExtraTagsFromRule:
         '*': v1.62.0
-      Test_HttpClientIP:
-        '*': v1.34.0
-        chi: v1.36.0
-        echo: v1.36.0
-        gin: v1.37.0
       Test_Info:
         '*': v1.34.0
         chi: v1.36.0
@@ -338,7 +332,6 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v1.63.0-dev
       Test_RetainTraces:
         '*': v1.36.0
@@ -350,15 +343,16 @@ tests/:
         '*': v1.36.0
         gin: v1.37.0
   debugger/:
-    test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
-      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
+    test_debugger_probe_snapshot.py:
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+    test_debugger_probe_status.py:
+      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:

@@ -17,61 +17,7 @@ from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.tools import logger
 
 
-def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, Any]:
-    """
-        Sends a remote config payload to the library and waits for the config to be applied.
-        Then returns the config state returned by the library :
-
-        1. the first config state acknowledging the config
-        2. else if not acknowledged, the last config state received
-        3. if not config state received, then an harcoded one with apply_state=UNKNOWN
-
-        Arguments:
-            wait_for_acknowledge_status
-                If True, waits for the config to be acknowledged by the library.
-                Else, only wait for the next request sent to /v0.7/config
-    """
-
-    assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
-
-    client_configs = raw_payload["client_configs"]
-
-    if len(client_configs) == 0:
-        config_id, product, version = None, None, None
-        if wait_for_acknowledged_status:
-            raise ValueError("Empty client config list is not supported with wait_for_acknowledged_status=True")
-    elif len(client_configs) == 1:
-        targets = json.loads(base64.b64decode(raw_payload["targets"]))
-        version = targets["signed"]["version"]
-        _, _, product, config_id, _ = client_configs[0].split("/")
-    else:
-        raise ValueError("Only zero or one client config are supported")
-
-    config_state = {
-        "id": config_id,
-        "product": product,
-        "apply_state": ApplyState.UNKNOWN,
-        "apply_error": "<No known response from the library>",
-    }
-
-    def remote_config_applied(data):
-        if data["path"] == "/v0.7/config":
-            if len(client_configs) == 0:  # is there a way to know if the "no-config" is acknowledged ?
-                return True
-
-            config_states = (
-                data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", [])
-            )
-            for state in config_states:
-                if state["id"] == config_id and state["product"] == product and state["version"] == version:
-                    logger.debug(f"Remote config state: {state}")
-                    config_state.update(state)
-                    if wait_for_acknowledged_status:
-                        if state["apply_state"] == ApplyState.ACKNOWLEDGED:
-                            return True
-                    else:
-                        return True
-
+def _post(path: str, payload) -> None:
     if "SYSTEM_TESTS_PROXY_HOST" in os.environ:
         domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
     elif "DOCKER_HOST" in os.environ:
@@ -83,11 +29,79 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
     else:
         domain = "localhost"
 
-    requests.post(f"http://{domain}:11111", data=json.dumps(raw_payload), timeout=30)
+    requests.post(f"http://{domain}:11111{path}", data=json.dumps(payload), timeout=30)
 
+
+def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
+    """
+        Sends a remote config payload to the library and waits for the config to be applied.
+        Then returns a dictionary with the state of each requested file as returned by the library.
+        
+        The dictionary keys are the IDs from the files that can be extracted from the path,
+        e.g: datadog/2/ASM_FEATURES/asm_features_activation/config => asm_features_activation
+        and the values contain the actual state for each file:
+
+        1. a config state acknowledging the config
+        2. else if not acknowledged, the last config state received
+        3. if no config state received, then a hardcoded one with apply_state=UNKNOWN
+
+        Arguments:
+            wait_for_acknowledge_status
+                If True, waits for the config to be acknowledged by the library.
+                Else, only wait for the next request sent to /v0.7/config
+    """
+
+    assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
+
+    client_configs = raw_payload.get("client_configs", [])
+
+    current_states = {}
+    version = None
+    if len(client_configs) == 0:
+        if wait_for_acknowledged_status:
+            raise ValueError("Empty client config list is not supported with wait_for_acknowledged_status=True")
+    else:
+        targets = json.loads(base64.b64decode(raw_payload["targets"]))
+        version = targets["signed"]["version"]
+        for client_config in client_configs:
+            _, _, product, config_id, _ = client_config.split("/")
+            current_states[config_id] = {
+                "id": config_id,
+                "product": product,
+                "apply_state": ApplyState.UNKNOWN,
+                "apply_error": "<No known response from the library>",
+            }
+
+    def remote_config_applied(data):
+        if data["path"] == "/v0.7/config":
+            if len(client_configs) == 0:  # is there a way to know if the "no-config" is acknowledged ?
+                return True
+
+            state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+            if state["targets_version"] == version:
+                config_states = state.get("config_states", [])
+                for state in config_states:
+                    config_state = current_states.get(state["id"])
+                    if config_state and state["product"] == product:
+                        logger.debug(f"Remote config state: {state}")
+                        config_state.update(state)
+
+                if wait_for_acknowledged_status:
+                    for state in current_states.values():
+                        if state["apply_state"] == ApplyState.UNKNOWN:
+                            return False
+
+                return True
+
+    _post("/unique_command", raw_payload)
     library.wait_for(remote_config_applied, timeout=30)
 
-    return config_state
+    return current_states
+
+
+def send_sequential_commands(commands: list[dict]) -> None:
+    """ DEPRECATED """
+    _post("/sequential_commands", commands)
 
 
 def build_debugger_command(probes: list, version: int):
@@ -174,6 +188,121 @@ def build_debugger_command(probes: list, version: int):
     return rcm
 
 
-def send_debbuger_command(probes: list, version: int) -> dict:
+def send_debugger_command(probes: list, version: int) -> dict:
     raw_payload = build_debugger_command(probes, version)
     return send_command(raw_payload)
+
+
+def _json_to_base64(json_object):
+    json_string = json.dumps(json_object, indent=2).encode("utf-8")
+    base64_string = base64.b64encode(json_string).decode("utf-8")
+    return base64_string
+
+
+class ClientConfig:
+    _store: dict[str, "ClientConfig"] = {}
+    config_file_version: int = 1
+
+    def __init__(self, path: str, config, config_file_version=None) -> None:
+        self.path = path
+
+        self.raw = config if isinstance(config, str) else _json_to_base64(config)
+        self.raw_decoded = base64.b64decode(self.raw).decode("utf-8")
+        self.config_file_version = self.config_file_version if config_file_version is None else config_file_version
+
+        if config is not None:
+            self._store[path] = self
+            self.raw_length = len(self.raw_decoded)
+            self.raw_sha256 = hashlib.sha256(base64.b64decode(self.raw)).hexdigest()
+        else:
+            stored_config = self._store.get(path, None)
+            self.raw_length = stored_config.raw_length
+            self.raw_sha256 = stored_config.raw_sha256
+
+    @property
+    def raw_deserialized(self):
+        return json.loads(self.raw_decoded)
+
+    def get_target_file(self, deserialized=False):
+        return {"path": self.path, "raw": self.raw_deserialized if deserialized else self.raw}
+
+    def get_target(self):
+        return {
+            "custom": {"v": self.config_file_version},
+            "hashes": {"sha256": self.raw_sha256},
+            "length": self.raw_length,
+        }
+
+    def __repr__(self) -> str:
+        if self.config_file_version == ClientConfig.config_file_version:
+            return f"""({self.path!r}, {self.raw_deserialized!r})"""
+
+        return f"""({self.path!r}, {self.raw_deserialized!r}, {self.config_file_version})"""
+
+
+class RemoteConfigCommand:
+    """
+    https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph
+    https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/remoteconfig/remoteconfig.proto#L180
+    """
+
+    backend_state = '{"foo": "bar"}'
+    expires = "3000-01-01T00:00:00Z"
+    spec_version = "1.0"
+    signatures = [
+        {
+            "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
+            "sig": "f5f2f27035339ed841447713eb93e5c62c34f4fa709fac0f9edca4ef5dc77340e1e81e779c5b536304fe568173c9c0e9125b17c84ce8a58a907bb2f27e7d890b",  # pylint: disable=line-too-long
+        }
+    ]
+
+    def __init__(self, version: int, client_configs=(), expires=None) -> None:
+        self.targets: list[ClientConfig] = []
+        self.version = version
+        self.expires = expires or self.expires
+
+        for args in client_configs:
+            self.add_client_config(*args)
+
+        self.opaque_backend_state = base64.b64encode(self.backend_state.encode("utf-8")).decode("utf-8")
+
+    def add_client_config(self, path, config, config_file_version=None) -> ClientConfig:
+        client_config = ClientConfig(path=path, config=config, config_file_version=config_file_version)
+        self.targets.append(client_config)
+
+        return client_config
+
+    def serialize_targets(self, deserialized=False):
+        result = {
+            "signed": {
+                "_type": "targets",
+                "custom": {"opaque_backend_state": self.opaque_backend_state},
+                "expires": self.expires,
+                "spec_version": self.spec_version,
+                "targets": {target.path: target.get_target() for target in self.targets},
+                "version": self.version,
+            },
+            "signatures": self.signatures,
+        }
+
+        return _json_to_base64(result) if not deserialized else result
+
+    def to_payload(self, deserialized=False):
+        result = {"targets": self.serialize_targets(deserialized=deserialized)}
+
+        target_files = [
+            target.get_target_file(deserialized=deserialized)
+            for target in self.targets
+            if target.raw_deserialized is not None
+        ]
+        if len(target_files) > 0:
+            result["target_files"] = target_files
+
+        if len(self.targets) > 0:
+            result["client_configs"] = [target.path for target in self.targets]
+
+        return result
+
+    def send(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
+        command = self.to_payload()
+        return send_command(command, wait_for_acknowledged_status=wait_for_acknowledged_status)

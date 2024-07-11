@@ -169,32 +169,32 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         "python": [
             {
                 "ignored_args": "",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
                 "ignored_args": "arg1",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
                 "ignored_args": "arg12,arg2,arg44",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
                 "skip": True,
             },
             {
                 "ignored_args": "arg11, arg22,arg44",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
             {
                 "ignored_args": "--dosomething",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py --dosomething yes",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py --dosomething yes",
                 "skip": True,
             },
             {
                 "ignored_args": "--dosomethingXXXX",
-                "command": "/home/datadog/.pyenv/shims/python myscript.py --dosomething no",
+                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py --dosomething no",
                 "skip": False,
             },
         ],
@@ -210,47 +210,8 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"ignored_args": "test3,test2", "command": "ruby my_cat.rb test1 test2", "skip": True},
             {"ignored_args": "test1,test2", "command": "ruby names.rb --name pepe", "skip": False},
             {"ignored_args": "--name", "command": "ruby names.rb --name pepe", "skip": True},
-            {
-                "ignored_args": "",
-                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
-                "skip": False,
-            },
-            {
-                "ignored_args": "--with-pg-config",
-                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
-                "skip": False,
-            },
-            {
-                "ignored_args": "--with-pg-config=/path/to/pg_config",
-                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
-                "skip": True,
-            },
-            {
-                "ignored_args": "--with-pg-config=/home/to/pg_config",
-                "command": "bundle config build.pg --with-pg-config=/path/to/pg_config",
-                "skip": False,
-            },
         ],
     }
-
-    user_processes_commands = [
-        {
-            "ignored_processes": "/opt/datadog/logs_injection/*,other",
-            "command": "/opt/datadog/logs_injection/myscript.sh",
-            "skip": True,
-        },
-        {"ignored_processes": "**/myscript.sh", "command": "/opt/datadog/logs_injection/myscript.sh", "skip": True},
-        {
-            "ignored_processes": "/opt/**/myscript.sh",
-            "command": "/opt/datadog/logs_injection/myscript.sh",
-            "skip": True,
-        },
-        {
-            "ignored_processes": "myscript.sh,otherscript.sh",
-            "command": "/opt/datadog/logs_injection/myscript.sh",
-            "skip": False,
-        },
-    ]
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
@@ -302,33 +263,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         )
         stdout.channel.set_combine_stderr(True)
         output = stdout.readlines()
-
-    @irrelevant(
-        condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] < "0.12.4",
-        reason="Block list not fully implemented ",
-    )
-    def test_user_ignored_processes(self, virtual_machine):
-        """ Check that we are not instrumenting the commands that match with patterns set by DD_IGNORED_PROCESSES env variable"""
-
-        ssh_client = virtual_machine.ssh_config.get_ssh_connection()
-        # Create a simple executable script
-        self._create_remote_executable_script(ssh_client, "/opt/datadog/logs_injection/myscript.sh")
-
-        for test_config in self.user_processes_commands:
-            for use_injection_file_config in [True, False]:
-                # Apply the configuration from yml file or from env variables
-                config_ignored_processes = {"DD_IGNORED_PROCESSES": test_config["ignored_processes"]}
-                local_log_file = self._execute_remote_command(
-                    ssh_client,
-                    test_config["command"],
-                    config=config_ignored_processes,
-                    use_injection_config=use_injection_file_config,
-                )
-
-                assert test_config["skip"] == command_injection_skipped(
-                    test_config["command"], local_log_file
-                ), f"The command {test_config['command']} with config [{config_ignored_processes}] should be skip? [{test_config['skip']}]"
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components

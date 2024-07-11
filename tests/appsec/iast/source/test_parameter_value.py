@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features
+from utils import context, missing_feature, bug, features, flaky
 from ..utils import BaseSourceTest
 
 
@@ -30,6 +30,7 @@ class TestParameterValue(BaseSourceTest):
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
     @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
+    @flaky(context.weblog_variant == "resteasy-netty3", reason="Issue with weak references, needs investigation")
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
 
@@ -39,9 +40,6 @@ class TestParameterValue(BaseSourceTest):
         self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 
     @missing_feature(context.library < "java@1.9.0", reason="Not implemented")
-    @missing_feature(
-        context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented"
-    )
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",

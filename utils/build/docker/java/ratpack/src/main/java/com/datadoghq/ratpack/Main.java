@@ -1,5 +1,6 @@
 package com.datadoghq.ratpack;
 
+import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
@@ -25,6 +26,14 @@ import java.net.URL;
 import java.util.Map;
 import java.util.List;
 import ratpack.util.MultiValueMap;
+import ratpack.handling.Context;
+import ratpack.handling.Handler;
+import ratpack.http.Headers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.datadoghq.system_tests.iast.utils.Utils;
+
+import javax.sql.DataSource;
 
 /**
  * Main class.
@@ -62,7 +71,9 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
+
         var iastHandlers = new IastHandlers();
+        var raspHandlers = new RaspHandlers();
         var server = RatpackServer.start(s ->
                 s.serverConfig(action -> action
                         .address(InetAddress.getByName("0.0.0.0"))
@@ -185,10 +196,30 @@ public class Main {
                                         .trackCustomEvent(
                                                 qp.getOrDefault("event_name", "system_tests_event"), METADATA);
                                 ctx.getResponse().send("ok");
+                            })
+                            .get("requestdownstream", ctx -> {
+                                final Promise<String> res = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/returnheaders";
+                                    return Utils.sendGetRequest(url);
+                                });
+                                res.then((r) -> {
+                                    Response response = ctx.getResponse();
+                                    response.send("application/json", r);
+                                });
+                            })
+                            .get("returnheaders", ctx -> {
+                                Headers headers = ctx.getRequest().getHeaders();
+                                Map<String, String> headerMap = new HashMap<>();
+                                headers.getNames().forEach(name -> headerMap.put(name, headers.get(name)));
+
+                                ObjectMapper mapper = new ObjectMapper();
+                                String json = mapper.writeValueAsString(headerMap);
+
+                                ctx.getResponse().send("application/json", json);
                             });
                         iastHandlers.setup(chain);
-                        }
-                )
+                        raspHandlers.setup(chain);
+                })
         );
         System.out.println("Ratpack server started on port 7777");
         while (!Thread.interrupted()) {
@@ -207,5 +238,7 @@ public class Main {
         public HashMap<String, String> request_headers;
         public HashMap<String, String> response_headers;
     }
+
+    public static final DataSource DATA_SOURCE = new SqlServer().start();
 }
 
