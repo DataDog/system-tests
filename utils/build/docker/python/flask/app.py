@@ -303,6 +303,12 @@ def status_code():
     return Response("OK, probably", status=code)
 
 
+@app.route("/stats-unique")
+def stats_unique():
+    code = flask_request.args.get("code", default=200, type=int)
+    return Response("OK, probably", status=code)
+
+
 @app.route("/make_distant_call")
 def make_distant_call():
     url = flask_request.args["url"]

@@ -1144,7 +1144,7 @@ class scenarios:
 
     default = EndToEndScenario(
         "DEFAULT",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "service", "DD_TRACE_FEATURES": "discovery"},  # TODO: remove features, was used for local testing
         include_postgres_db=True,
         doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
     )

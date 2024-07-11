@@ -11,11 +11,13 @@ import (
 	"os"
 	"strconv"
 	"time"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
 
 	"github.com/Shopify/sarama"
+
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
 
@@ -45,6 +47,16 @@ func main() {
 		if r.URL.Path != "/" {
 			w.WriteHeader(http.StatusNotFound)
 			return
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
+		if c := r.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				w.WriteHeader(code)
+				return
+			}
 		}
 		w.WriteHeader(http.StatusOK)
 	})
