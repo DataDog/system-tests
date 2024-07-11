@@ -1,11 +1,8 @@
-import json
 import uuid
+from scp import SCPClient
 
 from utils import scenarios, context, features
 from utils.tools import logger
-
-import paramiko
-from scp import SCPClient
 from utils import irrelevant
 from utils.onboarding.injection_log_parser import command_injection_skipped
 
