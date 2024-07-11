@@ -23,7 +23,13 @@ _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_tracer():
-    return list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
+    config = list(interfaces.library.get_data(_CONFIG_PATH))
+
+    if config:
+        return config[0]["request"]["content"]["client"]["client_tracer"]
+    else:
+        logger.error("Config was not found")
+        return {"language": "not_defined", "tracer_version": "v0.0.0"}
 
 
 def read_probes(test_name: str):
