@@ -110,9 +110,6 @@ class _Test_SQS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(
-        library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
