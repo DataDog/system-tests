@@ -9,6 +9,7 @@ if __name__ == "__main__":
     library = sys.argv[1]
     weblog = sys.argv[2]
     executed_scenarios = sys.argv[3]
+    exclude_buddies_images = sys.argv[4]
 
     images = set("")
 
