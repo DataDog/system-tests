@@ -418,7 +418,6 @@ tests/:
           vertx3: missing_feature
           vertx4: bug (Capability to read body content is incomplete after vert.x
             4.0.0)
-        Test_ClientIP: missing_feature
         Test_Cookies:
           akka-http: v1.22.0
           play: v1.22.0
@@ -430,8 +429,6 @@ tests/:
           '*': v0.87.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           '*': v0.95.1
           akka-http: missing_feature (unclear how to implement; matching doesn't happen in one go)
