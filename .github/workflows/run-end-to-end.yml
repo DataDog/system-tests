@@ -345,7 +345,6 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run all scenarios in replay mode
-      if: always() && steps.build.outcome == 'success'
       run: utils/scripts/replay_scenarios.sh
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
