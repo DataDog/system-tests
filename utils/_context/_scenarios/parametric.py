@@ -271,9 +271,9 @@ def golang_library_factory():
         lang="golang",
         protocol="grpc",
         container_name="go-test-library",
-        container_tag="go118-test-library",
+        container_tag="go122-test-library",
         container_img=f"""
-FROM golang:1.20
+FROM golang:1.22
 
 # install jq
 RUN apt-get update && apt-get -y install jq
