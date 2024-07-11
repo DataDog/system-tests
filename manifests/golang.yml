@@ -137,7 +137,6 @@ tests/:
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded: v1.37.0
         Test_BodyXml: v1.37.0
-        Test_ClientIP: missing_feature
         Test_Cookies:
           '*': v1.34.0
           chi: v1.36.0
@@ -151,8 +150,6 @@ tests/:
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           '*': v1.36.0
           gin: v1.37.0

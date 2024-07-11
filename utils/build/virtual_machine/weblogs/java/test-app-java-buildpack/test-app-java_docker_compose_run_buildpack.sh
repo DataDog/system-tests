@@ -31,7 +31,15 @@ if [ -f docker-compose-agent-prod.yml ]; then
     sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
     sleep 30
 fi
-sudo -E docker-compose -f docker-compose.yml up -d test-app-java
+#Env variables set on the scenario definition. Write to file and load  
+if [ ! -f scenario_app.env ]
+then
+   SCENARIO_APP_ENV="${DD_APP_ENV:-''}"
+    echo "$SCENARIO_APP_ENV" | tr '[:space:]' '\n' > scenario_app.env
+    echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
+    cat scenario_app.env
+fi
+sudo -E docker-compose -f docker-compose.yml up -d test-app
 
 echo "**************** RUNNING DOCKER SERVICES *****************" 
 sudo docker-compose ps

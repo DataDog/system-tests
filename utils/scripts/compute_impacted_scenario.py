@@ -120,6 +120,8 @@ def main():
                     scenarios_groups.add(ScenarioGroup.END_TO_END.value)
                 elif file == "utils/_context/_scenarios/parametric.py":
                     scenarios_groups.add(ScenarioGroup.PARAMETRIC.value)
+                elif file == "utils/_context/_scenarios/open_telemetry.py":
+                    scenarios_groups.add(ScenarioGroup.OPEN_TELEMETRY.value)
                 else:
                     scenarios_groups.add(ScenarioGroup.ALL.value)
 
@@ -135,7 +137,7 @@ def main():
                 # nothing to do
                 pass
 
-            elif file in ("LICENSE", "LICENSE-3rdparty.csv", "NOTICE", "Pulumi.yaml", "README.md", "build.sh"):
+            elif file in ("LICENSE", "LICENSE-3rdparty.csv", "NOTICE", "Pulumi.yaml", "README.md"):
                 # nothing to do
                 pass
 

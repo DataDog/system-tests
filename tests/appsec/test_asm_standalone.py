@@ -1,7 +1,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, scenarios, features, rfc
+from utils import weblog, interfaces, scenarios, features, rfc, bug
 from utils._context.header_tag_vars import *
 from requests.structures import CaseInsensitiveDict
 
@@ -21,6 +21,48 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     # TODO downstream propagation
 
+    # This methods exist to test the 2 different ways of setting the tags in the tracers.
+    # In some tracers, the propagation tags are set in the first span of every trace chunk,
+    # while in others they are set in the local root span. (same for the sampling priority tag)
+    # This method test the first case and if it fails, it will test the second case. When both cases fail, the test will fail.
+    #
+    # first_trace is the first span of every trace chunk
+    # span is the local root span
+    # obj is the object where the tags are set (meta, metrics)
+    # expected_tags is a dict of tag name to value
+    #   - The key is the tag name
+    #   - The value can be None to assert that the tag is not present
+    #   - The value can be a string to assert the value of the tag
+    #   - The value can be a lambda function that will be used to assert the value of the tag (special case for _sampling_priority_v1)
+    #
+    # Return a boolean indicating if the test passed
+    @staticmethod
+    def _assert_tags(first_trace, span, obj, expected_tags):
+        def _assert_tags_value(span, obj, expected_tags):
+            struct = span if obj is None else span[obj]
+            for tag, value in expected_tags.items():
+                if value is None:
+                    assert tag not in struct
+                else:
+                    if tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
+                        assert value(struct[tag])
+                    else:
+                        assert struct[tag] == value
+
+        # Case 1: The tags are set on the first span of every trace chunk
+        try:
+            _assert_tags_value(first_trace, obj, expected_tags)
+            return True
+        except (KeyError, AssertionError) as e:
+            pass  # should try the second case
+
+        # Case 2: The tags are set on the local root span
+        try:
+            _assert_tags_value(span, obj, expected_tags)
+            return True
+        except (KeyError, AssertionError) as e:
+            return False
+
     def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -35,17 +77,26 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert "_dd.p.appsec" not in span["meta"]
-            assert "_dd.p.other" in span["meta"]
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -78,15 +129,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert "_dd.p.appsec" not in span["meta"]
-            assert "_dd.p.other" in span["meta"]
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -119,15 +174,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_1(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert "_dd.p.appsec" not in span["meta"]
-            assert "_dd.p.other" in span["meta"]
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -160,15 +219,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_2(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] < 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert "_dd.p.appsec" not in span["meta"]
-            assert "_dd.p.other" in span["meta"]
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -200,16 +263,36 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -241,16 +324,36 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -283,14 +386,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_0(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] in [0, 2]
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -322,14 +430,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] in [1, 2]
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -361,14 +474,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
 
     def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_2(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -398,16 +516,36 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -437,16 +575,36 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -476,16 +634,36 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
+    @bug(
+        library="java",
+        weblog_variant="akka-http",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="jersey-grizzly2",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
+    @bug(
+        library="java",
+        weblog_variant="play",
+        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
+    )
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
         spans_checked = 0
+        tested_meta = {"_dd.p.appsec": "1"}
+        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
                 continue
 
-            assert trace[0]["metrics"]["_sampling_priority_v1"] == 2
+            assert self._assert_tags(trace[0], span, "meta", tested_meta)
+            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["meta"]["_dd.p.appsec"] == "1"
             assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
