@@ -311,11 +311,11 @@ class DockerScenario(Scenario):
 
         if not self.replay:
             warmups.append(create_network)
-            
+
         warmups.append(self._start_containers)
 
         return warmups
-    
+
     def _start_containers(self):
         threads = {}
 

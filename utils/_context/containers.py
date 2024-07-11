@@ -711,7 +711,7 @@ class KafkaContainer(TestedContainer):
                 "timeout": 2 * 1_000_000_000,
                 "retries": 25,
             },
-            depends_on=["zookeeper"]
+            depends_on=["zookeeper"],
         )
 
     def warmup(self):
