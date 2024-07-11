@@ -203,9 +203,10 @@ class Test_Kafka_Otel(_Test_Kafka):
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
         breakpoint()
-        assert "span_links" in consumer_span, "Producer span should be found in span_links attribute, link not found for the following span:\n" + consumer_span
+        assert "span_links" in consumer_span, (
+            "Producer span should be found in span_links attribute, link not found for the following span:\n"
+            + consumer_span
+        )
 
         assert producer_span["trace_id"] == consumer_span["span_links"][0]["trace_id"]
         assert producer_span["span_id"] == consumer_span["span_links"][0]["span_id"]
-
-    

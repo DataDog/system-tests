@@ -50,6 +50,7 @@ def kafka_consume(topic, group_id, timeout=120):
     try:
         print("try to do otel hacky end span")
         from opentelemetry.instrumentation.confluent_kafka.utils import _end_current_consume_span
+
         _end_current_consume_span(consumer)
     except Exception as ex:
         print("trying to close consumer, otel hack failed")
