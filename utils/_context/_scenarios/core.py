@@ -230,7 +230,6 @@ class DockerScenario(Scenario):
         doc,
         scenario_groups=None,
         use_proxy=True,
-        proxy_state=None,
         rc_api_enabled=False,
         include_postgres_db=False,
         include_cassandra_db=False,
@@ -254,9 +253,7 @@ class DockerScenario(Scenario):
 
         if self.use_proxy:
             self._required_containers.append(
-                ProxyContainer(
-                    host_log_folder=self.host_log_folder, proxy_state=proxy_state, rc_api_enabled=rc_api_enabled
-                )
+                ProxyContainer(host_log_folder=self.host_log_folder, rc_api_enabled=rc_api_enabled)
             )  # we want the proxy being the first container to start
 
         if include_postgres_db:
@@ -346,7 +343,6 @@ class EndToEndScenario(DockerScenario):
         library_interface_timeout=None,
         agent_interface_timeout=5,
         use_proxy=True,
-        proxy_state=None,
         rc_api_enabled=False,
         backend_interface_timeout=0,
         include_postgres_db=False,
@@ -369,7 +365,6 @@ class EndToEndScenario(DockerScenario):
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
             use_proxy=use_proxy,
-            proxy_state=proxy_state,
             rc_api_enabled=rc_api_enabled,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
