@@ -11,9 +11,9 @@ class TestCookieName(BaseSourceTest):
     """Verify that request cookies are tainted"""
 
     endpoint = "/iast/source/cookiename/test"
-    requests_kwargs = [{"method": "GET", "cookies": {"user": "unused"}}]
+    requests_kwargs = [{"method": "GET", "cookies": {"table": "unused"}}]
     source_type = "http.request.cookie.name"
-    source_names = ["user"]
+    source_names = ["table"]
     source_value = "user"
 
     @missing_feature(library="dotnet", reason="Not implemented")
