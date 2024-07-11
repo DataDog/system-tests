@@ -120,7 +120,7 @@ class Test_Blocking:
     @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
     @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
-    @missing_feature(context.library == "python", reason="Support for partial html not implemented")
+    @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(context.library == "ruby", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
