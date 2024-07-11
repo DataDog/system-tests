@@ -54,45 +54,6 @@ class _Test_Kafka:
             logger.error(f"could not extract topic from this span:\n{span}")
         return topic
 
-    def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a kafka message
-        send request B to library buddy, this request will consume kafka message
-        """
-        self.production_response = weblog.get(
-            "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=120
-        )
-
-        self.consume_response = self.buddy.get(
-            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 120}, timeout=125
-        )
-
-    def test_produce(self):
-        """Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
-
-        assert self.production_response.status_code == 200
-        assert self.consume_response.status_code == 200
-
-        # The weblog is the producer, the buddy is the consumer
-        self.validate_kafka_spans(
-            producer_interface=interfaces.library,
-            consumer_interface=self.buddy_interface,
-            topic=self.WEBLOG_TO_BUDDY_TOPIC,
-        )
-
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    def test_produce_trace_equality(self):
-        """This test relies on the setup for produce, it currently cannot be run on its own"""
-        producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
-        consumer_span = self.get_span(self.buddy_interface, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
-
-        # Both producer and consumer spans should be part of the same trace
-        # Different tracers can handle the exact propagation differently, so for now, this test avoids
-        # asserting on direct parent/child relationships
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
-
     def setup_consume(self):
         """
         send request A to library buddy : this request will produce a kafka message
@@ -129,6 +90,45 @@ class _Test_Kafka:
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
         consumer_span = self.get_span(interfaces.library, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
+
+        # Both producer and consumer spans should be part of the same trace
+        # Different tracers can handle the exact propagation differently, so for now, this test avoids
+        # asserting on direct parent/child relationships
+        assert producer_span["trace_id"] == consumer_span["trace_id"]
+
+    def setup_produce(self):
+        """
+        send request A to weblog : this request will produce a kafka message
+        send request B to library buddy, this request will consume kafka message
+        """
+        self.production_response = weblog.get(
+            "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=120
+        )
+
+        self.consume_response = self.buddy.get(
+            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 120}, timeout=125
+        )
+
+    def test_produce(self):
+        """Check that a message produced to kafka is correctly ingested by a Datadog python tracer"""
+
+        assert self.production_response.status_code == 200
+        assert self.consume_response.status_code == 200
+
+        # The weblog is the producer, the buddy is the consumer
+        self.validate_kafka_spans(
+            producer_interface=interfaces.library,
+            consumer_interface=self.buddy_interface,
+            topic=self.WEBLOG_TO_BUDDY_TOPIC,
+        )
+
+    @missing_feature(
+        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
+    )
+    def test_produce_trace_equality(self):
+        """This test relies on the setup for produce, it currently cannot be run on its own"""
+        producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
+        consumer_span = self.get_span(self.buddy_interface, span_kind="consumer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
 
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
@@ -202,7 +202,6 @@ class Test_Kafka_Otel(_Test_Kafka):
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
-        breakpoint()
         assert "span_links" in consumer_span, (
             "Producer span should be found in span_links attribute, link not found for the following span:\n"
             + consumer_span
