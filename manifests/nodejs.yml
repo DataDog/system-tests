@@ -217,7 +217,6 @@ tests/:
         Test_BodyXml:
           '*': v2.2.0
           nextjs: irrelevant # Body xml is not converted to JSON in nextjs
-        Test_ClientIP: missing_feature
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
@@ -225,8 +224,6 @@ tests/:
           nextjs: irrelevant # nextjs is not related with graphql
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v2.0.0
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           '*': v2.0.0
           nextjs: missing_feature
