@@ -23,10 +23,9 @@ class Test_RuntimeActivation:
     def setup_asm_features(self):
         command = rc.RemoteConfigCommand(version=1)
 
-        config = {"asm":{"enabled":True}}
+        config = {"asm": {"enabled": True}}
 
         command.add_client_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
-
 
         self.response_with_deactivated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
         self.config_state = command.send()
