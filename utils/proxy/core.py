@@ -54,8 +54,13 @@ class _RequestLogger:
         self.original_ports = {}
 
         self.rc_api_enabled = os.environ.get("RC_API_ENABLED") == "True"
-        self.rc_api_payload = None
+
+        self.rc_api_command = None
         self.rc_api_runtime_ids_applied = set()
+
+        # mimic the old API
+        self.rc_api_sequential_commands = None
+        self.rc_api_runtime_ids_request_count = None
 
     def _scrub(self, content):
         if isinstance(content, str):
@@ -93,10 +98,18 @@ class _RequestLogger:
             elif not self.rc_api_enabled:
                 flow.response = self.get_error_response(b"RC API is not enabled")
             else:
-                logger.info("Store RC response to mock")
-                self.rc_api_payload = flow.request.content
-                self.rc_api_runtime_ids_applied.clear()
-                flow.response = http.Response.make(200, b"Ok")
+                if flow.request.path == "/unique_command":
+                    logger.info("Store RC command to mock")
+                    self.rc_api_command = flow.request.content
+                    self.rc_api_runtime_ids_applied.clear()
+                    flow.response = http.Response.make(200, b"Ok")
+                elif flow.request.path == "/sequential_commands":
+                    logger.info("Reset mocked RC sequential commands")
+                    self.rc_api_sequential_commands = json.loads(flow.request.content)
+                    self.rc_api_runtime_ids_request_count = defaultdict(int)
+                    flow.response = http.Response.make(200, b"Ok")
+                else:
+                    flow.response = http.Response.make(404, b"Not found")
 
             return
 
@@ -232,20 +245,38 @@ class _RequestLogger:
         elif self.rc_api_enabled and self.request_is_from_tracer(flow.request):
             self._add_rc_capabilities_in_info_request(flow)
 
-            if flow.request.path == "/v0.7/config" and self.rc_api_payload is not None:
-                request_content = json.loads(flow.request.content)
-                runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
+            if flow.request.path == "/v0.7/config":
+                if self.rc_api_command is not None:
+                    request_content = json.loads(flow.request.content)
+                    runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
 
-                if runtime_id in self.rc_api_runtime_ids_applied:
-                    # this runtime id has already been applied
-                    return
+                    if runtime_id in self.rc_api_runtime_ids_applied:
+                        # this runtime id has already been applied
+                        return
 
-                logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
+                    logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
 
-                flow.response.status_code = 200
-                flow.response.content = self.rc_api_payload
+                    flow.response.status_code = 200
+                    flow.response.content = self.rc_api_command
 
-                self.rc_api_runtime_ids_applied.add(runtime_id)
+                    self.rc_api_runtime_ids_applied.add(runtime_id)
+                elif self.rc_api_sequential_commands is not None:
+                    request_content = json.loads(flow.request.content)
+                    runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
+                    logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
+                    logger.info(
+                        f"    => Overwriting /v0.7/config response #{self.rc_api_runtime_ids_request_count[runtime_id] + 1}"
+                    )
+
+                    if self.rc_api_runtime_ids_request_count[runtime_id] + 1 > len(self.rc_api_sequential_commands):
+                        response = {}  # default content when there isn't an RC update
+                    else:
+                        response = self.rc_api_sequential_commands[self.rc_api_runtime_ids_request_count[runtime_id]]
+
+                    flow.response.status_code = 200
+                    flow.response.content = json.dumps(response).encode()
+
+                    self.rc_api_runtime_ids_request_count[runtime_id] += 1
 
     def _modify_response_rc(self, flow, mocked_responses):
         if not self.request_is_from_tracer(flow.request):
