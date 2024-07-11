@@ -3,6 +3,7 @@ from logging import FileHandler
 import os
 from pathlib import Path
 import shutil
+from threading import Thread
 
 import pytest
 from watchdog.observers.polling import PollingObserver
@@ -25,6 +26,7 @@ from utils._context.containers import (
     create_network,
     BuddyContainer,
     TestedContainer,
+    start_container,
 )
 
 from utils._context.library_version import LibraryVersion
@@ -309,14 +311,25 @@ class DockerScenario(Scenario):
 
         if not self.replay:
             warmups.append(create_network)
-
-            for container in self._required_containers:
-                warmups.append(container.start)
-
-        for container in self._required_containers:
-            warmups.append(container.post_start)
+            
+        warmups.append(self._start_containers)
 
         return warmups
+    
+    def _start_containers(self):
+        threads = {}
+
+        for container in self._required_containers:
+            for name in container.depends_on:
+                if name in threads:
+                    threads[name].join()
+
+            thread = Thread(target=start_container, args=(container, self.replay,))
+            thread.start()
+            threads[container.name] = thread
+
+        for name in threads:
+            threads[name].join()
 
     def close_targets(self):
         for container in reversed(self._required_containers):

@@ -63,6 +63,13 @@ def create_inject_volume():
     _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
 
+def start_container(container, replay=False):
+    if not replay:
+        container.start()
+
+    container.post_start()
+
+
 class TestedContainer:
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
@@ -75,6 +82,7 @@ class TestedContainer:
         allow_old_container=False,
         healthcheck=None,
         stdout_interface=None,
+        depends_on=[],
         **kwargs,
     ) -> None:
         self.name = name
@@ -89,6 +97,7 @@ class TestedContainer:
         self.kwargs = kwargs
         self._container = None
         self.stdout_interface = stdout_interface
+        self.depends_on = depends_on
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         """ returns the image list that will be loaded to be able to run/build the container """
@@ -401,6 +410,7 @@ class AgentContainer(TestedContainer):
             },
             ports={self.agent_port: f"{self.agent_port}/tcp"},
             stdout_interface=interfaces.agent_stdout,
+            depends_on=["proxy"],
         )
 
         self.agent_version = None
@@ -493,6 +503,23 @@ class WeblogContainer(TestedContainer):
             healthcheck={"test": f"curl --fail --silent --show-error localhost:{self.port}", "retries": 60},
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
+            depends_on=[
+                "agent",
+                "cassandra_db",
+                "elasticmq",
+                "go_buddy",
+                "java_buddy",
+                "kafka",
+                "localstack-main",
+                "mongodb",
+                "mssql",
+                "mysqldb",
+                "nodejs_buddy",
+                "postgres",
+                "python_buddy",
+                "rabbitmq",
+                "ruby_buddy",
+            ],
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
@@ -684,6 +711,7 @@ class KafkaContainer(TestedContainer):
                 "timeout": 2 * 1_000_000_000,
                 "retries": 25,
             },
+            depends_on=["zookeeper"]
         )
 
     def warmup(self):
