@@ -696,11 +696,6 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={
-            "DD_RC_TARGETS_KEY_ID": "TEST_KEY_ID",
-            "DD_RC_TARGETS_KEY": "1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c",
-            "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
-        },
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
