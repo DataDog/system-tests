@@ -584,6 +584,8 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: missing_feature (weblog returns error 500)
+        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_Login_Events_Extended:
@@ -594,6 +596,8 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: missing_feature (weblog returns error 500)
+        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_V2_Login_Events: missing_feature
