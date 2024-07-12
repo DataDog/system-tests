@@ -248,6 +248,32 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL(_Test_SQS):
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy_otel"
     BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog_otel"
 
+    @missing_feature(library="golang", reason="Expected to fail, injected format cannot be extracted by OTel")
+    @missing_feature(library="ruby", reason="Expected to fail, injected format cannot be extracted by OTel")
+    @missing_feature(library="python", reason="Expected to fail, injected format cannot be extracted by OTel")
+    @missing_feature(library="nodejs", reason="Expected to fail, injected format cannot be extracted by OTel")
+    @missing_feature(library="dotnet", reason="Expected to fail, injected format cannot be extracted by OTel")
+    @missing_feature(library="java", reason="Expected to fail, injected format cannot be extracted by OTel")
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality()
+
+    """
+    Datadog Injection format:
+        messageAttributes = { "_datadog": { "StringValue": "JSON FORMATTED HEADERS" } }
+    
+    Otel Injection format:
+        messageAttributes = { "traceparent": {"StringValue":  "traceparent value" } }
+    """
+
+    @missing_feature(library="golang", reason="Expected to fail, cannot read OTel propagation format")
+    @missing_feature(library="ruby", reason="Expected to fail, cannot read OTel propagation format")
+    @missing_feature(library="python", reason="Expected to fail, cannot read OTel propagation format")
+    @missing_feature(library="nodejs", reason="Expected to fail, cannot read OTel propagation format")
+    @missing_feature(library="dotnet", reason="Expected to fail, cannot read OTel propagation format")
+    @missing_feature(library="java", reason="Expected to fail, cannot read OTel propagation format")
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality()
+
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace

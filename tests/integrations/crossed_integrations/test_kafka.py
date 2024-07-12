@@ -204,7 +204,7 @@ class Test_Kafka_Otel(_Test_Kafka):
         # asserting on direct parent/child relationships
         assert "span_links" in consumer_span, (
             "Producer span should be found in span_links attribute, link not found for the following span:\n"
-            + consumer_span
+            + str(consumer_span)
         )
 
         assert producer_span["trace_id"] == consumer_span["span_links"][0]["trace_id"]
