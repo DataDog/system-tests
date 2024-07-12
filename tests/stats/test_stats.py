@@ -28,7 +28,7 @@ class Test_Client_Stats:
         for _ in range(3):
             weblog.get("/stats-unique?code=204")
 
-    # TODO: mark that this is only good for golang net-http & dotnet for now?
+    # TODO: mark that this is only good for golang net-http for now?
     # TODO: why are hits and top-level hits separated in python? (and not go)
     @bug(library="python", reason="hits and toplevel hits are being split for some reason")
     def test_client_stats(self):
