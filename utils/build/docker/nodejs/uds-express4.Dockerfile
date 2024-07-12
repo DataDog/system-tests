@@ -1,7 +1,5 @@
 FROM datadog/system-tests:express4.base-v0
 
-RUN apk add --no-cache bash curl git jq
-
 RUN uname -r
 
 # print versions
