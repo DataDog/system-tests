@@ -26,7 +26,6 @@ from utils._context.containers import (
     create_network,
     BuddyContainer,
     TestedContainer,
-    start_container,
 )
 
 from utils._context.library_version import LibraryVersion
@@ -312,7 +311,7 @@ class DockerScenario(Scenario):
         if not self.replay:
             warmups.append(create_network)
 
-        # on replay mode, _start_containers() won't actually start containers, 
+        # on replay mode, _start_containers() won't actually start containers,
         # but will only call the necessary post_start method
         warmups.append(self._start_containers)
 
@@ -329,12 +328,13 @@ class DockerScenario(Scenario):
             thread.join()
 
     def _start_container(self, container, dependencies, threads):
-        if threads.get(container): return threads.get(container)
+        if threads.get(container):
+            return threads.get(container)
 
         for dependency_thread in self._start_dependencies(container, dependencies, threads):
             dependency_thread.join()
 
-        thread = Thread(target=start_container, args=(container, self.replay,))
+        thread = Thread(target=container.start, args=(self.replay,))
         thread.start()
         threads[container] = thread
 
@@ -356,7 +356,7 @@ class DockerScenario(Scenario):
         for container in self._required_containers:
             containers = image_containers.get(container.__class__, [])
             containers.append(container)
-            
+
             image_containers[container.__class__] = containers
 
             dependencies[container] = []

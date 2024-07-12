@@ -63,13 +63,6 @@ def create_inject_volume():
     _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
 
-def start_container(container, replay=False):
-    if not replay:
-        container.start()
-
-    container.post_start()
-
-
 class TestedContainer:
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
@@ -141,7 +134,7 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
-    def start(self) -> Container:
+    def start(self, replay) -> Container:
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -171,10 +164,13 @@ class TestedContainer:
         self.wait_for_health()
         self.warmup()
 
+        if not replay:
+            self._post_start()
+
     def warmup(self):
         """ if some stuff must be done after healthcheck """
 
-    def post_start(self):
+    def _post_start(self):
         """ if some stuff must be done after the container is started """
 
     @property
@@ -435,7 +431,7 @@ class AgentContainer(TestedContainer):
 
         self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-    def post_start(self):
+    def _post_start(self):
         with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
             data = json.load(f)
 
@@ -612,7 +608,7 @@ class WeblogContainer(TestedContainer):
             if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
                 self.environment["DD_PROFILING_ENABLED"] = "false"
 
-    def post_start(self):
+    def _post_start(self):
         from utils import weblog
 
         logger.debug(f"Docker host is {weblog.domain}")
