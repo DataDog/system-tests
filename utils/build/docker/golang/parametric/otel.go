@@ -303,6 +303,23 @@ func (s *apmClientServer) OtelSpanContext(ctx context.Context, args *OtelSpanCon
 	}, nil
 }
 
+func (s *apmClientServer) OtelAddEvent(ctx context.Context, args *OtelAddEventArgs) (*OtelAddEventReturn, error) {
+	sctx, ok := s.otelSpans[args.SpanId]
+	if !ok {
+		fmt.Printf("OtelSetStatus call failed, span with id=%d not found", args.SpanId)
+	}
+	span := sctx.span
+	opts := []otel_trace.EventOption{}
+	if args.Timestamp != nil {
+		opts = append(opts, otel_trace.WithTimestamp(time.Unix(0, *args.Timestamp)))
+	}
+	if args.GetAttributes() != nil {
+		opts = append(opts, otel_trace.WithAttributes(ConvertKeyValsToAttributes(args.GetAttributes().KeyVals)["0"]...))
+	}
+	span.AddEvent(args.Name, opts...)
+	return &OtelAddEventReturn{}, nil
+}
+
 func (s *apmClientServer) OtelSetStatus(ctx context.Context, args *OtelSetStatusArgs) (*OtelSetStatusReturn, error) {
 	sctx, ok := s.otelSpans[args.SpanId]
 	if !ok {
