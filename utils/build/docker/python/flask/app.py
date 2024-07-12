@@ -779,7 +779,7 @@ def view_iast_source_body():
 
 @app.route("/iast/source/cookiename/test")
 def view_iast_source_cookie_name():
-    param = [key for key in flask_request.cookies.keys() if key == "user"]
+    param = [key for key in flask_request.cookies.keys() if key == "table"]
     _sink_point_path_traversal(param[0])
     return Response("OK")
 

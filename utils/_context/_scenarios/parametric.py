@@ -12,7 +12,7 @@ import pytest
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
-from .core import _Scenario, ScenarioGroup
+from .core import Scenario, ScenarioGroup
 
 
 # Max timeout in seconds to keep a container running
@@ -36,7 +36,7 @@ class APMLibraryTestServer:
     volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
 
 
-class ParametricScenario(_Scenario):
+class ParametricScenario(Scenario):
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -271,9 +271,9 @@ def golang_library_factory():
         lang="golang",
         protocol="grpc",
         container_name="go-test-library",
-        container_tag="go118-test-library",
+        container_tag="go122-test-library",
         container_img=f"""
-FROM golang:1.20
+FROM golang:1.22
 
 # install jq
 RUN apt-get update && apt-get -y install jq

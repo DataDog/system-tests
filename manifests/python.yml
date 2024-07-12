@@ -24,7 +24,7 @@ tests/:
           python3.12: v2.6.0dev
           uds-flask: v2.6.0dev
           uwsgi-poc: v2.6.0dev
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -218,7 +218,6 @@ tests/:
         Test_BodyXml:
           '*': v1.5.0rc1.dev
           fastapi: v2.4.0.dev1
-        Test_ClientIP: missing_feature (v1.5.0rc1.dev but test is not implemented)
         Test_Cookies:
           django-poc: v1.1.0rc2.dev
           fastapi: v2.4.0.dev1
@@ -231,8 +230,6 @@ tests/:
         Test_GraphQL: missing_feature
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v1.6
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           django-poc: v1.1.0rc2.dev
           fastapi: v2.4.0.dev1
@@ -337,8 +334,6 @@ tests/:
         Test_TelemetryMetrics:
           '*': v1.14.0
           fastapi: v2.4.0.dev1
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v1.1.0rc2.dev
@@ -415,7 +410,7 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
+      Test_Suspicious_Request_Blocking: v2.4.0.dev1
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
@@ -441,6 +436,8 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_rate_limiter.py:
+      Test_Main: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
       Test_Info: v1.1.0rc2.dev
@@ -451,7 +448,7 @@ tests/:
         '*': v1.10.0
         fastapi: v2.4.0.dev1
     test_runtime_activation.py:
-      Test_RuntimeActivation: missing_feature
+      Test_RuntimeActivation: v2.0.0
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:
