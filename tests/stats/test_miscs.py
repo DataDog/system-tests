@@ -12,5 +12,5 @@ class Test_Miscs:
     @scenarios.appsec_disabled
     @bug(library="python", reason="Stats seems to be activated by default on python lib. To be confirmed")
     def test_disable(self):
-        requests = interfaces.library.get_data("/v0.6/stats")
+        requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Stats should be disabled by default"
