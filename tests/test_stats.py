@@ -1,4 +1,4 @@
-from utils import interfaces, weblog, features, scenarios
+from utils import interfaces, weblog, features, scenarios, bug
 from utils.tools import logger
 
 """
@@ -30,6 +30,7 @@ class Test_Client_Stats:
 
     # TODO: mark that this is only good for golang net-http & dotnet for now?
     # TODO: why are hits and top-level hits separated in python? (and not go)
+    @bug(library="python", reason="hits and toplevel hits are being split for some reason")
     def test_client_stats(self):
         stats_count = 0
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
