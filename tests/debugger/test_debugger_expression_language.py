@@ -141,8 +141,84 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/comparison-operators?intValue=5&floatValue=3.14&strValue=haha")
 
-    @bug(library="dotnet", reason="Comparison operators on float and string values are buggy")
+    @bug(library="dotnet", reason="DEBUG-2524")
     def test_expression_language_comparison_operators(self):
+        self.assert_all_states_not_error()
+        self.assert_all_probes_are_installed()
+        self.assert_all_weblog_responses_ok()
+
+        self._validate_expression_language_messages(self.message_map)
+
+    def setup_expression_language_instance_of(self):
+        def _create_comparison_probes(replacements):
+            probes = []
+            message_map = {}
+
+            tracer = base.get_tracer()
+            for replacement in replacements:
+                ref_value_name, value_type, expected_result = replacement
+
+                probe = base.read_probes("expression_language_instance_of")[0]
+                probe["id"] = base.generate_probe_id("log")
+
+                str_segment = probe["segments"][0]
+                str_segment["str"] = str_segment["str"].replace("[REF_VALUE_NAME]", str(ref_value_name))
+                str_segment["str"] = str_segment["str"].replace("[VALUE_TYPE]", str(value_type))
+                message_map[probe["id"]] = str_segment["str"] + "[Tt]rue" if expected_result else "[Ff]alse"
+
+                instance_of_segment = probe["segments"][1]
+                instance_of_segment["json"]["instanceof"][0]["ref"] = ref_value_name
+
+                if tracer["language"] == "dotnet":
+                    if value_type == "int":
+                        instance_of_segment["json"]["instanceof"][1] = "System.Int32"
+                    elif value_type == "float":
+                        instance_of_segment["json"]["instanceof"][1] = "System.Single"
+                    elif value_type == "string":
+                        instance_of_segment["json"]["instanceof"][1] = "System.String"
+                    elif value_type == "controller":
+                        instance_of_segment["json"]["instanceof"][1] = "weblog.DebuggerController"
+                    else:
+                        instance_of_segment["json"]["instanceof"][1] = value_type
+                elif tracer["language"] == "java":
+                    if value_type == "int":
+                        instance_of_segment["json"]["instanceof"][1] = "java.lang.int"
+                    elif value_type == "float":
+                        instance_of_segment["json"]["instanceof"][1] = "java.lang.float"
+                    elif value_type == "string":
+                        instance_of_segment["json"]["instanceof"][1] = "java.lang.String"
+                    elif value_type == "controller":
+                        instance_of_segment["json"]["instanceof"][
+                            1
+                        ] = "com.datadoghq.system_tests.springboot.DebuggerController"
+                    else:
+                        instance_of_segment["json"]["instanceof"][1] = value_type
+                else:
+                    instance_of_segment["json"]["instanceof"][1] = value_type
+
+                probes.append(probe)
+
+            return message_map, probes
+
+        message_map, probes = _create_comparison_probes(
+            [
+                ["intValue", "int", True],
+                ["floatValue", "float", True],
+                ["strValue", "string", True],
+                ["this", "weblog.DebuggerController", True],
+                ["intValue", "string", False],
+                ["floatValue", "int", False],
+                ["strValue", "float", False],
+                ["this", "string", False],
+            ]
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/comparison-operators?intValue=5&floatValue=3.14&strValue=haha")
+
+    @bug(library="java", reason="DEBUG-2527")
+    @bug(library="dotnet", reason="DEBUG-2530")
+    def test_expression_language_instance_of(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()

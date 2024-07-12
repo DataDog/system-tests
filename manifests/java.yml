@@ -13,7 +13,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -744,7 +744,11 @@ tests/:
         spring-boot-payara: bug (user block results in 500 response)
         vertx3: v1.7.0
         vertx4: v1.7.0
-      Test_Suspicious_Request_Blocking: missing_feature
+      Test_Suspicious_Request_Blocking:
+        '*': v1.6.0
+        akka-http: bug
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: bug
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:

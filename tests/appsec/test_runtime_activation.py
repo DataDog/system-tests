@@ -21,21 +21,14 @@ class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""
 
     def setup_asm_features(self):
+        command = rc.RemoteConfigCommand(version=1)
 
-        RC_PAYLOAD = {
-            "client_configs": ["datadog/2/ASM_FEATURES/asm_features_activation/config"],
-            "roots": [],
-            "target_files": [
-                {
-                    "path": "datadog/2/ASM_FEATURES/asm_features_activation/config",
-                    "raw": "eyJhc20iOnsiZW5hYmxlZCI6dHJ1ZX19",
-                }
-            ],
-            "targets": "eyJzaWduZWQiOnsiX3R5cGUiOiJ0YXJnZXRzIiwiZXhwaXJlcyI6IjIwMjItMDktMTdUMTI6NDk6MTVaIiwic3BlY192ZXJzaW9uIjoiMS4wLjAiLCJjdXN0b20iOnsib3BhcXVlX2JhY2tlbmRfc3RhdGUiOiJhYWFhYSJ9LCJ0YXJnZXRzIjp7ImRhdGFkb2cvMi9BU01fRkVBVFVSRVMvYXNtX2ZlYXR1cmVzX2FjdGl2YXRpb24vY29uZmlnIjp7ImN1c3RvbSI6eyJ2IjoxfSwiaGFzaGVzIjp7InNoYTI1NiI6IjE1OTY1OGFiODViZTcyMDc3NjFhNDExMTE3MmIwMTU1ODM5NGJmYzc0YTFmZTFkMzE0ZjIwMjNmN2M2NTZkYiJ9LCJsZW5ndGgiOjI0fX0sInZlcnNpb24iOjF9LCJzaWduYXR1cmVzIjpbeyJrZXlpZCI6IlRFU1RfS0VZX0lEIiwic2lnIjoiNDJhMzk3ZjNiNzc5MjQwNzkwMDRhYmY5MzU1ZDQ0ODQ2ZDFlNWQ4MjYzNjIzMTdkZTJiZjhmZTVlODQ1N2NhZmMxMTZiNTcwZjI4MGRkYTVmNzI1Y2Y5ZjU1NmYyOGMzOTEyMmQzYzM0MDQ2YmMwYzYzODU5NWExM2JhMzliMDAifV19",
-        }
+        config = {"asm": {"enabled": True}}
+
+        command.add_client_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
 
         self.response_with_deactivated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        self.config_state = rc.send_command(raw_payload=RC_PAYLOAD)
+        self.config_state = command.send()
         self.response_with_activated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_asm_features(self):
