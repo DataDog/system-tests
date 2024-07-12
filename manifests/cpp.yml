@@ -66,6 +66,7 @@ tests/:
       test_telemetry.py: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
     test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
+    test_appsec_metastruct.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
     test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
     test_client_ip.py: irrelevant (ASM is not implemented in C++)
