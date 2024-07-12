@@ -209,4 +209,3 @@ class Test_Kafka(_Test_Kafka):
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()
-
