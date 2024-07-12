@@ -239,6 +239,8 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
+    test_appsec_metastruct.py:
+      Test_SecurityEvent_Metastruct: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.55.0
       Test_IastStandalone_UpstreamPropagation: v2.55.0
