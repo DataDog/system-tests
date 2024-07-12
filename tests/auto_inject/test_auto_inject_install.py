@@ -366,7 +366,7 @@ class TestInstallerAutoInjectManual(_AutoInjectBaseTest):
             # Host
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
-            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+            if context.scenario.library.library in ["ruby", "python", "dotnet", "php"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:
             # Container
