@@ -577,7 +577,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
       Test_Login_Events:
-        '*': 1.36.0
+        '*': v1.36.0
         akka-http: missing_feature (login endpoints not implemented)
         jersey-grizzly2: missing_feature (login endpoints not implemented)
         play: missing_feature (login endpoints not implemented)
@@ -587,7 +587,7 @@ tests/:
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_Login_Events_Extended:
-        '*': 1.36.0
+        '*': v1.36.0
         akka-http: missing_feature (login endpoints not implemented)
         jersey-grizzly2: missing_feature (login endpoints not implemented)
         play: missing_feature (login endpoints not implemented)
@@ -876,7 +876,7 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_CollectDefaultRequestHeader:
-        '*': 1.35.0
+        '*': v1.35.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_CollectRespondHeaders:
         '*': v0.102.0
@@ -884,7 +884,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_ExternalWafRequestsIdentification:
-        '*': 1.35.0
+        '*': v1.35.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RetainTraces:
         '*': v0.92.0
@@ -1066,7 +1066,7 @@ tests/:
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
-    Test_HeaderTags: 1.35.0
+    Test_HeaderTags: v1.35.0
     Test_HeaderTags_Colon_Leading: v0.102.0
     Test_HeaderTags_Colon_Trailing: v0.102.0
     Test_HeaderTags_Long: v0.102.0
