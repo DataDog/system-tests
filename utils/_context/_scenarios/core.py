@@ -317,19 +317,54 @@ class DockerScenario(Scenario):
         return warmups
 
     def _start_containers(self):
+        dependencies = self._get_dependencies()
         threads = {}
 
         for container in self._required_containers:
-            for name in container.depends_on:
-                if name in threads:
-                    threads[name].join()
+            self._start_container(container, dependencies, threads)
 
-            thread = Thread(target=start_container, args=(container, self.replay,))
-            thread.start()
-            threads[container.name] = thread
+        for thread in threads.values():
+            thread.join()
 
-        for name in threads:
-            threads[name].join()
+    def _start_container(self, container, dependencies, threads):
+        if threads.get(container): return threads.get(container)
+
+        for dependency_thread in self._start_dependencies(container, dependencies, threads):
+            dependency_thread.join()
+
+        thread = Thread(target=start_container, args=(container, self.replay,))
+        thread.start()
+        threads[container] = thread
+
+        return thread
+
+    def _start_dependencies(self, container, dependencies, threads):
+        dependency_threads = []
+
+        for dependency in dependencies[container]:
+            thread = self._start_container(dependency, dependencies, threads)
+            dependency_threads.append(thread)
+
+        return dependency_threads
+
+    def _get_dependencies(self):
+        dependencies = {}
+        image_containers = {}
+
+        for container in self._required_containers:
+            containers = image_containers.get(container.__class__, [])
+            containers.append(container)
+            
+            image_containers[container.__class__] = containers
+
+            dependencies[container] = []
+
+        for container in self._required_containers:
+            for dependency in container.depends_on:
+                for dependency_container in image_containers.get(dependency, []):
+                    dependencies[container].append(dependency_container)
+
+        return dependencies
 
     def close_targets(self):
         for container in reversed(self._required_containers):

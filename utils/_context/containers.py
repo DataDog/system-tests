@@ -82,7 +82,7 @@ class TestedContainer:
         allow_old_container=False,
         healthcheck=None,
         stdout_interface=None,
-        depends_on=[],
+        depends_on=None,
         **kwargs,
     ) -> None:
         self.name = name
@@ -97,7 +97,7 @@ class TestedContainer:
         self.kwargs = kwargs
         self._container = None
         self.stdout_interface = stdout_interface
-        self.depends_on = depends_on
+        self.depends_on = depends_on or []
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         """ returns the image list that will be loaded to be able to run/build the container """
@@ -410,7 +410,7 @@ class AgentContainer(TestedContainer):
             },
             ports={self.agent_port: f"{self.agent_port}/tcp"},
             stdout_interface=interfaces.agent_stdout,
-            depends_on=["proxy"],
+            depends_on=[ProxyContainer],
         )
 
         self.agent_version = None
@@ -504,21 +504,17 @@ class WeblogContainer(TestedContainer):
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
             depends_on=[
-                "agent",
-                "cassandra_db",
-                "elasticmq",
-                "go_buddy",
-                "java_buddy",
-                "kafka",
-                "localstack-main",
-                "mongodb",
-                "mssql",
-                "mysqldb",
-                "nodejs_buddy",
-                "postgres",
-                "python_buddy",
-                "rabbitmq",
-                "ruby_buddy",
+                AgentContainer,
+                BuddyContainer,
+                CassandraContainer,
+                ElasticMQContainer,
+                KafkaContainer,
+                LocalstackContainer,
+                MongoContainer,
+                SqlServerContainer,
+                MySqlContainer,
+                PostgresContainer,
+                RabbitMqContainer,
             ],
         )
 
@@ -711,7 +707,7 @@ class KafkaContainer(TestedContainer):
                 "timeout": 2 * 1_000_000_000,
                 "retries": 25,
             },
-            depends_on=["zookeeper"],
+            depends_on=[ZooKeeperContainer],
         )
 
     def warmup(self):
