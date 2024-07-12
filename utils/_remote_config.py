@@ -17,6 +17,21 @@ from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.tools import logger
 
 
+def _post(path: str, payload) -> None:
+    if "SYSTEM_TESTS_PROXY_HOST" in os.environ:
+        domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
+    elif "DOCKER_HOST" in os.environ:
+        m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+        if m is not None:
+            domain = m.group(1)
+        else:
+            domain = "localhost"
+    else:
+        domain = "localhost"
+
+    requests.post(f"http://{domain}:11111{path}", data=json.dumps(payload), timeout=30)
+
+
 def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
     """
         Sends a remote config payload to the library and waits for the config to be applied.
@@ -78,22 +93,15 @@ def send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> d
 
                 return True
 
-    if "SYSTEM_TESTS_PROXY_HOST" in os.environ:
-        domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
-    elif "DOCKER_HOST" in os.environ:
-        m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
-        if m is not None:
-            domain = m.group(1)
-        else:
-            domain = "localhost"
-    else:
-        domain = "localhost"
-
-    requests.post(f"http://{domain}:11111", data=json.dumps(raw_payload), timeout=30)
-
+    _post("/unique_command", raw_payload)
     library.wait_for(remote_config_applied, timeout=30)
 
     return current_states
+
+
+def send_sequential_commands(commands: list[dict]) -> None:
+    """ DEPRECATED """
+    _post("/sequential_commands", commands)
 
 
 def build_debugger_command(probes: list, version: int):

@@ -233,7 +233,7 @@ A GET request using a cookie with name `table` and any value. The value must be 
 
 #### GET /iast/source/cookiename/test
 
-A GET request using a cookie with name `user` and any value. The name must be used in the vulnerability.
+A GET request using a cookie with name `table` and any value. The name must be used in the vulnerability.
 
 #### POST /iast/source/multipart/test
 A multipart request uploading a file (with a file name).

@@ -49,7 +49,6 @@ class TestWeakHash(BaseSinkTest):
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
 
-    @missing_feature(weblog_variant="spring-boot-openliberty")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -64,7 +63,6 @@ class TestWeakHash(BaseSinkTest):
     def setup_insecure_hash_multiple(self):
         self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
 
-    @bug(weblog_variant="spring-boot-openliberty")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
         assert_iast_vulnerability(

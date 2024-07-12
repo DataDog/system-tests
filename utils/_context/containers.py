@@ -351,9 +351,7 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder, proxy_state, rc_api_enabled: bool) -> None:
-        if rc_api_enabled and proxy_state is not None:
-            raise ValueError("rc_api_enabled and proxy_state cannot be used together")
+    def __init__(self, host_log_folder, rc_api_enabled: bool) -> None:
 
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
@@ -364,8 +362,7 @@ class ProxyContainer(TestedContainer):
                 "DD_API_KEY": os.environ.get("DD_API_KEY"),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
-                "PROXY_STATE": json.dumps(proxy_state or {}),
-                "RC_API_ENABLED": str(rc_api_enabled),
+                "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
             },
             working_dir="/app",
             volumes={
@@ -767,8 +764,9 @@ class SqlServerContainer(SqlDbTestedContainer):
         if not platform.processor().startswith("arm"):
             # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
             # see https://hub.docker.com/_/microsoft-azure-sql-edge
+            # XXX: Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
             healthcheck = {
-                "test": '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
+                "test": '/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
                 "retries": 20,
             }
 

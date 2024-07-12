@@ -104,6 +104,9 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
     content_type = get_header_value("content-type", message["headers"])
     content_type = None if content_type is None else content_type.lower()
 
+    if not content or len(content) == 0:
+        return None
+
     if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
         return json_load()
 
@@ -122,7 +125,7 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
             else:
                 return content
 
-    if content_type in ("application/msgpack", "application/msgpack, application/msgpack"):
+    if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):
         result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
         if interface == "library":
@@ -134,6 +137,12 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
                 result = _decode_v_0_5_traces(result)
                 _decode_unsigned_int_traces(result)
                 _deserialized_nested_json_from_trace_payloads(result, interface)
+
+            elif path == "/v0.6/stats":
+                # TODO : more strange stuff inside to deserialize
+                # ddsketch protobuf in content.stats[].stats.OkSummary  and ErrorSummary
+                # https://github.com/DataDog/sketches-go/blob/master/ddsketch/pb/ddsketch.proto#L15
+                pass
 
         _convert_bytes_values(result)
 
@@ -190,9 +199,6 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
 
     if content_type == "text/plain":
         return content.decode("ascii")
-
-    if not content or len(content) == 0:
-        return None
 
     return content
 

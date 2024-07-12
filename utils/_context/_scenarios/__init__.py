@@ -239,7 +239,11 @@ class scenarios:
 
     default = EndToEndScenario(
         "DEFAULT",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
+        weblog_env={
+            "DD_DBM_PROPAGATION_MODE": "service",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_FEATURES": "discovery",
+        },
         include_postgres_db=True,
         doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
     )
@@ -477,11 +481,6 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={
-            "DD_RC_TARGETS_KEY_ID": "TEST_KEY_ID",
-            "DD_RC_TARGETS_KEY": "1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c",
-            "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
-        },
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -582,7 +581,7 @@ class scenarios:
 
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
-        proxy_state={"mock_remote_config_backend": "ASM_FEATURES"},
+        rc_api_enabled=True,
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         library_interface_timeout=100,
@@ -592,7 +591,7 @@ class scenarios:
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
-        proxy_state={"mock_remote_config_backend": "LIVE_DEBUGGING"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
@@ -605,7 +604,7 @@ class scenarios:
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-        proxy_state={"mock_remote_config_backend": "ASM_DD"},
+        rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
         library_interface_timeout=100,
         doc="""
@@ -621,7 +620,7 @@ class scenarios:
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_FEATURES_NOCACHE"},
+        rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         library_interface_timeout=100,
         doc="",
@@ -630,7 +629,7 @@ class scenarios:
 
     remote_config_mocked_backend_live_debugging_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "LIVE_DEBUGGING_NOCACHE"},
+        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
@@ -642,7 +641,7 @@ class scenarios:
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        proxy_state={"mock_remote_config_backend": "ASM_DD_NOCACHE"},
+        rc_api_enabled=True,
         library_interface_timeout=100,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
