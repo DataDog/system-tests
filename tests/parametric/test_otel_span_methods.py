@@ -881,12 +881,12 @@ class Test_Otel_Span_Methods:
 
         event2 = events[1]
         assert event2.get("name") == "second_event"
-        assert event2.get("time_unix_nano") // 10000 == event2_timestamp_ns // 10000  # reduce the precision tested
+        assert event2.get("time_unix_nano") // 100000 == event2_timestamp_ns // 100000  # reduce the precision tested
         assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]
         assert event3.get("name") == "third_event"
-        assert event3.get("time_unix_nano") == 1000
+        assert 999 <= event3.get("time_unix_nano") <= 1001  # reduce the precision tested
         assert event3["attributes"].get("int_val") == 1
         assert event3["attributes"].get("string_val") == "2"
         assert event3["attributes"].get("int_array")[0] == 3

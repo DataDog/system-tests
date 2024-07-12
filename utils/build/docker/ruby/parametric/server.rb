@@ -272,16 +272,10 @@ class ServerImpl < APMClient::Service
 
   def otel_add_event(otel_add_event_args, _call)
     span = find_otel_span(otel_add_event_args.span_id)
-    timestamp = if otel_add_event_args.timestamp.nil?
-                  nil
-                else
-                  otel_add_event_args.timestamp * 1_000_000
-                end
-    attributes = parse_grpc_attributes(otel_add_event_args.attributes)
     span.add_event(
       otel_add_event_args.name,
-      timestamp: timestamp,
-      attributes: attributes
+      timestamp: otel_correct_time(otel_add_event_args.timestamp),
+      attributes: parse_grpc_attributes(otel_add_event_args.attributes)
     )
     OtelAddEventReturn.new
   end
