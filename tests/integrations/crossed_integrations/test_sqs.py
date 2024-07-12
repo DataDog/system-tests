@@ -243,6 +243,14 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace_with_otel
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL(_Test_SQS):
+    """
+    Datadog Injection format:
+        messageAttributes = { "_datadog": { "StringValue": "JSON FORMATTED HEADERS" } }
+    
+    Otel Injection format:
+        messageAttributes = { "traceparent": {"StringValue":  "traceparent value" } }
+    """
+
     buddy_interface = interfaces.python_otel_buddy
     buddy = python_otel_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy_otel"
@@ -257,13 +265,13 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL(_Test_SQS):
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
-    """
-    Datadog Injection format:
-        messageAttributes = { "_datadog": { "StringValue": "JSON FORMATTED HEADERS" } }
-    
-    Otel Injection format:
-        messageAttributes = { "traceparent": {"StringValue":  "traceparent value" } }
-    """
+    @missing_feature(
+        library="nodejs",
+        reason="Expected to fail, NodeJS will not create a response span without \
+                     extracted context",
+    )
+    def test_consume(self):
+        super().test_consume()
 
     @missing_feature(library="golang", reason="Expected to fail, cannot read OTel propagation format")
     @missing_feature(library="ruby", reason="Expected to fail, cannot read OTel propagation format")
