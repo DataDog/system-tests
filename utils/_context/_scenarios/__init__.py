@@ -460,8 +460,8 @@ class scenarios:
         "DEFAULT",
         weblog_env={
             "DD_DBM_PROPAGATION_MODE": "service",
-            # "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
-            # "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_FEATURES": "discovery",
         },
         include_postgres_db=True,
         doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
