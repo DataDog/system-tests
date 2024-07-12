@@ -4,7 +4,7 @@
 
   copy_files:
       - name: copy-helloworld-cpp
-        local_path: utils/build/virtual_machine/provisions/host-auto-inject-ld-preload/main.c
+        local_path: utils/build/virtual_machine/provisions/auto-inject-ld-preload/main.c
 
   remote-command: |
     sudo apt install -y gcc
@@ -18,7 +18,7 @@
 
   copy_files:
       - name: copy-helloworld-cpp
-        local_path: utils/build/virtual_machine/provisions/host-auto-inject-ld-preload/main.c
+        local_path: utils/build/virtual_machine/provisions/auto-inject-ld-preload/main.c
 
   remote-command: | 
     sudo yum groupinstall "Development Tools"

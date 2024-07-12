@@ -1,0 +1,49 @@
+# Optional: Load the environment variables
+init-environment: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-environment.yml
+
+# Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
+tested_components:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
+
+#Optional: Extract the logs from the VM
+vm_logs:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
+  
+# Mandatory: Steps to provision VM
+provision_steps:
+  - init-config # Init the VM configuration
+  - prepare-docker # Install docker
+  - ld-so-preload # Add some staff to the ld.so.preload before install dd software
+  - setup-testing-dependencies # Pull the right docker images & install crane
+  - setup-local-registry # Setup a local registry with injector & tracer OCIs
+  - install-installer # Install the installer
+  - installer-bootstrap # Bootstrap the agent, library, and injector
+
+init-config:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
+
+prepare-docker:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/docker/auto-inject_prepare_docker.yml
+
+ld-so-preload:
+  install: !include utils/build/virtual_machine/provisions/auto-inject-ld-preload/ld-preload.yml
+
+setup-testing-dependencies:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-setup_testing_dependencies.yml
+
+setup-local-registry:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-setup_local_registry.yml
+
+install-installer:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml
+
+installer-bootstrap:
+  install:
+    - os_type: linux
+      remote-command: |
+        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
+        sudo datadog-installer install "oci://localhost:12345/datadog/agent-package:latest"
+        sudo datadog-installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"

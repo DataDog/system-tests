@@ -30,7 +30,7 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 
 
 @features.host_auto_instrumentation
-@scenarios.host_auto_injection_ld_preload
+@scenarios.auto_injection_ld_preload
 class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
     def test_install_after_ld_preload(self, virtual_machine):
         """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""

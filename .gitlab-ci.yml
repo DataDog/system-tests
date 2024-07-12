@@ -55,6 +55,9 @@ onboarding_nodejs:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16, test-app-nodejs-alpine]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
+          SCENARIO: [AUTO_INJECTION_LD_PRELOAD]
 
   script:
       - ./build.sh -i runner

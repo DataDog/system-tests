@@ -781,10 +781,10 @@ class scenarios:
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
     )
 
-    host_auto_injection_ld_preload = HostAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_LD_PRELOAD",
+    auto_injection_ld_preload = InstallerAutoInjectionScenario(
+        "AUTO_INJECTION_LD_PRELOAD",
         "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
-        vm_provision="host-auto-inject-ld-preload",
+        vm_provision="auto-inject-ld-preload",
     )
 
     simple_installer_auto_injection = InstallerAutoInjectionScenario(

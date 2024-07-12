@@ -104,7 +104,7 @@ class AWSPulumiProvider(VmProvider):
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
         try:
-            self.stack.destroy(on_output=logger.info, debug=True)
+            # self.stack.destroy(on_output=logger.info, debug=True)
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
                 "",
