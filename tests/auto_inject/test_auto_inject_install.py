@@ -42,7 +42,7 @@ class _AutoInjectBaseTest:
         # Env for the command
         prefix_env = ""
         for key, value in virtual_machine.get_command_environment().items():
-            prefix_env += f" {key}={value}"
+            prefix_env += f"export {key}={value} \n"
 
         command_with_env = f"{prefix_env} {command}"
 
