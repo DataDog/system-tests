@@ -566,8 +566,6 @@ tests/:
           '*': v1.12.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v0.87.0
@@ -744,7 +742,11 @@ tests/:
         spring-boot-payara: bug (user block results in 500 response)
         vertx3: v1.7.0
         vertx4: v1.7.0
-      Test_Suspicious_Request_Blocking: missing_feature
+      Test_Suspicious_Request_Blocking:
+        '*': v1.6.0
+        akka-http: bug
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: bug
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
@@ -1054,6 +1056,9 @@ tests/:
         '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.0.99
