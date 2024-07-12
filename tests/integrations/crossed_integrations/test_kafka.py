@@ -165,23 +165,6 @@ class _Test_Kafka:
 
 
 @scenarios.crossed_tracing_libraries
-@features.kafkaspan_creationcontext_propagation_with_dd_trace
-class Test_Kafka(_Test_Kafka):
-    buddy_interface = interfaces.java_buddy
-    buddy = java_buddy
-    WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
-
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    def test_produce_trace_equality(self):
-        super().test_produce_trace_equality()
-
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    def test_consume_trace_equality(self):
-        super().test_consume_trace_equality()
-
-
-@scenarios.crossed_tracing_libraries
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_and_otel
 class Test_Kafka_Otel(_Test_Kafka):
     buddy_interface = interfaces.python_otel_buddy
@@ -209,3 +192,21 @@ class Test_Kafka_Otel(_Test_Kafka):
 
         assert producer_span["trace_id"] == consumer_span["span_links"][0]["trace_id"]
         assert producer_span["span_id"] == consumer_span["span_links"][0]["span_id"]
+
+
+@scenarios.crossed_tracing_libraries
+@features.kafkaspan_creationcontext_propagation_with_dd_trace
+class Test_Kafka(_Test_Kafka):
+    buddy_interface = interfaces.java_buddy
+    buddy = java_buddy
+    WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
+
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality()
+
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality()
+
