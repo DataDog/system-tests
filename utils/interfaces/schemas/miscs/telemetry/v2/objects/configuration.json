@@ -14,8 +14,7 @@
           "number",
           "boolean",
           "string",
-          "null",
-          "object"
+          "null"
         ]
       },
       "origin": {
