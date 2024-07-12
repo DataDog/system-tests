@@ -331,8 +331,7 @@ class DockerScenario(Scenario):
         if threads.get(container):
             return threads.get(container)
 
-        for dependency_thread in self._start_dependencies(container, dependencies, threads):
-            dependency_thread.join()
+        self._start_dependencies(container, dependencies, threads)
 
         thread = Thread(target=container.start, args=(self.replay,))
         thread.start()
@@ -347,7 +346,8 @@ class DockerScenario(Scenario):
             thread = self._start_container(dependency, dependencies, threads)
             dependency_threads.append(thread)
 
-        return dependency_threads
+        for thread in dependency_threads:
+            thread.join()
 
     def _get_dependencies(self):
         dependencies = {}
