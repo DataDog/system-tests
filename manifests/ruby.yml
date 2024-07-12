@@ -143,8 +143,6 @@ tests/:
         Test_NoSqli: v1.8.0
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
