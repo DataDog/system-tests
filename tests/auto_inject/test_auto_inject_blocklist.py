@@ -45,9 +45,7 @@ ignored_arguments:
 
         unique_log_name = f"host_injection_{uuid.uuid4()}.log"
 
-        command_with_config = (
-            f"DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/{unique_log_name} {command}"
-        )
+        command_with_config = f"DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/var/log/datadog_weblog/{unique_log_name} {command}"
         if use_injection_config:
             # Use yml template and replace the key DD_<lang>_IGNORED_ARGS with the value of the config
             test_conf_content = self.yml_config_template
@@ -63,7 +61,7 @@ ignored_arguments:
 
             # Write as local file and the copy by scp to user home. by ssh copy the file to /etc/datadog-agent/inject
             file_name = f"host_config_{uuid.uuid4()}.yml"
-            temp_file_path = scenarios.host_auto_injection_block_list.host_log_folder + "/" + file_name
+            temp_file_path = scenarios.installer_auto_injection_block_list.host_log_folder + "/" + file_name
             with open(temp_file_path, "w") as host_config_file:
                 host_config_file.write(test_conf_content)
             SCPClient(ssh_client.get_transport()).put(temp_file_path, file_name)
@@ -81,7 +79,7 @@ ignored_arguments:
 
         logger.info(f"Executing command: [{command_with_config}] associated with log file: [{unique_log_name}]")
 
-        log_local_path = scenarios.host_auto_injection_block_list.host_log_folder + f"/{unique_log_name}"
+        log_local_path = scenarios.installer_auto_injection_block_list.host_log_folder + f"/{unique_log_name}"
 
         _, stdout, stderr = ssh_client.exec_command(command_with_config)
         logger.info("Command output:")
@@ -92,7 +90,7 @@ ignored_arguments:
         scp = SCPClient(ssh_client.get_transport())
 
         scp.get(
-            remote_path=f"/opt/datadog/logs_injection/{unique_log_name}", local_path=log_local_path,
+            remote_path=f"/var/log/datadog_weblog/{unique_log_name}", local_path=log_local_path,
         )
         return log_local_path
 

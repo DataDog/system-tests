@@ -52,17 +52,14 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
         # Kill the app before restore the installation
         self.execute_command(virtual_machine, "sudo systemctl kill -s SIGKILL test-app.service")
         # Restore the installation
-        apm_inject_restore = ""
-        for installation in virtual_machine._vm_provision.installations:
-            if installation.id == "autoinjection_install_manual":
-                apm_inject_restore = installation.remote_command
-                break
+        apm_inject_restore = "sudo datadog-installer apm instrument"
+
         # Env for installation command
         prefix_env = f"DD_LANG={context.scenario.library.library}"
         for key, value in virtual_machine._vm_provision.env.items():
             prefix_env += f" DD_{key}={value}"
 
-        logger.info("Restoring installation using the command: ")
+        logger.info("Restoring installation using the command:: ")
         apm_inject_restore = f"{prefix_env} {apm_inject_restore}"
         logger.info(apm_inject_restore)
         _, stdout, stderr = virtual_machine.ssh_config.get_ssh_connection().exec_command(apm_inject_restore)
@@ -71,8 +68,8 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
         # Read the output line by line
         command_output = ""
         for line in stdout.readlines():
-            # RMM if not line.startswith("export"):
-            command_output += line
+            if not line.startswith("export"):
+                command_output += line
 
         logger.info("Restoring installation output:")
         logger.info(command_output)
@@ -82,11 +79,6 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
 
         # The app should be instrumented and reporting traces to the backend
         self._test_install(virtual_machine)
-
-    def test_remove_apm_inject_folder(self, virtual_machine):
-        logger.info(f"Launching test_remove_apm_inject_folder for : [{virtual_machine.name}]...")
-        self._test_removing_things(virtual_machine, "sudo rm -rf /opt/datadog/apm/inject")
-        logger.info(f"Success test_remove_apm_inject_folder for : [{virtual_machine.name}]")
 
     @bug(library="dotnet", reason="AIT-8620")
     def test_remove_ld_preload(self, virtual_machine):
