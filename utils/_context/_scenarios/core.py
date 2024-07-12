@@ -312,6 +312,8 @@ class DockerScenario(Scenario):
         if not self.replay:
             warmups.append(create_network)
 
+        # on replay mode, _start_containers() won't actually start containers, 
+        # but will only call the necessary post_start method
         warmups.append(self._start_containers)
 
         return warmups
