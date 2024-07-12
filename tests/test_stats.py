@@ -1,5 +1,4 @@
-from utils import interfaces, weblog
-from utils._context._scenarios import scenarios
+from utils import interfaces, weblog, features, scenarios
 from utils.tools import logger
 
 """
@@ -19,35 +18,38 @@ Config:
 """
 
 
-class Test_Agent_Stats:
+@features.client_side_stats_supported
+class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
-    def setup_agent_stats(self):
+    def setup_client_stats(self):
         for _ in range(5):
-            self.r = weblog.get("/stats-unique")
+            weblog.get("/stats-unique")
         for _ in range(3):
-            self.r = weblog.get("/stats-unique?code=204")
+            weblog.get("/stats-unique?code=204")
 
     # TODO: mark that this is only good for golang net-http & dotnet for now?
-    # todo: why is python "on" by default?
     # TODO: why are hits and top-level hits separated in python? (and not go)
-    def test_agent_stats(self):
+    def test_client_stats(self):
         stats_count = 0
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
-                assert 5 == s["Hits"]
-                assert 5 == s["TopLevelHits"]
+                assert 5 == s["Hits"], "expect 5 hits at 200 status code"
+                assert 5 == s["TopLevelHits"], "expect 5 top level hits at 200 status code"
             elif s["HTTPStatusCode"] == 204:
-                assert 3 == s["Hits"]
-                assert 3 == s["TopLevelHits"]
+                assert 3 == s["Hits"], "expect 3 hits at 204 status code"
+                assert 3 == s["TopLevelHits"], "expect 3 top level hits at 204 status code"
             else:
-                assert False  # We only expect these two status codes
-            assert "weblog" == s["Service"]
-            assert "web" == s["Type"]
+                assert False, "Unexpected status code " + str(s["HTTPStatusCode"])
+            assert "weblog" == s["Service"], "expect weblog as service"
+            assert "web" == s["Type"], "expect 'web' type"
             # assert 1 == s["IsTraceRoot"]     # This breaks with client stats as IsTraceRoot doesn't exist yet
             # assert "server" == s["SpanKind"] # This breaks with client stats as IsTraceRoot doesn't exist yet
-        assert stats_count == 2
+        assert stats_count == 2, "expect 2 stats"
 
-# # TODO: A new scenario with client stats enabled and we can verify the aggregation is the same
+    @scenarios.appsec_disabled
+    def test_disable(self):
+        requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(requests) == 0, "Stats should be disabled by default"

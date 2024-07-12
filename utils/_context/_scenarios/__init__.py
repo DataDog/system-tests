@@ -462,6 +462,7 @@ class scenarios:
             "DD_DBM_PROPAGATION_MODE": "service",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
             "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_COMPUTE_STATS": "true",
         },
         include_postgres_db=True,
         doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
@@ -895,15 +896,6 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
         additional_trace_header_tags=(INVALID_CONFIGS),
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
-    )
-
-    library_conf_client_stats = EndToEndScenario(
-        "LIBRARY_CONF_CLIENT_STATS",
-        doc="Scenario with client stats computation enabled",
-        weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
-            "DD_TRACE_FEATURES": "discovery",
-        }
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")

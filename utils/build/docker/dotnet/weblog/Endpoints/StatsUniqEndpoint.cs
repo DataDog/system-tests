@@ -9,6 +9,9 @@ namespace weblog
         {
             routeBuilder.MapGet("/stats-unique", async context =>
             {
+                // TODO: Something is wrong here
+                var status = int.Parse(context.Request.Query["code"]!);
+                context.Response.StatusCode = status;
                 await context.Response.WriteAsync("");
             });
         }

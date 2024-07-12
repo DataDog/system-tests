@@ -54,7 +54,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         # TODO: Move this in test class
 
         for data in self.get_data():
-            domain = data["host"][-len(expected_domain):]
+            domain = data["host"][-len(expected_domain) :]
 
             if domain != expected_domain:
                 raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
@@ -165,5 +165,3 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                             yield client_grouped_stat
                         elif client_grouped_stat["Resource"] == resource:
                             yield client_grouped_stat
-
-
