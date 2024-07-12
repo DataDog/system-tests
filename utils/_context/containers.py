@@ -466,6 +466,7 @@ class BuddyContainer(TestedContainer):
                 "DD_AGENT_HOST": "proxy",
                 "DD_TRACE_AGENT_PORT": proxy_port,
             },
+            depends_on=[AgentContainer],
         )
 
         self.interface = None
