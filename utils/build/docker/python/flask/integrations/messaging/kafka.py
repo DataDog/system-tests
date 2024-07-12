@@ -43,9 +43,11 @@ def kafka_consume(topic, group_id, timeout=120):
         # otel has a bug in their kafka integration where they do not wrap the consumer close
         # method and the later consume span is never closed
         from opentelemetry.instrumentation.confluent_kafka.utils import _end_current_consume_span
-
+        print("imported otel close function")
         _end_current_consume_span(consumer)
+        print("closed consumer span")
         consumer.close()
+        print("closed consumer")
     except Exception:
         # close consumer now after we ensure consumer otel span is sent
         consumer.close()
