@@ -151,6 +151,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant

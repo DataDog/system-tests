@@ -1050,6 +1050,9 @@ tests/:
         '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.0.99
