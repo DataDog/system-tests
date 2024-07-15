@@ -119,7 +119,6 @@ class ParametricScenario(Scenario):
         library = os.getenv("TEST_LIBRARY")
 
         # get tracer version info building and executing the ddtracer-version.docker file
-        parametric_appdir = os.path.join("utils", "build", "docker", library, "parametric")
 
         factory = {
             "cpp": cpp_library_factory,
@@ -141,30 +140,11 @@ class ParametricScenario(Scenario):
             self._clean_containers()
             self._clean_networks()
 
-        command = [
-            "docker",
-            "run",
-            "--rm",
-            "-t",
-            self.apm_test_server_definition.container_tag,
-            "cat",
-            "SYSTEM_TESTS_LIBRARY_VERSION",
-        ]
-
-        logger.debug(f"Get library version: {' '.join(command)}")
-        result = subprocess.run(
-            command, cwd=parametric_appdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+        output = _get_client().containers.run(
+            self.apm_test_server_definition.container_tag, remove=True, command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
         )
 
-        if result.returncode != 0:
-            message = f"======== STDOUT ========\n{result.stdout.decode('utf-8')}\n\n"
-            message += f"======== STDERR ========\n{result.stderr.decode('utf-8')}"
-            pytest.exit(
-                f"Can't get the tracer version image. Please read tested container {self.apm_test_server_definition.container_tag} output:\n{message}",
-                1,
-            )
-
-        self._library = LibraryVersion(library, result.stdout.decode("utf-8"))
+        self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
     def _get_warmups(self):
@@ -177,8 +157,9 @@ class ParametricScenario(Scenario):
         """ some containers may still exists from previous unfinished sessions """
 
         for container in _get_client().containers.list(all=True):
-            if "test-client" in container.name or "test-agent" in container.name:
+            if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
                 logger.info(f"Removing {container}")
+
                 container.remove(force=True)
 
     def _clean_networks(self):
@@ -300,7 +281,7 @@ class ParametricScenario(Scenario):
 
             time.sleep(0.1)
 
-        pytest.exit(f"Docker incorrectly bind ports for {name}")  # if this happen, increase the sleep time
+        pytest.exit(f"Docker incorrectly bind ports for {name}", 1)  # if this happen, increase the sleep time
 
 
 def _get_base_directory():

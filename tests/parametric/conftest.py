@@ -78,7 +78,7 @@ def apm_test_server(request, library_env, test_id):
 
     new_env.update(apm_test_server_image.env)
     yield dataclasses.replace(
-        apm_test_server_image, container_name="%s-%s" % (apm_test_server_image.container_name, test_id), env=new_env,
+        apm_test_server_image, container_name=f"{apm_test_server_image.container_name}-{test_id}", env=new_env,
     )
 
 
@@ -201,9 +201,9 @@ class _TestAgentAPI:
             resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
-                pytest.fail(resp.text.decode("utf-8"), pytrace=False)
+                pytest.exit(resp.text.decode("utf-8"), returncode=1)
         except Exception as e:
-            pytest.fail("Could not connect to test agent: %s" % str(e), pytrace=False)
+            pytest.exit(f"Could not connect to test agent: {e}", returncode=1)
         else:
             yield self
             # Query for the results of the test.
@@ -211,7 +211,7 @@ class _TestAgentAPI:
                 self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
             )
             if resp.status_code != 200:
-                pytest.fail(resp.text.decode("utf-8"), pytrace=False)
+                pytest.exit(resp.text.decode("utf-8"), returncode=1)
 
     def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` traces to be received from the test agent.
@@ -401,8 +401,9 @@ def docker() -> str:
         check=False,
     )
     if r.returncode != 0:
-        pytest.fail(
-            "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again."
+        pytest.exit(
+            "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again.",
+            returncode=1,
         )
     return shutil.which("docker")
 
@@ -414,7 +415,13 @@ def docker_network(test_id: str) -> Generator[str, None, None]:
     try:
         yield network.name
     finally:
-        network.remove()
+        try:
+            network.remove()
+        except:
+            # Good chance of having some container not stopped.
+            # If it happen, failing here makes sdout tough to understance.
+            # Let's ignore this, later calls will clean the mess
+            pass
 
 
 @pytest.fixture
@@ -484,14 +491,14 @@ def test_agent(
             try:
                 resp = client.info()
             except requests.exceptions.ConnectionError:
-                logger.debug("Wait for 0.5s fot the test agent to be ready")
+                logger.debug("Wait for 0.5s for the test agent to be ready")
                 time.sleep(0.5)
             else:
                 if resp["version"] != "test":
-                    pytest.fail(
-                        "Agent version %r is running instead of the test agent. Stop the agent on port %r and try again."
-                        % (resp["version"], test_agent_port)
-                    )
+                    message = f"""Agent version {resp['version']} is running instead of the test agent.
+                    Stop the agent on port {test_agent_port} and try again."""
+                    pytest.fail(message, returncode=1)
+
                 break
         else:
             with open(test_agent_log_file.name) as f:
