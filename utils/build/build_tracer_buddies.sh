@@ -11,7 +11,7 @@ docker buildx build --load --progress=plain -f utils/build/docker/golang/net-htt
 
 # Otel buddies
 
-docker buildx build --load --progress=plain -f utils/build/docker/python_otel/flask-poc-otel.Dockerfile -t datadog/system-tests:python_otel_buddy-v0 .
+docker buildx build --load --progress=plain -f utils/build/docker/python_otel/flask-poc-ddtrace-otel.Dockerfile -t datadog/system-tests:python_otel_buddy-v0 .
 
 
 if [ "$1" = "--push" ]; then
