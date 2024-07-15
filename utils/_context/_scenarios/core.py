@@ -310,10 +310,10 @@ class DockerScenario(Scenario):
 
         if not self.replay:
             warmups.append(create_network)
+            warmups.append(self._start_containers)
 
-        # on replay mode, _start_containers() won't actually start containers,
-        # but will only call the necessary post_start method
-        warmups.append(self._start_containers)
+        for container in self._required_containers:
+            warmups.append(container.post_start)
 
         return warmups
 
@@ -333,7 +333,7 @@ class DockerScenario(Scenario):
 
         self._start_dependencies(container, dependencies, threads)
 
-        thread = Thread(target=container.start, args=(self.replay,))
+        thread = Thread(target=container.start)
         thread.start()
         threads[container] = thread
 

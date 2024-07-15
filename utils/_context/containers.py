@@ -134,43 +134,40 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
-    def start(self, replay) -> Container:
-        if not replay:
-            if old_container := self.get_existing_container():
-                if self.allow_old_container:
-                    self._container = old_container
-                    logger.debug(f"Use old container {self.container_name}")
+    def start(self) -> Container:
+        if old_container := self.get_existing_container():
+            if self.allow_old_container:
+                self._container = old_container
+                logger.debug(f"Use old container {self.container_name}")
 
-                    old_container.restart()
+                old_container.restart()
 
-                    return
+                return
 
-                raise ValueError("Old container still exists")
+            raise ValueError("Old container still exists")
 
-            self._fix_host_pwd_in_volumes()
+        self._fix_host_pwd_in_volumes()
 
-            logger.info(f"Start container {self.container_name}")
+        logger.info(f"Start container {self.container_name}")
 
-            self._container = _get_client().containers.run(
-                image=self.image.name,
-                name=self.container_name,
-                hostname=self.name,
-                environment=self.environment,
-                # auto_remove=True,
-                detach=True,
-                network=_NETWORK_NAME,
-                **self.kwargs,
-            )
+        self._container = _get_client().containers.run(
+            image=self.image.name,
+            name=self.container_name,
+            hostname=self.name,
+            environment=self.environment,
+            # auto_remove=True,
+            detach=True,
+            network=_NETWORK_NAME,
+            **self.kwargs,
+        )
 
-            self.wait_for_health()
-            self.warmup()
-
-        self._post_start()
+        self.wait_for_health()
+        self.warmup()
 
     def warmup(self):
         """ if some stuff must be done after healthcheck """
 
-    def _post_start(self):
+    def post_start(self):
         """ if some stuff must be done after the container is started """
 
     @property
@@ -431,7 +428,7 @@ class AgentContainer(TestedContainer):
 
         self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-    def _post_start(self):
+    def post_start(self):
         with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
             data = json.load(f)
 
@@ -609,7 +606,7 @@ class WeblogContainer(TestedContainer):
             if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
                 self.environment["DD_PROFILING_ENABLED"] = "false"
 
-    def _post_start(self):
+    def post_start(self):
         from utils import weblog
 
         logger.debug(f"Docker host is {weblog.domain}")
