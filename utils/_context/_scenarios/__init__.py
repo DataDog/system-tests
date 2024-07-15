@@ -757,6 +757,11 @@ class scenarios:
         "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario"
     )
 
+    installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
+        "INSTALLER_HOST_AUTO_INJECTION_CHAOS",
+        doc="Installer auto injection scenario with chaos (deleting installation folders, files)",
+    )
+
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
@@ -843,9 +848,11 @@ class scenarios:
     )
 
     # Replaced by INSTALLER_AUTO_INJECTION
-    host_auto_injection = InstallerAutoInjectionScenario("HOST_AUTO_INJECTION", doc="Installer auto injection scenario")
+    host_auto_injection = InstallerAutoInjectionScenario(
+        "HOST_AUTO_INJECTION", doc="DEPRECATED: Installer auto injection scenario"
+    )
     container_auto_injection = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION", doc="Installer auto injection scenario"
+        "CONTAINER_AUTO_INJECTION", doc="DEPRECATED: Installer auto injection scenario"
     )
 
     # Replaced by INSTALLER_AUTO_INJECTION_BLOCK_LIST
@@ -854,9 +861,10 @@ class scenarios:
         "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
     )
 
-    container_auto_injection_block_list = InstallerAutoInjectionScenario(
+    # Replaced by INSTALLER_NOT_SUPPORTED_AUTO_INJECTION
+    container_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
-        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
+        "Onboarding host Single Step Instrumentation scenario for not supported languages",
     )
 
     # K8s LIB INJECTION SCENARIOS

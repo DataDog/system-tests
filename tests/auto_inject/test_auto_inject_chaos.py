@@ -3,13 +3,12 @@ from utils import scenarios, features
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
-from utils import bug
 from utils import scenarios, context, features
 import tests.auto_inject.utils as base
 
 
 @features.host_auto_instrumentation
-@scenarios.installer_auto_injection
+@scenarios.installer_host_auto_injection_chaos
 class TestAutoInjectChaos(base.AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
         """ Test break the installation and restore it.
@@ -81,6 +80,7 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
     @bug(library="dotnet", reason="AIT-8620")
+    @ir
     def test_remove_ld_preload(self, virtual_machine):
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")

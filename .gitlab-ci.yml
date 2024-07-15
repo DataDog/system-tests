@@ -48,7 +48,7 @@ onboarding_nodejs:
           SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]      
+          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
@@ -56,8 +56,12 @@ onboarding_nodejs:
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16, test-app-nodejs-alpine]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
           SCENARIO: [INSTALLER_AUTO_INJECTION_LD_PRELOAD]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+          SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
+          
 
   script:
       - ./build.sh -i runner
