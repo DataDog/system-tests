@@ -3,8 +3,7 @@ import random
 import subprocess
 
 # set Datadog as Otel Trace Provider
-if os.environ.get("USE_DDTRACE", False):
-    print("using ddtrace")
+if os.environ.get("DD_TRACE_OTEL_ENABLED", False):
     from opentelemetry.trace import set_tracer_provider
     from ddtrace.opentelemetry import TracerProvider
 
