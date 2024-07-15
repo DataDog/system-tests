@@ -5,6 +5,7 @@ from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils import scenarios, context, features
 import tests.auto_inject.utils as base
+from utils import bug
 
 
 @features.host_auto_instrumentation
@@ -80,7 +81,6 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
     @bug(library="dotnet", reason="AIT-8620")
-    @ir
     def test_remove_ld_preload(self, virtual_machine):
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
