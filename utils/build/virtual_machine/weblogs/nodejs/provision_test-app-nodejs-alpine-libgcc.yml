@@ -1,6 +1,6 @@
 weblog:
     name: test-app-nodejs-alpine-libgcc
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64, amazon_linux2_amd64, centos_7_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64, centos_7_amd64]
     install: 
       - os_type: linux
         copy_files:

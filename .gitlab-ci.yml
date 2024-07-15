@@ -3,7 +3,7 @@ include:
 
 stages:
  # - ruby_tracer
- # - nodejs_tracer
+  - nodejs_tracer
   - java_tracer
  # - python_tracer
  # - dotnet_tracer
@@ -29,7 +29,7 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
 
-.onboarding_nodejs:
+onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -75,6 +75,7 @@ onboarding_java:
     - schedules
   variables:
     TEST_LIBRARY: "java"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
