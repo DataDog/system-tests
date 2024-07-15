@@ -201,9 +201,9 @@ class _TestAgentAPI:
             resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
-                pytest.exit(resp.text.decode("utf-8"), returncode=1)
+                raise RuntimeError(resp.text.decode("utf-8"), returncode=1)
         except Exception as e:
-            pytest.exit(f"Could not connect to test agent: {e}", returncode=1)
+            raise RuntimeError(f"Could not connect to test agent: {e}", returncode=1)
         else:
             yield self
             # Query for the results of the test.
@@ -211,7 +211,7 @@ class _TestAgentAPI:
                 self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
             )
             if resp.status_code != 200:
-                pytest.exit(resp.text.decode("utf-8"), returncode=1)
+                raise RuntimeError(resp.text.decode("utf-8"), returncode=1)
 
     def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
         """Wait for `num` traces to be received from the test agent.
@@ -487,9 +487,9 @@ def test_agent(
     ) as host_port:
         logger.debug(f"Test agent started on host port {host_port}")
         test_agent_external_port = host_port
-        client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
+        client = _TestAgentAPI(base_url=f"http://localhost:{test_agent_external_port}", pytest_request=request)
         # Wait for the agent to start (potentially have to pull the image from the registry)
-        for i in range(30):
+        for _ in range(30):
             try:
                 resp = client.info()
             except requests.exceptions.ConnectionError:
@@ -505,7 +505,7 @@ def test_agent(
         else:
             with open(test_agent_log_file.name) as f:
                 logger.error(f"Could not connect to test agent: {f.read()}")
-            pytest.exit(f"Could not connect to test agent, check the log file {test_agent_log_file.name}.", 1)
+            raise RuntimeError(f"Could not connect to test agent, check the log file {test_agent_log_file.name}.")
 
         # If the snapshot mark is on the test case then do a snapshot test
         marks = [m for m in request.node.iter_markers(name="snapshot")]
@@ -553,7 +553,7 @@ def test_server(
         log_file=test_server_log_file,
         network_name=docker_network,
     ) as host_port:
-        logger.debug(f"Test server started on host port {host_port}")
+        logger.debug(f"Test server {apm_test_server.container_name} started on host port {host_port}")
         apm_test_server.host_port = host_port
         yield apm_test_server
 
@@ -563,7 +563,7 @@ def test_library(test_server: APMLibraryTestServer) -> Generator[APMLibrary, Non
     test_server_timeout = 60
 
     if test_server.host_port is None:
-        pytest.exit("Internal error, no port has been assigned", 1)
+        raise RuntimeError("Internal error, no port has been assigned", 1)
 
     if test_server.protocol == "grpc":
         client = APMLibraryClientGRPC(f"localhost:{test_server.host_port}", test_server_timeout)

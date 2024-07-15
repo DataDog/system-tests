@@ -270,6 +270,10 @@ class ParametricScenario(Scenario):
         for _ in range(10):
             container.reload()
 
+            if container.status == "exited":
+                container.remove()
+                raise RuntimeError(f"Container {name} exited unexpectedly")
+
             if f"{container_port}/tcp" in container.attrs["NetworkSettings"]["Ports"]:
                 if len(container.attrs["NetworkSettings"]["Ports"][f"{container_port}/tcp"]) != 0:
                     logger.debug(f"container {name} started")
@@ -278,7 +282,9 @@ class ParametricScenario(Scenario):
 
             time.sleep(0.1)
 
-        pytest.exit(f"Docker incorrectly bind ports for {name}", 1)  # if this happen, increase the sleep time
+        raise RuntimeError(
+            f"Docker incorrectly bind ports for {name}"
+        )  # if this happen, maybe increase the sleep time?
 
 
 def _get_base_directory():
