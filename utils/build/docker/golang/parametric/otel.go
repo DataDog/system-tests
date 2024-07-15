@@ -311,7 +311,8 @@ func (s *apmClientServer) OtelAddEvent(ctx context.Context, args *OtelAddEventAr
 	span := sctx.span
 	opts := []otel_trace.EventOption{}
 	if args.Timestamp != nil {
-		opts = append(opts, otel_trace.WithTimestamp(time.Unix(0, *args.Timestamp)))
+		// args.Timestamp is represented in microseconds
+		opts = append(opts, otel_trace.WithTimestamp(time.UnixMicro(*args.Timestamp)))
 	}
 	if args.GetAttributes() != nil {
 		opts = append(opts, otel_trace.WithAttributes(ConvertKeyValsToAttributes(args.GetAttributes().KeyVals)["0"]...))
