@@ -135,37 +135,37 @@ class TestedContainer:
             old_container.remove(force=True)
 
     def start(self, replay) -> Container:
-        if old_container := self.get_existing_container():
-            if self.allow_old_container:
-                self._container = old_container
-                logger.debug(f"Use old container {self.container_name}")
-
-                old_container.restart()
-
-                return
-
-            raise ValueError("Old container still exists")
-
-        self._fix_host_pwd_in_volumes()
-
-        logger.info(f"Start container {self.container_name}")
-
-        self._container = _get_client().containers.run(
-            image=self.image.name,
-            name=self.container_name,
-            hostname=self.name,
-            environment=self.environment,
-            # auto_remove=True,
-            detach=True,
-            network=_NETWORK_NAME,
-            **self.kwargs,
-        )
-
-        self.wait_for_health()
-        self.warmup()
-
         if not replay:
-            self._post_start()
+            if old_container := self.get_existing_container():
+                if self.allow_old_container:
+                    self._container = old_container
+                    logger.debug(f"Use old container {self.container_name}")
+
+                    old_container.restart()
+
+                    return
+
+                raise ValueError("Old container still exists")
+
+            self._fix_host_pwd_in_volumes()
+
+            logger.info(f"Start container {self.container_name}")
+
+            self._container = _get_client().containers.run(
+                image=self.image.name,
+                name=self.container_name,
+                hostname=self.name,
+                environment=self.environment,
+                # auto_remove=True,
+                detach=True,
+                network=_NETWORK_NAME,
+                **self.kwargs,
+            )
+
+            self.wait_for_health()
+            self.warmup()
+
+        self._post_start()
 
     def warmup(self):
         """ if some stuff must be done after healthcheck """
