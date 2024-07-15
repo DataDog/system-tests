@@ -3,8 +3,8 @@ include:
 
 stages:
  # - ruby_tracer
-  - nodejs_tracer
- # - java_tracer
+ # - nodejs_tracer
+  - java_tracer
  # - python_tracer
  # - dotnet_tracer
   - parse_results
@@ -29,7 +29,7 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
 
-onboarding_nodejs:
+.onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -66,7 +66,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -81,18 +81,23 @@ onboarding_nodejs:
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc,test-app-java-buildpack]
-          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc,test-app-java-buildpack]
+          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc,test-app-java-buildpack]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java-alpine,test-app-java-alpine-jdk15,test-app-java-alpine-jdk21]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java]
+          SCENARIO: [INSTALLER_AUTO_INJECTION_LD_PRELOAD]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java]
+          SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
