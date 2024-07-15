@@ -3,11 +3,24 @@ import random
 import subprocess
 
 # set Datadog as Otel Trace Provider
-if os.environ.get("USE_DDTRACE", "false") == "true":
+if os.environ.get("USE_DDTRACE", False):
+    print("using ddtrace")
     from opentelemetry.trace import set_tracer_provider
     from ddtrace.opentelemetry import TracerProvider
 
     set_tracer_provider(TracerProvider())
+
+    # when using ddtrace instead of otel run command, we need to manually patch otel contribs
+    from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
+    from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
+    from opentelemetry.instrumentation.flask import FlaskInstrumentor
+
+    BotocoreInstrumentor().instrument()
+    ConfluentKafkaInstrumentor().instrument()
+    FlaskInstrumentor().instrument()
+
+import psycopg2
+import requests
 
 from flask import Flask
 from flask import request as flask_request

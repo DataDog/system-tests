@@ -14,6 +14,7 @@ RUN pip uninstall -y psycopg2-binary
 RUN pip install psycopg2
 RUN pip install confluent-kafka==2.1.1
 RUN pip install boto3
+RUN pip install ddtrace
 
 #Set opentelemetry-distro to 0.42b0 due this bug: https://github.com/open-telemetry/opentelemetry-python-contrib/issues/2046
 RUN pip install opentelemetry-distro==0.42b0
@@ -26,8 +27,6 @@ RUN opentelemetry-bootstrap -a install
 RUN pip show opentelemetry-distro | grep Version: | cut -d' ' -f2 > SYSTEM_TESTS_LIBRARY_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-
-RUN pip install ddtrace
 
 ENV USE_DDTRACE=true
 ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
