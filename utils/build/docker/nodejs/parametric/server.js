@@ -87,7 +87,7 @@ app.post('/trace/span/start', (req, res) => {
     type: request.type,
     resource: request.resource,
     childOf: parent,
-    tags: tags
+    tags
   })
 
   for (const link of request.links || []) {
