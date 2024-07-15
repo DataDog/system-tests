@@ -4,7 +4,7 @@ from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils import scenarios, features
 import tests.auto_inject.utils as base
-from test_auto_inject_blocklist import TestAutoInjectBlockListInstallManualHost
+from tests.auto_inject.test_auto_inject_blocklist import TestAutoInjectBlockListInstallManualHost
 
 
 class _AutoInjectDeprecatedNotSupportedBaseTest:
