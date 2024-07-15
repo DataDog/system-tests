@@ -6,7 +6,7 @@ import shutil
 import json
 import subprocess
 import time
-from typing import Dict, Generator, List, TextIO, Tuple, TypedDict
+from typing import Dict, Generator, List, TextIO, TypedDict
 import urllib.parse
 
 import requests
@@ -60,7 +60,7 @@ def _request_token(request):
     token = ""
     token += request.module.__name__
     token += ".%s" % request.cls.__name__ if request.cls else ""
-    token += ".%s" % request.node.name
+    token += f".{request.node.name}"
     return token
 
 
@@ -92,7 +92,7 @@ def pytest_runtest_makereport(item, call):
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
-    with open(log_path, "w+") as f:
+    with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
         request.node._report_sections.append(
@@ -380,7 +380,6 @@ def docker_run(
 
     try:
         host_port = container.attrs["NetworkSettings"]["Ports"][f"{container_port}/tcp"][0]["HostPort"]
-
         yield host_port
     finally:
         logger.debug(f"Stopping {name}")
@@ -409,40 +408,13 @@ def docker() -> str:
 
 
 @pytest.fixture()
-def docker_network_log_file(request, test_id: str) -> Generator[TextIO, None, None]:
-    log_path = f"{context.scenario.host_log_folder}/docker/network/{test_id}.log"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+def docker_network(test_id: str) -> Generator[str, None, None]:
+    network = scenarios.parametric.create_docker_network(test_id)
 
-    with open(log_path, "w+", encoding="utf-8") as f:
-        yield f
-
-
-@pytest.fixture()
-def docker_network(docker: str, docker_network_log_file: TextIO, test_id: str) -> str:
-    docker_network_name = scenarios.parametric.create_docker_network(test_id, docker_network_log_file)
-
-    yield docker_network_name
-    cmd = [
-        docker,
-        "network",
-        "rm",
-        docker_network_name,
-    ]
-    docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
-    docker_network_log_file.flush()
-    r = subprocess.run(
-        cmd,
-        stdout=docker_network_log_file,
-        stderr=docker_network_log_file,
-        timeout=default_subprocess_run_timeout,
-        check=False,
-    )
-    if r.returncode != 0:
-        pytest.fail(
-            "Failed to remove docker network %r, see the log file %r"
-            % (docker_network_name, docker_network_log_file.name),
-            pytrace=False,
-        )
+    try:
+        yield network.name
+    finally:
+        network.remove()
 
 
 @pytest.fixture
@@ -454,7 +426,7 @@ def test_agent_port() -> str:
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
-    with open(log_path, "w+") as f:
+    with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
         agent_output = ""
@@ -474,7 +446,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
 
 @pytest.fixture
 def test_agent_container_name(test_id) -> str:
-    return "ddapm-test-agent-%s" % test_id
+    return f"ddapm-test-agent-{test_id}"
 
 
 @pytest.fixture
@@ -524,9 +496,7 @@ def test_agent(
         else:
             with open(test_agent_log_file.name) as f:
                 logger.error(f"Could not connect to test agent: {f.read()}")
-            pytest.fail(
-                "Could not connect to test agent, check the log file %r." % test_agent_log_file.name, pytrace=False
-            )
+            pytest.exit(f"Could not connect to test agent, check the log file {test_agent_log_file.name}.", 1)
 
         # If the snapshot mark is on the test case then do a snapshot test
         marks = [m for m in request.node.iter_markers(name="snapshot")]
@@ -544,9 +514,7 @@ def test_agent(
 
 @pytest.fixture
 def test_server(
-    docker,
     docker_network: str,
-    tmp_path,
     test_agent_port: str,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
@@ -554,7 +522,7 @@ def test_server(
 ):
     env = {
         "DD_TRACE_DEBUG": "true",
-        "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
+        "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.container_port,
@@ -582,20 +550,17 @@ def test_server(
 
 
 @pytest.fixture
-def test_server_timeout() -> int:
-    return 10
+def test_library(test_server: APMLibraryTestServer) -> Generator[APMLibrary, None, None]:
+    test_server_timeout = 60
 
-
-@pytest.fixture
-def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
     if test_server.host_port is None:
         pytest.exit("Internal error, no port has been assigned", 1)
 
     if test_server.protocol == "grpc":
-        client = APMLibraryClientGRPC("localhost:%s" % test_server.host_port, test_server_timeout)
+        client = APMLibraryClientGRPC(f"localhost:{test_server.host_port}", test_server_timeout)
     elif test_server.protocol == "http":
-        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.host_port, test_server_timeout)
+        client = APMLibraryClientHTTP(f"http://localhost:{test_server.host_port}", test_server_timeout)
     else:
-        raise ValueError("interface %s not supported" % test_server.protocol)
+        raise ValueError(f"Interface {test_server.protocol} not supported")
     tracer = APMLibrary(client, test_server.lang)
     yield tracer

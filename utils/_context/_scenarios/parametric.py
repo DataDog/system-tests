@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Dict, List, Literal, Tuple, Union, TextIO
+from typing import Dict, List, Literal, Union
 
 import json
 import glob
@@ -11,8 +11,9 @@ import time
 
 import pytest
 import docker
-from docker.models.containers import Container
 from docker.errors import DockerException
+from docker.models.containers import Container
+from docker.models.networks import Network
 
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
@@ -249,31 +250,10 @@ class ParametricScenario(Scenario):
 
             logger.debug("Build tested container finished")
 
-    def create_docker_network(self, test_id: str, docker_network_log_file: TextIO) -> str:
+    def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
 
-        cmd = [
-            shutil.which("docker"),
-            "network",
-            "create",
-            "--driver",
-            "bridge",
-            docker_network_name,
-        ]
-        docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
-        docker_network_log_file.flush()
-        r = subprocess.run(
-            cmd,
-            stdout=docker_network_log_file,
-            stderr=docker_network_log_file,
-            timeout=default_subprocess_run_timeout,
-            check=False,
-        )
-        if r.returncode != 0:
-            pytest.exit(
-                f"Could not create network {docker_network_name}, see the log file {docker_network_log_file.name}", 1,
-            )
-        return docker_network_name
+        return _get_client().networks.create(name=docker_network_name, driver="bridge",)
 
     def docker_run(
         self,
