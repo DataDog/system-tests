@@ -8,13 +8,15 @@ COPY utils/build/docker/python_otel/flask-poc-otel/app.sh /app
 
 #TODO RMM: Change docker flask-poc base to fix psycopg2 ( psycopg2-binary is not supported by open telemetry)
 RUN apt update
-RUN apt install -y libpq-dev python3-dev git
+RUN apt install -y libpq-dev python3-dev
 
 RUN pip uninstall -y psycopg2-binary
 RUN pip install psycopg2
 #############
 
 #Set opentelemetry-distro to 0.42b0 due this bug: https://github.com/open-telemetry/opentelemetry-python-contrib/issues/2046
+RUN pip install opentelemetry-distro==0.42b0
+RUN pip install opentelemetry-exporter-otlp
 RUN pip install opentelemetry-instrumentation-confluent-kafka==0.42b0
 RUN pip install opentelemetry-instrumentation-flask==0.42b0
 RUN pip install opentelemetry-instrumentation-botocore==0.42b0
@@ -27,9 +29,6 @@ RUN pip install boto3
 RUN pip show opentelemetry-distro | grep Version: | cut -d' ' -f2 > SYSTEM_TESTS_LIBRARY_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-
-# COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
-# RUN /binaries/install_ddtrace.sh
 
 RUN pip install ddtrace
 
