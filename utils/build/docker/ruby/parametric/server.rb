@@ -280,6 +280,15 @@ class ServerImpl < APMClient::Service
     OtelAddEventReturn.new
   end
 
+  def otel_record_exception(otel_record_exception_args, _call)
+    span = find_otel_span(otel_record_exception_args.span_id)
+    span.record_exception(
+      StandardError.new(otel_record_exception_args.message),
+      attributes: parse_grpc_attributes(otel_record_exception_args.attributes)
+    )
+    OtelRecordExceptionReturn.new
+  end
+
   def otel_set_status(otel_set_status_args, _call)
     span = find_otel_span(otel_set_status_args.span_id)
 
