@@ -40,5 +40,4 @@ RUN printf "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 # docker startup
 RUN printf '#!/bin/bash\nnode --require @opentelemetry/auto-instrumentations-node/register app.js' > app.sh
 RUN chmod +x app.sh
-RUN ls -lisa /usr/app/node_modules
 CMD ./app.sh
