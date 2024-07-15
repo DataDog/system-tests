@@ -455,7 +455,7 @@ def view_iast_source_body(request):
 
 
 def view_iast_source_cookie_name(request):
-    param = [key for key in request.COOKIES.keys() if key == "user"]
+    param = [key for key in request.COOKIES.keys() if key == "table"]
     _sink_point_path_traversal(param[0])
     return HttpResponse("OK")
 

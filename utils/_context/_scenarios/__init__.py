@@ -458,7 +458,11 @@ class scenarios:
 
     default = EndToEndScenario(
         "DEFAULT",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
+        weblog_env={
+            "DD_DBM_PROPAGATION_MODE": "service",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_FEATURES": "discovery",
+        },
         include_postgres_db=True,
         doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
     )
@@ -696,11 +700,6 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={
-            "DD_RC_TARGETS_KEY_ID": "TEST_KEY_ID",
-            "DD_RC_TARGETS_KEY": "1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c",
-            "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
-        },
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )

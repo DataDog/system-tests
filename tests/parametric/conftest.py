@@ -6,7 +6,6 @@ import shutil
 import json
 import socket
 import subprocess
-import tempfile
 import time
 from typing import Dict, Generator, List, TextIO, Tuple, TypedDict
 import urllib.parse
@@ -461,57 +460,18 @@ def docker() -> str:
 
 
 @pytest.fixture()
-def docker_network_log_file(request) -> TextIO:
-    with tempfile.NamedTemporaryFile(mode="w+") as f:
+def docker_network_log_file(request, test_id: str) -> Generator[TextIO, None, None]:
+    log_path = f"{context.scenario.host_log_folder}/docker/network/{test_id}.log"
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+
+    with open(log_path, "w+", encoding="utf-8") as f:
         yield f
 
 
 @pytest.fixture()
-def docker_network_name(test_id) -> str:
-    return "apm_shared_tests_network_%s" % test_id
+def docker_network(docker: str, docker_network_log_file: TextIO, test_id: str) -> str:
+    docker_network_name = scenarios.parametric.create_docker_network(test_id, docker_network_log_file)
 
-
-@pytest.fixture()
-def docker_network(docker: str, docker_network_log_file: TextIO, docker_network_name: str) -> str:
-    # Initial check to see if docker network already exists
-    cmd = [
-        docker,
-        "network",
-        "inspect",
-        docker_network_name,
-    ]
-    docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
-    docker_network_log_file.flush()
-    r = subprocess.run(cmd, stderr=docker_network_log_file, timeout=default_subprocess_run_timeout)
-    if r.returncode not in (0, 1):  # 0 = network exists, 1 = network does not exist
-        pytest.fail(
-            "Could not check for docker network %r, error: %r" % (docker_network_name, r.stderr), pytrace=False,
-        )
-    elif r.returncode == 1:
-        cmd = [
-            shutil.which("docker"),
-            "network",
-            "create",
-            "--driver",
-            "bridge",
-            docker_network_name,
-        ]
-        docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
-        docker_network_log_file.flush()
-        r = subprocess.run(
-            cmd,
-            stdout=docker_network_log_file,
-            stderr=docker_network_log_file,
-            timeout=default_subprocess_run_timeout,
-            check=False,
-        )
-        if r.returncode != 0:
-            # TODO : as it runs in CI, temp file are mnstly not available -> write this in stdout
-            pytest.fail(
-                "Could not create docker network %r, see the log file %r"
-                % (docker_network_name, docker_network_log_file.name),
-                pytrace=False,
-            )
     yield docker_network_name
     cmd = [
         shutil.which("docker"),

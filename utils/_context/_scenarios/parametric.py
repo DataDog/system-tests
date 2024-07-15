@@ -1,13 +1,16 @@
 import dataclasses
-from typing import Dict, List, Literal, Tuple, Union
+from typing import Dict, List, Literal, Tuple, Union, TextIO
 
 import json
 import glob
+from functools import lru_cache
 import os
 import shutil
 import subprocess
 
 import pytest
+import docker
+from docker.errors import DockerException
 
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
@@ -17,6 +20,32 @@ from .core import Scenario, ScenarioGroup
 
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
+_NETWORK_PREFIX = "apm_shared_tests_network"
+# _TEST_CLIENT_PREFIX = "apm_shared_tests_container"
+
+
+@lru_cache
+def _get_client():
+    try:
+        return docker.DockerClient.from_env()
+    except DockerException as e:
+        # Failed to start the default Docker client... Let's see if we have
+        # better luck with docker contexts...
+        try:
+            ctx_name = subprocess.run(
+                ["docker", "context", "show"], capture_output=True, check=True, text=True
+            ).stdout.strip()
+            endpoint = subprocess.run(
+                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
+                capture_output=True,
+                check=True,
+                text=True,
+            ).stdout.strip()
+            return docker.DockerClient(base_url=endpoint)
+        except:
+            pass
+
+        raise e
 
 
 @dataclasses.dataclass
@@ -103,6 +132,8 @@ class ParametricScenario(Scenario):
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             self._build_apm_test_server_image()
+            self._clean_containers()
+            self._clean_networks()
 
         command = [
             "docker",
@@ -135,6 +166,22 @@ class ParametricScenario(Scenario):
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
         return result
+
+    def _clean_containers(self):
+        """ some containers may still exists from previous unfinished sessions """
+
+        for container in _get_client().containers.list(all=True):
+            if "test-client" in container.name or "test-agent" in container.name:
+                logger.info(f"Removing {container}")
+                container.remove(force=True)
+
+    def _clean_networks(self):
+        """ some network may still exists from previous unfinished sessions """
+
+        for network in _get_client().networks.list():
+            if network.name.startswith(_NETWORK_PREFIX):
+                logger.info(f"Removing {network}")
+                network.remove()
 
     @property
     def library(self):
@@ -196,6 +243,32 @@ class ParametricScenario(Scenario):
                 pytest.exit(f"Failed to build the container: {failure_text}", 1)
 
             logger.debug("Build tested container finished")
+
+    def create_docker_network(self, test_id: str, docker_network_log_file: TextIO) -> str:
+        docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
+
+        cmd = [
+            shutil.which("docker"),
+            "network",
+            "create",
+            "--driver",
+            "bridge",
+            docker_network_name,
+        ]
+        docker_network_log_file.write("$ " + " ".join(cmd) + "\n\n")
+        docker_network_log_file.flush()
+        r = subprocess.run(
+            cmd,
+            stdout=docker_network_log_file,
+            stderr=docker_network_log_file,
+            timeout=default_subprocess_run_timeout,
+            check=False,
+        )
+        if r.returncode != 0:
+            pytest.exit(
+                f"Could not create network {docker_network_name}, see the log file {docker_network_log_file.name}", 1,
+            )
+        return docker_network_name
 
 
 def _get_base_directory():
