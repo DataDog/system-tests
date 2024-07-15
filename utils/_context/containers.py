@@ -633,7 +633,7 @@ class WeblogContainer(TestedContainer):
 class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="postgres:latest",
+            image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
             user="postgres",
@@ -663,22 +663,25 @@ class MongoContainer(TestedContainer):
 class KafkaContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="bitnami/kafka:3.1",
+            # TODO: Look into apache/kafka-native but it doesn't include scripts.
+            image_name="apache/kafka:3.7.1",
             name="kafka",
             host_log_folder=host_log_folder,
             environment={
-                "KAFKA_LISTENERS": "PLAINTEXT://:9092",
+                "KAFKA_PROCESS_ROLES": "broker,controller",
+                "KAFKA_NODE_ID": "1",
+                "KAFKA_LISTENERS": "PLAINTEXT://:9092,CONTROLLER://:9093",
+                "KAFKA_CONTROLLER_QUORUM_VOTERS": "1@kafka:9093",
+                "KAFKA_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
+                "KAFKA_CLUSTER_ID": "r4zt_wrqTRuT7W2NJsB_GA",
                 "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
-                "ALLOW_PLAINTEXT_LISTENER": "yes",
-                "KAFKA_ADVERTISED_HOST_NAME": "kafka",
-                "KAFKA_ADVERTISED_PORT": "9092",
-                "KAFKA_PORT": "9092",
-                "KAFKA_BROKER_ID": "1",
-                "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
+                "KAFKA_INTER_BROKER_LISTENER_NAME": "PLAINTEXT",
+                "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT",
+                "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
             },
             allow_old_container=True,
             healthcheck={
-                "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
+                "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
                 "start_period": 5 * 1_000_000_000,
                 "interval": 2 * 1_000_000_000,
                 "timeout": 2 * 1_000_000_000,
@@ -693,24 +696,13 @@ class KafkaContainer(TestedContainer):
         kafka_options = f"--topic {topic} --bootstrap-server {server}"
 
         commands = [
-            f"kafka-topics.sh --create {kafka_options}",
-            f'bash -c "echo hello | kafka-console-producer.sh {kafka_options}"',
-            f"kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
+            f"/opt/kafka/bin/kafka-topics.sh --create {kafka_options}",
+            f'bash -c "echo hello | /opt/kafka/bin/kafka-console-producer.sh {kafka_options}"',
+            f"/opt/kafka/bin/kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
         ]
 
         for command in commands:
             self.execute_command(test=command, interval=2 * 1_000_000_000, retries=15)
-
-
-class ZooKeeperContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="bitnami/zookeeper:latest",
-            name="zookeeper",
-            host_log_folder=host_log_folder,
-            environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
-            allow_old_container=True,
-        )
 
 
 class CassandraContainer(TestedContainer):
@@ -737,7 +729,7 @@ class RabbitMqContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mysql/mysql-server:latest",
+            image_name="mariadb:latest",
             name="mysqldb",
             command="--default-authentication-plugin=mysql_native_password",
             environment={
@@ -748,7 +740,7 @@ class MySqlContainer(SqlDbTestedContainer):
             },
             allow_old_container=True,
             host_log_folder=host_log_folder,
-            healthcheck={"test": "/healthcheck.sh", "retries": 60},
+            healthcheck={"test": ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"], "retries": 60},
             dd_integration_service="mysql",
             db_user="mysqldb",
             db_password="mysqldb",
@@ -840,7 +832,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class ElasticMQContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="softwaremill/elasticmq:latest",
+            image_name="softwaremill/elasticmq-native:latest",
             name="elasticmq",
             host_log_folder=host_log_folder,
             environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
