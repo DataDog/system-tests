@@ -374,6 +374,7 @@ def docker_run(
 ) -> Generator[None, None, None]:
 
     # Run the docker container
+    logger.info(f"Starting {name}")
     container = scenarios.parametric.docker_run(
         image, name=name, env=env, volumes=volumes, network=network_name, container_port=container_port, command=cmd,
     )
@@ -382,11 +383,12 @@ def docker_run(
         host_port = container.attrs["NetworkSettings"]["Ports"][f"{container_port}/tcp"][0]["HostPort"]
         yield host_port
     finally:
-        logger.debug(f"Stopping {name}")
+        logger.info(f"Stopping {name}")
         container.stop(timeout=1)
         logs = container.logs()
         log_file.write(logs.decode("utf-8"))
         log_file.flush()
+        container.remove(force=True)
 
 
 @pytest.fixture(scope="session")
@@ -418,8 +420,8 @@ def docker_network(test_id: str) -> Generator[str, None, None]:
         try:
             network.remove()
         except:
-            # Good chance of having some container not stopped.
-            # If it happen, failing here makes sdout tough to understance.
+            # It's possible (why?) of having some container not stopped.
+            # If it happen, failing here makes stdout tough to understance.
             # Let's ignore this, later calls will clean the mess
             pass
 

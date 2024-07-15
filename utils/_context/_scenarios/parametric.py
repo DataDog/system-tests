@@ -164,11 +164,8 @@ class ParametricScenario(Scenario):
 
     def _clean_networks(self):
         """ some network may still exists from previous unfinished sessions """
-
-        for network in _get_client().networks.list():
-            if network.name.startswith(_NETWORK_PREFIX):
-                logger.info(f"Removing {network}")
-                network.remove()
+        logger.info("Removing unused network")
+        _get_client().networks.prune()
 
     @property
     def library(self):
