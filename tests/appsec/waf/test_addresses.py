@@ -239,7 +239,7 @@ class Test_BodyRaw:
     def setup_raw_body(self):
         self.r = weblog.post("/waf", data="/.adsensepostnottherenonobook")
 
-    @missing_feature(reason="no rule with body raw yet")
+    @irrelevant(reason="no rule with body raw yet")
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
         interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
@@ -338,22 +338,6 @@ class Test_BodyXml:
     def test_xml_content(self):
         interfaces.library.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
-
-
-@features.appsec_request_blocking
-class Test_Method:
-    """Appsec supports server.request.method"""
-
-    def test_main(self):
-        assert False, "Need to write a test"
-
-
-@features.appsec_request_blocking
-class Test_ClientIP:
-    """Appsec supports server.request.client_ip"""
-
-    def test_main(self):
-        assert False, "Need to write a test"
 
 
 @features.appsec_request_blocking
@@ -505,14 +489,6 @@ class Test_GraphQL:
 
     def test_request_monitor_attack_directive(self):
         self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
-
-
-@features.appsec_request_blocking
-class Test_Lambda:
-    """Lambda support"""
-
-    def test_main(self):
-        assert False, "Need to write a test"
 
 
 @features.grpc_threats_management

@@ -9,7 +9,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v2.50.0
         Test_API_Security_RC_ASM_DD_scanners: v2.50.0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling: v2.46.0
       test_schemas.py:
@@ -127,13 +127,10 @@ tests/:
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded: v2.7.0
         Test_BodyXml: v2.8.0
-        Test_ClientIP: missing_feature
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v1.28.6
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams: v2.5.1
         Test_ResponseStatus: v2.3.0
         Test_UrlQuery: v1.28.6
@@ -166,8 +163,6 @@ tests/:
         Test_Scanners: v1.28.6
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
