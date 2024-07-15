@@ -7,9 +7,11 @@ from functools import lru_cache
 import os
 import shutil
 import subprocess
+import time
 
 import pytest
 import docker
+from docker.models.containers import Container
 from docker.errors import DockerException
 
 from utils._context.library_version import LibraryVersion
@@ -25,7 +27,7 @@ _NETWORK_PREFIX = "apm_shared_tests_network"
 
 
 @lru_cache
-def _get_client():
+def _get_client() -> docker.DockerClient:
     try:
         return docker.DockerClient.from_env()
     except DockerException as e:
@@ -60,9 +62,12 @@ class APMLibraryTestServer:
     container_cmd: List[str]
     container_build_dir: str
     container_build_context: str = "."
-    port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
+
+    container_port: str = int(os.getenv("APM_LIBRARY_SERVER_PORT", "50052"))
+    host_port: int = None  # docker will choose this port at startup
+
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
-    volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
+    volumes: Dict[str, str] = dataclasses.field(default_factory=dict)
 
 
 class ParametricScenario(Scenario):
@@ -270,6 +275,53 @@ class ParametricScenario(Scenario):
             )
         return docker_network_name
 
+    def docker_run(
+        self,
+        image: str,
+        name: str,
+        env: Dict[str, str],
+        volumes: Dict[str, str],
+        network: str,
+        container_port: int,
+        command: List[str],
+    ) -> Container:
+
+        # Convert volumes to the format expected by the docker-py API
+        fixed_volumes = {}
+        for key, value in volumes.items():
+            if isinstance(value, dict):
+                fixed_volumes[key] = value
+            elif isinstance(value, str):
+                fixed_volumes[key] = {"bind": value, "mode": "rw"}
+            else:
+                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
+
+        logger.debug(f"Run container {name} from image {image}")
+        container: Container = _get_client().containers.run(
+            image,
+            name=name,
+            environment=env,
+            volumes=fixed_volumes,
+            network=network,
+            ports={f"{container_port}/tcp": None},  # let docker choose an host port
+            command=command,
+            detach=True,
+        )
+
+        # on first calls, the container does not know yet the published port on host
+        for _ in range(10):
+            container.reload()
+
+            if f"{container_port}/tcp" in container.attrs["NetworkSettings"]["Ports"]:
+                if len(container.attrs["NetworkSettings"]["Ports"][f"{container_port}/tcp"]) != 0:
+                    logger.debug(f"container {name} started")
+
+                    return container
+
+            time.sleep(0.1)
+
+        pytest.exit(f"Docker incorrectly bind ports for {name}")  # if this happen, increase the sleep time
+
 
 def _get_base_directory():
     """Workaround until the parametric tests are fully migrated"""
@@ -297,9 +349,7 @@ ENV DD_PATCH_MODULES="fastapi:false"
         container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
-        env={},
-        port="",
+        volumes={os.path.join(python_absolute_appdir, "apm_test_client"): "/app/apm_test_client"},
     )
 
 
@@ -331,8 +381,6 @@ RUN /binaries/install_ddtrace.sh
         container_cmd=["node", "server.js"],
         container_build_dir=nodejs_absolute_appdir,
         container_build_context=_get_base_directory(),
-        env={},
-        port="",
     )
 
 
@@ -363,9 +411,7 @@ RUN go install
         container_cmd=["main"],
         container_build_dir=golang_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
-        env={},
-        port="",
+        volumes={os.path.join(golang_absolute_appdir): "/client"},
     )
 
 
@@ -429,9 +475,6 @@ CMD ["./ApmTestApi"]
         container_cmd=[],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[],
-        env={},
-        port="",
     )
 
     return server
@@ -467,9 +510,6 @@ COPY {java_reldir}/run.sh .
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[],
-        env={},
-        port="",
     )
 
 
@@ -500,7 +540,6 @@ ADD {php_reldir}/server.php .
         container_build_context=_get_base_directory(),
         volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
         env={},
-        port="",
     )
 
 
@@ -534,7 +573,6 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_build_dir=ruby_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
-        port="",
     )
 
 
@@ -569,5 +607,4 @@ COPY --from=build /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VE
         container_build_dir=cpp_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
-        port="",
     )

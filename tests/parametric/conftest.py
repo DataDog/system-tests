@@ -4,7 +4,6 @@ import dataclasses
 import os
 import shutil
 import json
-import socket
 import subprocess
 import time
 from typing import Dict, Generator, List, TextIO, Tuple, TypedDict
@@ -70,16 +69,6 @@ def library_env() -> Dict[str, str]:
     return {}
 
 
-def get_open_port():
-    # Not very nice and also not 100% correct but it works for now.
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("", 0))
-    s.listen(1)
-    port = s.getsockname()[1]
-    s.close()
-    return port
-
-
 @pytest.fixture
 def apm_test_server(request, library_env, test_id):
     """Request level definition of the library test server with the session Docker image built"""
@@ -89,10 +78,7 @@ def apm_test_server(request, library_env, test_id):
 
     new_env.update(apm_test_server_image.env)
     yield dataclasses.replace(
-        apm_test_server_image,
-        container_name="%s-%s" % (apm_test_server_image.container_name, test_id),
-        env=new_env,
-        port=get_open_port(),
+        apm_test_server_image, container_name="%s-%s" % (apm_test_server_image.container_name, test_id), env=new_env,
     )
 
 
@@ -381,64 +367,27 @@ def docker_run(
     name: str,
     cmd: List[str],
     env: Dict[str, str],
-    volumes: List[Tuple[str, str]],
-    ports: List[Tuple[str, str]],
+    volumes: Dict[str, str],
+    container_port: int,
     log_file: TextIO,
     network_name: str,
 ) -> Generator[None, None, None]:
-    _cmd: List[str] = [
-        shutil.which("docker"),
-        "run",
-        "-d",
-        "--rm",
-        "--name=%s" % name,
-        "--network=%s" % network_name,
-    ]
-    for k, v in env.items():
-        _cmd.extend(["-e", "%s=%s" % (k, v)])
-    for k, v in volumes:
-        _cmd.extend(["-v", "%s:%s" % (k, v)])
-    for k, v in ports:
-        _cmd.extend(["-p", f"127.0.0.1:{k}:{v}"])
-    _cmd += [image]
-    _cmd.extend(cmd)
-
-    log_file.write("$ " + " ".join(_cmd) + "\n")
-    log_file.flush()
-    docker = shutil.which("docker")
 
     # Run the docker container
-    r = subprocess.run(_cmd, stdout=log_file, stderr=log_file, timeout=default_subprocess_run_timeout)
-    if r.returncode != 0:
-        log_file.flush()
-        pytest.fail(
-            "Could not start docker container %r with image %r, see the log file %r" % (name, image, log_file.name),
-            pytrace=False,
-        )
+    container = scenarios.parametric.docker_run(
+        image, name=name, env=env, volumes=volumes, network=network_name, container_port=container_port, command=cmd,
+    )
 
-    # Start collecting the logs of the container
-    _cmd = [
-        "docker",
-        "logs",
-        "-f",
-        name,
-    ]
-    docker_logs = subprocess.Popen(_cmd, stdout=log_file, stderr=log_file)
     try:
-        yield
+        host_port = container.attrs["NetworkSettings"]["Ports"][f"{container_port}/tcp"][0]["HostPort"]
+
+        yield host_port
     finally:
-        docker_logs.kill()
-        _cmd = [docker, "kill", name]
-        log_file.write("\n\n\n$ %s\n" % " ".join(_cmd))
+        logger.debug(f"Stopping {name}")
+        container.stop(timeout=1)
+        logs = container.logs()
+        log_file.write(logs.decode("utf-8"))
         log_file.flush()
-        # FIXME there is some weird problem when we try to kill the container. The test is blocked and the container was not killed
-        # logger.stdout(f"Parametric: docker_run: before kill the container: {log_file}")
-        try:
-            subprocess.run(_cmd, stdout=log_file, stderr=log_file, check=True, timeout=30)
-        except Exception as e:
-            logger.stdout(f"Parametric docker_run ERROR for {cmd}  -  {log_file}")
-            logger.error(e)
-        # logger.stdout(f"Parametric: docker_run: After kill the container: {log_file} ")
 
 
 @pytest.fixture(scope="session")
@@ -474,7 +423,7 @@ def docker_network(docker: str, docker_network_log_file: TextIO, test_id: str) -
 
     yield docker_network_name
     cmd = [
-        shutil.which("docker"),
+        docker,
         "network",
         "rm",
         docker_network_name,
@@ -545,23 +494,25 @@ def test_agent(
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
 
-    test_agent_external_port = get_open_port()
     with docker_run(
         image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0",
         name=test_agent_container_name,
         cmd=[],
         env=env,
-        volumes=[("%s/snapshots" % os.getcwd(), "/snapshots")],
-        ports=[(test_agent_external_port, test_agent_port)],
+        volumes={f"{os.getcwd()}/snapshots": "/snapshots"},
+        container_port=test_agent_port,
         log_file=test_agent_log_file,
         network_name=docker_network,
-    ):
+    ) as host_port:
+        logger.debug(f"Test agent started on host port {host_port}")
+        test_agent_external_port = host_port
         client = _TestAgentAPI(base_url="http://localhost:%s" % test_agent_external_port, pytest_request=request)
         # Wait for the agent to start (potentially have to pull the image from the registry)
         for i in range(30):
             try:
                 resp = client.info()
             except requests.exceptions.ConnectionError:
+                logger.debug("Wait for 0.5s fot the test agent to be ready")
                 time.sleep(0.5)
             else:
                 if resp["version"] != "test":
@@ -606,7 +557,7 @@ def test_server(
         "DD_TRACE_AGENT_URL": "http://%s:%s" % (test_agent_container_name, test_agent_port),
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
-        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.port,
+        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.container_port,
     }
     test_server_env = {}
     for k, v in apm_test_server.env.items():
@@ -620,25 +571,30 @@ def test_server(
         name=apm_test_server.container_name,
         cmd=apm_test_server.container_cmd,
         env=env,
-        ports=[(apm_test_server.port, apm_test_server.port)],
+        container_port=apm_test_server.container_port,
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
         network_name=docker_network,
-    ):
+    ) as host_port:
+        logger.debug(f"Test server started on host port {host_port}")
+        apm_test_server.host_port = host_port
         yield apm_test_server
 
 
 @pytest.fixture
 def test_server_timeout() -> int:
-    return 60
+    return 10
 
 
 @pytest.fixture
 def test_library(test_server: APMLibraryTestServer, test_server_timeout: int) -> Generator[APMLibrary, None, None]:
+    if test_server.host_port is None:
+        pytest.exit("Internal error, no port has been assigned", 1)
+
     if test_server.protocol == "grpc":
-        client = APMLibraryClientGRPC("localhost:%s" % test_server.port, test_server_timeout)
+        client = APMLibraryClientGRPC("localhost:%s" % test_server.host_port, test_server_timeout)
     elif test_server.protocol == "http":
-        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.port, test_server_timeout)
+        client = APMLibraryClientHTTP("http://localhost:%s" % test_server.host_port, test_server_timeout)
     else:
         raise ValueError("interface %s not supported" % test_server.protocol)
     tracer = APMLibrary(client, test_server.lang)
