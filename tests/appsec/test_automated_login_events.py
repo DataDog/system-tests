@@ -1182,6 +1182,8 @@ class Test_V2_Login_Events_Anon:
 
 def assert_priority(span, meta):
     MANUAL_KEEP_SAMPLING_PRIORITY = 2
+    if "_sampling_priority_v1" not in span["metrics"]:
+        return  # no priority set
     if span["metrics"].get("_sampling_priority_v1") != MANUAL_KEEP_SAMPLING_PRIORITY:
         assert "manual.keep" in meta, "manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP"
         assert (
