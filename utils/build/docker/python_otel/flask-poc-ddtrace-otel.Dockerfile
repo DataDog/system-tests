@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python_otel/flask-poc-otel/app.py /app
-COPY utils/build/docker/python_otel/flask-poc-otel/ddtrace-app.sh /app
+COPY utils/build/docker/python_otel/flask-poc-otel/untraced-app.sh /app
 
 #TODO RMM: Change docker flask-poc base to fix psycopg2 ( psycopg2-binary is not supported by open telemetry)
 RUN apt update
@@ -29,8 +29,7 @@ RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 RUN pip install ddtrace
 
-ENV DD_TRACE_OTEL_ENABLED=true
+ENV USE_DDTRACE=true
 ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 ENV FLASK_APP=app.py
 CMD ./app.sh
-

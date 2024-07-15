@@ -2,6 +2,13 @@ import os
 import random
 import subprocess
 
+# set Datadog as Otel Trace Provider
+if os.environ.get("USE_DDTRACE", "false") == "true":
+    from opentelemetry.trace import set_tracer_provider
+    from ddtrace.opentelemetry import TracerProvider
+
+    set_tracer_provider(TracerProvider())
+
 from flask import Flask
 from flask import request as flask_request
 
