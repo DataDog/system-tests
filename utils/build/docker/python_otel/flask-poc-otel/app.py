@@ -8,17 +8,6 @@ from ddtrace.opentelemetry import TracerProvider
 
 set_tracer_provider(TracerProvider())
 
-from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
-from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-
-BotocoreInstrumentor().instrument()
-ConfluentKafkaInstrumentor().instrument()
-FlaskInstrumentor().instrument()
-
-import psycopg2
-import requests
-
 from flask import Flask
 from flask import request as flask_request
 
