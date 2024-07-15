@@ -13,14 +13,15 @@ vm_logs:
 provision_steps:
   - init-config # Init the VM configuration
   - prepare-docker # Install docker
-  - ld-so-preload # Add some staff to the ld.so.preload before install dd software
   - setup-testing-dependencies # Pull the right docker images & install crane
   - setup-local-registry # Setup a local registry with injector & tracer OCIs
   - install-installer # Install the installer
+  - ld-so-preload # Add some staff to the ld.so.preload before install dd software
   - installer-bootstrap # Bootstrap the agent, library, and injector
 
 init-config:
   cache: true
+  populate_env: false
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
 
 prepare-docker:

@@ -104,7 +104,7 @@ class AWSPulumiProvider(VmProvider):
     def stack_destroy(self):
         logger.info(f"Destroying VMs: {self.vms}")
         try:
-            # self.stack.destroy(on_output=logger.info, debug=True)
+            self.stack.destroy(on_output=logger.info, debug=True)
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
                 "",
@@ -228,14 +228,21 @@ class AWSCommander(Commander):
         return last_task
 
     def remote_command(
-        self, vm, installation_id, remote_command, env, connection, last_task, logger_name=None, output_callback=None
+        self,
+        vm,
+        installation_id,
+        remote_command,
+        env,
+        connection,
+        last_task,
+        logger_name=None,
+        output_callback=None,
+        populate_env=True,
     ):
-        if (
-            "init-config" in installation_id
-        ):  ##error: Unable to set 'DD_env'. This only works if your SSH server is configured to accept
-            logger.info(f"RMM AVOID ENV")
+        if not populate_env:
+            ##error: Unable to set 'DD_env'. This only works if your SSH server is configured to accept
+            logger.debug(f"No populate environment variables for installation id: {installation_id} ")
             env = {}
-        logger.info(f"RMM TEST: {installation_id}")
 
         cmd_exec_install = command.remote.Command(
             f"-{vm.name}-{installation_id}",

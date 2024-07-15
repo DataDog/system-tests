@@ -2,5 +2,6 @@
 
 int puts(const char *__s)
 {
-    return printf("New puts, hackerman alert!\n");
+    return printf("New puts\n");
+    
 }

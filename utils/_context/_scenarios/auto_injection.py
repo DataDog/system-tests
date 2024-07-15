@@ -173,44 +173,6 @@ class _VirtualMachineScenario(Scenario):
             test["description"] = test["path"][last_index:]
 
 
-class HostAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="host-auto-inject", agent_env=None, app_env=None) -> None:
-        super().__init__(
-            name,
-            vm_provision=vm_provision,
-            agent_env=agent_env,
-            app_env=app_env,
-            doc=doc,
-            github_workflow=None,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_ubuntu_18_amd64=True,
-            include_amazon_linux_2_amd64=True,
-            include_amazon_linux_2_dotnet_6=True,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-        )
-
-
-class ContainerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="container-auto-inject", agent_env=None, app_env=None) -> None:
-        super().__init__(
-            name,
-            vm_provision=vm_provision,
-            agent_env=agent_env,
-            app_env=app_env,
-            doc=doc,
-            github_workflow=None,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_ubuntu_18_amd64=True,
-            include_amazon_linux_2_amd64=False,
-            include_amazon_linux_2_dotnet_6=False,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-        )
-
-
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
     def __init__(self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None) -> None:
         super().__init__(
