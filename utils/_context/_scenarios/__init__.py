@@ -376,6 +376,14 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_meta_struct_disabled = EndToEndScenario(
+        "APPSEC_META_STRUCT_DISABLED",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
+        meta_structs_disabled=True,
+        doc="Appsec tests with support for meta struct disabled in the agent configuration",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
