@@ -442,7 +442,17 @@ class Test_Dsm_Manual_Checkpoint:
             f"/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
         )
         self.consume = weblog.get(
-            f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
+            f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue&headers={self.produce.text}",
+            timeout=DSM_REQUEST_TIMEOUT,
+        )
+
+    def setup_dsm_manual_checkpoint_inter_process(self):
+        self.produce_threaded = weblog.get(
+            f"/dsm/manual/produce_with_thread?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
+        )
+        self.consume_threaded = weblog.get(
+            f"/dsm/manual/consume_with_thread?type=dd-streams&source=system-tests-queue&headers={self.produce_threaded.text}",
+            timeout=DSM_REQUEST_TIMEOUT,
         )
 
     # @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")

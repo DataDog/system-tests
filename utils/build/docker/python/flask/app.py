@@ -683,20 +683,6 @@ def dsm():
     return response
 
 
-@app.route("/dsm/manual/consume")
-def dsm_manual_checkpoint_consume():
-    typ = flask_request.args.get("type")
-    source = flask_request.args.get("source")
-
-    headers = {}
-
-    def getter(k):
-        return headers[k]
-
-    ctx = set_consume_checkpoint(typ, source, getter)
-    return Response(str(ctx))
-
-
 @app.route("/dsm/manual/produce")
 def dsm_manual_checkpoint_produce():
     typ = flask_request.args.get("type")
@@ -712,6 +698,63 @@ def dsm_manual_checkpoint_produce():
     set_produce_checkpoint(typ, target, setter)
 
     return Response(json.dumps(headers))
+
+
+@app.route("/dsm/manual/produce_with_thread")
+def dsm_manual_checkpoint_produce_with_thread():
+    def worker(typ, target, headers):
+        reset_dsm_context()
+
+        def setter(k, v):
+            headers[k] = v
+
+        set_produce_checkpoint(typ, target, setter)
+
+    typ = flask_request.args.get("type")
+    target = flask_request.args.get("target")
+    headers = {}
+
+    # Start a new thread to run the worker function
+    thread = threading.Thread(target=worker, args=(typ, target, headers))
+    thread.start()
+    thread.join()  # Wait for the thread to complete for this example
+
+    return Response(json.dumps(headers))
+
+
+@app.route("/dsm/manual/consume")
+def dsm_manual_checkpoint_consume():
+    typ = flask_request.args.get("type")
+    source = flask_request.args.get("source")
+    carrier = json.loads(flask_request.args.get("carrier"))
+
+    def getter(k):
+        return carrier[k]
+
+    ctx = set_consume_checkpoint(typ, source, getter)
+    return Response(str(ctx))
+
+
+@app.route("/dsm/manual/consume_with_thread")
+def dsm_manual_checkpoint_consume_with_thread():
+    def worker(typ, target, headers):
+        reset_dsm_context()
+
+        def getter(k):
+            return headers[k]
+
+        ctx = set_consume_checkpoint(typ, target, getter)
+
+    typ = flask_request.args.get("type")
+    target = flask_request.args.get("target")
+    carrier = json.loads(flask_request.args.get("carrier"))
+
+    # Start a new thread to run the worker function
+    thread = threading.Thread(target=worker, args=(typ, target, carrier))
+    thread.start()
+    thread.join()  # Wait for the thread to complete for this example
+
+    return Response("OK")
 
 
 @app.route("/dsm/inject")
