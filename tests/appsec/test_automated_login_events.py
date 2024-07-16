@@ -340,7 +340,8 @@ class Test_Login_Events_Extended:
                 # theres no login field in ruby
                 assert meta["usr.email"] == "testuser@ddog.com"
                 assert meta["usr.username"] == "test"
-            else:
+            elif context.library != "java":
+                # there are no extra fields in java
                 assert meta["usr.email"] == "testuser@ddog.com"
                 assert meta["usr.username"] == "test"
                 assert meta["usr.login"] == "test"
@@ -358,18 +359,21 @@ class Test_Login_Events_Extended:
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "social-security-id"
-            assert meta["usr.email"] == "testuser@ddog.com"
 
             if context.library in ("dotnet", "python"):
                 # theres no login field in dotnet
                 # usr.name was in the sdk before so it was kept as is
                 assert meta["usr.name"] == "test"
+                assert meta["usr.email"] == "testuser@ddog.com"
             elif context.library == "ruby":
                 # theres no login field in ruby
                 assert meta["usr.username"] == "test"
-            else:
+                assert meta["usr.email"] == "testuser@ddog.com"
+            elif context.library != "java":
+                # there are no extra fields in java
                 assert meta["usr.username"] == "test"
                 assert meta["usr.login"] == "test"
+                assert meta["usr.email"] == "testuser@ddog.com"
 
             assert_priority(span, meta)
 

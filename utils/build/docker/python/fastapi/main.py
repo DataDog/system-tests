@@ -356,7 +356,7 @@ async def view_iast_source_body(body: Body_for_iast):
 
 @app.get("/iast/source/cookiename/test", response_class=PlainTextResponse)
 async def view_iast_source_cookie_name(request: Request):
-    param = [key for key in request.cookies if key == "user"]
+    param = [key for key in request.cookies if key == "table"]
     if param:
         _sink_point(id=param[0])
         return "OK"
