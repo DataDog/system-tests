@@ -269,10 +269,10 @@ tests/:
         Test_TelemetryMetrics: *ref_4_17_0
     test_alpha.py:
       Test_Basic: v2.0.0
-    test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
     test_appsec_metastruct.py:
       Test_SecurityEvent_Metastruct: missing_feature
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
     test_automated_login_events.py:
       Test_Login_Events:
         '*': *ref_4_4_0

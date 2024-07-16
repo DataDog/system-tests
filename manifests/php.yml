@@ -155,10 +155,10 @@ tests/:
         Test_XSS: v0.68.3
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_appsec_metastruct.py:
       Test_SecurityEvent_Metastruct: missing_feature
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: v0.89.0
       Test_Login_Events_Extended: v0.89.0

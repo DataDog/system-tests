@@ -2216,7 +2216,7 @@ class features:
         """
         pytest.mark.features(feature_id=305)(test_object)
         return test_object
-    
+
     @staticmethod
     def security_events_metastruct(test_object):
         """

@@ -244,10 +244,10 @@ tests/:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
-    test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_appsec_metastruct.py:
       Test_SecurityEvent_Metastruct: missing_feature
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
