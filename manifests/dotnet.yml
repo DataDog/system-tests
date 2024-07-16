@@ -239,8 +239,6 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
-    test_appsec_metastruct.py:
-      Test_SecurityEvent_Metastruct: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.55.0
       Test_IastStandalone_UpstreamPropagation: v2.55.0
@@ -288,6 +286,8 @@ tests/:
       Test_AppSecIPBlockingFullDenylist: v2.16.0
     test_logs.py:
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Metastruct: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:

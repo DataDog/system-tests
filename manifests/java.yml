@@ -900,8 +900,6 @@ tests/:
         '*': v0.87.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    test_appsec_metastruct.py:
-      Test_SecurityEvent_Metastruct: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
@@ -1184,6 +1182,8 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Metastruct: missing_feature
     test_rate_limiter.py:
       Test_Main:
         akka-http: v1.22.0

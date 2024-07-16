@@ -198,8 +198,6 @@ tests/:
         Test_XSS: v0.68.3
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_appsec_metastruct.py:
-      Test_SecurityEvent_Metastruct: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation: missing_feature
@@ -231,6 +229,8 @@ tests/:
       Test_Basic: v0.85.0
     test_logs.py:
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Metastruct: missing_feature
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
       Test_UpdateRuleFileWithRemoteConfig: missing_feature (v0.8.0 but lacks telemetry support)
