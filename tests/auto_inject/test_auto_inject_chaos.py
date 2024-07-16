@@ -8,7 +8,7 @@ import tests.auto_inject.utils as base
 from utils import bug
 
 
-@features.host_auto_instrumentation
+@features.installer_auto_instrumentation
 @scenarios.installer_host_auto_injection_chaos
 class TestAutoInjectChaos(base.AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):

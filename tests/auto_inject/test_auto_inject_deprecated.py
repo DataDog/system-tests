@@ -89,7 +89,7 @@ class TestDeprecatedSimpleContainerInstallerAutoInjectManual(base.AutoInjectBase
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
-@features.host_auto_instrumentation_profiling
+@features.auto_instrumentation_profiling
 @scenarios.simple_host_auto_injection_profiling
 class TestDeprecatedSimpleHostInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
     def test_install(self, virtual_machine):
@@ -98,7 +98,7 @@ class TestDeprecatedSimpleHostInstallerAutoInjectManualProfiling(base.AutoInject
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
-@features.host_auto_instrumentation_profiling
+@features.auto_instrumentation_profiling
 @scenarios.simple_container_auto_injection_profiling
 class TestDeprecatedSimpleContainerInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
     def test_install(self, virtual_machine):

@@ -18,7 +18,7 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
-@features.host_auto_instrumentation_profiling
+@features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
     def test_install(self, virtual_machine):
@@ -36,7 +36,7 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
-@features.host_auto_instrumentation
+@features.installer_auto_instrumentation
 @scenarios.installer_auto_injection_ld_preload
 class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
     @bug(library="ruby", reason="Test failures for Amazon Linux 2023")
