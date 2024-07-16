@@ -751,31 +751,36 @@ class scenarios:
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     installer_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario"
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario", scenario_groups=[ScenarioGroup.ONBOARDING]
     )
 
     installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
         "INSTALLER_HOST_AUTO_INJECTION_CHAOS",
         doc="Installer auto injection scenario with chaos (deleting installation folders, files)",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     installer_auto_injection_block_list = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION_BLOCK_LIST",
         "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     installer_auto_injection_ld_preload = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION_LD_PRELOAD",
         "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
         vm_provision="auto-inject-ld-preload",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(
@@ -786,6 +791,7 @@ class scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
@@ -793,6 +799,7 @@ class scenarios:
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -801,24 +808,28 @@ class scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     container_auto_injection_install_script = InstallerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     local_auto_injection_install_script = InstallerAutoInjectionScenario(
         "LOCAL_AUTO_INJECTION_INSTALL_SCRIPT",
         "Tobe executed locally with krunvm. Installs all the software fron agent installation script, and the replace the apm-library with the uploaded tar file from binaries",
         vm_provision="local-auto-inject-install-script",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     ##DEPRECATED SCENARIOS: Delete after migration of tracer pipelines + auto_inject pipelines
@@ -827,10 +838,12 @@ class scenarios:
     simple_host_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_HOST_AUTO_INJECTION",
         "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
     simple_container_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_CONTAINER_AUTO_INJECTION",
         "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     # Replaced by SIMPLE_AUTO_INJECTION_PROFILING
@@ -842,6 +855,7 @@ class scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
     simple_container_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_CONTAINER_AUTO_INJECTION_PROFILING",
@@ -851,31 +865,40 @@ class scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     # Replaced by INSTALLER_AUTO_INJECTION
     host_auto_injection = InstallerAutoInjectionScenario(
-        "HOST_AUTO_INJECTION", doc="DEPRECATED: Installer auto injection scenario"
+        "HOST_AUTO_INJECTION",
+        doc="DEPRECATED: Installer auto injection scenario",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
     container_auto_injection = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION", doc="DEPRECATED: Installer auto injection scenario"
+        "CONTAINER_AUTO_INJECTION",
+        doc="DEPRECATED: Installer auto injection scenario",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     # Replaced by INSTALLER_AUTO_INJECTION_BLOCK_LIST
     host_auto_injection_block_list = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
         "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     # Replaced by INSTALLER_NOT_SUPPORTED_AUTO_INJECTION
     container_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
     # K8s LIB INJECTION SCENARIOS
     k8s_lib_injection_basic = _KubernetesScenario(
-        "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario. DEPRECATED"
+        "K8S_LIB_INJECTION_BASIC",
+        doc=" Kubernetes Instrumentation basic scenario. DEPRECATED",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
     k8s_library_injection_full = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_FULL",
