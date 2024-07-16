@@ -125,8 +125,10 @@ def main():
                 elif file == "utils/_context/_scenarios/open_telemetry.py":
                     scenarios_groups.add(ScenarioGroup.OPEN_TELEMETRY.value)
                 elif (
+                    # Onboarding cases
                     file.startswith("utils/onboarding")
                     or file.startswith("utils/virtual_machine")
+                    or file.startswith("utils/build/virtual_machine")
                     or file == "utils/_context/_scenarios/auto_injection.py"
                     or file == "utils/_context/virtual_machine.py"
                 ):
