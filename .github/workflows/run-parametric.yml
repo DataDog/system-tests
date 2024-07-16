@@ -37,7 +37,7 @@ jobs:
     runs-on:
       group: "APM Larger Runners"
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         job_instance: ${{ fromJson( inputs._experimental_job_matrix ) }}
     env:
