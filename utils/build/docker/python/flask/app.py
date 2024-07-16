@@ -159,6 +159,12 @@ def reset_dsm_context():
         pass
 
 
+def flush_dsm_checkpoints():
+    # force flush stats to ensure they're available to agent after test setup is complete
+    tracer.data_streams_processor.periodic()
+    data_streams_processor().periodic()
+
+
 @app.route("/")
 def hello_world():
     return "Hello, World!\\n"
@@ -697,6 +703,8 @@ def dsm_manual_checkpoint_produce():
 
     set_produce_checkpoint(typ, target, setter)
 
+    flush_dsm_checkpoints()
+
     return Response(json.dumps(headers))
 
 
@@ -718,6 +726,7 @@ def dsm_manual_checkpoint_produce_with_thread():
     thread = threading.Thread(target=worker, args=(typ, target, headers))
     thread.start()
     thread.join()  # Wait for the thread to complete for this example
+    flush_dsm_checkpoints()
 
     return Response(json.dumps(headers))
 
@@ -726,12 +735,13 @@ def dsm_manual_checkpoint_produce_with_thread():
 def dsm_manual_checkpoint_consume():
     typ = flask_request.args.get("type")
     source = flask_request.args.get("source")
-    carrier = json.loads(flask_request.args.get("carrier"))
+    carrier = json.loads(flask_request.args.get("headers"))
 
     def getter(k):
         return carrier[k]
 
     ctx = set_consume_checkpoint(typ, source, getter)
+    flush_dsm_checkpoints()
     return Response(str(ctx))
 
 
@@ -746,13 +756,14 @@ def dsm_manual_checkpoint_consume_with_thread():
         ctx = set_consume_checkpoint(typ, target, getter)
 
     typ = flask_request.args.get("type")
-    target = flask_request.args.get("target")
-    carrier = json.loads(flask_request.args.get("carrier"))
+    source = flask_request.args.get("source")
+    carrier = json.loads(flask_request.args.get("headers"))
 
     # Start a new thread to run the worker function
-    thread = threading.Thread(target=worker, args=(typ, target, carrier))
+    thread = threading.Thread(target=worker, args=(typ, source, carrier))
     thread.start()
     thread.join()  # Wait for the thread to complete for this example
+    flush_dsm_checkpoints()
 
     return Response("OK")
 

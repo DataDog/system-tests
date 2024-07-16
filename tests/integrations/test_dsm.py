@@ -448,25 +448,28 @@ class Test_Dsm_Manual_Checkpoint:
 
     def setup_dsm_manual_checkpoint_inter_process(self):
         self.produce_threaded = weblog.get(
-            f"/dsm/manual/produce_with_thread?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
+            f"/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
+            timeout=DSM_REQUEST_TIMEOUT,
         )
         self.consume_threaded = weblog.get(
-            f"/dsm/manual/consume_with_thread?type=dd-streams&source=system-tests-queue&headers={self.produce_threaded.text}",
+            f"/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue&headers={self.produce_threaded.text}",
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
     # @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_manual_checkpoint(self):
+        self.produce.text = json.loads(self.produce.text)
+
         assert self.produce.status_code == 200
-        assert "dsm-pathway-ctx-base64" in self.produce.text
+        assert "dd-pathway-ctx-base64" in self.produce.text
 
         assert self.consume.status_code == 200
-        # assert "dsm-pathway-ctx-base64" in self.produce.text
+        # assert "dd-pathway-ctx-base64" in self.produce.text
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
-            "default": {"producer": 5674710414915297150, "consumer": 13847866872847822852,},
+            "default": {"producer": 2925617884093644655, "consumer": 9012955179260244489,},
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
@@ -481,6 +484,35 @@ class Test_Dsm_Manual_Checkpoint:
             hash_=consumer_hash,
             parent_hash=producer_hash,
             tags=("direction:in", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams"),
+        )
+
+    def test_dsm_manual_checkpoint_inter_process(self):
+        self.produce_threaded.text = json.loads(self.produce_threaded.text)
+
+        assert self.produce_threaded.status_code == 200
+        assert "dd-pathway-ctx-base64" in self.produce_threaded.text
+
+        assert self.consume_threaded.status_code == 200
+        # assert "dd-pathway-ctx-base64" in self.produce.text
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
+            "default": {"producer": 11970957519616335697, "consumer": 14397921880946757763,},
+        }
+
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=("direction:out", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams-threaded"),
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=("direction:in", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams-threaded"),
         )
 
 
