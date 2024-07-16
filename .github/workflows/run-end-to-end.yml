@@ -281,6 +281,11 @@ jobs:
       run: ./run.sh APPSEC_STANDALONE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_META_STRUCT_DISABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_META_STRUCT_DISABLED"')
+      run: ./run.sh APPSEC_META_STRUCT_DISABLED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
