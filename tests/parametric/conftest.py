@@ -30,10 +30,12 @@ default_subprocess_run_timeout = 300
 
 
 @pytest.fixture
-def test_id():
+def test_id(request) -> str:
     import uuid
 
-    yield str(uuid.uuid4())[0:6]
+    result = str(uuid.uuid4())[0:6]
+    logger.info(f"Test {request.node.nodeid} ID: {result}")
+    return result
 
 
 class AgentRequest(TypedDict):
@@ -491,7 +493,7 @@ def test_agent(
         log_file=test_agent_log_file,
         network_name=docker_network,
     ) as host_port:
-        logger.debug(f"Test agent started on host port {host_port}")
+        logger.debug(f"Test agent {test_agent_container_name} started on host port {host_port}")
         test_agent_external_port = host_port
         client = _TestAgentAPI(base_url=f"http://localhost:{test_agent_external_port}", pytest_request=request)
         time.sleep(0.2)  # intial wait time, the trace agent takes 200ms to start
