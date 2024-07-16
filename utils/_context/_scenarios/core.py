@@ -317,6 +317,8 @@ class DockerScenario(Scenario):
 
         return warmups
 
+    # Build a tree of dependencies between containers and then start the
+    # containers in the right order and in parallel if possible.
     def _start_containers(self):
         dependencies = self._get_dependencies()
         threads = {}
@@ -327,6 +329,9 @@ class DockerScenario(Scenario):
         for thread in threads.values():
             thread.join()
 
+    # Start a single container in a thread and wait for its dependencies if it
+    # has any. Also starts the containers it depends on if they are not already
+    # started.
     def _start_container(self, container, dependencies, threads):
         if threads.get(container):
             return threads.get(container)
@@ -339,6 +344,8 @@ class DockerScenario(Scenario):
 
         return thread
 
+    # Start any dependencies of a container and block until all dependencies
+    # are done starting.
     def _start_dependencies(self, container, dependencies, threads):
         dependency_threads = []
 
@@ -349,6 +356,7 @@ class DockerScenario(Scenario):
         for thread in dependency_threads:
             thread.join()
 
+    # Get a map of containers to their dependencies.
     def _get_dependencies(self):
         dependencies = {}
         image_containers = {}
