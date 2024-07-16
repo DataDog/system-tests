@@ -76,7 +76,10 @@ def send_command(
     current_states.version = command_version
     current_states.state = ApplyState.UNKNOWN
 
+    state = {}
+
     def remote_config_applied(data):
+        nonlocal state
         if data["path"] == "/v0.7/config":
             state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
             if len(client_configs) == 0:
@@ -279,14 +282,26 @@ class RemoteConfigCommand:
         obj.opaque_backend_state = base64.b64encode(obj.backend_state.encode("utf-8")).decode("utf-8")
         return obj
 
-    def add_client_config(self, path, config, config_file_version=None) -> ClientConfig:
-        client_config = ClientConfig(path=path, config=config, config_file_version=config_file_version)
+    def add_client_config(self, path, config, config_file_version=None) -> "RemoteConfigCommand":
+        """Add a file"""
+        client_config = ClientConfig(
+            path=path,
+            config=config,
+            config_file_version=(self.version + 1) if config_file_version is None else config_file_version,
+        )
         self.targets[path] = client_config
-        return client_config
+        return self
 
-    def del_client_config(self, path):
+    def del_client_config(self, path) -> "RemoteConfigCommand":
+        """Remove a file"""
         if path in self.targets:
             del self.targets[path]
+        return self
+
+    def reset(self) -> "RemoteConfigCommand":
+        """Remove all files"""
+        self.targets.clear()
+        return self
 
     def serialize_targets(self, deserialized=False):
         result = {

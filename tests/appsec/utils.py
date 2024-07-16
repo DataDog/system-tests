@@ -4,7 +4,6 @@ from utils.dd_constants import RemoteConfigApplyState
 
 class BaseFullDenyListTest:
     states = None
-    TARGETS_VERSION = 42
 
     def setup_scenario(self):
         # Generate the list of 100 * 125 = 12500 blocked ips that are found in the rc_mocked_responses_asm_data_full_denylist.json
@@ -27,7 +26,7 @@ class BaseFullDenyListTest:
                 ]
             }
 
-            command = remote_config.RemoteConfigCommand(version=self.TARGETS_VERSION)
+            command = remote_config.RemoteConfigCommand()
             command.add_client_config("datadog/2/ASM_DATA/ASM_DATA-base/config", config)
 
             BaseFullDenyListTest.states = command.send()
@@ -38,7 +37,7 @@ class BaseFullDenyListTest:
     def assert_protocol_is_respected(self):
         interfaces.library.assert_rc_targets_version_states(targets_version=0, config_states=[])
         interfaces.library.assert_rc_targets_version_states(
-            targets_version=self.TARGETS_VERSION,
+            targets_version=self.states.version,
             config_states=[
                 {
                     "id": "ASM_DATA-base",

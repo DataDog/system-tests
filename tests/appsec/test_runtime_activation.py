@@ -11,11 +11,6 @@ from utils import scenarios
 from utils import weblog
 
 
-def _next_version(cache=[0]):
-    cache[0] += 1
-    return cache[0]
-
-
 CONFIG_EMPTY = None  # Empty config to reset the state at test setup
 CONFIG_ENABLED = {"asm": {"enabled": True}}
 
@@ -24,8 +19,7 @@ COMMAND = rc.RemoteConfigCommand()
 
 def _send_config(config):
     if config is not None:
-        version = _next_version()
-        COMMAND.add_client_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config, version)
+        COMMAND.add_client_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
     else:
         COMMAND.del_client_config("datadog/2/ASM_FEATURES/asm_features_activation/config")
     return COMMAND.send()
