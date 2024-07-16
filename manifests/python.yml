@@ -579,6 +579,9 @@ tests/:
       Test_DsmKinesis:
         '*': irrelevant
         flask-poc: v2.8.0.dev
+      Test_Dsm_Manual_Checkpoint:
+        '*': irrelevant
+        flask-poc: v2.8.0
       Test_DsmRabbitmq:
         '*': irrelevant
         flask-poc: v2.6.0
