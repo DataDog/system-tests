@@ -95,6 +95,7 @@ class Test_Telemetry:
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
         reason="Version reporting of trace agent is broken in 7.36.x release",
     )
+    @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -237,6 +238,7 @@ class Test_Telemetry:
         weblog_variant="spring-boot-openliberty", reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
     @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
+    @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
