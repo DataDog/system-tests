@@ -190,6 +190,12 @@ class _TestAgentAPI:
 
     def info(self, **kwargs):
         resp = self._session.get(self._url("/info"), **kwargs)
+
+        if resp.status_code != 200:
+            message = f"Test agent unexpected {resp.status_code} response: {resp.text}"
+            logger.error(message)
+            raise ValueError(message)
+
         json = resp.json()
         self._write_log("info", json)
         return json
@@ -476,7 +482,7 @@ def test_agent(
     env["ENABLED_CHECKS"] = "trace_count_header"
 
     with docker_run(
-        image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0",
+        image=scenarios.parametric.TEST_AGENT_IMAGE,
         name=test_agent_container_name,
         cmd=[],
         env=env,
@@ -488,24 +494,26 @@ def test_agent(
         logger.debug(f"Test agent started on host port {host_port}")
         test_agent_external_port = host_port
         client = _TestAgentAPI(base_url=f"http://localhost:{test_agent_external_port}", pytest_request=request)
-        # Wait for the agent to start (potentially have to pull the image from the registry)
-        for _ in range(30):
+        time.sleep(0.2)  # intial wait time, the trace agent takes 200ms to start
+        for _ in range(100):
             try:
                 resp = client.info()
-            except requests.exceptions.ConnectionError:
-                logger.debug("Wait for 0.5s for the test agent to be ready")
-                time.sleep(0.5)
+            except:
+                logger.debug("Wait for 0.1s for the test agent to be ready")
+                time.sleep(0.1)
             else:
                 if resp["version"] != "test":
                     message = f"""Agent version {resp['version']} is running instead of the test agent.
                     Stop the agent on port {test_agent_port} and try again."""
-                    pytest.fail(message, returncode=1)
+                    pytest.fail(message, pytrace=False)
 
                 break
         else:
             with open(test_agent_log_file.name) as f:
                 logger.error(f"Could not connect to test agent: {f.read()}")
-            raise RuntimeError(f"Could not connect to test agent, check the log file {test_agent_log_file.name}.")
+            pytest.fail(
+                f"Could not connect to test agent, check the log file {test_agent_log_file.name}.", pytrace=False
+            )
 
         # If the snapshot mark is on the test case then do a snapshot test
         marks = [m for m in request.node.iter_markers(name="snapshot")]

@@ -289,7 +289,7 @@ class ParametricScenario(Scenario):
             time.sleep(0.1)
 
         # if this happen, maybe increase the sleep time?
-        raise RuntimeError(f"Docker incorrectly bind ports for {name}")  
+        raise RuntimeError(f"Docker incorrectly bind ports for {name}")
 
 
 def _get_base_directory():

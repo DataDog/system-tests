@@ -5,6 +5,7 @@ import urllib.parse
 from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
 
 import grpc
+import pytest
 import requests
 
 from utils.parametric.protos import apm_test_client_pb2 as pb
@@ -195,6 +196,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "span_tags": tags,
             },
         )
+
+        if resp.status_code != 200:
+            raise pytest.fail(f"Failed to start span: {resp.text}", pytrace=False)
+
         resp_json = resp.json()
         return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
 
