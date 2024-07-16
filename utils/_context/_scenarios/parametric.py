@@ -72,6 +72,7 @@ class APMLibraryTestServer:
 
 
 class ParametricScenario(Scenario):
+    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0"
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -137,6 +138,7 @@ class ParametricScenario(Scenario):
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             self._build_apm_test_server_image()
+            self._pull_test_agent_image()
             self._clean_containers()
             self._clean_networks()
 
@@ -152,6 +154,10 @@ class ParametricScenario(Scenario):
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
         return result
+
+    def _pull_test_agent_image(self):
+        logger.stdout("Pulling test agent image...")
+        _get_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self):
         """ some containers may still exists from previous unfinished sessions """
@@ -282,9 +288,8 @@ class ParametricScenario(Scenario):
 
             time.sleep(0.1)
 
-        raise RuntimeError(
-            f"Docker incorrectly bind ports for {name}"
-        )  # if this happen, maybe increase the sleep time?
+        # if this happen, maybe increase the sleep time?
+        raise RuntimeError(f"Docker incorrectly bind ports for {name}")  
 
 
 def _get_base_directory():
@@ -502,7 +507,7 @@ ADD {php_reldir}/server.php .
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
+        volumes={os.path.join(php_absolute_appdir, "server.php"): "/client/server.php"},
         env={},
     )
 
