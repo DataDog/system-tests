@@ -1235,9 +1235,7 @@ class Test_V2_Login_Events_RC:
     def _assert_response(self, test, validation):
         config_states, request = test["config_states"], test["request"]
 
-        for config_state in config_states.values():
-            assert config_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED, config_state
-
+        assert config_states[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert request.status_code == 200
 
         spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
