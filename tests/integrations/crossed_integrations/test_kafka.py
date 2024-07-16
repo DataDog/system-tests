@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.buddies import java_buddy, python_otel_buddy
 from utils.tools import logger
 
@@ -164,6 +164,7 @@ class _Test_Kafka:
         return producer_span, consumer_span
 
 
+@missing_feature(context.weblog == "dotnet")
 @scenarios.crossed_tracing_libraries
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_and_otel
 class Test_Kafka_Otel(_Test_Kafka):
