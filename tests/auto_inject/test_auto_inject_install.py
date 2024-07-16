@@ -11,6 +11,13 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
+@features.host_auto_installation_script
+@scenarios.local_auto_injection_install_script
+class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine)
+
+
 @features.host_auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):

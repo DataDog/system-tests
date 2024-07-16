@@ -815,6 +815,12 @@ class scenarios:
         vm_provision="container-auto-inject-install-script",
     )
 
+    local_auto_injection_install_script = InstallerAutoInjectionScenario(
+        "LOCAL_AUTO_INJECTION_INSTALL_SCRIPT",
+        "Tobe executed locally with krunvm. Installs all the software fron agent installation script, and the replace the apm-library with the uploaded tar file from binaries",
+        vm_provision="local-auto-inject-install-script",
+    )
+
     ##DEPRECATED SCENARIOS: Delete after migration of tracer pipelines + auto_inject pipelines
 
     # Replaced by SIMPLE_INSTALLER_AUTO_INJECTION
