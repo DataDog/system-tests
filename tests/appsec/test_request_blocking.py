@@ -11,7 +11,7 @@ class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 
     def setup_request_blocking(self):
-        command = remote_config.RemoteConfigCommand(version=0)
+        command = remote_config.RemoteConfigCommand()
         command.add_client_config(
             "datadog/2/ASM/ASM-base/config",
             {"rules_override": [{"on_match": ["block"], "rules_target": [{"tags": {"confidence": "1"}}]}]},

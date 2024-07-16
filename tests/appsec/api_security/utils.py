@@ -6,7 +6,7 @@ class BaseAppsecApiSecurityRcTest:
 
     def setup_scenario(self):
         if BaseAppsecApiSecurityRcTest.states is None:
-            command = remote_config.RemoteConfigCommand(version=2)
+            command = remote_config.RemoteConfigCommand()
             command.add_client_config(
                 "datadog/2/ASM/ASM-base/config",
                 {
