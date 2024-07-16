@@ -46,7 +46,7 @@ class Test_RuntimeActivation:
         activation_state = self.config_state["asm_features_activation"]
         # ensure last config was applied
         assert activation_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED, self.config_state
-        assert (self.config_state.state, self.config_state.version) == (rc.ApplyState.ACKNOWLEDGED, self.last_version)
+        assert self.config_state[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_no_appsec_event(self.response_with_deactivated_waf)
         interfaces.library.assert_waf_attack(self.response_with_activated_waf)
 
@@ -68,12 +68,11 @@ class Test_RuntimeDeactivation:
             self.response_with_activated_waf.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
         self.config_state = _send_config(CONFIG_EMPTY)
-        self.last_version = COMMAND.version
         self.response_with_deactivated_waf.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
     def test_asm_features(self):
         # ensure last empty config was applied
-        assert (self.config_state.state, self.config_state.version) == (rc.ApplyState.ACKNOWLEDGED, self.last_version)
+        assert self.config_state[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         for response in self.response_with_deactivated_waf:
             interfaces.library.assert_no_appsec_event(response)
         for response in self.response_with_activated_waf:

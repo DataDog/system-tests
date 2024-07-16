@@ -32,8 +32,8 @@ def _post(path: str, payload) -> None:
     requests.post(f"http://{domain}:11111{path}", data=json.dumps(payload), timeout=30)
 
 
-class ResponseSend(dict):
-    pass
+RC_VERSION = "_ci_global_version"
+RC_STATE = "_ci_state"
 
 
 def send_command(
@@ -61,7 +61,7 @@ def send_command(
 
     client_configs = raw_payload.get("client_configs", [])
 
-    current_states = ResponseSend()
+    current_states = {}
     version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
@@ -73,8 +73,8 @@ def send_command(
             "apply_state": ApplyState.UNKNOWN,
             "apply_error": "<No known response from the library>",
         }
-    current_states.version = command_version
-    current_states.state = ApplyState.UNKNOWN
+    current_states[RC_VERSION] = command_version
+    current_states[RC_STATE] = ApplyState.UNKNOWN
 
     state = {}
 
@@ -85,7 +85,7 @@ def send_command(
             if len(client_configs) == 0:
                 found = state["targets_version"] == command_version and state.get("config_states", []) == []
                 if found:
-                    current_states.state = ApplyState.ACKNOWLEDGED
+                    current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
                 return found
 
             if state["targets_version"] == version:
@@ -97,11 +97,12 @@ def send_command(
                         config_state.update(state)
 
                 if wait_for_acknowledged_status:
-                    for state in current_states.values():
-                        if state["apply_state"] == ApplyState.UNKNOWN:
-                            return False
+                    for key, state in current_states.items():
+                        if key not in (RC_VERSION, RC_STATE):
+                            if state["apply_state"] == ApplyState.UNKNOWN:
+                                return False
 
-                current_states.state = ApplyState.ACKNOWLEDGED
+                current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
                 return True
 
     _post("/unique_command", raw_payload)

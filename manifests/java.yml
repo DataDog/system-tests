@@ -858,6 +858,11 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_RuntimeDeactivation:
+        '*': v0.115.0
+        akka-http: v1.22.0
+        play: v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0

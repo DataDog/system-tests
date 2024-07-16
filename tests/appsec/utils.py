@@ -37,7 +37,7 @@ class BaseFullDenyListTest:
     def assert_protocol_is_respected(self):
         interfaces.library.assert_rc_targets_version_states(targets_version=0, config_states=[])
         interfaces.library.assert_rc_targets_version_states(
-            targets_version=self.states.version,
+            targets_version=self.states[remote_config.RC_VERSION],
             config_states=[
                 {
                     "id": "ASM_DATA-base",
