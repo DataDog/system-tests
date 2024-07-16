@@ -9,7 +9,7 @@ if os.environ.get("DD_TRACE_OTEL_ENABLED", False):
 
     set_tracer_provider(TracerProvider())
 
-    # when using ddtrace instead of otel run command, we need to manually patch otel contribs
+    # when using ddtrace with otel, we need to manually patch otel contribs
     from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
     from opentelemetry.instrumentation.confluent_kafka import ConfluentKafkaInstrumentor
     from opentelemetry.instrumentation.flask import FlaskInstrumentor
