@@ -764,8 +764,9 @@ class SqlServerContainer(SqlDbTestedContainer):
         if not platform.processor().startswith("arm"):
             # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
             # see https://hub.docker.com/_/microsoft-azure-sql-edge
+            # XXX: Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
             healthcheck = {
-                "test": '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
+                "test": '/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
                 "retries": 20,
             }
 
