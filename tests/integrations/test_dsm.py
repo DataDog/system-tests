@@ -432,6 +432,48 @@ class Test_DsmContext_Extraction_Base64:
         )
 
 
+@features.datastreams_monitoring_support_for_manual_checkpoints
+@scenarios.integrations
+class Test_Dsm_Manual_Checkpoint:
+    """ Verify DSM stats points for manual checkpoints """
+
+    def setup_dsm_manual_checkpoint(self):
+        self.produce = weblog.get(
+            f"/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
+        )
+        self.consume = weblog.get(
+            f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
+        )
+
+    # @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
+    def test_dsm_manual_checkpoint(self):
+        assert self.produce.status_code == 200
+        assert "dsm-pathway-ctx-base64" in self.produce.text
+
+        assert self.consume.status_code == 200
+        # assert "dsm-pathway-ctx-base64" in self.produce.text
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
+            "default": {"producer": 5674710414915297150, "consumer": 13847866872847822852,},
+        }
+
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash,
+            parent_hash=0,
+            tags=("direction:out", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams"),
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash,
+            parent_hash=producer_hash,
+            tags=("direction:in", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams"),
+        )
+
+
 class DsmHelper:
     @staticmethod
     def is_tags_included(actual_tags, expected_tags):

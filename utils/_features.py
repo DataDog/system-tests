@@ -2266,3 +2266,13 @@ class features:
         """
         pytest.mark.features(feature_id=309)(test_object)
         return test_object
+
+    @staticmethod
+    def datastreams_monitoring_support_for_manual_checkpoints(test_object):
+        """
+        Ensure DSM Manual Checkpointing API is satisfied
+
+        https://feature-parity.us1.prod.dog/#/?feature=310
+        """
+        pytest.mark.features(feature_id=310)(test_object)
+        return test_object

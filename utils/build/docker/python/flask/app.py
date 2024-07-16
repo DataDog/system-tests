@@ -67,6 +67,8 @@ from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
+from ddtrace.data_streams import set_consume_checkpoint
+from ddtrace.data_streams import set_produce_checkpoint
 
 
 # Patch kombu and urllib3 since they are not patched automatically
@@ -679,6 +681,37 @@ def dsm():
     tracer.data_streams_processor.periodic()
     data_streams_processor().periodic()
     return response
+
+
+@app.route("/dsm/manual/consume")
+def dsm_manual_checkpoint_consume():
+    typ = flask_request.args.get("type")
+    source = flask_request.args.get("source")
+
+    headers = {}
+
+    def getter(k):
+        return headers[k]
+
+    ctx = set_consume_checkpoint(typ, source, getter)
+    return Response(str(ctx))
+
+
+@app.route("/dsm/manual/produce")
+def dsm_manual_checkpoint_produce():
+    typ = flask_request.args.get("type")
+    target = flask_request.args.get("target")
+
+    reset_dsm_context()
+
+    headers = {}
+
+    def setter(k, v):
+        headers[k] = v
+
+    set_produce_checkpoint(typ, target, setter)
+
+    return Response(json.dumps(headers))
 
 
 @app.route("/dsm/inject")
