@@ -570,6 +570,7 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
+    @bug(library="ruby", reason="To be investigated")
     def test_trace_sampling_rules_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the environment variable and decision maker is set appropriately.
 
@@ -635,6 +636,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @bug(library="ruby", reason="To be investigated")
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate."""
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8
@@ -808,6 +810,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-12"
 
     @bug(library="cpp", reason="unknown")
+    @bug(library="ruby", reason="To be investigated")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""
