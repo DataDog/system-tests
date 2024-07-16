@@ -8,7 +8,8 @@ The RC API is the official way to interact with remote config. It allows to buil
 from utils import remote_config
 
 
-command = remote_config.RemoteConfigCommand(version=1)
+# will return the command associated to the current scenario
+command = remote_config.RemoteConfigCommand()
 
 config = {
     "rules_data": [
@@ -21,6 +22,8 @@ config = {
 }
 
 command.add_client_config(f"datadog/2/ASM_DATA-base/ASM_DATA-base/config", config)
+# send the command and wait for the result to be validated by the tracer
+command.send()
 ```
 
 ### API
@@ -29,13 +32,14 @@ command.add_client_config(f"datadog/2/ASM_DATA-base/ASM_DATA-base/config", confi
 
 This class will be serialized as a valid `ClientGetConfigsResponse`.
 
-* constructor `__init__(self, version: int, client_configs=(), expires=None)`
-  * `version: int`: `version` property of `signed` object
-  * `client_configs`[optional]: list of configuration path / config object.
+* constructor `__init__(self, expires=None)`
   * `expires` [optional]: expiration date of the config (default `3000-01-01T00:00:00Z`)
-* `add_client_config(self, path, config) -> ClientConfig:`
+* `add_client_config(self, path, config) -> ClientConfig`
   * `path`: configuration path
   * `config`: config object
+* `del_client_config(self, path) -> ClientConfig`
+  * `path`: configuration path
+* `reset(self) -> ClientConfig`
 * `send()`: send the command using the `send_command` function (see below)
 
 
@@ -67,17 +71,19 @@ class Test_RemoteConfigSequence:
         self.first_request = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
         # this function will send a RC payload to the library, and wait for a confirmation from the library
-        self.config_states_activation = activate_ASM_command.send()
+        self.config_states_activation = command.add_client_config(path, asm_enabled).send()
         self.second_request = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-        # now deactivate the WAF, and check that it does not catch anything
-        self.config_states_deactivation = deactivate_ASM_command.send()
+        # now deactivate the WAF by deleting the RC file, and check that it does not catch anything
+        self.config_states_deactivation = command.del_client_config(path).send()
         self.third_request = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_asm_switch_on_switch_off():
         # first check that both config state are ok, otherwise, next assertions will fail with cryptic messages
         assert self.config_states_activation["asm_features_activation"]["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_states_activation
-        assert self.config_states_deactivation["asm_features_activation"]["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_states_deactivation
+        assert self.config_states_activation.state == remote_config.ApplyState.ACKNOWLEDGED
+        # the config is empty, you can just check for it to be properly acknowledged
+        assert self.config_states_deactivation.state == remote_config.ApplyState.ACKNOWLEDGED
 
         interfaces.library.assert_no_appsec_event(self.first_request)
         interfaces.library.assert_waf_attack(self.second_request)
