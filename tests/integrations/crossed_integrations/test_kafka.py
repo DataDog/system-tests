@@ -164,7 +164,7 @@ class _Test_Kafka:
         return producer_span, consumer_span
 
 
-@missing_feature(context.weblog == "dotnet")
+@missing_feature(context.library.library == "dotnet")
 @scenarios.crossed_tracing_libraries
 @features.kafkaspan_creationcontext_propagation_with_dd_trace_and_otel
 class Test_Kafka_Otel(_Test_Kafka):
