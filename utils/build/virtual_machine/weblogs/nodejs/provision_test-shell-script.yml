@@ -19,12 +19,12 @@ lang_variant:
 
 weblog:
     name: test-shell-script
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64, centos_7_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64, ubuntu18_amd64, amazon_linux2023_amd64, centos_7_amd64]
     install:
       - os_type: linux
         remote-command: |
-          sudo mkdir /opt/datadog/logs_injection && sudo chmod -R 777 /opt/datadog/logs_injection
-          sudo touch /opt/datadog/logs_injection/host_injection.log && sudo chmod 777 /opt/datadog/logs_injection/host_injection.log
+          sudo mkdir /var/log/datadog_weblog && sudo chmod -R 777 /var/log/datadog_weblog
+          sudo touch /var/log/datadog_weblog/host_injection.log && sudo chmod 777 /var/log/datadog_weblog/host_injection.log
           sudo sh -c 'echo "DD_APM_INSTRUMENTATION_DEBUG=TRUE" >> /etc/environment'
-          sudo sh -c 'echo "DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/opt/datadog/logs_injection/host_injection.log" >> /etc/environment'
+          sudo sh -c 'echo "DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/var/log/datadog_weblog/host_injection.log" >> /etc/environment'
           source /etc/environment

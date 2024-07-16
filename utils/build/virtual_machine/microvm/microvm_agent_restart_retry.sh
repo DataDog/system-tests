@@ -20,6 +20,9 @@ if [[ $(echo "$RESPONSE" | grep "microvm") ]]; then
     if [[ $(echo "$RESPONSE_PROCESS" | grep "active (running)") ]] && [[ $(echo "$RESPONSE_TRACE" | grep "active (running)") ]] && [[ $(echo "$RESPONSE_AGENT" | grep "active (running)") ]]; then
         echo "Agent running OK"
         break
+    elif [[ $(echo "$RESPONSE_PROCESS" | grep "is running") ]] && [[ $(echo "$RESPONSE_TRACE" | grep "is running") ]] && [[ $(echo "$RESPONSE_AGENT" | grep "is running") ]]; then
+        echo "Agent running OK"
+        break
     else
         echo "Agent not running"
     fi

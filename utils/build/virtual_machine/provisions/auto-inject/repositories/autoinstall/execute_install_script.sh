@@ -13,7 +13,7 @@ sed  "s/\"7\"/\"$DD_injection_major_version\"/g" install_script_agent7.sh > inst
 sed  "s/-eq 7/== \"$DD_injection_major_version\"/g" install_script_agent7_autoinject_temp.sh > install_script_agent7_autoinject.sh
 chmod 755 install_script_agent7_autoinject.sh
 
-if [ "$1" == "docker" ]; then
+if [ "$DD_APM_INSTRUMENTATION_ENABLED" == "docker" ]; then
     echo "Skipping agent installation in container/docker scenario (Installing only datadog-signing-keys)"
     # shellcheck disable=SC2154
     DD_SITE=$DD_injection_repo_url DD_NO_AGENT_INSTALL=true ./install_script_agent7.sh
