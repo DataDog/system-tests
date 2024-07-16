@@ -11,10 +11,11 @@ class Test_SecurityEvent_Metastruct:
     def setup_security_event_use_metastruct(self):
         self.r = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
 
-    def test_security_event_use_metastruct(self, test_agent):
-        assert test_agent.info()["span_meta_structs"] == True
+    def test_security_event_use_metastruct(self):
+        spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)] 
+        assert spans
 
-        for _, span in interfaces.library.get_root_spans(request=self.r):
+        for span in spans:
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})
             assert meta["appsec.event"] == "true"
