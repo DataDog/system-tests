@@ -15,7 +15,7 @@
     echo "Adding new data to /etc/ld.so.preload"
     sudo bash -c "echo /usr/local/lib/main.so >> /etc/ld.so.preload"
     echo "Done"
-#TODO REMOVEME
+
 - os_type: linux
   os_distro: rpm
 
