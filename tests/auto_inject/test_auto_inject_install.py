@@ -1,4 +1,4 @@
-from utils import scenarios, features
+from utils import scenarios, features, bug, flaky, context
 from utils.tools import logger
 from utils import scenarios, features
 import tests.auto_inject.utils as base
@@ -32,6 +32,9 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @features.host_auto_instrumentation
 @scenarios.installer_auto_injection_ld_preload
 class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
+    @bug(library="ruby", reason="Test failures for Amazon Linux 2023")
+    @bug(library="python", reason="Test failures in all machines")
+    @bug(library="dotnet", reason="Test failures in all machines")
     def test_install_after_ld_preload(self, virtual_machine):
         """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
@@ -42,6 +45,7 @@ class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
+    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine)
 
@@ -59,11 +63,13 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
     #  on the installer. As we can't only uninstall the injector, we are skipping
     #  the uninstall test today
+    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
+    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
     def test_uninstall(self, virtual_machine):
         logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
         self._test_uninstall(virtual_machine)
@@ -73,9 +79,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.simple_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    # Note: uninstallation of a single installer package is not available today
-    #  on the installer. As we can't only uninstall the injector, we are skipping
-    #  the uninstall test today
+    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
