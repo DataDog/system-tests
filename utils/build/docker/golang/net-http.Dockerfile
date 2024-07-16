@@ -1,4 +1,4 @@
-FROM golang:1.21
+FROM golang:1.21 AS build
 
 # print important lib versions
 RUN go version && curl --version
@@ -18,13 +18,24 @@ COPY utils/build/docker/golang/app /app
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-ENV DD_TRACE_HEADER_TAGS='user-agent'
 
 RUN go build -v -tags appsec -o weblog ./net-http
 
+# ==============================================================================
+
+FROM golang:1.21
+
+COPY --from=build /app/weblog /app/weblog
+COPY --from=build /app/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_VERSION
+COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+
+WORKDIR /app
+
+ENV DD_TRACE_HEADER_TAGS='user-agent'
 ENV DD_DATA_STREAMS_ENABLED=true
 
-RUN echo "#!/bin/bash\n./weblog" > app.sh
+RUN printf "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 
