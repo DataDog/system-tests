@@ -445,6 +445,9 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
+      Test_Dsm_Manual_Checkpoint:
+        '*': irrelevant
+        express4: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature

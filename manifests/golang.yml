@@ -411,6 +411,9 @@ tests/:
       Test_DsmSQS:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+      Test_Dsm_Manual_Checkpoint:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature

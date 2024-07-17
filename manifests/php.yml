@@ -230,6 +230,7 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
+      Test_Dsm_Manual_Checkpoint: missing_feature
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0

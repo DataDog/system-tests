@@ -269,6 +269,7 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
       Test_DsmSNS: missing_feature
       Test_DsmSQS: v2.48.0
+      Test_Dsm_Manual_Checkpoint: missing_feature
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature

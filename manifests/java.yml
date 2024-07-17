@@ -1005,6 +1005,9 @@ tests/:
       Test_DsmSQS:
         "*": irrelevant
         spring-boot: v0.1 # real version not known
+      Test_Dsm_Manual_Checkpoint:
+        '*': irrelevant
+        spring-boot: missing_feature
     test_mongo.py:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:

@@ -304,6 +304,9 @@ tests/:
       Test_DsmSQS:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
+      Test_Dsm_Manual_Checkpoint:
+        '*': irrelevant
+        rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: v2.0.0
