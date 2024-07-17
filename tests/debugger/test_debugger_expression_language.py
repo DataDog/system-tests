@@ -255,10 +255,111 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/strings?strValue=verylongstring")
 
     @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
+        self.assert_all_states_not_error()
+        self.assert_all_probes_are_installed()
+        self.assert_all_weblog_responses_ok()
+
+        self._validate_expression_language_messages(self.message_map)
+
+    def setup_expression_language_collection_operations(self):
+        message_map, probes = self._create_expression_probes(
+            methodName="StringOperations",
+            expressions=[
+                ### at the app there are 3 types of collections are created - array, list and hash.
+                ### the number at the end of variable means the length of the collection
+                ### all collection are filled with incremented number values (e.g at the [0] = 0; [1] = 1)
+                ##### len
+                ["Array0 len", 0, Dsl("len", Dsl("ref", "a0"))],
+                ["Array1 len", 1, Dsl("len", Dsl("ref", "a1"))],
+                ["Array5 len", 5, Dsl("len", Dsl("ref", "a5"))],
+                ["List0 len", 0, Dsl("len", Dsl("ref", "l0"))],
+                ["List1 len", 1, Dsl("len", Dsl("ref", "l1"))],
+                ["List5 len", 5, Dsl("len", Dsl("ref", "l5"))],
+                ["Hash0 len", 0, Dsl("len", Dsl("ref", "h0"))],
+                ["Hash1 len", 1, Dsl("len", Dsl("ref", "h1"))],
+                ["Hash5 len", 5, Dsl("len", Dsl("ref", "h5"))],
+                ##### index
+                ["Array5 index 4", 4, Dsl("index", [Dsl("ref", "a5"), 4])],
+                ["List5 index 4", 4, Dsl("index", [Dsl("ref", "l5"), 4])],
+                ["Hash5 index 4", 4, Dsl("index", [Dsl("ref", "h5"), "4"])],
+                ##### any
+                ["Array0 any gt 1", False, Dsl("any", [Dsl("ref", "a0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ["Array1 any gt 1", False, Dsl("any", [Dsl("ref", "a1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ["Array5 any gt 1", True, Dsl("any", [Dsl("ref", "a5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ["List0 any gt 1", False, Dsl("any", [Dsl("ref", "l0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ["List1 any gt 1", False, Dsl("any", [Dsl("ref", "l1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ["List5 any gt 1", True, Dsl("any", [Dsl("ref", "l5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ["Hash0 any gt 1", False, Dsl("any", [Dsl("ref", "h0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ["Hash1 any gt 1", False, Dsl("any", [Dsl("ref", "h1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ["Hash5 any gt 1", True, Dsl("any", [Dsl("ref", "h5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ##### all
+                ["Array0 all ge 0", True, Dsl("all", [Dsl("ref", "a0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["Array1 all ge 0", True, Dsl("all", [Dsl("ref", "a1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["Array5 all ge 1", False, Dsl("all", [Dsl("ref", "a5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
+                ["List0 all ge 0", True, Dsl("all", [Dsl("ref", "l0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["List1 all ge 0", True, Dsl("all", [Dsl("ref", "l1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["List5 all ge 1", False, Dsl("all", [Dsl("ref", "l5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
+                ["Hash0 all ge 0", True, Dsl("all", [Dsl("ref", "h0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["Hash1 all ge 0", True, Dsl("all", [Dsl("ref", "h1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["Hash5 all ge 1", False, Dsl("all", [Dsl("ref", "h5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
+                ##### filter
+                [
+                    "Array0 len filter lt 2",
+                    0,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "a0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "Array1 len filter lt 2",
+                    1,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "a1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "Array5 len filter lt 2",
+                    2,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "a5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "List0 len filter lt 2",
+                    0,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "l0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "List1 len filter lt 2",
+                    1,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "l1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "List5 len filter lt 2",
+                    2,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "l5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "Hash0 len filter lt 2",
+                    0,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "h0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "Hash1 len filter lt 2",
+                    1,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "h1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "Hash5 len filter lt 2",
+                    2,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "h5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+            ],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/collections")
+
+    @bug(library="dotnet", reason="DEBUG-2602")
+    @bug(library="java", reason="DEBUG-2603")
+    def test_expression_language_collection_operations(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
