@@ -232,6 +232,7 @@ class DockerScenario(Scenario):
         scenario_groups=None,
         use_proxy=True,
         rc_api_enabled=False,
+        meta_structs_disabled=False,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -246,6 +247,7 @@ class DockerScenario(Scenario):
 
         self.use_proxy = use_proxy
         self.rc_api_enabled = rc_api_enabled
+        self.meta_structs_disabled = False
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
@@ -254,7 +256,7 @@ class DockerScenario(Scenario):
 
         if self.use_proxy:
             self._required_containers.append(
-                ProxyContainer(host_log_folder=self.host_log_folder, rc_api_enabled=rc_api_enabled)
+                ProxyContainer(host_log_folder=self.host_log_folder, rc_api_enabled=rc_api_enabled, meta_structs_disabled=meta_structs_disabled)
             )  # we want the proxy being the first container to start
 
         if include_postgres_db:
@@ -345,6 +347,7 @@ class EndToEndScenario(DockerScenario):
         agent_interface_timeout=5,
         use_proxy=True,
         rc_api_enabled=False,
+        meta_structs_disabled=False,
         backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
@@ -367,6 +370,7 @@ class EndToEndScenario(DockerScenario):
             scenario_groups=scenario_groups,
             use_proxy=use_proxy,
             rc_api_enabled=rc_api_enabled,
+            meta_structs_disabled=meta_structs_disabled,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
