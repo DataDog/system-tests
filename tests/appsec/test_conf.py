@@ -79,6 +79,9 @@ class Test_ConfigurationVariables:
     @scenarios.appsec_disabled
     def test_disabled(self):
         """ test DD_APPSEC_ENABLED = false """
+        spans = [s for _, s in interfaces.library.get_root_spans(self.r_disabled)]
+        assert spans, "No span to validate"
+        assert spans[0]["metrics"].get("_dd.appsec.enabled") is None
         interfaces.library.assert_no_appsec_event(self.r_disabled)
 
     def setup_appsec_rules(self):
@@ -96,11 +99,12 @@ class Test_ConfigurationVariables:
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
     @missing_feature(context.library < "java@0.113.0")
-    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
-    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """ test DD_APPSEC_WAF_TIMEOUT = low value """
+        spans = [s for _, s in interfaces.library.get_root_spans(self.r_waf_timeout)]
+        assert spans, "No span to validate"
+        assert spans[0]["metrics"].get("_dd.appsec.enabled") == 1
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_obfuscation_parameter_key(self):
