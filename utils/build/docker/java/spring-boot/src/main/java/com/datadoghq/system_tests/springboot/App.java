@@ -689,7 +689,7 @@ public class App {
                 System.out.println("Before setProduceCheckpoint: " + headers.getData());
 
                 dsmCheckpointer.setProduceCheckpoint(type, target, headers);
-                
+
                 System.out.println("After setProduceCheckpoint: " + headers.getData());
 
                 // Convert headers map to JSON string
@@ -703,7 +703,7 @@ public class App {
         ExecutorService executor = Executors.newFixedThreadPool(1);
         Future<String> dsmProduceFuture = executor.submit(new DsmProduce());
         String injectedHeaders = dsmProduceFuture.get();
-        
+
         System.out.println("After thread completion: " + injectedHeaders);
 
         return injectedHeaders;

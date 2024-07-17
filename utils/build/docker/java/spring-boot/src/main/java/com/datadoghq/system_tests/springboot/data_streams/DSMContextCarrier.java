@@ -18,12 +18,12 @@ public class DSMContextCarrier implements DataStreamsContextCarrier {
     public DSMContextCarrier(Map<String, Object> data) {
       this.data = data;
     }
-  
+
     @Override
     public synchronized Set<Map.Entry<String, Object>> entries() {
       return data.entrySet();
     }
-  
+
     @Override
     public synchronized void set(String key, String value) {
       data.put(key, value);
