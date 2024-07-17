@@ -574,6 +574,13 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_meta_struct_disabled = EndToEndScenario(
+        "APPSEC_META_STRUCT_DISABLED",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true", "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": "true"},
+        doc="Appsec tests with support for meta struct disabled in the agent configuration",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     # Remote config scenarios
     # library timeout is set to 100 seconds
     # default polling interval for tracers is very low (5 seconds)

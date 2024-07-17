@@ -49,3 +49,46 @@ class Test_SecurityEvent_Metastruct:
 
             # There is at least one vulnerability detected
             assert len(meta_struct["appsec"].get("vulnerabilities", [])) > 0
+
+    def setup_appsec_event_fallback_json(self):
+        self.r = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
+
+    @scenarios.appsec_meta_struct_disabled
+    def test_appsec_event_fallback_json(self):
+        spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)]
+        assert spans
+
+        for span in spans:
+            meta = span.get("meta", {})
+            meta_struct = span.get("meta_struct", {})
+            assert meta["appsec.event"] == "true"
+            assert "_dd.appsec.json" in meta
+            assert "appsec" not in meta_struct
+
+            # The event is not null
+            assert meta.get("_dd.appsec.json", {}) not in [None, {}]
+
+            # There is at least one rule triggered
+            assert len(meta["_dd.appsec.json"].get("triggers", [])) > 0
+
+    def setup_iast_event_fallback_json(self):
+        # Using this vulnerability because that's one that is implemented in all tracers
+        self.r = weblog.get("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})
+
+    @scenarios.appsec_meta_struct_disabled
+    def test_iast_event_fallback_json(self):
+        spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)]
+        assert spans
+
+        for span in spans:
+            meta = span.get("meta", {})
+            meta_struct = span.get("meta_struct", {})
+            assert meta["_dd.iast.enabled"] == "1"
+            assert "_dd.iast.json" in meta
+            assert "iast" not in meta_struct
+
+            # The event is not null
+            assert meta.get("_dd.iast.json", {}) not in [None, {}]
+
+            # There is at least one vulnerability detected
+            assert len(meta["_dd.iast.json"].get("vulnerabilities", [])) > 0
