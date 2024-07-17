@@ -454,9 +454,8 @@ class EndToEndScenario(DockerScenario):
 
         self._container_dependencies[self.weblog_container] = []
         self._container_dependencies[self.weblog_container].append(self.agent_container)
-
-        for container in self._supporting_containers:
-            self._container_dependencies[self.weblog_container].append(container)
+        self._container_dependencies[self.weblog_container].extend(self.buddies)
+        self._container_dependencies[self.weblog_container].extend(self._supporting_containers)
 
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
@@ -485,9 +484,7 @@ class EndToEndScenario(DockerScenario):
             for buddy in self.buddies:
                 self._container_dependencies[buddy] = []
                 self._container_dependencies[buddy].append(self.agent_container)
-
-                for container in self._supporting_containers:
-                    self._container_dependencies[buddy].append(container)
+                self._container_dependencies[buddy].extend(self._supporting_containers)
 
             self._required_containers += self.buddies
 
