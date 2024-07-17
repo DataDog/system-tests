@@ -307,6 +307,18 @@ function initRoutes (app, tracer) {
     res.send(`OK:${randomBytes}`)
   })
 
+  app.post('/iast/code_injection/test_insecure', (req, res) => {
+    // eslint-disable-next-line no-eval
+    eval(req.body.code)
+    res.send('OK')
+  })
+
+  app.post('/iast/code_injection/test_secure', (req, res) => {
+    // eslint-disable-next-line no-eval
+    eval('1+2')
+    res.send('OK')
+  })
+
   require('./sources')(app, tracer)
 }
 

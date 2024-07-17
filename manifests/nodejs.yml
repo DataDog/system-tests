@@ -66,6 +66,8 @@ tests/:
         Test_Schema_Response_Headers: *ref_4_21_0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0

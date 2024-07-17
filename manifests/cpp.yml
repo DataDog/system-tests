@@ -11,6 +11,7 @@ tests/:
       test_schemas.py: irrelevant (ASM is not implemented in C++)
     iast/:
       sink/:
+        test_code_injection.py: irrelevant (ASM is not implemented in C++)
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
