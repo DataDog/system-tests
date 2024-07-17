@@ -9,6 +9,7 @@ import time
 from typing import Dict, Generator, List, TextIO, TypedDict
 import urllib.parse
 
+from docker.models.containers import Container
 import requests
 import pytest
 
@@ -380,7 +381,7 @@ def docker_run(
     container_port: int,
     log_file: TextIO,
     network_name: str,
-) -> Generator[None, None, None]:
+) -> Generator[Container, None, None]:
 
     # Run the docker container
     logger.info(f"Starting {name}")
@@ -397,7 +398,7 @@ def docker_run(
     )
 
     try:
-        yield
+        yield container
     finally:
         logger.info(f"Stopping {name}")
         container.stop(timeout=1)
@@ -583,8 +584,9 @@ def test_server(
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
         network_name=docker_network,
-    ):
+    ) as container:
         logger.debug(f"Test server {apm_test_server.container_name} started on host port {apm_test_server.host_port}")
+        apm_test_server.container = container
         yield apm_test_server
 
 
@@ -598,7 +600,9 @@ def test_library(test_server: APMLibraryTestServer) -> Generator[APMLibrary, Non
     if test_server.protocol == "grpc":
         client = APMLibraryClientGRPC(f"localhost:{test_server.host_port}", test_server_timeout)
     elif test_server.protocol == "http":
-        client = APMLibraryClientHTTP(f"http://localhost:{test_server.host_port}", test_server_timeout)
+        client = APMLibraryClientHTTP(
+            f"http://localhost:{test_server.host_port}", test_server_timeout, test_server.container
+        )
     else:
         raise ValueError(f"Interface {test_server.protocol} not supported")
     tracer = APMLibrary(client, test_server.lang)

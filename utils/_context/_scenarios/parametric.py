@@ -70,6 +70,8 @@ class APMLibraryTestServer:
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: Dict[str, str] = dataclasses.field(default_factory=dict)
 
+    container: Container = None
+
 
 class ParametricScenario(Scenario):
     TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0"
