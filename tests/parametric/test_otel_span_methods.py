@@ -846,7 +846,7 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(context.library < "golang@1.66.0", reason="Implemented in v1.66.0")
+    @missing_feature(context.library <= "golang@1.66.0", reason="Implemented in v1.67.0")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
