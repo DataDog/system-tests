@@ -228,8 +228,22 @@ class AWSCommander(Commander):
         return last_task
 
     def remote_command(
-        self, vm, installation_id, remote_command, env, connection, last_task, logger_name=None, output_callback=None
+        self,
+        vm,
+        installation_id,
+        remote_command,
+        env,
+        connection,
+        last_task,
+        logger_name=None,
+        output_callback=None,
+        populate_env=True,
     ):
+        if not populate_env:
+            ##error: Unable to set 'DD_env'. This only works if your SSH server is configured to accept
+            logger.debug(f"No populate environment variables for installation id: {installation_id} ")
+            env = {}
+
         cmd_exec_install = command.remote.Command(
             f"-{vm.name}-{installation_id}",
             connection=connection,
