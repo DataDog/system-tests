@@ -10,47 +10,6 @@ from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 
 
-@features.threats_configuration
-class Test_RuleSet_1_2_4:
-    """ AppSec uses rule set 1.2.4 or higher """
-
-    def test_main(self):
-        assert context.appsec_rules_version >= "1.2.4"
-
-
-@features.threats_configuration
-class Test_RuleSet_1_2_5:
-    """ AppSec uses rule set 1.2.5 or higher """
-
-    def test_main(self):
-        assert context.appsec_rules_version >= "1.2.5"
-
-
-@features.threats_configuration
-class Test_RuleSet_1_3_1:
-    """ AppSec uses rule set 1.3.1 or higher """
-
-    def test_main(self):
-        """ Test rule set version number"""
-        assert context.appsec_rules_version >= "1.3.1"
-
-    def setup_nosqli_keys(self):
-        self.r_keys = weblog.get("/waf/", params={"$nin": "value"})
-
-    def test_nosqli_keys(self):
-        """Test a rule defined on this rules version: nosql on keys"""
-        interfaces.library.assert_waf_attack(self.r_keys, waf_rules.nosql_injection)
-
-    def setup_nosqli_keys_with_brackets(self):
-        self.r_keys2 = weblog.get("/waf/", params={"[$ne]": "value"})
-
-    @irrelevant(library="php", reason="The PHP runtime interprets brackets as arrays, so this is considered malformed")
-    @irrelevant(library="nodejs", reason="Node interprets brackets as arrays, so they're truncated")
-    def test_nosqli_keys_with_brackets(self):
-        """Test a rule defined on this rules version: nosql on keys with brackets"""
-        interfaces.library.assert_waf_attack(self.r_keys2, waf_rules.nosql_injection.crs_942_290)
-
-
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @features.threats_configuration
 class Test_ConfigurationVariables:

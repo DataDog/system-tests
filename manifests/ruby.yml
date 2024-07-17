@@ -196,8 +196,6 @@ tests/:
       Test_Suspicious_Request_Blocking: missing_feature (v1.0.0 but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.8.0
-    test_conf.py:
-      Test_RuleSet_1_3_1: v1.0.0
     test_customconf.py:
       Test_ConfRuleSet: v1.0.0.beta2
       Test_CorruptedRules: v1.0.0.beta2

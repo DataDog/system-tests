@@ -417,9 +417,6 @@ tests/:
       Test_ConfigurationVariables:
         '*': v1.1.2
         fastapi: v2.4.0.dev1
-      Test_RuleSet_1_3_1:
-        '*': v1.2.1
-        fastapi: v2.4.0.dev1
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0rc2.dev
       Test_NoLimitOnWafRules: v1.1.0rc2.dev

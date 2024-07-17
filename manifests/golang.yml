@@ -281,8 +281,6 @@ tests/:
       Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
-    test_conf.py:
-      Test_RuleSet_1_3_1: v1.38.0
     test_customconf.py:
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:

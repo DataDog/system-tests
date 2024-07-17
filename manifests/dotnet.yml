@@ -190,8 +190,6 @@ tests/:
       Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
-    test_conf.py:
-      Test_RuleSet_1_3_1: v2.7.0
     test_customconf.py:
       Test_NoLimitOnWafRules: v2.4.4
     test_event_tracking.py:
