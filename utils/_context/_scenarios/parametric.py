@@ -293,6 +293,11 @@ class ParametricScenario(Scenario):
                 return container
             except APIError:
                 logger.exception(f"Failed to run container {name}, retrying...")
+
+                # at this point, even if it failed to start, the container may exists!
+                for container in _get_client().containers.list(filters={"name": name}, all=True):
+                    container.remove(force=True)
+
                 time.sleep(0.5)  # give some to time to docker daemon to free resources
                 attempt -= 1
 
