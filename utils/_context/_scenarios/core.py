@@ -251,40 +251,42 @@ class DockerScenario(Scenario):
             raise ValueError("rc_api_enabled requires use_proxy")
 
         self._required_containers: list[TestedContainer] = []
+        self._supporting_containers: list[TestedContainer] = []
+        self._container_dependencies: dict[TestedContainer, list[TestedContainer]] = {}
 
         if self.use_proxy:
-            self._required_containers.append(
-                ProxyContainer(host_log_folder=self.host_log_folder, rc_api_enabled=rc_api_enabled)
-            )  # we want the proxy being the first container to start
+            self.proxy_container = ProxyContainer(host_log_folder=self.host_log_folder, rc_api_enabled=rc_api_enabled)
+            self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
-            self._required_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
 
         if include_mongo_db:
-            self._required_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
 
         if include_cassandra_db:
-            self._required_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
 
         if include_kafka:
-            # kafka requires zookeeper
-            self._required_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
-            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
 
         if include_rabbitmq:
-            self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
 
         if include_mysql_db:
-            self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
         if include_sqlserver:
-            self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
         if include_elasticmq:
-            self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
         if include_localstack:
-            self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+        self._required_containers.extend(self._supporting_containers)
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         return [
@@ -317,26 +319,28 @@ class DockerScenario(Scenario):
 
         return warmups
 
-    # Build a tree of dependencies between containers and then start the
-    # containers in the right order and in parallel if possible.
     def _start_containers(self):
-        dependencies = self._get_dependencies()
+        """ 
+        Start the containers in the right order according to their dependencies
+        and in parallel when possible.
+        """
         threads = {}
 
         for container in self._required_containers:
-            self._start_container(container, dependencies, threads)
+            self._start_container(container, threads)
 
         for thread in threads.values():
             thread.join()
 
-    # Start a single container in a thread and wait for its dependencies if it
-    # has any. Also starts the containers it depends on if they are not already
-    # started.
-    def _start_container(self, container, dependencies, threads):
+    def _start_container(self, container, threads):
+        """ 
+        Wait for a container dependencies to be started and start them if they
+        are not already started, and then start the container.
+        """
         if threads.get(container):
             return threads.get(container)
 
-        self._start_dependencies(container, dependencies, threads)
+        self._start_dependencies(container, threads)
 
         thread = Thread(target=container.start)
         thread.start()
@@ -344,37 +348,19 @@ class DockerScenario(Scenario):
 
         return thread
 
-    # Start any dependencies of a container and block until all dependencies
-    # are done starting.
-    def _start_dependencies(self, container, dependencies, threads):
+    def _start_dependencies(self, container, threads):
+        """
+        Start any dependencies of a container and block until all dependencies
+        are done starting.
+        """
         dependency_threads = []
 
-        for dependency in dependencies[container]:
-            thread = self._start_container(dependency, dependencies, threads)
+        for dependency in self._container_dependencies.get(container, []):
+            thread = self._start_container(dependency, threads)
             dependency_threads.append(thread)
 
         for thread in dependency_threads:
             thread.join()
-
-    # Get a map of containers to their dependencies.
-    def _get_dependencies(self):
-        dependencies = {}
-        image_containers = {}
-
-        for container in self._required_containers:
-            containers = image_containers.get(container.__class__, [])
-            containers.append(container)
-
-            image_containers[container.__class__] = containers
-
-            dependencies[container] = []
-
-        for container in self._required_containers:
-            for dependency in container.depends_on:
-                for dependency_container in image_containers.get(dependency, []):
-                    dependencies[container].append(dependency_container)
-
-        return dependencies
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -436,6 +422,10 @@ class EndToEndScenario(DockerScenario):
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
+        self._container_dependencies[self.agent_container] = []
+
+        if self.use_proxy:
+            self._container_dependencies[self.agent_container].append(self.proxy_container)
 
         weblog_env = dict(weblog_env) if weblog_env else {}
         weblog_env.update(
@@ -462,6 +452,12 @@ class EndToEndScenario(DockerScenario):
             use_proxy=use_proxy,
         )
 
+        self._container_dependencies[self.weblog_container] = []
+        self._container_dependencies[self.weblog_container].append(self.agent_container)
+
+        for container in self._supporting_containers:
+            self._container_dependencies[self.weblog_container].append(container)
+
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         self._required_containers.append(self.agent_container)
@@ -485,6 +481,13 @@ class EndToEndScenario(DockerScenario):
                 )
                 for language, port in supported_languages
             ]
+
+            for buddy in self.buddies:
+                self._container_dependencies[buddy] = []
+                self._container_dependencies[buddy].append(self.agent_container)
+
+                for container in self._supporting_containers:
+                    self._container_dependencies[buddy].append(container)
 
             self._required_containers += self.buddies
 
