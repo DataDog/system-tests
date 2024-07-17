@@ -215,7 +215,6 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
         self._validate_expression_language_messages(self.message_map)
 
-    @bug(library="dotnet", reason="DEBUG-2560")
     def setup_expression_language_string_operations(self):
 
         message_map, probes = self._create_expression_probes(
@@ -259,6 +258,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/strings?strValue=verylongstring")
 
+    @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
