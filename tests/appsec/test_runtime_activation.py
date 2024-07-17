@@ -14,15 +14,13 @@ from utils import weblog
 CONFIG_EMPTY = None  # Empty config to reset the state at test setup
 CONFIG_ENABLED = {"asm": {"enabled": True}}
 
-COMMAND = rc.RemoteConfigCommand()
-
 
 def _send_config(config):
     if config is not None:
-        COMMAND.add_client_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
+        rc.rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
     else:
-        COMMAND.del_client_config("datadog/2/ASM_FEATURES/asm_features_activation/config")
-    return COMMAND.send()
+        rc.rc_state.del_config("datadog/2/ASM_FEATURES/asm_features_activation/config")
+    return rc.rc_state.apply()[rc.RC_STATE]
 
 
 @scenarios.appsec_runtime_activation
@@ -39,14 +37,12 @@ class Test_RuntimeActivation:
         _send_config(CONFIG_EMPTY)
         self.response_with_deactivated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
         self.config_state = _send_config(CONFIG_ENABLED)
-        self.last_version = COMMAND.version
+        self.last_version = rc.rc_state.version
         self.response_with_activated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_asm_features(self):
-        activation_state = self.config_state["asm_features_activation"]
         # ensure last config was applied
-        assert activation_state["apply_state"] == rc.ApplyState.ACKNOWLEDGED, self.config_state
-        assert self.config_state[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_no_appsec_event(self.response_with_deactivated_waf)
         interfaces.library.assert_waf_attack(self.response_with_activated_waf)
 
@@ -59,20 +55,21 @@ class Test_RuntimeDeactivation:
     def setup_asm_features(self):
         self.response_with_activated_waf = []
         self.response_with_deactivated_waf = []
+        self.config_states = []
         # deactivate and activate ASM 4 times
         for _ in range(4):
-            _send_config(CONFIG_EMPTY)
+            self.config_states.append(_send_config(CONFIG_EMPTY))
             self.response_with_deactivated_waf.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
-            _send_config(CONFIG_ENABLED)
+            self.config_states.append(_send_config(CONFIG_ENABLED))
             self.response_with_activated_waf.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
-        self.config_state = _send_config(CONFIG_EMPTY)
+        self.config_states.append(_send_config(CONFIG_EMPTY))
         self.response_with_deactivated_waf.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
     def test_asm_features(self):
         # ensure last empty config was applied
-        assert self.config_state[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert all(s == rc.ApplyState.ACKNOWLEDGED for s in self.config_states)
         for response in self.response_with_deactivated_waf:
             interfaces.library.assert_no_appsec_event(response)
         for response in self.response_with_activated_waf:

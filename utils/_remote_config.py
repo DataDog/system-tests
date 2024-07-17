@@ -253,7 +253,7 @@ class ClientConfig:
         return f"""({self.path!r}, {self.raw_deserialized!r}, {self.config_file_version})"""
 
 
-class RemoteConfigCommand:
+class _RemoteConfigState:
     """
     https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph
     https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/remoteconfig/remoteconfig.proto#L180
@@ -269,22 +269,20 @@ class RemoteConfigCommand:
             "e1e81e779c5b536304fe568173c9c0e9125b17c84ce8a58a907bb2f27e7d890b",
         }
     ]
-    _store: dict[str, "RemoteConfigCommand"] = {}
+    _uniq = True
 
-    def __new__(cls, expires=None) -> "RemoteConfigCommand":
-        scenario = context.scenario.name
-        if scenario in cls._store:
-            return cls._store[scenario]
-        obj = super().__new__(cls)
-        cls._store[scenario] = obj
-        obj.targets = {}
-        obj.version = 0
-        obj.expires = expires or RemoteConfigCommand.expires
-        obj.opaque_backend_state = base64.b64encode(obj.backend_state.encode("utf-8")).decode("utf-8")
-        return obj
+    def __init__(self, expires: str | None = None) -> None:
+        if _RemoteConfigState._uniq:
+            _RemoteConfigState._uniq = False
+        else:
+            raise RuntimeError("Only one instance of _RemoteConfigState can be created")
+        self.targets: dict[str, ClientConfig] = {}
+        self.version: int = 0
+        self.expires: str = expires or _RemoteConfigState.expires
+        self.opaque_backend_state = base64.b64encode(self.backend_state.encode("utf-8")).decode("utf-8")
 
-    def add_client_config(self, path, config, config_file_version=None) -> "RemoteConfigCommand":
-        """Add a file"""
+    def set_config(self, path, config, config_file_version=None) -> "_RemoteConfigState":
+        """Set a file in current state."""
         client_config = ClientConfig(
             path=path,
             config=config,
@@ -293,14 +291,14 @@ class RemoteConfigCommand:
         self.targets[path] = client_config
         return self
 
-    def del_client_config(self, path) -> "RemoteConfigCommand":
-        """Remove a file"""
+    def del_config(self, path) -> "_RemoteConfigState":
+        """Remove a file in current state."""
         if path in self.targets:
             del self.targets[path]
         return self
 
-    def reset(self) -> "RemoteConfigCommand":
-        """Remove all files"""
+    def reset(self) -> "_RemoteConfigState":
+        """Remove all files."""
         self.targets.clear()
         return self
 
@@ -335,9 +333,12 @@ class RemoteConfigCommand:
 
         return result
 
-    def send(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
+    def apply(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
         self.version += 1
         command = self.to_payload()
         return send_command(
             command, wait_for_acknowledged_status=wait_for_acknowledged_status, command_version=self.version
         )
+
+
+rc_state = _RemoteConfigState()

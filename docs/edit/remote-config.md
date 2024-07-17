@@ -9,7 +9,7 @@ from utils import remote_config
 
 
 # will return the command associated to the current scenario
-command = remote_config.RemoteConfigCommand()
+rc_state = remote_config.rc_state
 
 config = {
     "rules_data": [
@@ -21,27 +21,25 @@ config = {
     ]
 }
 
-command.add_client_config(f"datadog/2/ASM_DATA-base/ASM_DATA-base/config", config)
-# send the command and wait for the result to be validated by the tracer
-command.send()
+rc_state.set_config(f"datadog/2/ASM_DATA-base/ASM_DATA-base/config", config)
+# send the state to the tracer and wait for the result to be validated
+command.apply()
 ```
 
 ### API
 
-#### class `remote_config.RemoteConfigCommand`
+#### object `remote_config.rc_state`
 
-This class will be serialized as a valid `ClientGetConfigsResponse`.
-
-* constructor `__init__(self, expires=None)`
-  * `expires` [optional]: expiration date of the config (default `3000-01-01T00:00:00Z`)
-* `add_client_config(self, path, config) -> ClientConfig`
+* `set_config(self, path, config) -> ClientConfig`
   * `path`: configuration path
   * `config`: config object
-* `del_client_config(self, path) -> ClientConfig`
+* `del_config(self, path) -> ClientConfig`
   * `path`: configuration path
 * `reset(self) -> ClientConfig`
-* `send()`: send the command using the `send_command` function (see below)
+* `apply()`: send the state using the `send_command` function (see below)
 
+Remember that the state is shared among all tests of a scenario. 
+You may need to reset it and apply at the start of each setup.
 
 ## Sending command
 
