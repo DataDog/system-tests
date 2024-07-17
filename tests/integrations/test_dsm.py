@@ -441,6 +441,9 @@ class Test_Dsm_Manual_Checkpoint:
         self.produce = weblog.get(
             f"/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
         )
+        import time
+
+        time.sleep(20)
         self.consume = weblog.get(
             f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue&headers={self.produce.text}",
             timeout=DSM_REQUEST_TIMEOUT,
@@ -456,7 +459,6 @@ class Test_Dsm_Manual_Checkpoint:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    # @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_manual_checkpoint(self):
         self.produce.text = json.loads(self.produce.text)
 

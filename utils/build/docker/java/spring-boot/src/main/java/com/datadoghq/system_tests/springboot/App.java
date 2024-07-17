@@ -4,6 +4,7 @@ import com.datadoghq.system_tests.springboot.aws.KinesisConnector;
 import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 import com.datadoghq.system_tests.springboot.Carrier;
+import com.datadoghq.system_tests.springboot.data_streams.DSMContextCarrier;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
@@ -79,6 +80,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
@@ -649,6 +655,104 @@ public class App {
         span.finish();
 
         return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/produce")
+    String dsmManualCheckpointProduce(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "target") String target
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        DSMContextCarrier headers = new DSMContextCarrier();
+
+        DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+
+        dsmCheckpointer.setProduceCheckpoint(type, target, headers);
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(headers.getData());
+
+        return jsonString;
+    }
+
+    @RequestMapping("/dsm/manual/produce_with_thread")
+    String dsmManualCheckpointProduceWithThread(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "target") String target
+    ) throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
+        class DsmProduce implements Callable<String> {
+            @Override
+            public String call() throws com.fasterxml.jackson.core.JsonProcessingException, java.util.concurrent.ExecutionException {
+                DSMContextCarrier headers = new DSMContextCarrier();
+                DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+
+                System.out.println("Before setProduceCheckpoint: " + headers.getData());
+
+                dsmCheckpointer.setProduceCheckpoint(type, target, headers);
+                
+                System.out.println("After setProduceCheckpoint: " + headers.getData());
+
+                // Convert headers map to JSON string
+                ObjectMapper mapper = new ObjectMapper();
+                String jsonString = mapper.writeValueAsString(headers.getData());
+
+                return jsonString;
+            }
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Future<String> dsmProduceFuture = executor.submit(new DsmProduce());
+        String injectedHeaders = dsmProduceFuture.get();
+        
+        System.out.println("After thread completion: " + injectedHeaders);
+
+        return injectedHeaders;
+    }
+
+    @RequestMapping("/dsm/manual/consume")
+    String dsmManualCheckpointConsume(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "source") String source,
+        @RequestParam(required = true, name = "headers") String headers
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        System.out.println(headers);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> headersMap = mapper.readValue(headers, new TypeReference<Map<String, Object>>(){});
+        DSMContextCarrier headersAdapter = new DSMContextCarrier(headersMap);
+
+        DataStreamsCheckpointer.get().setConsumeCheckpoint(type, source, headersAdapter);
+
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/consume_with_thread")
+    String dsmManualCheckpointConsumeWithThread(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "source") String source,
+        @RequestParam(required = true, name = "headers") String headers
+    ) throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
+        System.out.println(headers);
+
+        class DsmConsume implements Callable<String> {
+            @Override
+            public String call() throws com.fasterxml.jackson.core.JsonProcessingException {
+                ObjectMapper mapper = new ObjectMapper();
+                Map<String, Object> headersMap = mapper.readValue(headers, new TypeReference<Map<String, Object>>(){});
+                DSMContextCarrier headersAdapter = new DSMContextCarrier(headersMap);
+
+                DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+                dsmCheckpointer.setConsumeCheckpoint(type, source, headersAdapter);
+
+                return "ok";
+            }
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Future<String> dsmConsumeFuture = executor.submit(new DsmConsume());
+        String status = dsmConsumeFuture.get();
+
+        return status;
     }
 
     @RequestMapping("/trace/ognl")
