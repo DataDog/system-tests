@@ -11,7 +11,7 @@ import time
 
 import pytest
 import docker
-from docker.errors import DockerException
+from docker.errors import DockerException, APIError
 from docker.models.containers import Container
 from docker.models.networks import Network
 
@@ -239,6 +239,18 @@ class ParametricScenario(Scenario):
 
         return _get_client().networks.create(name=docker_network_name, driver="bridge",)
 
+    @staticmethod
+    def get_host_port(worker_id: str, base_port: int) -> int:
+        """ deterministic port allocation for each worker """
+
+        if worker_id == "master":  # xdist disabled
+            return base_port
+
+        if worker_id.startswith("gw"):
+            return base_port + int(worker_id[2:])
+
+        raise ValueError(f"Unexpected worker_id: {worker_id}")
+
     def docker_run(
         self,
         image: str,
@@ -246,6 +258,7 @@ class ParametricScenario(Scenario):
         env: Dict[str, str],
         volumes: Dict[str, str],
         network: str,
+        host_port: int,
         container_port: int,
         command: List[str],
     ) -> Container:
@@ -261,35 +274,27 @@ class ParametricScenario(Scenario):
                 raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
 
         logger.debug(f"Run container {name} from image {image}")
-        container: Container = _get_client().containers.run(
-            image,
-            name=name,
-            environment=env,
-            volumes=fixed_volumes,
-            network=network,
-            ports={f"{container_port}/tcp": None},  # let docker choose an host port
-            command=command,
-            detach=True,
-        )
 
-        # on first calls, the container does not know yet the published port on host
-        for _ in range(10):
-            container.reload()
+        attempt = 3
+        while attempt > 0:
+            try:
+                container: Container = _get_client().containers.run(
+                    image,
+                    name=name,
+                    environment=env,
+                    volumes=fixed_volumes,
+                    network=network,
+                    ports={f"{container_port}/tcp": host_port},  # let docker choose an host port
+                    command=command,
+                    detach=True,
+                )
+                return container
+            except APIError:
+                logger.exception(f"Failed to run container {name}, retrying...")
+                time.sleep(0.5)  # give some to time to docker daemon to free resources
+                attempt -= 1
 
-            if container.status == "exited":
-                container.remove()
-                raise RuntimeError(f"Container {name} exited unexpectedly")
-
-            if f"{container_port}/tcp" in container.attrs["NetworkSettings"]["Ports"]:
-                if len(container.attrs["NetworkSettings"]["Ports"][f"{container_port}/tcp"]) != 0:
-                    logger.debug(f"container {name} started")
-
-                    return container
-
-            time.sleep(0.1)
-
-        # if this happen, maybe increase the sleep time?
-        raise RuntimeError(f"Docker incorrectly bind ports for {name}")
+        raise RuntimeError(f"Failed to run container {name}, please see logs")
 
 
 def _get_base_directory():

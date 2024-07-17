@@ -376,6 +376,7 @@ def docker_run(
     cmd: List[str],
     env: Dict[str, str],
     volumes: Dict[str, str],
+    host_port: int,
     container_port: int,
     log_file: TextIO,
     network_name: str,
@@ -383,13 +384,20 @@ def docker_run(
 
     # Run the docker container
     logger.info(f"Starting {name}")
+
     container = scenarios.parametric.docker_run(
-        image, name=name, env=env, volumes=volumes, network=network_name, container_port=container_port, command=cmd,
+        image,
+        name=name,
+        env=env,
+        volumes=volumes,
+        network=network_name,
+        host_port=host_port,
+        container_port=container_port,
+        command=cmd,
     )
 
     try:
-        host_port = container.attrs["NetworkSettings"]["Ports"][f"{container_port}/tcp"][0]["HostPort"]
-        yield host_port
+        yield
     finally:
         logger.info(f"Stopping {name}")
         container.stop(timeout=1)
@@ -435,8 +443,9 @@ def docker_network(test_id: str) -> Generator[str, None, None]:
 
 
 @pytest.fixture
-def test_agent_port() -> str:
-    return "8126"
+def test_agent_port() -> int:
+    """ returns the port exposed inside the agent container """
+    return 8126
 
 
 @pytest.fixture
@@ -473,7 +482,12 @@ def test_agent_hostname(test_agent_container_name: str) -> str:
 
 @pytest.fixture
 def test_agent(
-    docker_network: str, request, test_agent_container_name: str, test_agent_port, test_agent_log_file: TextIO,
+    worker_id: str,
+    docker_network: str,
+    request,
+    test_agent_container_name: str,
+    test_agent_port: int,
+    test_agent_log_file: TextIO,
 ):
     env = {}
     if os.getenv("DEV_MODE") is not None:
@@ -483,19 +497,22 @@ def test_agent(
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
 
+    host_port = scenarios.parametric.get_host_port(worker_id, 50000)
+
     with docker_run(
         image=scenarios.parametric.TEST_AGENT_IMAGE,
         name=test_agent_container_name,
         cmd=[],
         env=env,
         volumes={f"{os.getcwd()}/snapshots": "/snapshots"},
+        host_port=host_port,
         container_port=test_agent_port,
         log_file=test_agent_log_file,
         network_name=docker_network,
-    ) as host_port:
+    ):
         logger.debug(f"Test agent {test_agent_container_name} started on host port {host_port}")
-        test_agent_external_port = host_port
-        client = _TestAgentAPI(base_url=f"http://localhost:{test_agent_external_port}", pytest_request=request)
+
+        client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", pytest_request=request)
         time.sleep(0.2)  # intial wait time, the trace agent takes 200ms to start
         for _ in range(100):
             try:
@@ -533,6 +550,7 @@ def test_agent(
 
 @pytest.fixture
 def test_server(
+    worker_id: str,
     docker_network: str,
     test_agent_port: str,
     test_agent_container_name: str,
@@ -553,18 +571,20 @@ def test_server(
             test_server_env[k] = v
     env.update(test_server_env)
 
+    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 51000)
+
     with docker_run(
         image=apm_test_server.container_tag,
         name=apm_test_server.container_name,
         cmd=apm_test_server.container_cmd,
         env=env,
+        host_port=apm_test_server.host_port,
         container_port=apm_test_server.container_port,
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
         network_name=docker_network,
-    ) as host_port:
-        logger.debug(f"Test server {apm_test_server.container_name} started on host port {host_port}")
-        apm_test_server.host_port = host_port
+    ):
+        logger.debug(f"Test server {apm_test_server.container_name} started on host port {apm_test_server.host_port}")
         yield apm_test_server
 
 

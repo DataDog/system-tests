@@ -394,16 +394,12 @@ function main() {
     # In the meantime remove the warning from the output
     pytest_args+=( '-p' 'no:warnings' )
 
-    # parametric xdist are brokken in CI
-    pytest_numprocesses=1
-
     # evaluate max pytest number of process
-    #
-    # for scenario in "${scenarios[@]}"; do
-    #     if [[ "${scenario}" != "PARAMETRIC" ]]; then
-    #         pytest_numprocesses=1
-    #     fi
-    # done
+    for scenario in "${scenarios[@]}"; do
+        if [[ "${scenario}" != "PARAMETRIC" ]]; then
+            pytest_numprocesses=1
+        fi
+    done
 
     if [[ "${#libraries[@]}" -gt 0 ]]; then
       for library in "${libraries[@]}"; do
@@ -428,8 +424,7 @@ function main() {
         0|1)
             ;;
         *)
-            # pytest_args+=( '-n' "${pytest_numprocesses}" ) DO NOT MERGE
-            pytest_args+=( '-n' "16" )
+            pytest_args+=( '-n' "${pytest_numprocesses}" )
             ;;
     esac
 
