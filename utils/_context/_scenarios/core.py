@@ -43,6 +43,7 @@ class ScenarioGroup(Enum):
     PARAMETRIC = "parametric"
     PROFILING = "profiling"
     SAMPLING = "sampling"
+    ONBOARDING = "onboarding"
 
 
 VALID_GITHUB_WORKFLOWS = {

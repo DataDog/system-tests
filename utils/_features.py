@@ -2217,9 +2217,9 @@ class features:
         return test_object
 
     @staticmethod
-    def host_auto_instrumentation_profiling(test_object):
+    def auto_instrumentation_profiling(test_object):
         """
-        Host auto-instrumentation with profiling
+        auto-instrumentation with profiling
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
