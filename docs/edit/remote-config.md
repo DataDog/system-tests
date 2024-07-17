@@ -38,7 +38,7 @@ command.apply()
 * `reset(self) -> ClientConfig`
 * `apply()`: send the state using the `send_command` function (see below)
 
-Remember that the state is shared among all tests of a scenario. 
+Remember that the state is shared among all tests of a scenario.
 You may need to reset it and apply at the start of each setup.
 
 ## Sending command

@@ -36,8 +36,8 @@ RC_VERSION = "_ci_global_version"
 RC_STATE = "_ci_state"
 
 
-def send_command(
-    raw_payload, *, wait_for_acknowledged_status: bool = True, command_version: int = -1
+def send_state(
+    raw_payload, *, wait_for_acknowledged_status: bool = True, state_version: int = -1
 ) -> dict[str, dict[str, Any]]:
     """
     Sends a remote config payload to the library and waits for the config to be applied.
@@ -55,6 +55,10 @@ def send_command(
         wait_for_acknowledge_status
             If True, waits for the config to be acknowledged by the library.
             Else, only wait for the next request sent to /v0.7/config
+        state_version
+            The version of the global state.
+            It should be larger than previous versions if you want to apply a new config.
+
     """
 
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
@@ -73,7 +77,7 @@ def send_command(
             "apply_state": ApplyState.UNKNOWN,
             "apply_error": "<No known response from the library>",
         }
-    current_states[RC_VERSION] = command_version
+    current_states[RC_VERSION] = state_version
     current_states[RC_STATE] = ApplyState.UNKNOWN
 
     state = {}
@@ -83,7 +87,7 @@ def send_command(
         if data["path"] == "/v0.7/config":
             state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
             if len(client_configs) == 0:
-                found = state["targets_version"] == command_version and state.get("config_states", []) == []
+                found = state["targets_version"] == state_version and state.get("config_states", []) == []
                 if found:
                     current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
                 return found
@@ -203,7 +207,7 @@ def build_debugger_command(probes: list, version: int):
 
 def send_debugger_command(probes: list, version: int) -> dict:
     raw_payload = build_debugger_command(probes, version)
-    return send_command(raw_payload)
+    return send_state(raw_payload)
 
 
 def _json_to_base64(json_object):
@@ -336,8 +340,8 @@ class _RemoteConfigState:
     def apply(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
         self.version += 1
         command = self.to_payload()
-        return send_command(
-            command, wait_for_acknowledged_status=wait_for_acknowledged_status, command_version=self.version
+        return send_state(
+            command, wait_for_acknowledged_status=wait_for_acknowledged_status, state_version=self.version
         )
 
 
