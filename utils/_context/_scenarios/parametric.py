@@ -10,6 +10,7 @@ import subprocess
 import time
 
 import pytest
+import psutil
 import docker
 from docker.errors import DockerException, APIError
 from docker.models.containers import Container
@@ -65,7 +66,7 @@ class APMLibraryTestServer:
     container_build_context: str = "."
 
     container_port: str = int(os.getenv("APM_LIBRARY_SERVER_PORT", "50052"))
-    host_port: int = None  # docker will choose this port at startup
+    host_port: int = None  # Will be assigned by get_host_port()
 
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: Dict[str, str] = dataclasses.field(default_factory=dict)
@@ -301,6 +302,7 @@ class ParametricScenario(Scenario):
                 time.sleep(0.5)  # give some to time to docker daemon to free resources
                 attempt -= 1
 
+        _log_open_port_informations(host_port)
         raise RuntimeError(f"Failed to run container {name}, please see logs")
 
 
@@ -589,3 +591,19 @@ COPY --from=build /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VE
         container_build_context=_get_base_directory(),
         env={},
     )
+
+
+def _log_open_port_informations(port):
+
+    p: psutil.Process
+
+    for p in psutil.process_iter():
+        try:
+            connections = p.connections()
+        except:
+            connections = []
+
+        for c in connections:
+            if c.status == "LISTEN" and c.laddr.port == port:
+                logger.error(f"Port {port} is already in use by process {p.pid} {p.name()} {p.cmdline()}")
+                return
