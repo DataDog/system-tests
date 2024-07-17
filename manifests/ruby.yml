@@ -306,10 +306,10 @@ tests/:
         rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: v2.0.0
+      TestDynamicConfigHeaderTags: bug (To be confirmed, theorical version is v2.0.0)
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: v1.13.0
+      TestDynamicConfigV1: bug (to be investigated, theorical version is v1.13.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_otel_api_interoperability.py: missing_feature
