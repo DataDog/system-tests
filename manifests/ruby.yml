@@ -216,10 +216,10 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: missing_feature
-    test_remote_config_rule_changes.py:
-      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_request_blocking.py:
       Test_AppSecRequestBlocking: v1.11.1
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
       Test_RuntimeDeactivation: missing_feature
