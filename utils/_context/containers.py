@@ -141,26 +141,24 @@ class TestedContainer:
 
     def _start_async(self, seen: list):
         """ Start the container and its dependencies in a thread with circular dependency detection """
-        if self in seen:
-            dependencies = " -> ".join([s.name for s in seen])
-            pytest.exit(f"Circular dependency detected between containers: {dependencies}", 1)
-
-        seen.append(self)
-
         with self._starting_lock:
+            # This lock will prevent any race condition, as this function can be called on the same container in 
+            # different threads.
+            if self in seen:
+                dependencies = " -> ".join([s.name for s in seen])
+                pytest.exit(f"Circular dependency detected between containers: {dependencies}", 1)
+
+            seen.append(self)
+            
             if self._starting_thread is None:
                 self._starting_thread = Thread(target=self._start_with_dependencies, args=(seen,))
                 self._starting_thread.start()
 
-            return self._starting_thread
+        return self._starting_thread
 
     def _start_with_dependencies(self, seen):
         """ Start all dependencies of a container and then start the container """
-        threads = []
-
-        for dependency in self.depends_on:
-            thread = dependency._start_async(seen)
-            threads.append(thread)
+        threads = [dependency._start_async(seen) for dependency in self.depends_on]
 
         for thread in threads:
             thread.join()
@@ -197,9 +195,6 @@ class TestedContainer:
 
         self.wait_for_health()
         self.warmup()
-
-    def depend_on(self, container):
-        self.depends_on.append(container)
 
     def warmup(self):
         """ if some stuff must be done after healthcheck """
