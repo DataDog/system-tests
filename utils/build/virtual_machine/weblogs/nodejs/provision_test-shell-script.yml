@@ -19,7 +19,8 @@ lang_variant:
 
 weblog:
     name: test-shell-script
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64, ubuntu18_amd64, amazon_linux2023_amd64, centos_7_amd64]
+    # Requires libc6 >= 2.28, not available in ubuntu18_amd64 / centos_7_amd64 / amazon_linux2_amd64
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64, amazon_linux2_amd64, ubuntu18_amd64, centos_7_amd64]
     install:
       - os_type: linux
         remote-command: |
