@@ -50,7 +50,7 @@ rc_state.apply()
   *return value can be used to check that the state was correctly applied to the tracer.*
 
 Remember that the state is shared among all tests of a scenario.
-You may need to reset it and apply at the start of each setup.
+You need to reset it and apply at the start of each setup.
 
 ## Sending states
 
