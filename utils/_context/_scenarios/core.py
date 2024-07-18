@@ -3,7 +3,6 @@ from logging import FileHandler
 import os
 from pathlib import Path
 import shutil
-from threading import Thread
 
 import pytest
 from watchdog.observers.polling import PollingObserver
@@ -252,7 +251,6 @@ class DockerScenario(Scenario):
 
         self._required_containers: list[TestedContainer] = []
         self._supporting_containers: list[TestedContainer] = []
-        self._container_dependencies: dict[TestedContainer, list[TestedContainer]] = {}
 
         if self.use_proxy:
             self.proxy_container = ProxyContainer(host_log_folder=self.host_log_folder, rc_api_enabled=rc_api_enabled)
@@ -318,48 +316,14 @@ class DockerScenario(Scenario):
             warmups.append(container.post_start)
 
         return warmups
-
+    
     def _start_containers(self):
-        """ 
-        Start the containers in the right order according to their dependencies
-        and in parallel when possible.
-        """
-        threads = {}
-
+        threads = []
+        
         for container in self._required_containers:
-            self._start_container(container, threads)
+            threads.append(container.start())
 
-        for thread in threads.values():
-            thread.join()
-
-    def _start_container(self, container, threads):
-        """ 
-        Wait for a container dependencies to be started and start them if they
-        are not already started, and then start the container.
-        """
-        if threads.get(container):
-            return threads.get(container)
-
-        self._start_dependencies(container, threads)
-
-        thread = Thread(target=container.start)
-        thread.start()
-        threads[container] = thread
-
-        return thread
-
-    def _start_dependencies(self, container, threads):
-        """
-        Start any dependencies of a container and block until all dependencies
-        are done starting.
-        """
-        dependency_threads = []
-
-        for dependency in self._container_dependencies.get(container, []):
-            thread = self._start_container(dependency, threads)
-            dependency_threads.append(thread)
-
-        for thread in dependency_threads:
+        for thread in threads:
             thread.join()
 
     def close_targets(self):
@@ -422,10 +386,9 @@ class EndToEndScenario(DockerScenario):
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
-        self._container_dependencies[self.agent_container] = []
 
         if self.use_proxy:
-            self._container_dependencies[self.agent_container].append(self.proxy_container)
+            self.agent_container.depends_on.append(self.proxy_container)
 
         weblog_env = dict(weblog_env) if weblog_env else {}
         weblog_env.update(
@@ -452,10 +415,8 @@ class EndToEndScenario(DockerScenario):
             use_proxy=use_proxy,
         )
 
-        self._container_dependencies[self.weblog_container] = []
-        self._container_dependencies[self.weblog_container].append(self.agent_container)
-        self._container_dependencies[self.weblog_container].extend(self.buddies)
-        self._container_dependencies[self.weblog_container].extend(self._supporting_containers)
+        self.weblog_container.depends_on.append(self.agent_container)
+        self.weblog_container.depends_on.extend(self._supporting_containers)
 
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
@@ -482,9 +443,8 @@ class EndToEndScenario(DockerScenario):
             ]
 
             for buddy in self.buddies:
-                self._container_dependencies[buddy] = []
-                self._container_dependencies[buddy].append(self.agent_container)
-                self._container_dependencies[buddy].extend(self._supporting_containers)
+                buddy.depends_on.append(self.agent_container)
+                buddy.depends_on.extend(self._supporting_containers)
 
             self._required_containers += self.buddies
 

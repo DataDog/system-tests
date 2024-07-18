@@ -52,11 +52,11 @@ def main():
 
     agent = AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False)
     agent.configure(False)
-    agent.start()
+    agent.start().join()
 
     weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
     weblog.configure(False)
-    weblog.start()
+    weblog.start().join()
 
     Fuzzer(
         corpus=args.corpus,

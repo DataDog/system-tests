@@ -7,6 +7,7 @@ from subprocess import run
 import time
 from functools import lru_cache
 import platform
+from threading import RLock, Thread
 
 import docker
 from docker.errors import APIError, DockerException
@@ -88,6 +89,9 @@ class TestedContainer:
         self.environment = environment or {}
         self.kwargs = kwargs
         self._container = None
+        self.depends_on: list[TestedContainer] = []
+        self._starting_lock = RLock()
+        self._starting_thread = None
         self.stdout_interface = stdout_interface
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
@@ -132,7 +136,39 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
-    def start(self) -> Container:
+    def start(self) -> Thread:
+        return self._start_async([])
+
+    def _start_async(self, seen: list):
+        """Start the container in a thread with circular dependency detection"""
+        if self in seen:
+            dependencies = " -> ".join([s.name for s in seen])
+            pytest.exit(f"Circular dependency detected between containers: {dependencies}", 1)
+
+        seen.append(self)
+
+        with self._starting_lock:
+            if self._starting_thread is None:
+                self._starting_thread = Thread(target=self._start_with_dependencies, args=(seen,))
+                self._starting_thread.start()
+    
+            return self._starting_thread
+
+    def _start_with_dependencies(self, seen):
+        """Start all dependencies of a container and then start the container"""
+        threads = []
+
+        for dependency in self.depends_on:
+            thread = dependency._start_async(seen)
+            threads.append(thread)
+
+        for thread in threads:
+            thread.join()
+        
+        self._start_container()
+
+    def _start_container(self):
+        """Start the actual Docker container"""
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -161,6 +197,9 @@ class TestedContainer:
 
         self.wait_for_health()
         self.warmup()
+        
+    def depend_on(self, container):
+        self.depends_on.append(container)
 
     def warmup(self):
         """ if some stuff must be done after healthcheck """
@@ -241,6 +280,7 @@ class TestedContainer:
 
     def stop(self):
         self._container.stop()
+        self._starting_thread = None
 
     def collect_logs(self):
         stdout = self._container.logs(stdout=True, stderr=False)
