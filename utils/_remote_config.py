@@ -97,7 +97,7 @@ def send_state(
                 config_states = state.get("config_states", [])
                 for state in config_states:
                     config_state = current_states.get(state["id"])
-                    if config_state and state["product"] == product:
+                    if config_state and state["product"] == config_state["product"]:
                         logger.debug(f"Remote config state: {state}")
                         config_state.update(state)
 

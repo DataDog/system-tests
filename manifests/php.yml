@@ -179,6 +179,8 @@ tests/:
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, but was flaky
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_request_blocking.py:
       Test_AppSecRequestBlocking: missing_feature # missing version
     test_runtime_activation.py:
