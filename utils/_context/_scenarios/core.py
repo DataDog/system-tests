@@ -316,10 +316,10 @@ class DockerScenario(Scenario):
             warmups.append(container.post_start)
 
         return warmups
-    
+
     def _start_containers(self):
         threads = []
-        
+
         for container in self._required_containers:
             threads.append(container.start())
 

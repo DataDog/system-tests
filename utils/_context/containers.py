@@ -140,7 +140,7 @@ class TestedContainer:
         return self._start_async([])
 
     def _start_async(self, seen: list):
-        """Start the container in a thread with circular dependency detection"""
+        """ Start the container and its dependencies in a thread with circular dependency detection """
         if self in seen:
             dependencies = " -> ".join([s.name for s in seen])
             pytest.exit(f"Circular dependency detected between containers: {dependencies}", 1)
@@ -151,11 +151,11 @@ class TestedContainer:
             if self._starting_thread is None:
                 self._starting_thread = Thread(target=self._start_with_dependencies, args=(seen,))
                 self._starting_thread.start()
-    
+
             return self._starting_thread
 
     def _start_with_dependencies(self, seen):
-        """Start all dependencies of a container and then start the container"""
+        """ Start all dependencies of a container and then start the container """
         threads = []
 
         for dependency in self.depends_on:
@@ -164,11 +164,11 @@ class TestedContainer:
 
         for thread in threads:
             thread.join()
-        
+
         self._start_container()
 
     def _start_container(self):
-        """Start the actual Docker container"""
+        """ Start the actual Docker container """
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -197,7 +197,7 @@ class TestedContainer:
 
         self.wait_for_health()
         self.warmup()
-        
+
     def depend_on(self, container):
         self.depends_on.append(container)
 
