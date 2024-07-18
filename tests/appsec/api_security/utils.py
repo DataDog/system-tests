@@ -6,8 +6,8 @@ class BaseAppsecApiSecurityRcTest:
 
     def setup_scenario(self):
         if BaseAppsecApiSecurityRcTest.states is None:
-            command = remote_config.RemoteConfigCommand(version=2)
-            command.add_client_config(
+            rc_state = remote_config.rc_state
+            rc_state.set_config(
                 "datadog/2/ASM/ASM-base/config",
                 {
                     "processor_override": [
@@ -36,7 +36,7 @@ class BaseAppsecApiSecurityRcTest:
                     ],
                 },
             )
-            command.add_client_config(
+            rc_state.set_config(
                 "datadog/2/ASM_DD/ASM_DD-base/config",
                 {
                     "version": "2.2",
@@ -109,7 +109,8 @@ class BaseAppsecApiSecurityRcTest:
                             "value": {
                                 "operator": "match_regex",
                                 "parameters": {
-                                    "regex": "\\b[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*(%40|@)(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}\\b",
+                                    "regex": "\\b[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*"
+                                    "(%40|@)(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}\\b",
                                     "options": {"case_sensitive": False, "min_length": 5},
                                 },
                             },
@@ -118,9 +119,9 @@ class BaseAppsecApiSecurityRcTest:
                     ],
                 },
             )
-            command.add_client_config(
+            rc_state.set_config(
                 "datadog/2/ASM_FEATURES/ASM_FEATURES-base/config",
                 {"asm": {"enabled": True}, "api_security": {"request_sample_rate": 1.0}},
             )
 
-            BaseAppsecApiSecurityRcTest.states = command.send()
+            BaseAppsecApiSecurityRcTest.states = rc_state.apply()

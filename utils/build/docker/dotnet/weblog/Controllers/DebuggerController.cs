@@ -81,9 +81,9 @@ namespace weblog
             throw new System.Exception("Hello from exception");
         }
 
-        [HttpGet("expression/comparison-operators")]
+        [HttpGet("expression/operators")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExpressionComparisonOperators(int intValue, float floatValue, string strValue)
+        public IActionResult ExpressionOperators(int intValue, float floatValue, string strValue)
         {
             return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}");
         }

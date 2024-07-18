@@ -215,6 +215,7 @@ tests/:
       Test_AppSecRequestBlocking: v2.25.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.16.0
+      Test_RuntimeDeactivation: v2.16.0
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:
