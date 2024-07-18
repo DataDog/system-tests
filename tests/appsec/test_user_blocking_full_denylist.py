@@ -37,9 +37,11 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         reason="Failed on large expiration values, which are used in this test",
     )
     @bug(library="java", reason="Request blocked but appsec.blocked tag not set")
-    @missing_feature(library="python")
     def test_blocking_test(self):
         """Test with a denylisted user"""
+
+        self.assert_protocol_is_respected()
+
         for r in self.r_blocked_requests:
             assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-002", address="usr.id")

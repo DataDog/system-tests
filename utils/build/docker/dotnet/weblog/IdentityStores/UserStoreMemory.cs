@@ -5,6 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 
+// nullability annotations changed between .NET versions, suppress warnings for now
+#pragma warning disable CS8609 // Nullability of reference types in return type doesn't match overridden member.
+#pragma warning disable CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
+
 namespace weblog.IdentityStores;
 
 public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserClaim<string>, IdentityUserLogin<string>, IdentityUserToken<string>>
@@ -109,15 +113,15 @@ public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserC
         throw new System.NotImplementedException();
     }
 
-    public override Task<IdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken = new CancellationToken())
+    public override Task<IdentityUser?> FindByIdAsync(string userId, CancellationToken cancellationToken = new CancellationToken())
     {
         return Task.FromResult(AllUsers?.FirstOrDefault(u => u.Id == userId))!;
     }
 
-    public override Task<IdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = new CancellationToken())
+    public override Task<IdentityUser?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = new CancellationToken())
         => Task.FromResult(AllUsers?.FirstOrDefault(u => u.NormalizedEmail == normalizedEmail))!;
 
-    public override Task<IdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default) => Task.FromResult(AllUsers?.FirstOrDefault(u => u.NormalizedUserName == normalizedUserName))!;
+    public override Task<IdentityUser?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default) => Task.FromResult(AllUsers?.FirstOrDefault(u => u.NormalizedUserName == normalizedUserName))!;
 
     public override Task<IdentityResult> UpdateAsync(IdentityUser user, CancellationToken cancellationToken = new CancellationToken())
     {
@@ -135,21 +139,21 @@ public class UserStoreMemory : UserStoreBase<IdentityUser, string, IdentityUserC
         return Task.FromResult(IdentityResult.Failed(new IdentityError { Description = "user did not exist" }));
     }
 
-    public override IQueryable<IdentityUser>? Users { get; }
+    public override IQueryable<IdentityUser> Users { get; } = Enumerable.Empty<IdentityUser>().AsQueryable();
 
-    protected override Task<IdentityUserToken<string>> FindTokenAsync(IdentityUser user, string loginProvider, string name, CancellationToken cancellationToken)
+    protected override Task<IdentityUserToken<string>?> FindTokenAsync(IdentityUser user, string loginProvider, string name, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
-    protected override Task<IdentityUser> FindUserAsync(string userId, CancellationToken cancellationToken) => Task.FromResult(AllUsers?.FirstOrDefault(u => u.Id == userId))!;
+    protected override Task<IdentityUser?> FindUserAsync(string userId, CancellationToken cancellationToken) => Task.FromResult(AllUsers?.FirstOrDefault(u => u.Id == userId))!;
 
-    protected override Task<IdentityUserLogin<string>> FindUserLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
+    protected override Task<IdentityUserLogin<string>?> FindUserLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
-    protected override Task<IdentityUserLogin<string>> FindUserLoginAsync(string userId, string loginProvider, string providerKey, CancellationToken cancellationToken)
+    protected override Task<IdentityUserLogin<string>?> FindUserLoginAsync(string userId, string loginProvider, string providerKey, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }

@@ -1,0 +1,37 @@
+#Pull the right docker images & install crane
+#It’s required to do the "if custom version present then use it else fallback to latest" & to auth to the QA registry
+    - os_type: linux
+      remote-command: |
+        export PATH=$PATH:/usr/local/go/bin
+        export PATH=$PATH:$(go env GOPATH)/bin
+        sudo systemctl start docker
+        sudo docker run -d -p 12345:5000 --restart=always --name registry 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/registry:2
+        sleep 10
+
+        if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
+          export LIBRARY_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-library-${DD_LANG}-package:${DD_INSTALLER_LIBRARY_VERSION}"
+        else
+          export LIBRARY_OCI_URL=$(printf $DD_oci_registry_template "apm-library-${DD_LANG}")
+        fi
+        crane copy "${LIBRARY_OCI_URL}" localhost:12345/datadog/apm-library-${DD_LANG}-package:latest
+
+        if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
+          export INJECTOR_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/apm-inject-package:${DD_INSTALLER_INJECTOR_VERSION}"
+        else
+          export INJECTOR_OCI_URL=$(printf $DD_oci_registry_template "apm-inject")
+        fi
+        crane copy "${INJECTOR_OCI_URL}" localhost:12345/datadog/apm-inject-package:latest
+
+        if [ -n "${DD_INSTALLER_AGENT_VERSION}" ]; then
+          export AGENT_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/agent-package:${DD_INSTALLER_AGENT_VERSION}"
+        else
+          export AGENT_OCI_URL=$(printf $DD_oci_registry_template "agent")
+        fi
+        crane copy "${AGENT_OCI_URL}" localhost:12345/datadog/agent-package:latest
+
+        if [ -n "${DD_INSTALLER_INSTALLER_VERSION}" ]; then
+          export INSTALLER_OCI_URL="669783387624.dkr.ecr.us-east-1.amazonaws.com/installer-package:${DD_INSTALLER_INSTALLER_VERSION}"
+        else
+          export INSTALLER_OCI_URL=$(printf $DD_oci_registry_template "installer")
+        fi
+        crane copy "${INSTALLER_OCI_URL}" localhost:12345/datadog/installer-package:latest

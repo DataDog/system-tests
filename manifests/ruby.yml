@@ -9,7 +9,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -116,12 +116,9 @@ tests/:
         Test_BodyRaw: v1.1.0
         Test_BodyUrlEncoded: v1.8.0
         Test_BodyXml: irrelevant (unsupported by framework)
-        Test_ClientIP: missing_feature
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
         Test_GrpcServerMethod: missing_feature
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           '*': v1.8.0
           rack: irrelevant
@@ -146,8 +143,6 @@ tests/:
         Test_NoSqli: v1.8.0
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
@@ -203,7 +198,6 @@ tests/:
       Test_StandardTagsClientIp: v1.8.0
     test_conf.py:
       Test_RuleSet_1_3_1: v1.0.0
-      Test_StaticRuleSet: v1.8.0
     test_customconf.py:
       Test_ConfRuleSet: v1.0.0.beta2
       Test_CorruptedRules: v1.0.0.beta2
@@ -226,6 +220,7 @@ tests/:
       Test_AppSecRequestBlocking: v1.11.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+      Test_RuntimeDeactivation: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:
@@ -233,7 +228,6 @@ tests/:
       Test_AppSecObfuscator: v1.0.0
       Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v1.0.0.beta1
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v1.22.0
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
@@ -313,10 +307,10 @@ tests/:
         rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: v2.0.0
+      TestDynamicConfigHeaderTags: bug (To be confirmed, theorical version is v2.0.0)
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: v1.13.0
+      TestDynamicConfigV1: bug (to be investigated, theorical version is v1.13.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_otel_api_interoperability.py: missing_feature
@@ -361,6 +355,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

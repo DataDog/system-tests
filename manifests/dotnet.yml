@@ -9,7 +9,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v2.50.0
         Test_API_Security_RC_ASM_DD_scanners: v2.50.0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling: v2.46.0
       test_schemas.py:
@@ -127,13 +127,10 @@ tests/:
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded: v2.7.0
         Test_BodyXml: v2.8.0
-        Test_ClientIP: missing_feature
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v1.28.6
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams: v2.5.1
         Test_ResponseStatus: v2.3.0
         Test_UrlQuery: v1.28.6
@@ -166,8 +163,6 @@ tests/:
         Test_Scanners: v1.28.6
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
@@ -197,7 +192,6 @@ tests/:
       Test_StandardTagsClientIp: v2.20.0
     test_conf.py:
       Test_RuleSet_1_3_1: v2.7.0
-      Test_StaticRuleSet: v1.29.0
     test_customconf.py:
       Test_NoLimitOnWafRules: v2.4.4
     test_event_tracking.py:
@@ -214,7 +208,6 @@ tests/:
       Test_Main: v2.6.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
-      Test_HttpClientIP: v1.30.0
       Test_Info: v2.0.0
       Test_RequestHeaders: v1.30.0
       Test_StatusCode: v1.28.6
@@ -222,6 +215,7 @@ tests/:
       Test_AppSecRequestBlocking: v2.25.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.16.0
+      Test_RuntimeDeactivation: v2.16.0
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:
@@ -229,7 +223,6 @@ tests/:
       Test_AppSecObfuscator: v2.7.0
       Test_CollectDefaultRequestHeader: missing_feature
       Test_CollectRespondHeaders: v2.5.1
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v2.50.0
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:

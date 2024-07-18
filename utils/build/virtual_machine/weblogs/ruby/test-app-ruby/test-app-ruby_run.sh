@@ -16,6 +16,6 @@ sudo chown -R datadog:datadog /home/datadog
 #Ubuntu work without this, but Amazon Linux needs bundle install executed with datadog user
 sudo su - datadog -c 'DD_INSTRUMENT_SERVICE_WITH_APM=false bundle install'
 
-./create_and_run_app_service.sh "rails server -b 0.0.0.0 -p 5985"
+./create_and_run_app_service.sh "bin/rails server -b 0.0.0.0 -p 5985"
 
 echo "RUN ruby DONE"

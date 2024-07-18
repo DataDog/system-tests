@@ -14,6 +14,8 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.http.HttpClient;
 
 import javax.naming.directory.InitialDirContext;
 import javax.sql.DataSource;
@@ -28,6 +30,8 @@ import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
+import okhttp3.*;
+
 public class Main {
     static {
         try {
@@ -38,6 +42,8 @@ public class Main {
             throw new UndeclaredThrowableException(e);
         }
     }
+
+    private static final OkHttpClient client = new OkHttpClient();
 
     public static void main(String[] args) {
         Vertx vertx = Vertx.vertx();
@@ -159,6 +165,35 @@ public class Main {
                     datadog.trace.api.GlobalTracer.getEventTracker()
                             .trackCustomEvent(event_name, METADATA);
                     ctx.response().end("ok");
+                });
+        router.get("/requestdownstream")
+                .handler(ctx -> {
+                    String url = "http://localhost:7777/returnheaders";
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            ctx.response().setStatusCode(500).end(e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                ctx.response().setStatusCode(500).end(response.message());
+                            } else {
+                                ctx.response().end(response.body().string());
+                            }
+                        }
+                    });
+                });
+        router.get("/returnheaders")
+                .handler(ctx -> {
+                    JsonObject headersJson = new JsonObject();
+                    ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
+                    ctx.response().end(headersJson.encode());
                 });
 
         iastRouteProviders().forEach(provider -> provider.accept(router));

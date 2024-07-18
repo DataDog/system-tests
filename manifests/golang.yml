@@ -13,7 +13,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling:
           '*': v1.60.0-dev
@@ -137,7 +137,6 @@ tests/:
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded: v1.37.0
         Test_BodyXml: v1.37.0
-        Test_ClientIP: missing_feature
         Test_Cookies:
           '*': v1.34.0
           chi: v1.36.0
@@ -151,8 +150,6 @@ tests/:
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           '*': v1.36.0
           gin: v1.37.0
@@ -241,8 +238,6 @@ tests/:
           gin: v1.37.0
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v1.34.0
@@ -305,11 +300,6 @@ tests/:
     test_reports.py:
       Test_ExtraTagsFromRule:
         '*': v1.62.0
-      Test_HttpClientIP:
-        '*': v1.34.0
-        chi: v1.36.0
-        echo: v1.36.0
-        gin: v1.37.0
       Test_Info:
         '*': v1.34.0
         chi: v1.36.0
@@ -327,6 +317,7 @@ tests/:
       Test_AppSecRequestBlocking: v1.50.0-rc.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+      Test_RuntimeDeactivation: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:
@@ -340,7 +331,6 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
       Test_ExternalWafRequestsIdentification: v1.63.0-dev
       Test_RetainTraces:
         '*': v1.36.0

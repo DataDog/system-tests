@@ -64,7 +64,6 @@ tests/:
       test_reports.py: irrelevant (ASM is not implemented in C++)
       test_rules.py: irrelevant (ASM is not implemented in C++)
       test_telemetry.py: irrelevant (ASM is not implemented in C++)
-    test_PII.py: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
     test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
@@ -152,6 +151,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant

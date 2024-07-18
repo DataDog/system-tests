@@ -54,7 +54,6 @@ class Test_Blocking_client_ip:
     def setup_blocking_before(self):
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512/200", headers={"X-Forwarded-For": "1.1.1.1"})
 
-    @bug(weblog_variant="spring-boot-openliberty", reason="tag present")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # second request should block and must not set the tag in span
@@ -81,7 +80,6 @@ class Test_Blocking_user_id:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
@@ -123,7 +121,6 @@ class Test_Blocking_request_method:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
@@ -176,7 +173,6 @@ class Test_Blocking_request_uri:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -221,7 +217,6 @@ class Test_Blocking_request_path_params:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -269,7 +264,6 @@ class Test_Blocking_request_query:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -317,7 +311,6 @@ class Test_Blocking_request_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
@@ -365,7 +358,6 @@ class Test_Blocking_request_cookies:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
 @features.appsec_request_blocking
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
 
@@ -517,22 +509,45 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@scenarios.appsec_blocking
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
 
+    def setup_blocking(self):
+        self.rm_req_block = weblog.get(
+            f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
+        )
+
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
-        assert False, "TODO"
+        assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-012")
 
-    def test_non_blocking(self):
-        """Test if requests that should not be blocked are not blocked"""
-        self.test_blocking()
-        assert False, "TODO"
+    def setup_blocking_before(self):
+        self.set_req1 = weblog.post(
+            "/tag_value/clean_value_3882/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            data={"good": "value"},
+            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+        )
+        self.block_req2 = weblog.get(
+            f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
+        )
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
-        assert False, "TODO"
+        # first request should not block and must set the tag in span accordingly
+        assert self.set_req1.status_code == 200
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3882"))
+        """Test that blocked requests are blocked before being processed"""
+        assert self.block_req2.status_code == 403
+        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-012")
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 
 @scenarios.graphql_appsec
@@ -541,7 +556,7 @@ class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""
 
     def setup_request_block_attack(self):
-        """ Currently only monitoring is implemented"""
+        """Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",
@@ -580,7 +595,7 @@ class Test_BlockingGraphqlResolvers:
             assert parameters["value"] == "testblockresolver"
 
     def setup_request_block_attack_directive(self):
-        """ Currently only monitoring is implemented"""
+        """Currently only monitoring is implemented"""
 
         self.r_attack = weblog.post(
             "/graphql",

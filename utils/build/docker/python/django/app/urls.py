@@ -174,8 +174,8 @@ def rasp_sqli(request, *args, **kwargs):
         import sqlite3
 
         DB = sqlite3.connect(":memory:")
-        print(f"SELECT * FROM users WHERE {user_id}")
-        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
+        print(f"SELECT * FROM users WHERE id='{user_id}'")
+        cursor = DB.execute(f"SELECT * FROM users WHERE id='{user_id}'")
         print("DB request with {len(list(cursor))} results")
         return HttpResponse(f"DB request with {len(list(cursor))} results")
     except Exception as e:
@@ -455,7 +455,7 @@ def view_iast_source_body(request):
 
 
 def view_iast_source_cookie_name(request):
-    param = [key for key in request.COOKIES.keys() if key == "user"]
+    param = [key for key in request.COOKIES.keys() if key == "table"]
     _sink_point_path_traversal(param[0])
     return HttpResponse("OK")
 

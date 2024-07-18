@@ -2198,9 +2198,9 @@ class features:
         return test_object
 
     @staticmethod
-    def host_auto_instrumentation_profiling(test_object):
+    def auto_instrumentation_profiling(test_object):
         """
-        Host auto-instrumentation with profiling
+        auto-instrumentation with profiling
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
@@ -2225,6 +2225,26 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=306
         """
         pytest.mark.features(feature_id=306)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_installation_script_profiling(test_object):
+        """
+        Profiling works when enabled through the agent installer script in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=307
+        """
+        pytest.mark.features(feature_id=307)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_instrumentation_profiling(test_object):
+        """
+        Profiling works when manually enabled with library injection in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=310
+        """
+        pytest.mark.features(feature_id=310)(test_object)
         return test_object
 
     @staticmethod

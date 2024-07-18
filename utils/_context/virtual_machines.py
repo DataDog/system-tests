@@ -1,7 +1,8 @@
 import os
 import json
-from utils.tools import logger
+import hashlib
 
+from utils.tools import logger
 from utils._context.library_version import Version
 from utils import context
 from utils.onboarding.debug_vm import extract_logs_to_file
@@ -137,10 +138,12 @@ class _VirtualMachine:
         vm_cached_name = f"{self.name}_"
         if self.get_provision().lang_variant_installation:
             vm_cached_name += f"{self.get_provision().lang_variant_installation.id}_"
+        vm_cached_installations = ""
         for installation in self.get_provision().installations:
             if installation.cache:
-                vm_cached_name += f"{installation.id}_"
-        return vm_cached_name
+                vm_cached_installations += f"{installation.id}_"
+        vm_cached_installations = hashlib.shake_128(vm_cached_installations.encode("utf-8")).hexdigest(4)
+        return vm_cached_name + vm_cached_installations
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """
@@ -179,8 +182,12 @@ class _VirtualMachine:
         if self.app_env:
             app_env_values = ""
             for key, value in self.app_env.items():
-                app_env_values += f"{key}={value} \r"
+                app_env_values += f"{key}={value} "
             command_env["DD_APP_ENV"] = app_env_values
+        else:
+            # Containers are taking the generated file with this, and we need some value to be present to avoid failures like:
+            # failed to read /home/ubuntu/scenario_app.env: line 1: unexpected character "'" in variable name "''"
+            command_env["DD_APP_ENV"] = "foo=bar"
 
         return command_env
 

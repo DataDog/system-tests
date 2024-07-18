@@ -197,8 +197,8 @@ async def rasp_sqli(request: Request):
         import sqlite3
 
         DB = sqlite3.connect(":memory:")
-        print(f"SELECT * FROM users WHERE {user_id}")
-        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
+        print(f"SELECT * FROM users WHERE id='{user_id}'")
+        cursor = DB.execute(f"SELECT * FROM users WHERE id='{user_id}'")
         print("DB request with {len(list(cursor))} results")
         return PlainTextResponse(f"DB request with {len(list(cursor))} results")
     except Exception as e:
@@ -356,7 +356,7 @@ async def view_iast_source_body(body: Body_for_iast):
 
 @app.get("/iast/source/cookiename/test", response_class=PlainTextResponse)
 async def view_iast_source_cookie_name(request: Request):
-    param = [key for key in request.cookies if key == "user"]
+    param = [key for key in request.cookies if key == "table"]
     if param:
         _sink_point(id=param[0])
         return "OK"
