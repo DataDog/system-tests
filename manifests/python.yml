@@ -672,6 +672,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_data_integrity.py:

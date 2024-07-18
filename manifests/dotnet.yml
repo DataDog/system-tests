@@ -317,6 +317,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_data_integrity.py:
