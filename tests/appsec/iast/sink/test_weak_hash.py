@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, bug, missing_feature, features
+from utils import weblog, context, flaky, missing_feature, features
 from ..utils import BaseSinkTest, assert_iast_vulnerability
 
 
@@ -35,6 +35,7 @@ def _expected_evidence():
 
 
 @features.weak_hash_vulnerability_detection
+@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestWeakHash(BaseSinkTest):
     """Verify weak hash detection."""
 
