@@ -434,20 +434,75 @@ class Test_DsmContext_Extraction_Base64:
 
 @features.datastreams_monitoring_support_for_manual_checkpoints
 @scenarios.integrations
-class Test_Dsm_Manual_Checkpoint:
-    """ Verify DSM stats points for manual checkpoints """
+class Test_Dsm_Manual_Checkpoint_Intra_Process:
+    """ Verify DSM stats points for manual checkpoints within the same process thread """
 
-    def setup_dsm_manual_checkpoint(self):
+    def setup_dsm_manual_checkpoint_intra_process(self):
         self.produce = weblog.get(
             f"/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
         )
-        import time
-
-        time.sleep(20)
         self.consume = weblog.get(
             f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue&headers={self.produce.text}",
             timeout=DSM_REQUEST_TIMEOUT,
         )
+
+    def test_dsm_manual_checkpoint_intra_process(self):
+        self.produce.text = json.loads(self.produce.text)
+
+        assert self.produce.status_code == 200
+        assert "dd-pathway-ctx-base64" in self.produce.text
+
+        assert self.consume.status_code == 200
+        assert self.consume.text == "ok"
+
+        language_hashes = {
+            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
+            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
+            # for some reason, Java assigns earlier HTTP in checkpoint as parent
+            # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
+            "java": {
+                "producer": 1538441441403845096,
+                "consumer": 17074055019471758954,
+                "parent": 3883033147046472598,
+                "edge_tags_out": ("direction:out", "topic:system-tests-queue", "type:dd-streams"),
+                "edge_tags_in": ("direction:in", "topic:system-tests-queue", "type:dd-streams"),
+            },
+            "default": {
+                "producer": 2925617884093644655,
+                "consumer": 9012955179260244489,
+                "edge_tags_out": (
+                    "direction:out",
+                    "manual_checkpoint:true",
+                    "topic:system-tests-queue",
+                    "type:dd-streams",
+                ),
+                "edge_tags_in": (
+                    "direction:in",
+                    "manual_checkpoint:true",
+                    "topic:system-tests-queue",
+                    "type:dd-streams",
+                ),
+            },
+        }
+
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        parent_producer_hash = language_hashes.get(context.library.library, 0)["parent"]
+        edge_tags_out = language_hashes.get(context.library.library, 0)["edge_tags_out"]
+        edge_tags_in = language_hashes.get(context.library.library, 0)["edge_tags_in"]
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=parent_producer_hash, tags=edge_tags_out,
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
+        )
+
+
+@features.datastreams_monitoring_support_for_manual_checkpoints
+@scenarios.integrations
+class Test_Dsm_Manual_Checkpoint_Inter_Process:
+    """ Verify DSM stats points for manual checkpoints across threads """
 
     def setup_dsm_manual_checkpoint_inter_process(self):
         self.produce_threaded = weblog.get(
@@ -459,35 +514,6 @@ class Test_Dsm_Manual_Checkpoint:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    def test_dsm_manual_checkpoint(self):
-        self.produce.text = json.loads(self.produce.text)
-
-        assert self.produce.status_code == 200
-        assert "dd-pathway-ctx-base64" in self.produce.text
-
-        assert self.consume.status_code == 200
-        # assert "dd-pathway-ctx-base64" in self.produce.text
-
-        language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
-            "default": {"producer": 2925617884093644655, "consumer": 9012955179260244489,},
-        }
-
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-
-        DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash,
-            parent_hash=0,
-            tags=("direction:out", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams"),
-        )
-        DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash,
-            parent_hash=producer_hash,
-            tags=("direction:in", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams"),
-        )
-
     def test_dsm_manual_checkpoint_inter_process(self):
         self.produce_threaded.text = json.loads(self.produce_threaded.text)
 
@@ -495,26 +521,49 @@ class Test_Dsm_Manual_Checkpoint:
         assert "dd-pathway-ctx-base64" in self.produce_threaded.text
 
         assert self.consume_threaded.status_code == 200
-        # assert "dd-pathway-ctx-base64" in self.produce.text
+        assert self.consume_threaded.text == "ok"
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
-            "default": {"producer": 11970957519616335697, "consumer": 14397921880946757763,},
+            # for some reason, Java assigns earlier HTTP in checkpoint as parent
+            # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
+            "java": {
+                "producer": 4667583249035065277,
+                "consumer": 2161125765733997838,
+                "parent": 3883033147046472598,
+                "edge_tags_out": ("direction:out", "topic:system-tests-queue", "type:dd-streams-threaded"),
+                "edge_tags_in": ("direction:in", "topic:system-tests-queue", "type:dd-streams-threaded"),
+            },
+            "default": {
+                "producer": 11970957519616335697,
+                "consumer": 14397921880946757763,
+                "edge_tags_out": (
+                    "direction:out",
+                    "manual_checkpoint:true",
+                    "topic:system-tests-queue",
+                    "type:dd-streams-threaded",
+                ),
+                "edge_tags_in": (
+                    "direction:in",
+                    "manual_checkpoint:true",
+                    "topic:system-tests-queue",
+                    "type:dd-streams-threaded",
+                ),
+            },
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        parent_producer_hash = language_hashes.get(context.library.library, 0)["parent"]
+        edge_tags_out = language_hashes.get(context.library.library, 0)["edge_tags_out"]
+        edge_tags_in = language_hashes.get(context.library.library, 0)["edge_tags_in"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash,
-            parent_hash=0,
-            tags=("direction:out", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams-threaded"),
+            hash_=producer_hash, parent_hash=parent_producer_hash, tags=edge_tags_out,
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash,
-            parent_hash=producer_hash,
-            tags=("direction:in", "manual_checkpoint:true", "topic:system-tests-queue", "type:dd-streams-threaded"),
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
 
 
