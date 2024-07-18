@@ -4,7 +4,9 @@ import time
 import urllib.parse
 from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
 
+from docker.models.containers import Container
 import grpc
+import pytest
 import requests
 
 from utils.parametric.protos import apm_test_client_pb2 as pb
@@ -146,9 +148,10 @@ class APMLibraryClient:
 
 
 class APMLibraryClientHTTP(APMLibraryClient):
-    def __init__(self, url: str, timeout: int):
+    def __init__(self, url: str, timeout: int, container: Container):
         self._base_url = url
         self._session = requests.Session()
+        self.container = container
 
         # wait for server to start
         self._wait(timeout)
@@ -161,7 +164,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 if resp.status_code == 404:
                     break
             except Exception:
-                pass
+                self.container.reload()
+                if self.container.status != "running":
+                    message = f"Container {self.container.name} status is {self.container.status}"
+                    raise RuntimeError(message)
             time.sleep(delay)
         else:
             raise RuntimeError(f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start")
@@ -195,6 +201,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "span_tags": tags,
             },
         )
+
+        if resp.status_code != 200:
+            raise pytest.fail(f"Failed to start span: {resp.text}", pytrace=False)
+
         resp_json = resp.json()
         return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
 
