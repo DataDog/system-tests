@@ -255,7 +255,9 @@ class _RequestLogger:
                         if self.rc_api_runtime_ids_request_count[runtime_id] + 1 > len(self.rc_api_sequential_commands):
                             response = {}  # default content when there isn't an RC update
                         else:
-                            response = self.rc_api_sequential_commands[self.rc_api_runtime_ids_request_count[runtime_id]]
+                            response = self.rc_api_sequential_commands[
+                                self.rc_api_runtime_ids_request_count[runtime_id]
+                            ]
 
                         flow.response.status_code = 200
                         flow.response.content = json.dumps(response).encode()

@@ -256,7 +256,11 @@ class DockerScenario(Scenario):
 
         if self.use_proxy:
             self._required_containers.append(
-                ProxyContainer(host_log_folder=self.host_log_folder, rc_api_enabled=rc_api_enabled, meta_structs_disabled=meta_structs_disabled)
+                ProxyContainer(
+                    host_log_folder=self.host_log_folder,
+                    rc_api_enabled=rc_api_enabled,
+                    meta_structs_disabled=meta_structs_disabled,
+                )
             )  # we want the proxy being the first container to start
 
         if include_postgres_db:
