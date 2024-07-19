@@ -144,10 +144,13 @@ TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-tra
 
 #### NodeJS
 
-There is two ways for running the NodeJS tests with a custom tracer:
+There is three ways for running the NodeJS tests with a custom tracer:
 1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
     * `DataDog/dd-trace-js#master`
 2. Clone the dd-trace-js repo inside `binaries`
+3. Create a file `nodejs-load-from-local` in `binaries/`, this will disable installing with `npm install dd-trace` and
+   will instead mount the `../dd-trace-js` directory in the container and then `npm link` to it. This also removes the
+   need to rebuild the weblog image since the code is mounted at runtime.
 
 #### Ruby
 

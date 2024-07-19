@@ -555,12 +555,17 @@ class WeblogContainer(TestedContainer):
 
         self.port = weblog.port
 
+        volumes = {f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},}
+
+        if os.path.exists("./binaries/nodejs-load-from-local"):
+            volumes[os.path.abspath(f"../dd-trace-js/")] = {"bind": f"/volumes/dd-trace-js", "mode": "ro",}
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
             environment=environment or {},
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},},
+            volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],

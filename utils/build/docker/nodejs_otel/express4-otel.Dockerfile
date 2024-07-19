@@ -38,6 +38,7 @@ RUN printf "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN printf "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 # docker startup
-RUN printf '#!/bin/bash\nnode --require @opentelemetry/auto-instrumentations-node/register app.js' > app.sh
-RUN chmod +x app.sh
+COPY utils/build/docker/nodejs/app.sh app.sh
+RUN printf '#!/bin/bash\nnode --require @opentelemetry/auto-instrumentations-node/register app.js' > server.sh
+RUN chmod +x server.sh
 CMD ./app.sh
