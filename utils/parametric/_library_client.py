@@ -475,10 +475,8 @@ class APMLibraryClientGRPC:
         try:
             grpc.channel_ready_future(channel).result(timeout=timeout)
         except grpc.FutureTimeoutError:
-            container.reload()
-            logs = container.logs().decode("utf-8")
             logger.error("gRPC timeout, stopping test.")
-            logger.error(f"Container {container.name} status is: {container.status}. Logs:\n{logs}")
+            self._log_container_stdout()
 
             raise RuntimeError(f"Container {container.name} did not respond to gRPC request")
 
@@ -487,6 +485,14 @@ class APMLibraryClientGRPC:
 
     def __enter__(self) -> "APMLibrary":
         return self
+
+    def _log_container_stdout(self):
+        try:
+            self.container.reload()
+            logs = self.container.logs().decode("utf-8")
+            logger.error(f"Container {self.container.name} status is: {self.container.status}. Logs:\n{logs}")
+        except:  # noqa
+            logger.error(f"Failed to get logs from container {self.container.name}")
 
     def trace_start_span(
         self,
@@ -521,19 +527,24 @@ class APMLibraryClientGRPC:
 
             pb_links.append(pb_link)
 
-        resp = self._client.StartSpan(
-            pb.StartSpanArgs(
-                name=name,
-                service=service,
-                resource=resource,
-                parent_id=parent_id,
-                type=typestr,
-                origin=origin,
-                http_headers=distributed_message,
-                span_links=pb_links,
-                span_tags=pb_tags,
+        try:
+            resp = self._client.StartSpan(
+                pb.StartSpanArgs(
+                    name=name,
+                    service=service,
+                    resource=resource,
+                    parent_id=parent_id,
+                    type=typestr,
+                    origin=origin,
+                    http_headers=distributed_message,
+                    span_links=pb_links,
+                    span_tags=pb_tags,
+                )
             )
-        )
+        except:
+            self._log_container_stdout()
+            raise
+
         return {
             "span_id": resp.span_id,
             "trace_id": resp.trace_id,
