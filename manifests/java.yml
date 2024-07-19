@@ -173,6 +173,17 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization:
+            '*': v1.38.0
+            akka-htpp: missing_feature (No endpoint implemented)
+            play: missing_feature (No endpoint implemented)
+            ratpack: missing_feature (No endpoint implemented)
+            jersey-grizzly2: missing_feature (No endpoint implemented)
+            resteasy-netty3: missing_feature (No endpoint implemented)
+            spring-boot-3-native: missing_feature (No endpoint implemented)
+            vertx3: missing_feature (No endpoint implemented)
+            vertx4: missing_feature (No endpoint implemented)
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': v1.15.0
