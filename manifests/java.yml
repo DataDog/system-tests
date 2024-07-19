@@ -176,7 +176,7 @@ tests/:
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization:
             '*': v1.38.0
-            akka-htpp: missing_feature (No endpoint implemented)
+            akka-http: missing_feature (No endpoint implemented)
             play: missing_feature (No endpoint implemented)
             ratpack: missing_feature (No endpoint implemented)
             jersey-grizzly2: missing_feature (No endpoint implemented)
