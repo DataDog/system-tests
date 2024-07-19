@@ -5,7 +5,6 @@
   agent_major_version: "7"
   injection_repo_url: datad0g.com
   injection_dist_channel: beta
-  injection_major_version: apm
   deb_repo_name: beta
   rpm_repo_name: datadog-staging
   oci_registry_template: "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/%s-package-dev:latest"
@@ -16,7 +15,6 @@
   agent_major_version: "7"
   injection_repo_url: datadoghq.com
   injection_dist_channel: stable
-  injection_major_version: "7"
   deb_repo_name: stable
   rpm_repo_name: datadog-stable
   oci_registry_template: "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/%s-package:latest"

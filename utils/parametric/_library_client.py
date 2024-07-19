@@ -12,6 +12,7 @@ import requests
 from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
 from utils.parametric.spec.otel_trace import OtelSpanContext, convert_to_proto
+from utils.tools import logger
 
 
 class StartSpanResponse(TypedDict):
@@ -467,14 +468,31 @@ class _TestOtelSpan:
 
 
 class APMLibraryClientGRPC:
-    def __init__(self, url: str, timeout: int):
+    def __init__(self, url: str, timeout: int, container: Container):
+        self.container = container
+
         channel = grpc.insecure_channel(url)
-        grpc.channel_ready_future(channel).result(timeout=timeout)
+        try:
+            grpc.channel_ready_future(channel).result(timeout=timeout)
+        except grpc.FutureTimeoutError:
+            logger.error("gRPC timeout, stopping test.")
+            self._log_container_stdout()
+
+            raise RuntimeError(f"Container {container.name} did not respond to gRPC request")
+
         client = apm_test_client_pb2_grpc.APMClientStub(channel)
         self._client = client
 
     def __enter__(self) -> "APMLibrary":
         return self
+
+    def _log_container_stdout(self):
+        try:
+            self.container.reload()
+            logs = self.container.logs().decode("utf-8")
+            logger.error(f"Container {self.container.name} status is: {self.container.status}. Logs:\n{logs}")
+        except:  # noqa
+            logger.error(f"Failed to get logs from container {self.container.name}")
 
     def trace_start_span(
         self,
@@ -509,19 +527,24 @@ class APMLibraryClientGRPC:
 
             pb_links.append(pb_link)
 
-        resp = self._client.StartSpan(
-            pb.StartSpanArgs(
-                name=name,
-                service=service,
-                resource=resource,
-                parent_id=parent_id,
-                type=typestr,
-                origin=origin,
-                http_headers=distributed_message,
-                span_links=pb_links,
-                span_tags=pb_tags,
+        try:
+            resp = self._client.StartSpan(
+                pb.StartSpanArgs(
+                    name=name,
+                    service=service,
+                    resource=resource,
+                    parent_id=parent_id,
+                    type=typestr,
+                    origin=origin,
+                    http_headers=distributed_message,
+                    span_links=pb_links,
+                    span_tags=pb_tags,
+                )
             )
-        )
+        except:
+            self._log_container_stdout()
+            raise
+
         return {
             "span_id": resp.span_id,
             "trace_id": resp.trace_id,
