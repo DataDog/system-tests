@@ -172,7 +172,7 @@ elif [ "$TARGET" = "dotnet" ]; then
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
+    echo "git+https://github.com/DataDog/dd-trace-py.git@juanjux/iast-denylist-encodings-idna" > python-load-from-pip
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
