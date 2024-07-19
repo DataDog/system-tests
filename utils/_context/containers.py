@@ -555,10 +555,15 @@ class WeblogContainer(TestedContainer):
 
         self.port = weblog.port
 
-        volumes = {f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},}
+        volumes = {
+            f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
+        }
 
         if os.path.exists("./binaries/nodejs-load-from-local"):
-            volumes[os.path.abspath(f"../dd-trace-js/")] = {"bind": f"/volumes/dd-trace-js", "mode": "ro",}
+            volumes[os.path.abspath(f"../dd-trace-js/")] = {
+                "bind": f"/volumes/dd-trace-js",
+                "mode": "ro",
+            }
 
         super().__init__(
             image_name="system_tests/weblog",
