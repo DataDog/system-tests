@@ -97,6 +97,7 @@ class Test_Schema_Request_Cookies:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@flaky(context.library == "php", reason="APPSEC-53993")
 class Test_Schema_Request_Query_Parameters:
     """Test API Security - Request Query Parameters Schema"""
 

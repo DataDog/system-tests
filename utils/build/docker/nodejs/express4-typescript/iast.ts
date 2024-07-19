@@ -410,7 +410,11 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      consumer = kafka.consumer({
+        groupId: 'testgroup2',
+        heartbeatInterval: 10000, // should be lower than sessionTimeout
+        sessionTimeout: 60000
+      })
 
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
@@ -476,7 +480,11 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      consumer = kafka.consumer({
+        groupId: 'testgroup2',
+        heartbeatInterval: 10000, // should be lower than sessionTimeout
+        sessionTimeout: 60000
+      })
 
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
@@ -503,7 +511,9 @@ function initSourceRoutes (app: Express): void {
             // do nothing
           }
 
-          deferred.resolve?.()
+          if (vulnKey === 'hello key!') {
+            deferred.resolve?.()
+          }
         }
       })
 

@@ -1,6 +1,6 @@
 The RC API is the official way to interact with remote config. It allows to build and send RC payloads to the library durint setup phase, and send request before/after each state change.
 
-## Building RC payload
+## Setting RC configuration files
 
 ### Example
 
@@ -8,7 +8,8 @@ The RC API is the official way to interact with remote config. It allows to buil
 from utils import remote_config
 
 
-command = remote_config.RemoteConfigCommand(version=1)
+# will return the global rc state
+rc_state = remote_config.rc_state
 
 config = {
     "rules_data": [
@@ -20,35 +21,47 @@ config = {
     ]
 }
 
-command.add_client_config(f"datadog/2/ASM_DATA-base/ASM_DATA-base/config", config)
+rc_state.set_config(f"datadog/2/ASM_DATA-base/ASM_DATA-base/config", config)
+# send the state to the tracer and wait for the result to be validated
+rc_state.apply()
 ```
 
 ### API
 
-#### class `remote_config.RemoteConfigCommand`
+#### object `remote_config.rc_state`
 
-This class will be serialized as a valid `ClientGetConfigsResponse`.
 
-* constructor `__init__(self, version: int, client_configs=(), expires=None)`
-  * `version: int`: `version` property of `signed` object
-  * `client_configs`[optional]: list of configuration path / config object.
-  * `expires` [optional]: expiration date of the config (default `3000-01-01T00:00:00Z`)
-* `add_client_config(self, path, config) -> ClientConfig:`
+* `set_config(self, path, config) -> rc_state`
   * `path`: configuration path
   * `config`: config object
-* `send()`: send the command using the `send_command` function (see below)
 
+  *add one configuration in the state*
+* `del_config(self, path) -> rc_state`
+  * `path`: configuration path
 
-## Sending command
+  *delete one configuration in the state*
+* `reset(self) -> rc_state`
+
+  *delete all configurations in the state*
+* `apply() -> tracer_state`
+
+  *send the state using the `send_state` function (see below).*
+
+  *return value can be used to check that the state was correctly applied to the tracer.*
+
+Remember that the state is shared among all tests of a scenario.
+You need to reset it and apply at the start of each setup.
+
+## Sending states
 
 ### Example
 
 Here is an example a scenario activating/deactivating ASM:
 
 1. the library starts in an initial state where ASM is disabled. This state is validated with an assertion on a request containing an attack : the request should not been caught by ASM
-2. Then a RC command is sent to activate ASM
+2. Then the RC state is sent to activate ASM
 3. another request containing an attack is sent, this one must be reported by ASM
-4. A second command is sent to deactivate ASM
+4. The state is modified and sent to deactivate ASM
 5. a thirst request containing an attack is sent, this last one should not be seen
 
 
@@ -57,6 +70,7 @@ Here is the test code performing that test. Please note variables `activate_ASM_
 ```python
 from utils import weblog, interfaces, scenarios, remote_config
 
+rc_state = remote_config.rc_state
 
 @scenarios.asm_deactivated  # in this scenario, ASM is deactivated
 class Test_RemoteConfigSequence:
@@ -67,17 +81,19 @@ class Test_RemoteConfigSequence:
         self.first_request = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
         # this function will send a RC payload to the library, and wait for a confirmation from the library
-        self.config_states_activation = activate_ASM_command.send()
+        self.config_states_activation = rc_state.set_config(path, asm_enabled).apply()
         self.second_request = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-        # now deactivate the WAF, and check that it does not catch anything
-        self.config_states_deactivation = deactivate_ASM_command.send()
+        # now deactivate the WAF by deleting the RC file, and check that it does not catch anything
+        self.config_states_deactivation = rc_state.del_config(path).apply()
         self.third_request = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_asm_switch_on_switch_off():
         # first check that both config state are ok, otherwise, next assertions will fail with cryptic messages
+        assert self.config_states_activation[remote_config.RC_STATE] == remote_config.ApplyState.ACKNOWLEDGED
+        assert self.config_states_deactivation[remote_config.RC_STATE] == remote_config.ApplyState.ACKNOWLEDGED
+        # for non empty config, you can also check for details of files
         assert self.config_states_activation["asm_features_activation"]["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_states_activation
-        assert self.config_states_deactivation["asm_features_activation"]["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_states_deactivation
 
         interfaces.library.assert_no_appsec_event(self.first_request)
         interfaces.library.assert_waf_attack(self.second_request)
@@ -88,7 +104,7 @@ To use this feature, you must use an `EndToEndScenario` with `rc_api_enabled=Tru
 
 ### API
 
-#### `send_command(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]`
+#### `send_state(raw_payload, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]`
 
 Sends a remote config payload to the library and waits for the config to be applied.
 Then returns a dictionary with the state of each requested file as returned by the library.

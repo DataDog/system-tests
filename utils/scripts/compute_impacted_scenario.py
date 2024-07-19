@@ -104,7 +104,9 @@ def main():
                 if file == "tests/test_schemas.py":
                     # this file is tested in all end-to-end scenarios
                     scenarios_groups.add(ScenarioGroup.END_TO_END.value)
-
+                elif file.startswith("tests/auto_inject"):
+                    # Nothing to do, onboarding test run on gitlab nightly or manually
+                    pass
                 elif file.endswith("/utils.py") or file.endswith("/conftest.py"):
                     # particular use case for modification in tests/ of a file utils.py or conftest.py
                     # in that situation, takes all scenarios executed in tests/<path>/
@@ -122,6 +124,16 @@ def main():
                     scenarios_groups.add(ScenarioGroup.PARAMETRIC.value)
                 elif file == "utils/_context/_scenarios/open_telemetry.py":
                     scenarios_groups.add(ScenarioGroup.OPEN_TELEMETRY.value)
+                elif (
+                    # Onboarding cases
+                    file.startswith("utils/onboarding")
+                    or file.startswith("utils/virtual_machine")
+                    or file.startswith("utils/build/virtual_machine")
+                    or file == "utils/_context/_scenarios/auto_injection.py"
+                    or file == "utils/_context/virtual_machine.py"
+                ):
+                    # nothing to do. Onboarding tests run on gitlab
+                    pass
                 else:
                     scenarios_groups.add(ScenarioGroup.ALL.value)
 
