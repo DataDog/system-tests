@@ -284,7 +284,7 @@ class Test_DsmSNS:
             f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
+    # @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
