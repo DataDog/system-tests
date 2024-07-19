@@ -136,37 +136,8 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
-    def start(self) -> Thread:
-        return self._start_async([])
-
-    def _start_async(self, seen: list):
-        """ Start the container and its dependencies in a thread with circular dependency detection """
-        with self._starting_lock:
-            # This lock will prevent any race condition, as this function can be called on the same container in
-            # different threads.
-            if self in seen:
-                dependencies = " -> ".join([s.name for s in seen])
-                pytest.exit(f"Circular dependency detected between containers: {dependencies}", 1)
-
-            seen.append(self)
-
-            if self._starting_thread is None:
-                self._starting_thread = Thread(target=self._start_with_dependencies, args=(seen,))
-                self._starting_thread.start()
-
-        return self._starting_thread
-
-    def _start_with_dependencies(self, seen):
-        """ Start all dependencies of a container and then start the container """
-        threads = [dependency._start_async(seen) for dependency in self.depends_on]
-
-        for thread in threads:
-            thread.join()
-
-        self._start_container()
-
-    def _start_container(self):
-        """ Start the actual Docker container """
+    def start(self) -> Container:
+        """ Start the actual underlying Docker container directly """
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -195,6 +166,36 @@ class TestedContainer:
 
         self.wait_for_health()
         self.warmup()
+
+    def async_start(self) -> Thread:
+        """ Start the container and its dependencies in a thread with circular dependency detection """
+        return self._async_start_recursive([])
+
+    def _async_start_recursive(self, seen: list):
+        """ Recursive version of async_start for circular dependency detection """
+        with self._starting_lock:
+            # This lock will prevent any race condition, as this function can be called on the same container in
+            # different threads.
+            if self in seen:
+                dependencies = " -> ".join([s.name for s in seen])
+                pytest.exit(f"Circular dependency detected between containers: {dependencies}", 1)
+
+            seen.append(self)
+
+            if self._starting_thread is None:
+                self._starting_thread = Thread(target=self._start_with_dependencies, args=(seen,))
+                self._starting_thread.start()
+
+        return self._starting_thread
+
+    def _start_with_dependencies(self, seen):
+        """ Start all dependencies of a container and then start the container """
+        threads = [dependency._async_start_recursive(seen) for dependency in self.depends_on]
+
+        for thread in threads:
+            thread.join()
+
+        self.start()
 
     def warmup(self):
         """ if some stuff must be done after healthcheck """

@@ -321,7 +321,7 @@ class DockerScenario(Scenario):
         threads = []
 
         for container in self._required_containers:
-            threads.append(container.start())
+            threads.append(container.async_start())
 
         for thread in threads:
             thread.join()
