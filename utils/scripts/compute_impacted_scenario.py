@@ -1,6 +1,7 @@
 from collections import defaultdict
 import json
 import os
+import re
 from manifests.parser.core import load as load_manifests
 from utils._context._scenarios import ScenarioGroup
 
@@ -81,26 +82,8 @@ def main():
             modified_files = [line.strip() for line in f.readlines()]
 
         for file in modified_files:
-            if file.startswith(".circleci") or file.startswith(".github") or file.startswith(".vscode"):
-                # nothing to do ?
-                pass
 
-            elif file.startswith("binaries/") or file.startswith("docs/"):
-                # noting to do
-                pass
-
-            elif file.startswith("lib-injection/"):
-                scenarios_groups.add(ScenarioGroup.LIB_INJECTION.value)
-
-            elif file.startswith("manifests/"):
-                # already handled by the manifest comparison
-                pass
-
-            elif file.startswith("parametric/"):
-                # Legacy folder
-                pass
-
-            elif file.startswith("tests/"):
+            if file.startswith("tests/"):
                 if file == "tests/test_schemas.py":
                     # this file is tested in all end-to-end scenarios
                     scenarios_groups.add(ScenarioGroup.END_TO_END.value)
@@ -117,58 +100,70 @@ def main():
                         if sub_file.startswith(folder):
                             scenarios.update(scenarios_by_files[sub_file])
 
-            elif file.startswith("utils/"):
-                if file.startswith("utils/interfaces/schemas"):
-                    scenarios_groups.add(ScenarioGroup.END_TO_END.value)
-                elif file == "utils/_context/_scenarios/parametric.py":
-                    scenarios_groups.add(ScenarioGroup.PARAMETRIC.value)
-                elif file == "utils/_context/_scenarios/open_telemetry.py":
-                    scenarios_groups.add(ScenarioGroup.OPEN_TELEMETRY.value)
-                elif (
-                    # Onboarding cases
-                    file.startswith("utils/onboarding")
-                    or file.startswith("utils/virtual_machine")
-                    or file.startswith("utils/build/virtual_machine")
-                    or file == "utils/_context/_scenarios/auto_injection.py"
-                    or file == "utils/_context/virtual_machine.py"
-                ):
-                    # nothing to do. Onboarding tests run on gitlab
-                    pass
-                else:
-                    scenarios_groups.add(ScenarioGroup.ALL.value)
-
-            elif file in (
-                ".dockerignore",
-                ".gitattributes",
-                ".gitignore",
-                ".gitlab-ci.yml",
-                ".shellcheck",
-                ".shellcheckrc",
-                "CHANGELOG.md",
-            ):
-                # nothing to do
-                pass
-
-            elif file in ("LICENSE", "LICENSE-3rdparty.csv", "NOTICE", "Pulumi.yaml", "README.md"):
-                # nothing to do
-                pass
-
-            elif file == "conftest.py":
-                scenarios_groups.add(ScenarioGroup.ALL.value)
-
-            elif file in ("format.sh", "pyproject.toml"):
-                # nothing to do
-                pass
-
-            elif file in ("requirements.txt", "run.sh"):
-                scenarios_groups.add(ScenarioGroup.ALL.value)
-
-            elif file in ("scenario_groups.yml", "shell.nix"):
-                # nothing to do
-                pass
-
             else:
-                raise ValueError(f"Unknown file: {file}. Please add it in this file, with the correct scenario group.")
+                # Map of file patterns -> scenario group:
+                #
+                # * The first matching pattern is applied
+                # * Others are ignored (so order is important)
+                # * If no pattern matches -> error
+                files_map = {
+                    ## scenarios specific folder
+                    r"parametric/.*": None,  # Legacy folder
+                    r"lib-injection/.*": ScenarioGroup.LIB_INJECTION.value,
+                    ## nothing to do folders
+                    r"manifests/.*": None,  # already handled by the manifest comparison
+                    r"docs/.*": None,  # nothing to do
+                    r"binaries/.*": None,  # nothing to do
+                    r"\.circleci/.*": None,  # nothing to do
+                    r"\.vscode/.*": None,  # nothing to do
+                    r"\.github/.*": None,  # nothing to do??
+                    ## utils/ folder
+                    r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
+                    r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY.value,
+                    r"utils/scripts/compute_impacted_scenario\.py": None,
+                    #### Onboarding cases
+                    r"utils/onboarding.*": None,
+                    r"utils/virtual_machine.*": None,
+                    r"utils/build/virtual_machine.*": None,
+                    r"utils/_context/_scenarios/auto_injection\.py": None,
+                    r"utils/_context/virtual_machine\.py": None,
+                    #### Parametric case
+                    r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
+                    r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
+                    ### else, run all
+                    r"utils/.*": ScenarioGroup.ALL.value,
+                    ## few files with no effect
+                    r"\.dockerignore": None,
+                    r"\.gitattributes": None,
+                    r"\.gitignore": None,
+                    r"\.gitlab-ci\.yml": None,
+                    r"\.shellcheck": None,
+                    r"\.shellcheckrc": None,
+                    r"CHANGELOG\.md": None,
+                    r"LICENSE": None,
+                    r"LICENSE-3rdparty\.csv": None,
+                    r"NOTICE": None,
+                    r"Pulumi\.yaml": None,
+                    r"README\.md": None,
+                    r"format\.sh": None,
+                    r"pyproject\.toml": None,
+                    r"scenario_groups\.yml": None,
+                    r"shell\.nix": None,
+                    ## few files with lot of effect
+                    r"requirements\.txt": ScenarioGroup.ALL.value,
+                    r"run\.sh": ScenarioGroup.ALL.value,
+                    r"conftest\.py": ScenarioGroup.ALL.value,
+                }
+
+                for pattern, scenario_group in files_map.items():
+                    if re.fullmatch(pattern, file):
+                        if scenario_group is not None:
+                            scenarios_groups.add(scenario_group)
+                        break
+                else:
+                    raise ValueError(
+                        f"Unknown file: {file}. Please add it in this file, with the correct scenario group."
+                    )
 
             # now get known scenarios executed in this file
             if file in scenarios_by_files:

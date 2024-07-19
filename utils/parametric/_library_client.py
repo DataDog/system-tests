@@ -12,6 +12,7 @@ import requests
 from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
 from utils.parametric.spec.otel_trace import OtelSpanContext, convert_to_proto
+from utils.tools import logger
 
 
 class StartSpanResponse(TypedDict):
@@ -467,9 +468,20 @@ class _TestOtelSpan:
 
 
 class APMLibraryClientGRPC:
-    def __init__(self, url: str, timeout: int):
+    def __init__(self, url: str, timeout: int, container: Container):
+        self.container = container
+
         channel = grpc.insecure_channel(url)
-        grpc.channel_ready_future(channel).result(timeout=timeout)
+        try:
+            grpc.channel_ready_future(channel).result(timeout=timeout)
+        except grpc.FutureTimeoutError:
+            container.reload()
+            logs = container.logs().decode("utf-8")
+            logger.error("gRPC timeout, stopping test.")
+            logger.error(f"Container {container.name} status is: {container.status}. Logs:\n{logs}")
+
+            raise RuntimeError(f"Container {container.name} did not respond to gRPC request")
+
         client = apm_test_client_pb2_grpc.APMClientStub(channel)
         self._client = client
 
