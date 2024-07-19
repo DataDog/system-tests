@@ -14,17 +14,14 @@ else
     if [ -e /binaries/nodejs-load-from-npm ]; then
         target=$(</binaries/nodejs-load-from-npm)
         echo "install from: $target"
-        npm install $target
 
     elif [ -e /binaries/dd-trace-js ]; then
         target=$(npm pack /binaries/dd-trace-js)
         echo "install from local folder /binaries/dd-trace-js"
-        npm install $target
 
     else
         target="dd-trace"
         echo "install from NPM"
-        npm install $target
     fi
 
     # nodejs uses the next API to get the library version. See https://github.com/DataDog/system-tests/issues/2799
