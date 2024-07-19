@@ -2266,7 +2266,7 @@ class features:
         """
         pytest.mark.features(feature_id=309)(test_object)
         return test_object
-      
+
     @staticmethod
     def iast_sink_untrusted_deserialization(test_object):
         """
