@@ -166,7 +166,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v1.28.6
     test_appsec_metastruct.py:
-      Test_SecurityEvent_Metastruct: missing_feature
+      Test_SecurityEvent_Metastruct: v2.55.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:

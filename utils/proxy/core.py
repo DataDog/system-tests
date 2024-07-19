@@ -282,11 +282,6 @@ class _RequestLogger:
                 c["endpoints"].append("/v0.7/config")
                 flow.response.content = json.dumps(c).encode()
 
-            if self.span_meta_structs_disabled and "span_meta_structs" in c:
-                logger.info("    => Overwriting /info response to remove span_meta_structs field")
-                c.pop("span_meta_structs")
-                flow.response.content = json.dumps(c).encode()
-
 
 def start_proxy() -> None:
 
