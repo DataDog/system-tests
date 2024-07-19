@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import re
+import time
 from typing import Any
 from typing import Optional
 
@@ -112,6 +113,8 @@ def send_state(
 
     _post("/unique_command", raw_payload)
     library.wait_for(remote_config_applied, timeout=30)
+    # ensure the library has enough time to apply the config to all subprocesses
+    time.sleep(2)
 
     return current_states
 

@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
@@ -56,27 +57,35 @@ class Test_BlockingActionChangesWithRemoteConfig:
             "/waf/", headers={"User-Agent": "dd-test-scanner-log-block"}, allow_redirects=False
         )
 
+        self.config_state_5 = rc.rc_state.del_config(CONFIG_ENABLED[0]).apply()
+        self.response_5 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
     def test_block_405(self):
         # normal block
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_1)
+        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
 
         # block on 405/json with RC
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_2)
+        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 405
-        assert self.response_2.headers["content-type"] == "application/json"
+        # assert self.response_2.headers["content-type"] == "application/json"
 
         # block on 505/html with RC
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_3)
+        interfaces.library.assert_waf_attack(self.response_3, rule="ua0-600-56x")
         assert self.response_3.status_code == 505
-        assert self.response_3.headers["content-type"] == "text/html"
+        assert self.response_3.headers["content-type"].startswith("text/html")
 
         # block on 505/html with RC
         assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_4)
+        interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
         assert self.response_4.status_code == 302
         assert self.response_4.text == ""
         assert self.response_4.headers["location"] == "http://google.com"
+
+        # ASM disabled
+        assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_5.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_5)

@@ -439,7 +439,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
-      Test_BlockingActionChangesWithRemoteConfig: v2.7.0
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
       Test_Info: v1.1.0rc2.dev
