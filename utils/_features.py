@@ -2272,7 +2272,7 @@ class features:
         """
         IAST Sink: Untrusted Deserialization
 
-        https://feature-parity.us1.prod.dog/#/?feature=311
+        https://feature-parity.us1.prod.dog/#/?feature=316
         """
-        pytest.mark.features(feature_id=311)(test_object)
+        pytest.mark.features(feature_id=316)(test_object)
         return test_object
