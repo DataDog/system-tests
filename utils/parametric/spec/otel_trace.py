@@ -1,4 +1,3 @@
-from typing import List
 from typing import TypedDict
 from utils.parametric.protos import apm_test_client_pb2 as pb
 
@@ -14,19 +13,12 @@ SK_PRODUCER = 4
 SK_CONSUMER = 5
 
 
-class OtelSpan(TypedDict):
-    resource: str
-
-
 class OtelSpanContext(TypedDict):
     trace_id: str
     span_id: str
     trace_flags: str
     trace_state: str
     remote: bool
-
-
-OtelTrace = List[OtelSpan]
 
 
 def check_list_type(value, t: type) -> bool:

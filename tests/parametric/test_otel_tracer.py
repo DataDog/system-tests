@@ -2,7 +2,6 @@ import pytest
 
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
-from utils.parametric.spec.otel_trace import OtelSpan
 from utils import missing_feature, irrelevant, context, scenarios, features
 
 # this global mark applies to all tests in this file.

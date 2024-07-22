@@ -6,13 +6,11 @@ import pytest
 from typing import Union
 from utils.parametric._library_client import Link
 from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
-from utils.parametric.spec.otel_trace import OtelSpan
 from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
-from utils.parametric.test_agent import get_span
 from utils import bug, features, missing_feature, irrelevant, flaky, context, scenarios
 
 # this global mark applies to all tests in this file.

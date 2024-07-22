@@ -153,22 +153,30 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
     )
 
 
-def find_trace(traces: List[Trace], trace_id: int) -> Optional[Trace]:
+def find_trace(traces: List[Trace], trace_id: int) -> Trace:
     """Return the trace from `traces` that match a `trace_id`."""
-    trace_id = trace_id & (2 ^ 64 - 1)  # Use 64-bit trace id
+    trace_id = ((1 << 64) - 1) & trace_id  # Use 64-bit trace id
     for trace in traces:
         # This check ignores the high bits of the trace id
         # TODO: Check _dd.p.tid
         if trace and trace[0].get("trace_id") == trace_id:
             return trace
+    raise AssertionError(f"Trace with 64bit trace_id={trace_id} not found. Traces={traces}")
 
 
-def find_span(trace: Trace, span_id: int) -> Optional[Span]:
+def find_span(trace: Trace, span_id: int) -> Span:
     """Return a span from the trace matches a `span_id`."""
     assert len(trace) > 0
     for span in trace:
         if span.get("span_id") == span_id:
             return span
+    raise AssertionError(f"Span with id={span_id} not found. Trace={trace}")
+
+
+def find_span_in_traces(traces: List[Trace], trace_id: int, span_id: int) -> Span:
+    """Return a span from the traces that matches a `trace_id` and `span_id`."""
+    trace = find_trace(traces, trace_id)
+    return find_span(trace, span_id)
 
 
 def span_has_no_parent(span: Span) -> bool:

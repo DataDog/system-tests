@@ -410,7 +410,7 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -725,7 +725,7 @@ class APMLibrary:
             attributes=attributes,
             http_headers=http_headers if http_headers is not None else [],
         )
-        span = _TestOtelSpan(self._client, resp["span_id"])
+        span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
 
         return {
