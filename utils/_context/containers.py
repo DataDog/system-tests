@@ -351,7 +351,7 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder, rc_api_enabled: bool) -> None:
+    def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool) -> None:
 
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
@@ -363,6 +363,7 @@ class ProxyContainer(TestedContainer):
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
+                "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
             },
             working_dir="/app",
             volumes={
