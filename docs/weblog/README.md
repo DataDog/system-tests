@@ -504,3 +504,8 @@ distributed tracing propagation headers.
 
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
+
+### \[GET\] /stats-unique
+The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message.
+This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
+stats generating tests.
