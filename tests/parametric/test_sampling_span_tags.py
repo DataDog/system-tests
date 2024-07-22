@@ -10,7 +10,6 @@ from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE  # noqa
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY  # noqa
 from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE  # noqa
 from utils.parametric.spec.trace import Span  # noqa
-from utils.parametric.spec.trace import find_span_in_traces  # noqa
 
 UNSET = -420
 

@@ -10,14 +10,14 @@ Example:
 @parametrize("library_env", [{"DD_ENV": "prod"}, {"DD_ENV": "dev"}])
 def test_tracer_env_environment_variable(library_env, test_library, test_agent):
   with test_library:
-    with test_library.start_span("operation"):
+    with test_library.start_span("operation") as span:
       pass
 
   traces = test_agent.traces()
-  trace = find_trace(traces, Span(name="operation"))
+  trace = find_trace(traces, span.trace_id)
   assert len(trace) == 1
 
-  span = find_span(trace, Span(name="operation"))
+  span = find_span(trace, span.span_id)
   assert span["name"] == "operation"
   assert span["meta"]["env"] == library_env["DD_ENV"]
 ```

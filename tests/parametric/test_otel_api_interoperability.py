@@ -66,11 +66,12 @@ class Test_Otel_API_Interoperability:
                     otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "dd_span")
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 2
 
         root = root_span(trace)
-        span = find_span(trace, OtelSpan(resource="otel_span"))
+        span = find_span(trace, otel_span.span_id)
+        assert span.get("resource") == "otel_span"
 
         assert span.get("parent_id") == root.get("span_id")
 
@@ -92,7 +93,7 @@ class Test_Otel_API_Interoperability:
                 assert has_ended is False
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "dd_span")
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
     def test_datadog_start_after_otel_span(self, test_agent, test_library):
@@ -114,12 +115,13 @@ class Test_Otel_API_Interoperability:
                 otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, OtelSpan(name="internal"))
+        trace = find_trace(traces, otel_span.trace_id)
         assert len(trace) == 2
 
         root = root_span(trace)
-        span = find_span(trace, "dd_span")
+        assert span.get("resource") == "otel_span"
 
+        span = find_span(trace, dd_span.span_id)
         assert span.get("parent_id") == root.get("span_id")
 
     def test_set_update_remove_meta(self, test_agent, test_library):
@@ -148,7 +150,7 @@ class Test_Otel_API_Interoperability:
                 otel_span.set_attribute("arg2", None)  # Remove the arg2/val2 pair (Created with the DD API)
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "dd_span")
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
         dd_span = root_span(trace)
@@ -189,7 +191,7 @@ class Test_Otel_API_Interoperability:
                 otel_span.set_attribute("m2", None)  # Remove the m2/2 pair (Created with the DD API)
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "dd_span")
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
         dd_span = root_span(trace)
@@ -220,8 +222,9 @@ class Test_Otel_API_Interoperability:
                 otel_span.set_name("my_new_resource3")
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "my_new_resource2"))
-        assert len(trace) == 1
+        trace = find_trace(traces, otel_span.trace_id)
+        span = find_span(trace, otel_span.span_id)
+        assert span.get("resource") == "my_new_resource3"
 
     def test_span_links_add(self, test_agent, test_library):
         """
@@ -243,7 +246,7 @@ class Test_Otel_API_Interoperability:
                 otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "internal")
+        trace = find_trace(traces, otel_span.trace_id)
         assert len(trace) == 1
 
         root = root_span(trace)
@@ -272,10 +275,10 @@ class Test_Otel_API_Interoperability:
 
         traces = test_agent.wait_for_num_traces(2)
 
-        trace1 = find_trace(traces, "server.request")
+        trace1 = find_trace(traces, otel_root.trace_id)
         assert len(trace1) == 2
 
-        trace2 = find_trace(traces, "dd_root")
+        trace2 = find_trace(traces, dd_root.trace_id)
         assert len(trace2) == 2
 
         root1 = root_span(trace1)
@@ -283,8 +286,8 @@ class Test_Otel_API_Interoperability:
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
-        child1 = find_span(trace1, "dd_child")
-        child2 = find_span(trace2, "internal")
+        child1 = find_span(trace1, dd_child.span_id)
+        child2 = find_span(trace2, otel_child.span_id)
         assert child1["name"] == "dd_child"
         assert child2["resource"] == "otel_child"
 
@@ -321,10 +324,10 @@ class Test_Otel_API_Interoperability:
 
         traces = test_agent.wait_for_num_traces(2)
 
-        trace1 = find_trace(traces, "server.request")
+        trace1 = find_trace(traces, otel_root.trace_id)
         assert len(trace1) == 2
 
-        trace2 = find_trace(traces, "dd_root")
+        trace2 = find_trace(traces, dd_root.trace_id)
         assert len(trace2) == 2
 
         root1 = root_span(trace1)
@@ -332,8 +335,8 @@ class Test_Otel_API_Interoperability:
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
-        child1 = find_span(trace1, "internal")
-        child2 = find_span(trace2, "dd_child")
+        child1 = find_span(trace1, otel_child.span_id)
+        child2 = find_span(trace2, dd_child.span_id)
         assert child1["resource"] == "otel_child"
         assert child2["name"] == "dd_child"
 
@@ -370,10 +373,10 @@ class Test_Otel_API_Interoperability:
 
         traces = test_agent.wait_for_num_traces(2)
 
-        trace1 = find_trace(traces, "server.request")
+        trace1 = find_trace(traces, otel_root.trace_id)
         assert len(trace1) == 2
 
-        trace2 = find_trace(traces, "dd_root")
+        trace2 = find_trace(traces, dd_root.trace_id)
         assert len(trace2) == 2
 
         root1 = root_span(trace1)
@@ -381,8 +384,8 @@ class Test_Otel_API_Interoperability:
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
-        child1 = find_span(trace1, "internal")
-        child2 = find_span(trace2, "dd_child")
+        child1 = find_span(trace1, otel_child.span_id)
+        child2 = find_span(trace2, dd_child.span_id)
         assert child1["resource"] == "otel_child"
         assert child2["name"] == "dd_child"
 
@@ -414,7 +417,7 @@ class Test_Otel_API_Interoperability:
                 assert otel_context.get("trace_flags") == "01"
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "dd_span")
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
         root = root_span(trace)
@@ -450,7 +453,7 @@ class Test_Otel_API_Interoperability:
                 assert otel_context.get("trace_flags") == "00"
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "dd_span")
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
         root = root_span(trace)
@@ -479,7 +482,7 @@ class Test_Otel_API_Interoperability:
                 otel_span.set_attribute("int_array", [1, 2, 3])
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, "dd_span")
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
         root = root_span(trace)
@@ -520,7 +523,7 @@ class Test_Otel_API_Interoperability:
                 otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, OtelSpan(resource="otel_span"))
+        trace = find_trace(traces, otel_span.span_id)
         assert len(trace) == 1
 
         root = root_span(trace)

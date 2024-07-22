@@ -1,7 +1,7 @@
 import pytest
 
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.spec.trace import find_span_in_traces, Span
+from utils.parametric.spec.trace import find_span, find_trace
 from utils.parametric.test_agent import get_span
 from utils import missing_feature, context, scenarios, features
 
@@ -438,12 +438,13 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             with test_library.start_span(name="parent", service="service", resource="resource") as parent:
-                with test_library.start_span(name="child", service="service", parent_id=parent.span_id):
+                with test_library.start_span(name="child", service="service", parent_id=parent.span_id) as child:
                     pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
-        parent = find_span_in_traces(traces, Span(name="parent", service="service"))
-        child = find_span_in_traces(traces, Span(name="child", service="service"))
+        trace = find_trace(traces, parent.trace_id)
+        parent = find_span(trace, parent.span_id)
+        child = find_span(trace, child.span_id)
 
         parent_tid = parent["meta"].get("_dd.p.tid")
         child_tid = (child.get("meta") or {}).get("_dd.p.tid")

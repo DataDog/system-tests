@@ -1,7 +1,6 @@
 import pytest
 
 from utils.parametric.spec.trace import find_trace
-from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.otel_trace import OtelSpan
 from utils import missing_feature, irrelevant, context, scenarios, features
@@ -23,37 +22,37 @@ class Test_Otel_Tracer:
         Perform two traces
         """
         with test_library:
-            with test_library.otel_start_span("root_one") as parent:
-                parent.set_attributes({"parent_k1": "parent_v1"})
-                with test_library.otel_start_span(name="child", parent_id=parent.span_id) as child:
-                    assert parent.span_context()["trace_id"] == child.span_context()["trace_id"]
-                    child.end_span()
-                parent.end_span()
-            with test_library.otel_start_span("root_two") as parent:
-                with test_library.otel_start_span(name="child", parent_id=parent.span_id) as child:
-                    assert parent.span_context()["trace_id"] == child.span_context()["trace_id"]
-                    child.end_span()
-                parent.end_span()
+            with test_library.otel_start_span("root_one") as parent1:
+                parent1.set_attributes({"parent_k1": "parent_v1"})
+                with test_library.otel_start_span(name="child1", parent_id=parent1.span_id) as child1:
+                    assert parent1.span_context()["trace_id"] == child1.span_context()["trace_id"]
+                    child1.end_span()
+                parent1.end_span()
+            with test_library.otel_start_span("root_two") as parent2:
+                with test_library.otel_start_span(name="child2", parent_id=parent2.span_id) as child2:
+                    assert parent2.span_context()["trace_id"] == child2.span_context()["trace_id"]
+                    child2.end_span()
+                parent2.end_span()
 
         traces = test_agent.wait_for_num_traces(2)
-        trace_one = find_trace(traces, OtelSpan(resource="root_one"))
+        trace_one = find_trace(traces, parent1.trace_id)
         assert len(trace_one) == 2
 
-        root_span = find_span(trace_one, OtelSpan(resource="root_one"))
-        assert root_span["resource"] == "root_one"
-        assert root_span["meta"]["parent_k1"] == "parent_v1"
+        root_span1 = find_span(trace_one, parent1.span_id)
+        assert root_span1["resource"] == "root_one"
+        assert root_span1["meta"]["parent_k1"] == "parent_v1"
 
-        child_span = find_span(trace_one, OtelSpan(resource="child"))
-        assert child_span["resource"] == "child"
+        child_span1 = find_span(trace_one, child1.span_id)
+        assert child_span1["resource"] == "child1"
 
-        trace_two = find_trace(traces, OtelSpan(resource="root_two"))
+        trace_two = find_trace(traces, parent2.trace_id)
         assert len(trace_two) == 2
 
-        root_span = find_span(trace_two, OtelSpan(resource="root_two"))
-        assert root_span["resource"] == "root_two"
+        root_span2 = find_span(trace_two, parent2.span_id)
+        assert root_span2["resource"] == "root_two"
 
-        child_span = find_span(trace_one, OtelSpan(resource="child"))
-        assert child_span["resource"] == "child"
+        child_span2 = find_span(trace_two, child2.span_id)
+        assert child_span2["resource"] == "child2"
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
@@ -73,5 +72,6 @@ class Test_Otel_Tracer:
             assert flushed, "ForceFlush error"
             # check if trace is flushed
             traces = test_agent.wait_for_num_traces(1)
-            span = find_span_in_traces(traces, OtelSpan(resource="test_span"))
+            trace = find_trace(traces, span.trace_id)
+            span = find_span(trace, span.span_id)
             assert span.get("name") == "internal"

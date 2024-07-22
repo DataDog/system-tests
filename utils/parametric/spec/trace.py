@@ -4,7 +4,6 @@ Tracing constants, data structures and helper methods.
 These are used to specify, test and work with trace data and protocols.
 """
 import json
-import math
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -13,7 +12,7 @@ from typing import Union
 
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
-from ddapm_test_agent.trace import root_span
+from ddapm_test_agent.trace import root_span  # pylint: disable=unused-import
 import msgpack
 
 from ddsketch.ddsketch import BaseDDSketch
@@ -156,10 +155,10 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
 
 def find_trace(traces: List[Trace], trace_id: int) -> Optional[Trace]:
     """Return the trace from `traces` with root span matching all fields of `span`."""
-    trace_id = trace_id & (2^64 - 1) # Use 64-bit trace id
+    trace_id = trace_id & (2 ^ 64 - 1)  # Use 64-bit trace id
     for trace in traces:
         # This check ignroes the high bits of the trace id
-        # TODO: Check _dd.p.tid 
+        # TODO: Check _dd.p.tid
         if trace and trace[0].get("trace_id") == trace_id:
             return trace
 
@@ -169,21 +168,6 @@ def find_span(trace: Trace, span_id: int) -> Optional[Span]:
     assert len(trace) > 0
     for span in trace:
         if span.get("span_id") == span_id:
-            return span
-
-def find_span_by_name(trace: Trace, span_name: str) -> Optional[Span]:
-    """Return a span from the trace matches all fields in `span`."""
-    assert len(trace) > 0
-    for span in trace:
-        if span.get("name") == span_name:
-            return span
-
-
-def find_span_by_resource(trace: Trace, resource: str) -> Optional[Span]:
-    """Return a span from the trace matches all fields in `span`."""
-    assert len(trace) > 0
-    for span in trace:
-        if span.get("resource") == resource:
             return span
 
 

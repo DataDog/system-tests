@@ -79,7 +79,7 @@ class Test_Otel_SDK_Interoperability:
                 otel_span.set_attribute("arg2", None)  # Remove the arg2/val2 pair (Created with the DD API)
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, Span(name="dd_span"))
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
         dd_span = root_span(trace)
@@ -132,7 +132,7 @@ class Test_Otel_SDK_Interoperability:
                 otel_span.set_attribute("m2", None)  # Remove the m2/2 pair (Created with the DD API)
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, Span(name="dd_span"))
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
         dd_span = root_span(trace)
@@ -170,8 +170,9 @@ class Test_Otel_SDK_Interoperability:
                 assert otel_span.get_name() == "my_new_resource2"
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, OtelSpan(resource="my_new_resource2"))
+        trace = find_trace(traces, otel_span.trace_id)
         assert len(trace) == 1
+        assert root_span(trace)["resource"] == "my_new_resource2"
 
     def test_span_links_basic(self, test_agent, test_library):
         """
@@ -200,7 +201,7 @@ class Test_Otel_SDK_Interoperability:
                 assert otel_link["attributes"]["arg1"] == "val1"
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, Span(name="dd.span"))
+        trace = find_trace(traces, dd_span.trace_id)
         self.assert_span_link(trace)
 
     def test_span_links_add(self, test_agent, test_library):
@@ -232,7 +233,7 @@ class Test_Otel_SDK_Interoperability:
                 otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, Span(name="internal"))
+        trace = find_trace(traces, otel_span.trace_id)
         self.assert_span_link(trace)
 
     def test_set_attribute_from_datadog(self, test_agent, test_library):

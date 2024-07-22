@@ -29,10 +29,6 @@ class OtelSpanContext(TypedDict):
 OtelTrace = List[OtelSpan]
 
 
-def otel_span(name: str) -> OtelSpan:
-    return {"resource": name}
-
-
 def check_list_type(value, t: type) -> bool:
     if value and all(isinstance(item, t) for item in value):
         return True

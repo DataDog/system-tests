@@ -1,6 +1,5 @@
 import pytest
-from utils.parametric.spec.trace import Span
-from utils.parametric.spec.trace import find_span_in_traces
+from utils.parametric.spec.trace import find_span, find_trace
 from utils import missing_feature, bug, features, context, scenarios
 
 
@@ -79,14 +78,17 @@ def do_partial_flush_test(self, test_agent, test_library):
     """
     with test_library:
         with test_library.start_span(name="root") as parent_span:
-            with test_library.start_span(name="child1", parent_id=parent_span.span_id):
+            with test_library.start_span(name="child1", parent_id=parent_span.span_id) as child1:
                 pass
-            partial_trace = test_agent.wait_for_num_traces(1, clear=True, wait_loops=30)
-            child_span = find_span_in_traces(partial_trace, Span(name="child1"))
+            partial_traces = test_agent.wait_for_num_traces(1, clear=True, wait_loops=30)
+            partial_trace = find_trace(partial_traces, parent_span.trace_id)
             assert len(partial_trace) == 1
+            child_span = find_span(partial_trace, child1.span_id)
             assert child_span["name"] == "child1"
+
     traces = test_agent.wait_for_num_traces(1, clear=True)
-    root_span = find_span_in_traces(traces, Span(name="root"))
+    full_trace = find_trace(traces, parent_span.trace_id)
+    root_span = find_span(full_trace, parent_span.span_id)
     assert len(traces) == 1
     assert root_span["name"] == "root"
 
@@ -106,6 +108,7 @@ def no_partial_flush_test(self, test_agent, test_library):
             except ValueError:
                 pass  # We expect there won't be a flush, so catch this exception
     traces = test_agent.wait_for_num_traces(1, clear=True)
-    root_span = find_span_in_traces(traces, Span(name="root"))
+    trace = find_trace(traces, parent_span.trace_id)
     assert len(traces) == 1
+    root_span = find_span(trace, parent_span.span_id)
     assert root_span["name"] == "root"
