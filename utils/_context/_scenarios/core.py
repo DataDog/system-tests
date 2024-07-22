@@ -256,13 +256,12 @@ class DockerScenario(Scenario):
         self._supporting_containers: list[TestedContainer] = []
 
         if self.use_proxy:
-            self.proxy_container = self._required_containers.append(
-                ProxyContainer(
-                    host_log_folder=self.host_log_folder,
-                    rc_api_enabled=rc_api_enabled,
-                    meta_structs_disabled=meta_structs_disabled,
-                )
+            self.proxy_container = ProxyContainer(
+                host_log_folder=self.host_log_folder,
+                rc_api_enabled=rc_api_enabled,
+                meta_structs_disabled=meta_structs_disabled,
             )
+
             self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
