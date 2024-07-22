@@ -18,3 +18,7 @@ class TestCodeInjection(BaseSinkTest):
     location_map = {
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
     }
+
+    @missing_feature(library="nodejs", reason="Instrumented metric not implemented")
+    def test_telemetry_metric_instrumented_sink(self):
+        super().test_telemetry_metric_instrumented_sink()
