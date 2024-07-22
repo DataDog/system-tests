@@ -85,6 +85,21 @@ The following text may be written to the body of the response:
 Hello world!\n
 ```
 
+### GET /spans
+
+The endpoint may accept two query string parameters:
+
+* `repeats` - this is the number of spans that should be manually created (default `1`). Span must be flatten (not nested)
+* `garbage` - this is the number of tags that should added to each a span (default `1`). Tag must be of the form `garbage{i}: Random string`, `i` starting at `0`
+
+The following text should be written to the body of the response:
+
+```
+Generated {repeats} spans with {garbage} garbage tags\n
+```
+
+Where `repeats` and `garbage` are the parameters read from the query string.
+
 ### GET /sqli
 
 The endpoint must accept a query string parameter `q`. This parameter should be used as part of a query that is executed against a real database (to ensure a database span is created).

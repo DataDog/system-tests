@@ -148,19 +148,13 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         When a valid request is given, then we filter the stats to the ones sampled
         during that request's execution, and only return those.
         """
-        logger.debug("WE GETTIN THE STATS")
 
         for data in self.get_data(path_filters="/api/v0.2/stats"):
-            logger.debug(f"WHATS THE DATA {data}")
-            if "Stats" not in data["request"]["content"]:
-                raise ValueError("Stats property is missing in agent payload")
-
             client_stats_payloads = data["request"]["content"]["Stats"]
 
             for client_stats_payload in client_stats_payloads:
                 for client_stats_buckets in client_stats_payload["Stats"]:
                     for client_grouped_stat in client_stats_buckets["Stats"]:
-                        logger.debug(f"client_grouped_stats {client_grouped_stat}")
                         if resource == "":
                             yield client_grouped_stat
                         elif client_grouped_stat["Resource"] == resource:
