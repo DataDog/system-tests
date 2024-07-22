@@ -250,10 +250,11 @@ class _TestAgentAPI:
                         self.clear()
                     if sort:
                         for trace in traces:
-                            # Due to partial flushing the testagent may receive trace chunks out of order
-                            # so we must sort the spans by start time
+                            # The testagent may receive spans and trace chunks in any order,
+                            # so we sort the spans by start time if needed
                             trace.sort(key=lambda x: x["start"])
-                    return sorted(traces, key=lambda trace: trace[0]["start"])
+                        return sorted(traces, key=lambda trace: trace[0]["start"])
+                    return traces
             time.sleep(0.1)
         raise ValueError(
             "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
