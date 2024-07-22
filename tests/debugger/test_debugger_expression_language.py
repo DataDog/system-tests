@@ -215,6 +215,57 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
         self._validate_expression_language_messages(self.message_map)
 
+    def setup_expression_language_string_operations(self):
+
+        message_map, probes = self._create_expression_probes(
+            methodName="StringOperations",
+            expressions=[
+                ##### isempty
+                ["strValue isEmpty", False, Dsl("isEmpty", Dsl("ref", "strValue"))],
+                ["emptyString isEmpty", True, Dsl("isEmpty", Dsl("ref", "emptyString"))],
+                ["nullString isEmpty", True, Dsl("isEmpty", Dsl("ref", "nullString"))],
+                ##### len
+                ["strValue len", 14, Dsl("len", Dsl("ref", "strValue"))],
+                ["emptyString len", 0, Dsl("len", Dsl("ref", "emptyString"))],
+                ##### substring
+                ["strValue substring 0 5", "veryl", Dsl("substring", [Dsl("ref", "strValue"), 0, 5])],
+                ["strValue substring 5 10", "ongst", Dsl("substring", [Dsl("ref", "strValue"), 5, 10])],
+                ["strValue substring 0 0", "", Dsl("substring", [Dsl("ref", "strValue"), 0, 0])],
+                ["emptyStr substring 0 0", "", Dsl("substring", [Dsl("ref", "emptyStr"), 0, 0])],
+                ##### startsWith
+                ["strValue startsWith very", True, Dsl("startsWith", [Dsl("ref", "strValue"), "very"])],
+                ["strValue startsWith foo", False, Dsl("startsWith", [Dsl("ref", "strValue"), "foo"])],
+                ["emptyString startsWith empty", True, Dsl("startsWith", [Dsl("ref", "emptyString"), ""])],
+                ["emptyString startsWith some", False, Dsl("startsWith", [Dsl("ref", "emptyString"), "some"]),],
+                ##### endsWith
+                ["strValue endsWith ring", True, Dsl("endsWith", [Dsl("ref", "strValue"), "ring"])],
+                ["strValue endsWith foo", False, Dsl("endsWith", [Dsl("ref", "strValue"), "foo"])],
+                ["emptyString endsWith empty", True, Dsl("endsWith", [Dsl("ref", "emptyString"), ""])],
+                ["emptyString endsWith some", False, Dsl("endsWith", [Dsl("ref", "emptyString"), "foo"])],
+                ##### contains
+                ["strValue contains str", True, Dsl("contains", [Dsl("ref", "strValue"), "str"])],
+                ["strValue contains STR", False, Dsl("contains", [Dsl("ref", "strValue"), "STR"])],
+                ["emptyString contains empty", True, Dsl("contains", [Dsl("ref", "emptyString"), ""])],
+                ["emptyString contains some", False, Dsl("contains", [Dsl("ref", "emptyString"), "foo"])],
+                ##### matches
+                ["strValue matches regex", True, Dsl("matches", [Dsl("ref", "strValue"), "^v.*g$"])],
+                ["strValue matches STR", False, Dsl("matches", [Dsl("ref", "strValue"), "foo"])],
+                ["emptyString matches empty", True, Dsl("matches", [Dsl("ref", "emptyString"), ""])],
+                ["emptyString matches some", False, Dsl("matches", [Dsl("ref", "emptyString"), "foo"])],
+            ],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/strings?strValue=verylongstring")
+
+    @bug(library="dotnet", reason="DEBUG-2560")
+    def test_expression_language_string_operations(self):
+        self.assert_all_states_not_error()
+        self.assert_all_probes_are_installed()
+        self.assert_all_weblog_responses_ok()
+
+        self._validate_expression_language_messages(self.message_map)
+
     def _get_type(self, value_type):
         if self.tracer is None:
             tracer = base.get_tracer()
@@ -254,7 +305,11 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         for expression in expressions:
             expression_to_test, expected_result, dsl = expression
             message = f"Expression to test: '{expression_to_test}'. Result is: "
-            expected_result = "[Tt]rue" if expected_result else "[Ff]alse"
+
+            if isinstance(expected_result, bool):
+                expected_result = "[Tt]rue" if expected_result else "[Ff]alse"
+            else:
+                expected_result = str(expected_result)
 
             probe = base.read_probes("expression_probe_base")[0]
             probe["id"] = base.generate_probe_id("log")
