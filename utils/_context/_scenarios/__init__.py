@@ -15,17 +15,6 @@ from utils._context.containers import (
     create_inject_volume,
     TestedContainer,
 )
-from utils._context.virtual_machines import (
-    Ubuntu22amd64,
-    Ubuntu22arm64,
-    Ubuntu18amd64,
-    AmazonLinux2023arm64,
-    AmazonLinux2023amd64,
-    AmazonLinux2DotNet6,
-    AmazonLinux2amd64,
-    Centos7amd64,
-)
-
 from utils.tools import logger, update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup, DockerScenario, EndToEndScenario
@@ -33,217 +22,9 @@ from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
-
+from .auto_injection import InstallerAutoInjectionScenario
 
 update_environ_with_local_env()
-
-
-class _VirtualMachineScenario(Scenario):
-    """Scenario that tests virtual machines"""
-
-    def __init__(
-        self,
-        name,
-        github_workflow,
-        doc,
-        vm_provision=None,
-        include_ubuntu_22_amd64=False,
-        include_ubuntu_22_arm64=False,
-        include_ubuntu_18_amd64=False,
-        include_amazon_linux_2_amd64=False,
-        include_amazon_linux_2_dotnet_6=False,
-        include_amazon_linux_2023_amd64=False,
-        include_amazon_linux_2023_arm64=False,
-        include_centos_7_amd64=False,
-        agent_env=None,
-        app_env=None,
-    ) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow)
-        self.vm_provision_name = vm_provision
-        self.vm_provider_id = "vagrant"
-        self.vm_provider = None
-        self.required_vms = []
-        self.required_vm_names = []
-        self._tested_components = {}
-        # Variables that will populate for the agent installation
-        self.agent_env = agent_env
-        # Variables that will populate for the app installation
-        self.app_env = app_env
-
-        if include_ubuntu_22_amd64:
-            self.required_vms.append(Ubuntu22amd64())
-        if include_ubuntu_22_arm64:
-            self.required_vms.append(Ubuntu22arm64())
-        if include_ubuntu_18_amd64:
-            self.required_vms.append(Ubuntu18amd64())
-        if include_amazon_linux_2_amd64:
-            self.required_vms.append(AmazonLinux2amd64())
-        if include_amazon_linux_2_dotnet_6:
-            self.required_vms.append(AmazonLinux2DotNet6())
-        if include_amazon_linux_2023_amd64:
-            self.required_vms.append(AmazonLinux2023amd64())
-        if include_amazon_linux_2023_arm64:
-            self.required_vms.append(AmazonLinux2023arm64())
-        if include_centos_7_amd64:
-            self.required_vms.append(Centos7amd64())
-
-    def session_start(self):
-        super().session_start()
-        self.fill_context()
-        self.print_installed_components()
-
-    def print_installed_components(self):
-        logger.terminal.write_sep("=", "Installed components", bold=True)
-        for component in self.components:
-            logger.stdout(f"{component}: {self.components[component]}")
-
-    def configure(self, config):
-        from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
-        from utils.virtual_machine.virtual_machine_provisioner import provisioner
-
-        super().configure(config)
-        if config.option.vm_provider:
-            self.vm_provider_id = config.option.vm_provider
-        self._library = LibraryVersion(config.option.vm_library, "0.0")
-        self._env = config.option.vm_env
-        self._weblog = config.option.vm_weblog
-        self._check_test_environment()
-        self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
-
-        provisioner.remove_unsupported_machines(
-            self._library.library,
-            self._weblog,
-            self.required_vms,
-            self.vm_provider_id,
-            config.option.vm_only_branch,
-            config.option.vm_skip_branches,
-        )
-        for vm in self.required_vms:
-            logger.info(f"Adding provision for {vm.name}")
-            vm.add_provision(
-                provisioner.get_provision(
-                    self._library.library,
-                    self._env,
-                    self._weblog,
-                    self.vm_provision_name,
-                    vm.os_type,
-                    vm.os_distro,
-                    vm.os_branch,
-                    vm.os_cpu,
-                )
-            )
-            vm.add_agent_env(self.agent_env)
-            vm.add_app_env(self.app_env)
-            self.required_vm_names.append(vm.name)
-        self.vm_provider.configure(self.required_vms)
-
-    def _check_test_environment(self):
-        """Check if the test environment is correctly set"""
-
-        assert self._library is not None, "Library is not set (use --vm-library)"
-        assert self._env is not None, "Env is not set (use --vm-env)"
-        assert self._weblog is not None, "Weblog is not set (use --vm-weblog)"
-        assert os.path.isfile(
-            f"utils/build/virtual_machine/weblogs/{self._library.library}/provision_{self._weblog}.yml"
-        ), "Weblog Provision file not found."
-        assert os.path.isfile(
-            f"utils/build/virtual_machine/provisions/{self.vm_provision_name}/provision.yml"
-        ), "Provision file not found"
-
-        assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
-        assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
-
-    def _get_warmups(self):
-        logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True)
-        return [self.vm_provider.stack_up]
-
-    def fill_context(self):
-        for vm in self.required_vms:
-            for key in vm.tested_components:
-                self._tested_components[key] = vm.tested_components[key].lstrip(" ")
-
-    def pytest_sessionfinish(self, session):
-        logger.info(f"Closing  _VirtualMachineScenario scenario")
-        self.close_targets()
-
-    def close_targets(self):
-        logger.info(f"Destroying virtual machines")
-        self.vm_provider.stack_destroy()
-
-    @property
-    def library(self):
-        return self._library
-
-    @property
-    def weblog_variant(self):
-        return self._weblog
-
-    @property
-    def components(self):
-        return self._tested_components
-
-    def customize_feature_parity_dashboard(self, result):
-        for test in result["tests"]:
-            last_index = test["path"].rfind("::") + 2
-            test["description"] = test["path"][last_index:]
-
-
-class HostAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="host-auto-inject", agent_env=None, app_env=None) -> None:
-        super().__init__(
-            name,
-            vm_provision=vm_provision,
-            agent_env=agent_env,
-            app_env=app_env,
-            doc=doc,
-            github_workflow=None,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_ubuntu_18_amd64=True,
-            include_amazon_linux_2_amd64=True,
-            include_amazon_linux_2_dotnet_6=True,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-        )
-
-
-class ContainerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="container-auto-inject", agent_env=None, app_env=None) -> None:
-        super().__init__(
-            name,
-            vm_provision=vm_provision,
-            agent_env=agent_env,
-            app_env=app_env,
-            doc=doc,
-            github_workflow=None,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_ubuntu_18_amd64=True,
-            include_amazon_linux_2_amd64=False,
-            include_amazon_linux_2_dotnet_6=False,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-        )
-
-
-class InstallerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None) -> None:
-        super().__init__(
-            name,
-            vm_provision=vm_provision,
-            agent_env=agent_env,
-            app_env=app_env,
-            doc=doc,
-            github_workflow=None,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_ubuntu_18_amd64=True,
-            include_amazon_linux_2_amd64=True,
-            include_amazon_linux_2_dotnet_6=True,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-            include_centos_7_amd64=True,
-        )
 
 
 class _KubernetesScenario(Scenario):
@@ -458,7 +239,11 @@ class scenarios:
 
     default = EndToEndScenario(
         "DEFAULT",
-        weblog_env={"DD_DBM_PROPAGATION_MODE": "service"},
+        weblog_env={
+            "DD_DBM_PROPAGATION_MODE": "service",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_FEATURES": "discovery",
+        },
         include_postgres_db=True,
         doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
     )
@@ -696,11 +481,6 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={
-            "DD_RC_TARGETS_KEY_ID": "TEST_KEY_ID",
-            "DD_RC_TARGETS_KEY": "1def0961206a759b09ccdf2e622be20edf6e27141070e7b164b7e16e96cf402c",
-            "DD_REMOTE_CONFIG_INTEGRITY_CHECK_ENABLED": "true",
-        },
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -966,87 +746,159 @@ class scenarios:
 
     fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
-    host_auto_injection = HostAutoInjectionScenario(
-        "HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario",
+    # Single Step Instrumentation scenarios (HOST and CONTAINER)
+
+    simple_installer_auto_injection = InstallerAutoInjectionScenario(
+        "SIMPLE_INSTALLER_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
-    host_not_supported_auto_injection = HostAutoInjectionScenario(
-        "HOST_NOT_SUPPORTED_AUTO_INJECTION",
+
+    installer_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario", scenario_groups=[ScenarioGroup.ONBOARDING]
+    )
+
+    installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
+        "INSTALLER_HOST_AUTO_INJECTION_CHAOS",
+        doc="Installer auto injection scenario with chaos (deleting installation folders, files)",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
+        "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
-    simple_host_auto_injection = HostAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION", "Onboarding Host Single Step Instrumentation scenario (minimal test scenario)",
+
+    installer_auto_injection_block_list = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION_BLOCK_LIST",
+        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
-    simple_host_auto_injection_profiling = HostAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
-        "Onboarding Host Single Step Instrumentation scenario with profiling activated by the app env var",
+
+    installer_auto_injection_ld_preload = InstallerAutoInjectionScenario(
+        "INSTALLER_AUTO_INJECTION_LD_PRELOAD",
+        "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
+        vm_provision="auto-inject-ld-preload",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
+        "SIMPLE_AUTO_INJECTION_PROFILING",
+        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
             "DD_PROFILING_ENABLED": "auto",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
-    host_auto_injection_block_list = HostAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_BLOCK_LIST",
-        "Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists",
-    )
-    host_auto_injection_install_script = HostAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
-        "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
-        vm_provision="host-auto-inject-install-script",
-    )
-
-    host_auto_injection_install_script_profiling = HostAutoInjectionScenario(
+    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
-    # TODO Add the provision of this scenario to the default host scenario (when fixes are released)
-    host_auto_injection_ld_preload = HostAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_LD_PRELOAD",
-        "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
-        vm_provision="host-auto-inject-ld-preload",
-    )
-
-    container_auto_injection = ContainerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION", "Onboarding Container Single Step Instrumentation scenario",
-    )
-    container_not_supported_auto_injection = ContainerAutoInjectionScenario(
-        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
-        "Onboarding Container Single Step Instrumentation scenario for not supported languages or containers",
-    )
-
-    simple_container_auto_injection = ContainerAutoInjectionScenario(
-        "SIMPLE_CONTAINER_AUTO_INJECTION",
-        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-    )
-
-    simple_container_auto_injection_profiling = ContainerAutoInjectionScenario(
-        "SIMPLE_CONTAINER_AUTO_INJECTION_PROFILING",
-        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-    )
-
-    container_auto_injection_install_script = ContainerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
-        "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
-        vm_provision="container-auto-inject-install-script",
-    )
-    container_auto_injection_install_script_profiling = ContainerAutoInjectionScenario(
+    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[ScenarioGroup.ONBOARDING],
     )
+
+    host_auto_injection_install_script = InstallerAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
+        "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
+        vm_provision="host-auto-inject-install-script",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    container_auto_injection_install_script = InstallerAutoInjectionScenario(
+        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
+        "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
+        vm_provision="container-auto-inject-install-script",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    local_auto_injection_install_script = InstallerAutoInjectionScenario(
+        "LOCAL_AUTO_INJECTION_INSTALL_SCRIPT",
+        "Tobe executed locally with krunvm. Installs all the software fron agent installation script, and the replace the apm-library with the uploaded tar file from binaries",
+        vm_provision="local-auto-inject-install-script",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    ##DEPRECATED SCENARIOS: Delete after migration of tracer pipelines + auto_inject pipelines
+
+    # Replaced by SIMPLE_INSTALLER_AUTO_INJECTION
+    simple_host_auto_injection = InstallerAutoInjectionScenario(
+        "SIMPLE_HOST_AUTO_INJECTION",
+        "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+    simple_container_auto_injection = InstallerAutoInjectionScenario(
+        "SIMPLE_CONTAINER_AUTO_INJECTION",
+        "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    # Replaced by SIMPLE_AUTO_INJECTION_PROFILING
+    simple_host_auto_injection_profiling = InstallerAutoInjectionScenario(
+        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
+        "DEPRECATED: Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+        app_env={
+            "DD_PROFILING_ENABLED": "auto",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+        },
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+    simple_container_auto_injection_profiling = InstallerAutoInjectionScenario(
+        "SIMPLE_CONTAINER_AUTO_INJECTION_PROFILING",
+        "DEPRECATED: Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+        app_env={
+            "DD_PROFILING_ENABLED": "auto",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+        },
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    # Replaced by INSTALLER_AUTO_INJECTION
+    host_auto_injection = InstallerAutoInjectionScenario(
+        "HOST_AUTO_INJECTION",
+        doc="DEPRECATED: Installer auto injection scenario",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+    container_auto_injection = InstallerAutoInjectionScenario(
+        "CONTAINER_AUTO_INJECTION",
+        doc="DEPRECATED: Installer auto injection scenario",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    # Replaced by INSTALLER_AUTO_INJECTION_BLOCK_LIST
+    host_auto_injection_block_list = InstallerAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_BLOCK_LIST",
+        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    # Replaced by INSTALLER_NOT_SUPPORTED_AUTO_INJECTION
+    container_not_supported_auto_injection = InstallerAutoInjectionScenario(
+        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
+        "Onboarding host Single Step Instrumentation scenario for not supported languages",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+    )
+
+    # K8s LIB INJECTION SCENARIOS
     k8s_lib_injection_basic = _KubernetesScenario(
-        "K8S_LIB_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario. DEPRECATED"
+        "K8S_LIB_INJECTION_BASIC",
+        doc=" Kubernetes Instrumentation basic scenario. DEPRECATED",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
     k8s_library_injection_full = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_FULL",
@@ -1071,10 +923,6 @@ class scenarios:
         doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    installer_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario (minimal test scenario)"
     )
 
     appsec_rasp = EndToEndScenario(

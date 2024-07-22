@@ -163,12 +163,10 @@ tests/:
         Test_Scanners: v1.28.6
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: v2.55.0
     test_automated_login_events.py:
       Test_Login_Events: v2.32.0
       Test_Login_Events_Extended: v2.33.0
@@ -217,6 +215,7 @@ tests/:
       Test_AppSecRequestBlocking: v2.25.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.16.0
+      Test_RuntimeDeactivation: v2.16.0
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:

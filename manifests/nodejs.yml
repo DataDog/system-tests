@@ -267,8 +267,6 @@ tests/:
         Test_XSS: v2.0.0
       test_telemetry.py:
         Test_TelemetryMetrics: *ref_4_17_0
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
@@ -349,6 +347,7 @@ tests/:
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
+      Test_RuntimeDeactivation: *ref_3_9_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_traces.py:
