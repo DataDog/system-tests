@@ -29,6 +29,7 @@ class Test_library:
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]")
 
     @bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
+    @bug(context.library == "php", reason="Jira ticket is missing")
     def test_library_schema_telemetry_job_object(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
 
@@ -64,6 +65,7 @@ class Test_Agent:
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[]")
 
     @bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
+    @bug(context.library == "php", reason="Jira ticket is missing")
     @irrelevant(context.scenario is scenarios.crossed_tracing_libraries, reason="APPSEC-52805")
     def test_agent_schema_telemetry_job_object(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload")
