@@ -598,7 +598,7 @@ def test_library(test_server: APMLibraryTestServer) -> Generator[APMLibrary, Non
         raise RuntimeError("Internal error, no port has been assigned", 1)
 
     if test_server.protocol == "grpc":
-        client = APMLibraryClientGRPC(f"localhost:{test_server.host_port}", test_server_timeout)
+        client = APMLibraryClientGRPC(f"localhost:{test_server.host_port}", test_server_timeout, test_server.container)
     elif test_server.protocol == "http":
         client = APMLibraryClientHTTP(
             f"http://localhost:{test_server.host_port}", test_server_timeout, test_server.container
