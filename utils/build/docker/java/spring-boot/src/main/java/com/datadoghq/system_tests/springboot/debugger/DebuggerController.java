@@ -76,6 +76,11 @@ public class DebuggerController {
 
     @GetMapping("/expression/operators")
     public String expressionOperators(@RequestParam int intValue, @RequestParam float floatValue, @RequestParam String strValue) {
-        return "Int value " + intValue + ". Float value " + floatValue + ". String value is " + strValue;
+        return "Int value " + intValue + ". Float value " + floatValue + ". String value is " + strValue + ".";
+    }
+
+    @GetMapping("/expression/strings")
+    public String stringOperations(@RequestParam String strValue, @RequestParam(required = false, defaultValue = "") String emptyString, @RequestParam(required = false) String nullString) {
+        return "strValue " + strValue +". emptyString " + emptyString + ". " + nullString + ".";
     }
 }

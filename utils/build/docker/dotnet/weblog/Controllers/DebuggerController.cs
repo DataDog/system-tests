@@ -87,5 +87,12 @@ namespace weblog
         {
             return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}");
         }
+
+        [HttpGet("expression/strings")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult StringOperations(string strValue, string emptyString = "", string nullString = null)
+        {
+            return Content($"strValue {strValue}. emptyString {emptyString}. nullString {nullString}");
+        }
     }
 }
