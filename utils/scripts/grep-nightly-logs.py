@@ -76,6 +76,9 @@ def main(
                 if "artifact" in job_name or language not in job_name:
                     continue
 
+                if job["conclusion"] != "failure":
+                    continue
+
                 job_id = job["id"]
                 response = requests.get(
                     f"https://api.github.com/repos/{repo_slug}/actions/jobs/{job_id}/logs", headers=headers, timeout=60
