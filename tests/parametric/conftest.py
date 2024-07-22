@@ -228,7 +228,7 @@ class _TestAgentAPI:
             if resp.status_code != 200:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
-    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
+    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 30, sort: bool = True) -> List[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -246,10 +246,11 @@ class _TestAgentAPI:
                 if num_received == num:
                     if clear:
                         self.clear()
-                    for trace in traces:
-                        # Due to partial flushing the testagent may receive trace chunks out of order
-                        # so we must sort the spans by start time
-                        trace.sort(key=lambda x: x["start"])
+                    if sort:
+                        for trace in traces:
+                            # Due to partial flushing the testagent may receive trace chunks out of order
+                            # so we must sort the spans by start time
+                            trace.sort(key=lambda x: x["start"])
                     return sorted(traces, key=lambda trace: trace[0]["start"])
             time.sleep(0.1)
         raise ValueError(

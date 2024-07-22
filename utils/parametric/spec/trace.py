@@ -154,107 +154,37 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
     )
 
 
-def _span_similarity(s1: Span, s2: Span) -> int:
-    """Return a similarity rating for the two given spans."""
-    score = 0
-
-    for key in set(s1.keys() & s2.keys()):
-        if s1[key] == s2[key]:
-            score += 1
-
-    s1_meta = s1.get("meta", {})
-    s2_meta = s2.get("meta", {})
-    for key in set(s1_meta.keys()) & set(s2_meta.keys()):
-        if s1_meta[key] == s2_meta[key]:
-            score += 1
-
-    s1_metrics = s1.get("metrics", {})
-    s2_metrics = s2.get("metrics", {})
-    for key in set(s1_metrics.keys()) & set(s2_metrics.keys()):
-        if s1_metrics[key] == s2_metrics[key]:
-            score += 1
-    return score
-
-
-def find_similar_trace_by_root(traces: List[Trace], span: Span) -> Trace:
-    """Return the trace from `traces` with root span most similar to `span`."""
-    assert len(traces) > 0
-
-    max_similarity = -math.inf
-    max_score_trace = traces[0]
-    for trace in traces:
-        root = root_span(trace)
-        similarity = _span_similarity(root, span)
-        if similarity > max_similarity:
-            max_score_trace = trace
-            max_similarity = similarity
-    return max_score_trace
-
-
-def find_trace_by_root(traces: List[Trace], span: Span) -> Trace:
+def find_trace(traces: List[Trace], trace_id: int) -> Optional[Trace]:
     """Return the trace from `traces` with root span matching all fields of `span`."""
-    trace = find_similar_trace_by_root(traces, span)
-    _assert_span_match(span, root_span(trace))
-    return trace
-
-
-def find_similar_span(trace: Trace, span: Span) -> Span:
-    """Return a span from the trace which most closely matches `span`."""
-    assert len(trace) > 0
-
-    max_similarity = -math.inf
-    max_similarity_span = trace[0]
-    for other_span in trace:
-        similarity = _span_similarity(span, other_span)
-        if similarity > max_similarity:
-            max_similarity = similarity
-            max_similarity_span = other_span
-    return max_similarity_span
-
-
-def find_span(trace: Trace, span: Span) -> Span:
-    """Return a span from the trace matches all fields in `span`."""
-    return _assert_span_match(span, find_similar_span(trace, span))
-
-
-def find_similar_span_in_traces(traces: List[Trace], span: Span) -> Span:
-    """Return a span from the traces which most closely matches `span`."""
-    assert len(traces) > 0
-
-    max_similarity = -math.inf
-    max_similarity_span = None
+    trace_id = trace_id & (2^64 - 1) # Use 64-bit trace id
     for trace in traces:
-        similar_span = find_similar_span(trace, span)
-        if max_similarity_span is None:
-            max_similarity_span = similar_span
-        similarity = _span_similarity(span, max_similarity_span)
-        if similarity > max_similarity:
-            max_similarity_span = similar_span
-            max_similarity = similarity
-    return max_similarity_span
+        # This check ignroes the high bits of the trace id
+        # TODO: Check _dd.p.tid 
+        if trace and trace[0].get("trace_id") == trace_id:
+            return trace
 
 
-def find_span_in_traces(traces: List[Trace], span: Span) -> Span:
-    """Return a span from the traces that matches all fields in `span`."""
-    return _assert_span_match(span, find_similar_span_in_traces(traces, span))
+def find_span(trace: Trace, span_id: int) -> Optional[Span]:
+    """Return a span from the trace matches all fields in `span`."""
+    assert len(trace) > 0
+    for span in trace:
+        if span.get("span_id") == span_id:
+            return span
+
+def find_span_by_name(trace: Trace, span_name: str) -> Optional[Span]:
+    """Return a span from the trace matches all fields in `span`."""
+    assert len(trace) > 0
+    for span in trace:
+        if span.get("name") == span_name:
+            return span
 
 
-def _assert_span_match(span: Span, similar: Span) -> Span:
-    for var in Span.__annotations__:
-        if not var.startswith("__"):
-            val = span.get(var)
-            s_val = similar.get(var)
-            if val is not None and val != s_val:
-                # TODO remove this special handling once nodejs sets service in the same way.
-                # Right now, nodejs sets a tag named "service" in meta with the correct value.
-                if var == "service":
-                    meta = similar.get("meta")
-                    if meta is not None:
-                        s_val = meta.get(var)
-                assert (
-                    val == s_val
-                ), f"Span field '{var}' mismatch '{val}' != '{s_val}'\nSpan   : {span}\nSimilar: {similar}"
-    return similar
+def find_span_by_resource(trace: Trace, resource: str) -> Optional[Span]:
+    """Return a span from the trace matches all fields in `span`."""
+    assert len(trace) > 0
+    for span in trace:
+        if span.get("resource") == resource:
+            return span
 
 
 def span_has_no_parent(span: Span) -> bool:

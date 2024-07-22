@@ -1,6 +1,6 @@
 import pytest
 
-from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.otel_trace import OtelSpan
@@ -36,7 +36,7 @@ class Test_Otel_Tracer:
                 parent.end_span()
 
         traces = test_agent.wait_for_num_traces(2)
-        trace_one = find_trace_by_root(traces, OtelSpan(resource="root_one"))
+        trace_one = find_trace(traces, OtelSpan(resource="root_one"))
         assert len(trace_one) == 2
 
         root_span = find_span(trace_one, OtelSpan(resource="root_one"))
@@ -46,7 +46,7 @@ class Test_Otel_Tracer:
         child_span = find_span(trace_one, OtelSpan(resource="child"))
         assert child_span["resource"] == "child"
 
-        trace_two = find_trace_by_root(traces, OtelSpan(resource="root_two"))
+        trace_two = find_trace(traces, OtelSpan(resource="root_two"))
         assert len(trace_two) == 2
 
         root_span = find_span(trace_two, OtelSpan(resource="root_two"))

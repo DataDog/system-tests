@@ -14,7 +14,7 @@ def test_tracer_env_environment_variable(library_env, test_library, test_agent):
       pass
 
   traces = test_agent.traces()
-  trace = find_trace_by_root(traces, Span(name="operation"))
+  trace = find_trace(traces, Span(name="operation"))
   assert len(trace) == 1
 
   span = find_span(trace, Span(name="operation"))

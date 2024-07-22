@@ -9,7 +9,7 @@ from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, O
 from utils.parametric.spec.otel_trace import OtelSpan, otel_span
 from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
-from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils.parametric.test_agent import get_span
@@ -150,7 +150,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="operation"))
+        trace = find_trace(traces, otel_span(name="operation"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -231,7 +231,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="operation"))
+        trace = find_trace(traces, otel_span(name="operation"))
         assert len(trace) == 1
 
         root_span = get_span(test_agent)
@@ -329,7 +329,7 @@ class Test_Otel_Span_Methods:
                 ) as child:
                     child.end_span()
 
-        trace = find_trace_by_root(test_agent.wait_for_num_traces(1), otel_span(name="parent"))
+        trace = find_trace(test_agent.wait_for_num_traces(1), otel_span(name="parent"))
         assert len(trace) == 2
 
         parent_span = find_span(trace, otel_span(name="parent"))
@@ -451,7 +451,7 @@ class Test_Otel_Span_Methods:
                 span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="operation"))
+        trace = find_trace(traces, otel_span(name="operation"))
         assert len(trace) == 1
 
         span = get_span(test_agent)
@@ -480,7 +480,7 @@ class Test_Otel_Span_Methods:
                     child.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="root"))
+        trace = find_trace(traces, otel_span(name="root"))
         assert len(trace) == 2
 
         root = find_span(trace, otel_span(name="root"))
@@ -665,7 +665,7 @@ class Test_Otel_Span_Methods:
                     second.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="root"))
+        trace = find_trace(traces, otel_span(name="root"))
         assert len(trace) == 3
 
         root = find_span(trace, otel_span(name="root"))
@@ -753,7 +753,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"analytics.event": "true"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="new.name"))
+        trace = find_trace(traces, otel_span(name="new.name"))
         assert len(trace) == 1
 
         span = get_span(test_agent)
@@ -1007,7 +1007,7 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
         with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
             span.end_span()
     traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
+    trace = find_trace(traces, otel_span(name="otel_span_name"))
     assert len(trace) == 1
 
     span = get_span(test_agent)
@@ -1023,7 +1023,7 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
             span.set_attributes({"analytics.event": analytics_event_value})
             span.end_span()
     traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, otel_span(name="operation"))
+    trace = find_trace(traces, otel_span(name="operation"))
     assert len(trace) == 1
 
     span = get_span(test_agent)
