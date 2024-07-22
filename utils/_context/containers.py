@@ -169,28 +169,33 @@ class TestedContainer:
 
     def async_start(self) -> Thread:
         """ Start the container and its dependencies in a thread with circular dependency detection """
-        return self._async_start_recursive([])
+        self.check_circular_dependencies([])
 
-    def _async_start_recursive(self, seen: list):
+        return self._async_start_recursive()
+
+    def check_circular_dependencies(self, seen: list):
+        """ Check if the container has a circular dependency """
+        if self in seen:
+            dependencies = " -> ".join([s.name for s in seen] + [self.name,])
+            raise RuntimeError(f"Circular dependency detected between containers: {dependencies}")
+
+        seen.append(self)
+
+        for dependency in self.depends_on:
+            dependency.check_circular_dependencies(list(seen))
+
+    def _async_start_recursive(self):
         """ Recursive version of async_start for circular dependency detection """
         with self._starting_lock:
-            # This lock will prevent any race condition, as this function can be called on the same container in
-            # different threads.
-            if self in seen:
-                dependencies = " -> ".join([s.name for s in seen])
-                pytest.exit(f"Circular dependency detected between containers: {dependencies}", 1)
-
-            seen.append(self)
-
             if self._starting_thread is None:
-                self._starting_thread = Thread(target=self._start_with_dependencies, args=(seen,))
+                self._starting_thread = Thread(target=self._start_with_dependencies, name=f"start_{self.name}")
                 self._starting_thread.start()
 
         return self._starting_thread
 
-    def _start_with_dependencies(self, seen):
+    def _start_with_dependencies(self):
         """ Start all dependencies of a container and then start the container """
-        threads = [dependency._async_start_recursive(seen) for dependency in self.depends_on]
+        threads = [dependency._async_start_recursive() for dependency in self.depends_on]
 
         for thread in threads:
             thread.join()
