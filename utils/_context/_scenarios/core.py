@@ -348,7 +348,7 @@ class EndToEndScenario(DockerScenario):
         appsec_enabled=True,
         additional_trace_header_tags=(),
         library_interface_timeout=None,
-        agent_interface_timeout=5,
+        agent_interface_timeout=7,
         use_proxy=True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
