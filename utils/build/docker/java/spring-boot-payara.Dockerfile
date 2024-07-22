@@ -5,7 +5,8 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 WORKDIR /app
 
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Ppayara -B dependency:go-offline
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Ppayara -B dependency:go-offline && mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:4.2.1
+
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mvn -Dmaven.repo.local=/maven -Ppayara package
@@ -25,6 +26,7 @@ COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.war /app/app.war
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 COPY --from=build /binaries/payara-micro.jar /app/payara-micro.jar
+COPY --from=build /root/.m2/repository/org/codehaus/woodstox/stax2-api/4.2.1/stax2-api-4.2.1.jar /app/stax2-api-4.2.1.jar
 
 COPY ./utils/build/docker/java/app-payara.sh /app/app.sh
 RUN chmod +x /app/app.sh
