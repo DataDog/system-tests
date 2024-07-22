@@ -18,7 +18,8 @@ import software.amazon.awssdk.regions.Region;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 
 import java.net.URI;
-
+import java.util.HashMap;
+import java.util.Map;
 
 public class SnsConnector {
     public static final String ENDPOINT = "http://localstack-main:4566";
@@ -56,10 +57,14 @@ public class SnsConnector {
 
     public void subscribeQueueToTopic(SnsClient snsClient, String topicArn, String queueArn) throws Exception {
         try {
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put("RawMessageDelivery", "true");
+
             SubscribeRequest subscribeRequest = SubscribeRequest.builder()
                 .topicArn(topicArn)
                 .protocol("sqs")
                 .endpoint(queueArn)
+                .attributes(attributes)
                 .build();
             SubscribeResponse subscribeResponse = snsClient.subscribe(subscribeRequest);
         } catch (SnsException e) {

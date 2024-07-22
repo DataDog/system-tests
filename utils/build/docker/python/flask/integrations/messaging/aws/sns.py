@@ -19,7 +19,7 @@ def sns_produce(queue, topic, message):
         sqs_url = queue["QueueUrl"]
         url_parts = sqs_url.split("/")
         sqs_arn = "arn:aws:sqs:{}:{}:{}".format("us-east-1", url_parts[-2], url_parts[-1])
-        sns.subscribe(TopicArn=topic_arn, Protocol="sqs", Endpoint=sqs_arn)
+        sns.subscribe(TopicArn=topic_arn, Protocol="sqs", Endpoint=sqs_arn, Attributes={"RawMessageDelivery": "true"})
         print(f"[SNS->SQS] Created SNS Topic: {topic} and SQS Queue: {queue}")
     except Exception as e:
         print(f"[SNS->SQS] Error during Python SNS create topic or SQS create queue: {str(e)}")
