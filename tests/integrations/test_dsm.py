@@ -457,7 +457,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
+            "nodejs": {"producer": 4582265220203720296, "consumer": 2141022022692353329,},
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
             "java": {
@@ -487,9 +487,13 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        parent_producer_hash = language_hashes.get(context.library.library, 0)["parent"]
-        edge_tags_out = language_hashes.get(context.library.library, 0)["edge_tags_out"]
-        edge_tags_in = language_hashes.get(context.library.library, 0)["edge_tags_in"]
+        parent_producer_hash = language_hashes.get(context.library.library, {}).get("parent", 0)
+        edge_tags_out = language_hashes.get(context.library.library).get("edge_tags_out",
+            language_hashes.get("default")["edge_tags_out"]
+        )
+        edge_tags_in = language_hashes.get(context.library.library).get("edge_tags_in",
+            language_hashes.get("default")["edge_tags_in"]
+        )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=parent_producer_hash, tags=edge_tags_out,
@@ -525,7 +529,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
+            "nodejs": {"producer": 3431105285534025453, "consumer": 17799068196705485,},
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
             "java": {
@@ -555,9 +559,13 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        parent_producer_hash = language_hashes.get(context.library.library, 0)["parent"]
-        edge_tags_out = language_hashes.get(context.library.library, 0)["edge_tags_out"]
-        edge_tags_in = language_hashes.get(context.library.library, 0)["edge_tags_in"]
+        parent_producer_hash = language_hashes.get(context.library.library, {}).get("parent", 0)
+        edge_tags_out = language_hashes.get(context.library.library).get("edge_tags_out",
+            language_hashes.get("default")["edge_tags_out"]
+        )
+        edge_tags_in = language_hashes.get(context.library.library).get("edge_tags_in",
+            language_hashes.get("default")["edge_tags_in"]
+        )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=parent_producer_hash, tags=edge_tags_out,
