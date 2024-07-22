@@ -1,7 +1,7 @@
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.test_agent import get_span
+from utils.parametric.spec.trace import find_only_span
 from utils import features, scenarios, bug, context
 
 
@@ -24,7 +24,7 @@ class Test_Headers_Datadog:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
         origin = span["meta"].get(ORIGIN)
@@ -48,7 +48,7 @@ class Test_Headers_Datadog:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
         assert span_has_no_parent(span)
         # assert span["meta"].get(ORIGIN) is None # TODO: Determine if we keep x-datadog-origin for an invalid trace-id/parent-id
@@ -61,7 +61,7 @@ class Test_Headers_Datadog:
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
         assert int(headers["x-datadog-parent-id"]) == span.get("span_id")
         assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
@@ -82,7 +82,7 @@ class Test_Headers_Datadog:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert headers["x-datadog-trace-id"] == "123456789"
         assert headers["x-datadog-parent-id"] != "987654321"
         assert headers["x-datadog-sampling-priority"] == "2"

@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.test_agent import get_span
+from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, irrelevant, context, scenarios, features
 
 # this global mark applies to all tests in this file.
@@ -38,7 +38,7 @@ class Test_Otel_Span_With_W3c:
                 parent.end_span(timestamp=start_time + duration_us)
         duration_ns = int(duration_us * 1_000)  # OTEL durations are microseconds, must convert to ns for dd
 
-        root_span = get_span(test_agent)
+        root_span = find_only_span(test_agent.wait_for_num_traces(1))
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
@@ -55,7 +55,7 @@ class Test_Otel_Span_With_W3c:
                 assert context.get("trace_id") == "00000000000000001111111111111111"
                 span.end_span()
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 1229782938247303441
         assert span.get("parent_id") == 2459565876494606882
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1

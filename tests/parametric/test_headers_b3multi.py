@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.test_agent import get_span
+from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, irrelevant, context, scenarios, features, bug
 
 parametrize = pytest.mark.parametrize
@@ -66,7 +66,7 @@ class Test_Headers_B3multi:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
@@ -81,7 +81,7 @@ class Test_Headers_B3multi:
                 test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
         assert span_has_no_parent(span)
         assert span["meta"].get(ORIGIN) is None
@@ -93,7 +93,7 @@ class Test_Headers_B3multi:
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         b3_trace_id = headers["x-b3-traceid"]
         b3_span_id = headers["x-b3-spanid"]
         b3_sampling = headers["x-b3-sampled"]
@@ -119,7 +119,7 @@ class Test_Headers_B3multi:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert "x-b3-traceid" in headers
         b3_trace_id = headers["x-b3-traceid"]
         b3_span_id = headers["x-b3-spanid"]
@@ -141,7 +141,7 @@ class Test_Headers_B3multi:
                 test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
         assert span.get("span_id") != 0
 

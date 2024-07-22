@@ -179,6 +179,13 @@ def find_span_in_traces(traces: List[Trace], trace_id: int, span_id: int) -> Spa
     return find_span(trace, span_id)
 
 
+def find_only_span(traces: List[Trace]) -> Span:
+    """Return the only span. Raises an error if there are no traces or more than one span."""
+    assert len(traces) == 1
+    assert len(traces[0]) == 1
+    return traces[0][0]
+
+
 def span_has_no_parent(span: Span) -> bool:
     """Return if a span has a parent by checking the presence and value of the `parent_id`."""
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None
