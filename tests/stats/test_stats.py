@@ -14,7 +14,6 @@ Test scenarios we want:
 Config:
 - apm_config.peer_tags_aggregation (we should see peer service tags and aggregation by them, note only works on client or producer kind)
 - apm_config.compute_stats_by_span_kind (span_kind will be set and we will calc stats on these spans even when not "top level")
-
 """
 
 
