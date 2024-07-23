@@ -40,13 +40,13 @@ app.get('/', (req, res) => {
 
 app.get('/healthcheck', (req, res) => {
   res.json({
-    status: "ok",
+    status: 'ok',
     library: {
-      language: "nodejs",
+      language: 'nodejs',
       version: require('dd-trace/package.json').version,
-      libddwaf_version: require("@datadog/native-appsec/package.json").libddwaf_version
+      libddwaf_version: require('@datadog/native-appsec/package.json').libddwaf_version
     }
-  });
+  })
 })
 
 app.all(['/waf', '/waf/*'], (req, res) => {
