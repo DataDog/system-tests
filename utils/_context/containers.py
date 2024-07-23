@@ -720,6 +720,7 @@ class KafkaContainer(TestedContainer):
                 "KAFKA_INTER_BROKER_LISTENER_NAME": "PLAINTEXT",
                 "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT",
                 "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
+                "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS": "0",
             },
             allow_old_container=True,
             healthcheck={
