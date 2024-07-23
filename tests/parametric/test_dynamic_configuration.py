@@ -9,7 +9,7 @@ from ddapm_test_agent.trace import root_span
 
 from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios
 from utils.parametric.spec.remoteconfig import Capabilities
-from utils.parametric.spec.trace import Span, assert_trace_has_tags, find_only_span, find_trace
+from utils.parametric.spec.trace import Span, assert_trace_has_tags, find_only_span, find_trace, find_chunk_root_span
 
 parametrize = pytest.mark.parametrize
 
@@ -616,14 +616,14 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_CUSTOMER)
         # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user rule)
-        span = root_span(trace)
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-11"
 
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_DYNAMIC)
         # Make sure `_dd.p.dm` is set to "-12" (i.e., remote dynamic rule)
-        span = root_span(trace)
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
 
@@ -632,7 +632,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is restored to "-3"
-        span = root_span(trace)
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
@@ -662,7 +662,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_CUSTOMER)
         # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user rule)
-        span = root_span(trace)
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-11"
 
@@ -670,7 +670,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # `_dd.p.dm` is set to "-3" (rule rate, this is the legacy behavior)
-        span = root_span(trace)
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 

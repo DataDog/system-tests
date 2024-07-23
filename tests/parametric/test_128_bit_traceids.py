@@ -1,7 +1,7 @@
 import pytest
 
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.spec.trace import find_span, find_trace, find_only_span
+from utils.parametric.spec.trace import find_chunk_root_span, find_trace, find_only_span
 from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -429,13 +429,12 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "ruby", reason="not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "dotnet", reason="not implemented")
     @missing_feature(context.library == "java", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
     )
-    def test_w3c_128_bit_propagation_tid_in_parent(self, test_agent, test_library):
+    def test_w3c_128_bit_propagation_tid_in_chunk_root(self, test_agent, test_library):
         """Ensure that only root span contains the tid.
         """
         with test_library:
@@ -443,17 +442,18 @@ class Test_128_Bit_Traceids:
                 with test_library.start_span(name="child", service="service", parent_id=parent.span_id) as child:
                     pass
 
-        traces = test_agent.wait_for_num_traces(1, clear=True)
+        traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
         trace = find_trace(traces, parent.trace_id)
-        parent = find_span(trace, parent.span_id)
-        child = find_span(trace, child.span_id)
+        assert len(trace) == 2
+        chunk_root = find_chunk_root_span(trace)
+        non_chunk_root = trace[1]
 
-        parent_tid = parent["meta"].get("_dd.p.tid")
-        child_tid = (child.get("meta") or {}).get("_dd.p.tid")
-        propagation_error = parent["meta"].get("_dd.propagation_error")
+        tid_chunk_root = chunk_root["meta"].get("_dd.p.tid")
+        tid_non_chunk_root = (non_chunk_root.get("meta") or {}).get("_dd.p.tid")
+        propagation_error = chunk_root["meta"].get("_dd.propagation_error")
 
-        assert parent_tid is not None
-        assert child_tid is None
+        assert tid_chunk_root is not None
+        assert tid_non_chunk_root is None
         assert propagation_error is None
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
