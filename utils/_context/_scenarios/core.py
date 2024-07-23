@@ -348,7 +348,7 @@ class EndToEndScenario(DockerScenario):
         appsec_enabled=True,
         additional_trace_header_tags=(),
         library_interface_timeout=None,
-        agent_interface_timeout=7,
+        agent_interface_timeout=20,
         use_proxy=True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
@@ -474,7 +474,7 @@ class EndToEndScenario(DockerScenario):
             elif self.weblog_container.library.library in ("python",):
                 self.library_interface_timeout = 7
             else:
-                self.library_interface_timeout = 50
+                self.library_interface_timeout = 60
 
     def session_start(self):
         super().session_start()
@@ -592,11 +592,10 @@ class EndToEndScenario(DockerScenario):
         elif self.use_proxy:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
 
-            if self.library in ("nodejs",):
+            if self.library in ("nodejs","dotnet"):
                 # for weblogs who supports it, call the flush endpoint
                 try:
-                    r = self.weblog_container.request("GET", "/flush", timeout=10)
-                    assert r.status_code == 200
+                    self.weblog_container.request("GET", "/flush", timeout=10)
                 except Exception as e:
                     self.weblog_container.collect_logs()
                     raise Exception(

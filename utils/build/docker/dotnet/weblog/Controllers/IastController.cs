@@ -193,15 +193,8 @@ namespace weblog
         [HttpPost("cmdi/test_secure")]
         public IActionResult test_secure_cmdI([FromForm] RequestData data)
         {
-            try
-            {
-                var result = Process.Start("ls");
-                return Content("Process launched: " + result.ProcessName);
-            }
-            catch
-            {
-                return StatusCode(500, "Error launching process.");
-            }
+            var result = Process.Start("ls");
+            return Content("Process launched: " + result.ProcessName);
         }
 
         [HttpGet("insecure-cookie/test_insecure")]
