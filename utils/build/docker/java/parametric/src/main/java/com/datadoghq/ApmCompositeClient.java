@@ -20,6 +20,8 @@ import static com.datadoghq.client.ApmTestClient.StartSpanReturn;
 
 import com.datadoghq.client.APMClientGrpc;
 import com.datadoghq.client.ApmTestClient;
+import com.datadoghq.client.ApmTestClient.GetTraceConfigArgs;
+import com.datadoghq.client.ApmTestClient.GetTraceConfigReturn;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanArgs;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanReturn;
 import com.datadoghq.client.ApmTestClient.OtelFlushSpansArgs;
@@ -89,7 +91,10 @@ public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
     public void flushSpans(FlushSpansArgs request, StreamObserver<FlushSpansReturn> responseObserver) {
         LOGGER.info("Flushing OT spans: {}", request);
         try {
-            ((InternalTracer) this.ddTracer).flush();
+            // Only flush spans when tracing was enabled
+            if (this.ddTracer instanceof InternalTracer) {
+                ((InternalTracer) this.ddTracer).flush();
+            }
             this.otClient.clearSpans();
             responseObserver.onNext(FlushSpansReturn.newBuilder().build());
             responseObserver.onCompleted();
@@ -103,13 +108,21 @@ public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
     public void flushTraceStats(FlushTraceStatsArgs request, StreamObserver<FlushTraceStatsReturn> responseObserver) {
         LOGGER.info("Flushing OT trace stats: {}", request);
         try {
-            ((InternalTracer) this.ddTracer).flushMetrics();
+            // Only flush trace stats when tracing was enabled
+            if (this.ddTracer instanceof InternalTracer) {
+                ((InternalTracer) this.ddTracer).flushMetrics();
+            }
             responseObserver.onNext(FlushTraceStatsReturn.newBuilder().build());
             responseObserver.onCompleted();
         } catch (Throwable t) {
             LOGGER.error("Uncaught throwable", t);
             responseObserver.onError(t);
         }
+    }
+
+    @Override
+    public void getTraceConfig(GetTraceConfigArgs request, StreamObserver<GetTraceConfigReturn> responseObserver) {
+        this.otelClient.getTraceConfig(request, responseObserver);
     }
 
     @Override
@@ -151,7 +164,10 @@ public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
     public void otelFlushSpans(OtelFlushSpansArgs request, StreamObserver<OtelFlushSpansReturn> responseObserver) {
         LOGGER.info("Flushing OTel spans: {}", request);
         try {
-            ((InternalTracer) this.ddTracer).flush();
+            // Only flush spans when tracing was enabled
+            if (this.ddTracer instanceof InternalTracer) {
+                ((InternalTracer) this.ddTracer).flush();
+            }
             this.otelClient.clearSpans();
             responseObserver.onNext(OtelFlushSpansReturn.newBuilder().setSuccess(true).build());
             responseObserver.onCompleted();
@@ -165,7 +181,10 @@ public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
     public void otelFlushTraceStats(OtelFlushTraceStatsArgs request, StreamObserver<OtelFlushTraceStatsReturn> responseObserver) {
         LOGGER.info("Flushing OTel trace stats: {}", request);
         try {
-            ((InternalTracer) this.ddTracer).flushMetrics();
+            // Only flush trace stats when tracing was enabled
+            if (this.ddTracer instanceof InternalTracer) {
+                ((InternalTracer) this.ddTracer).flushMetrics();
+            }
             responseObserver.onNext(OtelFlushTraceStatsReturn.newBuilder().build());
             responseObserver.onCompleted();
         } catch (Throwable t) {
