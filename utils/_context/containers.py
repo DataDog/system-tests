@@ -560,7 +560,8 @@ class WeblogContainer(TestedContainer):
         }
 
         if os.path.exists("./binaries/nodejs-load-from-local"):
-            volumes[os.path.abspath(f"../dd-trace-js/")] = {
+            path = open("./binaries/nodejs-load-from-local").read().strip(' \r\n')
+            volumes[os.path.abspath(path)] = {
                 "bind": f"/volumes/dd-trace-js",
                 "mode": "ro",
             }
