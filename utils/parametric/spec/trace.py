@@ -186,6 +186,16 @@ def find_only_span(traces: List[Trace]) -> Span:
     return traces[0][0]
 
 
+def find_chunk_root_span(trace: Trace) -> Span:
+    """Return the root span of a trace chunk.
+    If a trace contains multiple trace chunks it will return the first local root span."""
+    for span in trace:
+        for tag in span.get("meta", {}):
+            if tag.lower().strip() in (ORIGIN, "_dd.p.tid", "runtime-id", "language"):
+                return span
+    raise AssertionError(f"Local span not found in trace chunk: {trace}")
+
+
 def span_has_no_parent(span: Span) -> bool:
     """Return if a span has a parent by checking the presence and value of the `parent_id`."""
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None

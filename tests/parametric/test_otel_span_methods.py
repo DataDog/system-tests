@@ -410,10 +410,6 @@ class Test_Otel_Span_Methods:
         assert span.get("resource") == "ok_span"
 
     @bug(context.library < "ruby@2.2.0", reason="Older versions do not generate datadog spans with the correct ids")
-    @flaky(
-        context.library == "dotnet",
-        reason="Flaky due to span order, tests should never use traces[0] when there are multiple spans",
-    )
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -441,11 +437,13 @@ class Test_Otel_Span_Methods:
                     assert context.get("trace_flags") == "01"
 
         # compare the values of the span context with the values of the trace sent to the agent
-        traces = test_agent.wait_for_num_traces(1)
-        _, op2 = traces[0]
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, span.trace_id)
+        op2 = find_span(trace, span.span_id)
         assert op2["resource"] == "op2"
         assert op2["span_id"] == int(context["span_id"], 16)
-        op2_tidhex = op2["meta"].get("_dd.p.tid", "") + "{:016x}".format(op2["trace_id"])
+        chunk_root = trace[0]
+        op2_tidhex = chunk_root["meta"].get("_dd.p.tid", "") + "{:016x}".format(chunk_root["trace_id"])
         assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")

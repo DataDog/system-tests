@@ -9,7 +9,7 @@ from ddapm_test_agent.trace import root_span
 
 from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios
 from utils.parametric.spec.remoteconfig import Capabilities
-from utils.parametric.spec.trace import Span, assert_trace_has_tags
+from utils.parametric.spec.trace import Span, assert_trace_has_tags, find_only_span
 
 parametrize = pytest.mark.parametrize
 
@@ -32,9 +32,7 @@ def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
     with test_library.start_span(**span_kwargs):
         pass
     test_library.flush()
-    traces = test_agent.wait_for_num_traces(num=1, clear=True)
-    assert len(traces) == 1
-    return traces[0]
+    return find_only_span(test_agent.wait_for_num_traces(num=1, clear=True))
 
 
 def _default_config(service: str, env: str) -> Dict[str, Any]:
@@ -155,9 +153,10 @@ class TestDynamicConfigHeaderTags:
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
-        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+        span = find_only_span(trace)
+        assert span["meta"]["test_header_env"] == "test-value"
+        assert span["meta"]["test_header_env2"] == "test-value-2"
+        assert int(span["meta"]["content_length_env"]) > 0
 
         # Set and test with RC.
         set_and_wait_rc(
@@ -176,14 +175,15 @@ class TestDynamicConfigHeaderTags:
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_rc2"] == "test-value-2"
-        assert trace[0][0]["meta"]["http.request.headers.content-length"] == "0"
+        span = find_only_span(trace)
+        assert span["meta"]["test_header_rc"] == "test-value"
+        assert span["meta"]["test_header_rc2"] == "test-value-2"
+        assert span["meta"]["http.request.headers.content-length"] == "0"
         assert (
-            trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
+            span["meta"]["http.response.headers.content-length"] == "14"
         ), "response content-length header tag value matches the header value set by the server"
-        assert "test_header_env" not in trace[0][0]["meta"]
-        assert "test_header_env2" not in trace[0][0]["meta"]
+        assert "test_header_env" not in span["meta"]
+        assert "test_header_env2" not in span["meta"]
 
         # Unset RC.
         set_and_wait_rc(test_agent, config_overrides={})
@@ -193,9 +193,10 @@ class TestDynamicConfigHeaderTags:
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
-        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+        span = find_only_span(trace)
+        assert span["meta"]["test_header_env"] == "test-value"
+        assert span["meta"]["test_header_env2"] == "test-value-2"
+        assert int(span["meta"]["content_length_env"]) > 0
 
 
 @scenarios.parametric
@@ -509,7 +510,7 @@ class TestDynamicConfigV2:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
                     pass
-        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], expected_local_tags)
 
         # Ensure local tags are overridden and RC tags applied.
@@ -518,7 +519,7 @@ class TestDynamicConfigV2:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
                     pass
-        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
 
         # Ensure previous tags are restored.
@@ -527,7 +528,7 @@ class TestDynamicConfigV2:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
                     pass
-        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], expected_local_tags)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])

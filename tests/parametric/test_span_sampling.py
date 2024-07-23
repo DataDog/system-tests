@@ -8,7 +8,7 @@ from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
 from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
 from utils.parametric.spec.trace import MANUAL_DROP_KEY
 from utils.parametric.spec.trace import USER_KEEP
-from utils.parametric.spec.trace import find_span_in_traces
+from utils.parametric.spec.trace import find_span_in_traces, find_trace
 from utils import missing_feature, context, scenarios, features, flaky
 
 
@@ -589,7 +589,7 @@ class Test_Span_Sampling:
         assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
         with test_library:
-            with test_library.start_span(name="parent", service="webserver"):
+            with test_library.start_span(name="parent", service="webserver") as s1:
                 pass
 
         # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
@@ -597,21 +597,21 @@ class Test_Span_Sampling:
 
         # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
         with test_library:
-            with test_library.start_span(name="parent", service="webserver") as parent_span:
-                with test_library.start_span(name="child", service="webserver", parent_id=parent_span.span_id):
+            with test_library.start_span(name="parent", service="webserver") as s2:
+                with test_library.start_span(name="child", service="webserver", parent_id=s2.span_id):
                     pass
 
-        traces = test_agent.wait_for_num_traces(1, clear=True)
-        assert len(traces[0]) == 1, "only the root span is expected to be sent to the test agent"
+        traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
+        trace2 = find_trace(traces, s2.trace_id)
+        assert len(trace2) == 1, "only the root span is expected to be sent to the test agent"
 
-        parent_span = find_span_in_traces(traces, parent_span.trace_id, parent_span.span_id)
-
+        chunk_root = trace2[0]
         # the trace should be dropped, so the parent span priority is set to -1
-        assert parent_span["name"] == "parent"
-        assert parent_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
-        assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
-        assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-        assert parent_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
+        assert chunk_root["name"] == "parent"
+        assert chunk_root["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
+        assert chunk_root["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
+        assert chunk_root["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+        assert chunk_root["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
     @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")

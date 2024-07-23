@@ -12,6 +12,7 @@ from typing import Any
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
+from utils.parametric.spec.trace import find_span_in_traces, find_only_span
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import missing_feature, context, scenarios, features
 
@@ -733,7 +734,7 @@ class Test_Headers_Tracecontext:
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
                 ],
-            ):
+            ) as s1:
                 pass
 
             with test_library.start_span(
@@ -742,7 +743,7 @@ class Test_Headers_Tracecontext:
                     ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
                     ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
                 ],
-            ):
+            ) as s2:
                 pass
 
             with test_library.start_span(
@@ -751,13 +752,18 @@ class Test_Headers_Tracecontext:
                     ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
                     ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
                 ],
-            ):
+            ) as s3:
                 pass
 
         traces = test_agent.wait_for_num_traces(3)
 
         assert len(traces) == 3
-        case1, case2, case3 = traces[0][0], traces[1][0], traces[2][0]
+
+        case1, case2, case3 = (
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+            find_span_in_traces(traces, s3.trace_id, s3.span_id),
+        )
 
         assert case1["name"] == "p_set"
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
@@ -815,7 +821,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-datadog-parent-id", "987654321"],
                 ],
-            ):
+            ) as s1:
                 pass
 
             # 2) Trace ids in datadog and tracecontext headers do not match
@@ -828,7 +834,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-trace-id", "2"],
                     ["x-datadog-tags", "_dd.p.tid=2222222222222222"],
                 ],
-            ):
+            ) as s2:
                 pass
 
             # 3) Parent ids in Datadog and tracecontext headers do not match
@@ -841,7 +847,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-datadog-parent-id", "10"],
                 ],
-            ):
+            ) as s3:
                 pass
 
             # 4) Parent ids do not match and p value is not present in tracestate
@@ -853,7 +859,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-trace-id", "4"],
                     ["x-datadog-parent-id", "10"],
                 ],
-            ):
+            ) as s4:
                 pass
 
             # 5) Parent ids do not match and p value does not match datadog headers
@@ -865,18 +871,18 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-parent-id", "10"],
                     ["x-datadog-trace-id", "5"],
                 ],
-            ):
+            ) as s5:
                 pass
 
         traces = test_agent.wait_for_num_traces(5)
 
         assert len(traces) == 5
         case1, case2, case3, case4, case5 = (
-            traces[0][0],
-            traces[1][0],
-            traces[2][0],
-            traces[3][0],
-            traces[4][0],
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+            find_span_in_traces(traces, s3.trace_id, s3.span_id),
+            find_span_in_traces(traces, s4.trace_id, s4.span_id),
+            find_span_in_traces(traces, s5.trace_id, s5.span_id),
         )
 
         # 1) Datadog and tracecontext headers, trace-id and span-id match
@@ -936,9 +942,7 @@ class Test_Headers_Tracecontext:
             pass
 
         traces = test_agent.wait_for_num_traces(1)
-
-        assert len(traces) == 1
-        case1 = traces[0][0]
+        case1 = find_only_span(traces)
 
         # 1) trace-id and span-id extracted from datadog headers, last datadog parent id is ignored
         assert case1["name"] == "same_trace_different_parent_ids"
@@ -961,7 +965,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-tags", "_dd.p.tid=3333333333333333"],
                     ["x-datadog-parent-id", "10"],
                 ],
-            ):
+            ) as s1:
                 pass
 
             with test_library.start_span(
@@ -972,15 +976,15 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-trace-id", "4"],
                     ["x-datadog-parent-id", "10"],
                 ],
-            ):
+            ) as s2:
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
 
         assert len(traces) == 2
         case1, case2 = (
-            traces[0][0],
-            traces[1][0],
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
         )
 
         assert case1["meta"].get("_dd.p.tid") == "3333333333333333"

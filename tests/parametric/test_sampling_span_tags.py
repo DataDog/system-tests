@@ -26,7 +26,7 @@ def _get_spans(test_agent, test_library, child_span_tag=None):
                 if child_span_tag:
                     cs.set_meta(child_span_tag, None)
 
-    traces = test_agent.wait_for_num_spans(2, clear=True)
+    traces = test_agent.wait_for_num_spans(2, clear=True, sort_by_start=False)
 
     parent_span = find_span_in_traces(traces, ps.trace_id, ps.span_id)
     child_span = find_span_in_traces(traces, cs.trace_id, cs.span_id)

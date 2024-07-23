@@ -3,6 +3,7 @@ from typing import Any
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
+from utils.parametric.spec.trace import find_only_span, find_span, find_trace
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
 

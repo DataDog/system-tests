@@ -8,7 +8,7 @@ from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import scenarios, missing_feature
 from utils.parametric._library_client import Link
-from utils.parametric.spec.trace import retrieve_span_links
+from utils.parametric.spec.trace import retrieve_span_links, find_span, find_trace
 
 
 @scenarios.parametric
@@ -26,15 +26,17 @@ class Test_Span_Links:
 
             with test_library.start_span(
                 "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
-            ):
+            ) as s2:
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
-        assert len(traces[0]) == 1
-        assert len(traces[1]) == 1
+        trace1 = find_trace(traces, s1.trace_id)
+        assert len(trace1) == 1
+        trace2 = find_trace(traces, s2.trace_id)
+        assert len(trace2) == 1
 
-        first = traces[0][0]
-        second = traces[1][0]
+        first = find_span(trace1, s1.span_id)
+        second = find_span(trace2, s2.span_id)
 
         span_links = second["span_links"]
         assert len(span_links) == 1
@@ -62,15 +64,17 @@ class Test_Span_Links:
 
             with test_library.start_span(
                 "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
-            ):
+            ) as s2:
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
-        assert len(traces[0]) == 1
-        assert len(traces[1]) == 1
+        trace1 = find_trace(traces, s1.trace_id)
+        assert len(trace1) == 1
+        trace2 = find_trace(traces, s2.trace_id)
+        assert len(trace2) == 1
 
-        first = traces[0][0]
-        second = traces[1][0]
+        first = find_span(trace1, s1.span_id)
+        second = find_span(trace2, s2.span_id)
 
         span_links = json.loads(second.get("meta", {}).get("_dd.span_links"))
         assert len(span_links) == 1
@@ -107,11 +111,12 @@ class Test_Span_Links:
                         ],
                     )
                 ],
-            ):
+            ) as rs:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
-        span = traces[0][0]
+        trace = find_trace(traces, rs.trace_id)
+        span = find_span(trace, rs.span_id)
         assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
         assert span["meta"].get(ORIGIN) is None
 
@@ -141,11 +146,12 @@ class Test_Span_Links:
                         ],
                     ),
                 ],
-            ):
+            ) as rs:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
-        span = traces[0][0]
+        trace = find_trace(traces, rs.trace_id)
+        span = find_span(trace, rs.span_id)
         assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
 
         span_links = retrieve_span_links(span)
@@ -181,14 +187,16 @@ class Test_Span_Links:
                 s3.add_link(s2.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
 
         traces = test_agent.wait_for_num_traces(2)
-        assert len(traces[0]) == 2
-        assert len(traces[1]) == 1
+        trace1 = s1.find_trace(traces, s1.trace_id)
+        assert len(trace1) == 2
+        trace2 = s3.find_trace(traces, s3.trace_id)
+        assert len(trace2) == 1
 
-        root = traces[0][0]
+        root = find_span(trace1, s1.span_id)
         root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
 
-        second = traces[0][1]
-        third = traces[1][0]
+        second = find_span(trace1, s2.span_id)
+        third = find_span(trace2, s3.span_id)
 
         assert second.get("parent_id") == root.get("span_id")
         assert third.get("parent_id") != root.get("span_id")
@@ -232,7 +240,7 @@ class Test_Span_Links:
                         ],
                     )
                 ],
-            ):
+            ) as s1:
                 pass
 
             with test_library.start_span(
@@ -245,7 +253,7 @@ class Test_Span_Links:
                         ],
                     )
                 ],
-            ):
+            ) as s2:
                 pass
 
             with test_library.start_span("auto_dropped_span") as ads:
@@ -253,12 +261,13 @@ class Test_Span_Links:
                 # We must add a link to linked_to_auto_dropped_span before auto_dropped_span ends
                 with test_library.start_span(
                     "linked_to_auto_dropped_span", parent_id=0, links=[Link(parent_id=ads.span_id)]
-                ):
+                ) as s3:
                     pass
 
         traces = test_agent.wait_for_num_traces(4)
         # Span Link generated from datadog headers containing manual keep
-        link_w_manual_keep = traces[0][0]
+        trace1 = find_trace(traces, s1.trace_id)
+        link_w_manual_keep = find_span(trace1, s1.span_id)
         # assert that span link is set up correctly
         span_links = retrieve_span_links(link_w_manual_keep)
         assert len(span_links) == 1 and span_links[0]["span_id"] == 777
@@ -267,7 +276,8 @@ class Test_Span_Links:
         assert link_w_manual_keep["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
         # Span Link generated from tracecontext headers containing manual drop
-        link_w_manual_drop = traces[1][0]
+        trace2 = find_trace(traces, s2.trace_id)
+        link_w_manual_drop = find_span(trace2, s2.span_id)
         # assert that span link is set up correctly
         span_links = retrieve_span_links(link_w_manual_drop)
         assert len(span_links) == 1 and span_links[0]["span_id"] == 17
@@ -276,7 +286,8 @@ class Test_Span_Links:
         assert link_w_manual_drop["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
 
         # Span Link generated between two root spans
-        auto_dropped_span = traces[2][0]
+        trace3 = find_trace(traces, s3.trace_id)
+        auto_dropped_span = find_span(trace3, ads.span_id)
         linked_to_auto_dropped_span = traces[3][0]
         # assert that span link is set up correctly
         span_links = retrieve_span_links(linked_to_auto_dropped_span)

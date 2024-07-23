@@ -229,7 +229,7 @@ class _TestAgentAPI:
                 pytest.fail(resp.text.decode("utf-8"), pytrace=False)
 
     def wait_for_num_traces(
-        self, num: int, clear: bool = False, wait_loops: int = 30, sort: bool = True
+        self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
     ) -> List[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
@@ -248,7 +248,7 @@ class _TestAgentAPI:
                 if num_received == num:
                     if clear:
                         self.clear()
-                    if sort:
+                    if sort_by_start:
                         for trace in traces:
                             # The testagent may receive spans and trace chunks in any order,
                             # so we sort the spans by start time if needed
