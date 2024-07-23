@@ -234,15 +234,14 @@ class _RequestLogger:
                         request_content = json.loads(flow.request.content)
                         runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
 
-                        payload = self.rc_api_command
                         if runtime_id in self.rc_api_runtime_ids_applied:
                             # this runtime id has already been applied
-                            payload = "{}"
+                            return
 
                         logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
 
                         flow.response.status_code = 200
-                        flow.response.content = payload
+                        flow.response.content = self.rc_api_command
 
                         self.rc_api_runtime_ids_applied.add(runtime_id)
                     elif self.rc_api_sequential_commands is not None:
