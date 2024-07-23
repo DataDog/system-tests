@@ -59,8 +59,10 @@ def read_diagnostic_data():
             path = _DEBUGGER_PATH
         else:
             path = _LOGS_PATH
-    else:
+    elif tracer["language"] == "php":
         path = _DEBUGGER_PATH
+    else:
+        path = _LOGS_PATH
 
     return list(interfaces.agent.get_data(path))
 
