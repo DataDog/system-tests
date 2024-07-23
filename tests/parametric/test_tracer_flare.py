@@ -175,7 +175,7 @@ class TestTracerFlareV1:
 
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @missing_feature(
-        context.library < "java@1.39.0", reason="tracer log in flare has been implemented at version 1.3?.0"
+        context.library < "java@1.38.0", reason="tracer log in flare has been implemented at version 1.38.0"
     )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_content(self, library_env, test_agent, test_library):
@@ -188,7 +188,7 @@ class TestTracerFlareV1:
 
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @missing_feature(
-        context.library < "java@1.39.0", reason="tracer log in flare has been implemented at version 1.3?.0"
+        context.library < "java@1.38.0", reason="tracer log in flare has been implemented at version 1.38.0"
     )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
