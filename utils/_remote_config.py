@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import re
+import time
 from typing import Any
 from typing import Optional
 
@@ -97,7 +98,7 @@ def send_state(
                 config_states = state.get("config_states", [])
                 for state in config_states:
                     config_state = current_states.get(state["id"])
-                    if config_state and state["product"] == product:
+                    if config_state and state["product"] == config_state["product"]:
                         logger.debug(f"Remote config state: {state}")
                         config_state.update(state)
 
@@ -112,6 +113,8 @@ def send_state(
 
     _post("/unique_command", raw_payload)
     library.wait_for(remote_config_applied, timeout=30)
+    # ensure the library has enough time to apply the config to all subprocesses
+    time.sleep(2)
 
     return current_states
 

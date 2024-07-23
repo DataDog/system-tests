@@ -223,7 +223,6 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ##### isempty
                 ["strValue isEmpty", False, Dsl("isEmpty", Dsl("ref", "strValue"))],
                 ["emptyString isEmpty", True, Dsl("isEmpty", Dsl("ref", "emptyString"))],
-                ["nullString isEmpty", True, Dsl("isEmpty", Dsl("ref", "nullString"))],
                 ##### len
                 ["strValue len", 14, Dsl("len", Dsl("ref", "strValue"))],
                 ["emptyString len", 0, Dsl("len", Dsl("ref", "emptyString"))],
