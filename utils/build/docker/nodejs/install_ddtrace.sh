@@ -7,9 +7,9 @@ cd /usr/app
 if [ -e /binaries/nodejs-load-from-local ]; then
     echo "using local version that will be mounted at runtime"
 
-    echo "0.0.0" > SYSTEM_TESTS_LIBRARY_VERSION
-    echo "0.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
-    echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+    echo "999.0.0" > SYSTEM_TESTS_LIBRARY_VERSION
+    echo "999.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
+    echo "999.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 else
     if [ -e /binaries/nodejs-load-from-npm ]; then
         target=$(</binaries/nodejs-load-from-npm)
