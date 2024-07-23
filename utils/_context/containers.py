@@ -725,10 +725,10 @@ class KafkaContainer(TestedContainer):
             allow_old_container=True,
             healthcheck={
                 "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
-                "start_period": 5 * 1_000_000_000,
-                "interval": 2 * 1_000_000_000,
-                "timeout": 2 * 1_000_000_000,
-                "retries": 25,
+                "start_period": 1 * 1_000_000_000,
+                "interval": 1 * 1_000_000_000,
+                "timeout": 1 * 1_000_000_000,
+                "retries": 30,
             },
         )
 
@@ -745,7 +745,7 @@ class KafkaContainer(TestedContainer):
         ]
 
         for command in commands:
-            self.execute_command(test=command, interval=2 * 1_000_000_000, retries=15)
+            self.execute_command(test=command, interval=1 * 1_000_000_000, retries=30)
 
 
 class CassandraContainer(TestedContainer):
