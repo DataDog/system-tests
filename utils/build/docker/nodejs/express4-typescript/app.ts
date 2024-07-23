@@ -30,6 +30,17 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello\n');
 });
 
+app.get('/healthcheck', (req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    library: {
+      language: "nodejs",
+      version: require('dd-trace/package.json').version,
+      libddwaf_version: require('@datadog/native-appsec/package.json').libddwaf_version
+    }
+  });
+})
+
 app.all(['/waf', '/waf/*'], (req: Request, res: Response) => {
   res.send('Hello\n');
 });
