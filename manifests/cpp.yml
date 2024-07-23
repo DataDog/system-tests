@@ -76,6 +76,7 @@ tests/:
     test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
     test_logs.py: irrelevant (ASM is not implemented in C++)
     test_rate_limiter.py: irrelevant (ASM is not implemented in C++)
+    test_remote_config_rule_changes.py: irrelevant (ASM is not implemented in C++)
     test_reports.py: irrelevant (ASM is not implemented in C++)
     test_request_blocking.py: irrelevant (ASM is not implemented in C++)
     test_runtime_activation.py: irrelevant (ASM is not implemented in C++)
