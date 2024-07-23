@@ -299,10 +299,10 @@ tests/:
       Test_Trace_Sampling_Tags: v2.46.0
       Test_Trace_Sampling_Tags_Feb2024_Revision: v2.48.0
       Test_Trace_Sampling_With_W3C: v2.46.0
-    test_tracer_flare.py:
-      TestTracerFlareV1: v2.48.0
     test_tracer.py:
       Test_TracerSCITagging: v2.48.0
+    test_tracer_flare.py:
+      TestTracerFlareV1: v2.48.0
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.36.0
