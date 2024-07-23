@@ -5,7 +5,7 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 WORKDIR /app
 
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Ppayara -B dependency:go-offline 
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Ppayara -B dependency:go-offline
 RUN mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:4.2.1
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
