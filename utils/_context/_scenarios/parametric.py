@@ -370,9 +370,8 @@ FROM node:18.10-alpine
 RUN apk add --no-cache bash curl git jq
 WORKDIR /usr/app
 COPY {nodejs_reldir}/../app.sh /usr/app/
-RUN printf '#!/bin/bash\\nnode server.js' > server.sh
+RUN printf 'node server.js' >> app.sh
 RUN chmod +x app.sh
-RUN chmod +x server.sh
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
