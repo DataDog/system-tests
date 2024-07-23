@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 
 namespace weblog
 {
@@ -10,9 +11,13 @@ namespace weblog
             routeBuilder.MapGet("/stats-unique", async context =>
             {
                 // TODO: Something is wrong here
-                var status = int.Parse(context.Request.Query["code"]!);
+                var stringStatus = context.Request.Query["code"];
+                var status = 200;
+                if (!StringValues.IsNullOrEmpty(stringStatus)) {
+                    status = int.Parse(stringStatus!);
+                }
                 context.Response.StatusCode = status;
-                await context.Response.WriteAsync("");
+                await context.Response.CompleteAsync();
             });
         }
     }
