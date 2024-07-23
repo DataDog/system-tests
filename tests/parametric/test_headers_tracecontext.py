@@ -748,7 +748,7 @@ class Test_Headers_Tracecontext:
         traces = test_agent.wait_for_num_traces(2)
 
         assert len(traces) == 2
-        case1, case2, case3 = traces[0][0], traces[1][0], traces[2][0]
+        case1, case2 = traces[0][0], traces[1][0], traces[2][0]
 
         assert case1["name"] == "p_set"
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
