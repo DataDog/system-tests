@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
@@ -25,6 +26,15 @@ func main() {
 	r.Use(gintrace.Middleware("weblog"))
 
 	r.Any("/", func(ctx *gin.Context) {
+		ctx.Writer.WriteHeader(http.StatusOK)
+	})
+	r.Any("/stats-unique", func(ctx *gin.Context) {
+		if c := ctx.Request.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				ctx.Writer.WriteHeader(code)
+				return
+			}
+		}
 		ctx.Writer.WriteHeader(http.StatusOK)
 	})
 	r.Any("/waf", func(ctx *gin.Context) {

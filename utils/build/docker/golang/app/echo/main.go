@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
@@ -31,6 +32,16 @@ func main() {
 
 	r.Any("/*", func(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
+	})
+
+	r.Any("/status", func(c echo.Context) error {
+		rCode := 200
+		if codeStr := c.Request().URL.Query().Get("code"); codeStr != "" {
+			if code, err := strconv.Atoi(codeStr); err == nil {
+				rCode = code
+			}
+		}
+		return c.NoContent(rCode)
 	})
 
 	r.Any("/waf", waf)
