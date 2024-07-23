@@ -1,6 +1,0 @@
-[datadog-staging]
-baseurl=https://yum.datad0g.com/beta/apm/aarch64/
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://s3.amazonaws.com/public-signing-keys/DATADOG_RPM_KEY_CURRENT.public
-       https://s3.amazonaws.com/public-signing-keys/DATADOG_RPM_KEY_FD4BF915.public

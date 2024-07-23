@@ -336,6 +336,8 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
       Test_Info: v2.0.0
@@ -347,6 +349,7 @@ tests/:
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
+      Test_RuntimeDeactivation: *ref_3_9_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_traces.py:

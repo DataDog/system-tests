@@ -1,7 +1,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, scenarios, features, rfc, bug
+from utils import weblog, interfaces, scenarios, features, rfc, bug, context
 from utils._context.header_tag_vars import *
 from requests.structures import CaseInsensitiveDict
 
@@ -16,6 +16,7 @@ REQUESTDOWNSTREAM_RESOURCE_PATTERN = re.compile(r"GET /?requestdownstream/?")
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
+@bug(context.library > "python@2.9.2", reason="Missing Jira ticket")
 class Test_AppSecStandalone_UpstreamPropagation:
     """APM correctly propagates AppSec events in distributing tracing."""
 

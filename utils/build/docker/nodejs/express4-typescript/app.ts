@@ -2,7 +2,7 @@
 
 import { Request, Response } from "express";
 
-const tracer = require('dd-trace').init({ debug: true });
+const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
 const { promisify } = require('util')
 const app = require('express')();
@@ -262,7 +262,7 @@ app.get('/flush', (req: Request, res: Response) => {
 
 app.get('/requestdownstream', async (req: Request, res: Response) => {
   try {
-    const resFetch = await axios.get('http://localhost:7777/returnheaders')
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
     return res.json(resFetch.data)
   } catch (e) {
     return res.status(500).send(e)

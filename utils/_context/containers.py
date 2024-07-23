@@ -7,6 +7,7 @@ from subprocess import run
 import time
 from functools import lru_cache
 import platform
+from threading import RLock, Thread
 
 import docker
 from docker.errors import APIError, DockerException
@@ -88,6 +89,9 @@ class TestedContainer:
         self.environment = environment or {}
         self.kwargs = kwargs
         self._container = None
+        self.depends_on: list[TestedContainer] = []
+        self._starting_lock = RLock()
+        self._starting_thread = None
         self.stdout_interface = stdout_interface
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
@@ -133,6 +137,7 @@ class TestedContainer:
             old_container.remove(force=True)
 
     def start(self) -> Container:
+        """ Start the actual underlying Docker container directly """
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -161,6 +166,41 @@ class TestedContainer:
 
         self.wait_for_health()
         self.warmup()
+
+    def async_start(self) -> Thread:
+        """ Start the container and its dependencies in a thread with circular dependency detection """
+        self.check_circular_dependencies([])
+
+        return self._async_start_recursive()
+
+    def check_circular_dependencies(self, seen: list):
+        """ Check if the container has a circular dependency """
+        if self in seen:
+            dependencies = " -> ".join([s.name for s in seen] + [self.name,])
+            raise RuntimeError(f"Circular dependency detected between containers: {dependencies}")
+
+        seen.append(self)
+
+        for dependency in self.depends_on:
+            dependency.check_circular_dependencies(list(seen))
+
+    def _async_start_recursive(self):
+        """ Recursive version of async_start for circular dependency detection """
+        with self._starting_lock:
+            if self._starting_thread is None:
+                self._starting_thread = Thread(target=self._start_with_dependencies, name=f"start_{self.name}")
+                self._starting_thread.start()
+
+        return self._starting_thread
+
+    def _start_with_dependencies(self):
+        """ Start all dependencies of a container and then start the container """
+        threads = [dependency._async_start_recursive() for dependency in self.depends_on]
+
+        for thread in threads:
+            thread.join()
+
+        self.start()
 
     def warmup(self):
         """ if some stuff must be done after healthcheck """
@@ -241,6 +281,7 @@ class TestedContainer:
 
     def stop(self):
         self._container.stop()
+        self._starting_thread = None
 
     def collect_logs(self):
         stdout = self._container.logs(stdout=True, stderr=False)
@@ -351,7 +392,7 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder, rc_api_enabled: bool) -> None:
+    def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool) -> None:
 
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
@@ -363,6 +404,7 @@ class ProxyContainer(TestedContainer):
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
+                "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
             },
             working_dir="/app",
             volumes={
