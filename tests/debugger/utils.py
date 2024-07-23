@@ -59,8 +59,6 @@ def read_diagnostic_data():
             path = _DEBUGGER_PATH
         else:
             path = _LOGS_PATH
-    elif tracer["language"] == "python":
-        path = _DEBUGER_PATH
     else:
         path = _DEBUGGER_PATH
 
