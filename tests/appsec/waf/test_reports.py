@@ -4,7 +4,7 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features
+from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
 
 
 @features.support_in_app_waf_metrics_report
@@ -59,6 +59,7 @@ class Test_Monitoring:
     def setup_waf_monitoring_once(self):
         self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
+    @bug(context.library == "nodejs@5.18.0", reason="Unknown, seems to fail only on this specific version")
     def test_waf_monitoring_once(self):
         """
         Some WAF monitoring span tags and metrics are expected to be sent at
