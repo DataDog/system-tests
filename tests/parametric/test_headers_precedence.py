@@ -672,6 +672,7 @@ class Test_Headers_Precedence:
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
+            span1 = find_only_span(test_agent.wait_for_num_traces(cleared=True, num=1))
             # 2) Datadog and tracecontext headers, trace-id does match, Datadog is primary context
             # we want to make sure there's no span link since they match
             headers2 = make_single_request_and_get_inject_headers(
@@ -685,6 +686,7 @@ class Test_Headers_Precedence:
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
             )
+            span2 = find_only_span(test_agent.wait_for_num_traces(cleared=True, num=1))
             # 3) Datadog, tracecontext, b3multi headers, Datadog is primary context
             # tracecontext and b3multi trace_id do match it
             # we should have two span links, b3multi should not have tracestate
@@ -702,6 +704,7 @@ class Test_Headers_Precedence:
                     ["x-b3-sampled", "1"],
                 ],
             )
+            span3 = find_only_span(test_agent.wait_for_num_traces(cleared=True, num=1))
             # 4) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has trace_id 0 since that's not valid.
             headers4 = make_single_request_and_get_inject_headers(
@@ -716,6 +719,7 @@ class Test_Headers_Precedence:
                     ["x-b3-sampled", "1"],
                 ],
             )
+            span4 = find_only_span(test_agent.wait_for_num_traces(cleared=True, num=1))
             # 5) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has span_id 0 since that's not valid.
             headers4 = make_single_request_and_get_inject_headers(
@@ -730,14 +734,13 @@ class Test_Headers_Precedence:
                     ["x-b3-sampled", "1"],
                 ],
             )
-        traces = test_agent.wait_for_num_traces(num=5)
+            span5 = find_only_span(test_agent.wait_for_num_traces(cleared=True, num=1))
 
         # 1) Datadog and tracecontext headers, trace-id does not match, Datadog is primary context
         # tracestate is present, so should be added to tracecontext span_link
-        trace0 = traces[0][0]
-        assert trace0["trace_id"] == 2
-        links0 = trace0["span_links"]
-        assert len(links0) == 1
+        assert span1["trace_id"] == 2
+        links0 = span1["span_links"]
+        assert len(span1) == 1
         link0 = links0[0]
         assert link0["trace_id"] == 1
         assert link0["span_id"] == 987654321
@@ -748,16 +751,14 @@ class Test_Headers_Precedence:
 
         # 2) Datadog and tracecontext headers, trace-id does match, Datadog is primary context
         # we just want to make sure there's not span link since they match
-        trace1 = traces[1][0]
-        assert trace1["trace_id"] == 1
-        assert trace1.get("span_links") == None
+        assert span2["trace_id"] == 1
+        assert span2.get("span_links") == None
 
         # 3) Datadog, tracecontext, b3multi headers, Datadog is primary context
         # tracecontext and b3multi headers do not match
         # # we should have two span links, b3multi should not have tracestate
-        trace2 = traces[2][0]
-        assert trace2["trace_id"] == 4
-        links2 = trace2["span_links"]
+        assert span3["trace_id"] == 4
+        links2 = span3["span_links"]
         assert len(links2) == 2
         link1 = links2[0]
         assert link1["trace_id"] == 3
@@ -777,15 +778,13 @@ class Test_Headers_Precedence:
 
         # 4) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
         # if the secondary context has trace_id 0 since that's not valid.
-        trace3 = traces[3][0]
-        assert trace3["trace_id"] == 5
-        assert trace3.get("span_links") == None
+        assert span4["trace_id"] == 5
+        assert span4.get("span_links") == None
 
         # 5) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
         # if the secondary context has span_id 0 since that's not valid.
-        trace4 = traces[4][0]
-        assert trace4["trace_id"] == 6
-        assert trace4.get("span_links") == None
+        assert span5["trace_id"] == 6
+        assert span5.get("span_links") == None
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")

@@ -187,9 +187,9 @@ class Test_Span_Links:
                 s3.add_link(s2.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
 
         traces = test_agent.wait_for_num_traces(2)
-        trace1 = s1.find_trace(traces, s1.trace_id)
+        trace1 = find_trace(traces, s1.trace_id)
         assert len(trace1) == 2
-        trace2 = s3.find_trace(traces, s3.trace_id)
+        trace2 = find_trace(traces, s3.trace_id)
         assert len(trace2) == 1
 
         root = find_span(trace1, s1.span_id)

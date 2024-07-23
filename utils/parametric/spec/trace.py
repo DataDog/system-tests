@@ -155,7 +155,8 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
 
 def find_trace(traces: List[Trace], trace_id: int) -> Trace:
     """Return the trace from `traces` that match a `trace_id`."""
-    trace_id = ((1 << 64) - 1) & trace_id  # Use 64-bit trace id
+    # TODO: Ensure all parametric applications return uint64 trace ids (not strings or bigints)
+    trace_id = ((1 << 64) - 1) & int(trace_id)  # Use 64-bit trace id
     for trace in traces:
         # This check ignores the high bits of the trace id
         # TODO: Check _dd.p.tid
@@ -167,6 +168,8 @@ def find_trace(traces: List[Trace], trace_id: int) -> Trace:
 def find_span(trace: Trace, span_id: int) -> Span:
     """Return a span from the trace matches a `span_id`."""
     assert len(trace) > 0
+    # TODO: Ensure all parametric applications return uint64 span ids (not strings)
+    span_id = int(span_id)
     for span in trace:
         if span.get("span_id") == span_id:
             return span

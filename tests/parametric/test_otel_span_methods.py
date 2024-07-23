@@ -10,6 +10,7 @@ from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links
+from utils.parametric.spec.trace import find_chunk_root_span
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import bug, features, missing_feature, irrelevant, flaky, context, scenarios
 
@@ -304,7 +305,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span(name="operation", span_kind=SK_INTERNAL, timestamp=start_time) as span:
                 assert span.is_recording()
                 span.end_span(timestamp=start_time + duration)
-                assert not s.is_recording()
+                assert not span.is_recording()
                 span.end_span(timestamp=start_time + duration * 2)
 
         traces = test_agent.wait_for_num_traces(1)
@@ -442,7 +443,7 @@ class Test_Otel_Span_Methods:
         op2 = find_span(trace, span.span_id)
         assert op2["resource"] == "op2"
         assert op2["span_id"] == int(context["span_id"], 16)
-        chunk_root = trace[0]
+        chunk_root = find_chunk_root_span(trace)
         op2_tidhex = chunk_root["meta"].get("_dd.p.tid", "") + "{:016x}".format(chunk_root["trace_id"])
         assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
 
@@ -465,7 +466,7 @@ class Test_Otel_Span_Methods:
         trace = find_trace(traces, span.trace_id)
         assert len(trace) == 1
 
-        span = find_span(traces, span.span_id)
+        span = find_span(trace, span.span_id)
         assert span["name"] == "kafka.receive"
         assert span["resource"] == "operation"
 

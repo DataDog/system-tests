@@ -196,7 +196,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
             },
         )
         resp_json = resp.json()
-        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
+        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def current_span(self) -> Union[SpanResponse, None]:
         resp_json = self._session.get(self._url("/trace/span/current")).json()
@@ -279,6 +279,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "attributes": attributes or {},
             },
         ).json()
+        # TODO: Some http endpoints return span_id and trace_id as strings (ex: dotnet)
+        # Ensure that all endpoints return them as integers
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
     def otel_current_span(self) -> Union[SpanResponse, None]:
@@ -373,7 +375,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
 
 class _TestSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int = 0, parent_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int, parent_id: int = 0):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -701,7 +703,7 @@ class APMLibrary:
             links=links if links is not None else [],
             tags=tags if tags is not None else [],
         )
-        span = _TestSpan(self._client, resp["span_id"])
+        span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
         span.finish()
 

@@ -9,7 +9,7 @@ from ddapm_test_agent.trace import root_span
 
 from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios
 from utils.parametric.spec.remoteconfig import Capabilities
-from utils.parametric.spec.trace import Span, assert_trace_has_tags, find_only_span
+from utils.parametric.spec.trace import Span, assert_trace_has_tags, find_only_span, find_trace
 
 parametrize = pytest.mark.parametrize
 
@@ -29,10 +29,11 @@ DEFAULT_ENVVARS = {
 
 
 def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
-    with test_library.start_span(**span_kwargs):
+    with test_library.start_span(**span_kwargs) as s1:
         pass
     test_library.flush()
-    return find_only_span(test_agent.wait_for_num_traces(num=1, clear=True))
+    traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
+    return find_trace(traces, s1.trace_id)
 
 
 def _default_config(service: str, env: str) -> Dict[str, Any]:

@@ -325,7 +325,11 @@ func (s *apmClientServer) OtelSetStatus(ctx context.Context, args *OtelSetStatus
 func hex2int(hexStr string) uint64 {
 	// remove 0x suffix if found in the input string
 	cleaned := strings.Replace(hexStr, "0x", "", -1)
-
+	if len(cleaned) > 16 {
+		// truncate 128bit ids to 64bit
+		// TODO: revisit this logic, hexStr is expected to be 16 bytes
+		cleaned = cleaned[len(cleaned)-16:]
+	}
 	// base 16 for hexadecimal
 	result, err := strconv.ParseUint(cleaned, 16, 64)
 	if err != nil {

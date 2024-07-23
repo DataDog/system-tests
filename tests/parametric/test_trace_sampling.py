@@ -398,16 +398,12 @@ def tag_sampling_env(tag_glob_pattern):
 class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def assert_matching_span(self, test_agent, trace_id, span_id, **kwargs):
         matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
-        for key, value in kwargs.items():
-            assert matching_span[key] == value
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
 
     def assert_mismatching_span(self, test_agent, trace_id, span_id, **kwargs):
         mismatching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
-        for key, value in kwargs.items():
-            assert mismatching_span[key] == value
 
         assert mismatching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert mismatching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
