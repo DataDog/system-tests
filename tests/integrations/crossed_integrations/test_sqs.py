@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
+
+from tests.integrations.utils import generate_time_string, delete_sqs_queue
 
 
 class _Test_SQS:
@@ -94,6 +96,7 @@ class _Test_SQS:
         self.consume_response = self.buddy.get(
             "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
+        delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
 
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
@@ -145,6 +148,7 @@ class _Test_SQS:
         self.consume_response = weblog.get(
             "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
         )
+        delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -209,8 +213,11 @@ class _Test_SQS:
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
+
+    time_hash = generate_time_string()
+
+    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_msg_attrs_{context.library.library}_weblog_to_buddy_{time_hash}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_msg_attrs_buddy_to_{context.library.library}_weblog_{time_hash}"
 
 
 @scenarios.crossed_tracing_libraries
@@ -218,8 +225,11 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_aws_xray_header_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_aws_xray_header_buddy_to_weblog"
+
+    time_hash = generate_time_string()
+
+    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_{context.library.library}_weblog_to_buddy_{time_hash}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_buddy_to_{context.library.library}_weblog_{time_hash}"
 
     @missing_feature(
         library="nodejs",

@@ -2,12 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
+from .utils import delete_kinesis_stream, delete_sns_topic, delete_sqs_queue, generate_time_string
+
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
 from utils.tools import logger
 
 import base64
 import json
-import struct
 
 # Kafka specific
 DSM_CONSUMER_GROUP = "testgroup1"
@@ -17,11 +18,12 @@ DSM_EXCHANGE = "dsm-system-tests-exchange"
 DSM_ROUTING_KEY = "dsm-system-tests-routing-key"
 
 # AWS Kinesis Specific
-DSM_STREAM = "dsm-system-tests-stream"
+DSM_STREAM = f"dsm-system-tests-stream-{context.library.library}"
 
 # Generic
-DSM_QUEUE = "dsm-system-tests-queue"
-DSM_TOPIC = "dsm-system-tests-topic"
+DSM_QUEUE = f"dsm-system-tests-queue-{context.library.library}"
+DSM_QUEUE_SNS = f"dsm-system-tests-sns-queue-{context.library.library}"
+DSM_TOPIC = f"dsm-system-tests-sns-topic-{context.library.library}"
 
 # Queue requests can take a while, so give time for them to complete
 DSM_REQUEST_TIMEOUT = 61
@@ -252,6 +254,7 @@ class Test_DsmSQS:
 
     def setup_dsm_sqs(self):
         self.r = weblog.get(f"/dsm?integration=sqs&timeout=60&queue={DSM_QUEUE}", timeout=DSM_REQUEST_TIMEOUT)
+        delete_sqs_queue(DSM_QUEUE)
 
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -281,8 +284,10 @@ class Test_DsmSNS:
 
     def setup_dsm_sns(self):
         self.r = weblog.get(
-            f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,
+            f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE_SNS}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,
         )
+        delete_sqs_queue(DSM_QUEUE_SNS)
+        delete_sns_topic(DSM_TOPIC)
 
     # @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
     def test_dsm_sns(self):
@@ -292,11 +297,13 @@ class Test_DsmSNS:
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
             "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
             "default": {"producer": 5674710414915297150, "consumer": 13847866872847822852,},
+            # java uses topic_name instead of topic_arn in hash
+            "java": {"producer": 4968747266316071000, "consumer": 13493927220232649709,},
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        topic = f"arn:aws:sns:us-east-1:000000000000:{DSM_TOPIC}"
+        topic = DSM_TOPIC if context.library.library == "java" else f"arn:aws:sns:us-east-1:601427279990:{DSM_TOPIC}"
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sns"),

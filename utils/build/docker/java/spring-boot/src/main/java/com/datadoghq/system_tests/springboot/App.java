@@ -379,7 +379,7 @@ public class App {
     @RequestMapping("/sns/produce")
     ResponseEntity<String> snsProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String topic) {
         SnsConnector sns = new SnsConnector(topic);
-        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        SqsConnector sqs = new SqsConnector(queue);
         try {
             sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS from Java", sqs);
         } catch (Exception e) {
@@ -392,7 +392,7 @@ public class App {
 
     @RequestMapping("/sns/consume")
     ResponseEntity<String> snsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
-        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        SqsConnector sqs = new SqsConnector(queue);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
@@ -569,7 +569,7 @@ public class App {
             }
         } else if ("sns".equals(integration)) {
             SnsConnector sns = new SnsConnector(topic);
-            SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+            SqsConnector sqs = new SqsConnector(queue);
             try {
                 Thread produceThread = sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);

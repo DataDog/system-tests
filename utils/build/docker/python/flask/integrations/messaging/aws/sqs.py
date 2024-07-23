@@ -10,7 +10,7 @@ def sqs_produce(queue, message):
     """
 
     # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
+    sqs = boto3.client("sqs", region_name="us-east-1")
 
     try:
         sqs.create_queue(QueueName=queue)
@@ -20,7 +20,7 @@ def sqs_produce(queue, message):
 
     try:
         # Send the message to the SQS queue
-        sqs.send_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}", MessageBody=message)
+        sqs.send_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue}", MessageBody=message)
         logging.info("Python SQS message sent successfully")
         return "SQS Produce ok"
     except Exception as e:
@@ -33,14 +33,14 @@ def sqs_consume(queue, timeout=60):
     The goal of this function is to trigger sqs consumer calls
     """
     # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://elasticmq:9324", region_name="us-east-1")
+    sqs = boto3.client("sqs", region_name="us-east-1")
 
     consumed_message = None
     start_time = time.time()
 
     while not consumed_message and time.time() - start_time < timeout:
         try:
-            response = sqs.receive_message(QueueUrl=f"http://elasticmq:9324/000000000000/{queue}")
+            response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     logging.info("Consumed the following SQS message with params: ")

@@ -1,5 +1,9 @@
+from datetime import datetime
+
 from utils import weblog, interfaces
 from utils.tools import logger
+
+import boto3
 
 
 class BaseDbIntegrationsTestClass:
@@ -144,3 +148,39 @@ class BaseDbIntegrationsTestClass:
                 return span_child
 
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
+
+
+def delete_sqs_queue(queue_name):
+    queue_url = f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue_name}"
+    sqs_client = boto3.client("sqs")
+    try:
+        sqs_client.delete_queue(QueueUrl=queue_url)
+    except Exception as e:
+        print(e)
+
+
+def delete_sns_topic(topic_name):
+    topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
+    sns_client = boto3.client("sns")
+    try:
+        sns_client.delete_topic(TopicArn=topic_arn)
+    except Exception as e:
+        print(e)
+
+
+def delete_kinesis_stream(stream_name):
+    kinesis_client = boto3.client("kinesis")
+    try:
+        kinesis_client.delete_stream(StreamName=stream_name, EnforceConsumerDeletion=True)
+    except Exception as e:
+        print(e)
+
+
+def generate_time_string():
+    # Get the current time
+    current_time = datetime.now()
+
+    # Format the time string to include only two digits of seconds
+    time_str = current_time.strftime("%Y-%m-%d_%H-%M-%S") + f"-{int(current_time.microsecond / 10000):00d}"
+
+    return time_str

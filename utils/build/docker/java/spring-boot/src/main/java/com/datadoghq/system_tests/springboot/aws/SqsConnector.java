@@ -16,13 +16,12 @@ import java.util.List;
 import java.net.URI;
 
 public class SqsConnector {
-    public static String DEFAULT_ENDPOINT = "http://elasticmq:9324";
     public final String queue;
     public final String endpoint;
 
     public SqsConnector(String queue){
         this.queue = queue;
-        this.endpoint = DEFAULT_ENDPOINT;
+        this.endpoint = null;
     }
 
     public SqsConnector(String queue, String endpoint){
@@ -31,13 +30,21 @@ public class SqsConnector {
     }
 
     public SqsClient createSqsClient() {
-        SqsClient sqsClient = SqsClient.builder()
-            .region(Region.US_EAST_1)
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .applyMutation(builder -> {
-                builder.endpointOverride(URI.create(this.endpoint));
-            })
-            .build();
+        SqsClient sqsClient;
+        if (this.endpoint != null) {
+            sqsClient = SqsClient.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .applyMutation(builder -> {
+                    builder.endpointOverride(URI.create(this.endpoint));
+                })
+                .build();
+        } else {
+            sqsClient = SqsClient.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .build();
+        }
         return sqsClient;
     }
 

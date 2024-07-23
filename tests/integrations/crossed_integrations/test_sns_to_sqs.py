@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
+
+from tests.integrations.utils import delete_sns_topic, delete_sqs_queue, generate_time_string
 
 
 class _Test_SNS:
@@ -113,6 +115,8 @@ class _Test_SNS:
         self.consume_response = self.buddy.get(
             "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
         )
+        delete_sns_topic(self.WEBLOG_TO_BUDDY_TOPIC)
+        delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
 
     def test_produce(self):
         """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
@@ -168,6 +172,8 @@ class _Test_SNS:
         self.consume_response = weblog.get(
             "/sns/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
         )
+        delete_sns_topic(self.BUDDY_TO_WEBLOG_TOPIC)
+        delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -239,7 +245,10 @@ class _Test_SNS:
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy"
-    WEBLOG_TO_BUDDY_TOPIC = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy_topic"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog_topic"
+
+    time_hash = generate_time_string()
+
+    WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_msg_attrs_{context.library.library}_weblog_to_buddy_{time_hash}"
+    WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attrs_{context.library.library}_weblog_to_buddy_topic_{time_hash}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SNS_Propagation_msg_attrs_buddy_to_{context.library.library}_weblog_{time_hash}"
+    BUDDY_TO_WEBLOG_TOPIC = f"SNS_Propagation_msg_attrs_buddy_to_{context.library.library}_weblog_topic_{time_hash}"

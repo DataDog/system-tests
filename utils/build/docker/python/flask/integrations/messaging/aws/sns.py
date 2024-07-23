@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 
@@ -9,8 +10,8 @@ def sns_produce(queue, topic, message):
     The goal of this function is to trigger sqs producer calls
     """
     # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
-    sns = boto3.client("sns", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
+    sqs = boto3.client("sqs", region_name="us-east-1")
+    sns = boto3.client("sns", region_name="us-east-1")
 
     try:
         topic = sns.create_topic(Name=topic)
@@ -19,6 +20,25 @@ def sns_produce(queue, topic, message):
         sqs_url = queue["QueueUrl"]
         url_parts = sqs_url.split("/")
         sqs_arn = "arn:aws:sqs:{}:{}:{}".format("us-east-1", url_parts[-2], url_parts[-1])
+
+        # Add policy to SQS queue to allow SNS to send messages
+        policy = {
+            "Version": "2012-10-17",
+            "Id": f"{sqs_arn}/SQSDefaultPolicy",
+            "Statement": [
+                {
+                    "Sid": "Allow-SNS-SendMessage",
+                    "Effect": "Allow",
+                    "Principal": {"Service": "sns.amazonaws.com"},
+                    "Action": "sqs:SendMessage",
+                    "Resource": sqs_arn,
+                    "Condition": {"ArnEquals": {"aws:SourceArn": topic_arn}},
+                }
+            ],
+        }
+
+        sqs.set_queue_attributes(QueueUrl=sqs_url, Attributes={"Policy": json.dumps(policy)})
+
         sns.subscribe(TopicArn=topic_arn, Protocol="sqs", Endpoint=sqs_arn, Attributes={"RawMessageDelivery": "true"})
         print(f"[SNS->SQS] Created SNS Topic: {topic} and SQS Queue: {queue}")
     except Exception as e:
@@ -40,14 +60,14 @@ def sns_consume(queue, timeout=60):
     """
 
     # Create an SQS client
-    sqs = boto3.client("sqs", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
+    sqs = boto3.client("sqs", region_name="us-east-1")
 
     consumed_message = None
     start_time = time.time()
 
     while not consumed_message and time.time() - start_time < timeout:
         try:
-            response = sqs.receive_message(QueueUrl=f"http://localstack-main:4566/000000000000/{queue}")
+            response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     consumed_message = message["Body"]
