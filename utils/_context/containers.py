@@ -81,11 +81,17 @@ class TestedContainer:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
         self.host_log_folder = host_log_folder
-        self.display_logs_on_remove = False  # in case of error, it may be convenient to display logs
         self.allow_old_container = allow_old_container
 
         self.image = ImageInfo(image_name)
         self.healthcheck = healthcheck
+
+        # healthy values:
+        # None: container did not tried to start yet, or hasn't be started for another reason
+        # False: container is not healthy
+        # True: container is healthy
+        self.healthy = None
+
         self.environment = environment or {}
         self.kwargs = kwargs
         self._container = None
@@ -164,8 +170,9 @@ class TestedContainer:
             **self.kwargs,
         )
 
-        self.wait_for_health()
-        self.warmup()
+        self.healthy = self.wait_for_health()
+        if self.healthy:
+            self.warmup()
 
     def async_start(self) -> Thread:
         """ Start the container and its dependencies in a thread with circular dependency detection """
@@ -200,7 +207,17 @@ class TestedContainer:
         for thread in threads:
             thread.join()
 
-        self.start()
+        for dependency in self.depends_on:
+            if not dependency.healthy:
+                return
+
+        # this function is executed in a thread
+        # the main thread will take care of the exception
+        try:
+            self.start()
+        except Exception as e:
+            logger.exception(f"Error while starting {self.name}: {e}")
+            self.healthy = False
 
     def warmup(self):
         """ if some stuff must be done after healthcheck """
@@ -212,17 +229,27 @@ class TestedContainer:
     def healthcheck_log_file(self):
         return f"{self.log_folder_path}/healthcheck.log"
 
-    def wait_for_health(self):
+    def wait_for_health(self) -> bool:
         if self.healthcheck:
-            result = self.execute_command(**self.healthcheck)
+            exit_code, output = self.execute_command(**self.healthcheck)
 
             with open(self.healthcheck_log_file, "w", encoding="utf-8") as f:
-                f.write(result.output.decode("utf-8"))
+                f.write(output)
 
-    def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
+            if exit_code != 0:
+                logger.stdout(f"Healthcheck failed for {self.name}:\n{output}")
+                return False
+
+        return True
+
+    def execute_command(
+        self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000
+    ) -> tuple[int, str]:
         """
             Execute a command inside a container. Usefull for healthcheck and warmups.
             test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+            This function does not raise any exception, it returns a tuple with the exit code and the output
+            The exit code is 0 (success) or any other integer (failure)
         """
 
         cmd = test
@@ -240,6 +267,8 @@ class TestedContainer:
 
         logger.info(f"Executing command {cmd} for {self.name}")
 
+        result = None
+
         for i in range(retries + 1):
             try:
                 result = self._container.exec_run(cmd)
@@ -247,20 +276,25 @@ class TestedContainer:
                 logger.debug(f"Try #{i}: {result}")
 
                 if result.exit_code == 0:
-                    return result
+                    break
 
             except APIError as e:
                 logger.exception(f"Try #{i} failed")
-                self.display_logs_on_remove = True
-
-                pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
+                return 1, f"Command {cmd} failed for {self._container.name}: {e.explanation}"
 
             except Exception as e:
                 logger.debug(f"Try #{i}: {e}")
 
+            self._container.reload()
+            if self._container.status != "running":
+                return 1, f"Container {self._container.name} is not running"
+
             time.sleep(interval)
 
-        pytest.exit(f"Command {cmd} failed for {self._container.name}", 1)
+        if not result:
+            return 1, f"Command {cmd} can't be executed for {self._container.name}"
+
+        return result.exit_code, result.output.decode("utf-8")
 
     def _fix_host_pwd_in_volumes(self):
         # on docker compose, volume host path can starts with a "."
@@ -280,7 +314,8 @@ class TestedContainer:
         self.kwargs["volumes"] = result
 
     def stop(self):
-        self._container.stop()
+        if self._container:
+            self._container.stop()
         self._starting_thread = None
 
     def collect_logs(self):
@@ -293,12 +328,12 @@ class TestedContainer:
         with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
             f.write(stderr)
 
-        if self.display_logs_on_remove:
+        if not self.healthy:
             sep = "=" * 30
-            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
-            logger.stdout(stdout.decode("utf-8"))
             logger.stdout(f"\n{sep} {self.name} STDERR {sep}")
             logger.stdout(stderr.decode("utf-8"))
+            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
+            logger.stdout(stdout.decode("utf-8"))
             logger.stdout("")
 
     def remove(self):
@@ -745,7 +780,11 @@ class KafkaContainer(TestedContainer):
         ]
 
         for command in commands:
-            self.execute_command(test=command, interval=1 * 1_000_000_000, retries=30)
+            exit_code, output = self.execute_command(test=command, interval=1 * 1_000_000_000, retries=30)
+            if exit_code != 0:
+                logger.stdout(f"Command {command} failed for {self._container.name}: {output}")
+                self.healthy = False
+                return
 
 
 class CassandraContainer(TestedContainer):
@@ -847,7 +886,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         )
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
-    def wait_for_health(self):
+    def wait_for_health(self) -> bool:
         time.sleep(20)  # It takes long for otel collector to start
 
         for i in range(61):
@@ -855,11 +894,13 @@ class OpenTelemetryCollectorContainer(TestedContainer):
                 r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
                 if r.status_code == 200:
-                    return
+                    return True
             except Exception as e:
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")
             time.sleep(1)
-        pytest.exit(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request", 1)
+
+        logger.stdout(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request")
+        return False
 
     def start(self) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,

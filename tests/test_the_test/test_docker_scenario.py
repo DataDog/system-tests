@@ -1,11 +1,11 @@
 import pytest
 
 from utils._context._scenarios.core import DockerScenario
-from utils._context.containers import TestedContainer
+from utils._context.containers import TestedContainer as _TestedContainer
 from utils import scenarios
 
 
-class FakeContainer(TestedContainer):
+class FakeContainer(_TestedContainer):
     def __init__(self, name, events=None) -> None:
         super().__init__(name=name, image_name=name, host_log_folder="logs_test_the_test")
         self._test_events = events if events is not None else []
