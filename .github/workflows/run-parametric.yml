@@ -53,6 +53,8 @@ jobs:
           repository: 'DataDog/system-tests'
       - name: Install runner
         uses: ./.github/actions/install_runner
+        with:
+          legacy_python_39: true
       - name: Get binaries artifact
         if : ${{ inputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
