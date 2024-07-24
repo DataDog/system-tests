@@ -560,7 +560,7 @@ class WeblogContainer(TestedContainer):
         }
 
         if os.path.exists("./binaries/nodejs-load-from-local"):
-            path = open("./binaries/nodejs-load-from-local").read().strip(' \r\n')
+            path = open("./binaries/nodejs-load-from-local").read().strip(" \r\n")
             volumes[os.path.abspath(path)] = {
                 "bind": f"/volumes/dd-trace-js",
                 "mode": "ro",
@@ -695,10 +695,11 @@ class WeblogContainer(TestedContainer):
         # https://github.com/DataDog/system-tests/issues/2799
         if self.library == "nodejs":
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
-                data = json.load(f)
+                lib = json.load(f)["library"]
 
-            self._library = LibraryVersion(data["library"]["language"], data["library"]["version"])
-            self.libddwaf_version = LibraryVersion("libddwaf", data["library"]["libddwaf_version"]).version
+            self._library = LibraryVersion(lib["language"], lib["version"])
+            self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
+            self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
 
         logger.stdout(f"Library: {self.library}")
 

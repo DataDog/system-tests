@@ -21,7 +21,7 @@
     "no-console": 0,
     "prefer-const": 2,
     "object-curly-spacing": [2, "always"],
-    "import/no-extraneous-dependencies": 2,
+    "import/no-extraneous-dependencies": false,
     "standard/no-callback-literal": 0,
     "no-prototype-builtins": 0,
     "mocha/no-mocha-arrows": 0,

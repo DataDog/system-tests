@@ -44,7 +44,8 @@ app.get('/healthcheck', (req, res) => {
     library: {
       language: 'nodejs',
       version: require('dd-trace/package.json').version,
-      libddwaf_version: require('@datadog/native-appsec/package.json').libddwaf_version
+      libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
+      appsec_event_rules_version: require('dd-trace/packages/dd-trace/src/appsec/recommended.json').metadata.rules_version
     }
   })
 })

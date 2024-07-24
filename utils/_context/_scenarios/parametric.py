@@ -356,7 +356,7 @@ def node_library_factory() -> APMLibraryTestServer:
     volumes = {}
 
     if os.path.exists("./binaries/nodejs-load-from-local"):
-        path = open("./binaries/nodejs-load-from-local").read().strip(' \r\n')
+        path = open("./binaries/nodejs-load-from-local").read().strip(" \r\n")
         source = os.path.join(_get_base_directory(), path)
         volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
 
