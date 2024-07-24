@@ -12,7 +12,6 @@ from typing import Union
 
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
-from ddapm_test_agent.trace import root_span  # pylint: disable=unused-import
 import msgpack
 
 from ddsketch.ddsketch import BaseDDSketch
@@ -177,21 +176,20 @@ def find_span(trace: Trace, span_id: int) -> Span:
 
 
 def find_span_in_traces(traces: List[Trace], trace_id: int, span_id: int) -> Span:
-    """Return a span from the traces that matches a `trace_id` and `span_id`."""
+    """Return a span from a list of traces by `trace_id` and `span_id`."""
     trace = find_trace(traces, trace_id)
     return find_span(trace, span_id)
 
 
 def find_only_span(traces: List[Trace]) -> Span:
-    """Return the only span. Raises an error if there are no traces or more than one span."""
-    assert len(traces) == 1
-    assert len(traces[0]) == 1
+    """Return the only span in a list of traces. Raises an error if there are no traces or more than one span."""
+    assert len(traces) == 1, traces
+    assert len(traces[0]) == 1, traces[0]
     return traces[0][0]
 
 
 def find_chunk_root_span(trace: Trace) -> Span:
-    """Return the root span of a trace chunk.
-    If a trace contains multiple trace chunks it will return the first local root span."""
+    """Return the first span with trace level tags. This should correspond to the first span in a trace chunk."""
     for span in trace:
         for tag in span.get("meta", {}):
             if tag.lower().strip() in (ORIGIN, "_dd.p.tid", "runtime-id", "language"):

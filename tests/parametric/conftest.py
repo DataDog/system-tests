@@ -229,7 +229,7 @@ class _TestAgentAPI:
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
 
-        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
+        When sort_by_start=True returned traces are sorted by the span start time to simplify assertions by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
         for i in range(wait_loops):
@@ -261,7 +261,7 @@ class _TestAgentAPI:
 
         Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
 
-        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
+        When sort_by_start=True returned traces are sorted by the span start time to simplify assertions by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
         for i in range(wait_loops):

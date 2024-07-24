@@ -290,8 +290,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "attributes": attributes or {},
             },
         ).json()
-        # TODO: Some http endpoints return span_id and trace_id as strings (ex: dotnet)
-        # Ensure that all endpoints return them as integers
+        # TODO: Some http endpoints return span_id and trace_id as strings (ex: dotnet), some as uint64 (ex: go)
+        # and others with bignum trace_ids and uint64 span_ids (ex: python). We should standardize this.
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
     def otel_current_span(self) -> Union[SpanResponse, None]:

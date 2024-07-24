@@ -345,7 +345,7 @@ func hex2int(hexStr string) uint64 {
 	cleaned := strings.Replace(hexStr, "0x", "", -1)
 	if len(cleaned) > 16 {
 		// truncate 128bit ids to 64bit
-		// TODO: revisit this logic, hexStr is expected to be 16 bytes
+		// TODO: revisit this logic, hexStr is expected to be 16 characters long
 		cleaned = cleaned[len(cleaned)-16:]
 	}
 	// base 16 for hexadecimal
