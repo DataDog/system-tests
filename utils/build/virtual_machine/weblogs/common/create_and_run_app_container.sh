@@ -9,6 +9,8 @@ sudo chmod -R 755 *
 rm -rf Dockerfile || true
 cp Dockerfile.template Dockerfile || true
 
+sudo systemctl start docker # Start docker service if it's not started
+
 #The parameter RUNTIME is used only for dotnet
 sudo docker build --no-cache --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
 

@@ -6,16 +6,13 @@ from utils import features, weblog, interfaces, scenarios, rfc, missing_feature
 
 
 def validate_stack_traces(request):
-    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No spans to validate"
+    events = list(interfaces.library.get_appsec_events(request=request))
+    assert len(events) != 0, "No appsec event has been reported"
 
-    for span in spans:
-        assert "_dd.appsec.json" in span["meta"], "'_dd.appsec.json' not found in 'meta'"
+    for _, _, span, appsec_data in events:
+        assert "triggers" in appsec_data, "'triggers' not found in appsec_data"
 
-        json = span["meta"]["_dd.appsec.json"]
-        assert "triggers" in json, "'triggers' not found in '_dd.appsec.json'"
-
-        triggers = json["triggers"]
+        triggers = appsec_data["triggers"]
 
         # Find all stack IDs
         stack_ids = []

@@ -15,7 +15,6 @@ from utils._context.containers import (
     PostgresContainer,
     MongoContainer,
     KafkaContainer,
-    ZooKeeperContainer,
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
@@ -43,6 +42,7 @@ class ScenarioGroup(Enum):
     PARAMETRIC = "parametric"
     PROFILING = "profiling"
     SAMPLING = "sampling"
+    ONBOARDING = "onboarding"
 
 
 VALID_GITHUB_WORKFLOWS = {
@@ -231,6 +231,7 @@ class DockerScenario(Scenario):
         scenario_groups=None,
         use_proxy=True,
         rc_api_enabled=False,
+        meta_structs_disabled=False,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -245,45 +246,51 @@ class DockerScenario(Scenario):
 
         self.use_proxy = use_proxy
         self.rc_api_enabled = rc_api_enabled
+        self.meta_structs_disabled = False
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
 
         self._required_containers: list[TestedContainer] = []
+        self._supporting_containers: list[TestedContainer] = []
 
         if self.use_proxy:
-            self._required_containers.append(
-                ProxyContainer(host_log_folder=self.host_log_folder, rc_api_enabled=rc_api_enabled)
-            )  # we want the proxy being the first container to start
+            self.proxy_container = ProxyContainer(
+                host_log_folder=self.host_log_folder,
+                rc_api_enabled=rc_api_enabled,
+                meta_structs_disabled=meta_structs_disabled,
+            )
+
+            self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
-            self._required_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
 
         if include_mongo_db:
-            self._required_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
 
         if include_cassandra_db:
-            self._required_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
 
         if include_kafka:
-            # kafka requires zookeeper
-            self._required_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
-            self._required_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
 
         if include_rabbitmq:
-            self._required_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
 
         if include_mysql_db:
-            self._required_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
         if include_sqlserver:
-            self._required_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
 
         if include_elasticmq:
-            self._required_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
         if include_localstack:
-            self._required_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+        self._required_containers.extend(self._supporting_containers)
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         return [
@@ -309,14 +316,25 @@ class DockerScenario(Scenario):
 
         if not self.replay:
             warmups.append(create_network)
-
-            for container in self._required_containers:
-                warmups.append(container.start)
+            warmups.append(self._start_containers)
 
         for container in self._required_containers:
             warmups.append(container.post_start)
 
         return warmups
+
+    def _start_containers(self):
+        threads = []
+
+        for container in self._required_containers:
+            threads.append(container.async_start())
+
+        for thread in threads:
+            thread.join()
+
+        for container in self._required_containers:
+            if container.healthy is False:
+                pytest.exit(f"Container {container.name} can't be started", 1)
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -344,6 +362,7 @@ class EndToEndScenario(DockerScenario):
         agent_interface_timeout=5,
         use_proxy=True,
         rc_api_enabled=False,
+        meta_structs_disabled=False,
         backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
@@ -366,6 +385,7 @@ class EndToEndScenario(DockerScenario):
             scenario_groups=scenario_groups,
             use_proxy=use_proxy,
             rc_api_enabled=rc_api_enabled,
+            meta_structs_disabled=meta_structs_disabled,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -378,6 +398,9 @@ class EndToEndScenario(DockerScenario):
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
+
+        if self.use_proxy:
+            self.agent_container.depends_on.append(self.proxy_container)
 
         weblog_env = dict(weblog_env) if weblog_env else {}
         weblog_env.update(
@@ -404,6 +427,9 @@ class EndToEndScenario(DockerScenario):
             use_proxy=use_proxy,
         )
 
+        self.weblog_container.depends_on.append(self.agent_container)
+        self.weblog_container.depends_on.extend(self._supporting_containers)
+
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         self._required_containers.append(self.agent_container)
@@ -427,6 +453,10 @@ class EndToEndScenario(DockerScenario):
                 )
                 for language, port in supported_languages
             ]
+
+            for buddy in self.buddies:
+                buddy.depends_on.append(self.agent_container)
+                buddy.depends_on.extend(self._supporting_containers)
 
             self._required_containers += self.buddies
 

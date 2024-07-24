@@ -382,7 +382,28 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_span_tags.py: missing_feature
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_BodyUrlEncoded:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+        Test_Sqli_BodyXml:
+          '*': v1.38.0
+          akka-http: missing_feature (Requires parsed body instrumentation)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_UrlQuery:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
       test_ssrf.py: missing_feature
       test_stack_traces.py: missing_feature
     waf/:
@@ -566,8 +587,6 @@ tests/:
           '*': v1.12.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v0.87.0
@@ -578,29 +597,44 @@ tests/:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
-      Test_Login_Events:
-        '*': 1.36.0
+      Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
+      Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
+      Test_V2_Login_Events:
+        '*': v1.38.0
         akka-http: missing_feature (login endpoints not implemented)
         jersey-grizzly2: missing_feature (login endpoints not implemented)
         play: missing_feature (login endpoints not implemented)
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: missing_feature (weblog returns error 500)
+        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
-      Test_Login_Events_Extended:
-        '*': 1.36.0
+      Test_V2_Login_Events_Anon:
+        '*': v1.38.0
         akka-http: missing_feature (login endpoints not implemented)
         jersey-grizzly2: missing_feature (login endpoints not implemented)
         play: missing_feature (login endpoints not implemented)
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: missing_feature (weblog returns error 500)
+        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Login_Events_RC: missing_feature
+      Test_V2_Login_Events_RC:
+        '*': v1.38.0
+        akka-http: missing_feature (login endpoints not implemented)
+        jersey-grizzly2: missing_feature (login endpoints not implemented)
+        play: missing_feature (login endpoints not implemented)
+        ratpack: missing_feature (login endpoints not implemented)
+        resteasy-netty3: missing_feature (login endpoints not implemented)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: missing_feature (weblog returns error 500)
+        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
+        vertx3: missing_feature (login endpoints not implemented)
+        vertx4: missing_feature (login endpoints not implemented)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -744,7 +778,11 @@ tests/:
         spring-boot-payara: bug (user block results in 500 response)
         vertx3: v1.7.0
         vertx4: v1.7.0
-      Test_Suspicious_Request_Blocking: missing_feature
+      Test_Suspicious_Request_Blocking:
+        '*': v1.6.0
+        akka-http: bug
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: bug
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
@@ -812,6 +850,8 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_reports.py:
       Test_AttackTimestamp:
         akka-http: v1.22.0
@@ -852,6 +892,11 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_RuntimeDeactivation:
+        '*': v0.115.0
+        akka-http: v1.22.0
+        play: v1.22.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0
@@ -874,7 +919,7 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_CollectDefaultRequestHeader:
-        '*': 1.35.0
+        '*': v1.35.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_CollectRespondHeaders:
         '*': v0.102.0
@@ -882,7 +927,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_ExternalWafRequestsIdentification:
-        '*': 1.35.0
+        '*': v1.35.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RetainTraces:
         '*': v0.92.0
@@ -905,29 +950,59 @@ tests/:
       Test_Debugger_Expression_Language:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
+        spring-boot-jetty: v1.38.0  # real version not known
+        spring-boot-openliberty: v1.38.0  # real version not known
+        spring-boot-payara: v1.38.0  # real version not known
+        spring-boot-undertow: v1.38.0  # real version not known
+        spring-boot-wildfly: v1.38.0  # real version not known
         uds-spring-boot: v0.1  # real version not known
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
         spring-boot: v1.33.0
+        spring-boot-jetty: v1.38.0  # real version not known
+        spring-boot-openliberty: v1.38.0  # real version not known
+        spring-boot-payara: v1.38.0  # real version not known
+        spring-boot-undertow: v1.38.0  # real version not known
+        spring-boot-wildfly: v1.38.0  # real version not known
         uds-spring-boot: v1.33.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
+        spring-boot-jetty: v1.38.0  # real version not known
+        spring-boot-openliberty: v1.38.0  # real version not known
+        spring-boot-payara: v1.38.0  # real version not known
+        spring-boot-undertow: v1.38.0  # real version not known
+        spring-boot-wildfly: v1.38.0  # real version not known
         uds-spring-boot: v0.1  # real version not known
       Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
+        spring-boot-jetty: v1.38.0  # real version not known
+        spring-boot-openliberty: v1.38.0  # real version not known
+        spring-boot-payara: v1.38.0  # real version not known
+        spring-boot-undertow: v1.38.0  # real version not known
+        spring-boot-wildfly: v1.38.0  # real version not known
         uds-spring-boot: v0.1  # real version not known
       Test_Debugger_Mix_Log_Probe:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
+        spring-boot-jetty: v1.38.0  # real version not known
+        spring-boot-openliberty: v1.38.0  # real version not known
+        spring-boot-payara: v1.38.0  # real version not known
+        spring-boot-undertow: v1.38.0  # real version not known
+        spring-boot-wildfly: v1.38.0  # real version not known
         uds-spring-boot: v0.1  # real version not known
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': missing_feature
         spring-boot: v0.1  # real version not known
+        spring-boot-jetty: v1.38.0  # real version not known
+        spring-boot-openliberty: v1.38.0  # real version not known
+        spring-boot-payara: v1.38.0  # real version not known
+        spring-boot-undertow: v1.38.0  # real version not known
+        spring-boot-wildfly: v1.38.0  # real version not known
         uds-spring-boot: v0.1  # real version not known
   integrations/:
     crossed_integrations/:
@@ -1048,6 +1123,9 @@ tests/:
         '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.0.99
@@ -1061,7 +1139,7 @@ tests/:
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
   test_library_conf.py:
-    Test_HeaderTags: 1.35.0
+    Test_HeaderTags: missing_feature
     Test_HeaderTags_Colon_Leading: v0.102.0
     Test_HeaderTags_Colon_Trailing: v0.102.0
     Test_HeaderTags_Long: v0.102.0

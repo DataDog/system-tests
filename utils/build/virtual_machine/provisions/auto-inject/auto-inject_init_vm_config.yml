@@ -46,7 +46,21 @@
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo systemctl restart sshd.service || true
     echo "DONE"
- 
+- os_type: linux
+  os_distro: rpm
+  os_branch: centos_7_amd64 # CentOS override as the mirrors are not available anymore
+  remote-command: |    
+    sudo sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+    sudo sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+    sudo sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+  
+    #Allow DD env variables from ssh
+    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
+    sudo id -u datadog &>/dev/null || sudo useradd -m datadog
+    sudo yum clean expire-cache
+    #sudo yum -y update
+    sudo systemctl restart sshd.service
+
 - os_type: linux
   os_distro: rpm
   remote-command: |

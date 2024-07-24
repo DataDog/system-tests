@@ -5,6 +5,7 @@ pytest-json-report==1.5.0
 pytest-split==0.9.0
 pytest-xdist==3.2.1
 black==19.10b0  # TODO : move to 22.8.0
+psutil==6.0.0
 pylint==3.0.4
 python-dateutil==2.8.2
 msgpack==1.0.4

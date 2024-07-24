@@ -89,6 +89,9 @@ AIOMYSQL_CONFIG = dict(MYSQL_CONFIG)
 AIOMYSQL_CONFIG["db"] = AIOMYSQL_CONFIG["database"]
 del AIOMYSQL_CONFIG["database"]
 
+MARIADB_CONFIG = dict(AIOMYSQL_CONFIG)
+MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
+
 app = Flask(__name__)
 app.secret_key = "SECRET_FOR_TEST"
 app.config["SESSION_TYPE"] = "memcached"
@@ -397,7 +400,7 @@ async def stub_dbm():
         return await db_execute_and_retrieve_comment(operation, cursor, is_async=True)
 
     elif integration == "mysql-connector":
-        conn = mysql.connector.connect(**AIOMYSQL_CONFIG)
+        conn = mysql.connector.connect(**MARIADB_CONFIG)
         cursor = conn.cursor()
         return await db_execute_and_retrieve_comment(operation, cursor)
 
@@ -773,7 +776,7 @@ def view_iast_source_body():
 
 @app.route("/iast/source/cookiename/test")
 def view_iast_source_cookie_name():
-    param = [key for key in flask_request.cookies.keys() if key == "user"]
+    param = [key for key in flask_request.cookies.keys() if key == "table"]
     _sink_point_path_traversal(param[0])
     return Response("OK")
 

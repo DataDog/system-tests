@@ -22,16 +22,13 @@
     - os_type: linux
       os_distro: rpm
       os_branch: centos_7_amd64 # CentOS override
-      remote-command: |    
-        sudo sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
-        sudo sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
-        sudo sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+      remote-command: |
         curl -fsSL https://get.docker.com | sudo sh
         sudo systemctl start docker
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
-      remote-command: |    
+      remote-command: |
         sudo yum -y install docker
         sudo systemctl start docker.service
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version

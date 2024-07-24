@@ -155,8 +155,6 @@ tests/:
         Test_XSS: v0.68.3
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
@@ -178,9 +176,16 @@ tests/:
       Test_Basic: v0.85.0
     test_logs.py:
       Test_StandardizationBlockMode: missing_feature
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, but was flaky
+    test_request_blocking.py:
+      Test_AppSecRequestBlocking: missing_feature # missing version
+    test_runtime_activation.py:
+      Test_RuntimeActivation: missing_feature # missing version
+      Test_RuntimeDeactivation: missing_feature # missing version
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_traces.py:
@@ -285,6 +290,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

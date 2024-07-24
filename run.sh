@@ -354,15 +354,18 @@ function main() {
 
     # expand scenario groups
     # bash 3.x does not support mapfile, dance around with tr and IFS
-    for i in "${scenario_args[@]}"; do
-        if [[ "${i}" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
-                # bash 3.x does not support mapfile, dance around with tr and IFS
-                IFS=',' read -r -a group <<< "$(lookup_scenario_group "${i}" "${run_mode}" | tr '\n' ',')"
-                scenarios+=("${group[@]}")
-        else
-                scenarios+=("${i}")
-        fi
-    done
+    # bash 3.x considers ${arr[@}} undefined if empty
+    if [[ ${#scenario_args[@]} -gt 0 ]]; then
+        for i in "${scenario_args[@]}"; do
+            if [[ "${i}" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
+                    # bash 3.x does not support mapfile, dance around with tr and IFS
+                    IFS=',' read -r -a group <<< "$(lookup_scenario_group "${i}" "${run_mode}" | tr '\n' ',')"
+                    scenarios+=("${group[@]}")
+            else
+                    scenarios+=("${i}")
+            fi
+        done
+    fi
 
     # when no scenario is provided, use a nice default
     if [[ "${#scenarios[@]}" -lt 1 ]]; then
