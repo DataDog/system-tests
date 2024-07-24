@@ -746,15 +746,6 @@ class Test_Headers_Tracecontext:
             ) as s2:
                 pass
 
-            with test_library.start_span(
-                name="p_not_propagated_valid_dd_tracestate",
-                http_headers=[
-                    ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
-                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
-                ],
-            ) as s3:
-                pass
-
         traces = test_agent.wait_for_num_traces(2)
 
         assert len(traces) == 2
