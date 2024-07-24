@@ -483,7 +483,7 @@ def java_library_factory():
         container_img=f"""
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
+RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar --no-cache https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
 RUN java -jar ./tracer/dd-java-agent.jar > SYSTEM_TESTS_LIBRARY_VERSION
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .

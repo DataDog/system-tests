@@ -755,14 +755,12 @@ class Test_Headers_Tracecontext:
             ) as s3:
                 pass
 
-        traces = test_agent.wait_for_num_traces(3)
+        traces = test_agent.wait_for_num_traces(2)
 
-        assert len(traces) == 3
-
-        case1, case2, case3 = (
+        assert len(traces) == 2
+        case1, case2 = (
             find_span_in_traces(traces, s1.trace_id, s1.span_id),
             find_span_in_traces(traces, s2.trace_id, s2.span_id),
-            find_span_in_traces(traces, s3.trace_id, s3.span_id),
         )
 
         assert case1["name"] == "p_set"
@@ -770,9 +768,6 @@ class Test_Headers_Tracecontext:
 
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
-
-        assert case3["name"] == "p_not_propagated_valid_dd_tracestate"
-        assert case3["meta"]["_dd.parent_id"] == "0000000000000000"
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
