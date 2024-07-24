@@ -484,12 +484,13 @@ def java_library_factory():
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
 RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar --no-cache https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
-RUN java -jar ./tracer/dd-java-agent.jar > SYSTEM_TESTS_LIBRARY_VERSION
 COPY {java_reldir}/src src
 COPY {java_reldir}/build.sh .
 COPY {java_reldir}/pom.xml .
+COPY {java_reldir}/libraryversion.sh .
 COPY {protofile} src/main/proto/
 COPY binaries /binaries
+RUN bash libraryversion.sh
 RUN bash build.sh
 COPY {java_reldir}/run.sh .
 """,
