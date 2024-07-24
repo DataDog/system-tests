@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "${UDS_WEBLOG:-}" = "1" ]; then
+    ./set-uds-transport.sh
+fi
+
 set -e
 
 if [ -e /volumes/dd-trace-js ]; then
@@ -7,8 +11,4 @@ if [ -e /volumes/dd-trace-js ]; then
     npm link
     cd /usr/app
     npm link dd-trace
-fi
-
-if [ "${UDS_WEBLOG:-}" = "1" ]; then
-    ./set-uds-transport.sh
 fi
