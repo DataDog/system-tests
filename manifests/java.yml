@@ -382,7 +382,28 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_span_tags.py: missing_feature
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_BodyUrlEncoded:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+        Test_Sqli_BodyXml:
+          '*': v1.38.0
+          akka-http: missing_feature (Requires parsed body instrumentation)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_UrlQuery:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
       test_ssrf.py: missing_feature
       test_stack_traces.py: missing_feature
     waf/:
