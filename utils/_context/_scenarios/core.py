@@ -15,7 +15,6 @@ from utils._context.containers import (
     PostgresContainer,
     MongoContainer,
     KafkaContainer,
-    ZooKeeperContainer,
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
@@ -274,7 +273,6 @@ class DockerScenario(Scenario):
             self._supporting_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
 
         if include_kafka:
-            self._supporting_containers.append(ZooKeeperContainer(host_log_folder=self.host_log_folder))
             self._supporting_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
 
         if include_rabbitmq:
