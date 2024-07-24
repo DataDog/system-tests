@@ -111,9 +111,6 @@ class TestedContainer:
         else:
             self.image.load_from_logs(self.log_folder_path)
 
-        if self.stdout_interface is not None:
-            self.stdout_interface.configure(replay)
-
     @property
     def container_name(self):
         return f"system-tests-{self.name}"
@@ -669,6 +666,8 @@ class WeblogContainer(TestedContainer):
             logger.stdout(f"UDS socket: {self.uds_socket}")
 
         logger.stdout(f"Weblog variant: {self.weblog_variant}")
+
+        self.stdout_interface.init_patterns(self.library)
 
     @property
     def library(self) -> LibraryVersion:
