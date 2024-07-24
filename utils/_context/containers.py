@@ -536,11 +536,11 @@ class BuddyContainer(TestedContainer):
             },
         )
 
-        try:
-            assert "AWS_ACCESS_KEY_ID" in os.environ, os.environ
-        except AssertionError as e:
-            print(e)
-            pass
+        # try:
+        #     assert "AWS_ACCESS_KEY_ID" in os.environ, os.environ
+        # except AssertionError as e:
+        #     print(e)
+        #     pass
 
         self.interface = None
         self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
@@ -641,11 +641,11 @@ class WeblogContainer(TestedContainer):
     def configure(self, replay):
         super().configure(replay)
 
-        try:
-            assert "AWS_ACCESS_KEY_ID" in os.environ, os.environ
-        except AssertionError as e:
-            print(e)
-            pass
+        # try:
+        #     assert "AWS_ACCESS_KEY_ID" in os.environ, os.environ
+        # except AssertionError as e:
+        #     print(e)
+        #     pass
 
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
