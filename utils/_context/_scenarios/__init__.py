@@ -622,7 +622,11 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "2",},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "2",
+        },
         library_interface_timeout=20,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
@@ -644,9 +648,7 @@ class scenarios:
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         rc_api_enabled=True,
-        weblog_env={
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "2",
-        },
+        weblog_env={"DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "2",},
         library_interface_timeout=20,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
