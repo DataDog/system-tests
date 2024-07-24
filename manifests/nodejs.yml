@@ -446,9 +446,12 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
-      Test_Dsm_Manual_Checkpoint:
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_18_1
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        express4: missing_feature # need to redo threading code
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
