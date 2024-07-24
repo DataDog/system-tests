@@ -7,19 +7,44 @@ This enables us to write unit/integration-style test cases that can be shared.
 Example:
 
 ```python
-@parametrize("library_env", [{"DD_ENV": "prod"}, {"DD_ENV": "dev"}])
-def test_tracer_env_environment_variable(library_env, test_library, test_agent):
-  with test_library:
-    with test_library.start_span("operation") as span:
-      pass
+from utils.parametric.spec.trace import find_span, find_trace, find_span_in_traces, find_chunk_root_span
 
-  traces = test_agent.traces()
-  trace = find_trace(traces, span.trace_id)
-  assert len(trace) == 1
+@pytest.mark.parametrize("library_env", [{"DD_ENV": "prod"}])
+    def test_datadog_spans(library_env, test_library, test_agent):
+        with test_library:
+            with test_library.start_span("operation") as s1:
+                with test_library.start_span("operation1", service="hello", parent_id=s1.span_id) as s2:
+                    pass
 
-  span = find_span(trace, span.span_id)
-  assert span["name"] == "operation"
-  assert span["meta"]["env"] == library_env["DD_ENV"]
+            with test_library.start_span("otel_rocks") as os1:
+                pass
+
+        # Waits for 2 traces to be captured and avoids sorting the received spans by start time
+        # Here we want to perserve the order of spans to easily access the chunk root span (first span in payload)
+        traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
+        assert len(traces) == 2, traces
+
+        trace1 = find_trace(traces, s1.trace_id)
+        assert len(trace1) == 2
+
+        span1 = find_span(trace1, s1.span_id)
+        assert span1["name"] == "operation"
+
+        span2 = find_span(trace1, s2.span_id)
+        assert span2["name"] == "operation1"
+        assert span2["service"] == "hello"
+
+        # Chunk root span can be span1 or span2 depending on how the trace was serialized
+        # This span will contain trace level tags (ex: _dd.p.tid)
+        chunk_root1 = find_chunk_root_span(trace1)
+        # Make sure trace level tags exist on the chunk root span
+        assert "language" in chunk_root1["meta"]
+        assert chunk_root1["meta"]["env"] == "prod"
+
+        # Get one span from the list of captured traces
+        ospan = find_span_in_traces(traces, os1.trace_id, os1.span_id)
+        assert ospan["resource"] == "otel_rocks"
+        assert ospan["meta"]["env"] == "prod"
 ```
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
