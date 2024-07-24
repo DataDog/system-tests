@@ -205,11 +205,14 @@ tests/:
         Test_Optional_SpanTags: *ref_5_18_0
       test_sqli.py: missing_feature
       test_ssrf.py:
-        Test_Ssrf_UrlQuery:
+        Test_Ssrf_BodyJson:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyUrlEncoded:
           '*': *ref_5_20_0
           nextjs: missing_feature
         Test_Ssrf_BodyXml: missing_feature # xml body not supported
-        Test_Ssrf_BodyJson:
+        Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           nextjs: missing_feature
       test_stack_traces.py:
