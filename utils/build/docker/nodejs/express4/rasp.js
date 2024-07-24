@@ -7,7 +7,7 @@ function initRaspEndpoints (app) {
       res.end('end')
     })
     clientRequest.on('error', (e) => {
-      if (e.name === 'AbortError') {
+      if (e.name === 'DatadogRaspAbortError') {
         throw e
       }
       res.writeHead(500).end(e.message)
@@ -19,7 +19,7 @@ function initRaspEndpoints (app) {
       res.end('end')
     })
     clientRequest.on('error', (e) => {
-      if (e.name === 'AbortError') {
+      if (e.name === 'DatadogRaspAbortError') {
         throw e
       }
       res.writeHead(500).end(e.message)
