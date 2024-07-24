@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
+
+from tests.integrations.utils import delete_kinesis_stream, generate_time_string
 
 
 class _Test_Kinesis:
@@ -81,6 +83,7 @@ class _Test_Kinesis:
         self.consume_response = self.buddy.get(
             "/kinesis/consume", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "timeout": 60}, timeout=61
         )
+        delete_kinesis_stream(self.WEBLOG_TO_BUDDY_STREAM)
 
     def test_produce(self):
         """Check that a message produced to Kinesis is correctly ingested by a Datadog tracer"""
@@ -135,6 +138,7 @@ class _Test_Kinesis:
         self.consume_response = weblog.get(
             "/kinesis/consume", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "timeout": 60}, timeout=61
         )
+        delete_kinesis_stream(self.BUDDY_TO_WEBLOG_STREAM)
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -202,5 +206,8 @@ class _Test_Kinesis:
 class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_Kinesis):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
-    WEBLOG_TO_BUDDY_STREAM = "Test_Kinesis_propagation_via_message_attributes_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_STREAM = "Test_Kinesis_propagation_via_message_attributes_buddy_to_weblog"
+
+    time_hash = generate_time_string()
+
+    WEBLOG_TO_BUDDY_STREAM = f"Kinesis_prop_via_msg_attrs_{context.library.library}_weblog_to_buddy_{time_hash}"
+    BUDDY_TO_WEBLOG_STREAM = f"Kinesis_prop_via_msg_attrs_buddy_to_{context.library.library}_weblog_{time_hash}"
