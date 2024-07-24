@@ -32,9 +32,9 @@ app.get('/', (req: Request, res: Response) => {
 
 app.get('/healthcheck', (req: Request, res: Response) => {
   res.json({
-    status: "ok",
+    status: 'ok',
     library: {
-      language: "nodejs",
+      language: 'nodejs',
       version: require('dd-trace/package.json').version,
       libddwaf_version: require('@datadog/native-appsec/package.json').libddwaf_version
     }

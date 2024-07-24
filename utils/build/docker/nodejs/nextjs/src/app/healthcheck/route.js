@@ -7,7 +7,7 @@ export async function GET (request) {
     status: 'ok',
     library: {
       language: 'nodejs',
-      version: version,
+      version,
       libddwaf_version: libddwafVersion
     }
   }, {
