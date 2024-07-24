@@ -461,6 +461,7 @@ class BuddyContainer(TestedContainer):
                 "DD_TRACE_AGENT_PORT": proxy_port,
             },
         )
+        assert "AWS_ACCESS_KEY_ID" in os.environ
 
         self.interface = None
         self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
@@ -559,6 +560,9 @@ class WeblogContainer(TestedContainer):
 
     def configure(self, replay):
         super().configure(replay)
+
+        assert "AWS_ACCESS_KEY_ID" in os.environ, os.environ
+
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
         if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
