@@ -12,6 +12,7 @@ class FakeContainer(_TestedContainer):
 
     def start(self):
         self._test_events.append(f"start {self.name}")
+        self.healthy = True
 
     def remove(self):
         pass
