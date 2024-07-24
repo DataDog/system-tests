@@ -131,7 +131,7 @@ public class MessagingEndpoints : ISystemTestEndpoint
 
     private static async Task SqsProduce(string queue)
     {
-        var sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = "http://elasticmq:9324" });
+        var sqsClient = new AmazonSQSClient();
         var responseCreate = await sqsClient.CreateQueueAsync(queue);
         var qUrl = responseCreate.QueueUrl;
         await sqsClient.SendMessageAsync(qUrl, "sqs message from dotnet");
@@ -141,7 +141,7 @@ public class MessagingEndpoints : ISystemTestEndpoint
     private static async Task<bool> SqsConsume(string queue, TimeSpan timeout)
     {
         Console.WriteLine($"consuming one message from SQS queue {queue} in max {(int)timeout.TotalSeconds} seconds");
-        var sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = "http://elasticmq:9324" });
+        var sqsClient = new AmazonSQSClient();
         var responseCreate = await sqsClient.CreateQueueAsync(queue);
         var qUrl = responseCreate.QueueUrl;
 

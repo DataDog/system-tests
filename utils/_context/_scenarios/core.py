@@ -18,8 +18,6 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
-    ElasticMQContainer,
-    LocalstackContainer,
     SqlServerContainer,
     create_network,
     BuddyContainer,
@@ -239,8 +237,6 @@ class DockerScenario(Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
-        include_elasticmq=False,
-        include_localstack=False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -283,12 +279,6 @@ class DockerScenario(Scenario):
 
         if include_sqlserver:
             self._supporting_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
-
-        if include_elasticmq:
-            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
-
-        if include_localstack:
-            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
 
         self._required_containers.extend(self._supporting_containers)
 
@@ -372,8 +362,6 @@ class EndToEndScenario(DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
-        include_elasticmq=False,
-        include_localstack=False,
     ) -> None:
 
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END] + (scenario_groups or [])
@@ -393,8 +381,6 @@ class EndToEndScenario(DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
-            include_elasticmq=include_elasticmq,
-            include_localstack=include_localstack,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -412,8 +398,6 @@ class EndToEndScenario(DockerScenario):
                 "INCLUDE_RABBITMQ": str(include_rabbitmq).lower(),
                 "INCLUDE_MYSQL": str(include_mysql_db).lower(),
                 "INCLUDE_SQLSERVER": str(include_sqlserver).lower(),
-                "INCLUDE_ELASTICMQ": str(include_elasticmq).lower(),
-                "INCLUDE_LOCALSTACK": str(include_localstack).lower(),
             }
         )
 

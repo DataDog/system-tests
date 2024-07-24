@@ -169,7 +169,7 @@ namespace weblog
     {
         public static async Task DoWork(string queue)
         {
-            var sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = "http://elasticmq:9324" });
+            var sqsClient = new AmazonSQSClient();
             // create queue
             CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(queue);
             var qUrl = responseCreate.QueueUrl;
@@ -185,7 +185,7 @@ namespace weblog
     {
         public static async Task DoWork(string queue)
         {
-            var sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = "http://elasticmq:9324" });
+            var sqsClient = new AmazonSQSClient();
             // create queue
             CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(queue);
             var qUrl = responseCreate.QueueUrl;

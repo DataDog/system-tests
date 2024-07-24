@@ -268,8 +268,6 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
-        include_elasticmq=True,
-        include_localstack=True,
         doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
         scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC],
     )
@@ -283,8 +281,6 @@ class scenarios:
         },
         include_kafka=True,
         include_buddies=True,
-        include_elasticmq=True,
-        include_localstack=True,
         include_rabbitmq=True,
         doc="Spawns a buddy for each supported language of APM",
         scenario_groups=[ScenarioGroup.INTEGRATIONS],

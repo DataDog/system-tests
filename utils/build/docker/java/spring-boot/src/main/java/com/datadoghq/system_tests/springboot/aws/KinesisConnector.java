@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 public class KinesisConnector {
-    public static final String ENDPOINT = "http://localstack-main:4566";
     public static String DEFAULT_REGION = "us-east-1";
     public final String stream;
     public final Region region;
@@ -35,7 +34,6 @@ public class KinesisConnector {
         KinesisClient kinesisClient = KinesisClient.builder()
             .region(this.region)
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .endpointOverride(URI.create(ENDPOINT))
             .build();
         return kinesisClient;
     }

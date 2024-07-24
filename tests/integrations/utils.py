@@ -155,8 +155,8 @@ def delete_sqs_queue(queue_name):
     sqs_client = boto3.client("sqs")
     try:
         sqs_client.delete_queue(QueueUrl=queue_url)
-    except Exception as e:
-        print(e)
+    except Exception:
+        pass
 
 
 def delete_sns_topic(topic_name):
@@ -164,16 +164,16 @@ def delete_sns_topic(topic_name):
     sns_client = boto3.client("sns")
     try:
         sns_client.delete_topic(TopicArn=topic_arn)
-    except Exception as e:
-        print(e)
+    except Exception:
+        pass
 
 
 def delete_kinesis_stream(stream_name):
     kinesis_client = boto3.client("kinesis")
     try:
         kinesis_client.delete_stream(StreamName=stream_name, EnforceConsumerDeletion=True)
-    except Exception as e:
-        print(e)
+    except Exception:
+        pass
 
 
 def generate_time_string():

@@ -951,39 +951,6 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         return super().start()
 
 
-class ElasticMQContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="softwaremill/elasticmq-native:latest",
-            name="elasticmq",
-            host_log_folder=host_log_folder,
-            environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
-            ports={9324: 9324},
-            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
-            allow_old_container=True,
-        )
-
-
-class LocalstackContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="localstack/localstack:3.1.0",
-            name="localstack-main",
-            environment={
-                "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
-                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",
-                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid",
-                "AWS_DEFAULT_REGION": "us-east-1",
-                "FORCE_NONINTERACTIVE": "true",
-                "START_WEB": "0",
-                "DOCKER_HOST": "unix:///var/run/docker.sock",
-            },
-            host_log_folder=host_log_folder,
-            ports={"4566": ("127.0.0.1", 4566)},
-            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
-        )
-
-
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(

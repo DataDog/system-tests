@@ -3,10 +3,7 @@ const tracer = require('dd-trace')
 
 const sqsProduce = (queue, message) => {
   // Create an SQS client
-  const sqs = new AWS.SQS({
-    endpoint: 'http://elasticmq:9324',
-    region: 'us-east-1'
-  })
+  const sqs = new AWS.SQS()
 
   const messageToSend = message ?? 'Hello from SQS JavaScript injection'
 
@@ -21,7 +18,7 @@ const sqsProduce = (queue, message) => {
         // Send messages to the queue
         const produce = () => {
           sqs.sendMessage({
-            QueueUrl: `http://elasticmq:9324/000000000000/${queue}`,
+            QueueUrl: `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`,
             MessageBody: messageToSend
           }, (err, data) => {
             if (err) {
@@ -44,12 +41,9 @@ const sqsProduce = (queue, message) => {
 
 const sqsConsume = async (queue, timeout) => {
   // Create an SQS client
-  const sqs = new AWS.SQS({
-    endpoint: 'http://elasticmq:9324',
-    region: 'us-east-1'
-  })
+  const sqs = new AWS.SQS()
 
-  const queueUrl = `http://elasticmq:9324/000000000000/${queue}`
+  const queueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
 
   return new Promise((resolve, reject) => {
     const receiveMessage = () => {

@@ -6,14 +6,8 @@ let QueueUrl
 
 const snsPublish = (queue, topic, message) => {
   // Create an SQS client
-  const sns = new AWS.SNS({
-    endpoint: 'http://localstack-main:4566',
-    region: 'us-east-1'
-  })
-  const sqs = new AWS.SQS({
-    endpoint: 'http://localstack-main:4566',
-    region: 'us-east-1'
-  })
+  const sns = new AWS.SNS()
+  const sqs = new AWS.SQS()
 
   const messageToSend = message ?? 'Hello from SNS JavaScript injection'
 
@@ -32,7 +26,7 @@ const snsPublish = (queue, topic, message) => {
           reject(err)
         }
 
-        QueueUrl = `http://localstack-main:4566/000000000000/${queue}`
+        QueueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
 
         sqs.getQueueAttributes({ QueueUrl, AttributeNames: ['All'] }, (err, data) => {
           if (err) {
@@ -79,12 +73,9 @@ const snsPublish = (queue, topic, message) => {
 
 const snsConsume = async (queue, timeout) => {
   // Create an SQS client
-  const sqs = new AWS.SQS({
-    endpoint: 'http://localstack-main:4566',
-    region: 'us-east-1'
-  })
+  const sqs = new AWS.SQS()
 
-  const queueUrl = `http://localstack-main:4566/000000000000/${queue}`
+  const queueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
 
   return new Promise((resolve, reject) => {
     const receiveMessage = () => {

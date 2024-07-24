@@ -325,7 +325,7 @@ class Test_DsmKinesis:
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
-        stream_arn = f"arn:aws:kinesis:us-east-1:000000000000:stream/{DSM_STREAM}"
+        stream_arn = f"arn:aws:kinesis:us-east-1:601427279990:stream/{DSM_STREAM}"
         stream = DSM_STREAM
 
         language_hashes = {

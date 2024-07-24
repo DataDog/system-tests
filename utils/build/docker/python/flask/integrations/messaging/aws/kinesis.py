@@ -10,7 +10,7 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
     """
 
     # Create an SQS client
-    kinesis = boto3.client("kinesis", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
+    kinesis = boto3.client("kinesis", region_name="us-east-1")
 
     try:
         kinesis.create_stream(StreamName=stream, ShardCount=1)
@@ -57,7 +57,7 @@ def kinesis_consume(stream, timeout=60):
     The goal of this function is to trigger kinesis consumer calls
     """
     # Create a Kinesis client
-    kinesis = boto3.client("kinesis", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
+    kinesis = boto3.client("kinesis", region_name="us-east-1")
 
     consumed_message = None
     shard_iterator = None
