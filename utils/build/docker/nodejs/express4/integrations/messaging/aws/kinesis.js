@@ -13,7 +13,7 @@ const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) =>
     kinesis.createStream({ StreamName: stream, ShardCount: 1 }, (err) => {
       if (err) {
         console.log(`[Kinesis] Error during Node.js Kinesis create stream: ${err}`)
-        reject(err)
+        // reject(err)
       } else {
         console.log(`[Kinesis] Created Kinesis Stream with name: ${stream}`)
 

@@ -320,6 +320,7 @@ class Test_DsmKinesis:
 
     def setup_dsm_kinesis(self):
         self.r = weblog.get(f"/dsm?integration=kinesis&timeout=60&stream={DSM_STREAM}", timeout=DSM_REQUEST_TIMEOUT,)
+        delete_kinesis_stream(DSM_STREAM)
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     def test_dsm_kinesis(self):
