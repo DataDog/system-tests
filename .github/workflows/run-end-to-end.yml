@@ -86,6 +86,11 @@ jobs:
     - name: Build buddies weblog images
       if: inputs.build_buddies_images
       run: ./utils/build/build_tracer_buddies.sh
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
@@ -103,6 +108,11 @@ jobs:
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     # - name: Run DEFAULT scenario
     #   if: steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
     #   run: ./run.sh DEFAULT
@@ -116,6 +126,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     # - name: Run PROFILING scenario
     #   if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
     #   run: ./run.sh PROFILING
@@ -134,6 +145,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     # - name: Run APM_TRACING_E2E_OTEL scenario
     #   if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
     #   run: ./run.sh APM_TRACING_E2E_OTEL
