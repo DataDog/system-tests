@@ -504,3 +504,18 @@ distributed tracing propagation headers.
 
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
+
+### GET /healthcheck
+
+Returns a JSON dict, with those values :
+
+```js
+{
+    "status": "ok",
+    "library": {
+      "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
+      "version": "1.2.3",  // version of the library
+      "libddwaf_version": "4.5.6"  // version of libddwaf
+    }
+  }
+```
