@@ -507,7 +507,7 @@ This endpoint returns the headers received in order to be able to assert about d
 
 ### GET /healthcheck
 
-Returns a JSON dict, with those values : 
+Returns a JSON dict, with those values :
 
 ```js
 {
