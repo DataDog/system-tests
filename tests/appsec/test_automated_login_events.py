@@ -16,6 +16,7 @@ from utils import weblog
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @features.user_monitoring
+@bug(context.library >= "java@1.38.0", reason="APPSEC-54242")
 class Test_Login_Events:
     "Test login success/failure use cases"
     # User entries in the internal DB:
