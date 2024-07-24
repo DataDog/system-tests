@@ -576,8 +576,10 @@ tests/:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
-      Test_Login_Events:
-        '*': v1.36.0
+      Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
+      Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
+      Test_V2_Login_Events:
+        '*': v1.38.0
         akka-http: missing_feature (login endpoints not implemented)
         jersey-grizzly2: missing_feature (login endpoints not implemented)
         play: missing_feature (login endpoints not implemented)
@@ -588,8 +590,8 @@ tests/:
         spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
-      Test_Login_Events_Extended:
-        '*': v1.36.0
+      Test_V2_Login_Events_Anon:
+        '*': v1.38.0
         akka-http: missing_feature (login endpoints not implemented)
         jersey-grizzly2: missing_feature (login endpoints not implemented)
         play: missing_feature (login endpoints not implemented)
@@ -600,9 +602,18 @@ tests/:
         spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Login_Events_RC: missing_feature
+      Test_V2_Login_Events_RC:
+        '*': v1.38.0
+        akka-http: missing_feature (login endpoints not implemented)
+        jersey-grizzly2: missing_feature (login endpoints not implemented)
+        play: missing_feature (login endpoints not implemented)
+        ratpack: missing_feature (login endpoints not implemented)
+        resteasy-netty3: missing_feature (login endpoints not implemented)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: missing_feature (weblog returns error 500)
+        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
+        vertx3: missing_feature (login endpoints not implemented)
+        vertx4: missing_feature (login endpoints not implemented)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
