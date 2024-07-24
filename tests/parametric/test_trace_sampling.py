@@ -478,13 +478,16 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
+    @pytest.mark.parametrize("tag_value", [-100, -0.5, 0, 5, 1000])
     @missing_feature(library="cpp", reason="No metric interface")
     @flaky(library="golang", reason="The test itself is probably flaky")
-    def test_metric_existence(self, test_agent, test_library):
+    @bug(library="nodejs", reason="When tag_value==0, SAMPLING_PRIORITY_KEY is -1.0 instead of 0")
+    def test_metric_existence(self, test_agent, test_library, tag_value):
         """Tests that any patterns are equivalent to an existence check for metrics"""
+
         with test_library:
             with test_library.start_span(name="matching-span", service="test") as span:
-                span.set_metric("tag", random.choice([-100, -0.5, 0, 5, 1000]))
+                span.set_metric("tag", tag_value)
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
 

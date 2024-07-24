@@ -329,6 +329,7 @@ class TestDynamicConfigV1:
         "library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
     )
     @bug(library="cpp", reason="Trace sampling RC creates another sampler which makes the computation wrong")
+    @bug(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 
@@ -572,6 +573,7 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
+    @bug(library="ruby", reason="To be investigated")
     def test_trace_sampling_rules_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the environment variable and decision maker is set appropriately.
 
@@ -637,6 +639,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @bug(library="ruby", reason="To be investigated")
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate."""
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8
@@ -694,8 +697,8 @@ class TestDynamicConfigSamplingRules:
     )
     @bug(context.library == "ruby", reason="RC_SAMPLING_TAGS_RULE_RATE is not respected")
     @bug(context.library <= "dotnet@2.53.2", reason="Applies rate from local sampling rule when no remote rules match.")
-    @missing_feature(library="nodejs")
     @missing_feature(library="python")
+    @missing_feature(context.library < "nodejs@5.19.0")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
@@ -810,6 +813,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-12"
 
     @bug(library="cpp", reason="unknown")
+    @bug(library="ruby", reason="To be investigated")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""

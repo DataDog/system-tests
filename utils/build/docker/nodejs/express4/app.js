@@ -1,7 +1,8 @@
 'use strict'
 
 const tracer = require('dd-trace').init({
-  debug: true
+  debug: true,
+  flushInterval: 5000
 })
 
 const { promisify } = require('util')
@@ -422,7 +423,7 @@ app.get('/flush', (req, res) => {
 
 app.get('/requestdownstream', async (req, res) => {
   try {
-    const resFetch = await axios.get('http://localhost:7777/returnheaders')
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
     return res.json(resFetch.data)
   } catch (e) {
     return res.status(500).send(e)

@@ -1070,9 +1070,9 @@ class features:
         return test_object
 
     @staticmethod
-    def deactivate_rules_using_rc(test_object):
+    def changing_rules_using_rc(test_object):
         """
-        Deactivate rules using RC
+        Changing rules using RC
 
         https://feature-parity.us1.prod.dog/#/?feature=157
         """
@@ -2198,9 +2198,9 @@ class features:
         return test_object
 
     @staticmethod
-    def host_auto_instrumentation_profiling(test_object):
+    def auto_instrumentation_profiling(test_object):
         """
-        Host auto-instrumentation with profiling
+        auto-instrumentation with profiling
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
