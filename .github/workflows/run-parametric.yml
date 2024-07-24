@@ -34,6 +34,8 @@ env:
 jobs:
 
   parametric:
+    # java does not support parametric tests with binaries artifact
+    if: inputs.binaries_artifact == '' || inputs.library != 'java'
     runs-on:
       group: "APM Larger Runners"
     strategy:

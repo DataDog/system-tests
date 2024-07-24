@@ -19,7 +19,7 @@ def _send_config(config):
     if config is not None:
         rc.rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
     else:
-        rc.rc_state.del_config("datadog/2/ASM_FEATURES/asm_features_activation/config")
+        rc.rc_state.reset()
     return rc.rc_state.apply()[rc.RC_STATE]
 
 
@@ -34,7 +34,7 @@ class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""
 
     def setup_asm_features(self):
-        _send_config(CONFIG_EMPTY)
+        self.reset_state = _send_config(CONFIG_EMPTY)
         self.response_with_deactivated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
         self.config_state = _send_config(CONFIG_ENABLED)
         self.last_version = rc.rc_state.version
@@ -42,6 +42,7 @@ class Test_RuntimeActivation:
 
     def test_asm_features(self):
         # ensure last config was applied
+        assert self.reset_state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_no_appsec_event(self.response_with_deactivated_waf)
         interfaces.library.assert_waf_attack(self.response_with_activated_waf)
