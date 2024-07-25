@@ -23,7 +23,7 @@ if [ "$CUSTOM_DD_JAVA_AGENT_COUNT" = 0 ]; then
 elif [ "$CUSTOM_DD_JAVA_AGENT_COUNT" = 1 ]; then
     CUSTOM_DD_JAVA_AGENT=$(find /binaries/dd-java-agent*.jar)
     echo "Using custom dd-java-agent: ${CUSTOM_DD_JAVA_AGENT}"
-    cp $CUSTOM_DD_JAVA_AGENT /client/tracer/dd-java-agent.jar
+    cp "$CUSTOM_DD_JAVA_AGENT" /client/tracer/dd-java-agent.jar
 else
     echo "Too many dd-java-agent within binaries folder"
     exit 1
