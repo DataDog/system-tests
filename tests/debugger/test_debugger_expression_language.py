@@ -367,6 +367,49 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
         self._validate_expression_language_messages(self.message_map)
 
+    def setup_expression_language_nulls_true(self):
+        message_map, probes = self._create_expression_probes(
+            methodName="Nulls",
+            expressions=[
+                ["intValue eq null", True, Dsl("eq", [Dsl("ref", "intValue"), None])],
+                ["strValue eq null", True, Dsl("eq", [Dsl("ref", "strValue"), None])],
+                ["pii eq null", True, Dsl("eq", [Dsl("ref", "pii"), None])],
+            ],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/null")
+
+    @bug(library="dotnet", reason="DEBUG-2618")
+    def test_expression_language_nulls_true(self):
+        self.assert_all_states_not_error()
+        self.assert_all_probes_are_installed()
+        self.assert_all_weblog_responses_ok()
+
+        self._validate_expression_language_messages(self.message_map)
+
+    def setup_expression_language_nulls_false(self):
+        message_map, probes = self._create_expression_probes(
+            methodName="ExpressionOperators",
+            expressions=[
+                ["intValue eq null", False, Dsl("eq", [Dsl("ref", "intValue"), None])],
+                ["floatValue eq null", False, Dsl("eq", [Dsl("ref", "floatValue"), None])],
+                ["strValue eq null", False, Dsl("eq", [Dsl("ref", "strValue"), None])],
+                ["this eq null", False, Dsl("eq", [Dsl("ref", "this"), None])],
+            ],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+
+    @bug(library="dotnet", reason="DEBUG-2618")
+    def test_expression_language_nulls_false(self):
+        self.assert_all_states_not_error()
+        self.assert_all_probes_are_installed()
+        self.assert_all_weblog_responses_ok()
+
+        self._validate_expression_language_messages(self.message_map)
+
     def _get_type(self, value_type):
         if self.tracer is None:
             tracer = base.get_tracer()
