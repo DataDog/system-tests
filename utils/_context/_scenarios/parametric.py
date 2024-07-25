@@ -355,10 +355,13 @@ def node_library_factory() -> APMLibraryTestServer:
     nodejs_reldir = nodejs_appdir.replace("\\", "/")
     volumes = {}
 
-    with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
-        path = f.read().strip(" \r\n")
-        source = os.path.join(_get_base_directory(), path)
-        volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
+    try:
+        with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+            path = f.read().strip(" \r\n")
+            source = os.path.join(_get_base_directory(), path)
+            volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
+    except Exception:
+        pass
 
     return APMLibraryTestServer(
         lang="nodejs",

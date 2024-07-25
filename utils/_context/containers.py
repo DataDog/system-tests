@@ -559,12 +559,15 @@ class WeblogContainer(TestedContainer):
             f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
         }
 
-        with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
-            path = f.read().strip(" \r\n")
-            volumes[os.path.abspath(path)] = {
-                "bind": "/volumes/dd-trace-js",
-                "mode": "ro",
+        try:
+            with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+                path = f.read().strip(" \r\n")
+                volumes[os.path.abspath(path)] = {
+                    "bind": "/volumes/dd-trace-js",
+                    "mode": "ro",
             }
+        except Exception:
+            pass
 
         super().__init__(
             image_name="system_tests/weblog",
