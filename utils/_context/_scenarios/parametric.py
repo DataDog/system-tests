@@ -145,9 +145,19 @@ class ParametricScenario(Scenario):
             self._clean_containers()
             self._clean_networks()
 
-        output = _get_client().containers.run(
-            self.apm_test_server_definition.container_tag, remove=True, command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
-        )
+        # https://github.com/DataDog/system-tests/issues/2799
+        if library in ("nodejs",):
+            output = _get_client().containers.run(
+                self.apm_test_server_definition.container_tag,
+                remove=True,
+                command=["./system_tests_library_version.sh"],
+            )
+        else:
+            output = _get_client().containers.run(
+                self.apm_test_server_definition.container_tag,
+                remove=True,
+                command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
+            )
 
         self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
@@ -356,6 +366,7 @@ WORKDIR /usr/app
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
+COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
 RUN npm install
