@@ -565,7 +565,7 @@ class WeblogContainer(TestedContainer):
                 volumes[os.path.abspath(path)] = {
                     "bind": "/volumes/dd-trace-js",
                     "mode": "ro",
-            }
+                }
         except Exception:
             pass
 
