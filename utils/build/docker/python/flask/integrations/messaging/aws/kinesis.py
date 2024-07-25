@@ -14,9 +14,9 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
 
     try:
         kinesis.create_stream(StreamName=stream, ShardCount=1)
-        logging.info(f"Created Kinesis Stream with name: {stream}")
+        logging.info(f"[Kinesis] Created Kinesis Stream with name: {stream}")
     except Exception as e:
-        logging.info(f"Error during Python Kinesis create stream: {str(e)}")
+        logging.info(f"[Kinesis] Error during Python Kinesis create stream: {str(e)}")
 
     message_sent = False
     exc = None
@@ -45,14 +45,14 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
         time.sleep(1)
 
     if message_sent:
-        logging.info("Python Kinesis message sent successfully")
+        logging.info("[Kinesis] Python Kinesis message sent successfully")
         return "Kinesis Produce ok"
     elif exc:
-        logging.info(f"Error during Python Kinesis put record: {str(exc)}")
+        logging.info(f"[Kinesis] Error during Python Kinesis put record: {str(exc)}")
         return {"error": f"Error during Python Kinesis put record: {str(exc)}"}
 
 
-def kinesis_consume(stream, timeout=60):
+def kinesis_consume(stream, expectedMessage, timeout=60):
     """
     The goal of this function is to trigger kinesis consumer calls
     """
@@ -78,19 +78,21 @@ def kinesis_consume(stream, timeout=60):
                         StreamName=stream, ShardId=shard_id, ShardIteratorType="TRIM_HORIZON"
                     )
                     shard_iterator = response["ShardIterator"]
-                    logging.info(f"Found Kinesis Shard Iterator: {shard_iterator} for stream: {stream}")
+                    logging.info(f"[Kinesis] Found Kinesis Shard Iterator: {shard_iterator} for stream: {stream}")
                 else:
                     time.sleep(1)
                     continue
             except Exception as e:
-                logging.warning(f"Error during Python Kinesis get stream shard iterator: {str(e)}")
+                logging.warning(f"[Kinesis] Error during Python Kinesis get stream shard iterator: {str(e)}")
 
         try:
             records_response = kinesis.get_records(ShardIterator=shard_iterator, StreamARN=stream_arn)
             if records_response and "Records" in records_response:
                 for message in records_response["Records"]:
-                    consumed_message = message["Data"]
-                    logging.info("Consumed the following: " + str(consumed_message))
+                    print(message)
+                    if message["Data"] == expectedMessage:
+                        consumed_message = message["Data"]
+                        logging.info("[Kinesis] Consumed the following: " + str(consumed_message))
             shard_iterator = records_response["NextShardIterator"]
         except Exception as e:
             logging.warning(e)

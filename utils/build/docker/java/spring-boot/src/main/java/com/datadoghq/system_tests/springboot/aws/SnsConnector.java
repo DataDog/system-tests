@@ -124,6 +124,7 @@ public class SnsConnector {
     public void produceMessageWithoutNewThread(String message, SqsConnector sqs) throws Exception {
         SnsClient snsClient = createSnsClient();
         SqsClient sqsClient = sqs.createSqsClient();
+        System.out.printf("[SNS->SQS] Publishing message: %s%n", message);
         String topicArn = createSnsTopic(snsClient, topic, true);
 
         // Create queue and get queue ARN

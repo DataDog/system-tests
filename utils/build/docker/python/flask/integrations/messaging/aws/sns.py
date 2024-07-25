@@ -54,7 +54,7 @@ def sns_produce(queue, topic, message):
         return {"error": f"[SNS->SQS] Error during Python SNS publish message: {str(e)}"}
 
 
-def sns_consume(queue, timeout=60):
+def sns_consume(queue, expectedMessage, timeout=60):
     """
     The goal of this function is to trigger sqs consumer calls
     """
@@ -70,10 +70,11 @@ def sns_consume(queue, timeout=60):
             response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
-                    consumed_message = message["Body"]
-                    logging.info("[SNS->SQS] Consumed the following message with params:")
-                    logging.info(message)
-                    logging.info("[SNS->SQS] Consumed the following: " + consumed_message)
+                    if message["Body"] == expectedMessage:
+                        consumed_message = message["Body"]
+                        logging.info("[SNS->SQS] Consumed the following message with params:")
+                        logging.info(message)
+                        logging.info("[SNS->SQS] Consumed the following: " + consumed_message)
         except Exception as e:
             logging.warning("[SNS->SQS] " + str(e))
         time.sleep(1)

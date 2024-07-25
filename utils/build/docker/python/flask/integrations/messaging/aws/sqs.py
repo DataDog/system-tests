@@ -28,7 +28,7 @@ def sqs_produce(queue, message):
         return {"error": f"Error during Python SQS send message: {str(e)}"}
 
 
-def sqs_consume(queue, timeout=60):
+def sqs_consume(queue, expectedMessage, timeout=60):
     """
     The goal of this function is to trigger sqs consumer calls
     """
@@ -43,10 +43,11 @@ def sqs_consume(queue, timeout=60):
             response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
-                    logging.info("Consumed the following SQS message with params: ")
-                    logging.info(message)
-                    consumed_message = message["Body"]
-                    logging.info("Consumed the following SQS message: " + consumed_message)
+                    if message["Body"] == expectedMessage:
+                        logging.info("Consumed the following SQS message with params: ")
+                        logging.info(message)
+                        consumed_message = message["Body"]
+                        logging.info("Consumed the following SQS message: " + consumed_message)
         except Exception as e:
             logging.warning(e)
         time.sleep(1)

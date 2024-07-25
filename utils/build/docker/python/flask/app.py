@@ -503,7 +503,8 @@ def consume_kafka_message():
 @app.route("/sqs/produce")
 def produce_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
-    message = "Hello from Python SQS"
+    message = flask_request.args.get("message", "Hello from Python SQS")
+
     output = sqs_produce(queue, message)
     if "error" in output:
         return output, 400
@@ -515,7 +516,9 @@ def produce_sqs_message():
 def consume_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = sqs_consume(queue, timeout)
+    message = flask_request.args.get("message", "Hello from Python SQS")
+
+    output = sqs_consume(queue, message, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -526,7 +529,8 @@ def consume_sqs_message():
 def produce_sns_message():
     queue = flask_request.args.get("queue", "DistributedTracing SNS")
     topic = flask_request.args.get("topic", "DistributedTracing SNS Topic")
-    message = "Hello from Python SNS -> SQS"
+    message = flask_request.args.get("message", "Hello from Python SNS -> SQS")
+
     output = sns_produce(queue, topic, message)
     if "error" in output:
         return output, 400
@@ -538,7 +542,9 @@ def produce_sns_message():
 def consume_sns_message():
     queue = flask_request.args.get("queue", "DistributedTracing SNS")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = sns_consume(queue, timeout)
+    message = flask_request.args.get("message", "Hello from Python SNS -> SQS")
+
+    output = sns_consume(queue, message, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -549,9 +555,10 @@ def consume_sns_message():
 def produce_kinesis_message():
     stream = flask_request.args.get("stream", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
+    message = flask_request.args.get("message", "Hello from Python Producer: Kinesis Context Propagation Test")
 
     # we only allow injection into JSON messages encoded as a string
-    message = json.dumps({"message": "Hello from Python Producer: Kinesis Context Propagation Test"})
+    message = json.dumps({"message": message})
     output = kinesis_produce(stream, message, "1", timeout)
     if "error" in output:
         return output, 400
@@ -563,7 +570,11 @@ def produce_kinesis_message():
 def consume_kinesis_message():
     stream = flask_request.args.get("stream", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = kinesis_consume(stream, timeout)
+    message = flask_request.args.get("message", "Hello from Python Producer: Kinesis Context Propagation Test")
+
+    # we only allow injection into JSON messages encoded as a string
+    message = json.dumps({"message": message})
+    output = kinesis_consume(stream, message, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -609,6 +620,7 @@ def dsm():
     stream = flask_request.args.get("stream")
     exchange = flask_request.args.get("exchange")
     routing_key = flask_request.args.get("routing_key")
+    message = flask_request.args.get("message")
 
     logging.info(f"[DSM] Got request with integration: {integration}")
 
@@ -636,8 +648,8 @@ def dsm():
         logging.info("[kafka] Returning response")
         response = Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",),)
-        consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, message,),)
+        consume_thread = threading.Thread(target=sqs_consume, args=(queue, message,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -657,8 +669,8 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",),)
-        consume_thread = threading.Thread(target=sns_consume, args=(queue,))
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, message,),)
+        consume_thread = threading.Thread(target=sns_consume, args=(queue, message,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -667,10 +679,10 @@ def dsm():
         response = Response("ok")
     elif integration == "kinesis":
         timeout = int(flask_request.args.get("timeout", "60"))
-        message = json.dumps({"message": "Hello from Python DSM Kinesis test"})
+        message = json.dumps({"message": message})
 
         produce_thread = threading.Thread(target=kinesis_produce, args=(stream, message, "1", timeout))
-        consume_thread = threading.Thread(target=kinesis_consume, args=(stream, timeout))
+        consume_thread = threading.Thread(target=kinesis_consume, args=(stream, message, timeout))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()

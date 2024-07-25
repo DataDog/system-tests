@@ -81,13 +81,13 @@ public class SqsConnector {
         return thread;
     }
 
-    public Thread startConsumingMessages(String service) throws Exception {
+    public Thread startConsumingMessages(String service, String message) throws Exception {
         Thread thread = new Thread(service + "Consume") {
             public void run() {
                 boolean recordFound = false;
                 while (!recordFound) {
                     try {
-                        recordFound = consumeMessageWithoutNewThread(service);
+                        recordFound = consumeMessageWithoutNewThread(service, message);
                     } catch (Exception e) {
                         System.err.println("[" + service.toUpperCase() + "] Failed to consume message in thread...");
                         System.err.println("[" + service.toUpperCase() + "] Error consuming: " + e);
@@ -112,7 +112,7 @@ public class SqsConnector {
     }
 
     // For APM testing, a consume message without starting a new thread
-    public boolean consumeMessageWithoutNewThread(String service) throws Exception {
+    public boolean consumeMessageWithoutNewThread(String service, String expectedMessage) throws Exception {
         SqsClient sqsClient = this.createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, false);
 
@@ -125,11 +125,12 @@ public class SqsConnector {
         while (true) {
             ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
             List<Message> messages = response.messages();
-            for (Message message : messages) {
-                System.out.println("[" + service.toUpperCase() + "] got message! " + message.body() + " from " + queue);
-                recordFound = true;
+            for (Message actualMessage : messages) {
+                if (actualMessage.body().equals(expectedMessage)) {
+                    System.out.println("[" + service.toUpperCase() + "] got message! " + actualMessage.body() + " from " + queue);
+                    return true;
+                }
             }
-            return recordFound;
         }
     }
 }
