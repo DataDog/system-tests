@@ -559,10 +559,10 @@ class WeblogContainer(TestedContainer):
             f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
         }
 
-        if os.path.exists("./binaries/nodejs-load-from-local"):
-            path = open("./binaries/nodejs-load-from-local").read().strip(" \r\n")
+        with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+            path = f.read().strip(" \r\n")
             volumes[os.path.abspath(path)] = {
-                "bind": f"/volumes/dd-trace-js",
+                "bind": "/volumes/dd-trace-js",
                 "mode": "ro",
             }
 
@@ -695,7 +695,8 @@ class WeblogContainer(TestedContainer):
         # https://github.com/DataDog/system-tests/issues/2799
         if self.library == "nodejs":
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
-                lib = json.load(f)["library"]
+                data = json.load(f)
+                lib = data["library"]
 
             self._library = LibraryVersion(lib["language"], lib["version"])
             self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version

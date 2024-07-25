@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { version } from 'dd-trace/package.json'
 import { libddwaf_version as libddwafVersion } from 'dd-trace/node_modules/@datadog/native-appsec/package.json'
-import { metadata } from 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
+import { wafManager } from 'dd-trace/packages/dd-trace/src/appsec/waf'
 
 export async function GET (request) {
   return NextResponse.json({
@@ -10,7 +10,7 @@ export async function GET (request) {
       language: 'nodejs',
       version,
       libddwaf_version: libddwafVersion,
-      appsec_event_rules_version: metadata.rules_version
+      appsec_event_rules_version: wafManager?.rulesVersion
     }
   }, {
     status: 200

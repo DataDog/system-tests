@@ -36,6 +36,11 @@ But, obviously, testing validated versions of components is not really interesti
     * `DataDog/dd-trace-js#master`
 2. Clone the dd-trace-js repo inside `binaries`
 
+OR
+
+1. Create a file `nodejs-load-from-load` in `binaries/`, the content will be installed by `npm link` to the local folder
+at the location mounted as a Docker volume.
+
 ## PHP library
 
 1. Add a valid `.apk` file in `binaries`.
