@@ -1,6 +1,6 @@
 from __future__ import annotations
-
 import json
+import os
 
 from utils.buddies import python_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features, context
@@ -220,7 +220,7 @@ class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_Kinesis):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
-    time_hash = generate_time_string()
+    time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
 
     WEBLOG_TO_BUDDY_STREAM = f"Kinesis_prop_via_msg_attrs_{context.library.library}_weblog_to_buddy_{time_hash}"
     BUDDY_TO_WEBLOG_STREAM = f"Kinesis_prop_via_msg_attrs_buddy_to_{context.library.library}_weblog_{time_hash}"

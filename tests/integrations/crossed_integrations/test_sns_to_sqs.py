@@ -1,6 +1,6 @@
 from __future__ import annotations
-
 import json
+import os
 
 from utils.buddies import python_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features, context
@@ -255,7 +255,7 @@ class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
-    time_hash = generate_time_string()
+    time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
 
     WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_msg_attrs_{context.library.library}_weblog_to_buddy_{time_hash}"
     WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attrs_{context.library.library}_weblog_to_buddy_topic_{time_hash}"

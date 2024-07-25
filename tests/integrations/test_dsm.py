@@ -15,6 +15,7 @@ from utils.tools import logger
 
 import base64
 import json
+import os
 
 # Kafka specific
 DSM_CONSUMER_GROUP = "testgroup1"
@@ -39,7 +40,7 @@ DSM_REQUEST_TIMEOUT = 61
 # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
 # from other tests. This time hash is added to the message, test consumers only stops once finding the specific
 # message
-TIME_HASH = generate_time_string()
+TIME_HASH = os.environ.get("UNIQUE_ID", generate_time_string())
 
 
 def get_message(test, system):
