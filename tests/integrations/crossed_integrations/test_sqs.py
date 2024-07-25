@@ -16,6 +16,7 @@ class _Test_SQS:
     WEBLOG_TO_BUDDY_QUEUE = None
     buddy = None
     buddy_interface = None
+    time_hash = None
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, operation):
@@ -91,10 +92,16 @@ class _Test_SQS:
         send request A to weblog : this request will produce a sqs message
         send request B to library buddy, this request will consume sqs message
         """
+        message = (
+            "[crossed_integrations/sqs.py][SQS] Hello from SQS "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
+        )
 
-        self.production_response = weblog.get("/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE}, timeout=60)
+        self.production_response = weblog.get(
+            "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
+        )
         self.consume_response = self.buddy.get(
-            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
+            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message}, timeout=61
         )
         delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
 
@@ -145,12 +152,16 @@ class _Test_SQS:
         request A: GET /library_buddy/produce_sqs_message
         request B: GET /weblog/consume_sqs_message
         """
+        message = (
+            "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
+        )
 
         self.production_response = self.buddy.get(
-            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE}, timeout=60
+            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
         )
         self.consume_response = weblog.get(
-            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
+            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message}, timeout=61
         )
         delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
 

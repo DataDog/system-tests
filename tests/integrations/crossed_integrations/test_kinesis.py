@@ -16,6 +16,7 @@ class _Test_Kinesis:
     WEBLOG_TO_BUDDY_STREAM = None
     buddy = None
     buddy_interface = None
+    time_hash = None
 
     @classmethod
     def get_span(cls, interface, span_kind, stream, operation):
@@ -76,12 +77,18 @@ class _Test_Kinesis:
         send request A to weblog : this request will produce a Kinesis message
         send request B to library buddy, this request will consume Kinesis message
         """
+        message = (
+            "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
+        )
 
         self.production_response = weblog.get(
-            "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM}, timeout=120
+            "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message}, timeout=120
         )
         self.consume_response = self.buddy.get(
-            "/kinesis/consume", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "timeout": 60}, timeout=61
+            "/kinesis/consume",
+            params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message, "timeout": 60},
+            timeout=61,
         )
         delete_kinesis_stream(self.WEBLOG_TO_BUDDY_STREAM)
 
@@ -131,12 +138,18 @@ class _Test_Kinesis:
         request A: GET /library_buddy/produce_kinesis_message
         request B: GET /weblog/consume_kinesis_message
         """
+        message = (
+            "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
+        )
 
         self.production_response = self.buddy.get(
-            "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM}, timeout=500
+            "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message}, timeout=500
         )
         self.consume_response = weblog.get(
-            "/kinesis/consume", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "timeout": 60}, timeout=61
+            "/kinesis/consume",
+            params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message, "timeout": 60},
+            timeout=61,
         )
         delete_kinesis_stream(self.BUDDY_TO_WEBLOG_STREAM)
 

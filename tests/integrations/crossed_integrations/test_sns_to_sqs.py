@@ -18,6 +18,7 @@ class _Test_SNS:
     WEBLOG_TO_BUDDY_TOPIC = None
     buddy = None
     buddy_interface = None
+    time_hash = None
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, topic, operation):
@@ -106,14 +107,18 @@ class _Test_SNS:
         send request A to weblog : this request will produce a sns message
         send request B to library buddy, this request will consume sns message
         """
+        message = (
+            "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
+        )
 
         self.production_response = weblog.get(
             "/sns/produce",
-            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC},
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC, "message": message},
             timeout=60,
         )
         self.consume_response = self.buddy.get(
-            "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
+            "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message}, timeout=61
         )
         delete_sns_topic(self.WEBLOG_TO_BUDDY_TOPIC)
         delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
@@ -163,14 +168,18 @@ class _Test_SNS:
         request A: GET /library_buddy/produce_sns_message
         request B: GET /weblog/consume_sns_message
         """
+        message = (
+            "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
+        )
 
         self.production_response = self.buddy.get(
             "/sns/produce",
-            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC},
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC, "message": message},
             timeout=60,
         )
         self.consume_response = weblog.get(
-            "/sns/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
+            "/sns/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message}, timeout=61
         )
         delete_sns_topic(self.BUDDY_TO_WEBLOG_TOPIC)
         delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)

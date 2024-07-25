@@ -80,6 +80,7 @@ const snsConsume = async (queue, timeout, expectedMessage) => {
   return new Promise((resolve, reject) => {
     let messageFound = false
 
+    console.log(`[SNS->SQS] Looking for message in queue ${queue}: message: ${expectedMessage}`)
     const receiveMessage = () => {
       if (messageFound) return
 

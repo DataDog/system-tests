@@ -213,9 +213,10 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
-  console.log('sqs produce')
+  const message = req.query.message
+  console.log(`[SQS] Produce: ${message}`)
 
-  sqsProduce(queue)
+  sqsProduce(queue, message)
     .then(() => {
       res.status(200).send('[SQS] produce ok')
     })
@@ -227,10 +228,11 @@ app.get('/sqs/produce', (req, res) => {
 
 app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
+  const message = req.query.message
   const timeout = parseInt(req.query.timeout) ?? 5
-  console.log('sqs consume')
+  console.log(`[SQS] Consume, Expected: ${message}`)
 
-  sqsConsume(queue, timeout * 1000)
+  sqsConsume(queue, timeout * 1000, message)
     .then(() => {
       res.status(200).send('[SQS] consume ok')
     })
@@ -243,8 +245,10 @@ app.get('/sqs/consume', (req, res) => {
 app.get('/sns/produce', (req, res) => {
   const queue = req.query.queue
   const topic = req.query.topic
+  const message = req.query.message
+  console.log(`[SNS->SQS] Produce: ${message}`)
 
-  snsPublish(queue, topic)
+  snsPublish(queue, topic, message)
     .then(() => {
       res.status(200).send('[SNS] publish ok')
     })
@@ -257,8 +261,10 @@ app.get('/sns/produce', (req, res) => {
 app.get('/sns/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
+  const message = req.query.message
+  console.log(`[SNS->SQS] Consume, Expected: ${message}`)
 
-  snsConsume(queue, timeout * 1000)
+  snsConsume(queue, timeout * 1000, message)
     .then(() => {
       res.status(200).send('[SNS->SQS] consume ok')
     })
@@ -270,8 +276,10 @@ app.get('/sns/consume', (req, res) => {
 
 app.get('/kinesis/produce', (req, res) => {
   const stream = req.query.stream
+  const message = req.query.message
+  console.log(`[Kinesis] Produce: ${message}`)
 
-  kinesisProduce(stream, null, '1', null)
+  kinesisProduce(stream, message, '1', null)
     .then(() => {
       res.status(200).send('[Kinesis] publish ok')
     })
@@ -284,8 +292,10 @@ app.get('/kinesis/produce', (req, res) => {
 app.get('/kinesis/consume', (req, res) => {
   const stream = req.query.stream
   const timeout = parseInt(req.query.timeout) ?? 5
+  const message = req.query.message
+  console.log(`[Kinesis] Consume, Expected: ${message}`)
 
-  kinesisConsume(stream, timeout * 1000)
+  kinesisConsume(stream, timeout * 1000, message)
     .then(() => {
       res.status(200).send('[Kinesis] consume ok')
     })
