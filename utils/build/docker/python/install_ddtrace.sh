@@ -22,6 +22,10 @@ else
     exit 1
 fi
 
+# Avoids incompatiblity with v1.26.0
+# FIX: https://github.com/DataDog/dd-trace-py/pull/9941
+pip install "opentelemetry-api<1.25.0"
+
 cd -
 
 python -c "import ddtrace; print(ddtrace.__version__)" > SYSTEM_TESTS_LIBRARY_VERSION
