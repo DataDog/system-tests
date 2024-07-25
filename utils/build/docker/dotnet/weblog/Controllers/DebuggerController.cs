@@ -118,7 +118,6 @@ namespace weblog
         {
             PiiBase? pii = await Task.FromResult<PiiBase>(null);
             return Content($"Pii is null {pii is null}. intValue is null {intValue is null}. strValue is null {strValue is null}.");
-
         }
     }
 }
