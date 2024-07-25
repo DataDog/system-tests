@@ -430,7 +430,7 @@ class EndToEndScenario(DockerScenario):
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
-                    f"datadog/system-tests:{language}_buddy-v0",
+                    f"datadog/system-tests:{language}_buddy-v1",
                     self.host_log_folder,
                     proxy_port=port,
                     environment=weblog_env,
