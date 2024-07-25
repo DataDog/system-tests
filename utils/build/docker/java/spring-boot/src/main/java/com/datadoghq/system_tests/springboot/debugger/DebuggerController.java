@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 // The `debugger` feature allows attachment to specific lines of code.
-// Due to differences in line numbering between `dotnet` and `java`,
+// Due to differences in line numbering between libraries,
 // 'dummy lines' are used to standardize this functionality.
 // Dummy line
 
@@ -50,7 +50,7 @@ public class DebuggerController {
     @GetMapping("/mix/{arg}/{intArg}")
     public String mixProbe(@PathVariable String arg, @PathVariable int intArg) {
         intMixLocal = intArg * arg.length();
-        return "Span Decoration Probe " + intMixLocal;
+        return "Mixed result " + intMixLocal;
     }
 
     @GetMapping("/pii")

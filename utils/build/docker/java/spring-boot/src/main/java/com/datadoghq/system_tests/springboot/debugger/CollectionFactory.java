@@ -43,11 +43,4 @@ public class CollectionFactory {
         }
         return dictionary;
     }
-
-    public static void main(String[] args) {
-        // Test cases
-        System.out.println(java.util.Arrays.toString((int[]) CollectionFactory.getCollection(5, "array")));
-        System.out.println(CollectionFactory.getCollection(5, "list"));
-        System.out.println(CollectionFactory.getCollection(5, "hash"));
-    }
 }

@@ -59,6 +59,11 @@ def read_diagnostic_data():
             path = _DEBUGER_PATH
         else:
             path = _LOGS_PATH
+    elif tracer["language"] == "python":
+        # if tracer_version > version.parse("2.49.0"):
+        path = _DEBUGER_PATH
+    # else:
+    # path = _LOGS_PATH
     else:
         path = _LOGS_PATH
 
@@ -71,12 +76,24 @@ def get_probes_map(data_set):
     def _process_debugger(debugger):
         if "diagnostics" in debugger:
             diagnostics = debugger["diagnostics"]
-            probe_hash[diagnostics["probeId"]] = diagnostics
+
+            probe_id = diagnostics["probeId"]
+            status = diagnostics["status"]
+
+            if probe_id in probe_hash:
+                current_status = probe_hash[probe_id]["status"]
+                if current_status == "RECEIVED":
+                    probe_hash[probe_id]["status"] = status
+                elif current_status == "INSTALLED" and status in ["INSTALLED", "EMITTING"]:
+                    probe_hash[probe_id]["status"] = status
+                elif current_status == "EMITTING" and status == "EMITTING":
+                    probe_hash[probe_id]["status"] = status
+            else:
+                probe_hash[probe_id] = diagnostics
 
     for data in data_set:
         contents = data["request"].get("content", []) or []  # Ensures contents is a list
         for content in contents:
-            print(content)
             if "content" in content:
                 d_contents = json.loads(content["content"])
                 for d_content in d_contents:
@@ -91,6 +108,7 @@ class _Base_Debugger_Test:
     weblog_responses = []
     expected_probe_ids = []
     rc_state = None
+    installed_ids = set()
     all_probes_installed = False
 
     def wait_for_all_probes_installed(self, data):
@@ -99,7 +117,6 @@ class _Base_Debugger_Test:
                 logger.debug("Probes map is empty")
                 return False
 
-            installed_ids = set()
             logger.debug(f"Look for these probes: {self.expected_probe_ids}")
             for expected_id in self.expected_probe_ids:
                 if expected_id in probes_map:
@@ -107,24 +124,24 @@ class _Base_Debugger_Test:
 
                     logger.debug(f"Probe {expected_id} observed status is {status}")
                     if status == "INSTALLED":
-                        installed_ids.add(expected_id)
+                        self.installed_ids.add(expected_id)
 
-            if set(self.expected_probe_ids).issubset(installed_ids):
+            if set(self.expected_probe_ids).issubset(self.installed_ids):
                 logger.debug(f"Succes: found all probes")
                 return True
 
-            missing_probes = set(self.expected_probe_ids) - set(installed_ids)
-            logger.debug(f"Found some probes, but not all of them. Missing probes are {missing_probes}")
             return False
 
-        if data["path"] == _DEBUGER_PATH or data["path"] == _LOGS_PATH:
-            self.all_probes_installed = _all_probes_installed(self, get_probes_map([data]))
+        if not self.all_probes_installed:
+            if data["path"] == _DEBUGER_PATH or data["path"] == _LOGS_PATH:
+                self.all_probes_installed = _all_probes_installed(self, get_probes_map([data]))
 
         return self.all_probes_installed
 
     def assert_all_probes_are_installed(self):
         if not self.all_probes_installed:
-            raise ValueError("At least one probe is missing")
+            missing_probes = set(self.expected_probe_ids) - set(self.installed_ids)
+            assert not missing_probes, f"Not all probes are installed. Missing ids: {', '.join(missing_probes)}"
 
     def assert_all_weblog_responses_ok(self):
         assert len(self.weblog_responses) > 0, "No responses available."
