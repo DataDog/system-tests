@@ -8,7 +8,6 @@ from tests.integrations.utils import (
     delete_sqs_queue,
     delete_kinesis_stream,
     delete_sns_topic,
-    compute_dsm_hash_nodejs,
 )
 
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
@@ -41,9 +40,6 @@ DSM_REQUEST_TIMEOUT = 61
 # from other tests. This time hash is added to the message, test consumers only stops once finding the specific
 # message
 TIME_HASH = generate_time_string()
-
-# nodejs uses a different hashing algo
-compute_dsm_hash = compute_dsm_hash_nodejs if context.library.library == "nodejs" else compute_dsm_hash
 
 
 def get_message(test, system):
@@ -275,11 +271,19 @@ class Test_DsmSQS:
 
     def setup_dsm_sqs(self):
         message = get_message("Test_DsmSQS", "sqs")
-        self.queue = f"{DSM_QUEUE}_{context.library.library}_{TIME_HASH}"
+
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.queue = f"{DSM_QUEUE}_{context.library.library}_{TIME_HASH}"
+        else:
+            self.queue = f"{DSM_QUEUE}_{context.library.library}"
+
         self.r = weblog.get(
             f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
         )
-        delete_sqs_queue(self.queue)
+        if context.library.library != "nodejs":
+            delete_sqs_queue(self.queue)
 
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -289,13 +293,23 @@ class Test_DsmSQS:
                 "tags_out": ("direction:out", f"topic:{self.queue}", "type:sqs"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
+            "nodejs": {
+                "producer": 8993664068648876726,
+                "consumer": 8544812442360155699,
+                "tags_out": ("direction:out", f"topic:{self.queue}", "type:sqs"),
+                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
+            },
         }
 
         tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
         tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
 
-        producer_hash = compute_dsm_hash(0, tags_out)
-        consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        if context.library.library != "nodejs":
+            producer_hash = compute_dsm_hash(0, tags_out)
+            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        else:
+            producer_hash = hash_inputs["nodejs"]["producer"]
+            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=tags_out,
@@ -312,15 +326,23 @@ class Test_DsmSNS:
 
     def setup_dsm_sns(self):
         message = get_message("Test_DsmSNS", "sns")
-        self.topic = f"{DSM_TOPIC}_{context.library.library}_{TIME_HASH}"
-        self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{TIME_HASH}"
+
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.topic = f"{DSM_TOPIC}_{context.library.library}_{TIME_HASH}"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{TIME_HASH}"
+        else:
+            self.topic = f"{DSM_TOPIC}_{context.library.library}"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}"
 
         self.r = weblog.get(
             f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
             timeout=DSM_REQUEST_TIMEOUT,
         )
-        delete_sns_topic(self.topic)
-        delete_sqs_queue(self.queue)
+        if context.library.library != "nodejs":
+            delete_sns_topic(self.topic)
+            delete_sqs_queue(self.queue)
 
     def test_dsm_sns(self):
         assert self.r.text == "ok"
@@ -332,13 +354,23 @@ class Test_DsmSNS:
                 "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
+            "nodejs": {
+                "producer": 5574101569053455889,
+                "consumer": 3220237713045744553,
+                "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
+                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
+            },
         }
 
         tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
         tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
 
-        producer_hash = compute_dsm_hash(0, tags_out)
-        consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        if context.library.library != "nodejs":
+            producer_hash = compute_dsm_hash(0, tags_out)
+            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        else:
+            producer_hash = hash_inputs["nodejs"]["producer"]
+            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=tags_out,
@@ -355,12 +387,19 @@ class Test_DsmKinesis:
 
     def setup_dsm_kinesis(self):
         message = get_message("Test_DsmKinesis", "kinesis")
-        self.stream = f"{DSM_STREAM}_{context.library.library}_{TIME_HASH}"
+
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.stream = f"{DSM_STREAM}_{context.library.library}_{TIME_HASH}"
+        else:
+            self.stream = f"{DSM_STREAM}_{context.library.library}"
 
         self.r = weblog.get(
             f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}", timeout=DSM_REQUEST_TIMEOUT,
         )
-        delete_kinesis_stream(self.stream)
+        if context.library.library != "nodejs":
+            delete_kinesis_stream(self.stream)
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     def test_dsm_kinesis(self):
@@ -374,16 +413,21 @@ class Test_DsmKinesis:
                 "tags_in": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),
             },
             "nodejs": {
+                "producer": 2387568642918822206,
+                "consumer": 10101425062685840509,
                 "tags_out": ("direction:out", f"topic:{self.stream}", "type:kinesis"),
                 "tags_in": ("direction:in", f"topic:{self.stream}", "type:kinesis"),
             },
         }
-
         tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
         tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
 
-        producer_hash = compute_dsm_hash(0, tags_out)
-        consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        if context.library.library != "nodejs":
+            producer_hash = compute_dsm_hash(0, tags_out)
+            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        else:
+            producer_hash = hash_inputs["nodejs"]["producer"]
+            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=tags_out,

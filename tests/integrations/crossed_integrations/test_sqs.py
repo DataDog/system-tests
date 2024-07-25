@@ -113,6 +113,10 @@ class _Test_SQS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(
+        library="java",
+        reason="Expected to fail, Dotnet does not propagate context via msg attrs or uses xray which also doesn't work",
+    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -165,6 +169,7 @@ class _Test_SQS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="dotnet", reason="Expected to fail, Dotnet does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -241,6 +246,7 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    @missing_feature(library="java", reason="Expected to fail, Dotnet will not extract from XRay headers")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 

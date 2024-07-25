@@ -29,7 +29,7 @@ const sqsProduce = (queue, message) => {
               resolve()
             }
           })
-          console.log('[SQS] Produced a message')
+          console.log(`[SQS] Produced message to queue ${queue}: ${messageToSend}`)
         }
 
         // Start producing messages
@@ -39,14 +39,18 @@ const sqsProduce = (queue, message) => {
   })
 }
 
-const sqsConsume = async (queue, timeout) => {
+const sqsConsume = async (queue, timeout, expectedMessage) => {
   // Create an SQS client
   const sqs = new AWS.SQS()
 
   const queueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
-
+  console.log(`[SQS] Looking for message: ${expectedMessage} in queue: ${queue}`)
   return new Promise((resolve, reject) => {
+    let messageFound = false
+
     const receiveMessage = () => {
+      if (messageFound) return
+
       sqs.receiveMessage({
         QueueUrl: queueUrl,
         MaxNumberOfMessages: 1,
@@ -58,20 +62,29 @@ const sqsConsume = async (queue, timeout) => {
         }
 
         try {
-          console.log('[SQS] Received the following: ')
-          console.log(response)
           if (response && response.Messages && response.Messages.length > 0) {
+            console.log(`[SQS] Received the following for queue ${queue}: `)
+            console.log(response)
             for (const message of response.Messages) {
-              // add a manual span to make finding this trace easier when asserting on tests
-              tracer.trace('sqs.consume', span => {
-                span.setTag('queue_name', queue)
-              })
               console.log(message)
               console.log(message.MessageAttributes)
-              const consumedMessage = message.Body
-              console.log('[SQS] Consumed the following: ' + consumedMessage)
+              if (message.Body === expectedMessage) {
+                // add a manual span to make finding this trace easier when asserting on tests
+                tracer.trace('sqs.consume', span => {
+                  span.setTag('queue_name', queue)
+                })
+                const consumedMessage = message.Body
+                messageFound = true
+                console.log(`[SQS] Received the following for queue ${queue}: ` + consumedMessage)
+                resolve()
+                return
+              }
             }
-            resolve()
+            if (!messageFound) {
+              setTimeout(() => {
+                receiveMessage()
+              }, 1000)
+            }
           } else {
             console.log('[SQS] No messages received')
             setTimeout(() => {
@@ -85,8 +98,10 @@ const sqsConsume = async (queue, timeout) => {
       })
     }
     setTimeout(() => {
-      console.error('[SQS] TimeoutError: Message not received')
-      reject(new Error('[SQS] TimeoutError: Message not received'))
+      if (!messageFound) {
+        console.error('[SQS] TimeoutError: Message not received')
+        reject(new Error('[SQS] TimeoutError: Message not received'))
+      }
     }, timeout) // Set a timeout of n seconds for message reception
 
     receiveMessage()
