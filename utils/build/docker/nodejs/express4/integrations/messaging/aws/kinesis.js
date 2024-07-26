@@ -32,13 +32,14 @@ const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) =>
             console.log('[Kinesis] Kinesis Stream is Active')
             kinesis.putRecord(
               { StreamName: stream, Data: message, PartitionKey: partitionKey },
-              (err) => {
+              (err, data) => {
                 if (err) {
                   console.log('[Kinesis] Error while producing message, retrying send message')
                   setTimeout(() => {
                     sendRecord()
                   }, 1000)
                 } else {
+                  console.log('[Kinesis] Node.js Kinesis putRecord response: ' + data)
                   console.log('[Kinesis] Node.js Kinesis message sent successfully: ' + message)
                   resolve()
                 }

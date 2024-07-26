@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 
@@ -11,6 +12,9 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
 
     # Create an SQS client
     kinesis = boto3.client("kinesis", region_name="us-east-1")
+
+    # we only allow injection into JSON messages encoded as a string
+    message = json.dumps({"message": message})
 
     try:
         kinesis.create_stream(StreamName=stream, ShardCount=1)
@@ -59,6 +63,9 @@ def kinesis_consume(stream, expectedMessage, timeout=60):
     # Create a Kinesis client
     kinesis = boto3.client("kinesis", region_name="us-east-1")
 
+    # we only allow injection into JSON messages encoded as a string
+    expectedMessage = json.dumps({"message": expectedMessage})
+
     consumed_message = None
     shard_iterator = None
     start_time = time.time()
@@ -89,10 +96,12 @@ def kinesis_consume(stream, expectedMessage, timeout=60):
             records_response = kinesis.get_records(ShardIterator=shard_iterator, StreamARN=stream_arn)
             if records_response and "Records" in records_response:
                 for message in records_response["Records"]:
-                    print(message)
-                    if message["Data"] == expectedMessage:
-                        consumed_message = message["Data"]
-                        logging.info("[Kinesis] Consumed the following: " + str(consumed_message))
+                    print("[Kinesis] Received: " + message)
+                    print("[Kinesis] Received body: " + message.get("Data", ""))
+                    if message["Data"].decode() == expectedMessage:
+                        consumed_message = message["Data"].decode()
+                        print("[Kinesis] Success. Consumed the following: " + str(consumed_message))
+                        logging.info("[Kinesis] Success. Consumed the following: " + str(consumed_message))
             shard_iterator = records_response["NextShardIterator"]
         except Exception as e:
             logging.warning(e)

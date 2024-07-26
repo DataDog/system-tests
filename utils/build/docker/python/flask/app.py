@@ -557,8 +557,6 @@ def produce_kinesis_message():
     timeout = int(flask_request.args.get("timeout", 60))
     message = flask_request.args.get("message", "Hello from Python Producer: Kinesis Context Propagation Test")
 
-    # we only allow injection into JSON messages encoded as a string
-    message = json.dumps({"message": message})
     output = kinesis_produce(stream, message, "1", timeout)
     if "error" in output:
         return output, 400
@@ -572,8 +570,6 @@ def consume_kinesis_message():
     timeout = int(flask_request.args.get("timeout", 60))
     message = flask_request.args.get("message", "Hello from Python Producer: Kinesis Context Propagation Test")
 
-    # we only allow injection into JSON messages encoded as a string
-    message = json.dumps({"message": message})
     output = kinesis_consume(stream, message, timeout)
     if "error" in output:
         return output, 400
@@ -679,7 +675,6 @@ def dsm():
         response = Response("ok")
     elif integration == "kinesis":
         timeout = int(flask_request.args.get("timeout", "60"))
-        message = json.dumps({"message": message})
 
         produce_thread = threading.Thread(target=kinesis_produce, args=(stream, message, "1", timeout))
         consume_thread = threading.Thread(target=kinesis_consume, args=(stream, message, timeout))
