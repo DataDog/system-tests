@@ -37,7 +37,6 @@ class TestRequestBody(BaseSourceTest):
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",
     )
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

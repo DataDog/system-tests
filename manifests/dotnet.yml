@@ -142,7 +142,7 @@ tests/:
       test_blocking.py:
         Test_Blocking: v2.27.0
         Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: missing_feature
+        Test_CustomBlockingResponse: v2.56.0
       test_custom_rules.py:
         Test_CustomRules: v2.30.0
       test_exclusions.py:
@@ -189,7 +189,7 @@ tests/:
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
       Test_Blocking_user_id: v2.27.0
-      Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
+      Test_Suspicious_Request_Blocking: v2.29.0
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
     test_conf.py:
@@ -209,7 +209,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
-      Test_BlockingActionChangesWithRemoteConfig: missing_feature
+      Test_BlockingActionChangesWithRemoteConfig: v2.56.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
       Test_Info: v2.0.0
