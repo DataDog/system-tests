@@ -96,12 +96,14 @@ def kinesis_consume(stream, expectedMessage, timeout=60):
             records_response = kinesis.get_records(ShardIterator=shard_iterator, StreamARN=stream_arn)
             if records_response and "Records" in records_response:
                 for message in records_response["Records"]:
-                    print("[Kinesis] Received: " + message)
-                    print("[Kinesis] Received body: " + message.get("Data", ""))
+                    print("[Kinesis] Received: ")
+                    print(message)
+                    print("[Kinesis] Received body: ")
+                    print(message.get("Data", ""))
                     if message["Data"].decode() == expectedMessage:
                         consumed_message = message["Data"].decode()
-                        print("[Kinesis] Success. Consumed the following: " + str(consumed_message))
-                        logging.info("[Kinesis] Success. Consumed the following: " + str(consumed_message))
+                        print("[Kinesis] Success. Consumed the following: " + consumed_message)
+                        logging.info("[Kinesis] Success. Consumed the following: " + consumed_message)
             shard_iterator = records_response["NextShardIterator"]
         except Exception as e:
             logging.warning(e)
