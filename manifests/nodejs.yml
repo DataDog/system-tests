@@ -33,6 +33,7 @@ refs:
   - &ref_5_16_0 '>=5.16.0 || ^4.40.0'
   - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
+  - &ref_5_18_1 '>=5.18.10 || ^4.42.10'
 
 tests/:
   apm_tracing_e2e/:
@@ -448,6 +449,12 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
+        '*': irrelevant
+        express4: *ref_5_18_1
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        express4: missing_feature # need to redo threading code
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature

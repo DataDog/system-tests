@@ -1,3 +1,5 @@
+const { Worker, isMainThread, parentPort, workerData } = require('worker_threads')
+
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
@@ -141,6 +143,96 @@ function initRoutes (app, tracer) {
     )
 
     res.status(200).send('ok')
+  })
+
+  app.get('/dsm/manual/produce', (req, res) => {
+    const type = req.query.type
+    const target = req.query.target
+    const headers = {}
+
+    tracer.dataStreamsCheckpointer.setProduceCheckpoint(
+      type, target, headers
+    )
+
+    res.status(200).send(JSON.stringify(headers))
+  })
+
+  app.get('/dsm/manual/produce_with_thread', (req, res) => {
+    const type = req.query.type
+    const target = req.query.target
+    const headers = {}
+
+    // Create a new worker thread to handle the setProduceCheckpoint function
+    const worker = new Worker(`
+        const { parentPort, workerData } = require('worker_threads')
+
+        const { type, target, headers, tracer } = workerData
+        tracer.dataStreamsCheckpointer.setProduceCheckpoint(type, target, headers)
+
+        parentPort.postMessage(headers)
+    `, {
+      eval: true,
+      workerData: { type, target, headers, tracer }
+    })
+
+    worker.on('message', (resultHeaders) => {
+      res.status(200).send(JSON.stringify(resultHeaders))
+    })
+
+    worker.on('error', (error) => {
+      res.status(500).send(`Worker error: ${error.message}`)
+    })
+
+    worker.on('exit', (code) => {
+      if (code !== 0) {
+        res.status(500).send(`Worker stopped with exit code ${code}`)
+      }
+    })
+  })
+
+  app.get('/dsm/manual/consume', (req, res) => {
+    const type = req.query.type
+    const target = req.query.source
+    const headers = JSON.parse(req.query.headers)
+
+    tracer.dataStreamsCheckpointer.setConsumeCheckpoint(
+      type, target, headers
+    )
+
+    res.status(200).send('ok')
+  })
+
+  app.get('/dsm/manual/consume_with_thread', (req, res) => {
+    const type = req.query.type
+    const source = req.query.source
+    const headers = JSON.parse(req.query.headers)
+
+    // Create a new worker thread to handle the setProduceCheckpoint function
+    const worker = new Worker(`
+      const { parentPort, workerData } = require('worker_threads')
+
+      const { type, source, headers, tracer } = workerData
+      tracer.dataStreamsCheckpointer.setConsumeCheckpoint(type, source, headers)
+
+      parentPort.postMessage("ok")
+  `, {
+      eval: true,
+      workerData: { type, source, headers, tracer }
+    })
+
+    worker.on('message', () => {
+      res.status(200).send('ok')
+    })
+
+    worker.on('error', (error) => {
+      res.status(500).send(`Worker error: ${error.message}`)
+    })
+
+    worker.on('exit', (code) => {
+      if (code !== 0) {
+        res.status(500).send(`Worker stopped with exit code ${code}`)
+      }
+    })
   })
 }
 

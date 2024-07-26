@@ -597,6 +597,9 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0
+      Test_Dsm_Manual_Checkpoint:
+        '*': irrelevant
+        flask-poc: v2.8.0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
