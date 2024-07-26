@@ -132,6 +132,7 @@ def main():
                     #### Parametric case
                     r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
                     r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
+                    r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC.value,
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect

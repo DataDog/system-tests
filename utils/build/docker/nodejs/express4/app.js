@@ -1,7 +1,8 @@
 'use strict'
 
 const tracer = require('dd-trace').init({
-  debug: true
+  debug: true,
+  flushInterval: 5000
 })
 
 const { promisify } = require('util')
@@ -35,6 +36,17 @@ iast.initMiddlewares(app)
 app.get('/', (req, res) => {
   console.log('Received a request')
   res.send('Hello\n')
+})
+
+app.get('/healthcheck', (req, res) => {
+  res.json({
+    status: 'ok',
+    library: {
+      language: 'nodejs',
+      version: require('dd-trace/package.json').version,
+      libddwaf_version: require('@datadog/native-appsec/package.json').libddwaf_version
+    }
+  })
 })
 
 app.all(['/waf', '/waf/*'], (req, res) => {

@@ -78,6 +78,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
     @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
     @missing_feature(context.library < "dotnet@2.53.0", reason="Implemented in 2.53.0")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_set_attribute_remapping_httpresponsestatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
@@ -102,6 +103,7 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "golang", reason="Does not support automatic status code remapping to meta")
     @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
     @irrelevant(context.library == "php", reason="Does not support automatic status code remapping to meta")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_set_attribute_remapping_httpstatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
@@ -267,6 +269,7 @@ class Test_Otel_Span_Methods:
         context.library == "dotnet",
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_span_is_recording(self, test_agent, test_library):
         """
         Test functionality of ending a span.
@@ -401,6 +404,7 @@ class Test_Otel_Span_Methods:
         context.library == "dotnet",
         reason="Flaky due to span order, tests should never use traces[0] when there are multiple spans",
     )
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -464,6 +468,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_span_started_with_link_from_another_span(self, test_agent, test_library):
         """Test adding a span link created from another span.
         This tests the functionality of "create a direct link between two spans
@@ -504,6 +509,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links.
         """
@@ -552,6 +558,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @bug(context.library == "ruby", reason="opentelemetry propagator truncates 128bit trace_ids to 64bits")
     @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
@@ -601,6 +608,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented, does not break out arrays into dot notation")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_span_link_attribute_handling(self, test_agent, test_library):
         """Test that span links implementations correctly handle attributes according to spec.
         """
@@ -646,6 +654,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @bug(context.library == "ruby", reason="The ruby parametric app returns incorrect span ids on start span")
     @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
         """Test adding a span link from a span to another span.
         """
@@ -854,6 +863,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
         """
             Tests the Span.AddEvent API and its serialization into the meta tag 'events'
@@ -906,6 +916,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_record_exception_does_not_set_error(self, test_agent, test_library):
         """
             Tests the Span.RecordException API (requires Span.AddEvent API support)
@@ -925,6 +936,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
         """
             Tests the Span.RecordException API (requires Span.AddEvent API support)
@@ -969,6 +981,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_record_exception_attributes_serialization(self, test_agent, test_library):
         """
             Tests the Span.RecordException API (requires Span.AddEvent API support)

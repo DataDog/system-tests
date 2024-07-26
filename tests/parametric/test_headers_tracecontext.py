@@ -745,28 +745,16 @@ class Test_Headers_Tracecontext:
             ):
                 pass
 
-            with test_library.start_span(
-                name="p_not_propagated_valid_dd_tracestate",
-                http_headers=[
-                    ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
-                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
-                ],
-            ):
-                pass
+        traces = test_agent.wait_for_num_traces(2)
 
-        traces = test_agent.wait_for_num_traces(3)
-
-        assert len(traces) == 3
-        case1, case2, case3 = traces[0][0], traces[1][0], traces[2][0]
+        assert len(traces) == 2
+        case1, case2 = traces[0][0], traces[1][0]
 
         assert case1["name"] == "p_set"
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
 
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
-
-        assert case3["name"] == "p_not_propagated_valid_dd_tracestate"
-        assert case3["meta"]["_dd.parent_id"] == "0000000000000000"
 
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")

@@ -382,7 +382,28 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_span_tags.py: missing_feature
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_BodyUrlEncoded:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+        Test_Sqli_BodyXml:
+          '*': v1.38.0
+          akka-http: missing_feature (Requires parsed body instrumentation)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_UrlQuery:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
       test_ssrf.py: missing_feature
       test_stack_traces.py: missing_feature
     waf/:
@@ -576,8 +597,10 @@ tests/:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
-      Test_Login_Events:
-        '*': v1.36.0
+      Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
+      Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
+      Test_V2_Login_Events:
+        '*': v1.38.0
         akka-http: missing_feature (login endpoints not implemented)
         jersey-grizzly2: missing_feature (login endpoints not implemented)
         play: missing_feature (login endpoints not implemented)
@@ -588,8 +611,8 @@ tests/:
         spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
-      Test_Login_Events_Extended:
-        '*': v1.36.0
+      Test_V2_Login_Events_Anon:
+        '*': v1.38.0
         akka-http: missing_feature (login endpoints not implemented)
         jersey-grizzly2: missing_feature (login endpoints not implemented)
         play: missing_feature (login endpoints not implemented)
@@ -600,9 +623,18 @@ tests/:
         spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Login_Events_RC: missing_feature
+      Test_V2_Login_Events_RC:
+        '*': v1.38.0
+        akka-http: missing_feature (login endpoints not implemented)
+        jersey-grizzly2: missing_feature (login endpoints not implemented)
+        play: missing_feature (login endpoints not implemented)
+        ratpack: missing_feature (login endpoints not implemented)
+        resteasy-netty3: missing_feature (login endpoints not implemented)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-openliberty: missing_feature (weblog returns error 500)
+        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
+        vertx3: missing_feature (login endpoints not implemented)
+        vertx4: missing_feature (login endpoints not implemented)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -818,6 +850,8 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_reports.py:
       Test_AttackTimestamp:
         akka-http: v1.22.0
