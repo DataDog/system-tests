@@ -98,7 +98,6 @@ def kinesis_consume(stream, expectedMessage, timeout=60):
                     print("[Kinesis] Received body: ")
                     print(message.get("Data", ""))
 
-
                     # parse message since injected DD context will mean we can't compare full json string
                     message_json = json.loads(message["Data"].decode())
                     print("[Kinesis] Decoded json: ")
@@ -107,7 +106,7 @@ def kinesis_consume(stream, expectedMessage, timeout=60):
                     message_str = message_json.get("message", "")
                     print("[Kinesis] Decoded body string: ")
                     print(message_str)
-                    
+
                     print("[Kinesis] Does it match expected: " + str(message_str == expectedMessage))
                     if message_str == expectedMessage:
                         consumed_message = message_str
