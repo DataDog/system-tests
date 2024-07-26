@@ -27,6 +27,7 @@ tests/:
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
+        test_untrusted_deserialization.py: irrelevant (ASM is not implemented in C++)
         test_unvalidated_redirect.py: irrelevant (ASM is not implemented in C++)
         test_unvalidated_redirect_forward.py: irrelevant (ASM is not implemented in C++)
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)

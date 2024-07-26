@@ -59,6 +59,8 @@ tests/:
           TestSSRF: v2.36.0
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: v2.43.0
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: v2.44.0
           TestUnvalidatedRedirect: v2.44.0

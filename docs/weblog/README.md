@@ -509,3 +509,18 @@ This endpoint returns the headers received in order to be able to assert about d
 The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message, default to 200 OK.
 This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
 stats generating tests.
+
+### GET /healthcheck
+
+Returns a JSON dict, with those values :
+
+```js
+{
+    "status": "ok",
+    "library": {
+      "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
+      "version": "1.2.3",  // version of the library
+      "libddwaf_version": "4.5.6"  // version of libddwaf
+    }
+  }
+```
