@@ -36,34 +36,63 @@ const snsPublish = (queue, topic, message) => {
 
           const QueueArn = data.Attributes.QueueArn
 
-          const subParams = {
-            Protocol: 'sqs',
-            Endpoint: QueueArn,
-            TopicArn
+          const policy = {
+            Version: '2012-10-17',
+            Id: `${QueueArn}/SQSDefaultPolicy`,
+            Statement: [
+              {
+                Sid: 'Allow-SNS-SendMessage',
+                Effect: 'Allow',
+                Principal: { Service: 'sns.amazonaws.com' },
+                Action: 'sqs:SendMessage',
+                Resource: QueueArn,
+                Condition: { ArnEquals: { 'aws:SourceArn': TopicArn } }
+              }
+            ]
           }
 
-          sns.subscribe(subParams, (err) => {
+          const policyParams = {
+            QueueUrl,
+            Attributes: {
+              Policy: JSON.stringify(policy)
+            }
+          }
+
+          sqs.setQueueAttributes(policyParams, (err) => {
             if (err) {
               console.log(err)
-              reject(err)
+              return reject(err)
             }
 
-            // Send messages to the queue
-            const produce = () => {
-              sns.publish({ TopicArn, Message: messageToSend }, (err, data) => {
-                if (err) {
-                  console.log(err)
-                  reject(err)
-                }
-
-                console.log(data)
-                resolve()
-              })
-              console.log(`[SNS->SQS] Published message to topic ${topic}: ${messageToSend}`)
+            const subParams = {
+              Protocol: 'sqs',
+              Endpoint: QueueArn,
+              TopicArn
             }
 
-            // Start producing messages
-            produce()
+            sns.subscribe(subParams, (err) => {
+              if (err) {
+                console.log(err)
+                reject(err)
+              }
+
+              // Send messages to the queue
+              const produce = () => {
+                sns.publish({ TopicArn, Message: messageToSend }, (err, data) => {
+                  if (err) {
+                    console.log(err)
+                    reject(err)
+                  }
+
+                  console.log(data)
+                  resolve()
+                })
+                console.log(`[SNS->SQS] Published message to topic ${topic}: ${messageToSend}`)
+              }
+
+              // Start producing messages
+              produce()
+            })
           })
         })
       })
