@@ -39,9 +39,6 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection_ld_preload
 class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
-    @bug(library="ruby", reason="Test failures for Amazon Linux 2023")
-    @bug(library="python", reason="Test failures in all machines")
-    @bug(library="dotnet", reason="Test failures in all machines")
     def test_install_after_ld_preload(self, virtual_machine):
         """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
