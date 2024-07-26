@@ -145,9 +145,19 @@ class ParametricScenario(Scenario):
             self._clean_containers()
             self._clean_networks()
 
-        output = _get_client().containers.run(
-            self.apm_test_server_definition.container_tag, remove=True, command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
-        )
+        # https://github.com/DataDog/system-tests/issues/2799
+        if library in ("nodejs",):
+            output = _get_client().containers.run(
+                self.apm_test_server_definition.container_tag,
+                remove=True,
+                command=["./system_tests_library_version.sh"],
+            )
+        else:
+            output = _get_client().containers.run(
+                self.apm_test_server_definition.container_tag,
+                remove=True,
+                command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
+            )
 
         self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
@@ -356,6 +366,7 @@ WORKDIR /usr/app
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
+COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
 RUN npm install
@@ -483,14 +494,13 @@ def java_library_factory():
         container_img=f"""
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar --no-cache https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
-RUN java -jar ./tracer/dd-java-agent.jar > SYSTEM_TESTS_LIBRARY_VERSION
+RUN mkdir ./tracer
 COPY {java_reldir}/src src
-COPY {java_reldir}/build.sh .
+COPY {java_reldir}/install_ddtrace.sh .
 COPY {java_reldir}/pom.xml .
 COPY {protofile} src/main/proto/
 COPY binaries /binaries
-RUN bash build.sh
+RUN bash install_ddtrace.sh
 COPY {java_reldir}/run.sh .
 """,
         container_cmd=["./run.sh"],

@@ -476,11 +476,11 @@ class APMLibraryClientGRPC:
         channel = grpc.insecure_channel(url)
         try:
             grpc.channel_ready_future(channel).result(timeout=timeout)
-        except grpc.FutureTimeoutError:
+        except grpc.FutureTimeoutError as e:
             logger.error("gRPC timeout, stopping test.")
             self._log_container_stdout()
 
-            raise RuntimeError(f"Container {container.name} did not respond to gRPC request")
+            raise RuntimeError(f"Container {container.name} did not respond to gRPC request") from e
 
         client = apm_test_client_pb2_grpc.APMClientStub(channel)
         self._client = client

@@ -117,9 +117,6 @@ class TestedContainer:
         else:
             self.image.load_from_logs(self.log_folder_path)
 
-        if self.stdout_interface is not None:
-            self.stdout_interface.configure(replay)
-
     @property
     def container_name(self):
         return f"system-tests-{self.name}"
@@ -579,6 +576,7 @@ class WeblogContainer(TestedContainer):
         self.weblog_variant = ""
         self.libddwaf_version = None
         self.appsec_rules_version = None
+        self._library: LibraryVersion = None
 
         # Basic env set for all scenarios
         self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
@@ -641,6 +639,17 @@ class WeblogContainer(TestedContainer):
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
 
+        self._library = LibraryVersion(
+            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
+        )
+
+        # https://github.com/DataDog/system-tests/issues/2799
+        if self.library in ("nodejs",):
+            self.healthcheck = {
+                "test": f"curl --fail --silent --show-error localhost:{self.port}/healthcheck",
+                "retries": 60,
+            }
+
         if self.library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
 
@@ -671,6 +680,15 @@ class WeblogContainer(TestedContainer):
 
         logger.debug(f"Docker host is {weblog.domain}")
 
+        # new way of getting info from the weblog. Only working for nodejs right now
+        # https://github.com/DataDog/system-tests/issues/2799
+        if self.library == "nodejs":
+            with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            self._library = LibraryVersion(data["library"]["language"], data["library"]["version"])
+            self.libddwaf_version = LibraryVersion("libddwaf", data["library"]["libddwaf_version"]).version
+
         logger.stdout(f"Library: {self.library}")
 
         if self.libddwaf_version:
@@ -684,11 +702,11 @@ class WeblogContainer(TestedContainer):
 
         logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
+        self.stdout_interface.init_patterns(self.library)
+
     @property
-    def library(self):
-        return LibraryVersion(
-            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
-        )
+    def library(self) -> LibraryVersion:
+        return self._library
 
     @property
     def uds_socket(self):
@@ -811,7 +829,7 @@ class RabbitMqContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mariadb:latest",
+            image_name="mysql/mysql-server:latest",
             name="mysqldb",
             command="--default-authentication-plugin=mysql_native_password",
             environment={
@@ -822,7 +840,7 @@ class MySqlContainer(SqlDbTestedContainer):
             },
             allow_old_container=True,
             host_log_folder=host_log_folder,
-            healthcheck={"test": ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"], "retries": 60},
+            healthcheck={"test": "/healthcheck.sh", "retries": 60},
             dd_integration_service="mysql",
             db_user="mysqldb",
             db_password="mysqldb",
