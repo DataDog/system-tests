@@ -44,6 +44,16 @@ func main() {
 		return c.NoContent(rCode)
 	})
 
+	r.Any("/stats-unique", func(c echo.Context) error {
+		rCode := 200
+		if codeStr := c.Request().URL.Query().Get("code"); codeStr != "" {
+			if code, err := strconv.Atoi(codeStr); err == nil {
+				rCode = code
+			}
+		}
+		return c.NoContent(rCode)
+	})
+
 	r.Any("/waf", waf)
 	r.Any("/waf/*", waf)
 
