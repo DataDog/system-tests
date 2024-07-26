@@ -138,13 +138,6 @@ public class KinesisConnector {
         long startTime = System.currentTimeMillis();
         long endTime = startTime + timeout * 1000; // Convert timeout to milliseconds
 
-
-        // convert to JSON string since we only inject json
-        Map<String, String> map = new HashMap<>();
-        map.put("message", message);
-        ObjectMapper mapper = new ObjectMapper();
-        String json_message = mapper.writeValueAsString(map);
-
         boolean recordFound = false;
         while (System.currentTimeMillis() < endTime) {
             try {
@@ -171,9 +164,16 @@ public class KinesisConnector {
                 List<Record> records = getRecordsResponse.records();
 
                 for (Record record : records) {
-                    if (json_message.equals(new String(record.data().asByteArray()))) {
+                    String recordJson = new String(record.data().asByteArray());
+                    System.out.println("[Kinesis] Consumed: " + recordJson);
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, String> map = mapper.readValue(recordJson, HashMap.class);
+                    String messageFromJson = map.get("message");
+
+                    if (messageFromJson != null && messageFromJson.equals(message)) {
                         recordFound = true;
-                        System.out.println("[Kinesis] got message! " + new String(record.data().asByteArray()));
+                        System.out.println("[Kinesis] Success! Got message: " + messageFromJson);
                     }
                 }
 

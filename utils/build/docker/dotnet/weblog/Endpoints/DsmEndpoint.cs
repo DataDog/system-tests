@@ -24,6 +24,7 @@ namespace weblog
                 string exchange = context.Request.Query["exchange"]!;
                 string routing_key = context.Request.Query["routing_key"]!;
                 string group = context.Request.Query["group"]!;
+                string message = context.Request.Query["message"]!;
 
                 Console.WriteLine("Hello World! Received dsm call with integration " + integration);
                 if ("kafka".Equals(integration)) {
@@ -48,8 +49,8 @@ namespace weblog
                 else if ("sqs".Equals(integration))
                 {
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    Task.Run(() => SqsProducer.DoWork(queue));
-                    Task.Run(() => SqsConsumer.DoWork(queue));
+                    Task.Run(() => SqsProducer.DoWork(queue, message));
+                    Task.Run(() => SqsConsumer.DoWork(queue, message));
 #pragma warning restore CS4014
                     await context.Response.WriteAsync("ok");
                 } else {
@@ -167,7 +168,7 @@ namespace weblog
 
     class SqsProducer
     {
-        public static async Task DoWork(string queue)
+        public static async Task DoWork(string queue, string message)
         {
             var sqsClient = new AmazonSQSClient();
             // create queue
@@ -175,7 +176,7 @@ namespace weblog
             var qUrl = responseCreate.QueueUrl;
             using (Datadog.Trace.Tracer.Instance.StartActive("SqsProduce"))
             {
-                await sqsClient.SendMessageAsync(qUrl, "this is a test sqs message");
+                await sqsClient.SendMessageAsync(qUrl, message);
                 Console.WriteLine("[SQS] Done with message producing");
             }
         }
@@ -183,7 +184,7 @@ namespace weblog
 
     class SqsConsumer
     {
-        public static async Task DoWork(string queue)
+        public static async Task DoWork(string queue, string message)
         {
             var sqsClient = new AmazonSQSClient();
             // create queue
@@ -203,6 +204,11 @@ namespace weblog
                     if (result == null || result.Messages.Count == 0)
                     {
                         Console.WriteLine("[SQS] No messages to consume at this time");
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+                    if (result.Messages[0].Body != message)
+                    {
                         Thread.Sleep(1000);
                         continue;
                     }

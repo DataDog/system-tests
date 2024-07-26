@@ -47,13 +47,15 @@ public class MessagingEndpoints : ISystemTestEndpoint
         routeBuilder.MapGet("/sqs/produce", async context =>
         {
             var queue = context.Request.Query["queue"].ToString();
-            await SqsProduce(queue);
+            var message = context.Request.Query["message"].ToString();
+            await SqsProduce(queue, message);
             await context.Response.CompleteAsync();
         });
         routeBuilder.MapGet("/sqs/consume", async context =>
         {
             var (queue, timeout) = GetQueueNameAndTimeout("queue", context);
-            var success = await SqsConsume(queue, timeout);
+            var message = context.Request.Query["message"].ToString();
+            var success = await SqsConsume(queue, timeout, message);
             if (!success)
                 context.Response.StatusCode = 500;
             await context.Response.CompleteAsync();
@@ -129,16 +131,16 @@ public class MessagingEndpoints : ISystemTestEndpoint
         return received.Count == 1;
     }
 
-    private static async Task SqsProduce(string queue)
+    private static async Task SqsProduce(string queue, string message)
     {
         var sqsClient = new AmazonSQSClient();
         var responseCreate = await sqsClient.CreateQueueAsync(queue);
         var qUrl = responseCreate.QueueUrl;
-        await sqsClient.SendMessageAsync(qUrl, "sqs message from dotnet");
-        Console.WriteLine($"SQS message produced to queue {queue} with url {qUrl}");
+        await sqsClient.SendMessageAsync(qUrl, message);
+        Console.WriteLine($"SQS message {message} produced to queue {queue} with url {qUrl}");
     }
 
-    private static async Task<bool> SqsConsume(string queue, TimeSpan timeout)
+    private static async Task<bool> SqsConsume(string queue, TimeSpan timeout, string message)
     {
         Console.WriteLine($"consuming one message from SQS queue {queue} in max {(int)timeout.TotalSeconds} seconds");
         var sqsClient = new AmazonSQSClient();
@@ -154,7 +156,7 @@ public class MessagingEndpoints : ISystemTestEndpoint
                 MaxNumberOfMessages = 1,
                 WaitTimeSeconds = 1
             });
-            if (result != null && result.Messages.Count != 0)
+            if (result != null && result.Messages.Count != 0 && result.Messages[0].Body == message)
             {
                 Console.WriteLine(
                     $"received {result.Messages.Count} message(s). Content: " + string.Join(", ", result.Messages));

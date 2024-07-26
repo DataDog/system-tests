@@ -427,8 +427,7 @@ public class App {
     ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         try {
-            String jsonString = "{\"message\":\"message\"}";
-            kinesis.produceMessageWithoutNewThread(jsonString);
+            kinesis.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start producing message...");
             e.printStackTrace();
