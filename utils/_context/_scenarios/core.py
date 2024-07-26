@@ -332,6 +332,10 @@ class DockerScenario(Scenario):
         for thread in threads:
             thread.join()
 
+        for container in self._required_containers:
+            if container.healthy is False:
+                pytest.exit(f"Container {container.name} can't be started", 1)
+
     def close_targets(self):
         for container in reversed(self._required_containers):
             try:
