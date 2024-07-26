@@ -70,7 +70,8 @@ def sns_consume(queue, expectedMessage, timeout=60):
             response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
-                    print("[SNS->SQS] Consumed: " + message)
+                    print("[SNS->SQS] Consumed: ")
+                    print(message)
                     if message["Body"] == expectedMessage:
                         consumed_message = message["Body"]
                         logging.info("[SNS->SQS] Success. Found the following message: " + consumed_message)
@@ -78,7 +79,8 @@ def sns_consume(queue, expectedMessage, timeout=60):
                     else:
                         # entire message may be json within the body
                         try:
-                            print("[SNS->SQS] Trying to decode raw message: " + message.get("Body", ""))
+                            print("[SNS->SQS] Trying to decode raw message: ")
+                            print(message.get("Body", ""))
                             message_json = json.loads(message["Body"])
                             if message_json.get("Message", "") == expectedMessage:
                                 consumed_message = message_json["Message"]
