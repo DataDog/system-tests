@@ -592,7 +592,7 @@ class Test_BlockingGraphqlResolvers:
             assert rule_triggered["rule"]["id"] == "block-resolvers"
             assert parameters["key_path"] == (
                 ["getUserByName", "0", "name"]
-                if context.library == "ruby" # Multiplex support
+                if context.library == "ruby"  # Multiplex support
                 else ["userByName", "name"]
                 if parameters["address"] == "graphql.server.resolver"
                 else ["userByName", "0", "name"]
@@ -615,7 +615,7 @@ class Test_BlockingGraphqlResolvers:
         )
 
     def test_request_block_attack_directive(self):
-        # We don't change the status code 
+        # We don't change the status code
         assert self.r_attack.status_code == (
             # We don't change the status code in Ruby
             200
