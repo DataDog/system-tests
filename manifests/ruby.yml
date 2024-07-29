@@ -120,7 +120,7 @@ tests/:
         Test_BodyUrlEncoded: v1.8.0
         Test_BodyXml: irrelevant (unsupported by framework)
         Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
+        Test_GraphQL: v2.3.0
         Test_GrpcServerMethod: missing_feature
         Test_PathParams:
           '*': v1.8.0
@@ -181,7 +181,7 @@ tests/:
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingGraphqlResolvers: missing_feature
+      Test_BlockingGraphqlResolvers: v2.3.0
       Test_Blocking_client_ip: v1.0.0
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0

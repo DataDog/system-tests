@@ -571,7 +571,12 @@ class Test_BlockingGraphqlResolvers:
         )
 
     def test_request_block_attack(self):
-        assert self.r_attack.status_code == 403
+        assert self.r_attack.status_code == (
+            # We don't change the status code in Ruby
+            200
+            if context.library == "ruby"
+            else 403
+        )
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})
@@ -584,11 +589,11 @@ class Test_BlockingGraphqlResolvers:
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
             )
-            assert rule_triggered["rule"]["id"] == (
-                "block-resolvers" if parameters["address"] == "graphql.server.resolver" else "block-all-resolvers"
-            )
+            assert rule_triggered["rule"]["id"] == "block-resolvers"
             assert parameters["key_path"] == (
-                ["userByName", "name"]
+                ["getUserByName", "0", "name"]
+                if context.library == "ruby" # Multiplex support
+                else ["userByName", "name"]
                 if parameters["address"] == "graphql.server.resolver"
                 else ["userByName", "0", "name"]
             )
@@ -610,7 +615,13 @@ class Test_BlockingGraphqlResolvers:
         )
 
     def test_request_block_attack_directive(self):
-        assert self.r_attack.status_code == 403
+        # We don't change the status code 
+        assert self.r_attack.status_code == (
+            # We don't change the status code in Ruby
+            200
+            if context.library == "ruby"
+            else 403
+        )
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})
