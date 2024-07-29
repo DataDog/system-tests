@@ -215,6 +215,7 @@ def fnv1_64(data):
 def compute_dsm_hash(parent_hash, tags):
     def get_bytes(s):
         return bytes(s, encoding="utf-8")
+
     b = get_bytes("weblog") + get_bytes("system-tests")
     for t in tags:
         b += get_bytes(t)
