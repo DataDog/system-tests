@@ -1021,7 +1021,7 @@ tests/:
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": irrelevant
-        spring-boot: v1.38.0
+          spring-boot: v1.38.0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
