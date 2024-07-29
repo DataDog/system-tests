@@ -355,6 +355,11 @@ class Test_DsmSNS:
                 "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
+            # java messes up tag sorting
+            "java": {
+                "tags_out": ("direction:out", "type:sns", f"topic:{topic}"),
+                "tags_in": ("direction:in", f"topic:{self.queue}",  "type:sqs"),
+            },
             "nodejs": {
                 "producer": 5574101569053455889,
                 "consumer": 3220237713045744553,

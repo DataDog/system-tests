@@ -215,9 +215,8 @@ def fnv1_64(data):
 def compute_dsm_hash(parent_hash, tags):
     def get_bytes(s):
         return bytes(s, encoding="utf-8")
-
     b = get_bytes("weblog") + get_bytes("system-tests")
-    for t in sorted(tags):
+    for t in tags:
         b += get_bytes(t)
     node_hash = fnv1_64(b)
     return fnv1_64(struct.pack("<Q", node_hash) + struct.pack("<Q", parent_hash))
