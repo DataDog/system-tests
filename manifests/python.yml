@@ -111,6 +111,8 @@ tests/:
             fastapi: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
@@ -439,7 +441,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
-      Test_BlockingActionChangesWithRemoteConfig: bug (ASM is not disabling correctly)
+      Test_BlockingActionChangesWithRemoteConfig: v2.10.1
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
       Test_Info: v1.1.0rc2.dev
@@ -450,8 +452,8 @@ tests/:
         '*': v1.10.0
         fastapi: v2.4.0.dev1
     test_runtime_activation.py:
-      Test_RuntimeActivation: bug (ASM is not disabling correctly)
-      Test_RuntimeDeactivation: bug (ASM is not disabling correctly)
+      Test_RuntimeActivation: v2.10.1
+      Test_RuntimeDeactivation: v2.10.1
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:
