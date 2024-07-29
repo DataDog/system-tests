@@ -39,6 +39,12 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
     return parametrize("library_env", [env])
 
 
+def enable_stats_by_span_kind() -> Any:
+    env = {
+        "DD_APM_COMPUTE_STATS_BY_SPAN_KIND": "true",
+    }
+    return parametrize("library_env", [env])  # TODO: does this step on all parameters?
+
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_Library_Tracestats:
@@ -107,7 +113,7 @@ class Test_Library_Tracestats:
         """
         When spans are created with a unique set of dimensions
             Each span has stats computed for it and is in its own bucket
-            The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
+            The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics, peer_tags }
         """
         name = "name"
         resource = "resource"
@@ -115,6 +121,8 @@ class Test_Library_Tracestats:
         type = "http"
         http_status_code = "200"
         origin = "rum"
+        db_name = "myDB"
+        kind = "consumer"
 
         with test_library:
             # Baseline
@@ -159,6 +167,20 @@ class Test_Library_Tracestats:
             ) as span:
                 span.set_meta(key="http.status_code", val="400")
 
+            # Unique peer tag (db.name is on by default in the test agent)
+            with test_library.start_span(
+                    name=name, resource=resource, service=service, typestr=type, origin=origin
+            ) as span:
+                span.set_meta(key="http.status_code", val=http_status_code)
+                span.set_meta(key="db.name", val=db_name)
+
+            # Unique kind (This is off by default so should NOT create a unique bucket)
+            with test_library.start_span(
+                    name=name, resource=resource, service=service, typestr=type, origin=origin
+            ) as span:
+                span.set_meta(key="http.status_code", val=http_status_code)
+                span.set_meta(key="span.kind", val=kind)
+
         if test_server.lang == "golang":
             test_library.flush()
 
@@ -171,8 +193,8 @@ class Test_Library_Tracestats:
         bucket = buckets[0]
         stats = bucket["Stats"]
         assert (
-            len(stats) == 7
-        ), "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
+            len(stats) == 8
+        ), f"There should be eight stats entries in the bucket but there were {len(stats)}. There is one baseline entry and 7 that are unique along each of 7 dimensions."
 
         for s in stats:
             assert s["Hits"] == 1
@@ -466,3 +488,52 @@ class Test_Library_Tracestats:
 
         requests = test_agent.v06_stats_requests()
         assert len(requests) == 0, "No stats were computed"
+
+    @enable_tracestats()
+    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
+    @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
+    @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
+    @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
+    def test_metrics_computed_agg_span_kind(self, library_env, test_agent, test_library, test_server):
+        name = "name"
+        resource = "resource"
+        service = "service"
+        span_type = "http"
+        http_status_code = "200"
+        origin = "rum"
+        kind = "consumer"
+
+        with test_library:
+            # Baseline
+            with test_library.start_span(
+                    name=name, resource=resource, service=service, typestr=span_type, origin=origin
+            ) as span:
+                span.set_meta(key="http.status_code", val=http_status_code)
+
+            # Unique kind
+            with test_library.start_span(
+                    name=name, resource=resource, service=service, typestr=span_type, origin=origin
+            ) as span:
+                span.set_meta(key="http.status_code", val=http_status_code)
+                span.set_meta(key="span.kind", val=kind)
+
+        if test_server.lang == "golang":
+            test_library.flush()
+
+        requests = test_agent.v06_stats_requests()
+        assert len(requests) == 1, "Exactly one stats request is expected"
+        request = requests[0]["body"]
+        buckets = request["Stats"]
+        assert len(buckets) == 1, "There should be one bucket containing the stats"
+
+        bucket = buckets[0]
+        stats = bucket["Stats"]
+        assert (
+                len(stats) == 2
+        ), f"There should be two stats entries in the bucket but there were {len(stats)}. There is one baseline entry and 1 for the span kind."
+
+        for s in stats:
+            assert s["Hits"] == 1
+            assert s["TopLevelHits"] == 1
+            assert s["Duration"] > 0
+
