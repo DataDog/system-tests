@@ -24,10 +24,24 @@ def _get_span_meta(request):
     return meta
 
 
+def _get_span_meta_struct(request):
+    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
+    assert spans, "No root span found"
+    span = spans[0]
+    meta_struct = span.get("meta_struct", {})
+    return meta_struct
+
+
 def get_iast_event(request):
     meta = _get_span_meta(request=request)
-    assert "_dd.iast.json" in meta, "No _dd.iast.json tag in span"
-    return meta["_dd.iast.json"]
+    meta_struct = _get_span_meta_struct(request=request)
+
+    if "_dd.iast.json" in meta:
+        return meta["_dd.iast.json"]
+    elif "iast" in meta_struct:
+        return meta_struct["iast"]
+
+    raise AssertionError("No IAST event found in span")
 
 
 def assert_iast_vulnerability(
