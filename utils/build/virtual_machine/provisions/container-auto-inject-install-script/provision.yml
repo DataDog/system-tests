@@ -8,18 +8,14 @@ tested_components:
 #Mandatory: Steps to install provision 
 provision_steps:
   - init-config #Very first machine actions, like disable auto updates
-  - prepare-repos #Configure the reporitories for install auto-injection
   - prepare-docker #Prepare the docker environment
   - install-agent #Install the agent (allways latest release)
   - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
 
 init-config:
   cache: true
+  populate_env: false
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
-
-prepare-repos:
-  cache: true
-  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-prepare_repos.yml
 
 prepare-docker:
   cache: true

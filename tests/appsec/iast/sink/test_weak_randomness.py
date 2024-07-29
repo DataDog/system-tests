@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features
+from utils import features, flaky, context
 from ..utils import BaseSinkTestWithoutTelemetry
 
 
 @features.iast_sink_weakrandomness
+@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestWeakRandomness(BaseSinkTestWithoutTelemetry):
     """Test weak randomness detection."""
 

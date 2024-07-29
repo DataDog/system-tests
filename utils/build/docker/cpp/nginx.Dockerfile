@@ -17,7 +17,7 @@ COPY utils/build/docker/cpp/ binaries* /builds/
 
 WORKDIR /builds
 
-# NGINX Plugin setup 
+# NGINX Plugin setup
 RUN ./install_ddtrace.sh
 
 # Profiling setup

@@ -122,7 +122,11 @@ function init (app, tracer) {
 
     let consumer
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      consumer = kafka.consumer({
+        groupId: 'testgroup2',
+        heartbeatInterval: 10000, // should be lower than sessionTimeout
+        sessionTimeout: 60000
+      })
 
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
@@ -184,7 +188,11 @@ function init (app, tracer) {
 
     let consumer
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      consumer = kafka.consumer({
+        groupId: 'testgroup2',
+        heartbeatInterval: 10000, // should be lower than sessionTimeout
+        sessionTimeout: 60000
+      })
 
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
@@ -207,7 +215,9 @@ function init (app, tracer) {
             // do nothing
           }
 
-          deferred.resolve()
+          if (vulnKey === 'hello key!') {
+            deferred.resolve()
+          }
         }
       })
 

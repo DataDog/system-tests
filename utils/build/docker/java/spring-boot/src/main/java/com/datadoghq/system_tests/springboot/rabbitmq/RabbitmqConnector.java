@@ -140,7 +140,7 @@ public class RabbitmqConnector {
 
     public CompletableFuture<Boolean> startConsumingMessagesWithQueue(String queue, String exchange, Integer timeout) throws Exception {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        
+
         System.out.println("[rabbitmq] Start consuming messages");
         Thread thread = new Thread("RabbitmqConsume") {
             public void run() {

@@ -1,4 +1,4 @@
-FROM datadog/system-tests:uwsgi-poc.base-v2
+FROM datadog/system-tests:uwsgi-poc.base-v3
 
 WORKDIR /app
 

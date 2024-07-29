@@ -55,7 +55,8 @@ public class Main {
             private final Set<Object> singletons = Stream.of(
                     new MyResource(),
                     new IastSinkResource(),
-                    new IastSourceResource()
+                    new IastSourceResource(),
+                    new RaspResource()
             ).collect(Collectors.toSet());
 
             @Override

@@ -1,5 +1,0 @@
-[datadog-stable]
-baseurl=https://yum.datadoghq.com/stable/7/aarch64/
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://s3.amazonaws.com/public-signing-keys/DATADOG_RPM_KEY_CURRENT.public

@@ -1,6 +1,6 @@
-FROM node:18
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y jq
+RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 
@@ -12,6 +12,8 @@ COPY utils/build/docker/nodejs/express4 /usr/app
 COPY utils/build/docker/nodejs_otel/express4-otel /usr/app
 
 WORKDIR /usr/app
+
+ENV NODE_ENV=production
 
 RUN npm install
 
@@ -32,10 +34,10 @@ RUN npm install @opentelemetry/instrumentation-mysql2
 RUN npm install --save opentelemetry-instrumentation-mssql
 
 RUN npm list --json | jq -r '.dependencies."@opentelemetry/auto-instrumentations-node".version' > SYSTEM_TESTS_LIBRARY_VERSION
-RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
-RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+RUN printf "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
+RUN printf "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 # docker startup
-RUN echo '#!/bin/bash\nnode --require @opentelemetry/auto-instrumentations-node/register app.js' > app.sh
+RUN printf '#!/bin/bash\nnode --require @opentelemetry/auto-instrumentations-node/register app.js' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh

@@ -3,15 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import (
-    context,
     interfaces,
-    missing_feature,
     rfc,
     scenarios,
     weblog,
     features,
 )
-from utils.tools import logger
+from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 
 def get_schema(request, address):
@@ -27,11 +25,11 @@ def get_schema(request, address):
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
-class Test_API_Security_RC_ASM_DD_processors:
+class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM_DD - processors"""
 
     def setup_request_method(self):
-        interfaces.library.wait_for_remote_config_request()
+        self.setup_scenario()
         self.request = weblog.get("/tag_value/api_rc_processor/200?key=value")
 
     def test_request_method(self):
@@ -47,11 +45,11 @@ class Test_API_Security_RC_ASM_DD_processors:
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
-class Test_API_Security_RC_ASM_DD_scanners:
+class Test_API_Security_RC_ASM_DD_scanners(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM_DD - scanners"""
 
     def setup_request_method(self):
-        interfaces.library.wait_for_remote_config_request()
+        self.setup_scenario()
         self.request = weblog.post("/tag_value/api_rc_scanner/200", data={"mail": "systemtestmail@datadoghq.com"})
 
     def test_request_method(self):
@@ -82,13 +80,13 @@ class Test_API_Security_RC_ASM_DD_scanners:
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
-class Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner:
+class Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM - processor_overrides"""
 
     request_number = 0
 
     def setup_request_method(self):
-        interfaces.library.wait_for_remote_config_request()
+        self.setup_scenario()
         self.request = weblog.post("/tag_value/api_rc_processor_overrides/200", data={"testcard": "1234567890"})
 
     def test_request_method(self):

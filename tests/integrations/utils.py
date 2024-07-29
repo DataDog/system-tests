@@ -34,6 +34,14 @@ class BaseDbIntegrationsTestClass:
             BaseDbIntegrationsTestClass.requests[self.db_service][db_operation] = weblog.get(
                 "/db", params={"service": self.db_service, "operation": db_operation}
             )
+        if self.db_service == "mssql":
+            # Nodejs opentelemetry-instrumentation-mssql is too old and select query is not tracer allways
+            # see https://github.com/mnadeem/opentelemetry-instrumentation-mssql
+            # Retry to avoid flakyness
+            logger.debug("Retry select query for mssql .....")
+            BaseDbIntegrationsTestClass.requests[self.db_service]["select"] = weblog.get(
+                "/db", params={"service": self.db_service, "operation": "select"}
+            )
 
     # Setup methods. We set here to avoid duplication in child classes, even if some test metohs doesn't exists
     setup_properties = _setup
@@ -60,6 +68,10 @@ class BaseDbIntegrationsTestClass:
     setup_db_name = _setup
     setup_error_type_and_stack = _setup
     setup_error_message = _setup
+    setup_obfuscate_query = _setup
+    setup_sql_query = _setup
+    setup_sql_success = _setup
+    setup_NOT_obfuscate_query = _setup
 
     def get_requests(self, excluded_operations=(), operations=None):
         for db_operation, request in self.requests[self.db_service].items():

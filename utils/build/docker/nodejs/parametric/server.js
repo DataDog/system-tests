@@ -76,19 +76,20 @@ app.post('/trace/span/start', (req, res) => {
   for (const [key, value] of http_headers) {
       convertedHeaders[key.toLowerCase()] = value
   }
-  
+
   const extracted = tracer.extract('http_headers', convertedHeaders)
   if (extracted !== null) parent = extracted
+
+  const tags = { service: request.service }
+  for (const [key, value] of request.span_tags) tags[key] = value
 
   const span = tracer.startSpan(request.name, {
     type: request.type,
     resource: request.resource,
     childOf: parent,
-    tags: {
-        service: request.service
-    }
+    tags
   })
-  
+
   for (const link of request.links || []) {
     const linkParentId = link.parent_id;
     if (linkParentId) {
@@ -106,7 +107,7 @@ app.post('/trace/span/start', (req, res) => {
       }
     }
   }
-  
+
   spans[span.context().toSpanId()] = span
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
 });
@@ -186,7 +187,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         spanContext = new OtelSpanContext(extractedContext)
       }
       return {context: spanContext, attributes: link.attributes}
-    });  
+    });
 
     const span = otelTracer.startSpan(request.name, {
         type: request.type,
@@ -289,7 +290,7 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 app.get('/trace/config', (req, res) => {
   const dummyTracer = require('dd-trace').init()
   const config = dummyTracer._tracer._config
-  res.json( { 
+  res.json( {
     config: {
       'dd_service': config?.service !== undefined ? `${config.service}`.toLowerCase() : 'null',
       'dd_log_level': config?.logLevel !== undefined ? `${config.logLevel}`.toLowerCase() : 'null',
@@ -342,7 +343,7 @@ app.post("/trace/otel/record_exception", (req, res) => {
 //         request.end()
 //         res.json({});
 //     }
-    
+
 //   );
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;

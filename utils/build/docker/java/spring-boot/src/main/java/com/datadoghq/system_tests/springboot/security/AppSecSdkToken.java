@@ -34,11 +34,15 @@ public class AppSecSdkToken extends UsernamePasswordAuthenticationToken {
 
     @Override
     public String getName() {
-        if (getPrincipal() instanceof AppSecUser) {
+        if (sdkEvent != null) {
+            // report the provided username
+            return sdkUser;
+        } else if (getPrincipal() instanceof AppSecUser) {
             // report the id instead of the username
             return ((AppSecUser) getPrincipal()).getId();
+        } else {
+            return super.getName();
         }
-        return super.getName();
     }
 
     public String getSdkEvent() {

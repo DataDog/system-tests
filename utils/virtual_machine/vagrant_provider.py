@@ -106,7 +106,16 @@ class VagrantCommander(Commander):
         return last_task
 
     def remote_command(
-        self, vm, installation_id, remote_command, env, connection, last_task, logger_name=None, output_callback=None
+        self,
+        vm,
+        installation_id,
+        remote_command,
+        env,
+        connection,
+        last_task,
+        logger_name=None,
+        output_callback=None,
+        populate_env=True,
     ):
 
         logger.debug(f"Running remote-command with installation id: {installation_id}")

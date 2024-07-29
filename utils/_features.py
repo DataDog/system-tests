@@ -1070,9 +1070,9 @@ class features:
         return test_object
 
     @staticmethod
-    def deactivate_rules_using_rc(test_object):
+    def changing_rules_using_rc(test_object):
         """
-        Deactivate rules using RC
+        Changing rules using RC
 
         https://feature-parity.us1.prod.dog/#/?feature=157
         """
@@ -2198,9 +2198,9 @@ class features:
         return test_object
 
     @staticmethod
-    def host_auto_instrumentation_profiling(test_object):
+    def auto_instrumentation_profiling(test_object):
         """
-        Host auto-instrumentation with profiling
+        auto-instrumentation with profiling
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
@@ -2225,4 +2225,54 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=306
         """
         pytest.mark.features(feature_id=306)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_installation_script_profiling(test_object):
+        """
+        Profiling works when enabled through the agent installer script in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=307
+        """
+        pytest.mark.features(feature_id=307)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_instrumentation_profiling(test_object):
+        """
+        Profiling works when manually enabled with library injection in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=310
+        """
+        pytest.mark.features(feature_id=310)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_guardrail(test_object):
+        """
+        When in SSI, bail out if our version of language is incompatible.
+
+        https://feature-parity.us1.prod.dog/#/?feature=308
+        """
+        pytest.mark.features(feature_id=308)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_guardrail(test_object):
+        """
+        When in SSI, bail out if our version of language is incompatible or container is incompatible.
+
+        https://feature-parity.us1.prod.dog/#/?feature=309
+        """
+        pytest.mark.features(feature_id=309)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_untrusted_deserialization(test_object):
+        """
+        IAST Sink: Untrusted Deserialization
+
+        https://feature-parity.us1.prod.dog/#/?feature=316
+        """
+        pytest.mark.features(feature_id=316)(test_object)
         return test_object

@@ -1,0 +1,85 @@
+[
+    {
+        "language": "",
+        "id": "decorcf2-meth-45cf-9f39-591received",
+        "targetSpan": "ACTIVE",
+        "decorations": [
+            {
+                "when": {
+                    "json": {
+                        "gt": [
+                            {
+                                "ref": "intLocal"
+                            },
+                            {
+                                "ref": "intArg"
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "where": {
+            "typeName": "NotReallyExists",
+            "methodName": "SomeMethod",
+            "sourceFile": null
+        },
+        "evaluateAt": "EXIT"
+    },
+    {
+        "language": "",
+        "id": "decorcf2-meth-45cf-9f39-59installed",
+        "targetSpan": "ACTIVE",
+        "decorations": [
+            {
+                "when": {
+                    "json": {
+                        "gt": [
+                            {
+                                "ref": "intLocal"
+                            },
+                            {
+                                "ref": "intArg"
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "SpanDecorationProbe",
+            "sourceFile": null
+        },
+        "evaluateAt": "EXIT"
+    },
+    {
+        "language": "",
+        "id": "decorcf2-line-45cf-9f39-59installed",
+        "targetSpan": "ACTIVE",
+        "decorations": [
+            {
+                "when": {
+                    "json": {
+                        "gt": [
+                            {
+                                "ref": "intLocal"
+                            },
+                            {
+                                "ref": "intArg"
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "where": {
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
+            "lines": [
+                "44"
+            ]
+        },
+        "evaluateAt": "EXIT"
+    }
+]

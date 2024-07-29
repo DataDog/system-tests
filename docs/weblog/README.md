@@ -233,7 +233,7 @@ A GET request using a cookie with name `table` and any value. The value must be 
 
 #### GET /iast/source/cookiename/test
 
-A GET request using a cookie with name `user` and any value. The name must be used in the vulnerability.
+A GET request using a cookie with name `table` and any value. The name must be used in the vulnerability.
 
 #### POST /iast/source/multipart/test
 A multipart request uploading a file (with a file name).
@@ -387,7 +387,7 @@ Additionally both methods support the following query parameters to use the sdk 
 - `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
 
 ### GET /debugger
-These endpoints are used for the Live Debugger tests in `test_debugger.py`. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
+These endpoints are used for the Live Debugger tests. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
 
 #### GET /debugger/log
 This endpoint will be used to validate the log probe.
@@ -504,3 +504,18 @@ distributed tracing propagation headers.
 
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
+
+### GET /healthcheck
+
+Returns a JSON dict, with those values :
+
+```js
+{
+    "status": "ok",
+    "library": {
+      "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
+      "version": "1.2.3",  // version of the library
+      "libddwaf_version": "4.5.6"  // version of libddwaf
+    }
+  }
+```

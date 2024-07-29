@@ -11,11 +11,11 @@ public class MssqlConnection implements IDBConnector {
         String dbName = "master";
         String serverName="mssql";
         String dbUsername = "SA";
-        String dbPassword = "yourStrong(!)Password"; 
+        String dbPassword = "yourStrong(!)Password";
         String url = "jdbc:sqlserver://" +serverName + ":1433;DatabaseName=" + dbName + ";trustServerCertificate=true";
 
         Class.forName(dbDriver);
-        Connection con = DriverManager.getConnection(url, 
+        Connection con = DriverManager.getConnection(url,
                 dbUsername,
                 dbPassword);
         return con;

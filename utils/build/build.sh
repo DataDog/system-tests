@@ -70,7 +70,7 @@ print_usage() {
     echo -e "  Build images for Java and Spring Boot:"
     echo -e "    ${SCRIPT_NAME} --library java --weblog-variant spring-boot"
     echo -e "  Build default images for Dotnet with binary path:"
-    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""    
+    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""
     echo -e "  Build default images for Dotnet with binary url:"
     echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
     echo -e "  List libraries:"
@@ -78,7 +78,7 @@ print_usage() {
     echo -e "  List weblogs for PHP:"
     echo -e "    ${SCRIPT_NAME} --list-weblogs --library php"
     echo -e "  Print default weblog for Python:"
-    echo -e "    ${SCRIPT_NAME} --default-weblogs --library python"
+    echo -e "    ${SCRIPT_NAME} --default-weblog --library python"
     echo
     echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
@@ -134,14 +134,26 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
-              if [ ! -d "venv/" ]
-              then
-                  echo "Build virtual env"
-                  python3.9 -m venv venv
-              fi
-
-              source venv/bin/activate
-              python -m pip install --upgrade pip
+                if [ ! -d "venv/" ]
+                then
+                    echo "Build virtual env"
+                    if command -v python3.12 &> /dev/null
+                    then
+                        python3.12 -m venv venv
+                    elif command -v python3.9 &> /dev/null
+                    then
+                        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
+                        echo "DEPRECRATION WARNING: your using python3.9 to run system-tests."
+                        echo "This won't be supported soon. Install python 3.12, then run:"
+                        echo "> rm -rf venv && ./build.sh -i runner"
+                        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
+                        python3.9 -m venv venv
+                    else
+                        echo "Can't find python3.12, please install it"
+                    fi
+                fi
+                source venv/bin/activate
+                python -m pip install --upgrade pip wheel
             fi
             pip install -r requirements.txt
 
@@ -191,21 +203,21 @@ build() {
                 find . ! -name 'README.md' -type f -exec rm -f {} +
             }
 
-            if ! [[ -z "$BINARY_URL" ]]; then 
+            if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
                 clean-binaries
                 curl -L -O $BINARY_URL
                 cd ..
             fi
 
-            if ! [[ -z "$BINARY_PATH" ]]; then 
+            if ! [[ -z "$BINARY_PATH" ]]; then
                 cd binaries
                 clean-binaries
                 cp -r $BINARY_PATH/* ./
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile          
+            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \

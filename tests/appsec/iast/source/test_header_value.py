@@ -20,10 +20,6 @@ class TestHeaderValue(BaseSourceTest):
     source_value = "user"
 
     @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
-    @missing_feature(
-        context.library.library == "java" and "spring-boot" not in context.weblog_variant,
-        reason="Metrics not implemented",
-    )
     @missing_feature(library="dotnet", reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()

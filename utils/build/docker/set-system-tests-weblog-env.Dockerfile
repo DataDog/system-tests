@@ -7,7 +7,6 @@ ENV DD_TAGS='key1:val1, key2 : val2 '
 ENV DD_ENV=system-tests
 ENV DD_TRACE_DEBUG=true
 ENV DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
-ENV DD_TRACE_COMPUTE_STATS=true
 
 ENV SOME_SECRET_ENV=leaked-env-var
 

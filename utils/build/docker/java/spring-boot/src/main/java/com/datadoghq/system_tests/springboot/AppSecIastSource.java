@@ -88,7 +88,7 @@ public class AppSecIastSource {
     @GetMapping("/cookiename/test")
     String sourceCookieName(final HttpServletRequest request) {
         List<Cookie> cookies = Arrays.asList(request.getCookies());
-        final String table = find(cookies, c -> c.getName().equalsIgnoreCase("user"), Cookie::getName);
+        final String table = find(cookies, c -> c.getName().equalsIgnoreCase("table"), Cookie::getName);
         sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Cookies => %s", cookies);
     }

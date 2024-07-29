@@ -1,9 +1,11 @@
 import os
 import json
-from utils.tools import logger
+import hashlib
 
+from utils.tools import logger
 from utils._context.library_version import Version
 from utils import context
+from utils.onboarding.debug_vm import extract_logs_to_file
 
 
 class AWSInfraConfig:
@@ -96,6 +98,8 @@ class _VirtualMachine:
         self._vm_provision = None
         self.tested_components = {}
         self.deffault_open_port = 5985
+        self.agent_env = None
+        self.app_env = None
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
@@ -110,23 +114,36 @@ class _VirtualMachine:
         return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
 
     def add_provision(self, provision):
+
         self._vm_provision = provision
 
     def get_provision(self):
         return self._vm_provision
 
+    def add_agent_env(self, agent_env):
+        self.agent_env = agent_env
+
+    def add_app_env(self, app_env):
+        self.app_env = app_env
+
     def set_tested_components(self, components_json):
         """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
         self.tested_components = json.loads(components_json.replace("'", '"'))
+
+    def set_vm_logs(self, vm_logs):
+        """ Extract /var/log/ files to a folder in the host machine """
+        extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
         vm_cached_name = f"{self.name}_"
         if self.get_provision().lang_variant_installation:
             vm_cached_name += f"{self.get_provision().lang_variant_installation.id}_"
+        vm_cached_installations = ""
         for installation in self.get_provision().installations:
             if installation.cache:
-                vm_cached_name += f"{installation.id}_"
-        return vm_cached_name
+                vm_cached_installations += f"{installation.id}_"
+        vm_cached_installations = hashlib.shake_128(vm_cached_installations.encode("utf-8")).hexdigest(4)
+        return vm_cached_name + vm_cached_installations
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """
@@ -154,6 +171,24 @@ class _VirtualMachine:
         command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
         # VM name
         command_env["DD_VM_NAME"] = self.name
+        # Scenario custom environment: agent and app env variables
+        command_env["DD_AGENT_ENV"] = ""
+        command_env["DD_APP_ENV"] = ""
+        if self.agent_env:
+            agent_env_values = ""
+            for key, value in self.agent_env.items():
+                agent_env_values += f"{key}={value} \r"
+            command_env["DD_AGENT_ENV"] = agent_env_values
+        if self.app_env:
+            app_env_values = ""
+            for key, value in self.app_env.items():
+                app_env_values += f"{key}={value} "
+            command_env["DD_APP_ENV"] = app_env_values
+        else:
+            # Containers are taking the generated file with this, and we need some value to be present to avoid failures like:
+            # failed to read /home/ubuntu/scenario_app.env: line 1: unexpected character "'" in variable name "''"
+            command_env["DD_APP_ENV"] = "foo=bar"
+
         return command_env
 
 

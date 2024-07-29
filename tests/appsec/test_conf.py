@@ -11,20 +11,6 @@ TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 
 
 @features.threats_configuration
-class Test_StaticRuleSet:
-    """Appsec loads rules from a static rules file"""
-
-    @missing_feature(library="golang", reason="standard logs not implemented")
-    @missing_feature(library="ruby", reason="standard logs not implemented")
-    @missing_feature(library="php", reason="Rules file is not parsed")
-    @missing_feature(library="nodejs", reason="Rules file is not parsed")
-    def test_basic_hardcoded_ruleset(self):
-        """ Library has loaded a hardcoded AppSec ruleset"""
-        stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
-        stdout.assert_presence(r"AppSec loaded \d+ rules from file <?.*>?$", level="INFO")
-
-
-@features.threats_configuration
 class Test_RuleSet_1_2_4:
     """ AppSec uses rule set 1.2.4 or higher """
 

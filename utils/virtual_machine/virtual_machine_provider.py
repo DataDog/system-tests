@@ -91,6 +91,20 @@ class VmProvider:
         logger.stdout(f"[{vm.name}] Installing {provision.weblog_installation.id}")
         last_task = self._remote_install(server_connection, vm, last_task, provision.weblog_installation)
 
+        # Extract logs
+        if provision.vm_logs_installation:
+            logger.stdout(f"[{vm.name}] Extracting logs {provision.vm_logs_installation.id}")
+
+            output_callback = lambda args: args[0].set_vm_logs(args[1])
+            last_task = self._remote_install(
+                server_connection,
+                vm,
+                last_task,
+                provision.vm_logs_installation,
+                logger_name=f"{vm.name}_var_log",
+                output_callback=output_callback,
+            )
+
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
         """ Manages a installation. 
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation """
@@ -155,6 +169,7 @@ class VmProvider:
             last_task,
             logger_name=logger_name,
             output_callback=output_callback,
+            populate_env=installation.populate_env,
         )
 
 
@@ -183,7 +198,9 @@ class Commander:
             Return the current task executed."""
         raise NotImplementedError
 
-    def remote_command(self, id, remote_command, connection, last_task, logger_name, output_callback=None):
+    def remote_command(
+        self, id, remote_command, connection, last_task, logger_name, output_callback=None, populate_env=True
+    ):
         """ Execute a command in the remote server. 
             Use last_task to depend on the last executed task.
             logger_name is the name of the logger to use to store the output of the command.

@@ -239,7 +239,7 @@ class Test_BodyRaw:
     def setup_raw_body(self):
         self.r = weblog.post("/waf", data="/.adsensepostnottherenonobook")
 
-    @missing_feature(reason="no rule with body raw yet")
+    @irrelevant(reason="no rule with body raw yet")
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
         interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
@@ -341,22 +341,6 @@ class Test_BodyXml:
 
 
 @features.appsec_request_blocking
-class Test_Method:
-    """Appsec supports server.request.method"""
-
-    def test_main(self):
-        assert False, "Need to write a test"
-
-
-@features.appsec_request_blocking
-class Test_ClientIP:
-    """Appsec supports server.request.client_ip"""
-
-    def test_main(self):
-        assert False, "Need to write a test"
-
-
-@features.appsec_request_blocking
 class Test_ResponseStatus:
     """Appsec supports values on server.response.status"""
 
@@ -387,7 +371,6 @@ class Test_PathParams:
         )
 
 
-@features.appsec_request_blocking
 @features.grpc_threats_management
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""
@@ -408,7 +391,6 @@ class Test_gRPC:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
-@features.appsec_request_blocking
 @features.grpc_threats_management
 class Test_FullGrpc:
     """Full gRPC support"""
@@ -509,15 +491,6 @@ class Test_GraphQL:
         self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
 
 
-@features.appsec_request_blocking
-class Test_Lambda:
-    """Lambda support"""
-
-    def test_main(self):
-        assert False, "Need to write a test"
-
-
-@features.appsec_request_blocking
 @features.grpc_threats_management
 @scenarios.appsec_custom_rules
 class Test_GrpcServerMethod:

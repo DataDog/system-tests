@@ -4,7 +4,6 @@
 
 from utils import (
     context,
-    bug,
     interfaces,
     missing_feature,
     rfc,

@@ -1,9 +1,20 @@
 name: Install_system_tests_runner
 description: "Install python virtual env, and system dependencies, using github action cache if possible"
+inputs:
+  legacy_python_39:
+    description: "true to use python 3.9, false to use python 3.12"
+    default: "false"
+    required: false
+
 runs:
   using: composite
   steps:
     - uses: actions/setup-python@v5
+      if: ${{ inputs.legacy_python_39 != 'true' }}
+      with:
+        python-version: "3.12"
+    - uses: actions/setup-python@v5
+      if: ${{ inputs.legacy_python_39 == 'true' }}
       with:
         python-version: "3.9"
     - uses: actions/cache@v4

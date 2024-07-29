@@ -5,11 +5,11 @@ weblog:
       - os_type: linux
 
         copy_files:
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-container/test-app-ruby_docker_compose_run.sh
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-container/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
           - name: copy-ruby-rails-app
             local_path: lib-injection/build/docker/ruby
@@ -17,4 +17,4 @@ weblog:
           - name: copy-ruby-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-container/Dockerfile.template
 
-        remote-command: sh test-app-ruby_docker_compose_run.sh
+        remote-command: sh create_and_run_app_container.sh

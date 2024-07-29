@@ -11,6 +11,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.PathSegment;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlValue;
@@ -20,6 +22,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings("Convert2MethodRef")
 @Path("/")
@@ -153,6 +157,7 @@ public class MyResource {
 
     @GET
     @Path("/user_login_success_event")
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
     public String userLoginSuccess(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId) {
         datadog.trace.api.GlobalTracer.getEventTracker()
                 .trackLoginSuccessEvent(userId, METADATA);
@@ -162,6 +167,7 @@ public class MyResource {
 
     @GET
     @Path("/user_login_failure_event")
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
     public String userLoginFailure(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId,
                                    @DefaultValue("true") @QueryParam("event_user_exists") boolean eventUserExists) {
         datadog.trace.api.GlobalTracer.getEventTracker()
@@ -233,6 +239,28 @@ public class MyResource {
         result.response_headers = response_headers;
 
         return result;
+    }
+
+    @GET
+    @Path("/requestdownstream")
+    public String requestdownstream() {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GET
+    @Path("/returnheaders")
+    public String returnheaders(@Context final HttpHeaders headers) {
+        Map<String, String> headerMap = new HashMap<>();
+        headers.getRequestHeaders().forEach((key, value) -> headerMap.put(key, value.get(0)));
+        String json = "";
+        try {
+            json = new ObjectMapper().writeValueAsString(headerMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return json;
     }
 
     public static final class DistantCallResponse {

@@ -7,6 +7,7 @@ import json
 import threading
 
 from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
+from utils.dd_constants import RemoteConfigApplyState
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
@@ -376,6 +377,56 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
+
+    def assert_rc_apply_state(self, product: str, config_id: str, apply_state: RemoteConfigApplyState) -> None:
+        """
+            Check that all config_id/product have the expected apply_state returned by the library
+            Very simplified version of the assert_rc_targets_version_states
+
+        """
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            config_states = data["request"]["content"]["client"]["state"].get("config_states", [])
+
+            for config_state in config_states:
+                if config_state["id"] == config_id and config_state["product"] == product:
+                    logger.debug(f"In {data['log_filename']}: found {config_state}")
+                    assert config_state["apply_state"] == apply_state.value
+                    found = True
+
+        assert found, f"Nothing has been found for {config_id}/{product}"
+
+    def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
+        """
+            check that for a given targets_version, the config states is the one expected
+            EXPERIMENTAL (is it the good testing API ?)
+        """
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            state = data["request"]["content"]["client"]["state"]
+
+            if state["targets_version"] != targets_version:
+                continue
+
+            logger.debug(f"In {data['log_filename']}: found targets_version {targets_version}")
+
+            assert not state.get("has_error", False), f"State error found: {state.get('error')}"
+
+            observed_config_states = state.get("config_states", [])
+            logger.debug(f"Observed: {observed_config_states}")
+            logger.debug(f"expected: {config_states}")
+
+            # apply_error is optional, and can be none or empty string.
+            # remove it in that situation to simplify the comparison
+            observed_config_states = copy.deepcopy(observed_config_states)  # copy to not mess up futur checks
+            for observed_config_state in observed_config_states:
+                if "apply_error" in observed_config_state and observed_config_state["apply_error"] in (None, ""):
+                    del observed_config_state["apply_error"]
+
+            assert config_states == observed_config_states
+            found = True
+
+        assert found, f"Nothing has been found for targets_version {targets_version}"
 
     def assert_rasp_attack(self, request, rule: str, parameters=None):
         def validator(_, appsec_data):

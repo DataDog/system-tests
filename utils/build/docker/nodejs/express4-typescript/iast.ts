@@ -221,7 +221,7 @@ function initSinkRoutes (app: Express): void {
 
   app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
   app.post(
-    '/iast/mongodb-nosql-injection/test_secure', 
+    '/iast/mongodb-nosql-injection/test_secure',
     async function (req: Request, res: Response): Promise<void> {
       const url: string = 'mongodb://mongodb:27017/'
       const client = new MongoClient(url)
@@ -258,7 +258,7 @@ function initSinkRoutes (app: Express): void {
       .then((client: LdapClient) =>
         client.search(
           'ou=people',
-          filter, 
+          filter,
           (err: Error | null, searchRes: SearchCallbackResponse): Response | void => {
             if (err) return sendError(err)
 
@@ -311,7 +311,7 @@ function initSinkRoutes (app: Express): void {
     res.setHeader('testheader', 'not_tainted_string')
     res.send('OK')
   })
-  
+
   app.get('/iast/weak_randomness/test_insecure', (req: Request, res: Response): void => {
     const randomNumber: number = Math.random()
     res.send(`OK:${randomNumber}`)
@@ -410,7 +410,11 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      consumer = kafka.consumer({
+        groupId: 'testgroup2',
+        heartbeatInterval: 10000, // should be lower than sessionTimeout
+        sessionTimeout: 60000
+      })
 
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
@@ -476,7 +480,11 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      consumer = kafka.consumer({
+        groupId: 'testgroup2',
+        heartbeatInterval: 10000, // should be lower than sessionTimeout
+        sessionTimeout: 60000
+      })
 
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
@@ -495,7 +503,7 @@ function initSourceRoutes (app: Express): void {
         eachMessage: async ({ message }: { message: any }) => {
           // in some occasions we consume messages from dsm tests
           if (!message.key) return
-          
+
           const vulnKey = message.key.toString()
           try {
             readFileSync(vulnKey)
@@ -503,7 +511,9 @@ function initSourceRoutes (app: Express): void {
             // do nothing
           }
 
-          deferred.resolve?.()
+          if (vulnKey === 'hello key!') {
+            deferred.resolve?.()
+          }
         }
       })
 

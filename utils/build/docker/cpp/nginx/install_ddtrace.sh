@@ -43,7 +43,7 @@ FILENAME=ngx_http_datadog_module-appsec-$ARCH-$NGINX_VERSION.so
 if [ -f "$FILENAME" ]; then
   echo "Install NGINX plugin from binaries/$FILENAME"
   cp $FILENAME /usr/lib/nginx/modules/ngx_http_datadog_module.so
-  NGINX_DATADOG_VERSION="6.6.6"  # TODO : get the version from the file ? 
+  NGINX_DATADOG_VERSION="6.6.6"  # TODO : get the version from the file ?
 else
   NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
   TARBALL="$FILENAME.tgz"

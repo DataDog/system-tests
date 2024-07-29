@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, irrelevant, features, missing_feature
+from utils import context, irrelevant, features, missing_feature, flaky
 from ..utils import BaseSinkTestWithoutTelemetry
 
 
@@ -51,6 +51,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
 
 
 @features.iast_sink_unvalidatedheader
+@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection threw header."""
 

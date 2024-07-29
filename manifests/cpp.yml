@@ -27,6 +27,7 @@ tests/:
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
+        test_untrusted_deserialization.py: irrelevant (ASM is not implemented in C++)
         test_unvalidated_redirect.py: irrelevant (ASM is not implemented in C++)
         test_unvalidated_redirect_forward.py: irrelevant (ASM is not implemented in C++)
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
@@ -64,7 +65,6 @@ tests/:
       test_reports.py: irrelevant (ASM is not implemented in C++)
       test_rules.py: irrelevant (ASM is not implemented in C++)
       test_telemetry.py: irrelevant (ASM is not implemented in C++)
-    test_PII.py: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
     test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
@@ -77,6 +77,7 @@ tests/:
     test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
     test_logs.py: irrelevant (ASM is not implemented in C++)
     test_rate_limiter.py: irrelevant (ASM is not implemented in C++)
+    test_remote_config_rule_changes.py: irrelevant (ASM is not implemented in C++)
     test_reports.py: irrelevant (ASM is not implemented in C++)
     test_request_blocking.py: irrelevant (ASM is not implemented in C++)
     test_runtime_activation.py: irrelevant (ASM is not implemented in C++)
@@ -85,15 +86,16 @@ tests/:
     test_user_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
     test_versions.py: irrelevant (ASM is not implemented in C++)
   debugger/:
-    test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
-      Test_Debugger_Probe_Statuses: irrelevant
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: irrelevant
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
+    test_debugger_probe_snapshot.py:
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
+      Test_Debugger_Mix_Log_Probe: irrelevant
+    test_debugger_probe_status.py:
+      Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -127,7 +129,7 @@ tests/:
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
-    test_dynamic_configuration.py: 
+    test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_env_vars.py:
@@ -151,6 +153,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant

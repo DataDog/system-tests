@@ -1,0 +1,55 @@
+[
+  {
+    "language": "",
+    "id": "metricf2-meth-45cf-9f39-591received",
+    "metricName": "MetricCountInt",
+    "kind": "COUNT",
+    "value": {
+      "json": {
+        "ref": "id"
+      }
+    },
+    "where": {
+      "typeName": "NotReallyExists",
+      "methodName": "SomeMethod",
+      "sourceFile": null
+    },
+    "evaluateAt": "EXIT"
+  },
+  {
+    "language": "",
+    "id": "metricf2-meth-45cf-9f39-59installed",
+    "metricName": "MetricCountInt",
+    "kind": "COUNT",
+    "value": {
+      "json": {
+        "ref": "id"
+      }
+    },
+    "where": {
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "MetricProbe",
+      "sourceFile": null
+    },
+    "evaluateAt": "EXIT"
+  },
+  {
+    "language": "",
+    "id": "metricf2-line-45cf-9f39-59installed",
+    "kind": "COUNT",
+    "metricName": "MetricCountInt",
+    "value": {
+      "json": {
+        "ref": "id"
+      }
+    },
+    "where": {
+      "typeName": null,
+      "sourceFile": "ACTUAL_SOURCE_FILE",
+      "lines": [
+        "28"
+      ]
+    },
+    "evaluateAt": "EXIT"
+  }
+]

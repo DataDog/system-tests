@@ -4,20 +4,20 @@ jobs:
   system-tests:
     machine:
       # https://support.circleci.com/hc/en-us/articles/360007324514-How-can-I-use-Docker-volume-mounting-on-CircleCI-
-      image: ubuntu-2004:current
+      image: ubuntu-2404:current
     resource_class: large
     steps:
       - checkout
 
       - run:
-          name: Install python 3.9
-          command: sudo apt-get install python3.9-venv
+          name: Install python 3.12
+          command: sudo apt-get install python3.12-venv
 
       - run:
           name: versions
           command: |
             docker --version
-            python3.9 --version
+            python3.12 --version
             pip --version
 
       - run:

@@ -180,7 +180,16 @@ class KrunVmCommander(Commander):
         shutil.copyfile(local_path, os.path.join(self._get_shared_folder_path(vm), remote_path))
 
     def remote_command(
-        self, vm, installation_id, remote_command, env, connection, last_task, logger_name=None, output_callback=None
+        self,
+        vm,
+        installation_id,
+        remote_command,
+        env,
+        connection,
+        last_task,
+        logger_name=None,
+        output_callback=None,
+        populate_env=True,
     ):
         # Workaround with env variables  :-(
         export_command = ""

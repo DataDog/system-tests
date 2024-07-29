@@ -1,0 +1,25 @@
+[
+    {
+        "language": "",
+        "id": "logfb5a-1974-4cdb-b1dd-77dba2method",
+        "captureSnapshot": true,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "MixProbe",
+            "sourceFile": null
+        },
+        "evaluateAt": "EXIT"
+    },
+    {
+        "language": "",
+        "id": "logfb5a-1974-4cdb-b1dd-77dba2f1line",
+        "captureSnapshot": true,
+        "where": {
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
+            "lines": [
+                "52"
+            ]
+        }
+    }
+]

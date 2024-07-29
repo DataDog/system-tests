@@ -67,11 +67,11 @@ jobs:
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.image.name }}:g${{ github.sha }}
       - name: Tag image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run:
           docker tag ${{ matrix.image.internal }} ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest
       - name: Push image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.image.name }}:latest
 
@@ -148,11 +148,11 @@ jobs:
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:g${{ github.sha }}
       - name: Tag image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run:
           docker tag system_tests/${{ matrix.image }}:latest ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
       - name: Push image for release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           docker push ${{ env.REPO }}/docker/${{ matrix.library.name }}/${{ matrix.image }}-${{ matrix.app }}:latest
 
@@ -301,10 +301,10 @@ jobs:
     if: ${{ always() }}
     name: Aggregate (${{ matrix.app }})
     steps:
-      - name: Setup python 3.9
+      - name: Setup python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.12'
       - name: Checkout
         uses: actions/checkout@v4
         with:

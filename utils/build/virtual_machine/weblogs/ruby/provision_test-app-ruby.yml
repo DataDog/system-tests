@@ -24,6 +24,7 @@ lang_variant:
 
 weblog:
     name: test-app-ruby
+    # centos_7_amd64 is excluded because it does not provides the right Ruby versions
     excluded_os_branches: [amazon_linux2_dotnet6, ubuntu18_amd64, amazon_linux2_amd64, centos_7_amd64]
     install:
       - os_type: linux
@@ -33,7 +34,10 @@ weblog:
             local_path: lib-injection/build/docker/ruby/lib_injection_rails_app  
 
           - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app.service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
           - name: copy-run-weblog-script-ruby
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app-ruby_run.sh

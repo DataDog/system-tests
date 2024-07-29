@@ -1,3 +1,4 @@
+# if any change here, please update AgentContainer class
 ARG AGENT_IMAGE=datadog/agent:latest
 FROM $AGENT_IMAGE
 
