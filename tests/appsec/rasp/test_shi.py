@@ -21,7 +21,7 @@ class Test_Shi_UrlQuery:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "ls $(cat /etc/passwd 1>&2 ; echo .)"},
+                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
                 "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
@@ -43,7 +43,7 @@ class Test_Shi_BodyUrlEncoded:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "ls $(cat /etc/passwd 1>&2 ; echo .)"},
+                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
                 "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
@@ -66,7 +66,7 @@ class Test_Shi_BodyXml:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "ls $(cat /etc/passwd 1>&2 ; echo .)"},
+                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
                 "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
@@ -89,7 +89,7 @@ class Test_Shi_BodyJson:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "ls $(cat /etc/passwd 1>&2 ; echo .)"},
+                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
                 "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
