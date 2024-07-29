@@ -97,8 +97,8 @@ function initRoutes (app, tracer) {
       const timeout = req.query.timeout ?? 60
 
       kinesisProduce(stream, message, '1', timeout)
-        .then(() => {
-          kinesisConsume(stream, timeout * 1000, message)
+        .then((value) => {
+          kinesisConsume(stream, timeout * 1000, message, value.SequenceNumber)
             .then(() => {
               res.status(200).send('ok')
             })

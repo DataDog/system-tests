@@ -41,7 +41,7 @@ const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) =>
                 } else {
                   console.log('[Kinesis] Node.js Kinesis putRecord response: ' + data)
                   console.log('[Kinesis] Node.js Kinesis message sent successfully: ' + message)
-                  resolve()
+                  resolve(data)
                 }
               }
             )
@@ -64,7 +64,7 @@ const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) =>
   })
 }
 
-const kinesisConsume = (stream, timeout = 60000, message) => {
+const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis()
 
@@ -80,11 +80,22 @@ const kinesisConsume = (stream, timeout = 60000, message) => {
           if (response && response.StreamDescription && response.StreamDescription.StreamStatus === 'ACTIVE') {
             const shardId = response.StreamDescription.Shards[0].ShardId
 
-            kinesis.getShardIterator({
+            const params = {
               StreamName: stream,
-              ShardId: shardId,
-              ShardIteratorType: 'TRIM_HORIZON'
-            }, (err, response) => {
+              ShardId: shardId
+            }
+            if (sequenceNumber) {
+              Object.assign(params, {
+                StartingSequenceNumber: sequenceNumber,
+                ShardIteratorType: 'AT_SEQUENCE_NUMBER'
+              })
+            } else {
+              Object.assign(params, {
+                ShardIteratorType: 'TRIM_HORIZON'
+              })
+            }
+
+            kinesis.getShardIterator(params, (err, response) => {
               if (err) {
                 console.log(`[Kinesis] Error during Kinesis get shard iterator: ${err}`)
                 setTimeout(consumeMessage, 1000)
