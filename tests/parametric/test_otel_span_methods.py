@@ -100,7 +100,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
     @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
     @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
-    @missing_feature(context.library < "php@1.2.0", reason="Implemented in 1.2.0")
+    @missing_feature(context.library < "php@1.1.0", reason="Implemented in 1.2.0")
     @irrelevant(context.library == "golang", reason="Does not support automatic status code remapping to meta")
     @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
     @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
