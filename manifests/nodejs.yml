@@ -201,6 +201,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py:
         Test_Mandatory_SpanTags: *ref_5_18_0
         Test_Optional_SpanTags: *ref_5_18_0

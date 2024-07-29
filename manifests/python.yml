@@ -189,6 +189,7 @@ tests/:
         Test_Lfi_BodyUrlEncoded: v2.10.0.dev
         Test_Lfi_BodyXml: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
+      test_shi.py: missing_feature
       test_span_tags.py:
         Test_Mandatory_SpanTags: v2.10.0.dev
         Test_Optional_SpanTags: v2.10.0.dev

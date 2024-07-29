@@ -121,6 +121,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson: v1.66.0-dev
