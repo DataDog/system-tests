@@ -23,41 +23,66 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.weblog_responses = [weblog.get(request_path)]
 
+    def _assert(self, resposnses_ok: bool = True):
+        self.assert_all_states_not_error()
+        self.assert_all_probes_are_installed()
+
+        if resposnses_ok:
+            self.assert_all_weblog_responses_ok()
+
+        self._validate_expression_language_messages(self.message_map)
+
     def setup_expression_language_access_variables(self):
-        self._setup(base.read_probes("expression_language_access_variables"), "/debugger/expression?inputValue=asd")
+
+        message_map, probes = self._create_expression_probes(
+            methodName="Expression",
+            expressions=[
+                ["Accessing input", "asd", Dsl("ref", "inputValue"),],
+                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return"),],
+                ["Accessing local", 3, Dsl("ref", "localValue"),],
+                ["Accessing complex object int", 1, Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"]),],
+                ["Accessing complex object double", 1.1, Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"]),],
+                [
+                    "Accessing complex object string",
+                    "one",
+                    Dsl("getmember", [Dsl("ref", "testStruct"), "StringValue"]),
+                ],
+                [
+                    "Accessing complex object bool",
+                    "[Tt]rue",
+                    Dsl("getmember", [Dsl("ref", "testStruct"), "BoolValue"]),
+                ],
+                [
+                    "Accessing complex object collection first element",
+                    "one",
+                    Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Collection"]), 0]),
+                ],
+                [
+                    "Accessing complex object collection 'two' keyword",
+                    2,
+                    Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
+                ],
+                ["Accessing duration", "\d+(\.\d+)?", Dsl("ref", "@duration"),],
+            ],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression?inputValue=asd")
 
     def test_expression_language_access_variables(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        expected_messages = {
-            "log170aa-expr-lang-0001-1478a6method": "Accessing input variable. Value is: asd",
-            "log170aa-expr-lang-0002-1478a6method": r"Accessing return variable. Value is:.*Great success number 3",
-            "log170aa-expr-lang-0003-1478a6method": "Accessing local variable. Value is: 3",
-            "log170aa-expr-lang-0004-1478a6method": "Accessing complex object int variable. Value is: 1",
-            "log170aa-expr-lang-0005-1478a6method": "Accessing complex object double variable. Value is: 1.1",
-            "log170aa-expr-lang-0006-1478a6method": "Accessing complex object string variable. Value is: one",
-            "log170aa-expr-lang-0007-1478a6method": r"Accessing complex object bool variable. Value is: [Tt]rue",
-            "log170aa-expr-lang-0008-1478a6method": "Accessing complex object collection first variable. Value is: one",
-            "log170aa-expr-lang-0009-1478a6method": "Accessing complex object dictionary 'two' keyword. Value is: 2",
-            "log170aa-expr-lang-0010-1478a6method": r"Accessing duration variable. Value is: \d+(\.\d+)?",
-        }
-
-        self._validate_expression_language_messages(expected_messages)
+        self._assert()
 
     def setup_expression_language_access_exception(self):
-        self._setup(base.read_probes("expression_language_access_exception"), "/debugger/expression/exception")
+        message_map, probes = self._create_expression_probes(
+            methodName="ExpressionException",
+            expressions=[["Accessing exception", ".*Hello from exception", Dsl("ref", "@exception"),],],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/exception")
 
     def test_expression_language_access_exception(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-
-        expected_messages = {
-            "log170aa-expr-lang-0011-1478a6method": r"Accessing exception variable. .*Hello from exception",
-        }
-
-        self._validate_expression_language_messages(expected_messages)
+        self._assert(resposnses_ok=False)
 
     def setup_expression_language_comparison_operators(self):
         message_map, probes = self._create_expression_probes(
@@ -118,11 +143,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2524")
     def test_expression_language_comparison_operators(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        self._validate_expression_language_messages(self.message_map)
+        self._assert(resposnses_ok=False)
 
     def setup_expression_language_instance_of(self):
         message_map, probes = self._create_expression_probes(
@@ -169,11 +190,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
     @bug(library="java", reason="DEBUG-2527")
     @bug(library="dotnet", reason="DEBUG-2530")
     def test_expression_language_instance_of(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        self._validate_expression_language_messages(self.message_map)
+        self._assert()
 
     def setup_expression_language_logical_operators(self):
 
@@ -209,11 +226,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
     def test_expression_language_logical_operators(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        self._validate_expression_language_messages(self.message_map)
+        self._assert()
 
     def setup_expression_language_string_operations(self):
 
@@ -259,11 +272,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        self._validate_expression_language_messages(self.message_map)
+        self._assert()
 
     def setup_expression_language_collection_operations(self):
         message_map, probes = self._create_expression_probes(
@@ -361,11 +370,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
     @bug(library="dotnet", reason="DEBUG-2602")
     @bug(library="java", reason="DEBUG-2603")
     def test_expression_language_collection_operations(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        self._validate_expression_language_messages(self.message_map)
+        self._assert()
 
     def setup_expression_language_nulls_true(self):
         message_map, probes = self._create_expression_probes(
@@ -382,11 +387,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_true(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        self._validate_expression_language_messages(self.message_map)
+        self._assert()
 
     def setup_expression_language_nulls_false(self):
         message_map, probes = self._create_expression_probes(
@@ -404,11 +405,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_false(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        self._validate_expression_language_messages(self.message_map)
+        self._assert()
 
     def _get_type(self, value_type):
         if self.tracer is None:
