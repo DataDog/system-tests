@@ -11,7 +11,7 @@ import pytest
 
 from utils.parametric.spec.trace import SPAN_MEASURED_KEY
 from utils.parametric.spec.trace import V06StatsAggr
-from utils.parametric.spec.trace import find_span_with_trace_level_tags
+from utils.parametric.spec.trace import find_root_span
 from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -375,7 +375,7 @@ class Test_Library_Tracestats:
 
         durations: List[int] = []
         for trace in traces:
-            span = find_span_with_trace_level_tags(trace)
+            span = find_root_span(trace)
             durations.append(span["duration"])
 
         requests = test_agent.v06_stats_requests()

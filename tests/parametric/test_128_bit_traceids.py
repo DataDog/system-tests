@@ -445,12 +445,12 @@ class Test_128_Bit_Traceids:
         traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
-        chunk_root = find_span_with_trace_level_tags(trace)
+        first_span = find_span_with_trace_level_tags(trace)
         spans_with_tid = [span for span in trace if "_dd.p.tid" in span["meta"]]
         assert len(spans_with_tid) == 1
-        assert chunk_root == spans_with_tid[0]
+        assert first_span == spans_with_tid[0]
 
-        tid_chunk_root = chunk_root["meta"].get("_dd.p.tid")
+        tid_chunk_root = first_span["meta"].get("_dd.p.tid")
         assert tid_chunk_root is not None
 
     @missing_feature(context.library == "nodejs", reason="not implemented")

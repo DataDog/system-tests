@@ -447,8 +447,8 @@ class Test_Otel_Span_Methods:
         op2 = find_span(trace, span.span_id)
         assert op2["resource"] == "op2"
         assert op2["span_id"] == int(context["span_id"], 16)
-        chunk_root = find_span_with_trace_level_tags(trace)
-        op2_tidhex = chunk_root["meta"].get("_dd.p.tid", "") + "{:016x}".format(chunk_root["trace_id"])
+        first_span = find_span_with_trace_level_tags(trace)
+        op2_tidhex = first_span["meta"].get("_dd.p.tid", "") + "{:016x}".format(first_span["trace_id"])
         assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")

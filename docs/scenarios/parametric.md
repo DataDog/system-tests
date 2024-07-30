@@ -7,44 +7,46 @@ This enables us to write unit/integration-style test cases that can be shared.
 Example:
 
 ```python
-from utils.parametric.spec.trace import find_span, find_trace, find_span_in_traces, find_span_with_trace_level_tags
+from utils.parametric.spec.trace import find_span, find_trace, find_span_in_traces, find_span_with_trace_level_tags, find_root_span
 
 @pytest.mark.parametrize("library_env", [{"DD_ENV": "prod"}])
-    def test_datadog_spans(library_env, test_library, test_agent):
-        with test_library:
-            with test_library.start_span("operation") as s1:
-                with test_library.start_span("operation1", service="hello", parent_id=s1.span_id) as s2:
-                    pass
-
-            with test_library.start_span("otel_rocks") as os1:
+def test_datadog_spans(library_env, test_library, test_agent):
+    with test_library:
+        with test_library.start_span("operation") as s1:
+            with test_library.start_span("operation1", service="hello", parent_id=s1.span_id) as s2:
                 pass
 
-        # Waits for 2 traces to be captured and avoids sorting the received spans by start time
-        # Here we want to perserve the order of spans to easily access the chunk root span (first span in payload)
-        traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
-        assert len(traces) == 2, traces
+        with test_library.start_span("otel_rocks") as os1:
+            pass
 
-        trace1 = find_trace(traces, s1.trace_id)
-        assert len(trace1) == 2
+    # Waits for 2 traces to be captured and avoids sorting the received spans by start time
+    # Here we want to perserve the order of spans to easily access the chunk root span (first span in payload)
+    traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
+    assert len(traces) == 2, traces
 
-        span1 = find_span(trace1, s1.span_id)
-        assert span1["name"] == "operation"
+    trace1 = find_trace(traces, s1.trace_id)
+    assert len(trace1) == 2
 
-        span2 = find_span(trace1, s2.span_id)
-        assert span2["name"] == "operation1"
-        assert span2["service"] == "hello"
+    span1 = find_span(trace1, s1.span_id)
+    # Ensure span1 is the root span of trace1
+    assert span1 == find_root_span(trace1)
+    assert span1["name"] == "operation"
 
-        # Chunk root span can be span1 or span2 depending on how the trace was serialized
-        # This span will contain trace level tags (ex: _dd.p.tid)
-        chunk_root1 = find_span_with_trace_level_tags(trace1)
-        # Make sure trace level tags exist on the chunk root span
-        assert "language" in chunk_root1["meta"]
-        assert chunk_root1["meta"]["env"] == "prod"
+    span2 = find_span(trace1, s2.span_id)
+    assert span2["name"] == "operation1"
+    assert span2["service"] == "hello"
 
-        # Get one span from the list of captured traces
-        ospan = find_span_in_traces(traces, os1.trace_id, os1.span_id)
-        assert ospan["resource"] == "otel_rocks"
-        assert ospan["meta"]["env"] == "prod"
+    # Chunk root span can be span1 or span2 depending on how the trace was serialized
+    # This span will contain trace level tags (ex: _dd.p.tid)
+    first_span = find_span_with_trace_level_tags(trace1)
+    # Make sure trace level tags exist on the chunk root span
+    assert "language" in first_span["meta"]
+    assert first_span["meta"]["env"] == "prod"
+
+    # Get one span from the list of captured traces
+    ospan = find_span_in_traces(traces, os1.trace_id, os1.span_id)
+    assert ospan["resource"] == "otel_rocks"
+    assert ospan["meta"]["env"] == "prod"
 ```
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
