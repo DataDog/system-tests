@@ -5,13 +5,12 @@ import json
 import zipfile
 from base64 import b64decode
 from io import BytesIO
-from typing import Any
-from typing import Dict
+from typing import Any, Dict, List, Set
 from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios, features, missing_feature
+from utils import rfc, scenarios, features, context, missing_feature
 
 parametrize = pytest.mark.parametrize
 
@@ -50,15 +49,48 @@ def _flare_log_level_order() -> Dict[str, Any]:
     }
 
 
-def _set_log_level(test_agent, log_level: str) -> int:
+def _java_tracer_flare_filenames() -> Set:
+    return {
+        "classpath.txt",
+        "flare_info.txt",
+        "dynamic_config.txt",
+        "flare_info.txt",
+        "initial_config.txt",
+        "instrumenter_metrics.txt",
+        "instrumenter_state.txt",
+        "jvm_args.txt",
+        "library_path.txt",
+        "span_metrics.txt",
+        "threads.txt",
+        "tracer_health.txt",
+        "tracer_version.txt",
+    }
+
+
+def _java_tracer_flare_xor_filenames() -> List:
+    return [{"tracer.log"}, {"tracer_begin.log", "tracer_end.log"}]
+
+
+# DIFF FROM MAIN
+# def _set_log_level(test_agent, log_level: str) -> int:
+#    """Helper to create the appropriate "flare-log-level" config in RC for a given log-level.
+#    """
+#    cfg_id = uuid4().hex
+#    test_agent.set_remote_config(
+#        path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={"name": cfg_id, "config": {"log_level": log_level}}
+#    )
+#    test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2)
+#    return cfg_id
+
+
+def _set_log_level(test_agent, log_level: str) -> None:
     """Helper to create the appropriate "flare-log-level" config in RC for a given log-level.
-    """
-    cfg_id = uuid4().hex
+   """
+    cfg_id = f"flare-log-level.{log_level}"
     test_agent.set_remote_config(
         path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={"name": cfg_id, "config": {"log_level": log_level}}
     )
     test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2)
-    return cfg_id
 
 
 def _clear_log_level(test_agent, cfg_id: int) -> None:
@@ -73,7 +105,7 @@ def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
     """
     task_config["uuid"] = uuid4().hex
     task_id = hash(json.dumps(task_config))
-    test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
+    test_agent.add_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
     test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2)
     return task_id
 
@@ -106,6 +138,27 @@ def assert_valid_zip(content):
     assert flare_file.namelist(), "tracer_file zip must contain at least one entry"
 
 
+def assert_expected_files(content, min_files, xor_sets):
+    flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
+    s = set(flare_file.namelist())
+    assert len(min_files - s) == 0 and any(
+        (len(xor_set - s) == 0) for xor_set in xor_sets
+    ), "tracer_file zip must contain a minimum list of files"
+
+
+def assert_java_log_file(content):
+    flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
+    myfile = flare_file.open("tracer.log")
+    # file content: 'No tracer log file specified and no prepare flare event received'
+    assert flare_file.getinfo("tracer.log").file_size == 64, "tracer flare log file is not as expected"
+
+
+def assert_java_log_file_debug(content):
+    flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
+    myfile = flare_file.open("tracer.log")
+    assert flare_file.getinfo("tracer.log").file_size > 64, "tracer flare log file is not as expected"
+
+
 @rfc("https://docs.google.com/document/d/1U9aaYM401mJPTM8YMVvym1zaBxFtS4TjbdpZxhX3c3E")
 @scenarios.parametric
 @features.tracer_flare
@@ -130,15 +183,37 @@ class TestTracerFlareV1:
         assert_valid_zip(tracer_flare["flare_file"])
 
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
+    @missing_feature(
+        context.library < "java@1.38.0", reason="tracer log in flare has been implemented at version 1.38.0"
+    )
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_tracer_flare_content(self, library_env, test_agent, test_library):
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
+        if context.library == "java":
+            files = _java_tracer_flare_filenames()
+            xor_sets = _java_tracer_flare_xor_filenames()
+            assert_java_log_file(tracer_flare["flare_file"])
+        assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
+
+    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
-        log_cfg_id = _set_log_level(test_agent, "debug")
-
+        # DIFF FROM MAIN
+        # log_cfg_id = _set_log_level(test_agent, "debug")
+        _set_log_level(test_agent, "debug")
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
 
-        _clear_log_level(test_agent, log_cfg_id)
+        # DIFF FROM MAIN
+        # _clear_log_level(test_agent, log_cfg_id)
+        _clear_log_level(test_agent, "debug")
 
         assert_valid_zip(tracer_flare["flare_file"])
+
+        if context.library == "java":
+            files = _java_tracer_flare_filenames()
+            xor_sets = _java_tracer_flare_xor_filenames()
+            assert_java_log_file_debug(tracer_flare["flare_file"])
+        assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
