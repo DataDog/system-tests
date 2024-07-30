@@ -33,6 +33,7 @@ refs:
   - &ref_5_16_0 '>=5.16.0 || ^4.40.0'
   - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
+  - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -206,8 +207,21 @@ tests/:
         Test_Mandatory_SpanTags: *ref_5_18_0
         Test_Optional_SpanTags: *ref_5_18_0
       test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
-      test_stack_traces.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyUrlEncoded:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyXml: missing_feature # xml body not supported
+        Test_Ssrf_UrlQuery:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+      test_stack_traces.py:
+        Test_StackTrace:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
