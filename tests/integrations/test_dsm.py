@@ -287,6 +287,10 @@ class Test_DsmSQS:
             delete_sqs_queue(self.queue)
 
     def test_dsm_sqs(self):
+        import time
+
+        time.sleep(10)
+
         assert self.r.text == "ok"
 
         hash_inputs = {
@@ -346,6 +350,9 @@ class Test_DsmSNS:
             delete_sqs_queue(self.queue)
 
     def test_dsm_sns(self):
+        import time
+
+        time.sleep(10)
         assert self.r.text == "ok"
 
         topic = self.topic if context.library.library == "java" else f"arn:aws:sns:us-east-1:601427279990:{self.topic}"
