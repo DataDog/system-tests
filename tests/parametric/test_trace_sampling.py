@@ -3,7 +3,7 @@ import json
 import pytest
 import random
 
-from utils.parametric.spec.trace import find_span_in_traces
+from utils.parametric.spec.trace import find_only_span, find_span_in_traces
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
 from utils import rfc, scenarios, missing_feature, flaky, features, bug
 
@@ -50,7 +50,7 @@ class Test_Trace_Sampling_Basic:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver") as span:
                 pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -72,7 +72,7 @@ class Test_Trace_Sampling_Basic:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver") as span:
                 pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
@@ -117,7 +117,7 @@ class Test_Trace_Sampling_Globs:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver") as span:
                 pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -137,7 +137,7 @@ class Test_Trace_Sampling_Globs:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver") as span:
                 pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
@@ -182,7 +182,7 @@ class Test_Trace_Sampling_Globs_Feb2024_Revision:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver") as span:
                 pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -258,7 +258,7 @@ class Test_Trace_Sampling_Resource:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
                 pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -285,7 +285,7 @@ class Test_Trace_Sampling_Resource:
         with test_library:
             with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
                 pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
@@ -352,7 +352,7 @@ class Test_Trace_Sampling_Tags:
             with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
                 span.set_meta("tag1", "val1")
                 span.set_meta("tag2", "val2")
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
@@ -378,7 +378,7 @@ class Test_Trace_Sampling_Tags:
             with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
                 span.set_meta("tag1", "val1")
                 span.set_meta("tag2", "val2")
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
@@ -554,7 +554,7 @@ class Test_Trace_Sampling_With_W3C:
                 # but since headers were injected already, the sampling priority won't change
                 span.set_meta("tag2", "val2")
 
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         # sampling priority in headers reflects the state after new pair of tags was set
         assert headers["x-datadog-sampling-priority"] == "2"
