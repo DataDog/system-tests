@@ -136,10 +136,6 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
 
-        base.validate_probes(
-            {"log170aa-acda-4453-9111-1478a6method": "INSTALLED",}
-        )
-
         base.validate_snapshots(
             ["log170aa-acda-4453-9111-1478a6method",]
         )

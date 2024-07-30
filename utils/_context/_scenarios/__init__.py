@@ -692,7 +692,7 @@ class scenarios:
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
-        library_interface_timeout=20,
+        library_interface_timeout=5,
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
