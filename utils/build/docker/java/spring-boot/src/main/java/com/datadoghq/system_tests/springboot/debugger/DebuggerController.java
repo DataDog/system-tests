@@ -3,13 +3,13 @@ package com.datadoghq.system_tests.springboot;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.MediaType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 // The `debugger` feature allows attachment to specific lines of code.
 // Due to differences in line numbering between `dotnet` and `java`,
 // 'dummy lines' are used to standardize this functionality.
-// Dummy line
-// Dummy line
-// Dummy line
-// Dummy line
 // Dummy line
 
 @RestController
@@ -82,5 +82,43 @@ public class DebuggerController {
     @GetMapping("/expression/strings")
     public String stringOperations(@RequestParam String strValue, @RequestParam(required = false, defaultValue = "") String emptyString, @RequestParam(required = false) String nullString) {
         return "strValue " + strValue +". emptyString " + emptyString + ". " + nullString + ".";
+    }
+
+    @GetMapping("/expression/collections")
+    public String stringOperations() {
+        CollectionFactory factory = new CollectionFactory();
+
+        Object a0 = factory.getCollection(0, "array");
+        Object l0 = factory.getCollection(0, "list");
+        Object h0 = factory.getCollection(0, "hash");
+        Object a1 = factory.getCollection(1, "array");
+        Object l1 = factory.getCollection(1, "list");
+        Object h1 = factory.getCollection(1, "hash");
+        Object a5 = factory.getCollection(5, "array");
+        Object l5 = factory.getCollection(5, "list");
+        Object h5 = factory.getCollection(5, "hash");
+
+        int a0Count = ((int[]) a0).length;
+        int l0Count = ((List<?>) l0).size();
+        int h0Count = ((Map<?, ?>) h0).size();
+        int a1Count = ((int[]) a1).length;
+        int l1Count = ((List<?>) l1).size();
+        int h1Count = ((Map<?, ?>) h1).size();
+        int a5Count = ((int[]) a5).length;
+        int l5Count = ((List<?>) l5).size();
+        int h5Count = ((Map<?, ?>) h5).size();
+
+        return a0Count + "," + a1Count + "," + a5Count + "," + l0Count + "," + l1Count + "," + l5Count + "," + h0Count + "," + h1Count + "," + h5Count + ".";
+    }
+
+    @GetMapping("/expression/null")
+     public String nulls(
+            @RequestParam(required = false) Integer intValue,
+            @RequestParam(required = false) String strValue) {
+        PiiBase pii = null;
+
+        return "Pii is null " + (pii == null) +
+                ". intValue is null " + (intValue == null) +
+                ". strValue is null " + (strValue == null) + ".";
     }
 }

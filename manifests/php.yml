@@ -58,6 +58,8 @@ tests/:
           TestSSRF: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
@@ -105,6 +107,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
@@ -114,7 +117,7 @@ tests/:
         Test_BodyJson: v0.98.1 # TODO what is the earliest version?
         Test_BodyRaw: v0.68.3
         Test_BodyUrlEncoded: v0.68.3
-        Test_BodyXml: missing_feature
+        Test_BodyXml: v0.98.0
         Test_Cookies: v0.68.3
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
@@ -189,8 +192,8 @@ tests/:
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_traces.py:
-      Test_CollectDefaultRequestHeader: missing_feature
-      Test_ExternalWafRequestsIdentification: missing_feature
+      Test_CollectDefaultRequestHeader: v1.0.0
+      Test_ExternalWafRequestsIdentification: v1.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:

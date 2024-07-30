@@ -853,7 +853,7 @@ class RabbitMqContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mariadb:latest",
+            image_name="mysql/mysql-server:latest",
             name="mysqldb",
             command="--default-authentication-plugin=mysql_native_password",
             environment={
@@ -864,7 +864,7 @@ class MySqlContainer(SqlDbTestedContainer):
             },
             allow_old_container=True,
             host_log_folder=host_log_folder,
-            healthcheck={"test": ["CMD-SHELL", "healthcheck.sh --connect --innodb_initialized"], "retries": 60},
+            healthcheck={"test": "/healthcheck.sh", "retries": 60},
             dd_integration_service="mysql",
             db_user="mysqldb",
             db_password="mysqldb",

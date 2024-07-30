@@ -494,14 +494,13 @@ def java_library_factory():
         container_img=f"""
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar --no-cache https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
-RUN java -jar ./tracer/dd-java-agent.jar > SYSTEM_TESTS_LIBRARY_VERSION
+RUN mkdir ./tracer
 COPY {java_reldir}/src src
-COPY {java_reldir}/build.sh .
+COPY {java_reldir}/install_ddtrace.sh .
 COPY {java_reldir}/pom.xml .
 COPY {protofile} src/main/proto/
 COPY binaries /binaries
-RUN bash build.sh
+RUN bash install_ddtrace.sh
 COPY {java_reldir}/run.sh .
 """,
         container_cmd=["./run.sh"],

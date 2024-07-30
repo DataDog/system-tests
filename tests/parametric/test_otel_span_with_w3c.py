@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.test_agent import get_span
-from utils import missing_feature, irrelevant, context, scenarios, features
+from utils import missing_feature, irrelevant, context, scenarios, features, bug
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -45,6 +45,7 @@ class Test_Otel_Span_With_W3c:
         assert root_span["duration"] == duration_ns
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
+    @bug(context.library >= "python@2.9.3", reason="APMAPI-180")
     def test_otel_span_with_w3c_headers(self, test_agent, test_library):
         with test_library:
             with test_library.otel_start_span(

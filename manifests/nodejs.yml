@@ -128,6 +128,8 @@ tests/:
             nextjs: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': *ref_4_3_0
@@ -200,12 +202,26 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py:
         Test_Mandatory_SpanTags: *ref_5_18_0
         Test_Optional_SpanTags: *ref_5_18_0
       test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
-      test_stack_traces.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyUrlEncoded:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyXml: missing_feature # xml body not supported
+        Test_Ssrf_UrlQuery:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+      test_stack_traces.py:
+        Test_StackTrace:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:

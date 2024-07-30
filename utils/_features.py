@@ -2266,3 +2266,23 @@ class features:
         """
         pytest.mark.features(feature_id=309)(test_object)
         return test_object
+
+    @staticmethod
+    def iast_sink_untrusted_deserialization(test_object):
+        """
+        IAST Sink: Untrusted Deserialization
+
+        https://feature-parity.us1.prod.dog/#/?feature=316
+        """
+        pytest.mark.features(feature_id=316)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_shell_injection(test_object):
+        """
+        Appsec RASP rule : shell injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=318
+        """
+        pytest.mark.features(feature_id=318)(test_object)
+        return test_object
