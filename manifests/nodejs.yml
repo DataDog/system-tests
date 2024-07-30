@@ -410,7 +410,7 @@ tests/:
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           '*': irrelevant
-          express4: v0.1 # real version not known
+          express4: *ref_5_20_0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
