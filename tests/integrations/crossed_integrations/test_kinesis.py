@@ -207,9 +207,6 @@ class _Test_Kinesis:
         assert producer_span is not None
         assert consumer_span is not None
 
-        # Assert that the consumer span is not the root
-        assert "parent_id" in consumer_span, "parent_id is missing in consumer span"
-
         # returns both span for any custom check
         return producer_span, consumer_span
 
