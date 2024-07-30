@@ -112,6 +112,7 @@ tests/:
         Test_Lfi_BodyUrlEncoded: v2.51.0
         Test_Lfi_BodyXml: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
+      test_shi.py: missing_feature
       test_span_tags.py:
         Test_Mandatory_SpanTags: v2.52.0
         Test_Optional_SpanTags: v2.52.0
