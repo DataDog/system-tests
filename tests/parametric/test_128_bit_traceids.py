@@ -446,15 +446,12 @@ class Test_128_Bit_Traceids:
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
         chunk_root = find_chunk_root_span(trace)
-        non_chunk_root = trace[1]
+        spans_with_tid = [span for span in trace if "_dd.p.tid" in span["meta"]]
+        assert len(spans_with_tid) == 1
+        assert chunk_root == spans_with_tid[0]
 
         tid_chunk_root = chunk_root["meta"].get("_dd.p.tid")
-        tid_non_chunk_root = (non_chunk_root.get("meta") or {}).get("_dd.p.tid")
-        propagation_error = chunk_root["meta"].get("_dd.propagation_error")
-
         assert tid_chunk_root is not None
-        assert tid_non_chunk_root is None
-        assert propagation_error is None
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")

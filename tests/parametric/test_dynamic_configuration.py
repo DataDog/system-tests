@@ -98,7 +98,8 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
         2) The `_dd.rule_psr` metric is set to the correct value.
     """
     # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
-    assert trace[0]["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
+    span = find_chunk_root_span(trace)
+    assert span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
 
 
 def is_sampled(trace: List[Dict]):
@@ -112,7 +113,8 @@ def is_sampled(trace: List[Dict]):
     """
 
     # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
-    return trace[0]["metrics"].get("_sampling_priority_v1", 0) > 0
+    span = find_chunk_root_span(trace)
+    return span["metrics"].get("_sampling_priority_v1", 0) > 0
 
 
 def get_sampled_trace(test_library, test_agent, service, name, tags=None):
@@ -590,7 +592,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service="", name="env_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-3" (i.e., local RULE_RATE)
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-3"
@@ -719,7 +721,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-3" (i.e., local RULE_RATE)
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-3"
@@ -747,7 +749,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, RC_SAMPLING_TAGS_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user RULE_RATE)
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-11"
@@ -758,7 +760,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
@@ -768,7 +770,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
@@ -776,7 +778,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[])
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
@@ -809,7 +811,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, RC_SAMPLING_ADAPTIVE_RATE)
         # Make sure `_dd.p.dm` is set to "-12" (i.e., remote adaptive/dynamic sampling RULE_RATE)
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
 

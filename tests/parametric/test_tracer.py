@@ -4,6 +4,7 @@ import pytest
 
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
+from utils.parametric.spec.trace import find_chunk_root_span
 from utils import missing_feature, context, rfc, scenarios, features
 
 from .conftest import _TestAgentAPI
@@ -65,10 +66,12 @@ class Test_TracerSCITagging:
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        # the repository url should be injected in the first span of the trace
-        assert trace[0]["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
-        # and not in the others
-        assert "_dd.git.repository_url" not in trace[1].get("meta", {})
+        chunk_root = find_chunk_root_span(trace)
+        # the repository url should be injected ONLY in the first span of the trace
+        spans_with_git = [span for span in trace if "_dd.git.repository_url" in span["meta"]]
+        assert len(spans_with_git) == 1
+        assert chunk_root == spans_with_git[0]
+        assert chunk_root["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
 
     @parametrize("library_env", [{"DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}])
     def test_tracer_commit_sha_environment_variable(
@@ -89,10 +92,13 @@ class Test_TracerSCITagging:
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        # the repository url should be injected in the first span of the trace
-        assert trace[0]["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
-        # and not in the others
-        assert "_dd.git.commit.sha" not in trace[1].get("meta", {})
+        chunk_root = find_chunk_root_span(trace)
+        # the repository url should be injected ONLY in the first span of the trace
+        spans_with_git = [span for span in trace if "_dd.git.commit.sha" in span["meta"]]
+        assert len(spans_with_git) == 1
+        assert chunk_root == spans_with_git[0]
+
+        assert chunk_root["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
 
     @parametrize(
         "library_env",
@@ -145,8 +151,9 @@ class Test_TracerSCITagging:
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, parent.trace_id)
+        chunk_root = find_chunk_root_span(trace)
 
-        assert trace[0]["meta"]["_dd.git.repository_url"] == library_env["expected_repo_url"]
+        assert chunk_root["meta"]["_dd.git.repository_url"] == library_env["expected_repo_url"]
 
 
 @scenarios.parametric
@@ -167,7 +174,7 @@ class Test_TracerUniversalServiceTagging:
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, root.trace_id)
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert span["name"] == "operation"
         assert span["service"] == library_env["DD_SERVICE"]
 
@@ -187,6 +194,6 @@ class Test_TracerUniversalServiceTagging:
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, root.trace_id)
 
-        span = trace[0]
+        span = find_chunk_root_span(trace)
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
