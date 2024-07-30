@@ -8,7 +8,7 @@ from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
 from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
 from utils.parametric.spec.trace import MANUAL_DROP_KEY
 from utils.parametric.spec.trace import USER_KEEP
-from utils.parametric.spec.trace import find_span_in_traces, find_trace, find_span, find_span_with_trace_level_tags
+from utils.parametric.spec.trace import find_span_in_traces, find_trace, find_span, find_only_span
 from utils import missing_feature, context, scenarios, features, flaky
 
 
@@ -264,7 +264,7 @@ class Test_Span_Sampling:
         unsampled = []
 
         for trace in traces:
-            span = find_span_with_trace_level_tags(trace)
+            span = find_only_span(trace)
             if span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE:
                 sampled.append(trace)
             else:

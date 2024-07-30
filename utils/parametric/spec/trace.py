@@ -188,13 +188,11 @@ def find_only_span(traces: List[Trace]) -> Span:
     return traces[0][0]
 
 
-def find_span_with_trace_level_tags(trace: Trace) -> Span:
-    """Return the first span with trace level tags. This should correspond to the first span in a trace chunk."""
-    for span in trace:
-        for tag in span.get("meta", {}):
-            if "_dd.p." in tag.lower().strip():
-                return span
-    raise AssertionError(f"Span with trace level tags not found: {trace}")
+def find_first_span_in_trace_payload(trace: Trace) -> Span:
+    """Return the first span recieved by the trace agent. This is not necessarily the root span."""
+    # Note: Ensure traces are not sorted after receiving them from the agent.
+    # This helper will be used to find spans with propagation tags and some trace level tags
+    return trace[0]
 
 
 def find_root_span(trace: Trace) -> Optional[Span]:

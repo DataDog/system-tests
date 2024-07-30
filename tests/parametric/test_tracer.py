@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
-from utils.parametric.spec.trace import find_span_with_trace_level_tags
+from utils.parametric.spec.trace import find_first_span_in_trace_payload
 from utils.parametric.spec.trace import find_root_span
 from utils import missing_feature, context, rfc, scenarios, features
 
@@ -67,7 +67,7 @@ class Test_TracerSCITagging:
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        first_span = find_span_with_trace_level_tags(trace)
+        first_span = find_first_span_in_trace_payload(trace)
         # the repository url should be injected ONLY in the first span of the trace
         spans_with_git = [span for span in trace if "_dd.git.repository_url" in span["meta"]]
         assert len(spans_with_git) == 1
@@ -93,7 +93,7 @@ class Test_TracerSCITagging:
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        first_span = find_span_with_trace_level_tags(trace)
+        first_span = find_first_span_in_trace_payload(trace)
         # the repository url should be injected ONLY in the first span of the trace
         spans_with_git = [span for span in trace if "_dd.git.commit.sha" in span["meta"]]
         assert len(spans_with_git) == 1
@@ -152,7 +152,7 @@ class Test_TracerSCITagging:
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, parent.trace_id)
-        first_span = find_span_with_trace_level_tags(trace)
+        first_span = find_first_span_in_trace_payload(trace)
 
         assert first_span["meta"]["_dd.git.repository_url"] == library_env["expected_repo_url"]
 
