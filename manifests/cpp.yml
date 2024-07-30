@@ -52,6 +52,7 @@ tests/:
         test_uri.py: irrelevant (ASM is not implemented in C++)
     rasp/:
       test_lfi.py: irrelevant (ASM is not implemented in C++)
+      test_shi.py: irrelevant (ASM is not implemented in C++)
       test_span_tags.py: irrelevant (ASM is not implemented in C++)
       test_sqli.py: irrelevant (ASM is not implemented in C++)
       test_ssrf.py: irrelevant (ASM is not implemented in C++)
