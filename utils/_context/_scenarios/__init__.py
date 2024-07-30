@@ -569,7 +569,11 @@ class scenarios:
 
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "false",
+        },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
