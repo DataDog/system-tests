@@ -7,7 +7,7 @@ This enables us to write unit/integration-style test cases that can be shared.
 Example:
 
 ```python
-from utils.parametric.spec.trace import find_span, find_trace, find_span_in_traces, find_chunk_root_span
+from utils.parametric.spec.trace import find_span, find_trace, find_span_in_traces, find_span_with_trace_level_tags
 
 @pytest.mark.parametrize("library_env", [{"DD_ENV": "prod"}])
     def test_datadog_spans(library_env, test_library, test_agent):
@@ -36,7 +36,7 @@ from utils.parametric.spec.trace import find_span, find_trace, find_span_in_trac
 
         # Chunk root span can be span1 or span2 depending on how the trace was serialized
         # This span will contain trace level tags (ex: _dd.p.tid)
-        chunk_root1 = find_chunk_root_span(trace1)
+        chunk_root1 = find_span_with_trace_level_tags(trace1)
         # Make sure trace level tags exist on the chunk root span
         assert "language" in chunk_root1["meta"]
         assert chunk_root1["meta"]["env"] == "prod"

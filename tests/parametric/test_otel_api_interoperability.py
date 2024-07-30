@@ -4,7 +4,7 @@ import pytest
 
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
 from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER
-from utils.parametric.spec.trace import find_trace, find_span, find_chunk_root_span, retrieve_span_links
+from utils.parametric.spec.trace import find_trace, find_span, find_span_with_trace_level_tags, retrieve_span_links
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -69,7 +69,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 2
 
-        root = find_chunk_root_span(trace)
+        root = find_span_with_trace_level_tags(trace)
         span = find_span(trace, otel_span.span_id)
         assert span.get("resource") == "otel_span"
 
@@ -118,7 +118,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, otel_span.trace_id)
         assert len(trace) == 2
 
-        root = find_chunk_root_span(trace)
+        root = find_span_with_trace_level_tags(trace)
         assert root.get("resource") == "otel_span"
 
         span = find_span(trace, dd_span.span_id)
@@ -153,7 +153,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        dd_span = find_chunk_root_span(trace)
+        dd_span = find_span_with_trace_level_tags(trace)
         meta = dd_span["meta"]
 
         # Span-life changes
@@ -194,7 +194,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        dd_span = find_chunk_root_span(trace)
+        dd_span = find_span_with_trace_level_tags(trace)
         metrics = dd_span["metrics"]
 
         # Span-life changes
@@ -245,7 +245,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, otel_span.trace_id)
         assert len(trace) == 1
 
-        root = find_chunk_root_span(trace)
+        root = find_span_with_trace_level_tags(trace)
         span_links = retrieve_span_links(root)
         assert len(span_links) == 1
 
@@ -277,8 +277,8 @@ class Test_Otel_API_Interoperability:
         trace2 = find_trace(traces, dd_root.trace_id)
         assert len(trace2) == 2
 
-        root1 = find_chunk_root_span(trace1)
-        root2 = find_chunk_root_span(trace2)
+        root1 = find_span_with_trace_level_tags(trace1)
+        root2 = find_span_with_trace_level_tags(trace2)
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
@@ -326,8 +326,8 @@ class Test_Otel_API_Interoperability:
         trace2 = find_trace(traces, dd_root.trace_id)
         assert len(trace2) == 2
 
-        root1 = find_chunk_root_span(trace1)
-        root2 = find_chunk_root_span(trace2)
+        root1 = find_span_with_trace_level_tags(trace1)
+        root2 = find_span_with_trace_level_tags(trace2)
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
@@ -375,8 +375,8 @@ class Test_Otel_API_Interoperability:
         trace2 = find_trace(traces, dd_root.trace_id)
         assert len(trace2) == 2
 
-        root1 = find_chunk_root_span(trace1)
-        root2 = find_chunk_root_span(trace2)
+        root1 = find_span_with_trace_level_tags(trace1)
+        root2 = find_span_with_trace_level_tags(trace2)
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
@@ -416,7 +416,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        root = find_chunk_root_span(trace)
+        root = find_span_with_trace_level_tags(trace)
         assert root["trace_id"] == 42
         assert root["parent_id"] == 3
         assert "foo" not in root["meta"]
@@ -452,7 +452,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        root = find_chunk_root_span(trace)
+        root = find_span_with_trace_level_tags(trace)
         assert root["trace_id"] == 123456789
         assert root["parent_id"] == 987654321
         assert root["meta"]["_dd.p.foo"] == "bar"
@@ -481,7 +481,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        root = find_chunk_root_span(trace)
+        root = find_span_with_trace_level_tags(trace)
         assert root["metrics"]["int"] == 1
         assert root["metrics"]["float"] == 1.0
         assert root["meta"]["bool"] == "true"
@@ -522,7 +522,7 @@ class Test_Otel_API_Interoperability:
         trace = find_trace(traces, otel_span.span_id)
         assert len(trace) == 1
 
-        root = find_chunk_root_span(trace)
+        root = find_span_with_trace_level_tags(trace)
         assert root["metrics"]["int"] == 1
         assert root["metrics"]["float"] == 1.0
         assert root["meta"]["bool"] == "true"

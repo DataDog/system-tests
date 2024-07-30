@@ -1,7 +1,7 @@
 import pytest
 
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.spec.trace import find_chunk_root_span, find_trace, find_only_span
+from utils.parametric.spec.trace import find_span_with_trace_level_tags, find_trace, find_only_span
 from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -445,7 +445,7 @@ class Test_128_Bit_Traceids:
         traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
-        chunk_root = find_chunk_root_span(trace)
+        chunk_root = find_span_with_trace_level_tags(trace)
         spans_with_tid = [span for span in trace if "_dd.p.tid" in span["meta"]]
         assert len(spans_with_tid) == 1
         assert chunk_root == spans_with_tid[0]

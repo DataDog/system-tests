@@ -10,7 +10,7 @@ from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links
-from utils.parametric.spec.trace import find_chunk_root_span
+from utils.parametric.spec.trace import find_span_with_trace_level_tags
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import bug, features, missing_feature, irrelevant, flaky, context, scenarios
 
@@ -447,7 +447,7 @@ class Test_Otel_Span_Methods:
         op2 = find_span(trace, span.span_id)
         assert op2["resource"] == "op2"
         assert op2["span_id"] == int(context["span_id"], 16)
-        chunk_root = find_chunk_root_span(trace)
+        chunk_root = find_span_with_trace_level_tags(trace)
         op2_tidhex = chunk_root["meta"].get("_dd.p.tid", "") + "{:016x}".format(chunk_root["trace_id"])
         assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
 

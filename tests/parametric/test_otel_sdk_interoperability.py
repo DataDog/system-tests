@@ -4,7 +4,7 @@ import pytest
 
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
 from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER
-from utils.parametric.spec.trace import find_trace, find_chunk_root_span, retrieve_span_links
+from utils.parametric.spec.trace import find_trace, find_span_with_trace_level_tags, retrieve_span_links
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -28,7 +28,7 @@ class Test_Otel_SDK_Interoperability:
     @staticmethod
     def assert_span_link(trace):
         assert len(trace) == 1
-        root = find_chunk_root_span(trace)
+        root = find_span_with_trace_level_tags(trace)
         span_links = retrieve_span_links(root)
         assert len(span_links) == 1
 
@@ -80,7 +80,7 @@ class Test_Otel_SDK_Interoperability:
         trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        dd_span = find_chunk_root_span(trace)
+        dd_span = find_span_with_trace_level_tags(trace)
         meta = dd_span["meta"]
 
         # Span-life changes
@@ -133,7 +133,7 @@ class Test_Otel_SDK_Interoperability:
         trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        dd_span = find_chunk_root_span(trace)
+        dd_span = find_span_with_trace_level_tags(trace)
         metrics = dd_span["metrics"]
 
         # Span-life changes
@@ -170,7 +170,7 @@ class Test_Otel_SDK_Interoperability:
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, otel_span.trace_id)
         assert len(trace) == 1
-        assert find_chunk_root_span(trace)["resource"] == "my_new_resource2"
+        assert find_span_with_trace_level_tags(trace)["resource"] == "my_new_resource2"
 
     def test_span_links_basic(self, test_agent, test_library):
         """
