@@ -1,5 +1,4 @@
 require 'datadog/kit/appsec/events'
-require 'rdkafka'
 
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -169,68 +168,4 @@ class SystemTestController < ApplicationController
 
     render plain: 'Hello, world!'
   end
-
-
-  def kafka_produce
-    config = {
-      :"bootstrap.servers" => "kafka:9092",
-      :"client.id" => "system-tests-client-producer",
-      :"group.id" => "system-tests-group",
-    }
-    topic = request.params["topic"]
-    producer = Rdkafka::Config.new(config).producer
-    stop = false
-    while stop == false
-      delivery_handles = []
-      begin
-        Datadog::Tracing.trace('kafka_produce') do |span|
-          delivery_handles << producer.produce(
-            topic:   topic,
-            payload: "Hello, world!",
-          )
-          # This has to be done manually for now, because ruby does not add the topic
-          # to the span at all
-          span.set_tag("span.kind", "producer")
-          span.set_tag("kafka.topic", topic)
-          stop = true
-        end
-      rescue Rdkafka::BaseError
-      end
-      delivery_handles.each(&:wait)
-    end
-    producer.close
-
-    render plain: "Done"
-  end
-
-
-  def kafka_consume
-    config = {
-      :"bootstrap.servers" => "kafka:9092",
-      :"client.id" => "system-tests-client-consumer",
-      :"group.id" => "system-tests-group",
-      :"auto.offset.reset" => "earliest",
-    }
-    topic = request.params["topic"]
-    consumer = Rdkafka::Config.new(config).consumer
-    consumer.subscribe(topic)
-    begin
-      consumer.each do |message|
-        if not message.nil?
-          Datadog::Tracing.trace('kafka_consume') do |span|
-            span.set_tag("span.kind", "consumer")
-            span.set_tag("kafka.topic", topic)
-          end
-          break
-        end
-      end
-    rescue Exception => e
-      puts "An error has occurred while consuming messages from Kafka: #{e}"
-    ensure
-      consumer.close
-    end
-
-    render plain: "Done"
-  end
-
 end
