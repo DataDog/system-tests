@@ -68,7 +68,9 @@ tests/:
     iast/:
       sink/:
         test_code_injection.py:
-          TestCodeInjection: *ref_5_20_0
+          TestCodeInjection:
+            '*': *ref_5_20_0
+            nextjs: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0
