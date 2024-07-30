@@ -447,10 +447,10 @@ tests/:
         express4: missing_feature
       Test_DsmSNS:
         '*': irrelevant
-        express4: *ref_5_2_0
+        express4: *ref_5_20_0
       Test_DsmSQS:
         '*': irrelevant
-        express4: *ref_5_20_0
+        express4: *ref_5_2_0
   parametric/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
