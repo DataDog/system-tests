@@ -263,7 +263,21 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 ### Shared Interface
 
-#### GRPC
+#### HTTP
+
+An HTTP interface can be used instead of the GRPC. To view the interface run
+
+```
+./utils/scripts/parametric/run_reference_http.sh
+```
+
+and navigate to http://localhost:8000/docs. The OpenAPI schema can be downloaded at
+http://localhost:8000/openapi.json. The schema can be imported
+into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
+other tooling to assist in development.
+
+
+#### Legacy GRPC
 
 In order to achieve shared tests, we introduce a shared GRPC interface to the clients. Thus, each client need only implement the GRPC interface server and then these shared tests can be run against the library. The GRPC interface implements common APIs across the clients which provide the building blocks for test cases.
 
@@ -280,19 +294,6 @@ service APMClient {
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
 ```
-
-#### HTTP
-
-An HTTP interface can be used instead of the GRPC. To view the interface run
-
-```
-PORT=8000 ./utils/scripts/parametric/run_reference_http.sh
-```
-
-and navigate to http://localhost:8000/docs. The OpenAPI schema can be downloaded at
-http://localhost:8000/openapi.json. The schema can be imported
-into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
-other tooling to assist in development.
 
 
 ### Architecture

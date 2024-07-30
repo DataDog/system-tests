@@ -28,6 +28,7 @@ tests/:
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
+        test_untrusted_deserialization.py: irrelevant (ASM is not implemented in C++)
         test_unvalidated_redirect.py: irrelevant (ASM is not implemented in C++)
         test_unvalidated_redirect_forward.py: irrelevant (ASM is not implemented in C++)
         test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
@@ -52,6 +53,7 @@ tests/:
         test_uri.py: irrelevant (ASM is not implemented in C++)
     rasp/:
       test_lfi.py: irrelevant (ASM is not implemented in C++)
+      test_shi.py: irrelevant (ASM is not implemented in C++)
       test_span_tags.py: irrelevant (ASM is not implemented in C++)
       test_sqli.py: irrelevant (ASM is not implemented in C++)
       test_ssrf.py: irrelevant (ASM is not implemented in C++)
@@ -77,6 +79,7 @@ tests/:
     test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
     test_logs.py: irrelevant (ASM is not implemented in C++)
     test_rate_limiter.py: irrelevant (ASM is not implemented in C++)
+    test_remote_config_rule_changes.py: irrelevant (ASM is not implemented in C++)
     test_reports.py: irrelevant (ASM is not implemented in C++)
     test_request_blocking.py: irrelevant (ASM is not implemented in C++)
     test_runtime_activation.py: irrelevant (ASM is not implemented in C++)

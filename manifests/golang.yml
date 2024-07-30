@@ -74,6 +74,8 @@ tests/:
           TestSSRF: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
@@ -121,6 +123,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson: v1.66.0-dev
@@ -299,6 +302,8 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule:
         '*': v1.62.0
@@ -319,6 +324,7 @@ tests/:
       Test_AppSecRequestBlocking: v1.50.0-rc.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+      Test_RuntimeDeactivation: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:

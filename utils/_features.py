@@ -1070,9 +1070,9 @@ class features:
         return test_object
 
     @staticmethod
-    def deactivate_rules_using_rc(test_object):
+    def changing_rules_using_rc(test_object):
         """
-        Deactivate rules using RC
+        Changing rules using RC
 
         https://feature-parity.us1.prod.dog/#/?feature=157
         """
@@ -2275,4 +2275,24 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=309
         """
         pytest.mark.features(feature_id=309)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_untrusted_deserialization(test_object):
+        """
+        IAST Sink: Untrusted Deserialization
+
+        https://feature-parity.us1.prod.dog/#/?feature=316
+        """
+        pytest.mark.features(feature_id=316)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_shell_injection(test_object):
+        """
+        Appsec RASP rule : shell injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=318
+        """
+        pytest.mark.features(feature_id=318)(test_object)
         return test_object

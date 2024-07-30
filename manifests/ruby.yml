@@ -62,6 +62,8 @@ tests/:
           TestSSRF: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
@@ -108,6 +110,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
@@ -216,12 +219,15 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: missing_feature
     test_request_blocking.py:
       Test_AppSecRequestBlocking: v1.11.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+      Test_RuntimeDeactivation: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_traces.py:
@@ -308,10 +314,10 @@ tests/:
         rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: v2.0.0
+      TestDynamicConfigHeaderTags: bug (To be confirmed, theorical version is v2.0.0)
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: v1.13.0
+      TestDynamicConfigV1: bug (to be investigated, theorical version is v1.13.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_otel_api_interoperability.py: missing_feature

@@ -33,6 +33,7 @@ refs:
   - &ref_5_16_0 '>=5.16.0 || ^4.40.0'
   - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
+  - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -129,6 +130,8 @@ tests/:
             nextjs: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': *ref_4_3_0
@@ -201,12 +204,26 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py:
         Test_Mandatory_SpanTags: *ref_5_18_0
         Test_Optional_SpanTags: *ref_5_18_0
       test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
-      test_stack_traces.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyUrlEncoded:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyXml: missing_feature # xml body not supported
+        Test_Ssrf_UrlQuery:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+      test_stack_traces.py:
+        Test_StackTrace:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -338,6 +355,8 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
       Test_Info: v2.0.0
@@ -349,6 +368,7 @@ tests/:
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
+      Test_RuntimeDeactivation: *ref_3_9_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_traces.py:

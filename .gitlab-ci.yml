@@ -7,6 +7,7 @@ stages:
   - java_tracer
   - python_tracer
   - dotnet_tracer
+  - php_tracer
   - parse_results
   - before_tests
 
@@ -34,8 +35,9 @@ onboarding_nodejs:
   stage: nodejs_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - when: manual
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
@@ -70,8 +72,9 @@ onboarding_java:
   stage: java_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - when: manual
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   variables:
     TEST_LIBRARY: "java"
   parallel:
@@ -106,8 +109,9 @@ onboarding_python:
   stage: python_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - when: manual
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   variables:
     TEST_LIBRARY: "python"
   parallel:
@@ -142,8 +146,9 @@ onboarding_dotnet:
   stage: dotnet_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - when: manual
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   variables:
     TEST_LIBRARY: "dotnet"
   parallel:
@@ -175,8 +180,9 @@ onboarding_ruby:
   stage: ruby_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - when: manual
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   variables:
     TEST_LIBRARY: "ruby"
   parallel:
@@ -199,6 +205,25 @@ onboarding_ruby:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
+  script:
+      - ./build.sh -i runner
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+
+onboarding_php:
+  extends: .base_job_onboarding_system_tests
+  stage: php_tracer
+  allow_failure: true
+  dependencies: []
+  rules:
+    - when: manual
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  variables:
+    TEST_LIBRARY: "php"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws

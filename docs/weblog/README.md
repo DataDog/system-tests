@@ -504,3 +504,39 @@ distributed tracing propagation headers.
 
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
+
+### GET /healthcheck
+
+Returns a JSON dict, with those values :
+
+```js
+{
+    "status": "ok",
+    "library": {
+      "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
+      "version": "1.2.3",  // version of the library
+      "libddwaf_version": "4.5.6"  // version of libddwaf
+    }
+  }
+```
+
+### \[GET,POST\] /rasp/shi
+
+This endpoint is used to test for shell injection attacks, consequently it must call a shell command by using a function or method which results in an actual shell being launched (e.g. /bin/sh). The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `list_dir`: containing the string to inject on the shell command.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+system("ls $list_dir");
+```
+
+Examples:
+- `GET`: `/rasp/shi?list_dir=$(cat /etc/passwd 1>&2 ; echo .)
+- `POST`: `{"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}`

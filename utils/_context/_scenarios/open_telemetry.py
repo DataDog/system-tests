@@ -57,6 +57,10 @@ class OpenTelemetryScenario(DockerScenario):
             self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
             self._required_containers.append(self.collector_container)
         self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        if include_agent:
+            self.weblog_container.depends_on.append(self.agent_container)
+        if include_collector:
+            self.weblog_container.depends_on.append(self.collector_container)
         self._required_containers.append(self.weblog_container)
         self.include_agent = include_agent
         self.include_collector = include_collector

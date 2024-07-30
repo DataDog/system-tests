@@ -40,3 +40,11 @@ sudo chown -R $(whoami) ~/.docker
 ## NodeJs weblog experimenting segfaults on Mac/Intel
 
 In docker dashbaord, setting, general, untick `Use Virtualization Framework`. See this [Stack overflow thread](https://stackoverflow.com/questions/76735062/segmentation-fault-in-node-js-application-running-in-docker).
+
+## Parametric scenario : `GRPC recvmsg:Connection reset by peer`
+
+The GRPC interface seems to be less stable. No other solution than retry so far.
+
+## Parametric scenario : `Fail to bind port`
+
+Docker seems to sometimes keep a host port open, even after the container being removed. There is wait and rety mechanism, but it may be not enough. No other solution than retry so far.
