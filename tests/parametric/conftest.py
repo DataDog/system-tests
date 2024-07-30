@@ -574,7 +574,6 @@ class _TestAgentAPI:
         return list
 
     def add_remote_config(self, path, payload):
-        print("CTE add_more_remote_config")
         current_rc = self.get_remote_config()
         current_rc.append({"path": path, "msg": payload})
         remote_config_payload = self._build_config_path_response(current_rc)

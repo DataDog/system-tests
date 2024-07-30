@@ -5,10 +5,7 @@ import json
 import zipfile
 from base64 import b64decode
 from io import BytesIO
-from typing import Any
-from typing import Dict
-from typing import Set
-from typing import List
+from typing import Any, Dict, List, Set 
 from uuid import uuid4
 
 import pytest
