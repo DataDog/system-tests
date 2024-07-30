@@ -110,4 +110,15 @@ public class DebuggerController {
 
         return a0Count + "," + a1Count + "," + a5Count + "," + l0Count + "," + l1Count + "," + l5Count + "," + h0Count + "," + h1Count + "," + h5Count + ".";
     }
+
+    @GetMapping("/expression/null")
+     public String nulls(
+            @RequestParam(required = false) Integer intValue,
+            @RequestParam(required = false) String strValue) {
+        PiiBase pii = null;
+
+        return "Pii is null " + (pii == null) +
+                ". intValue is null " + (intValue == null) +
+                ". strValue is null " + (strValue == null) + ".";
+    }
 }
