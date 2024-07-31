@@ -1,6 +1,7 @@
 [
     {
         "language": "",
+        "type": "",
         "id": "log170aa-acda-4453-9111-1478a6method",
         "where": {
             "typeName": "ACTUAL_TYPE_NAME",
@@ -11,6 +12,7 @@
     },
     {
         "language": "",
+        "type": "",
         "id": "metricaa-acda-4453-9111-1478a6method",
         "metricName": "MetricCountInt",
         "kind": "COUNT",
@@ -28,6 +30,7 @@
     },
     {
         "language": "",
+        "type": "",
         "id": "span70aa-acda-4453-9111-1478a6method",
         "where": {
             "typeName": "ACTUAL_TYPE_NAME",
@@ -38,6 +41,7 @@
     },
     {
         "language": "",
+        "type": "",
         "id": "decor0aa-acda-4453-9111-1478a6method",
         "targetSpan": "ACTIVE",
         "decorations": [

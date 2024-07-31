@@ -1,6 +1,7 @@
 [
     {
         "language": "",
+        "pii": "",
         "id": "log170aa-acda-4453-9111-1478a6method",
         "where": {
             "typeName": "ACTUAL_TYPE_NAME",
