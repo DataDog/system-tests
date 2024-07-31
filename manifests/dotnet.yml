@@ -116,7 +116,11 @@ tests/:
       test_span_tags.py:
         Test_Mandatory_SpanTags: v2.52.0
         Test_Optional_SpanTags: v2.52.0
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson: v2.54.0
+        Test_Sqli_BodyUrlEncoded: v2.54.0
+        Test_Sqli_BodyXml: v2.54.0
+        Test_Sqli_UrlQuery: v2.54.0
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.51.0
         Test_Ssrf_BodyUrlEncoded: v2.51.0
