@@ -96,7 +96,7 @@ class Test_Suspicious_Attacker_Blocking:
         # normal block
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
-        assert self.response_1.status_code == 403
+        assert self.response_2.status_code == 403
 
         # block on 405 if suspicious IP
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
