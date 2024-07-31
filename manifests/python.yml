@@ -457,6 +457,8 @@ tests/:
       Test_RuntimeDeactivation: v2.10.1
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: v2.11.0.dev
     test_traces.py:
       Test_AppSecEventSpanTags: v0.58.5
       Test_AppSecObfuscator:
