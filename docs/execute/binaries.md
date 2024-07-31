@@ -38,7 +38,7 @@ But, obviously, testing validated versions of components is not really interesti
 
 OR
 
-1. Create a file `nodejs-load-from-load` in `binaries/`, the content will be installed by `npm link` to the local folder
+1. Create a file `nodejs-load-from-local` in `binaries/`, the content will be installed by `npm link` to the local folder
 at the location mounted as a Docker volume.
 
 ## PHP library
