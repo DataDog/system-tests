@@ -107,8 +107,8 @@ namespace weblog
         {
             [XmlText]
             public string Value { get; set; }
-        }        
-        
+        }
+
         [HttpPost("sqli")]
         [Consumes("application/xml")]
         public IActionResult SqliPostXml([FromBody] SqliModel data)
@@ -137,7 +137,7 @@ namespace weblog
 			}
         }
 
-        
+
 		[HttpPost("sqli")]
         [Consumes("application/json")]
         public IActionResult SqliPostJson([FromBody] Model data)
@@ -151,7 +151,7 @@ namespace weblog
 				return BadRequest("No params provided");
 			}
         }
-        
+
         private string SqlQuery(string user)
         {
             var sb = new System.Text.StringBuilder();
