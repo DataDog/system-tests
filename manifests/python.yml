@@ -343,7 +343,7 @@ tests/:
         fastapi: v2.4.0.dev1
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': v2.10.0
+        '*': v2.10.0rc1
         uwsgi-poc: bug
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
