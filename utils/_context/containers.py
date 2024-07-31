@@ -704,7 +704,7 @@ class WeblogContainer(TestedContainer):
             self._library = LibraryVersion(lib["language"], lib["version"])
             self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
 
-            if hasattr(lib, "appsec_event_rules_version"):
+            if "appsec_event_rules_version" in lib:
                 self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
 
         logger.stdout(f"Library: {self.library}")
