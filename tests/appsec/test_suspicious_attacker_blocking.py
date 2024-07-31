@@ -96,10 +96,7 @@ class Test_Suspicious_Attacker_Blocking:
         self.response_2 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
 
         self.config_state_3 = (
-            rc.rc_state.set_config(*BLOCK_405)
-            .set_config(*EXCLUSIONS)
-            .set_config(*EXCLUSION_DATA)
-            .apply()
+            rc.rc_state.set_config(*BLOCK_405).set_config(*EXCLUSIONS).set_config(*EXCLUSION_DATA).apply()
         )
         self.response_3 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
         self.response_3b = weblog.get("/waf/", headers=HEADERS_REGULAR)
@@ -111,6 +108,8 @@ class Test_Suspicious_Attacker_Blocking:
         self.config_state_5 = rc.rc_state.del_config(EXCLUSION_DATA[0]).apply()
         self.response_5 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
 
+        self.config_state_6 = rc.rc_state.reset().apply()
+
     def test_block_suspicious_attacker(self):
         # ASM disabled
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
@@ -120,8 +119,7 @@ class Test_Suspicious_Attacker_Blocking:
         # normal block
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
-        assert self.response_2.status_code == 403
-        # assert self.response_2.headers["content-type"] == "application/json"
+        assert self.response_1.status_code == 403
 
         # block on 405 if suspicious IP
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
@@ -139,3 +137,6 @@ class Test_Suspicious_Attacker_Blocking:
         assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_5, rule="ua0-600-56x")
         assert self.response_5.status_code == 403
+
+        # properly reset all
+        assert self.config_state_6[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
