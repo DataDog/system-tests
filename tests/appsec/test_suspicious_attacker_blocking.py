@@ -57,6 +57,12 @@ HEADERS_ATTACKER = {
 }
 HEADERS_REGULAR = {"User-Agent": "dd-test-scanner-log-block"}
 
+HEADERS_ATTACKER_NON_BLOCKING = {
+    "User-Agent": "Arachni/v1",
+    "X-Real-Ip": "34.65.27.85",
+}
+HEADERS_REGULAR_NON_BLOCKING = {"User-Agent": "Arachni/v1"}
+
 
 @scenarios.appsec_runtime_activation
 @features.suspicious_attacker_blocking
@@ -77,13 +83,18 @@ class Test_Suspicious_Attacker_Blocking:
         )
         self.response_3 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
         self.response_3b = weblog.get("/waf/", headers=HEADERS_REGULAR)
+        self.response_3ᐩ = weblog.get("/waf/", headers=HEADERS_ATTACKER_NON_BLOCKING)
+        self.response_3bᐩ = weblog.get("/waf/", headers=HEADERS_REGULAR_NON_BLOCKING)
 
         self.config_state_4 = rc.rc_state.set_config(*BLOCK_416).apply()
         self.response_4 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
         self.response_4b = weblog.get("/waf/", headers=HEADERS_REGULAR)
+        self.response_4ᐩ = weblog.get("/waf/", headers=HEADERS_ATTACKER_NON_BLOCKING)
+        self.response_4bᐩ = weblog.get("/waf/", headers=HEADERS_REGULAR_NON_BLOCKING)
 
         self.config_state_5 = rc.rc_state.del_config(EXCLUSION_DATA[0]).apply()
         self.response_5 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
+        self.response_5ᐩ = weblog.get("/waf/", headers=HEADERS_ATTACKER_NON_BLOCKING)
 
         self.config_state_6 = rc.rc_state.reset().apply()
 
@@ -103,17 +114,25 @@ class Test_Suspicious_Attacker_Blocking:
         interfaces.library.assert_waf_attack(self.response_3, rule="ua0-600-56x")
         assert self.response_3.status_code == 405
         assert self.response_3b.status_code == 403
+        # non blocking rule should block with suspicious IP
+        assert self.response_3ᐩ.status_code == 405
+        assert self.response_3bᐩ.status_code == 200
 
         # block on 416 if suspicious IP
         assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
         assert self.response_4.status_code == 416
         assert self.response_4b.status_code == 403
+        # non blocking rule should block with suspicious IP
+        assert self.response_4ᐩ.status_code == 416
+        assert self.response_4bᐩ.status_code == 200
 
         # no more suspicious IP
         assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_5, rule="ua0-600-56x")
+        # non blocking rule should not block anymore
         assert self.response_5.status_code == 403
+        assert self.response_5ᐩ.status_code == 200
 
         # properly reset all
         assert self.config_state_6[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
