@@ -31,13 +31,15 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.get('/healthcheck', (req: Request, res: Response) => {
+  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
+
   res.json({
     status: 'ok',
     library: {
       language: 'nodejs',
       version: require('dd-trace/package.json').version,
       libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
-      appsec_event_rules_version: require('dd-trace/packages/dd-trace/src/appsec/waf').wafManager?.rulesVersion
+      appsec_event_rules_version: require(rulesPath).metadata.rules_version
     }
   });
 })
