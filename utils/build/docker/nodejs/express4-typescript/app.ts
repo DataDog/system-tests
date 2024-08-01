@@ -32,6 +32,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.get('/healthcheck', (req: Request, res: Response) => {
   const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
+  const maybeRequire = name => { try { return require(name) } catch (e) {} }
 
   res.json({
     status: 'ok',
@@ -39,7 +40,7 @@ app.get('/healthcheck', (req: Request, res: Response) => {
       language: 'nodejs',
       version: require('dd-trace/package.json').version,
       libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
-      appsec_event_rules_version: require(rulesPath).metadata.rules_version
+      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
     }
   });
 })
