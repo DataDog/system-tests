@@ -18,7 +18,7 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
 RUN echo '#!/bin/bash \n\
-ddtrace-run uwsgi --http :7777 -w app:app --enable-threads\n' > app.sh
+ddtrace-run uwsgi --http :7777 -w app:app --processes=2 --enable-threads\n' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 
