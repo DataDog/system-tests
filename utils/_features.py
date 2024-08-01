@@ -1124,7 +1124,7 @@ class features:
         """
         IAST Sink: Code Injection
 
-        https://feature-parity.us1.prod.dog/#/?feature=166
+        https://feature-parity.us1.prod.dog/#/?feature=315
         """
         pytest.mark.features(feature_id=315)(test_object)
         return test_object
