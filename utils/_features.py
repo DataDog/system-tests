@@ -2268,6 +2268,16 @@ class features:
         return test_object
 
     @staticmethod
+    def suspicious_attacker_blocking(test_object):
+        """
+        Threats: request blocking on suspicious attacker
+
+        https://feature-parity.us1.prod.dog/#/?feature=311
+        """
+        pytest.mark.features(feature_id=311)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_untrusted_deserialization(test_object):
         """
         IAST Sink: Untrusted Deserialization
