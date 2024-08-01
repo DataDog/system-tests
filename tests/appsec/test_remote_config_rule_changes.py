@@ -94,6 +94,8 @@ class Test_BlockingActionChangesWithRemoteConfig:
 RULE_FILE = (
     "datadog/2/ASM_DD/rules/config",
     {
+        "version": "2.2",
+        "metadata": {"rules_version": "1.13.0"},
         "rules": [
             {
                 "id": "ua0-600-12x",
@@ -117,7 +119,7 @@ RULE_FILE = (
                 ],
                 "transformers": [],
             },
-        ]
+        ],
     },
 )
 
