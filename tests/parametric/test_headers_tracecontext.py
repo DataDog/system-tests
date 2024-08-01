@@ -1116,6 +1116,68 @@ class Test_Headers_Tracecontext:
     # - test_multiple_requests_without_traceparent(self):
     # - test_multiple_requests_with_illegal_traceparent(self):
 
+@scenarios.parametric
+@features.datadog_headers_propagation
+class Test_Headers_Tracecontext2:
+    @temporary_enable_optin_tracecontext()
+    @missing_feature(context.library == "cpp", reason="not implemented")
+    @missing_feature(context.library == "dotnet", reason="not implemented")
+    @missing_feature(context.library == "golang", reason="not implemented")
+    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "java", reason="not implemented")
+    @missing_feature(context.library == "php", reason="not implemented")
+    @missing_feature(context.library == "python", reason="not implemented")
+    @missing_feature(context.library == "ruby", reason="not implemented")
+    def test_propagates_random_flag(self, test_agent, test_library):
+        """
+        harness sends a request with a traceparent with the random flag set
+        expects a valid traceparent from the output header, with the random flag set
+        """
+        with test_library:
+            traceparent1, tracestate1 = make_single_request_and_get_tracecontext(
+                test_library, [['traceparent', '00-12345678901234567890123456789012-1234567890123456-01',],]
+            )
+
+            traceparent2, tracestate2 = make_single_request_and_get_tracecontext(
+                test_library, [['traceparent', '00-12345678901234567890123456789012-1234567890123456-02',],]
+            )
+
+        assert traceparent1.trace_id == "12345678901234567890123456789012"
+        assert traceparent1.parent_id != "1234567890123456"
+        # assert that the random flag (second least significant bit) IS NOT set
+        # since it was not set in the incoming traceparent
+        assert (int(traceparent1.trace_flags) & 0b10) == 0b00
+
+        assert traceparent2.trace_id == "12345678901234567890123456789012"
+        assert traceparent2.parent_id != "1234567890123456"
+        # assert that the random flag (second least significant bit) IS set
+        # since it was set in the incoming traceparent
+        assert (int(traceparent2.trace_flags) & 0b10) == 0b10
+
+    @temporary_enable_optin_tracecontext()
+    @missing_feature(context.library == "cpp", reason="not implemented")
+    @missing_feature(context.library == "dotnet", reason="not implemented")
+    @missing_feature(context.library == "golang", reason="not implemented")
+    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library == "java", reason="not implemented")
+    @missing_feature(context.library == "php", reason="not implemented")
+    @missing_feature(context.library == "python", reason="not implemented")
+    @missing_feature(context.library == "ruby", reason="not implemented")
+    def test_generates_random_flag(self, test_agent, test_library):
+        """
+        harness sends a request without a traceparent
+        expects a new traceparent with the random flag set
+        """
+        with test_library:
+            traceparent, tracestate = make_single_request_and_get_tracecontext(
+                test_library, [[]]
+            )
+
+        # assert that the random flag (second least significant bit) IS set
+        # because the Datadog tracers generate trace-ids where the last 7 bits
+        # are random, in other words in the range of [0..2^56-1]
+        assert (int(traceparent.trace_flags) & 0b10) == 0b10
+        
 
 def make_single_request_and_get_tracecontext(test_library, headers_list):
     return get_tracecontext(make_single_request_and_get_inject_headers(test_library, headers_list))
