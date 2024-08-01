@@ -181,7 +181,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
-      Test_UpdateRuleFileWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: v0.8.0
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, but was flaky
