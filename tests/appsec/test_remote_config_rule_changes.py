@@ -10,15 +10,18 @@ from utils import scenarios
 from utils import weblog
 
 
-CONFIG_ENABLED = "datadog/2/ASM_FEATURES/asm_features_activation/config", {"asm": {"enabled": True}}
+CONFIG_ENABLED = (
+    "datadog/2/ASM_FEATURES/asm_features_activation/config",
+    {"asm": {"enabled": True}},
+)
 BLOCK_405 = (
     "datadog/2/ASM/actions/config",
-    {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request"}]},
+    {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request",}]},
 )
 
 BLOCK_505 = (
     "datadog/2/ASM/actions/config",
-    {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request"}]},
+    {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request",}]},
 )
 
 BLOCK_REDIRECT = (
@@ -54,10 +57,10 @@ class Test_BlockingActionChangesWithRemoteConfig:
 
         self.config_state_4 = rc.rc_state.set_config(*BLOCK_REDIRECT).apply()
         self.response_4 = weblog.get(
-            "/waf/", headers={"User-Agent": "dd-test-scanner-log-block"}, allow_redirects=False
+            "/waf/", headers={"User-Agent": "dd-test-scanner-log-block"}, allow_redirects=False,
         )
 
-        self.config_state_5 = rc.rc_state.del_config(CONFIG_ENABLED[0]).apply()
+        self.config_state_5 = rc.rc_state.reset().apply()
         self.response_5 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
     def test_block_405(self):

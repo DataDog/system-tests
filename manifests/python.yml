@@ -344,7 +344,6 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.10.0rc1
-        uwsgi-poc: bug
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0.dev but will be replaced by V2)
@@ -458,6 +457,8 @@ tests/:
       Test_RuntimeDeactivation: v2.10.1
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: v2.11.0.dev
     test_traces.py:
       Test_AppSecEventSpanTags: v0.58.5
       Test_AppSecObfuscator:
