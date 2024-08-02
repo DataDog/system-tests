@@ -2288,6 +2288,26 @@ class features:
         return test_object
 
     @staticmethod
+    def user_id_collection_modes(test_object):
+        """
+        Threats: User ID collection modes
+
+        https://feature-parity.us1.prod.dog/#/?feature=312
+        """
+        pytest.mark.features(feature_id=312)(test_object)
+        return test_object
+
+    @staticmethod
+    def fingerprinting(test_object):
+        """
+        Threats: Requests Fingerprinting
+
+        https://feature-parity.us1.prod.dog/#/?feature=313
+        """
+        pytest.mark.features(feature_id=313)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_untrusted_deserialization(test_object):
         """
         IAST Sink: Untrusted Deserialization
