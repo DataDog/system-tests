@@ -1151,6 +1151,9 @@ tests/:
     Test_LibraryHeaders: v1.29.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+  test_fingerprinting.py:
+    Test_Fingerprinting_Endpoint: missing_feature
+    Test_Fingerprinting_Headers: missing_feature
   test_identify.py:
     Test_Basic: missing_feature
     Test_Propagate: missing_feature

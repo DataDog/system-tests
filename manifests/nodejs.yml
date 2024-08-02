@@ -514,6 +514,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+  test_fingerprinting.py:
+    Test_Fingerprinting_Endpoint: missing_feature
+    Test_Fingerprinting_Headers: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
     Test_Propagate: *ref_3_2_0
