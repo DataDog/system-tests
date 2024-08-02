@@ -4,7 +4,7 @@ from utils.parametric.spec.trace import find_trace_by_root
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.otel_trace import OtelSpan
-from utils import missing_feature, irrelevant, context, scenarios, features
+from utils import missing_feature, irrelevant, context, scenarios, features, bug
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -16,6 +16,7 @@ pytestmark = pytest.mark.parametrize(
 
 @scenarios.parametric
 @features.open_tracing_api
+@bug(context.library >= "python@2.9.3", reason="APMAPI-180")
 class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     def test_otel_simple_trace(self, test_agent, test_library):

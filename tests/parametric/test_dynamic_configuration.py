@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 import pytest
 from ddapm_test_agent.trace import root_span
 
-from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios
+from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
 from utils.parametric.spec.remoteconfig import Capabilities
 from utils.parametric.spec.trace import Span, assert_trace_has_tags
 
@@ -299,6 +299,7 @@ class TestDynamicConfigV1:
         assert cfg_state["product"] == "APM_TRACING"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_default(self, test_agent, test_library):
         """The RC sampling rate should override the default sampling rate.
 
@@ -327,6 +328,7 @@ class TestDynamicConfigV1:
         "library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
     )
     @bug(library="cpp", reason="Trace sampling RC creates another sampler which makes the computation wrong")
+    @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 

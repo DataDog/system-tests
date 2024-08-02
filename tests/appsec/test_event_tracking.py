@@ -63,7 +63,6 @@ class Test_UserLoginSuccessEvent:
 
     @missing_feature(library="dotnet")
     @missing_feature(context.library < "nodejs@5.18.0")
-    @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
@@ -118,7 +117,6 @@ class Test_UserLoginFailureEvent:
 
     @missing_feature(library="dotnet")
     @missing_feature(context.library < "nodejs@5.18.0")
-    @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure

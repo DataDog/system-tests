@@ -321,6 +321,18 @@ function initSinkRoutes (app: Express): void {
     const randomBytes: string = crypto.randomBytes(256).toString('hex')
     res.send(`OK:${randomBytes}`)
   })
+
+  app.post('/iast/code_injection/test_insecure', (req: Request, res: Response) => {
+    // eslint-disable-next-line no-eval
+    eval(req.body.code)
+    res.send('OK')
+  })
+
+  app.post('/iast/code_injection/test_secure', (req: Request, res: Response) => {
+    // eslint-disable-next-line no-eval
+    eval('1+2')
+    res.send('OK')
+  })
 }
 
 function initSourceRoutes (app: Express): void {

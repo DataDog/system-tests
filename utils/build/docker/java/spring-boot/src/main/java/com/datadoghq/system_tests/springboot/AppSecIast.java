@@ -37,6 +37,7 @@ public class AppSecIast {
     private final XSSExamples xssExamples;
     private final HardcodedSecretExamples hardcodedSecretExamples;
     private final ReflectionExamples reflectionExamples;
+    private final DeserializationExamples deserializationExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -50,6 +51,7 @@ public class AppSecIast {
         this.xssExamples = new XSSExamples();
         this.hardcodedSecretExamples = new HardcodedSecretExamples();
         this.reflectionExamples = new ReflectionExamples();
+        this.deserializationExamples = new DeserializationExamples();
     }
 
     @RequestMapping("/hardcoded_secrets/test_insecure")
@@ -364,6 +366,18 @@ public class AppSecIast {
     public String insecureReflection(HttpServletRequest request) {
         final String className = request.getParameter("param");
         return reflectionExamples.insecureClassForName(className);
+    }
+
+    @GetMapping("/untrusted_deserialization/test_insecure")
+    public String insecureUntrustedDeserialization(final HttpServletRequest request) throws IOException{
+        deserializationExamples.insecureDeserialization(request.getInputStream());
+        return "ok";
+    }
+
+    @GetMapping("/untrusted_deserialization/test_secure")
+    public String secureUntrustedDeserialization(final HttpServletRequest request) throws IOException {
+        deserializationExamples.secureDeserialization(request.getInputStream());
+        return "ok";
     }
 
 

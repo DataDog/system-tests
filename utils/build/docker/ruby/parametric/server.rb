@@ -269,6 +269,26 @@ class ServerImpl < APMClient::Service
     span.add_link(otel_link)
   end
 
+
+  def otel_add_event(otel_add_event_args, _call)
+    span = find_otel_span(otel_add_event_args.span_id)
+    span.add_event(
+      otel_add_event_args.name,
+      timestamp: otel_correct_time(otel_add_event_args.timestamp),
+      attributes: parse_grpc_attributes(otel_add_event_args.attributes)
+    )
+    OtelAddEventReturn.new
+  end
+
+  def otel_record_exception(otel_record_exception_args, _call)
+    span = find_otel_span(otel_record_exception_args.span_id)
+    span.record_exception(
+      StandardError.new(otel_record_exception_args.message),
+      attributes: parse_grpc_attributes(otel_record_exception_args.attributes)
+    )
+    OtelRecordExceptionReturn.new
+  end
+
   def otel_set_status(otel_set_status_args, _call)
     span = find_otel_span(otel_set_status_args.span_id)
 
