@@ -49,8 +49,12 @@ namespace weblog
                 else if ("sqs".Equals(integration))
                 {
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+                    Console.WriteLine($"[SQS] Begin producing DSM message: {message}");
                     Task.Run(() => SqsProducer.DoWork(queue, message));
+                    Console.WriteLine($"[SQS] Begin consuming DSM message: {message}");
                     Task.Run(() => SqsConsumer.DoWork(queue, message));
+
 #pragma warning restore CS4014
                     await context.Response.WriteAsync("ok");
                 } else {
@@ -172,12 +176,13 @@ namespace weblog
         {
             var sqsClient = new AmazonSQSClient();
             // create queue
+            Console.WriteLine($"[SQS] Produce: Creating queue {queue}");
             CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(queue);
             var qUrl = responseCreate.QueueUrl;
             using (Datadog.Trace.Tracer.Instance.StartActive("SqsProduce"))
             {
                 await sqsClient.SendMessageAsync(qUrl, message);
-                Console.WriteLine("[SQS] Done with message producing");
+                Console.WriteLine($"[SQS] Done with producing message: {message}");
             }
         }
     }
@@ -188,6 +193,7 @@ namespace weblog
         {
             var sqsClient = new AmazonSQSClient();
             // create queue
+            Console.WriteLine($"[SQS] Consume: Creating queue {queue}");
             CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(queue);
             var qUrl = responseCreate.QueueUrl;
             Console.WriteLine($"[SQS] looking for messages in queue {qUrl}");
