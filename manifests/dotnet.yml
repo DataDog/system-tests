@@ -213,6 +213,7 @@ tests/:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
       Test_Info: v2.0.0
