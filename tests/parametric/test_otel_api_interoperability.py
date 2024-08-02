@@ -4,7 +4,7 @@ import pytest
 
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
 from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER
-from utils.parametric.spec.trace import find_trace, find_span, retrieve_span_links, find_root_span
+from utils.parametric.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -404,7 +404,7 @@ class Test_Otel_API_Interoperability:
         ]
 
         with test_library:
-            with test_library.start_span(name="dd_span", http_headers=headers) as dd_span:
+            with test_library.start_span(name="dd_span", http_headers=headers):
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
 
@@ -413,11 +413,7 @@ class Test_Otel_API_Interoperability:
                 assert otel_context.get("trace_flags") == "01"
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
-        trace = find_trace(traces, dd_span.trace_id)
-        assert len(trace) == 1
-
-        root = find_root_span(trace)
-        assert root["trace_id"] == 42
+        root = find_only_span(traces)
         assert root["parent_id"] == 3
         assert "foo" not in root["meta"]
         assert root["meta"]["_dd.p.dm"] == "-0"
@@ -449,10 +445,7 @@ class Test_Otel_API_Interoperability:
                 assert otel_context.get("trace_flags") == "00"
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
-        trace = find_trace(traces, dd_span.trace_id)
-        assert len(trace) == 1
-
-        root = find_root_span(trace)
+        root = find_only_span(traces)
         assert root["trace_id"] == 123456789
         assert root["parent_id"] == 987654321
         assert root["meta"]["_dd.p.foo"] == "bar"

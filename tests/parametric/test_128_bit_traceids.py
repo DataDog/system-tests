@@ -446,7 +446,7 @@ class Test_128_Bit_Traceids:
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
         first_span = find_first_span_in_trace_payload(trace)
-        spans_with_tid = [span for span in trace if "_dd.p.tid" in span["meta"]]
+        spans_with_tid = [span for span in trace if "_dd.p.tid" in span.get("meta", "")]
         assert len(spans_with_tid) == 1
         assert first_span == spans_with_tid[0]
 
