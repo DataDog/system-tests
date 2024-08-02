@@ -27,6 +27,8 @@ tests/:
         Test_Schema_Response_Headers: v1.15.0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_passwords.py:

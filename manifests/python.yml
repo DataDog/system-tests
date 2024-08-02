@@ -59,6 +59,8 @@ tests/:
           fastapi: v2.5.0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0.dev
