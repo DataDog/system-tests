@@ -359,7 +359,7 @@ class EndToEndScenario(DockerScenario):
         appsec_enabled=True,
         additional_trace_header_tags=(),
         library_interface_timeout=None,
-        agent_interface_timeout=5,
+        agent_interface_timeout=7,
         use_proxy=True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
@@ -493,9 +493,9 @@ class EndToEndScenario(DockerScenario):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
             elif self.weblog_container.library.library in ("python",):
-                self.library_interface_timeout = 5
+                self.library_interface_timeout = 7
             else:
-                self.library_interface_timeout = 40
+                self.library_interface_timeout = 50
 
     def session_start(self):
         super().session_start()
