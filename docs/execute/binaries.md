@@ -35,11 +35,10 @@ But, obviously, testing validated versions of components is not really interesti
 1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
     * `DataDog/dd-trace-js#master`
 2. Clone the dd-trace-js repo inside `binaries`
-
-OR
-
-1. Create a file `nodejs-load-from-local` in `binaries/`, the content will be installed by `npm link` to the local folder
-at the location mounted as a Docker volume.
+3. Create a file `nodejs-load-from-local` in `binaries/`, this will disable installing with `npm install dd-trace` and
+   will instead get the content of the file, and use it as a location of the `dd-trace-js` repo and then mount it as a
+   volume and `npm link` to it. For instance, if this repo is at the location, you can set the content of this file to
+   `../dd-trace-js`. This also removes the need to rebuild the weblog image since the code is mounted at runtime.
 
 ## PHP library
 
