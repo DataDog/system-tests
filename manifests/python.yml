@@ -59,6 +59,8 @@ tests/:
           fastapi: v2.5.0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0.dev
@@ -343,8 +345,7 @@ tests/:
         fastapi: v2.4.0.dev1
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': v2.10.0-rc1
-        uwsgi-poc: bug
+        '*': v2.10.0rc1
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0.dev but will be replaced by V2)
@@ -443,6 +444,7 @@ tests/:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: v2.10.1
+      Test_UpdateRuleFileWithRemoteConfig: v2.11.0rc
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
       Test_Info: v1.1.0rc2.dev
@@ -457,6 +459,8 @@ tests/:
       Test_RuntimeDeactivation: v2.10.1
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: v2.11.0rc
     test_traces.py:
       Test_AppSecEventSpanTags: v0.58.5
       Test_AppSecObfuscator:
