@@ -232,8 +232,12 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 
     time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
 
-    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_msg_attrs_{context.library.library}_weblog_to_buddy_{time_hash}"
-    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_msg_attrs_buddy_to_{context.library.library}_weblog_{time_hash}"
+    WEBLOG_TO_BUDDY_QUEUE = (
+        f"SQS_propagation_via_msg_attrs_{context.library.library}_{context.weblog_variant}_weblog_to_buddy_{time_hash}"
+    )
+    BUDDY_TO_WEBLOG_QUEUE = (
+        f"SQS_propagation_via_msg_attrs_buddy_to_{context.library.library}_{context.weblog_variant}_weblog_{time_hash}"
+    )
 
 
 @scenarios.crossed_tracing_libraries
@@ -244,8 +248,12 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
 
     time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
 
-    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_{context.library.library}_weblog_to_buddy_{time_hash}"
-    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_buddy_to_{context.library.library}_weblog_{time_hash}"
+    WEBLOG_TO_BUDDY_QUEUE = (
+        f"SQS_propagation_via_xray_{context.library.library}_{context.weblog_variant}_weblog_to_buddy_{time_hash}"
+    )
+    BUDDY_TO_WEBLOG_QUEUE = (
+        f"SQS_propagation_via_xray_buddy_to_{context.library.library}_{context.weblog_variant}_weblog_{time_hash}"
+    )
 
     @missing_feature(
         library="nodejs",

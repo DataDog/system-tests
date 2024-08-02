@@ -276,7 +276,7 @@ class Test_DsmSQS:
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
         if context.library.library != "nodejs":
-            self.queue = f"{DSM_QUEUE}_{context.library.library}_{TIME_HASH}"
+            self.queue = f"{DSM_QUEUE}_{context.library.library}_{context.weblog_variant}_{TIME_HASH}"
         else:
             self.queue = f"{DSM_QUEUE}_{context.library.library}"
 
@@ -287,10 +287,6 @@ class Test_DsmSQS:
             delete_sqs_queue(self.queue)
 
     def test_dsm_sqs(self):
-        import time
-
-        time.sleep(10)
-
         assert self.r.text == "ok"
 
         hash_inputs = {
@@ -335,8 +331,8 @@ class Test_DsmSNS:
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
         if context.library.library != "nodejs":
-            self.topic = f"{DSM_TOPIC}_{context.library.library}_{TIME_HASH}"
-            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{TIME_HASH}"
+            self.topic = f"{DSM_TOPIC}_{context.library.library}_{context.weblog_variant}_{TIME_HASH}"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{context.weblog_variant}_{TIME_HASH}"
         else:
             self.topic = f"{DSM_TOPIC}_{context.library.library}"
             self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}"
@@ -350,9 +346,6 @@ class Test_DsmSNS:
             delete_sqs_queue(self.queue)
 
     def test_dsm_sns(self):
-        import time
-
-        time.sleep(10)
         assert self.r.text == "ok"
 
         topic = self.topic if context.library.library == "java" else f"arn:aws:sns:us-east-1:601427279990:{self.topic}"
@@ -399,7 +392,7 @@ class Test_DsmKinesis:
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
         if context.library.library != "nodejs":
-            self.stream = f"{DSM_STREAM}_{context.library.library}_{TIME_HASH}"
+            self.stream = f"{DSM_STREAM}_{context.library.library}_{context.weblog_variant}_{TIME_HASH}"
         else:
             self.stream = f"{DSM_STREAM}_{context.library.library}"
 
