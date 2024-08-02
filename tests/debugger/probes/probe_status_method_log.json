@@ -1,5 +1,6 @@
 [
   {
+    "type": "LOG_PROBE",
     "language": "",
     "id": "loga0cf2-meth-45cf-9f39-591received",
     "where": {
@@ -7,9 +8,11 @@
       "methodName": "SomeMethod",
       "sourceFile": null
     },
-    "evaluateAt": "EXIT"
+    "evaluateAt": "EXIT",
+    "segments": []
   },
   {
+    "type": "LOG_PROBE",
     "language": "",
     "id": "loga0cf2-meth-45cf-9f39-59installed",
     "where": {
@@ -17,9 +20,11 @@
       "methodName": "LogProbe",
       "sourceFile": null
     },
-    "evaluateAt": "EXIT"
+    "evaluateAt": "EXIT",
+    "segments": []
   },
   {
+    "type": "LOG_PROBE",
     "language": "",
     "id": "loga0cf2-line-45cf-9f39-59installed",
     "where": {
@@ -28,6 +33,7 @@
       "lines": [
         "20"
       ]
-    }
+    },
+    "segments": []
   }
 ]

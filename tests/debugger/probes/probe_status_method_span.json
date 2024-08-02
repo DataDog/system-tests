@@ -1,5 +1,6 @@
 [
   {
+    "type": "SPAN_PROBE",
     "language": "",
     "id": "span0cf2-meth-45cf-9f39-591received",
     "where": {
@@ -10,6 +11,7 @@
     "evaluateAt": "EXIT"
   },
   {
+    "type": "SPAN_PROBE",
     "language": "",
     "id": "span0cf2-meth-45cf-9f39-59installed",
     "where": {

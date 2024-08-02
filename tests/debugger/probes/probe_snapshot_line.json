@@ -1,5 +1,6 @@
 [
     {
+        "type": "LOG_PROBE",
         "language": "",
         "id": "log170aa-acda-4453-9111-1478a697line",
         "where": {
@@ -8,9 +9,11 @@
             "lines": [
                 "20"
             ]
-        }
+        },
+        "segments": []
     },
     {
+        "type": "METRIC_PROBE",
         "language": "",
         "id": "metricaa-acda-4453-9111-1478a697line",
         "kind": "COUNT",
@@ -30,6 +33,7 @@
         "evaluateAt": "EXIT"
     },
     {
+        "type": "SPAN_DECORATION_PROBE",
         "language": "",
         "id": "decor0aa-acda-4453-9111-1478a697line",
         "targetSpan": "ACTIVE",

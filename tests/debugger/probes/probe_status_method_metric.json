@@ -1,5 +1,6 @@
 [
   {
+    "type": "METRIC_PROBE",
     "language": "",
     "id": "metricf2-meth-45cf-9f39-591received",
     "metricName": "MetricCountInt",
@@ -17,6 +18,7 @@
     "evaluateAt": "EXIT"
   },
   {
+    "type": "METRIC_PROBE",
     "language": "",
     "id": "metricf2-meth-45cf-9f39-59installed",
     "metricName": "MetricCountInt",
@@ -34,6 +36,7 @@
     "evaluateAt": "EXIT"
   },
   {
+    "type": "METRIC_PROBE",
     "language": "",
     "id": "metricf2-line-45cf-9f39-59installed",
     "kind": "COUNT",

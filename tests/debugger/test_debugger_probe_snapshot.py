@@ -9,6 +9,8 @@ from utils import (
     interfaces,
     weblog,
     features,
+    missing_feature,
+    context,
     remote_config as rc,
 )
 
@@ -72,6 +74,7 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
             weblog.get("/debugger/span-decoration/asd/1"),
         ]
 
+    @missing_feature(context.library == "php", reason="Line probes not yet implemented")
     def test_line_probe_snaphots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
@@ -103,6 +106,7 @@ class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.weblog_responses = [weblog.get("/debugger/mix/asd/1")]
 
+    @missing_feature(context.library == "php", reason="Line probes not yet implemented")
     def test_mix_probe(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
