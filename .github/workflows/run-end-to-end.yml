@@ -27,6 +27,11 @@ on:
         default: 'custom'
         required: false
         type: string
+      build_nodejs_base_images:
+        description: "Shall we build nodejs base images for tests on nodejs tracer"
+        default: false
+        required: false
+        type: boolean
       build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
@@ -76,6 +81,10 @@ jobs:
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
+    - name: Build nodejs' weblog base images
+      if: inputs.library == 'nodejs' && inputs.build_nodejs_base_images
+      run: |
+        ./utils/build/build_nodejs_base_images.sh
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |

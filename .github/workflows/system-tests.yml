@@ -26,6 +26,11 @@ on:
         default: 'custom'
         required: false
         type: string
+      build_nodejs_base_images:
+        description: "Shall we build nodejs base images for tests on nodejs tracer"
+        default: false
+        required: false
+        type: boolean
       build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
@@ -134,6 +139,7 @@ jobs:
     secrets: inherit
     with:
       library: ${{ inputs.library }}
+      build_nodejs_base_images: ${{ inputs.build_nodejs_base_images }}
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
