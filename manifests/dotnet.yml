@@ -25,6 +25,8 @@ tests/:
         Test_Schema_Response_Headers: v2.46.0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection: v2.28.0
         test_hardcoded_passwords.py:
@@ -211,6 +213,7 @@ tests/:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
       Test_Info: v2.0.0
@@ -223,6 +226,8 @@ tests/:
       Test_RuntimeDeactivation: v2.16.0
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v1.29.0
       Test_AppSecObfuscator: v2.7.0
