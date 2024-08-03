@@ -340,6 +340,14 @@ function main() {
     else
       echo "Activate venv"
       ls -la venv/bin/
+      rm -f venv/bin/python
+      rm -f venv/bin/python3
+      rm -f venv/bin/python3.12
+
+      ln -s ${pwd}/venv/bin/python3.12 /opt/hostedtoolcache/Python/3.12.4/x64/bin/python3.12
+      ln -s ${pwd}/venv/bin/python3 ${pwd}/venv/bin/python3.12
+      ln -s ${pwd}/venv/bin/python ${pwd}/venv/bin/python3.12
+
       activate_venv
       which -a python
       which -a pytest
