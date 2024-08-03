@@ -344,8 +344,11 @@ function main() {
       activate_venv
       which -a python
       which -a pytest
-      python --version
-      python -V
+      echo $(python --version)
+      echo $(python -V)
+      echo $(/opt/hostedtoolcache/Python/3.12.4/x64/bin/python --version)
+      echo $(/opt/hostedtoolcache/Python/3.12.4/x64/python --version)
+      echo $(/usr/bin/python --version)
     fi
 
     python_version=$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')
