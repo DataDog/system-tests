@@ -265,8 +265,8 @@ class TestConfigMapAutoInject:
             f"Launching test test_fileprovider_configmap_case1: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
         test_k8s_instance.deploy_weblog_as_deployment()
-        test_agent = test_k8s_instance.deploy_test_agent()
-        test_agent.deploy_operator_auto()
+        test_k8s_instance.deploy_test_agent()
+        test_k8s_instance.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
 
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
@@ -296,8 +296,8 @@ class TestConfigMapAutoInject:
         )
 
         test_k8s_instance.deploy_weblog_as_deployment()
-        test_agent = test_k8s_instance.deploy_test_agent()
-        test_agent.deploy_operator_auto()
+        test_k8s_instance.deploy_test_agent()
+        test_k8s_instance.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance, rc_rev=1)
 
         default_config_data[0]["lib_config"]["tracing_sampling_rate"] = 0.50
@@ -327,8 +327,8 @@ class TestConfigMapAutoInject:
             f"Launching test test_fileprovider_configmap_case3: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
         test_k8s_instance.deploy_weblog_as_deployment()
-        test_agent = test_k8s_instance.deploy_test_agent()
-        test_agent.deploy_operator_auto()
+        test_k8s_instance.deploy_test_agent()
+        test_k8s_instance.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
 
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
@@ -367,8 +367,8 @@ class TestConfigMapAutoInject:
             f"Launching test test_fileprovider_configmap_case4: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
         test_k8s_instance.deploy_weblog_as_deployment()
-        test_agent = test_k8s_instance.deploy_test_agent()
-        test_agent.deploy_operator_auto()
+        test_k8s_instance.deploy_test_agent()
+        test_k8s_instance.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
         default_config_data[0]["k8s_target"]["cluster"] = "lib-injection-testing-no-match"
         try:
@@ -391,8 +391,8 @@ class TestConfigMapAutoInject:
             f"Launching test test_fileprovider_configmap_case5: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
         test_k8s_instance.deploy_weblog_as_deployment()
-        test_agent = test_k8s_instance.deploy_test_agent()
-        test_agent.deploy_operator_auto()
+        test_k8s_instance.deploy_test_agent()
+        test_k8s_instance.deploy_operator_auto()
         default_config_data = self._get_default_auto_inject_config(test_k8s_instance)
 
         test_k8s_instance.apply_config_auto_inject(json.dumps(default_config_data))
@@ -423,8 +423,8 @@ class TestConfigMapAutoInject:
         )
 
         test_k8s_instance.deploy_weblog_as_deployment()
-        test_agent = test_k8s_instance.deploy_test_agent()
-        test_agent.deploy_operator_auto()
+        test_k8s_instance.deploy_test_agent()
+        test_k8s_instance.deploy_operator_auto()
 
         expected_env_vars = [{"name": "DD_TRACE_SAMPLE_RATE", "value": "0.90"}]
 
