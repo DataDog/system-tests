@@ -339,8 +339,7 @@ function main() {
       echo "Python and pytest are available"
     else
       echo "Activate venv"
-      ls venv
-      ls venv/bin/
+      ls -la venv/bin/
       activate_venv
       which -a python
       which -a pytest
