@@ -339,7 +339,13 @@ function main() {
       echo "Python and pytest are available"
     else
       echo "Activate venv"
+      ls venv
+      ls venv/bin/
       activate_venv
+      which -a python
+      which -a pytest
+      python --version
+      python -V
     fi
 
     python_version=$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')
