@@ -216,6 +216,7 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: missing_feature
+        Test_Kafka_Otel: missing_feature
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
@@ -227,6 +228,8 @@ tests/:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL:
           "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature

@@ -1027,6 +1027,9 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           spring-boot: v0.1 # real version not known
+        Test_Kafka_Otel:
+          "*": irrelevant
+          spring-boot: v0.1 # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
@@ -1044,6 +1047,9 @@ tests/:
           "*": irrelevant
           spring-boot: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          spring-boot: v0.1 # real version not known
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL:
           "*": irrelevant
           spring-boot: v0.1 # real version not known
     test_cassandra.py:

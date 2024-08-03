@@ -169,6 +169,8 @@ class _RequestLogger:
                     interface = "ruby_buddy"
                 elif port == 9005:
                     interface = "golang_buddy"
+                elif port == 9006:
+                    interface = "python_otel_buddy"
                 else:
                     raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
             else:
@@ -295,6 +297,7 @@ def start_proxy() -> None:
         "regular@9003",  # java_buddy
         "regular@9004",  # ruby_buddy
         "regular@9005",  # golang_buddy
+        "regular@9006",  # python_otel_buddy
         "regular@11111",  # RC payload API
     ]
 

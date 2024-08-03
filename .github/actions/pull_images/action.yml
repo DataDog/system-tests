@@ -10,6 +10,10 @@ inputs:
   scenarios:
     description: "JSON array of scenarios that will be executed"
     required: true
+  exclude_buddies_images:
+    description: "Exclude buddies images"
+    default: "false"
+    required: false
   cleanup:
     description: "Whether to cleanup the disk to free up more space. Should be disabled when a larger machine can be used instead."
     type: boolean
@@ -39,7 +43,7 @@ runs:
       shell: bash
       run: |
         source venv/bin/activate
-        python utils/scripts/get-image-list.py ${{ inputs.library }} ${{ inputs.weblog }} '${{ inputs.scenarios }}' > compose.yaml
+        python utils/scripts/get-image-list.py ${{ inputs.library }} ${{ inputs.weblog }} '${{ inputs.scenarios }}' ${{ inputs.exclude_buddies_images }} > compose.yaml
       env:
         PYTHONPATH: "."
 

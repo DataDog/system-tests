@@ -261,6 +261,9 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           rails70: v0.1 # real version unknown
+        Test_Kafka_Otel:
+          "*": irrelevant
+          rails70: v0.1 # real version unknown
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
@@ -279,6 +282,9 @@ tests/:
           rails70: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
+          rails70: missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL:
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature

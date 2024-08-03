@@ -252,6 +252,7 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: v2.0.0
+        Test_Kafka_Otel: irrelevant
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
@@ -262,6 +263,8 @@ tests/:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": v0.1  # version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": v2.48.0
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL:
           "*": v2.48.0
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature

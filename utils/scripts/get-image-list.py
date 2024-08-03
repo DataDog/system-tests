@@ -9,6 +9,7 @@ if __name__ == "__main__":
     library = sys.argv[1]
     weblog = sys.argv[2]
     executed_scenarios = sys.argv[3]
+    exclude_buddies_images = sys.argv[4]
 
     images = set("")
 
@@ -18,6 +19,12 @@ if __name__ == "__main__":
 
     # remove images that will be built locally
     images = [image for image in images if not image.startswith("system_tests/")]
+
+    # if buddies will be rebuilt locally, no need to load them.
+    # only usefull in system-tests CI
+    if exclude_buddies_images != "false":
+        images = [image for image in images if not re.match("^datadog/system-tests:.*buddy", image)]
+
     images.sort()
 
     compose_data = {"services": {re.sub(r"[/:\.]", "-", image): {"image": image} for image in images}}

@@ -368,6 +368,9 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           net-http: v0.1 # real version not known
+        Test_Kafka_Otel:
+          "*": irrelevant
+          net-http: v0.1 # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
@@ -385,6 +388,9 @@ tests/:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES_WITH_OTEL:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
