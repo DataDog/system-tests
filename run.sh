@@ -334,32 +334,13 @@ function main() {
     fi
 
     # ensure environment
-    if command -v python &> /dev/null && commmand -v pytest &> /dev/null
-    then
-      echo "Python and pytest are available"
+    if [[ "${run_mode}" == "docker" ]] || is_using_nix; then
+        : # no venv needed
     else
-      echo "Activate venv"
-      ls -la venv/bin/
-      # rm -f venv/bin/python
-      # rm -f venv/bin/python3
-      # rm -f venv/bin/python3.12
-
-      # ln -s /opt/hostedtoolcache/Python/3.12.4/x64/bin/python3.12 $(pwd)/venv/bin/python3.12
-      # ln -s $(pwd)/venv/bin/python3.12 $(pwd)/venv/bin/python3
-      # ln -s $(pwd)/venv/bin/python3.12 $(pwd)/venv/bin/python
-
-      activate_venv
-      which -a python
-      which -a pytest
-      echo $(python --version)
-      echo $(python -V)
-      echo $(/opt/hostedtoolcache/Python/3.12.4/x64/bin/python --version)
-      echo $(/opt/hostedtoolcache/Python/3.12.4/x64/python --version)
-      echo $(/usr/bin/python --version)
+        activate_venv
     fi
 
     python_version=$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')
-		echo $python_version
     if [ "$python_version" -lt "312" ]; then
         echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
         echo "DEPRECRATION WARNING: your using python3.9 to run system-tests."
