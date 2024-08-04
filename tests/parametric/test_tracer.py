@@ -42,6 +42,27 @@ class Test_Tracer:
         assert child_span["name"] == "operation.child"
         assert child_span["meta"]["key"] == "val"
 
+    def test_tracer_span_default_service_name(self, test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
+        """Ensure a span created without a service name does not default to Null/Empty string
+
+        DEV: It is important that DD_SERVICE env variable or default service naming configuration
+             is not set in the base application.
+        """
+
+        with test_library:
+            with test_library.start_span("operation", resource="/endpoint"):
+                pass
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace_by_root(traces, Span(name="operation"))
+        assert len(trace) == 1
+
+        root_span = find_span(trace, Span(name="operation"))
+        assert root_span["name"] == "operation"
+        assert root_span["service"] is not None
+        assert root_span["service"] != ""
+        assert root_span["resource"] == "/endpoint"
+
 
 @rfc("https://docs.google.com/document/d/1vxuRUNzHqd6sp1lnF3T383acbLrG0R-xDGi8cdZ4cs8/edit")
 @scenarios.parametric
