@@ -299,11 +299,11 @@ def rasp_shi(*args, **kwargs):
     if list_dir is None:
         return "missing user_id parameter", 400
     try:
-        print(f">>>> ls {list_dir}")
-        os.system(f"ls {list_dir}")
+        res = os.system(f"ls {list_dir}")
+        return f"Shell command with result: {res}", 200
     except Exception as e:
-        print(f"DB request failure: {e!r}", file=sys.stderr)
-        return f"DB request failure: {e!r}", 201
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return f"Shell command failure: {e!r}", 201
 
 
 ### END EXPLOIT PREVENTION

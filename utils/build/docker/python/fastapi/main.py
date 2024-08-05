@@ -206,6 +206,35 @@ async def rasp_sqli(request: Request):
         return PlainTextResponse(f"DB request failure: {e!r}", status_code=201)
 
 
+@app.get("/rasp/shi")
+@app.post("/rasp/shi")
+async def rasp_sqli(request: Request):
+    list_dir = None
+    if request.method == "GET":
+        list_dir = request.query_params.get("list_dir")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            list_dir = ((await request.form()) or json.loads(body) or {}).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if list_dir is None:
+                list_dir = xmltodict.parse(body).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if list_dir is None:
+        return PlainTextResponse("missing list_dir parameter", status_code=400)
+    try:
+        res = os.system(f"ls {list_dir}")
+        return PlainTextResponse(f"Shell command with result: {res}")
+    except Exception as e:
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
+
+
 ### END EXPLOIT PREVENTION
 
 
