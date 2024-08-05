@@ -2,9 +2,10 @@ from typing import Dict
 
 import pytest
 
-from utils.parametric.spec.trace import Span
-from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
+from utils.parametric.spec.trace import find_first_span_in_trace_payload
+from utils.parametric.spec.trace import find_root_span
 from utils import missing_feature, context, rfc, scenarios, features
 
 from .conftest import _TestAgentAPI
@@ -28,17 +29,17 @@ class Test_Tracer:
                 with test_library.start_span("operation.child", parent_id=parent.span_id) as child:
                     child.set_meta("key", "val")
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="operation"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        root_span = find_span(trace, Span(name="operation"))
+        root_span = find_span(trace, parent.span_id)
         assert root_span["name"] == "operation"
         assert root_span["service"] == "my-webserver"
         assert root_span["resource"] == "/endpoint"
         assert root_span["type"] == "web"
         assert root_span["metrics"]["number"] == 10
-        child_span = find_span(trace, Span(name="operation.child"))
+        child_span = find_span(trace, child.span_id)
         assert child_span["name"] == "operation.child"
         assert child_span["meta"]["key"] == "val"
 
@@ -62,14 +63,16 @@ class Test_TracerSCITagging:
                 with test_library.start_span("operation.child", parent_id=parent.span_id):
                     pass
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="operation"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        # the repository url should be injected in the first span of the trace
-        assert trace[0]["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
-        # and not in the others
-        assert "_dd.git.repository_url" not in trace[1].get("meta", {})
+        first_span = find_first_span_in_trace_payload(trace)
+        # the repository url should be injected ONLY in the first span of the trace
+        spans_with_git = [span for span in trace if "_dd.git.repository_url" in span["meta"]]
+        assert len(spans_with_git) == 1
+        assert first_span == spans_with_git[0]
+        assert first_span["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
 
     @parametrize("library_env", [{"DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}])
     def test_tracer_commit_sha_environment_variable(
@@ -86,14 +89,17 @@ class Test_TracerSCITagging:
                 with test_library.start_span("operation.child", parent_id=parent.span_id):
                     pass
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="operation"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        # the repository url should be injected in the first span of the trace
-        assert trace[0]["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
-        # and not in the others
-        assert "_dd.git.commit.sha" not in trace[1].get("meta", {})
+        first_span = find_first_span_in_trace_payload(trace)
+        # the repository url should be injected ONLY in the first span of the trace
+        spans_with_git = [span for span in trace if "_dd.git.commit.sha" in span["meta"]]
+        assert len(spans_with_git) == 1
+        assert first_span == spans_with_git[0]
+
+        assert first_span["meta"]["_dd.git.commit.sha"] == library_env["DD_GIT_COMMIT_SHA"]
 
     @parametrize(
         "library_env",
@@ -144,10 +150,11 @@ class Test_TracerSCITagging:
                 with test_library.start_span("operation.child", parent_id=parent.span_id):
                     pass
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="operation"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
+        first_span = find_first_span_in_trace_payload(trace)
 
-        assert trace[0]["meta"]["_dd.git.repository_url"] == library_env["expected_repo_url"]
+        assert first_span["meta"]["_dd.git.repository_url"] == library_env["expected_repo_url"]
 
 
 @scenarios.parametric
@@ -163,13 +170,12 @@ class Test_TracerUniversalServiceTagging:
                 The span should use the value of DD_SERVICE for span.service
         """
         with test_library:
-            with test_library.start_span("operation"):
+            with test_library.start_span("operation") as root:
                 pass
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="operation"))
-
-        span = find_span(trace, Span(name="operation"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+        span = find_root_span(trace)
         assert span["name"] == "operation"
         assert span["service"] == library_env["DD_SERVICE"]
 
@@ -183,12 +189,12 @@ class Test_TracerUniversalServiceTagging:
                 The span should have the value of DD_ENV in meta.env
         """
         with test_library:
-            with test_library.start_span("operation"):
+            with test_library.start_span("operation") as root:
                 pass
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="operation"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
 
-        span = find_span(trace, Span(name="operation"))
+        span = find_root_span(trace)
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
