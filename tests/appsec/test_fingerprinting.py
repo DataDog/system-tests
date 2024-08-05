@@ -15,7 +15,7 @@ def get_span_meta(r):
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-class Test_Fingerprinting_Headers:
+class Test_Fingerprinting_Header_And_Network:
     def setup_fingerprinting_network(self):
         self.r = weblog.get("/", headers=ARACHNI_HEADERS)
         self.n = weblog.get("/")
