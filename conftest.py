@@ -70,7 +70,7 @@ def pytest_configure(config):
             break
 
     if context.scenario is None:
-        pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
+        pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
 
     context.scenario.configure(config)
 
@@ -276,7 +276,7 @@ def pytest_collection_finish(session: pytest.Session):
         if not item.instance:  # item is a method bounded to a class
             continue
 
-        # the test metohd name is like test_xxxx
+        # the test method name is like test_xxxx
         # we replace the test_ by setup_, and call it if it exists
 
         setup_method_name = f"setup_{item.name[5:]}"
