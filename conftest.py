@@ -359,11 +359,14 @@ def pytest_sessionfinish(session, exitstatus):
 
         data = session.config._json_report.report  # pylint: disable=protected-access
 
-        junit_modifyreport(
-            data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
-        )
+        try:
+            junit_modifyreport(
+                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
+            )
 
-        export_feature_parity_dashboard(session, data)
+            export_feature_parity_dashboard(session, data)
+        except Exception:
+            logger.exception("Fail to export export reports", exc_info=True)
 
 
 def export_feature_parity_dashboard(session, data):

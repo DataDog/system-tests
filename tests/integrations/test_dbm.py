@@ -6,7 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky
 from utils.tools import logger
 
 
@@ -105,6 +105,7 @@ class Test_Dbm:
     setup_trace_payload_service = weblog_trace_payload
 
     @scenarios.default
+    @flaky(context.library >= "dotnet@2.54.0", reason="Trace is sometimes not reported")
     def test_trace_payload_service(self):
         assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()

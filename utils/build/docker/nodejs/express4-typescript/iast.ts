@@ -321,6 +321,18 @@ function initSinkRoutes (app: Express): void {
     const randomBytes: string = crypto.randomBytes(256).toString('hex')
     res.send(`OK:${randomBytes}`)
   })
+
+  app.post('/iast/code_injection/test_insecure', (req: Request, res: Response) => {
+    // eslint-disable-next-line no-eval
+    eval(req.body.code)
+    res.send('OK')
+  })
+
+  app.post('/iast/code_injection/test_secure', (req: Request, res: Response) => {
+    // eslint-disable-next-line no-eval
+    eval('1+2')
+    res.send('OK')
+  })
 }
 
 function initSourceRoutes (app: Express): void {
@@ -410,7 +422,11 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      consumer = kafka.consumer({
+        groupId: 'testgroup2',
+        heartbeatInterval: 10000, // should be lower than sessionTimeout
+        sessionTimeout: 60000
+      })
 
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
@@ -476,7 +492,11 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
+      consumer = kafka.consumer({
+        groupId: 'testgroup2',
+        heartbeatInterval: 10000, // should be lower than sessionTimeout
+        sessionTimeout: 60000
+      })
 
       await consumer.connect()
       await consumer.subscribe({ topic, fromBeginning: false })
@@ -503,7 +523,9 @@ function initSourceRoutes (app: Express): void {
             // do nothing
           }
 
-          deferred.resolve?.()
+          if (vulnKey === 'hello key!') {
+            deferred.resolve?.()
+          }
         }
       })
 

@@ -12,7 +12,7 @@ lang_variant:
 
 weblog:
     name: test-app-java-buildpack
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64, ubuntu22_arm64, amazon_linux2023_arm64, centos_7_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64, ubuntu22_arm64, amazon_linux2023_arm64]
     install:
       - os_type: linux
         copy_files:
