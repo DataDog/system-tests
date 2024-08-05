@@ -1,15 +1,22 @@
+/* eslint-disable no-undef */
+
 import { NextResponse } from 'next/server'
-import { version } from 'dd-trace/package.json'
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { libddwaf_version as libddwafVersion } from '@datadog/native-appsec/package.json'
 
 export async function GET (request) {
+  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
+  const maybeRequire = name => { try { return __non_webpack_require__(name) } catch (e) {} }
+
+  const { version } = maybeRequire('dd-trace/package.json')
+  const pkg = maybeRequire('dd-trace/node_modules/@datadog/native-appsec/package.json')
+  const rulesVersion = maybeRequire(rulesPath)?.metadata.rules_version
+
   return NextResponse.json({
     status: 'ok',
     library: {
       language: 'nodejs',
       version,
-      libddwaf_version: libddwafVersion
+      libddwaf_version: pkg.libddwaf_version,
+      appsec_event_rules_version: rulesVersion
     }
   }, {
     status: 200

@@ -2,11 +2,9 @@ import json
 
 import pytest
 
-from ddapm_test_agent.trace import Span, root_span
-
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
-from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER, OtelSpan
-from utils.parametric.spec.trace import find_trace_by_root, find_span, retrieve_span_links
+from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER
+from utils.parametric.spec.trace import find_trace, find_root_span, retrieve_span_links
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -30,7 +28,7 @@ class Test_Otel_SDK_Interoperability:
     @staticmethod
     def assert_span_link(trace):
         assert len(trace) == 1
-        root = root_span(trace)
+        root = find_root_span(trace)
         span_links = retrieve_span_links(root)
         assert len(span_links) == 1
 
@@ -78,11 +76,11 @@ class Test_Otel_SDK_Interoperability:
                 otel_span.set_attribute("arg2", "val4")  # Update the arg2/val2 pair (Created with the DD API)
                 otel_span.set_attribute("arg2", None)  # Remove the arg2/val2 pair (Created with the DD API)
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="dd_span"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        dd_span = root_span(trace)
+        dd_span = find_root_span(trace)
         meta = dd_span["meta"]
 
         # Span-life changes
@@ -131,11 +129,11 @@ class Test_Otel_SDK_Interoperability:
                 otel_span.set_attribute("m2", 4)  # Update the m2/2 pair (Created with the DD API)
                 otel_span.set_attribute("m2", None)  # Remove the m2/2 pair (Created with the DD API)
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="dd_span"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, dd_span.trace_id)
         assert len(trace) == 1
 
-        dd_span = root_span(trace)
+        dd_span = find_root_span(trace)
         metrics = dd_span["metrics"]
 
         # Span-life changes
@@ -169,9 +167,10 @@ class Test_Otel_SDK_Interoperability:
                 assert dd_span.get_resource() == "my_new_resource2"
                 assert otel_span.get_name() == "my_new_resource2"
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, OtelSpan(resource="my_new_resource2"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, otel_span.trace_id)
         assert len(trace) == 1
+        assert find_root_span(trace)["resource"] == "my_new_resource2"
 
     def test_span_links_basic(self, test_agent, test_library):
         """
@@ -199,8 +198,8 @@ class Test_Otel_SDK_Interoperability:
                 assert otel_link["tracestate"] == TEST_TRACESTATE
                 assert otel_link["attributes"]["arg1"] == "val1"
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="dd.span"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, dd_span.trace_id)
         self.assert_span_link(trace)
 
     def test_span_links_add(self, test_agent, test_library):
@@ -231,8 +230,8 @@ class Test_Otel_SDK_Interoperability:
 
                 otel_span.end_span()
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, Span(name="internal"))
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, otel_span.trace_id)
         self.assert_span_link(trace)
 
     def test_set_attribute_from_datadog(self, test_agent, test_library):
