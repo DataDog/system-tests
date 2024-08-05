@@ -783,7 +783,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.38.0", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -873,9 +873,9 @@ class Test_Headers_Tracecontext:
         assert case1["parent_id"] == 987654321
         assert "_dd.parent_id" not in case1["meta"]
 
-        # 2) trace-ids do not match
-        # Datadog and tracecontext headers contain spans from different traces
-        # We can not reparent the trace, datadog headers are used (future work - span link is used to track tracecontext span)
+        # # 2) trace-ids do not match
+        # # Datadog and tracecontext headers contain spans from different traces
+        # # We can not reparent the trace, datadog headers are used (future work - span link is used to track tracecontext span)
         assert case2["name"] == "trace_ids_do_not_match"
         assert case2["parent_id"] == 10
         assert "_dd.parent_id" not in case2["meta"]
