@@ -44,7 +44,7 @@ class Test_Shi_BodyUrlEncoded:
             "rasp-932-100",
             {
                 "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
-                "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -67,7 +67,7 @@ class Test_Shi_BodyXml:
             "rasp-932-100",
             {
                 "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
-                "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -80,7 +80,7 @@ class Test_Shi_BodyJson:
 
     def setup_shi_post_json(self):
         """AppSec detects attacks in JSON body values"""
-        self.r = weblog.post("/rasp/shi", json={"list_dir": "$(cat /etc/passwd 1>&amp;2 ; echo .)"})
+        self.r = weblog.post("/rasp/shi", json={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_post_json(self):
         assert self.r.status_code == 403
@@ -90,6 +90,6 @@ class Test_Shi_BodyJson:
             "rasp-932-100",
             {
                 "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
-                "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
