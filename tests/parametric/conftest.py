@@ -6,7 +6,9 @@ import shutil
 import json
 import subprocess
 import time
-from typing import Dict, Generator, List, TextIO, TypedDict
+import datetime
+import hashlib
+from typing import Dict, Generator, List, TextIO, TypedDict, Optional, Any
 import urllib.parse
 
 from docker.models.containers import Container
@@ -133,6 +135,93 @@ class _TestAgentAPI:
         )
         assert resp.status_code == 202
 
+    def get_remote_config(self):
+        resp = self._session.get(self._url("/v0.7/config"),)
+        resp_json = resp.json()
+        list = []
+        if resp_json and resp_json["target_files"]:
+            target_files = resp_json["target_files"]
+            for target in target_files:
+                path = target["path"]
+                msg = json.loads(str(base64.b64decode(target["raw"]), encoding="utf-8"))
+                dict = {"path": path, "msg": msg}
+                list.append(dict)
+        return list
+
+    def add_remote_config(self, path, payload):
+        current_rc = self.get_remote_config()
+        current_rc.append({"path": path, "msg": payload})
+        remote_config_payload = self._build_config_path_response(current_rc)
+        resp = self._session.post(self._url("/test/session/responses/config"), remote_config_payload,)
+        assert resp.status_code == 202
+
+    @staticmethod
+    def _build_config_path_response(config: List):
+        expires_date = datetime.datetime.strftime(
+            datetime.datetime.now() + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
+        )
+        roots = [
+            str(
+                base64.b64encode(
+                    bytes(
+                        json.dumps(
+                            {
+                                "signatures": [],
+                                "signed": {
+                                    "_type": "root",
+                                    "consistent_snapshot": True,
+                                    "expires": "1986-12-11T00:00:00Z",
+                                    "keys": {},
+                                    "roles": {},
+                                    "spec_version": "1.0",
+                                    "version": 2,
+                                },
+                            }
+                        ),
+                        encoding="utf-8",
+                    )
+                ),
+                encoding="utf-8",
+            )
+        ]
+
+        client_configs = []
+        target_files = []
+        targets_tmp = {}
+        for dict in config:
+            client_configs.append(dict["path"])
+            dict["msg_enc"] = bytes(json.dumps(dict["msg"]), encoding="utf-8")
+            tf = {
+                "path": dict["path"],
+                "raw": str(base64.b64encode(dict["msg_enc"]), encoding="utf-8"),
+            }
+            target_files.append(tf)
+            targets_tmp[dict["path"]] = {
+                "custom": {"c": [""], "v": 0},
+                "hashes": {"sha256": hashlib.sha256(dict["msg_enc"]).hexdigest()},
+                "length": len(dict["msg_enc"]),
+            }
+
+        data = {
+            "signatures": [{"keyid": "", "sig": ""}],
+            "signed": {
+                "_type": "targets",
+                "custom": {"opaque_backend_state": ""},
+                "expires": expires_date,
+                "spec_version": "1.0.0",
+                "targets": targets_tmp,
+            },
+            "version": 0,
+        }
+        targets = str(base64.b64encode(bytes(json.dumps(data), encoding="utf-8")), encoding="utf-8")
+        remote_config_payload = {
+            "roots": roots,
+            "targets": targets,
+            "target_files": target_files,
+            "client_configs": client_configs,
+        }
+        return json.dumps(remote_config_payload)
+
     def raw_telemetry(self, clear=False, **kwargs):
         raw_reqs = self.requests()
         reqs = []
@@ -163,7 +252,7 @@ class _TestAgentAPI:
 
     def rc_requests(self):
         reqs = self.requests()
-        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and r["method"] == "POST"]
         for r in rc_reqs:
             r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
         return rc_reqs
