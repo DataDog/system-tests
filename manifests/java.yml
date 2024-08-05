@@ -39,6 +39,8 @@ tests/:
         Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v1.1.0
@@ -392,6 +394,7 @@ tests/:
             vertx4: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson:
@@ -860,6 +863,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature
     test_reports.py:
       Test_AttackTimestamp:
         akka-http: v1.22.0
@@ -916,6 +920,8 @@ tests/:
         spring-boot-3-native: missing_feature (disabled on GraalVM)
         vertx3: missing_feature (endpoint not implemented)
         vertx4: missing_feature (endpoint not implemented)
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0

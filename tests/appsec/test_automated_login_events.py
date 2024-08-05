@@ -621,6 +621,7 @@ class Test_Login_Events_Extended:
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @features.user_monitoring
+@features.user_id_collection_modes
 class Test_V2_Login_Events:
     """
     Test login success/failure use cases
@@ -902,6 +903,7 @@ class Test_V2_Login_Events:
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @scenarios.appsec_auto_events_extended
 @features.user_monitoring
+@features.user_id_collection_modes
 class Test_V2_Login_Events_Anon:
     """Test login success/failure use cases
     As default mode is identification, this scenario will test anonymization.
