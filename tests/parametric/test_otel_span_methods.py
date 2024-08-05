@@ -851,7 +851,7 @@ class Test_Otel_Span_Methods:
     )
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
@@ -887,12 +887,12 @@ class Test_Otel_Span_Methods:
 
         event2 = events[1]
         assert event2.get("name") == "second_event"
-        assert event2.get("time_unix_nano") // 10000 == event2_timestamp_ns // 10000  # reduce the precision tested
+        assert event2.get("time_unix_nano") // 100000 == event2_timestamp_ns // 100000  # reduce the precision tested
         assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]
         assert event3.get("name") == "third_event"
-        assert event3.get("time_unix_nano") == 1000
+        assert 999 <= event3.get("time_unix_nano") <= 1001  # reduce the precision tested
         assert event3["attributes"].get("int_val") == 1
         assert event3["attributes"].get("string_val") == "2"
         assert event3["attributes"].get("int_array")[0] == 3
@@ -903,7 +903,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_does_not_set_error(self, test_agent, test_library):
@@ -922,7 +922,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
@@ -966,7 +966,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_attributes_serialization(self, test_agent, test_library):

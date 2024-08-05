@@ -111,5 +111,13 @@ namespace weblog
 
             return Content($"{a0.Count},{a1.Count},{a5.Count},{l0.Count},{l1.Count},{l5.Count},{h0.Count},{h1.Count},{h5.Count}.");
         }
+
+        [HttpGet("expression/null")]
+        [Consumes("application/json", "application/xml")]
+        public async Task<IActionResult> Nulls(int? intValue = null, string strValue = null)
+        {
+            PiiBase? pii = await Task.FromResult<PiiBase>(null);
+            return Content($"Pii is null {pii is null}. intValue is null {intValue is null}. strValue is null {strValue is null}.");
+        }
     }
 }

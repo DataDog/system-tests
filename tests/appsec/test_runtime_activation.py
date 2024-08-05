@@ -29,7 +29,7 @@ def _send_config(config):
     reason="ASM_FEATURES was not subscribed when a custom rules file was present",
 )
 @bug(context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614")
-@features.appsec_request_blocking
+@features.changing_rules_using_rc
 class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""
 
@@ -49,7 +49,7 @@ class Test_RuntimeActivation:
 
 
 @scenarios.appsec_runtime_activation
-@features.appsec_request_blocking
+@features.changing_rules_using_rc
 class Test_RuntimeDeactivation:
     """A library should stop blocking after Appsec is deactivated."""
 
