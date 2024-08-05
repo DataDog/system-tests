@@ -27,6 +27,8 @@ tests/:
         Test_Schema_Response_Headers: v1.15.0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_passwords.py:
@@ -219,6 +221,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule: missing_feature
     test_request_blocking.py:
