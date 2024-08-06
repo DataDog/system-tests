@@ -2,7 +2,7 @@ import os
 import time
 import json
 import requests
-from utils import scenarios, features
+from utils import scenarios, features, flaky
 from utils.tools import logger
 from utils import scenarios, context, features
 from kubernetes import client, config, watch
@@ -255,6 +255,7 @@ class TestConfigMapAutoInject:
             pods.items[0].metadata.labels["admission.datadoghq.com/enabled"] == "false"
         ), "annotation 'admission.datadoghq.com/enabled' wasn't 'false'"
 
+    @flaky(library="python", reason="APMRP-359")
     def test_fileprovider_configmap_case1(self, test_k8s_instance):
         """ Nominal case:
            - deploy app & agent
