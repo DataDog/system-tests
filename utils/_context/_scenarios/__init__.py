@@ -534,6 +534,20 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_exception_replay = EndToEndScenario(
+        "DEBUGGER_EXCEPTION_REPLAY",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_EXCEPTION_REPLAY_ENABLED": "true",
+            "DD_EXCEPTION_DEBUGGING_ENABLED": "true",
+        },
+        library_interface_timeout=5,
+        doc="Check exception replay",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
     fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
