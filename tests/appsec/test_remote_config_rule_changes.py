@@ -8,6 +8,8 @@ from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
 from utils import weblog
+from utils import bug
+from utils import context
 
 
 CONFIG_ENABLED = (
@@ -154,6 +156,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         self.config_state_5 = rc.rc_state.reset().apply()
 
+    @bug(context.library > "php@1.2.0", reason="APPSEC-54454")
     def test_update_rules(self):
         # normal block
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
