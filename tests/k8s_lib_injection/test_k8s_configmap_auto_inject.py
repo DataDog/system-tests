@@ -380,6 +380,7 @@ class TestConfigMapAutoInject:
 
         logger.info(f"Test test_fileprovider_configmap_case4 finished")
 
+    @flaky(library="python", reason="APMRP-359")
     def test_fileprovider_configmap_case5(self, test_k8s_instance):
         """ Config change to action:disable
                 - deploy app & agent
