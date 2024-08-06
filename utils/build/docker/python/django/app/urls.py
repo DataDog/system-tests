@@ -187,7 +187,7 @@ def rasp_sqli(request, *args, **kwargs):
 def rasp_shi(request, *args, **kwargs):
     list_dir = None
     if request.method == "GET":
-        list_dir = request.GET.get("user_id")
+        list_dir = request.GET.get("list_dir")
     elif request.method == "POST":
         try:
             list_dir = (request.POST or json.loads(request.body)).get("list_dir")

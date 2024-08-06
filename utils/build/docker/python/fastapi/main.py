@@ -208,7 +208,7 @@ async def rasp_sqli(request: Request):
 
 @app.get("/rasp/shi")
 @app.post("/rasp/shi")
-async def rasp_sqli(request: Request):
+async def rasp_shi(request: Request):
     list_dir = None
     if request.method == "GET":
         list_dir = request.query_params.get("list_dir")
@@ -228,8 +228,9 @@ async def rasp_sqli(request: Request):
     if list_dir is None:
         return PlainTextResponse("missing list_dir parameter", status_code=400)
     try:
-        res = os.system(f"ls {list_dir}")
-        return PlainTextResponse(f"Shell command with result: {res}")
+        command = f"ls {list_dir}"
+        res = os.system(command)
+        return PlainTextResponse(f"Shell command [{command}] with result: {res}")
     except Exception as e:
         print(f"Shell command failure: {e!r}", file=sys.stderr)
         return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
