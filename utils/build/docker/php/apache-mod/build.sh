@@ -29,7 +29,14 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 
 a2enmod rewrite
 
-curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
+ARCH=$(arch)
+if [[ $ARCH = aarch64 ]]; then
+  ARCH=arm64
+else
+  ARCH=amd64
+fi
+
+curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_${ARCH}.deb && \
 	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
 
 
