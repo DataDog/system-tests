@@ -19,6 +19,7 @@ class _TestAdmisionController:
             time.sleep(2)
         return []
 
+    @flaky(library="python", reason="APMRP-359")
     def test_inject_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test _test_inject_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
