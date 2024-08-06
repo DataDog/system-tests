@@ -33,7 +33,10 @@ class _BaseTestK8sInitImageValidator:
 class TestK8sInitImageValidator(_BaseTestK8sInitImageValidator):
     """ Validate that the weblog is instrumented automatically when the lang version is supported."""
 
-    @bug(library="java", reason="Need to be investigated by Roberto")
+    @bug(library="nodejs", reason="APMRP-359")
+    @bug(library="java", reason="APMRP-359")
+    @bug(library="python", reason="APMRP-359")
+    @bug(library="ruby", reason="APMRP-359")
     def test_valid_weblog_instrumented(self):
         logger.info("Launching test test_weblog_instrumented")
         self._check_weblog_running()
