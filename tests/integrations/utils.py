@@ -1,5 +1,11 @@
+from datetime import datetime
+import hashlib
+import struct
+
 from utils import weblog, interfaces
 from utils.tools import logger
+
+import boto3
 
 
 class BaseDbIntegrationsTestClass:
@@ -144,3 +150,90 @@ class BaseDbIntegrationsTestClass:
                 return span_child
 
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
+
+
+def delete_sqs_queue(queue_name):
+    queue_url = f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue_name}"
+    sqs_client = boto3.client("sqs")
+    try:
+        sqs_client.delete_queue(QueueUrl=queue_url)
+    except Exception:
+        pass
+
+
+def delete_sns_topic(topic_name):
+    topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
+    sns_client = boto3.client("sns")
+    try:
+        sns_client.delete_topic(TopicArn=topic_arn)
+    except Exception:
+        pass
+
+
+def delete_kinesis_stream(stream_name):
+    kinesis_client = boto3.client("kinesis")
+    try:
+        kinesis_client.delete_stream(StreamName=stream_name, EnforceConsumerDeletion=True)
+    except Exception:
+        pass
+
+
+def generate_time_string():
+    # Get the current time
+    current_time = datetime.now()
+
+    # Format the time string to include only two digits of seconds
+    time_str = current_time.strftime("%Y-%m-%d_%H-%M-%S") + f"-{int(current_time.microsecond / 10000):00d}"
+
+    return time_str
+
+
+def fnv(data, hval_init, fnv_prime, fnv_size):
+    # type: (bytes, int, int, int) -> int
+    """
+    Core FNV hash algorithm used in FNV0 and FNV1.
+    """
+    hval = hval_init
+    for byte in data:
+        hval = (hval * fnv_prime) % fnv_size
+        hval = hval ^ byte
+    return hval
+
+
+FNV_64_PRIME = 0x100000001B3
+FNV1_64_INIT = 0xCBF29CE484222325
+
+
+def fnv1_64(data):
+    # type: (bytes) -> int
+    """
+    Returns the 64 bit FNV-1 hash value for the given data.
+    """
+    return fnv(data, FNV1_64_INIT, FNV_64_PRIME, 2 ** 64)
+
+
+def compute_dsm_hash(parent_hash, tags):
+    def get_bytes(s):
+        return bytes(s, encoding="utf-8")
+
+    b = get_bytes("weblog") + get_bytes("system-tests")
+    for t in tags:
+        b += get_bytes(t)
+    node_hash = fnv1_64(b)
+    return fnv1_64(struct.pack("<Q", node_hash) + struct.pack("<Q", parent_hash))
+
+
+def sha_hash(checkpoint_string):
+    if isinstance(checkpoint_string, str):
+        checkpoint_string = checkpoint_string.encode("utf-8")
+    hash_obj = hashlib.md5(checkpoint_string).digest()[:8]
+    return hash_obj
+
+
+def compute_dsm_hash_nodejs(parent_hash, edge_tags):
+    current_hash = sha_hash(f"{'weblog'}{'system-tests'}{''.join(edge_tags)}")
+    parent_hash_buf = struct.pack(">Q", parent_hash)
+    buf = current_hash + parent_hash_buf
+
+    val = sha_hash(buf)
+    return int.from_bytes(val, "big")

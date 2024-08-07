@@ -4,76 +4,71 @@ const tracer = require('dd-trace')
 const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) => {
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis({
-    endpoint: 'http://localstack-main:4566',
     region: 'us-east-1'
   })
 
-  message = message ?? JSON.stringify({ message: '[Kinesis] Hello from Kinesis JavaScript injection' })
+  message = JSON.stringify({ message })
 
   return new Promise((resolve, reject) => {
     kinesis.createStream({ StreamName: stream, ShardCount: 1 }, (err) => {
       if (err) {
         console.log(`[Kinesis] Error during Node.js Kinesis create stream: ${err}`)
-        reject(err)
-      } else {
-        console.log(`[Kinesis] Created Kinesis Stream with name: ${stream}`)
-
-        const sendRecord = () => {
-          console.log('[Kinesis] Performing Kinesis describe stream and putRecord')
-          kinesis.describeStream({ StreamName: stream }, (err, data) => {
-            if (err) {
-              console.log('[Kinesis] Error while getting stream status, retrying send message')
-              setTimeout(() => {
-                sendRecord()
-              }, 1000)
-            } else if (
-              data.StreamDescription &&
-                data.StreamDescription.StreamStatus === 'ACTIVE'
-            ) {
-              console.log('[Kinesis] Kinesis Stream is Active')
-              kinesis.putRecord(
-                { StreamName: stream, Data: message, PartitionKey: partitionKey },
-                (err) => {
-                  if (err) {
-                    console.log('[Kinesis] Error while producing message, retrying send message')
-                    setTimeout(() => {
-                      sendRecord()
-                    }, 1000)
-                  } else {
-                    console.log('[Kinesis] Node.js Kinesis message sent successfully')
-                    resolve()
-                  }
-                }
-              )
-            } else {
-              console.log('[Kinesis] Kinesis describe stream, stream not active')
-              console.log(data)
-              setTimeout(() => {
-                sendRecord()
-              }, 1000)
-            }
-          })
-        }
-
-        // setTimeout(() => {
-        //   console.log('[Kinesis] TimeoutError: No message produced')
-        //   reject(new Error('[Kinesis] TimeoutError: No message produced'))
-        // }, timeout)
-
-        sendRecord()
+        // reject(err)
       }
+      console.log(`[Kinesis] Created Kinesis Stream with name: ${stream}`)
+
+      const sendRecord = () => {
+        console.log('[Kinesis] Performing Kinesis describe stream and putRecord')
+        kinesis.describeStream({ StreamName: stream }, (err, data) => {
+          if (err) {
+            console.log('[Kinesis] Error while getting stream status, retrying send message')
+            setTimeout(() => {
+              sendRecord()
+            }, 1000)
+          } else if (
+            data.StreamDescription &&
+              data.StreamDescription.StreamStatus === 'ACTIVE'
+          ) {
+            console.log('[Kinesis] Kinesis Stream is Active')
+            kinesis.putRecord(
+              { StreamName: stream, Data: message, PartitionKey: partitionKey },
+              (err, data) => {
+                if (err) {
+                  console.log('[Kinesis] Error while producing message, retrying send message')
+                  setTimeout(() => {
+                    sendRecord()
+                  }, 1000)
+                } else {
+                  console.log('[Kinesis] Node.js Kinesis putRecord response: ' + data)
+                  console.log('[Kinesis] Node.js Kinesis message sent successfully: ' + message)
+                  resolve(data)
+                }
+              }
+            )
+          } else {
+            console.log('[Kinesis] Kinesis describe stream, stream not active')
+            console.log(data)
+            setTimeout(() => {
+              sendRecord()
+            }, 1000)
+          }
+        })
+      }
+      // setTimeout(() => {
+      //   console.log('[Kinesis] TimeoutError: No message produced')
+      //   reject(new Error('[Kinesis] TimeoutError: No message produced'))
+      // }, timeout)
+
+      sendRecord()
     })
   })
 }
 
-const kinesisConsume = (stream, timeout = 60000) => {
+const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
   // Create a Kinesis client
-  const kinesis = new AWS.Kinesis({
-    endpoint: 'http://localstack-main:4566',
-    region: 'us-east-1'
-  })
+  const kinesis = new AWS.Kinesis()
 
-  let consumedMessage = null
+  console.log(`[Kinesis] Looking for the following message for stream: ${stream}: ${message}`)
 
   return new Promise((resolve, reject) => {
     const consumeMessage = () => {
@@ -85,11 +80,22 @@ const kinesisConsume = (stream, timeout = 60000) => {
           if (response && response.StreamDescription && response.StreamDescription.StreamStatus === 'ACTIVE') {
             const shardId = response.StreamDescription.Shards[0].ShardId
 
-            kinesis.getShardIterator({
+            const params = {
               StreamName: stream,
-              ShardId: shardId,
-              ShardIteratorType: 'TRIM_HORIZON'
-            }, (err, response) => {
+              ShardId: shardId
+            }
+            if (sequenceNumber) {
+              Object.assign(params, {
+                StartingSequenceNumber: sequenceNumber,
+                ShardIteratorType: 'AT_SEQUENCE_NUMBER'
+              })
+            } else {
+              Object.assign(params, {
+                ShardIteratorType: 'TRIM_HORIZON'
+              })
+            }
+
+            kinesis.getShardIterator(params, (err, response) => {
               if (err) {
                 console.log(`[Kinesis] Error during Kinesis get shard iterator: ${err}`)
                 setTimeout(consumeMessage, 1000)
@@ -102,18 +108,24 @@ const kinesisConsume = (stream, timeout = 60000) => {
                     setTimeout(consumeMessage, 1000)
                   } else {
                     if (recordsResponse && recordsResponse.Records && recordsResponse.Records.length > 0) {
-                      for (const message of recordsResponse.Records) {
+                      for (const actualMessage of recordsResponse.Records) {
                         // add a manual span to make finding this trace easier when asserting on tests
-                        tracer.trace('kinesis.consume', span => {
-                          span.setTag('stream_name', stream)
-                        })
-                        consumedMessage = message.Data
-                        console.log(`[Kinesis] Consumed the following: ${consumedMessage}`)
+                        console.log(`[Kinesis] Consumed the following for stream: ${stream}: ${actualMessage}`)
+                        console.log(actualMessage.Data)
+
+                        const messageStr = JSON.parse(actualMessage.Data.toString()).message
+                        console.log(messageStr)
+
+                        if (messageStr === message) {
+                          tracer.trace('kinesis.consume', span => {
+                            span.setTag('stream_name', stream)
+                          })
+                          console.log(`[Kinesis] Consumed the following: ${messageStr}`)
+                          resolve()
+                        }
                       }
-                      resolve()
-                    } else {
-                      setTimeout(consumeMessage, 1000)
                     }
+                    setTimeout(consumeMessage, 1000)
                   }
                 })
               }

@@ -1,10 +1,12 @@
 from __future__ import annotations
-
 import json
+import os
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
+
+from tests.integrations.utils import delete_sns_topic, delete_sqs_queue, generate_time_string
 
 
 class _Test_SNS:
@@ -16,6 +18,7 @@ class _Test_SNS:
     WEBLOG_TO_BUDDY_TOPIC = None
     buddy = None
     buddy_interface = None
+    time_hash = None
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, topic, operation):
@@ -104,15 +107,21 @@ class _Test_SNS:
         send request A to weblog : this request will produce a sns message
         send request B to library buddy, this request will consume sns message
         """
+        message = (
+            "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
+        )
 
         self.production_response = weblog.get(
             "/sns/produce",
-            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC},
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC, "message": message},
             timeout=60,
         )
         self.consume_response = self.buddy.get(
-            "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
+            "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message}, timeout=61
         )
+        delete_sns_topic(self.WEBLOG_TO_BUDDY_TOPIC)
+        delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
 
     def test_produce(self):
         """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
@@ -129,11 +138,6 @@ class _Test_SNS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(
-        library="java",
-        reason="Expected to fail. Java will produce a message with propagation via AWSTraceHeader and node \
-        will not produce a response since no context will be found.",
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -164,15 +168,21 @@ class _Test_SNS:
         request A: GET /library_buddy/produce_sns_message
         request B: GET /weblog/consume_sns_message
         """
+        message = (
+            "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
+        )
 
         self.production_response = self.buddy.get(
             "/sns/produce",
-            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC},
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC, "message": message},
             timeout=60,
         )
         self.consume_response = weblog.get(
-            "/sns/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
+            "/sns/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message}, timeout=61
         )
+        delete_sns_topic(self.BUDDY_TO_WEBLOG_TOPIC)
+        delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -190,9 +200,6 @@ class _Test_SNS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(
-        library="java", reason="Not expected to fail, Java should be able to extract Binary trace context but is not."
-    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -247,7 +254,14 @@ class _Test_SNS:
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy"
-    WEBLOG_TO_BUDDY_TOPIC = "Test_SNS_Propagation_via_message_attributes_weblog_to_buddy_topic"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_SNS_Propagation_via_message_attributes_buddy_to_weblog_topic"
+
+    time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
+
+    WEBLOG_TO_BUDDY_QUEUE = (
+        f"SNS_Propagation_msg_attrs_{context.library.library}_{context.weblog_variant}_weblog_to_buddy_{time_hash}"
+    )
+    WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attrs_{context.library.library}_{context.weblog_variant}_weblog_to_buddy_topic_{time_hash}"
+    BUDDY_TO_WEBLOG_QUEUE = (
+        f"SNS_Propagation_msg_attrs_buddy_to_{context.library.library}_{context.weblog_variant}_weblog_{time_hash}"
+    )
+    BUDDY_TO_WEBLOG_TOPIC = f"SNS_Propagation_msg_attrs_buddy_to_{context.library.library}_{context.weblog_variant}_weblog_topic_{time_hash}"
