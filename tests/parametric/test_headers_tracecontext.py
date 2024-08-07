@@ -783,7 +783,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.38.0", reason="Not implemented")
+    @missing_feature(context.library < "java@1.39.0", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
