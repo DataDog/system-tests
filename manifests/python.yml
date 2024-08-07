@@ -192,10 +192,10 @@ tests/:
         Test_Lfi_BodyXml: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
       test_shi.py:
-        Test_Shi_BodyJson: missing_feature
-        Test_Shi_BodyUrlEncoded: missing_feature
-        Test_Shi_BodyXml: missing_feature
-        Test_Shi_UrlQuery: missing_feature
+        Test_Shi_BodyJson: v2.11.0-rc2
+        Test_Shi_BodyUrlEncoded: v2.11.0-rc2
+        Test_Shi_BodyXml: v2.11.0-rc2
+        Test_Shi_UrlQuery: v2.11.0-rc2
       test_span_tags.py:
         Test_Mandatory_SpanTags: v2.10.0.dev
         Test_Optional_SpanTags: v2.10.0.dev
