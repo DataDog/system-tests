@@ -19,7 +19,7 @@ class Test_Monitoring:
     @flaky(
         library="java",
         weblog_variant="vertx4",
-        reason="Although span tags are correct some times rasp is not blocking du to timing issue",
+        reason="APPSEC-54465",
     )
     def test_waf_monitoring(self):
         """WAF monitoring span tags and metrics are expected to be sent on each request"""
