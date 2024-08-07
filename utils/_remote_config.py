@@ -119,9 +119,38 @@ def send_state(
     return current_states
 
 
-def send_sequential_commands(commands: list[dict]) -> None:
+def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = True) -> None:
     """DEPRECATED"""
+
+    if len(commands) == 0:
+        raise ValueError("No commands to send")
+
     _post("/sequential_commands", commands)
+
+    if not wait_for_all_command:
+        return
+
+    counts_by_runtime_id = {}
+
+    def all_payload_sent(data):
+        if data["path"] == "/v0.7/config":
+            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
+            if runtime_id not in counts_by_runtime_id:
+                counts_by_runtime_id[runtime_id] = 0
+            if data["response"]["status_code"] == 200:
+                counts_by_runtime_id[runtime_id] += 1
+
+                # wait for N successful responses, +1 for the ACK request from the lib
+                for count in counts_by_runtime_id.values():
+                    if count < len(commands) + 1:
+                        return False
+
+            return True
+
+    rc_poll_interval = 5  # seconds
+    extra_timeout = 10  # give more room for startup
+
+    library.wait_for(all_payload_sent, timeout=rc_poll_interval * len(commands) + extra_timeout)
 
 
 def build_debugger_command(probes: list, version: int):
