@@ -140,17 +140,18 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
             if data["response"]["status_code"] == 200:
                 counts_by_runtime_id[runtime_id] += 1
 
-                # wait for N successful responses, +1 for the ACK request from the lib
-                for count in counts_by_runtime_id.values():
-                    if count < len(commands) + 1:
-                        return False
+            # wait for N successful responses, +1 for the ACK request from the lib
+            for count in counts_by_runtime_id.values():
+                if count < len(commands) + 1:
+                    return False
 
             return True
 
     rc_poll_interval = 5  # seconds
     extra_timeout = 10  # give more room for startup
-
-    library.wait_for(all_payload_sent, timeout=rc_poll_interval * len(commands) + extra_timeout)
+    timeout = len(commands) * rc_poll_interval + extra_timeout
+    logger.debug(f"Waiting for {timeout}s to see {len(commands)} responses")
+    library.wait_for(all_payload_sent, timeout=timeout)
 
 
 def build_debugger_command(probes: list, version: int):
