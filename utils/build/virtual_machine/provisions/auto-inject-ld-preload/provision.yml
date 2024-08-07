@@ -13,11 +13,8 @@ vm_logs:
 provision_steps:
   - init-config # Init the VM configuration
   - prepare-docker # Install docker
-  - setup-testing-dependencies # Pull the right docker images & install crane
-  - setup-local-registry # Setup a local registry with injector & tracer OCIs
-  - install-installer # Install the installer
   - ld-so-preload # Add some staff to the ld.so.preload before install dd software
-  - installer-bootstrap # Bootstrap the agent, library, and injector
+  - install-installer # Install the installer
 
 init-config:
   cache: true
@@ -31,20 +28,5 @@ prepare-docker:
 ld-so-preload:
   install: !include utils/build/virtual_machine/provisions/auto-inject-ld-preload/ld-preload.yml
 
-setup-testing-dependencies:
-  cache: true
-  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-setup_testing_dependencies.yml
-
-setup-local-registry:
-  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-setup_local_registry.yml
-
 install-installer:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml
-
-installer-bootstrap:
-  install:
-    - os_type: linux
-      remote-command: |
-        sudo datadog-installer install "oci://localhost:12345/datadog/apm-inject-package:latest"
-        sudo datadog-installer install "oci://localhost:12345/datadog/agent-package:latest"
-        sudo datadog-installer install "oci://localhost:12345/datadog/apm-library-${DD_LANG}-package:latest"
