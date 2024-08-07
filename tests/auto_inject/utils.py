@@ -16,6 +16,8 @@ class AutoInjectBaseTest:
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         logger.info("checking for the injector installed on the vm")
         self.execute_command(virtual_machine, "ls -lRa /opt/datadog-packages/datadog-apm-inject")
+        self.execute_command(virtual_machine, "cat /etc/ld.so.preload")
+        self.execute_command(virtual_machine, "cat /proc/self/maps")
         return
 
         vm_ip = virtual_machine.ssh_config.hostname
