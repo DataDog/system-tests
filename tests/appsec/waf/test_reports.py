@@ -17,9 +17,7 @@ class Test_Monitoring:
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @flaky(
-        library="java",
-        weblog_variant="vertx4",
-        reason="APPSEC-54465",
+        library="java", weblog_variant="vertx4", reason="APPSEC-54465",
     )
     def test_waf_monitoring(self):
         """WAF monitoring span tags and metrics are expected to be sent on each request"""
