@@ -194,7 +194,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     )
     @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
-    @bug(context.library > "php@1.2.0", reason="APPSEC-54454")
+    @bug(context.library > "php@1.1.999", reason="APPSEC-54454")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
@@ -342,7 +342,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(context.library <= "java@1.12.1", reason="config state id value was wrong")
-    @bug(context.library > "php@1.2.0", reason="APPSEC-54454")
+    @bug(context.library > "php@1.1.999", reason="APPSEC-54454")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 

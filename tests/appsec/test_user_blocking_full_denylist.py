@@ -37,7 +37,7 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         reason="Failed on large expiration values, which are used in this test",
     )
     @bug(library="java", reason="Request blocked but appsec.blocked tag not set")
-    @bug(context.library > "php@1.2.0", reason="APPSEC-54454")
+    @bug(context.library > "php@1.1.999", reason="APPSEC-54454")
     def test_blocking_test(self):
         """Test with a denylisted user"""
 

@@ -156,7 +156,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         self.config_state_5 = rc.rc_state.reset().apply()
 
-    @bug(context.library > "php@1.2.0", reason="APPSEC-54454")
+    @bug(context.library > "php@1.1.999", reason="APPSEC-54454")
     def test_update_rules(self):
         # normal block
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
