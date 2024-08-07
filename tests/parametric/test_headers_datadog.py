@@ -82,7 +82,7 @@ class Test_Headers_Datadog:
                     ["baggage", "hello=world"],
                 ],
             )
-        
+
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert headers["x-datadog-trace-id"] == "123456789"
         assert headers["x-datadog-parent-id"] != "987654321"
