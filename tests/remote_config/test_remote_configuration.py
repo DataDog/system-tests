@@ -30,6 +30,7 @@ class Test_Agent:
     @missing_feature(library="ruby", reason="ruby tracer does not call /info")
     @irrelevant(library="cpp")
     @scenarios.remote_config_mocked_backend_asm_dd
+    @bug(context.library > "php@1.1.999", reason="APPSEC-54454")
     def test_agent_provide_config_endpoint(self):
         """Check that agent exposes /v0.7/config endpoint"""
         for data in interfaces.library.get_data("/info"):
