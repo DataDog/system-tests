@@ -1,8 +1,9 @@
-Some of images used in system-tests are prebuild and used threw [hub.docker.com/datadog/system-tests](https://hub.docker.com/repository/docker/datadog/system-tests/).
+Some of the images used in system-tests are prebuild and used through 
+[hub.docker.com/datadog/system-tests](https://hub.docker.com/repository/docker/datadog/system-tests/).
 
-If you need to update them, you will need to follow those
+If you need to update them, you will need to follow these steps:
 
-1. update the version in the tag for the image you've just modified (there should be 3 or 4 occurences in the code)
+1. update the version in the tag for the image you've just modified (there should be 3 or 4 occurrences in the code)
 2. create your PR, and add the relevant label to rebuild the image in the CI
   * `build-python-base-images` for python weblogs
   * `build-proxy-image` for proxy image

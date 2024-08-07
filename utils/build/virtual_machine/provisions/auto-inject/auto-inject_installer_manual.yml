@@ -8,7 +8,7 @@
 
   remote-command: |
 
-    #Env variables set on the scenario definition. Write to file and load  
+    # Env variables set on the scenario definition. Write to file and load  
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
     echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
     echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
