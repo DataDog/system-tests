@@ -579,7 +579,6 @@ class scenarios:
         rc_api_enabled=True,
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
-        library_interface_timeout=20,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -593,7 +592,6 @@ class scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
         },
-        library_interface_timeout=20,
         doc="",
     )
 
@@ -601,7 +599,6 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None,},
-        library_interface_timeout=20,
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
@@ -617,7 +614,6 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
-        library_interface_timeout=20,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -630,14 +626,12 @@ class scenarios:
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
         },
-        library_interface_timeout=20,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         rc_api_enabled=True,
-        library_interface_timeout=20,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -684,7 +678,6 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=20,
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
