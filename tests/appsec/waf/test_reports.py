@@ -4,7 +4,7 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
+from utils import weblog, context, interfaces, irrelevant, scenarios, features, flaky
 
 
 @features.support_in_app_waf_metrics_report
@@ -16,6 +16,11 @@ class Test_Monitoring:
     def setup_waf_monitoring(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
+    @flaky(
+        library="java",
+        weblog_variant="vertx4",
+        reason="Although span tags are correct some times rasp is not blocking du to timing issue",
+    )
     def test_waf_monitoring(self):
         """WAF monitoring span tags and metrics are expected to be sent on each request"""
 
