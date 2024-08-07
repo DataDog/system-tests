@@ -15,8 +15,7 @@ class AutoInjectBaseTest:
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         logger.info("checking for the injector installed on the vm")
-        output = self.execute_command(virtual_machine, "ls -la /opt/datadog-installer/apm-inject-package/stable/inject")
-        logger.info(f"got output {output}")
+        self.execute_command(virtual_machine, "ls -lRa /opt/datadog-packages/datadog-apm-inject")
         return
 
         vm_ip = virtual_machine.ssh_config.hostname
@@ -64,10 +63,6 @@ class AutoInjectBaseTest:
             vm_logger(context.scenario.name, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
-
-            return command
-
-        return None
 
     def _test_uninstall_commands(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
