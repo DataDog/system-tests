@@ -9,6 +9,8 @@ import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import com.datadoghq.client.APMClientGrpc;
 import com.datadoghq.client.ApmTestClient;
 import com.datadoghq.client.ApmTestClient.DistributedHTTPHeaders;
+import com.datadoghq.client.ApmTestClient.GetTraceConfigArgs;
+import com.datadoghq.client.ApmTestClient.GetTraceConfigReturn;
 import com.datadoghq.client.ApmTestClient.ListVal;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanArgs;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanReturn;
@@ -27,6 +29,7 @@ import com.datadoghq.client.ApmTestClient.OtelStartSpanReturn;
 import com.datadoghq.client.ApmTestClient.SpanLink;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTraceId;
+import datadog.trace.api.TracePropagationStyle;
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
@@ -40,10 +43,14 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
+import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
@@ -140,6 +147,81 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
             case 0:
             default:
                 return null;
+        }
+    }
+
+    @Override
+    public void getTraceConfig(GetTraceConfigArgs request, StreamObserver<GetTraceConfigReturn> responseObserver) {
+        LOGGER.info("Getting tracer config");
+        try
+        {
+            // Use reflection to get the static Config instance
+            Class configClass = Class.forName("datadog.trace.api.Config");
+            Method getConfigMethod = configClass.getMethod("get");
+
+            Class instrumenterConfigClass = Class.forName("datadog.trace.api.InstrumenterConfig");
+            Method getInstrumenterConfigMethod = instrumenterConfigClass.getMethod("get");
+
+            Object configObject = getConfigMethod.invoke(null);
+            Object instrumenterConfigObject = getInstrumenterConfigMethod.invoke(null);
+
+            Method getServiceName = configClass.getMethod("getServiceName");
+            Method getEnv = configClass.getMethod("getEnv");
+            Method getVersion = configClass.getMethod("getVersion");
+            Method getTraceSampleRate = configClass.getMethod("getTraceSampleRate");
+            Method isTraceEnabled = configClass.getMethod("isTraceEnabled");
+            Method isRuntimeMetricsEnabled = configClass.getMethod("isRuntimeMetricsEnabled");
+            Method getGlobalTags = configClass.getMethod("getGlobalTags");
+            Method getTracePropagationStylesToInject = configClass.getMethod("getTracePropagationStylesToInject");
+            Method isDebugEnabled = configClass.getMethod("isDebugEnabled");
+            Method getLogLevel = configClass.getMethod("getLogLevel");
+
+            Method isTraceOtelEnabled = instrumenterConfigClass.getMethod("isTraceOtelEnabled");
+
+            Map<String, String> configMap = new HashMap<>();
+            configMap.put("dd_service", getServiceName.invoke(configObject).toString());
+            configMap.put("dd_env", getEnv.invoke(configObject).toString());
+            configMap.put("dd_version", getVersion.invoke(configObject).toString());
+            configMap.put("dd_log_level", Optional.ofNullable(getLogLevel.invoke(configObject)).map(Object::toString).orElse(null));
+            configMap.put("dd_trace_enabled", isTraceEnabled.invoke(configObject).toString());
+            configMap.put("dd_runtime_metrics_enabled", isRuntimeMetricsEnabled.invoke(configObject).toString());
+            configMap.put("dd_trace_debug", isDebugEnabled.invoke(configObject).toString());
+            configMap.put("dd_trace_otel_enabled", isTraceOtelEnabled.invoke(instrumenterConfigObject).toString());
+            // configMap.put("dd_trace_sample_ignore_parent", Config.get());
+
+            Object sampleRate = getTraceSampleRate.invoke(configObject);
+            if (sampleRate instanceof Double) {
+                configMap.put("dd_trace_sample_rate", String.valueOf((Double)sampleRate));
+            }
+
+            Object globalTags = getGlobalTags.invoke(configObject);
+            if (globalTags != null) {
+                String result = ((Map<String, String>)globalTags).entrySet()
+                    .stream()
+                    .map(entry -> entry.getKey() + ":" + entry.getValue())
+                    .collect(Collectors.joining(","));
+
+                configMap.put("dd_tags", result);
+            }
+
+            Object propagationStyles = getTracePropagationStylesToInject.invoke(configObject);
+            if (propagationStyles != null) {
+                String result = ((Set<TracePropagationStyle>)propagationStyles)
+                    .stream()
+                    .map(style -> style.toString())
+                    .collect(Collectors.joining(","));
+
+                configMap.put("dd_trace_propagation_style", result);
+            }
+
+            configMap.values().removeIf(Objects::isNull);
+            responseObserver.onNext(GetTraceConfigReturn.newBuilder()
+                    .putAllConfig(configMap)
+                    .build());
+            responseObserver.onCompleted();
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
         }
     }
 
