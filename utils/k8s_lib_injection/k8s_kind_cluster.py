@@ -1,3 +1,4 @@
+import json
 import time
 import os
 import socket
@@ -40,17 +41,37 @@ def _ensure_cluster():
         )
 
         if "GITLAB_CI" in os.environ:
-            # The build runs in a docker container. Docker commands are forwarded to the host. The kind container is a sibling to the build container
-            # The build container needs to be added to the kind network for them to be able to communicate
+            # The build runs in a docker container:
+            #    - Docker commands are forwarded to the host.
+            #    - The kind container is a sibling to the build container
+            # Two things need to happen
+            # 1) The build container needs to be added to the kind network for them to be able to communicate
+            # 2) Kube config needs to be altered to use the dns name of the control plane server
 
-            # the name of the container endswith "build"
-            build_container_id = execute_command("bash -c \"docker container ls --format '{{json .}}' | jq --slurp '.[] | select(.Names | endswith(\\\"-build\\\")) | .ID' --raw-output\"")
+            container_info = execute_command("bash -c \"docker container ls --format '{{json .}}' | jq --slurp\"")
+
+            build_container_id = ""
+            control_plane_server = ""
+
+            container_info_json = json.loads(container_info)
+            for container in container_info_json:
+                if container["Names"].endswith("-build"):
+                    build_container_id = container["ID"]
+                if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
+                    # Ports is of the form: "127.0.0.1:44371->6443/tcp",
+                    mapping_divider = container["Ports"].index("-")
+                    control_plane_server = container["Ports"][:mapping_divider]
 
             if not build_container_id:
                 raise Exception("Unable to find build container ID")
+            if not control_plane_server:
+                raise Exception("Unable to find control plane server")
 
+            # Add build container to kind network
             execute_command(f"docker network connect kind {build_container_id}")
-            execute_command("sed -i -E \"s@server:.+@server:\ https://lib-injection-testing-control-plane:6443@g\" $HOME/.kube/config")
+            
+            # Replace server config with dns name + internal port
+            execute_command(f"sed -i \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}:6443/g\" $HOME/.kube/config")
 
             k8s_kind_cluster.build_container_id = build_container_id
 
