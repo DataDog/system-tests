@@ -44,7 +44,7 @@ def _ensure_cluster():
             # The build container needs to be added to the kind network for them to be able to communicate
 
             # the name of the container endswith "build"
-            build_container_id = execute_command(f"docker container ls --format '{{json .}}' | jq --slurp '.[] | select(.Names | endswith(\"-build\")) | .ID' --raw-output")
+            build_container_id = execute_command("bash -c \"docker container ls --format '{{json .}}' | jq --slurp '.[] | select(.Names | endswith(\"-build\")) | .ID' --raw-output\"")
 
             if not build_container_id:
                 raise Exception("Unable to find build container ID")
