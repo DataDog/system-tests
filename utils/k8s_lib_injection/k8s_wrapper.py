@@ -19,6 +19,9 @@ class K8sWrapper:
 
     @retry(delay=1, tries=5)
     def apps_api(self):
+        client = config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
+        logger.info("Client Configuration for %s", self.k8s_kind_cluster.context_name)
+        logger.info(client.configuration)
         return client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
     @retry(delay=1, tries=5)
