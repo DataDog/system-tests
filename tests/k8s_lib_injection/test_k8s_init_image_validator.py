@@ -37,6 +37,7 @@ class TestK8sInitImageValidator(_BaseTestK8sInitImageValidator):
     @bug(library="java", reason="APMRP-359")
     @bug(library="python", reason="APMRP-359")
     @bug(library="ruby", reason="APMRP-359")
+    @bug(library="dotnet", reason="APMRP-359")
     def test_valid_weblog_instrumented(self):
         logger.info("Launching test test_weblog_instrumented")
         self._check_weblog_running()
