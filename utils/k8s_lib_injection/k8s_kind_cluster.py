@@ -43,10 +43,12 @@ def _ensure_cluster():
             # The build runs in a docker container. Docker commands are forwarded to the host. The kind container is a sibling to the build container
             # The build container needs to be added to the kind network for them to be able to communicate
 
-            # we don't know the container id directly so this code obtains it by finding the id that's not the control plain
-            # filter with negation doesn't work for "docker container ls": https://github.com/docker/for-linux/issues/1414
-            kind_container_id = execute_command(f"docker container ls --filter \"name={k8s_kind_cluster.cluster_name}-control-plane\" -q")
-            build_container_id = execute_command(f"docker container ls --filter \"name={kind_container_id}-control-plane\" -q")
+            # the name of the container endswith "build"
+            build_container_id = execute_command(f"docker container ls --format '{{json .}}' | jq --slurp '.[] | select(.Names | endswith(\"-build\")) | .ID' --raw-output")
+
+            if not build_container_id:
+                raise Exception("Unable to find build container ID")
+
             execute_command(f"docker network connect kind {build_container_id}")
             execute_command("sed -i -E \"s@server:.+@server:\ https://lib-injection-testing-control-plane:6443@g\" $HOME/.kube/config")
 
