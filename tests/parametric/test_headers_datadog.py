@@ -79,6 +79,7 @@ class Test_Headers_Datadog:
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-origin", "synthetics"],
                     ["x-datadog-tags", "_dd.p.dm=-4"],
+                    ["baggage", "hello=world"],
                 ],
             )
 
@@ -87,6 +88,7 @@ class Test_Headers_Datadog:
         assert headers["x-datadog-parent-id"] != "987654321"
         assert headers["x-datadog-sampling-priority"] == "2"
         assert headers["x-datadog-origin"] == "synthetics"
+        assert headers["baggage"] == "hello=world"
         assert "_dd.p.dm=-4" in headers["x-datadog-tags"]
 
     def test_distributed_headers_extractandinject_datadog_invalid_D005(self, test_agent, test_library):
