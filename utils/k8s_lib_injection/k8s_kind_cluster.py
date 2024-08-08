@@ -53,7 +53,9 @@ def _ensure_cluster():
             build_container_id = ""
             control_plane_server = ""
 
-            for item in container_info.split("\n"):
+            for item in container_info.decode().split("\n"):
+                if not item:
+                    continue
                 container = json.loads(item)
                 if container["Names"].endswith("-build"):
                     build_container_id = container["ID"]
