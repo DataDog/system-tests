@@ -70,10 +70,13 @@ def _ensure_cluster():
                 raise Exception("Unable to find control plane server")
 
             # Add build container to kind network
-            execute_command(f"docker network connect kind {build_container_id}")
+            try:
+                execute_command(f"docker network connect kind {build_container_id}")
+            except Exception as e:
+                pass # ignore exception. May already be connected
 
             # Replace server config with dns name + internal port
-            execute_command(f"sed -i \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}:6443/g\" $HOME/.kube/config")
+            execute_command(f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}:6443/g\" $HOME/.kube/config")
 
             k8s_kind_cluster.build_container_id = build_container_id
 
@@ -88,7 +91,10 @@ def destroy_cluster(k8s_kind_cluster):
 
     # remove the docker container from the kind network. See the Gitlab comments above
     if k8s_kind_cluster.build_container_id:
-        execute_command(f"docker network disconnect kind {k8s_kind_cluster.build_container_id} || true")
+        try:
+            execute_command(f"docker network disconnect kind {k8s_kind_cluster.build_container_id}")
+        except Exception as e:
+            pass # ignore exception as container could already be disconnected
 
 def get_free_port():
     last_allowed_port = 65535
