@@ -18,7 +18,6 @@ class AutoInjectBaseTest:
         self.execute_command(virtual_machine, "ls -lRa /opt/datadog-packages/datadog-apm-inject")
         self.execute_command(virtual_machine, "cat /etc/ld.so.preload")
         self.execute_command(virtual_machine, "cat /proc/self/maps")
-        return
 
         vm_ip = virtual_machine.ssh_config.hostname
         vm_port = virtual_machine.deffault_open_port
