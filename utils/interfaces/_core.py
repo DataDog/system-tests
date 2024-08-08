@@ -154,6 +154,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         with self._lock:
             for data in self._data_list:
                 if wait_for_function(data):
+                    logger.info(f"wait for {wait_for_function} finished in success with existing data")
                     return
 
             # then set the lock, and wait for append_data to release it
