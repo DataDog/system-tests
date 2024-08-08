@@ -690,6 +690,7 @@ class Test_V2_Login_Events:
     def setup_login_pii_success_basic(self):
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -725,6 +726,7 @@ class Test_V2_Login_Events:
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
@@ -764,6 +766,7 @@ class Test_V2_Login_Events:
             "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}
         )
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -812,6 +815,7 @@ class Test_V2_Login_Events:
             "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -855,6 +859,7 @@ class Test_V2_Login_Events:
             headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
         )
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -888,6 +893,7 @@ class Test_V2_Login_Events:
             headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
         )
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -978,6 +984,7 @@ class Test_V2_Login_Events_Anon:
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
@@ -1020,6 +1027,7 @@ class Test_V2_Login_Events_Anon:
             "/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}
         )
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -1065,6 +1073,7 @@ class Test_V2_Login_Events_Anon:
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -1109,6 +1118,7 @@ class Test_V2_Login_Events_Anon:
             headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
         )
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
@@ -1125,6 +1135,7 @@ class Test_V2_Login_Events_Anon:
             headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
         )
 
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
