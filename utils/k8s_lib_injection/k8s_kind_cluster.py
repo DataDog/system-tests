@@ -41,44 +41,7 @@ def _ensure_cluster():
         )
 
         if "GITLAB_CI" in os.environ:
-            # The build runs in a docker container:
-            #    - Docker commands are forwarded to the host.
-            #    - The kind container is a sibling to the build container
-            # Two things need to happen
-            # 1) The build container needs to be added to the kind network for them to be able to communicate
-            # 2) Kube config needs to be altered to use the dns name of the control plane server
-
-            container_info = execute_command("docker container ls --format '{{json .}}'")
-
-            build_container_id = ""
-            control_plane_server = ""
-
-            for item in container_info.decode().split("\n"):
-                if not item:
-                    continue
-                container = json.loads(item)
-                if container["Names"].endswith("-build"):
-                    build_container_id = container["ID"]
-                if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
-                    # Ports is of the form: "127.0.0.1:44371->6443/tcp",
-                    mapping_divider = container["Ports"].index("-")
-                    control_plane_server = container["Ports"][:mapping_divider]
-
-            if not build_container_id:
-                raise Exception("Unable to find build container ID")
-            if not control_plane_server:
-                raise Exception("Unable to find control plane server")
-
-            # Add build container to kind network
-            try:
-                execute_command(f"docker network connect kind {build_container_id}")
-            except Exception as e:
-                pass # ignore exception. May already be connected
-
-            # Replace server config with dns name + internal port
-            execute_command(f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}:6443/g\" {os.environ['HOME']}/.kube/config")
-
-            k8s_kind_cluster.build_container_id = build_container_id
+            setup_kind_in_gitlab(k8s_kind_cluster)
 
         # time.sleep(20)
 
@@ -95,6 +58,49 @@ def destroy_cluster(k8s_kind_cluster):
             execute_command(f"docker network disconnect kind {k8s_kind_cluster.build_container_id}")
         except Exception as e:
             pass # ignore exception as container could already be disconnected
+
+
+def setup_kind_in_gitlab(k8s_kind_cluster):
+    # The build runs in a docker container:
+    #    - Docker commands are forwarded to the host.
+    #    - The kind container is a sibling to the build container
+    # Two things need to happen
+    # 1) The build container needs to be added to the kind network for them to be able to communicate
+    # 2) Kube config needs to be altered to use the dns name of the control plane server
+
+    container_info = execute_command("docker container ls --format '{{json .}}'")
+
+    build_container_id = ""
+    control_plane_server = ""
+
+    for item in container_info.decode().split("\n"):
+        if not item:
+            continue
+        container = json.loads(item)
+        if container["Names"].endswith("-build"):
+            build_container_id = container["ID"]
+        if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
+            # Ports is of the form: "127.0.0.1:44371->6443/tcp",
+            mapping_divider = container["Ports"].index("-")
+            control_plane_server = container["Ports"][:mapping_divider]
+
+    if not build_container_id:
+        raise Exception("Unable to find build container ID")
+    if not control_plane_server:
+        raise Exception("Unable to find control plane server")
+
+    # Add build container to kind network
+    try:
+        execute_command(f"docker network connect kind {build_container_id}")
+    except Exception as e:
+        pass  # ignore exception. May already be connected
+
+    # Replace server config with dns name + internal port
+    execute_command(
+        f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}:6443/g\" {os.environ['HOME']}/.kube/config")
+
+    k8s_kind_cluster.build_container_id = build_container_id
+
 
 def get_free_port():
     last_allowed_port = 65535
