@@ -48,13 +48,13 @@ def _ensure_cluster():
             # 1) The build container needs to be added to the kind network for them to be able to communicate
             # 2) Kube config needs to be altered to use the dns name of the control plane server
 
-            container_info = execute_command("bash -c \"docker container ls --format '{{json .}}' | jq --slurp\"")
+            container_info = execute_command("docker container ls --format '{{json .}}'")
 
             build_container_id = ""
             control_plane_server = ""
 
-            container_info_json = json.loads(container_info)
-            for container in container_info_json:
+            for item in container_info.split("\n"):
+                container = json.loads(item)
                 if container["Names"].endswith("-build"):
                     build_container_id = container["ID"]
                 if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
@@ -69,7 +69,7 @@ def _ensure_cluster():
 
             # Add build container to kind network
             execute_command(f"docker network connect kind {build_container_id}")
-            
+
             # Replace server config with dns name + internal port
             execute_command(f"sed -i \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}:6443/g\" $HOME/.kube/config")
 
