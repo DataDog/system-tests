@@ -4,7 +4,7 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
+from utils import weblog, context, interfaces, irrelevant, scenarios, features, flaky
 
 
 @features.support_in_app_waf_metrics_report
@@ -16,6 +16,7 @@ class Test_Monitoring:
     def setup_waf_monitoring(self):
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
+    @flaky(context.weblog_variant in ("vertx3", "vertx4"), reason="APPSEC-54465")
     def test_waf_monitoring(self):
         """WAF monitoring span tags and metrics are expected to be sent on each request"""
 

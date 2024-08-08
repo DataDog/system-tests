@@ -201,8 +201,6 @@ tests/:
       Test_Suspicious_Request_Blocking: missing_feature (v1.0.0 but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.8.0
-    test_conf.py:
-      Test_RuleSet_1_3_1: v1.0.0
     test_customconf.py:
       Test_ConfRuleSet: v1.0.0.beta2
       Test_CorruptedRules: v1.0.0.beta2
@@ -212,6 +210,9 @@ tests/:
       Test_CustomEvent: v1.9.0
       Test_UserLoginFailureEvent: v1.9.0
       Test_UserLoginSuccessEvent: v1.9.0
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Header_And_Network: missing_feature
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:

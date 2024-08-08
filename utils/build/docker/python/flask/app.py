@@ -279,6 +279,34 @@ def rasp_sqli(*args, **kwargs):
         return f"DB request failure: {e!r}", 201
 
 
+@app.route("/rasp/shi", methods=["GET", "POST"])
+def rasp_shi(*args, **kwargs):
+    list_dir = None
+    if request.method == "GET":
+        list_dir = flask_request.args.get("list_dir")
+    elif request.method == "POST":
+        try:
+            list_dir = (request.form or request.json or {}).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if list_dir is None:
+                list_dir = xmltodict.parse(flask_request.data).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if list_dir is None:
+        return "missing user_id parameter", 400
+    try:
+        command = f"ls {list_dir}"
+        res = os.system(command)
+        return f"Shell command [{command}] with result: {res}", 200
+    except Exception as e:
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return f"Shell command failure: {e!r}", 201
+
+
 ### END EXPLOIT PREVENTION
 
 

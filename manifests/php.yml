@@ -163,10 +163,10 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
-      Test_Login_Events: v0.89.0
-      Test_Login_Events_Extended: v0.89.0
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
+      Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
+      Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
+      Test_V2_Login_Events: v1.3.0-dev
+      Test_V2_Login_Events_Anon: v1.3.0-dev
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
@@ -177,6 +177,9 @@ tests/:
       Test_Suspicious_Request_Blocking: missing_feature (v0.86.0 but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Header_And_Network: missing_feature
     test_identify.py:
       Test_Basic: v0.85.0
     test_logs.py:
