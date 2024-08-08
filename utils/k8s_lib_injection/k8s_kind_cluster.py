@@ -76,7 +76,7 @@ def _ensure_cluster():
                 pass # ignore exception. May already be connected
 
             # Replace server config with dns name + internal port
-            execute_command(f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}:6443/g\" $HOME/.kube/config")
+            execute_command(f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}:6443/g\" /root/.kube/config")
 
             k8s_kind_cluster.build_container_id = build_container_id
 
