@@ -758,7 +758,9 @@ class scenarios:
     )
 
     installer_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario", scenario_groups=[ScenarioGroup.ONBOARDING]
+        "INSTALLER_AUTO_INJECTION",
+        doc="Installer auto injection scenario",
+        scenario_groups=[ScenarioGroup.ONBOARDING]
     )
 
     installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(

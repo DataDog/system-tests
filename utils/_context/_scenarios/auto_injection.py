@@ -192,6 +192,6 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_amazon_linux_2_dotnet_6=False,
             include_amazon_linux_2023_amd64=False,
             include_amazon_linux_2023_arm64=False,
-            include_centos_7_amd64=False,
+            include_centos_7_amd64=True,
             scenario_groups=scenario_groups,
         )

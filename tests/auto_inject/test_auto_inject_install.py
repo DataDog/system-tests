@@ -65,15 +65,15 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @scenarios.installer_auto_injection
 class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
-    #  on the installer. As we can't only uninstall the injector, we are skipping
-    #  the uninstall test today
-    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
+    # on the installer. As we can't only uninstall the injector, we are skipping
+    # the test_uninstall today.
+    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limits")
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
-    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
+    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limits")
     def test_uninstall(self, virtual_machine):
         logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
         self._test_uninstall(virtual_machine)
