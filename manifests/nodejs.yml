@@ -67,6 +67,10 @@ tests/:
         Test_Schema_Response_Headers: *ref_4_21_0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection:
+            '*': *ref_5_20_0
+            nextjs: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0
@@ -329,7 +333,6 @@ tests/:
       Test_StandardTagsClientIp: *ref_3_6_0
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
-      Test_RuleSet_1_3_1: v2.5.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
       Test_MissingRules: v2.0.0
@@ -344,6 +347,9 @@ tests/:
       Test_UserLoginSuccessEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Header_And_Network: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
@@ -355,6 +361,7 @@ tests/:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
+      Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
       Test_Info: v2.0.0
@@ -369,6 +376,8 @@ tests/:
       Test_RuntimeDeactivation: *ref_3_9_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0

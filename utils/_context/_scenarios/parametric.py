@@ -353,6 +353,15 @@ def node_library_factory() -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
     nodejs_reldir = nodejs_appdir.replace("\\", "/")
+    volumes = {}
+
+    try:
+        with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+            path = f.read().strip(" \r\n")
+            source = os.path.join(_get_base_directory(), path)
+            volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
+    except Exception:
+        pass
 
     return APMLibraryTestServer(
         lang="nodejs",
@@ -360,9 +369,12 @@ def node_library_factory() -> APMLibraryTestServer:
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
-FROM node:18.10-slim
-RUN apt-get update && apt-get install -y jq git
+FROM node:18.10-alpine
+RUN apk add --no-cache bash curl git jq
 WORKDIR /usr/app
+COPY {nodejs_reldir}/../app.sh /usr/app/
+RUN printf 'node server.js' >> app.sh
+RUN chmod +x app.sh
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
@@ -375,9 +387,10 @@ COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 """,
-        container_cmd=["node", "server.js"],
+        container_cmd=["./app.sh"],
         container_build_dir=nodejs_absolute_appdir,
         container_build_context=_get_base_directory(),
+        volumes=volumes,
     )
 
 
