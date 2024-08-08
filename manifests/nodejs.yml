@@ -34,6 +34,7 @@ refs:
   - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
   - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
+  - &ref_5_21_0 '>=5.21.0 || ^4.45.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -210,7 +211,17 @@ tests/:
       test_span_tags.py:
         Test_Mandatory_SpanTags: *ref_5_18_0
         Test_Optional_SpanTags: *ref_5_18_0
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson:
+          '*': *ref_5_21_0
+          nextjs: missing_feature
+        Test_Sqli_BodyUrlEncoded:
+          '*': *ref_5_21_0
+          nextjs: missing_feature
+        Test_Sqli_BodyXml: missing_feature # xml body not supported
+        Test_Sqli_UrlQuery:
+          '*': *ref_5_21_0
+          nextjs: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': *ref_5_20_0

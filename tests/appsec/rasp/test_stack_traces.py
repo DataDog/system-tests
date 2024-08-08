@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc, missing_feature
+from utils import features, weblog, interfaces, scenarios, rfc, missing_feature, context
 
 
 def validate_stack_traces(request):
@@ -75,7 +75,7 @@ class Test_StackTrace:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     @missing_feature(library="dotnet")
-    @missing_feature(library="nodejs")
+    @missing_feature(context.library < "nodejs@5.21.0")
     def test_sqli_stack_trace(self):
         assert self.r.status_code == 403
         validate_stack_traces(self.r)

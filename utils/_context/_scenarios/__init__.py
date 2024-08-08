@@ -28,7 +28,7 @@ update_environ_with_local_env()
 
 
 class _KubernetesScenario(Scenario):
-    """ DEPRECATED: Replaced by Kubernetes Scenario. 
+    """ DEPRECATED: Replaced by Kubernetes Scenario.
         Scenario that tests kubernetes lib injection"""
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
@@ -935,6 +935,7 @@ class scenarios:
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
+        include_postgres_db=True,
     )
 
 
