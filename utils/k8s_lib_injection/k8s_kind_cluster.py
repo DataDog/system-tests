@@ -39,6 +39,19 @@ def _ensure_cluster():
             f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {k8s_kind_cluster.cluster_name} --config {cluster_config} --wait 1m"
         )
 
+        if "GITLAB_CI" in os.environ:
+            # The build runs in a docker container. Docker commands are forwarded to the host. The kind container is a sibling to the build container
+            # The build container needs to be added to the kind network for them to be able to communicate
+
+            # we don't know the container id directly so this code obtains it by finding the id that's not the control plain
+            # filter with negation doesn't work for "docker container ls": https://github.com/docker/for-linux/issues/1414
+            kind_container_id = execute_command(f"docker container ls --filter \"name={k8s_kind_cluster.cluster_name}-control-plane\" -q")
+            build_container_id = execute_command(f"docker container ls --filter \"name={kind_container_id}-control-plane\" -q")
+            execute_command(f"docker network connect kind {build_container_id}")
+            execute_command("sed -i -E \"s@server:.+@server:\ https://lib-injection-testing-control-plane:6443@g\" $HOME/.kube/config")
+
+            k8s_kind_cluster.build_container_id = build_container_id
+
         # time.sleep(20)
 
     return k8s_kind_cluster
@@ -48,6 +61,9 @@ def destroy_cluster(k8s_kind_cluster):
     execute_command(f"kind delete cluster --name {k8s_kind_cluster.cluster_name}")
     execute_command(f"docker rm -f {k8s_kind_cluster.cluster_name}-control-plane")
 
+    # remove the docker container from the kind network. See the Gitlab comments above
+    if k8s_kind_cluster.build_container_id:
+        execute_command(f"docker network disconnect kind {k8s_kind_cluster.build_container_id} || true")
 
 def get_free_port():
     last_allowed_port = 65535
