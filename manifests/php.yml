@@ -165,8 +165,8 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
-      Test_V2_Login_Events: v1.2.0
-      Test_V2_Login_Events_Anon: v1.2.0
+      Test_V2_Login_Events: v1.3.0-dev
+      Test_V2_Login_Events_Anon: v1.3.0-dev
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
