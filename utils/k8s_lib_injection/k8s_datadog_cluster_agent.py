@@ -236,6 +236,10 @@ class K8sDatadogClusterTestAgent:
 
         if not daemonset_created:
             self.logger.info("[Test agent] Daemonset not created. Last status: %s" % daemonset_status)
+            execute_command_sync(
+                f"kubectl get pods",
+                self.k8s_kind_cluster
+            )
             raise Exception("Daemonset not created")
 
         w = watch.Watch()
