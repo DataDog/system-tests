@@ -30,7 +30,6 @@ class Test_Agent:
     @missing_feature(library="ruby", reason="ruby tracer does not call /info")
     @irrelevant(library="cpp")
     @scenarios.remote_config_mocked_backend_asm_dd
-    @bug(context.library > "php@1.1.999", reason="APPSEC-54454")
     def test_agent_provide_config_endpoint(self):
         """Check that agent exposes /v0.7/config endpoint"""
         for data in interfaces.library.get_data("/info"):
@@ -195,7 +194,6 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     )
     @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
     @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
-    @bug(context.library > "php@1.1.999", reason="APPSEC-54454")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
@@ -343,7 +341,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(context.library <= "java@1.12.1", reason="config state id value was wrong")
-    @bug(context.library > "php@1.1.999", reason="APPSEC-54454")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
