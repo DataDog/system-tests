@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context, flaky
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
@@ -14,6 +14,7 @@ class Test_Sqli_UrlQuery:
     def setup_sqli_get(self):
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
+    @flaky(context.weblog_variant in ("vertx3", "vertx4"), reason="APPSEC-54465")
     def test_sqli_get(self):
         assert self.r.status_code == 403
 
