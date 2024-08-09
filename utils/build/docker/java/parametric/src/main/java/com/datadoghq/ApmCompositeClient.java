@@ -1,6 +1,7 @@
 package com.datadoghq;
 
 import static com.datadoghq.App.LOGGER;
+import static com.datadoghq.client.ApmTestClient;
 import static com.datadoghq.client.ApmTestClient.FinishSpanArgs;
 import static com.datadoghq.client.ApmTestClient.FinishSpanReturn;
 import static com.datadoghq.client.ApmTestClient.FlushSpansArgs;
@@ -55,37 +56,37 @@ public class ApmCompositeClient extends APMClientHttp.APMClientImplBase {
     }
 
     @Override
-    public StartSpanReturn startSpan(StartSpanArgs request) {
+    public ApmTestClient.StartSpanReturn startSpan(ApmTestClient.StartSpanArgs request) {
         return this.otClient.startSpan(request);
     }
 
     @Override
-    public FinishSpanReturn finishSpan(FinishSpanArgs request) {
+    public ApmTestClient.FinishSpanReturn finishSpan(ApmTestClient.FinishSpanArgs request) {
         return this.otClient.finishSpan(request);
     }
 
     @Override
-    public SpanSetMetaReturn spanSetMeta(SpanSetMetaArgs request) {
+    public ApmTestClient.SpanSetMetaReturn spanSetMeta(ApmTestClient.SpanSetMetaArgs request) {
         return this.otClient.spanSetMeta(request);
     }
 
     @Override
-    public SpanSetMetricReturn spanSetMetric(SpanSetMetricArgs request) {
+    public ApmTestClient.SpanSetMetricReturn spanSetMetric(ApmTestClient.SpanSetMetricArgs request) {
         return this.otClient.spanSetMetric(request);
     }
 
     @Override
-    public SpanSetErrorReturn spanSetError(SpanSetErrorArgs request) {
+    public ApmTestClient.SpanSetErrorReturn spanSetError(ApmTestClient.SpanSetErrorArgs request) {
         return this.otClient.spanSetError(request);
     }
 
     @Override
-    public InjectHeadersReturn injectHeaders(InjectHeadersArgs request) {
+    public ApmTestClient.InjectHeadersReturn injectHeaders(ApmTestClient.InjectHeadersArgs request) {
         return this.otClient.injectHeaders(request);
     }
 
     @Override
-    public FlushSpansReturn flushSpans(FlushSpansArgs request) {
+    public ApmTestClient.FlushSpansReturn flushSpans(ApmTestClient.FlushSpansArgs request) {
         LOGGER.info("Flushing OT spans: {}", request);
         try {
             ((InternalTracer) this.ddTracer).flush();
@@ -98,7 +99,7 @@ public class ApmCompositeClient extends APMClientHttp.APMClientImplBase {
     }
 
     @Override
-    public FlushTraceStatsReturn flushTraceStats(FlushTraceStatsArgs request) {
+    public ApmTestClient.FlushTraceStatsReturn flushTraceStats(ApmTestClient.FlushTraceStatsArgs request) {
         LOGGER.info("Flushing OT trace stats: {}", request);
         try {
             ((InternalTracer) this.ddTracer).flushMetrics();
@@ -110,42 +111,42 @@ public class ApmCompositeClient extends APMClientHttp.APMClientImplBase {
     }
 
     @Override
-    public OtelStartSpanReturn otelStartSpan(OtelStartSpanArgs request) {
+    public ApmTestClient.OtelStartSpanReturn otelStartSpan(ApmTestClient.OtelStartSpanArgs request) {
         return this.otelClient.otelStartSpan(request);
     }
 
     @Override
-    public OtelEndSpanReturn otelEndSpan(OtelEndSpanArgs request) {
+    public ApmTestClient.OtelEndSpanReturn otelEndSpan(ApmTestClient.OtelEndSpanArgs request) {
         return this.otelClient.otelEndSpan(request);
     }
 
     @Override
-    public OtelIsRecordingReturn otelIsRecording(OtelIsRecordingArgs request) {
+    public ApmTestClient.OtelIsRecordingReturn otelIsRecording(ApmTestClient.OtelIsRecordingArgs request) {
         return this.otelClient.otelIsRecording(request);
     }
 
     @Override
-    public OtelSpanContextReturn otelSpanContext(OtelSpanContextArgs request) {
+    public ApmTestClient.OtelSpanContextReturn otelSpanContext(ApmTestClient.OtelSpanContextArgs request) {
         return this.otelClient.otelSpanContext(request);
     }
 
     @Override
-    public OtelSetStatusReturn otelSetStatus(OtelSetStatusArgs request) {
+    public ApmTestClient.OtelSetStatusReturn otelSetStatus(ApmTestClient.OtelSetStatusArgs request) {
         return this.otelClient.otelSetStatus(request);
     }
 
     @Override
-    public OtelSetNameReturn otelSetName(OtelSetNameArgs request) {
+    public ApmTestClient.OtelSetNameReturn otelSetName(ApmTestClient.OtelSetNameArgs request) {
         return this.otelClient.otelSetName(request);
     }
 
     @Override
-    public OtelSetAttributesReturn otelSetAttributes(OtelSetAttributesArgs request) {
+    public ApmTestClient.OtelSetAttributesReturn otelSetAttributes(ApmTestClient.OtelSetAttributesArgs request) {
         return this.otelClient.otelSetAttributes(request);
     }
 
     @Override
-    public OtelFlushSpansReturn otelFlushSpans(OtelFlushSpansArgs request) {
+    public ApmTestClient.OtelFlushSpansReturn otelFlushSpans(ApmTestClient.OtelFlushSpansArgs request) {
         LOGGER.info("Flushing OTel spans: {}", request);
         try {
             ((InternalTracer) this.ddTracer).flush();
@@ -158,7 +159,7 @@ public class ApmCompositeClient extends APMClientHttp.APMClientImplBase {
     }
 
     @Override
-    public OtelFlushTraceStatsReturn otelFlushTraceStats(OtelFlushTraceStatsArgs request) {
+    public ApmTestClient.OtelFlushTraceStatsReturn otelFlushTraceStats(ApmTestClient.OtelFlushTraceStatsArgs request) {
         LOGGER.info("Flushing OTel trace stats: {}", request);
         try {
             ((InternalTracer) this.ddTracer).flushMetrics();
@@ -170,7 +171,7 @@ public class ApmCompositeClient extends APMClientHttp.APMClientImplBase {
     }
 
     @Override
-    public StopTracerReturn stopTracer(ApmTestClient.StopTracerArgs request) {
+    public ApmTestClient.StopTracerReturn stopTracer(ApmTestClient.StopTracerArgs request) {
         // Closing OT tracer also close internal DD tracer
         this.otClient.close();
         return StopTracerReturn.newBuilder().build();
