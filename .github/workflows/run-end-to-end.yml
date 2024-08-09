@@ -99,8 +99,8 @@ jobs:
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - if: ${{inputs.library == 'php' }}
       run: |
-        wget https://output.circle-artifacts.com/output/job/55f3f4a5-6d33-41da-be3a-bbac53f3ca9e/artifacts/0/datadog-setup.php -P binaries/
-        wget https://output.circle-artifacts.com/output/job/55f3f4a5-6d33-41da-be3a-bbac53f3ca9e/artifacts/0/dd-library-php-1.3.0+af426b6e75479ead00635e05ccb6f89cdc9d94ed-x86_64-linux-gnu.tar.gz -P binaries/
+        wget https://output.circle-artifacts.com/output/job/55f3f4a5-6d33-41da-be3a-bbac53f3ca9e/artifacts/0/datadog-setup.php -O binaries/datadog-setup.php
+        wget https://output.circle-artifacts.com/output/job/55f3f4a5-6d33-41da-be3a-bbac53f3ca9e/artifacts/0/dd-library-php-1.3.0+af426b6e75479ead00635e05ccb6f89cdc9d94ed-x86_64-linux-gnu.tar.gz -O binaries/dd-library-php-x86_64-linux-gnu.tar.gz
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
