@@ -16,7 +16,7 @@ class K8sWrapper:
     @retry(delay=1, tries=5)
     def core_v1_api(self):
         new_client = config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
-        client.configuration.debug = True
+        new_client.configuration.debug = True
         return client.CoreV1Api(api_client=new_client)
 
     @retry(delay=1, tries=5)
