@@ -6,7 +6,7 @@ import static datadog.trace.api.DDTags.SERVICE_NAME;
 import static datadog.trace.api.DDTags.SPAN_TYPE;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 
-import com.datadoghq.client.APMClientGrpc;
+import com.datadoghq.client.APMClientHttp;
 import com.datadoghq.client.ApmTestClient;
 import com.datadoghq.client.ApmTestClient.DistributedHTTPHeaders;
 import com.datadoghq.client.ApmTestClient.ListVal;
@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
+public class OpenTelemetryClient extends APMClientHttp.APMClientImplBase {
     private final Tracer tracer;
     private final TextMapPropagator propagator;
     private final Map<Long, Span> spans;

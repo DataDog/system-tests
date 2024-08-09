@@ -18,7 +18,7 @@ import static com.datadoghq.client.ApmTestClient.SpanSetMetricReturn;
 import static com.datadoghq.client.ApmTestClient.StartSpanArgs;
 import static com.datadoghq.client.ApmTestClient.StartSpanReturn;
 
-import com.datadoghq.client.APMClientGrpc;
+import com.datadoghq.client.APMClientHttp;
 import com.datadoghq.client.ApmTestClient;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanArgs;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanReturn;
@@ -44,7 +44,7 @@ import datadog.trace.api.Tracer;
 import datadog.trace.api.internal.InternalTracer;
 import io.grpc.stub.StreamObserver;
 
-public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
+public class ApmCompositeClient extends APMClientHttp.APMClientImplBase {
     private final Tracer ddTracer;
     private final OpenTracingClient otClient;
     private final OpenTelemetryClient otelClient;

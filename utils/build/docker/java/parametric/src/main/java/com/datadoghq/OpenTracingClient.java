@@ -3,12 +3,11 @@ package com.datadoghq;
 import static com.datadoghq.App.LOGGER;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 
-import com.datadoghq.client.APMClientGrpc;
+import com.datadoghq.client.APMClientHttp;
 import com.datadoghq.client.ApmTestClient;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTags;
 import datadog.trace.api.DDTraceId;
-import io.grpc.stub.StreamObserver;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
@@ -24,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
+public class OpenTracingClient extends APMClientHttp.APMClientImplBase {
     private final Tracer tracer;
     private final Map<Long, Span> spans;
 
