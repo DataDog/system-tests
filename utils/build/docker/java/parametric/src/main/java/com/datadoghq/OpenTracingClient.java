@@ -3,12 +3,11 @@ package com.datadoghq;
 import static com.datadoghq.App.LOGGER;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 
-import com.datadoghq.client.APMClientGrpc;
+import com.datadoghq.client.APMClientHttp;
 import com.datadoghq.client.ApmTestClient;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTags;
 import datadog.trace.api.DDTraceId;
-import io.grpc.stub.StreamObserver;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
@@ -24,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
+public class OpenTracingClient extends APMClientHttp.APMClientImplBase {
     private final Tracer tracer;
     private final Map<Long, Span> spans;
 
@@ -34,7 +33,7 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
     }
 
     @Override
-    public void startSpan(ApmTestClient.StartSpanArgs request, StreamObserver<ApmTestClient.StartSpanReturn> responseObserver) {
+    public ApmTestClient.StartSpanReturn startSpan(@RequestBody ApmTestClient.StartSpanArgs request) {
         LOGGER.info("Starting OT span: {}", request);
         try {
             // Build span from request
@@ -44,7 +43,7 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
             }
             long parentId = request.hasParentId() ? request.getParentId() : 0;
             if (parentId != 0) { // The parent id can be negative since we have a long representing uint64
-                Span parentSpan = getSpan(parentId, responseObserver);
+                Span parentSpan = getSpan(parentId);
                 if (parentSpan == null) {
                     return;
                 }
@@ -75,36 +74,34 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
             long traceId = DDTraceId.from(span.context().toTraceId()).toLong();
             this.spans.put(spanId, span);
             // Complete request
-            responseObserver.onNext(ApmTestClient.StartSpanReturn.newBuilder()
-                    .setSpanId(spanId)
-                    .setTraceId(traceId)
-                    .build()
-            );
-            responseObserver.onCompleted();
+            ApmTestClient.StartSpanReturn result = ApmTestClient.StartSpanReturn.newBuilder()
+                .setSpanId(spanId)
+                .setTraceId(traceId)
+                .build();
         } catch (Throwable t) {
             LOGGER.error("Uncaught throwable", t);
             responseObserver.onError(t);
         }
+
+        return result;
     }
 
     @Override
-    public void finishSpan(ApmTestClient.FinishSpanArgs request, StreamObserver<ApmTestClient.FinishSpanReturn> responseObserver) {
+    public ApmTestClient.FinishSpanReturn finishSpan(@RequestBody ApmTestClient.FinishSpanArgs request) {
         LOGGER.info("Finishing OT span: {}", request);
         try {
             Span span = getSpan(request.getId(), responseObserver);
             if (span != null) {
                 span.finish();
-                responseObserver.onNext(ApmTestClient.FinishSpanReturn.newBuilder().build());
-                responseObserver.onCompleted();
+                return ApmTestClient.FinishSpanReturn.newBuilder().build();
             }
         } catch (Throwable t) {
             LOGGER.error("Uncaught throwable", t);
-            responseObserver.onError(t);
         }
     }
 
     @Override
-    public void spanSetMeta(ApmTestClient.SpanSetMetaArgs request, StreamObserver<ApmTestClient.SpanSetMetaReturn> responseObserver) {
+    public ApmTestClient.SpanSetMetaReturn spanSetMeta(@RequestBody ApmTestClient.SpanSetMetaArgs request) {
         LOGGER.info("Setting meta for OT span: {}", request); // TODO Check if only OT or OTel too?
         try {
             Span span = getSpan(request.getSpanId(), responseObserver);
@@ -120,7 +117,7 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
     }
 
     @Override
-    public void spanSetMetric(ApmTestClient.SpanSetMetricArgs request, StreamObserver<ApmTestClient.SpanSetMetricReturn> responseObserver) {
+    public ApmTestClient.SpanSetMetricReturn spanSetMetric(@RequestBody ApmTestClient.SpanSetMetricArgs request) {
         LOGGER.info("Setting OT span metric: {}", request);
         try {
             Span span = getSpan(request.getSpanId(), responseObserver);
@@ -136,7 +133,7 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
     }
 
     @Override
-    public void spanSetError(ApmTestClient.SpanSetErrorArgs request, StreamObserver<ApmTestClient.SpanSetErrorReturn> responseObserver) {
+    public ApmTestClient.SpanSetErrorReturn spanSetError(@RequestBody ApmTestClient.SpanSetErrorArgs request) {
         LOGGER.info("Setting OT span error: {}", request);
         try {
             Span span = getSpan(request.getSpanId(), responseObserver);
@@ -161,7 +158,7 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
     }
 
     @Override
-    public void injectHeaders(ApmTestClient.InjectHeadersArgs request, StreamObserver<ApmTestClient.InjectHeadersReturn> responseObserver) {
+    public ApmTestClient.InjectHeadersReturn injectHeaders(@RequestBody ApmTestClient.InjectHeadersArgs request) {
         LOGGER.info("Inject headers context to OT tracer: {}", request);
         try {
             Span span = getSpan(request.getSpanId(), responseObserver);
@@ -191,12 +188,12 @@ public class OpenTracingClient extends APMClientGrpc.APMClientImplBase {
         }
     }
 
-    private Span getSpan(long spanId, StreamObserver<?> responseObserver) {
+    private Span getSpan(long spanId) {
         Span span = this.spans.get(spanId);
         if (span == null) {
             String message = "OT span " + spanId + " does not exist.";
             LOGGER.warn(message);
-            responseObserver.onError(new IllegalArgumentException(message));
+            // Probably we should throw an exception here
             return null;
         }
         return span;

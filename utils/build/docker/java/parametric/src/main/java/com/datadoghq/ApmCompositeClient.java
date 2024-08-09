@@ -1,6 +1,7 @@
 package com.datadoghq;
 
 import static com.datadoghq.App.LOGGER;
+import static com.datadoghq.client.ApmTestClient;
 import static com.datadoghq.client.ApmTestClient.FinishSpanArgs;
 import static com.datadoghq.client.ApmTestClient.FinishSpanReturn;
 import static com.datadoghq.client.ApmTestClient.FlushSpansArgs;
@@ -18,7 +19,7 @@ import static com.datadoghq.client.ApmTestClient.SpanSetMetricReturn;
 import static com.datadoghq.client.ApmTestClient.StartSpanArgs;
 import static com.datadoghq.client.ApmTestClient.StartSpanReturn;
 
-import com.datadoghq.client.APMClientGrpc;
+import com.datadoghq.client.APMClientHttp;
 import com.datadoghq.client.ApmTestClient;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanArgs;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanReturn;
@@ -42,9 +43,8 @@ import com.datadoghq.client.ApmTestClient.StopTracerReturn;
 import datadog.trace.api.GlobalTracer;
 import datadog.trace.api.Tracer;
 import datadog.trace.api.internal.InternalTracer;
-import io.grpc.stub.StreamObserver;
 
-public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
+public class ApmCompositeClient extends APMClientHttp.APMClientImplBase {
     private final Tracer ddTracer;
     private final OpenTracingClient otClient;
     private final OpenTelemetryClient otelClient;
@@ -56,129 +56,124 @@ public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
     }
 
     @Override
-    public void startSpan(StartSpanArgs request, StreamObserver<StartSpanReturn> responseObserver) {
-        this.otClient.startSpan(request, responseObserver);
+    public ApmTestClient.StartSpanReturn startSpan(ApmTestClient.StartSpanArgs request) {
+        return this.otClient.startSpan(request);
     }
 
     @Override
-    public void finishSpan(FinishSpanArgs request, StreamObserver<FinishSpanReturn> responseObserver) {
-        this.otClient.finishSpan(request, responseObserver);
+    public ApmTestClient.FinishSpanReturn finishSpan(ApmTestClient.FinishSpanArgs request) {
+        return this.otClient.finishSpan(request);
     }
 
     @Override
-    public void spanSetMeta(SpanSetMetaArgs request, StreamObserver<SpanSetMetaReturn> responseObserver) {
-        this.otClient.spanSetMeta(request, responseObserver);
+    public ApmTestClient.SpanSetMetaReturn spanSetMeta(ApmTestClient.SpanSetMetaArgs request) {
+        return this.otClient.spanSetMeta(request);
     }
 
     @Override
-    public void spanSetMetric(SpanSetMetricArgs request, StreamObserver<SpanSetMetricReturn> responseObserver) {
-        this.otClient.spanSetMetric(request, responseObserver);
+    public ApmTestClient.SpanSetMetricReturn spanSetMetric(ApmTestClient.SpanSetMetricArgs request) {
+        return this.otClient.spanSetMetric(request);
     }
 
     @Override
-    public void spanSetError(SpanSetErrorArgs request, StreamObserver<SpanSetErrorReturn> responseObserver) {
-        this.otClient.spanSetError(request, responseObserver);
+    public ApmTestClient.SpanSetErrorReturn spanSetError(ApmTestClient.SpanSetErrorArgs request) {
+        return this.otClient.spanSetError(request);
     }
 
     @Override
-    public void injectHeaders(InjectHeadersArgs request, StreamObserver<InjectHeadersReturn> responseObserver) {
-        this.otClient.injectHeaders(request, responseObserver);
+    public ApmTestClient.InjectHeadersReturn injectHeaders(ApmTestClient.InjectHeadersArgs request) {
+        return this.otClient.injectHeaders(request);
     }
 
     @Override
-    public void flushSpans(FlushSpansArgs request, StreamObserver<FlushSpansReturn> responseObserver) {
+    public ApmTestClient.FlushSpansReturn flushSpans(ApmTestClient.FlushSpansArgs request) {
         LOGGER.info("Flushing OT spans: {}", request);
         try {
             ((InternalTracer) this.ddTracer).flush();
             this.otClient.clearSpans();
-            responseObserver.onNext(FlushSpansReturn.newBuilder().build());
-            responseObserver.onCompleted();
+            return FlushSpansReturn.newBuilder().build();
         } catch (Throwable t) {
             LOGGER.error("Uncaught throwable", t);
-            responseObserver.onError(t);
+            // TODO : throw error
         }
     }
 
     @Override
-    public void flushTraceStats(FlushTraceStatsArgs request, StreamObserver<FlushTraceStatsReturn> responseObserver) {
+    public ApmTestClient.FlushTraceStatsReturn flushTraceStats(ApmTestClient.FlushTraceStatsArgs request) {
         LOGGER.info("Flushing OT trace stats: {}", request);
         try {
             ((InternalTracer) this.ddTracer).flushMetrics();
-            responseObserver.onNext(FlushTraceStatsReturn.newBuilder().build());
-            responseObserver.onCompleted();
+            return FlushTraceStatsReturn.newBuilder().build();
         } catch (Throwable t) {
             LOGGER.error("Uncaught throwable", t);
-            responseObserver.onError(t);
+            // TODO : throw error
         }
     }
 
     @Override
-    public void otelStartSpan(OtelStartSpanArgs request, StreamObserver<OtelStartSpanReturn> responseObserver) {
-        this.otelClient.otelStartSpan(request, responseObserver);
+    public ApmTestClient.OtelStartSpanReturn otelStartSpan(ApmTestClient.OtelStartSpanArgs request) {
+        return this.otelClient.otelStartSpan(request);
     }
 
     @Override
-    public void otelEndSpan(OtelEndSpanArgs request, StreamObserver<OtelEndSpanReturn> responseObserver) {
-        this.otelClient.otelEndSpan(request, responseObserver);
+    public ApmTestClient.OtelEndSpanReturn otelEndSpan(ApmTestClient.OtelEndSpanArgs request) {
+        return this.otelClient.otelEndSpan(request);
     }
 
     @Override
-    public void otelIsRecording(OtelIsRecordingArgs request, StreamObserver<OtelIsRecordingReturn> responseObserver) {
-        this.otelClient.otelIsRecording(request, responseObserver);
+    public ApmTestClient.OtelIsRecordingReturn otelIsRecording(ApmTestClient.OtelIsRecordingArgs request) {
+        return this.otelClient.otelIsRecording(request);
     }
 
     @Override
-    public void otelSpanContext(OtelSpanContextArgs request, StreamObserver<OtelSpanContextReturn> responseObserver) {
-        this.otelClient.otelSpanContext(request, responseObserver);
+    public ApmTestClient.OtelSpanContextReturn otelSpanContext(ApmTestClient.OtelSpanContextArgs request) {
+        return this.otelClient.otelSpanContext(request);
     }
 
     @Override
-    public void otelSetStatus(OtelSetStatusArgs request, StreamObserver<OtelSetStatusReturn> responseObserver) {
-        this.otelClient.otelSetStatus(request, responseObserver);
+    public ApmTestClient.OtelSetStatusReturn otelSetStatus(ApmTestClient.OtelSetStatusArgs request) {
+        return this.otelClient.otelSetStatus(request);
     }
 
     @Override
-    public void otelSetName(OtelSetNameArgs request, StreamObserver<OtelSetNameReturn> responseObserver) {
-        this.otelClient.otelSetName(request, responseObserver);
+    public ApmTestClient.OtelSetNameReturn otelSetName(ApmTestClient.OtelSetNameArgs request) {
+        return this.otelClient.otelSetName(request);
     }
 
     @Override
-    public void otelSetAttributes(OtelSetAttributesArgs request, StreamObserver<OtelSetAttributesReturn> responseObserver) {
-        this.otelClient.otelSetAttributes(request, responseObserver);
+    public ApmTestClient.OtelSetAttributesReturn otelSetAttributes(ApmTestClient.OtelSetAttributesArgs request) {
+        return this.otelClient.otelSetAttributes(request);
     }
 
     @Override
-    public void otelFlushSpans(OtelFlushSpansArgs request, StreamObserver<OtelFlushSpansReturn> responseObserver) {
+    public ApmTestClient.OtelFlushSpansReturn otelFlushSpans(ApmTestClient.OtelFlushSpansArgs request) {
         LOGGER.info("Flushing OTel spans: {}", request);
         try {
             ((InternalTracer) this.ddTracer).flush();
             this.otelClient.clearSpans();
-            responseObserver.onNext(OtelFlushSpansReturn.newBuilder().setSuccess(true).build());
-            responseObserver.onCompleted();
+            return OtelFlushSpansReturn.newBuilder().setSuccess(true).build();
         } catch (Throwable t) {
             LOGGER.error("Uncaught throwable", t);
-            responseObserver.onError(t);
+            // TODO : throw error
         }
     }
 
     @Override
-    public void otelFlushTraceStats(OtelFlushTraceStatsArgs request, StreamObserver<OtelFlushTraceStatsReturn> responseObserver) {
+    public ApmTestClient.OtelFlushTraceStatsReturn otelFlushTraceStats(ApmTestClient.OtelFlushTraceStatsArgs request) {
         LOGGER.info("Flushing OTel trace stats: {}", request);
         try {
             ((InternalTracer) this.ddTracer).flushMetrics();
-            responseObserver.onNext(OtelFlushTraceStatsReturn.newBuilder().build());
-            responseObserver.onCompleted();
+            return OtelFlushTraceStatsReturn.newBuilder().build();
         } catch (Throwable t) {
             LOGGER.error("Uncaught throwable", t);
-            responseObserver.onError(t);
+            // TODO : throw error
         }
     }
 
     @Override
-    public void stopTracer(ApmTestClient.StopTracerArgs request, StreamObserver<StopTracerReturn> responseObserver) {
+    public ApmTestClient.StopTracerReturn stopTracer(ApmTestClient.StopTracerArgs request) {
         // Closing OT tracer also close internal DD tracer
         this.otClient.close();
-        responseObserver.onNext(StopTracerReturn.newBuilder().build());
-        responseObserver.onCompleted();
+        return StopTracerReturn.newBuilder().build();
     }
 }
