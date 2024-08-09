@@ -27,7 +27,6 @@ import com.datadoghq.client.ApmTestClient.OtelStartSpanReturn;
 import com.datadoghq.client.ApmTestClient.SpanLink;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTraceId;
-import io.grpc.stub.StreamObserver;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
