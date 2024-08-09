@@ -38,7 +38,7 @@ EXCLUSIONS = (
 )
 
 EXCLUSION_DATA = (
-    "datadog/2/ASM/exclusions_data/config",
+    "datadog/2/ASM_DATA/exclusions_data/config",
     {
         "exclusion_data": [
             {"id": "suspicious_ips_data_id", "type": "ip_with_expiration", "data": [{"value": "34.65.27.85"}],}
