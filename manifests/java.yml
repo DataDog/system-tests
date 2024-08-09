@@ -920,7 +920,7 @@ tests/:
         vertx3: missing_feature (endpoint not implemented)
         vertx4: missing_feature (endpoint not implemented)
     test_suspicious_attacker_blocking.py:
-      Test_Suspicious_Attacker_Blocking: missing_feature
+      Test_Suspicious_Attacker_Blocking: v1.39.0
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0
