@@ -497,12 +497,11 @@ def java_library_factory():
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
-    protofile = os.path.join("utils", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
 
     # TODO : use official install_ddtrace.sh
     return APMLibraryTestServer(
         lang="java",
-        protocol="grpc",
+        protocol="http",
         container_name="java-test-client",
         container_tag="java-test-client",
         container_img=f"""
@@ -512,7 +511,6 @@ RUN mkdir ./tracer
 COPY {java_reldir}/src src
 COPY {java_reldir}/install_ddtrace.sh .
 COPY {java_reldir}/pom.xml .
-COPY {protofile} src/main/proto/
 COPY binaries /binaries
 RUN bash install_ddtrace.sh
 COPY {java_reldir}/run.sh .
