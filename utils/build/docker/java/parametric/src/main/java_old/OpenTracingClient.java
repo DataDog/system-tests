@@ -1,6 +1,6 @@
 package com.datadoghq;
 
-import static com.datadoghq.App.LOGGER;
+import static com.datadoghq.ApmTestClient.LOGGER;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 
 import com.datadoghq.client.APMClientHttp;

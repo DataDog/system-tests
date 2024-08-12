@@ -1,6 +1,6 @@
 package com.datadoghq;
 
-import static com.datadoghq.App.LOGGER;
+import static com.datadoghq.ApmTestClient.LOGGER;
 import static com.datadoghq.client.ApmTestClient;
 import static com.datadoghq.client.ApmTestClient.FinishSpanArgs;
 import static com.datadoghq.client.ApmTestClient.FinishSpanReturn;
@@ -21,24 +21,8 @@ import static com.datadoghq.client.ApmTestClient.StartSpanReturn;
 
 import com.datadoghq.client.APMClientHttp;
 import com.datadoghq.client.ApmTestClient;
-import com.datadoghq.client.ApmTestClient.OtelEndSpanArgs;
-import com.datadoghq.client.ApmTestClient.OtelEndSpanReturn;
-import com.datadoghq.client.ApmTestClient.OtelFlushSpansArgs;
 import com.datadoghq.client.ApmTestClient.OtelFlushSpansReturn;
-import com.datadoghq.client.ApmTestClient.OtelFlushTraceStatsArgs;
 import com.datadoghq.client.ApmTestClient.OtelFlushTraceStatsReturn;
-import com.datadoghq.client.ApmTestClient.OtelIsRecordingArgs;
-import com.datadoghq.client.ApmTestClient.OtelIsRecordingReturn;
-import com.datadoghq.client.ApmTestClient.OtelSetAttributesArgs;
-import com.datadoghq.client.ApmTestClient.OtelSetAttributesReturn;
-import com.datadoghq.client.ApmTestClient.OtelSetNameArgs;
-import com.datadoghq.client.ApmTestClient.OtelSetNameReturn;
-import com.datadoghq.client.ApmTestClient.OtelSetStatusArgs;
-import com.datadoghq.client.ApmTestClient.OtelSetStatusReturn;
-import com.datadoghq.client.ApmTestClient.OtelSpanContextArgs;
-import com.datadoghq.client.ApmTestClient.OtelSpanContextReturn;
-import com.datadoghq.client.ApmTestClient.OtelStartSpanArgs;
-import com.datadoghq.client.ApmTestClient.OtelStartSpanReturn;
 import com.datadoghq.client.ApmTestClient.StopTracerReturn;
 import datadog.trace.api.GlobalTracer;
 import datadog.trace.api.Tracer;

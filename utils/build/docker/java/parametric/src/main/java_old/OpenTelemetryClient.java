@@ -1,6 +1,6 @@
 package com.datadoghq;
 
-import static com.datadoghq.App.LOGGER;
+import static com.datadoghq.ApmTestClient.LOGGER;
 import static datadog.trace.api.DDTags.RESOURCE_NAME;
 import static datadog.trace.api.DDTags.SERVICE_NAME;
 import static datadog.trace.api.DDTags.SPAN_TYPE;
