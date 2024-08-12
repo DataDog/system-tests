@@ -116,10 +116,16 @@ Add a file datadog-dotnet-apm-<VERSION>.tar.gz in binaries/. <VERSION> must be a
 
 ##### Run Parametric tests with a custom Java Tracer version
 
-1. Build Java Tracer artifacts
+1. Clone the repo and checkout to the branch you'd like to test
+Clone the repo: 
 ```bash
 git clone git@github.com:DataDog/dd-trace-java.git
 cd dd-trace-java
+```
+By default you will be on the `master` branch, but if you'd like to run system-tests on the changes you made to your local branch, `gitc checkout` to that branch. 
+
+1. Build Java Tracer artifacts
+```bash
 ./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar
 ```
 
