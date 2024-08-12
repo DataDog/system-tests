@@ -342,6 +342,27 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
         }
     }
 
+    @Override
+    public void otelAddEvent(OtelAddEventArgs request, StreamObserver<OtelAddEventReturn> responseObserver) {
+        LOGGER.info("Adding OTel span event: {}", request);
+        try {
+            Span span = getSpan(request.getSpanId(), responseObserver);
+            if (span != null) {
+                if (request.hasTimestamp) {
+                    // need to do some check to dynamically choose the time unit conversion?
+                    span.addEvent(request.getName(), null, request.getTimestamp(), TimeUnit.MICROSECONDS);
+                } else {
+                    span.addEvent(request.getName(), null);
+                }
+                responseObserver.onNext(OtelAddEventReturn.newBuilder().build());
+                responseObserver.onCompleted();
+            }
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
+        }
+    }
+
     private Span getSpan(long spanId, StreamObserver<?> responseObserver) {
         Span span = this.spans.get(spanId);
         if (span == null) {
