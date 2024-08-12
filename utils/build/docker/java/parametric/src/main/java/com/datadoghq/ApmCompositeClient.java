@@ -43,6 +43,8 @@ import datadog.trace.api.GlobalTracer;
 import datadog.trace.api.Tracer;
 import datadog.trace.api.internal.InternalTracer;
 import io.grpc.stub.StreamObserver;
+import com.datadoghq.client.ApmTestClient.OtelAddEventArgs;
+import com.datadoghq.client.ApmTestClient.OtelAddEventReturn;
 
 public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
     private final Tracer ddTracer;
@@ -145,6 +147,11 @@ public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
     @Override
     public void otelSetAttributes(OtelSetAttributesArgs request, StreamObserver<OtelSetAttributesReturn> responseObserver) {
         this.otelClient.otelSetAttributes(request, responseObserver);
+    }
+
+    @Override
+    public void otelAddEvent(OtelAddEventArgs request, StreamObserver<OtelAddEventReturn> responseObserver) {
+        this.otelClient.otelAddEvent(request, responseObserver);
     }
 
     @Override

@@ -45,6 +45,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.datadoghq.client.ApmTestClient.OtelAddEventArgs;
+import com.datadoghq.client.ApmTestClient.OtelAddEventReturn;
 
 public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
     private final Tracer tracer;
