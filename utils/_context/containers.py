@@ -566,12 +566,26 @@ class WeblogContainer(TestedContainer):
 
         self.port = weblog.port
 
+        volumes = {
+            f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
+        }
+
+        try:
+            with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+                path = f.read().strip(" \r\n")
+                volumes[os.path.abspath(path)] = {
+                    "bind": "/volumes/dd-trace-js",
+                    "mode": "ro",
+                }
+        except Exception:
+            pass
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
             environment=environment or {},
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},},
+            volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
@@ -709,9 +723,13 @@ class WeblogContainer(TestedContainer):
         if self.library == "nodejs":
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
+                lib = data["library"]
 
-            self._library = LibraryVersion(data["library"]["language"], data["library"]["version"])
-            self.libddwaf_version = LibraryVersion("libddwaf", data["library"]["libddwaf_version"]).version
+            self._library = LibraryVersion(lib["language"], lib["version"])
+            self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
+
+            if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
+                self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
 
         logger.stdout(f"Library: {self.library}")
 

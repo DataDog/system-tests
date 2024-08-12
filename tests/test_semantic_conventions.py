@@ -257,6 +257,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
+    @bug(context.library >= "nodejs@4.44.0", reason="http is reported as component, io framework's name")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 

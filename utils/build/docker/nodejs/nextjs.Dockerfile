@@ -25,7 +25,7 @@ ENV DD_DATA_STREAMS_ENABLED=true
 ENV PORT=7777
 ENV HOSTNAME=0.0.0.0
 ENV DD_TRACE_DEBUG=true
-RUN printf '#!/bin/bash\nnode .next/standalone/server.js' > app.sh
-RUN chmod +x app.sh
+COPY utils/build/docker/nodejs/app.sh app.sh
+RUN printf './node_modules/.bin/next start' >> app.sh
 ENV NODE_OPTIONS="--require dd-trace/init.js"
 CMD ./app.sh
