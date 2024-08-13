@@ -44,17 +44,22 @@ class AutoInjectBaseTest:
 
         with virtual_machine.ssh_config.get_ssh_connection() as ssh:
             try:
+                lines = []
                 _, stdout, stderr = ssh.exec_command(command_with_env, timeout=120)
                 stdout.channel.set_combine_stderr(True)
+                lines = stdout.readlines()
             except paramiko.buffered_pipe.PipeTimeout:
+                logger.warning("timeout in exec_command")
                 if not stdout.channel.eof_received:
                     stdout.channel.close()
 
+
             # Read the output line by line
             command_output = ""
-            for line in stdout.readlines():
+            for line in lines:
                 if not line.startswith("export"):
                     command_output += line
+
             header = "*****************************************************************"
             vm_logger(context.scenario.name, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
