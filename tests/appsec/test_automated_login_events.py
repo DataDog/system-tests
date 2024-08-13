@@ -1188,6 +1188,7 @@ class Test_V2_Login_Events_Anon:
             headers=self.HEADERS,
         )
 
+    @missing_feature(library="dotnet")
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
@@ -1208,6 +1209,7 @@ class Test_V2_Login_Events_Anon:
             headers=self.HEADERS,
         )
 
+    @missing_feature(library="dotnet")
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
