@@ -1,6 +1,7 @@
 using Datadog.Trace;
 using Datadog.Trace.Configuration;
 using System.Reflection;
+using System.Threading;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
@@ -15,6 +16,7 @@ public abstract class ApmTestApi
         // By instantiating the Tracer first, that faulty getter code path will not be invoked
         _ = Tracer.Instance;
 
+        app.MapGet("/trace/crash", Crash);
         app.MapGet("/trace/config", GetTracerConfig);
         app.MapPost("/trace/tracer/stop", StopTracer);
         app.MapPost("/trace/span/start", StartSpan);
@@ -264,6 +266,19 @@ public abstract class ApmTestApi
     {
         var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
         span.Finish();
+    }
+
+    private static string Crash(HttpRequest request)
+    {
+        var thread = new Thread(() => 
+        {
+            throw new BadImageFormatException("Expected");
+        });
+
+        thread.Start();
+        thread.Join();
+
+        return "Failed to crash";
     }
 
     private static string GetTracerConfig(HttpRequest request)

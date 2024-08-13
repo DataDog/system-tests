@@ -5,6 +5,7 @@ from typing import Tuple
 from typing import Union
 
 import os
+import signal
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -64,6 +65,10 @@ class StartSpanReturn(BaseModel):
     span_id: int
     trace_id: int
 
+@app.get("/trace/crash")
+def trace_crash() -> None:
+    print("********* Crashing... *********")
+    os.kill(os.getpid(), signal.SIGSEGV.value)
 
 @app.post("/trace/span/start")
 def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
