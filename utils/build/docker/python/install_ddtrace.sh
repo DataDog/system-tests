@@ -4,6 +4,8 @@ set -eu
 
 cd /binaries
 
+export CMAKE_BUILD_PARALLEL_LEVEL=12
+
 if [ -e "dd-trace-py" ]; then
     echo "Install from local folder /binaries/dd-trace-py"
     pip install /binaries/dd-trace-py
