@@ -29,12 +29,14 @@ import io.opentracing.util.GlobalTracer;
 import jakarta.annotation.PreDestroy;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/trace/span")
 public class OpenTracingController implements Closeable {
   private final Tracer tracer;
   private final Map<Long, Span> spans;
@@ -44,8 +46,8 @@ public class OpenTracingController implements Closeable {
     this.spans = new HashMap<>();
   }
 
-  @PostMapping("/trace/span/start")
-  public StartSpanResult traceSpanStart(@RequestBody StartSpanArgs args) {
+  @PostMapping("start")
+  public StartSpanResult startSpan(@RequestBody StartSpanArgs args) {
     LOGGER.info("Starting OT span: {}", args);
     try {
       // Build span from request
@@ -67,7 +69,10 @@ public class OpenTracingController implements Closeable {
         SpanContext context = this.tracer.extract(TEXT_MAP, new TextMapAdapter(args.headers()));
         builder.asChildOf(context);
       }
-      // Note: Links are not supported as we choose to not support them through OpenTracing API
+      // Links are not supported as we choose to not support them through OpenTracing API
+      if (args.links() != null && !args.links().isEmpty()) {
+        LOGGER.warn("Span links are unsupported using the OpenTracing API");
+      }
       Span span = builder.start();
       // Store span
       long spanId = DDSpanId.from(span.context().toSpanId());
@@ -81,8 +86,8 @@ public class OpenTracingController implements Closeable {
     }
   }
 
-  @PostMapping("/trace/span/finish")
-  public void traceSpanFinish(@RequestBody SpanFinishArgs args) {
+  @PostMapping("finish")
+  public void finishSpan(@RequestBody SpanFinishArgs args) {
     LOGGER.info("Finishing OT span: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null) {
@@ -90,8 +95,8 @@ public class OpenTracingController implements Closeable {
     }
   }
 
-  @PostMapping("/trace/span/set_meta")
-  public void traceSpanSetMeta(@RequestBody SpanSetMetaArgs args) {
+  @PostMapping("set_meta")
+  public void setMeta(@RequestBody SpanSetMetaArgs args) {
     LOGGER.info("Setting meta for OT span: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null && args.key() != null) {
@@ -99,8 +104,8 @@ public class OpenTracingController implements Closeable {
     }
   }
 
-  @PostMapping("/trace/span/set_metric")
-  public void traceSpanSetMetric(@RequestBody SpanSetMetricArgs args) {
+  @PostMapping("set_metric")
+  public void setMetric(@RequestBody SpanSetMetricArgs args) {
     LOGGER.info("Setting OT span metric: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null && args.key() != null) {
@@ -108,8 +113,8 @@ public class OpenTracingController implements Closeable {
     }
   }
 
-  @PostMapping("/trace/span/error")
-  public void traceSpanError(@RequestBody SpanErrorArgs args) {
+  @PostMapping("error")
+  public void setError(@RequestBody SpanErrorArgs args) {
     LOGGER.info("Setting OT span error: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null) {
@@ -120,8 +125,8 @@ public class OpenTracingController implements Closeable {
     }
   }
 
-  @PostMapping("/trace/span/inject_headers")
-  public SpanInjectHeadersResult traceSpanInjectHeaders(@RequestBody SpanInjectHeadersArgs args) {
+  @PostMapping("inject_headers")
+  public SpanInjectHeadersResult injectHeaders(@RequestBody SpanInjectHeadersArgs args) {
     LOGGER.info("Inject headers context to OT tracer: {}", args);
     Map<String, String> headers = new HashMap<>();
     Span span = getSpan(args.spanId());
@@ -133,8 +138,8 @@ public class OpenTracingController implements Closeable {
     return new SpanInjectHeadersResult(headers);
   }
 
-  @PostMapping("/trace/span/flush")
-  public void traceSpanFlush() {
+  @PostMapping("flush")
+  public void flushSpans() {
     LOGGER.info("Flushing OT spans");
     try {
       ((InternalTracer) this.tracer).flush();
