@@ -49,7 +49,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/trace/otel")
+@RequestMapping(value = "/trace/otel", consumes = "application/json", produces = "application/json")
 public class OpenTelemetryController {
   private final Tracer tracer;
   private final TextMapPropagator propagator;
@@ -184,7 +184,7 @@ public class OpenTelemetryController {
     long spanId = DDSpanId.fromHex(span.getSpanContext().getSpanId());
     this.spans.put(spanId, span);
     // Return result
-    return new StartSpanResult(traceId, spanId);
+    return new StartSpanResult(spanId, traceId);
   }
 
   @PostMapping("span_context")

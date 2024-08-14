@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/trace/span")
+@RequestMapping(value = "/trace/span", consumes = "application/json", produces = "application/json")
 public class OpenTracingController implements Closeable {
   private final Tracer tracer;
   private final Map<Long, Span> spans;
