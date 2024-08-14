@@ -4,14 +4,6 @@ using ApmTestApi.Endpoints;
 // Force the initialization of the tracer
 _ = Datadog.Trace.Tracer.Instance;
 
-var environmentVariables = Environment.GetEnvironmentVariables();
-
-// Display each environment variable
-foreach (var key in environmentVariables.Keys)
-{
-    Console.WriteLine($"{key} = {environmentVariables[key]}");
-}
-
 var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
