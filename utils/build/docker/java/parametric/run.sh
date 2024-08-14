@@ -8,9 +8,11 @@ case $(echo "${DD_TRACE_DEBUG:-false}" | tr '[:upper:]' '[:lower:]') in
   *);;
 esac
 
+# TODO Need to disable all instrumentations related to Spring Boot
+
 java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
   -XX:TieredStopAtLevel=1 \
   -Ddd.jmxfetch.enabled=false \
   -Ddd.telemetry.dependency-collection.enabled=false \
-  -Ddd.integration.opentelemetry.experimental.enabled=true \
+  -Ddd.trace.otel.enabled=true \
   -jar target/dd-trace-java-client-1.0.0.jar
