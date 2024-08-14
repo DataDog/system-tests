@@ -1,4 +1,6 @@
 package com.datadoghq.opentelemetry.dto;
 
-public record SpanContextArgs(long spanId) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record SpanContextArgs(@JsonProperty("span_id") long spanId) {
 }
