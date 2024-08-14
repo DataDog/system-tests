@@ -886,17 +886,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
-        '*': missing_feature
+        '*': v1.9.0
         akka-http: v1.22.0
-        jersey-grizzly2: v1.9.0
         play: v1.22.0
-        ratpack: v1.9.0
-        resteasy-netty3: v1.9.0
-        spring-boot: v1.9.0
-        spring-boot-jetty: v1.9.0
-        spring-boot-openliberty: v1.9.0
-        spring-boot-undertow: v1.9.0
-        vertx3: v1.9.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_runtime_activation.py:
       Test_RuntimeActivation:
         '*': v0.115.0
