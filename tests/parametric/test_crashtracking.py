@@ -15,9 +15,6 @@ class Test_Crashtracking:
         test_library.crash()
 
         event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-        tags = event["payload"][0]["tags"]
-        tags_dict = dict(item.split(":") for item in tags.split(","))
-
         assert(self.is_crash_report(event))
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
@@ -33,8 +30,12 @@ class Test_Crashtracking:
                 assert(self.is_crash_report(event) == False)
 
     def is_crash_report(self, event) -> bool:
-        tags = event["payload"][0]["tags"]
-        print(tags)
-        tags_dict = dict(item.split(":") for item in tags.split(","))
+        message = json.loads(event["payload"][0]["message"])
+        tags = message["tags"]
 
-        return "signum" in tags_dict
+        if "severity" in tags:
+            return tags["severity"] == "crash"
+        elif "is_crash" in tags:
+            return  tags["is_crash"] == True
+
+        return False
