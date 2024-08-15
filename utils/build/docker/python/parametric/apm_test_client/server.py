@@ -1,3 +1,4 @@
+import signal
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -63,6 +64,10 @@ class StartSpanArgs(BaseModel):
 class StartSpanReturn(BaseModel):
     span_id: int
     trace_id: int
+
+@app.get("/trace/crash")
+def trace_crash() -> None:
+    os.kill(os.getpid(), signal.SIGSEGV.value)
 
 
 @app.post("/trace/span/start")
