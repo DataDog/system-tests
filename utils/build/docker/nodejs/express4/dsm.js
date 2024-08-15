@@ -1,4 +1,4 @@
-const { Worker, isMainThread, parentPort, workerData } = require('worker_threads')
+const { Worker } = require('worker_threads')
 
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
