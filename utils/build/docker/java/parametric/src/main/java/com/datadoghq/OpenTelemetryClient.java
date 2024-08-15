@@ -365,6 +365,23 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
         }
     }
 
+    Override
+    public void otelRecordException(OtelRecordExceptionArgs request, treamObserver<OtelRecordExceptionReturn> responseObserver) {
+        LOGGER.info("OTel record exception: {}", request);
+        try {
+            Span span = getSpan(request.getSpanId(), responseObserver);
+            if (span != null) {
+                span.recordException(new Exception(request.getMessage()), request.getAttributes());
+                responseObserver.onNext(OtelRecordExceptionReturn.newBuilder().build());
+                responseObserver.onCompleted();
+            }
+        } catch (Throwable t) {
+            LOGGER.error("Uncaught throwable", t);
+            responseObserver.onError(t);
+        }
+    }
+
+
     private Span getSpan(long spanId, StreamObserver<?> responseObserver) {
         Span span = this.spans.get(spanId);
         if (span == null) {

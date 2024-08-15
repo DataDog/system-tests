@@ -20,6 +20,8 @@ import static com.datadoghq.client.ApmTestClient.StartSpanReturn;
 
 import com.datadoghq.client.APMClientGrpc;
 import com.datadoghq.client.ApmTestClient;
+import com.datadoghq.client.ApmTestClient.OtelRecordExceptionArgs;
+import com.datadoghq.client.ApmTestClient.OtelRecordExceptionReturn;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanArgs;
 import com.datadoghq.client.ApmTestClient.OtelEndSpanReturn;
 import com.datadoghq.client.ApmTestClient.OtelFlushSpansArgs;
@@ -152,6 +154,11 @@ public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
     @Override
     public void otelAddEvent(OtelAddEventArgs request, StreamObserver<OtelAddEventReturn> responseObserver) {
         this.otelClient.otelAddEvent(request, responseObserver);
+    }
+
+    @Override
+    public void otelRecordException(OtelRecordExceptionArgs request, treamObserver<OtelAddEventReturn> responseObserver) {
+        this.otelClient.otelRecordException(request, responseObserver);
     }
 
     @Override
