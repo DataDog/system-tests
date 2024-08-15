@@ -102,21 +102,26 @@ class AWSPulumiProvider(VmProvider):
         self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
 
     def stack_destroy(self):
-        logger.info(f"Destroying VMs: {self.vms}")
-        try:
-            self.stack.destroy(on_output=logger.info, debug=True)
-            self.datadog_event_sender.sendEventToDatadog(
-                f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
-                "",
-                ["operation:destroy", "result:ok", f"stack:{self.stack_name}"],
-            )
-        except Exception as pulumi_exception:
-            logger.error("Exception destroying aws provision infraestructure")
-            logger.exception(pulumi_exception)
-            self.datadog_event_sender.sendEventToDatadog(
-                f"[E2E] Stack {self.stack_name}  : error on Pulumi stack destroy",
-                repr(pulumi_exception),
-                ["operation:destroy", "result:fail", f"stack:{self.stack_name}"],
+        if os.getenv("ONBOARDING_KEEP_VMS") is None:
+            logger.info(f"Destroying VMs: {self.vms}")
+            try:
+                self.stack.destroy(on_output=logger.info, debug=True)
+                self.datadog_event_sender.sendEventToDatadog(
+                    f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
+                    "",
+                    ["operation:destroy", "result:ok", f"stack:{self.stack_name}"],
+                )
+            except Exception as pulumi_exception:
+                logger.error("Exception destroying aws provision infraestructure")
+                logger.exception(pulumi_exception)
+                self.datadog_event_sender.sendEventToDatadog(
+                    f"[E2E] Stack {self.stack_name}  : error on Pulumi stack destroy",
+                    repr(pulumi_exception),
+                    ["operation:destroy", "result:fail", f"stack:{self.stack_name}"],
+                )
+        else:
+            logger.info(
+                f"Did not destroy VMs as ONBOARDING_KEEP_VMS is set. To destroy them, re-run the test without this env var."
             )
 
     def _get_cached_ami(self, vm):

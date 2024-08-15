@@ -42,8 +42,9 @@ class _VirtualMachineScenario(Scenario):
         include_centos_7_amd64=False,
         agent_env=None,
         app_env=None,
+        scenario_groups=None,
     ) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow)
+        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
         self.vm_provider_id = "vagrant"
         self.vm_provider = None
@@ -174,7 +175,9 @@ class _VirtualMachineScenario(Scenario):
 
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
-    def __init__(self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None) -> None:
+    def __init__(
+        self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None, scenario_groups=None
+    ) -> None:
         super().__init__(
             name,
             vm_provision=vm_provision,
@@ -190,4 +193,5 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
             include_centos_7_amd64=True,
+            scenario_groups=scenario_groups,
         )

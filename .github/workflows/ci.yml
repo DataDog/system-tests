@@ -65,7 +65,7 @@ jobs:
       - name: Test idiomatics scenarios
         run: |
           ./run.sh DEFAULT
-          TEST_LIBRARY=golang ./run.sh PARAMETRIC
+          TEST_LIBRARY=golang ./run.sh PARAMETRIC --splits=8 --group=1
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
 

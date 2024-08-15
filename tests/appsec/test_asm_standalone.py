@@ -1,7 +1,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, scenarios, features, rfc, bug
+from utils import weblog, interfaces, scenarios, features, rfc, bug, context
 from utils._context.header_tag_vars import *
 from requests.structures import CaseInsensitiveDict
 
@@ -77,11 +77,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(
-        library="java",
-        weblog_variant="play",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}

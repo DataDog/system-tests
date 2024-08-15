@@ -19,6 +19,7 @@ APPSEC_SCENARIOS: &appsec_scenarios
   - APPSEC_AUTO_EVENTS_EXTENDED
   - APPSEC_AUTO_EVENTS_RC
   - APPSEC_STANDALONE
+  - APPSEC_RASP
 
 # Scenarios covering Remote Configuration
 REMOTE_CONFIG_SCENARIOS: &remote_config_scenarios
