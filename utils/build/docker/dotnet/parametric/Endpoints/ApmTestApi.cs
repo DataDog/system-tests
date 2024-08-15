@@ -270,7 +270,7 @@ public abstract class ApmTestApi
 
     private static string Crash(HttpRequest request)
     {
-        var thread = new Thread(() => 
+        var thread = new Thread(() =>
         {
             throw new BadImageFormatException("Expected");
         });

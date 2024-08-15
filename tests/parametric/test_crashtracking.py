@@ -8,6 +8,7 @@ import base64
 
 from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
 
+
 @scenarios.parametric
 @features.crashtracking
 class Test_Crashtracking:
@@ -21,7 +22,7 @@ class Test_Crashtracking:
         test_library.crash()
 
         event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-        assert(self.is_crash_report(event))
+        assert self.is_crash_report(event)
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -39,8 +40,8 @@ class Test_Crashtracking:
         for req in requests:
             event = json.loads(base64.b64decode(req["body"]))
 
-            if (event["request_type"] == "logs"):
-                assert(self.is_crash_report(event) == False)
+            if event["request_type"] == "logs":
+                assert self.is_crash_report(event) == False
 
     def is_crash_report(self, event) -> bool:
         message = json.loads(event["payload"][0]["message"])
@@ -57,6 +58,6 @@ class Test_Crashtracking:
         if "severity" in tags:
             return tags["severity"] == "crash"
         elif "is_crash" in tags:
-            return  tags["is_crash"] == True
+            return tags["is_crash"] == True
 
         return False

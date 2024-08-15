@@ -65,6 +65,7 @@ class StartSpanReturn(BaseModel):
     span_id: int
     trace_id: int
 
+
 @app.get("/trace/crash")
 def trace_crash() -> None:
     os.kill(os.getpid(), signal.SIGSEGV.value)
