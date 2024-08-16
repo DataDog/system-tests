@@ -35,7 +35,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
@@ -47,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,6 +80,10 @@ public class OpenTelemetryController {
     for (Map.Entry<String, Object> entry : attributes.entrySet()) {
       String key = entry.getKey();
       Object value = entry.getValue();
+      // Handle single attribute array value as non array value
+      if (value instanceof Collection<?> values && values.size() == 1) {
+        value = values.iterator().next();
+      }
       if (value instanceof Boolean) {
         builder.put(key, (Boolean) value);
       } else if (value instanceof String) {
@@ -92,20 +96,47 @@ public class OpenTelemetryController {
         builder.put(key, (Float) value);
       } else if (value instanceof Double) {
         builder.put(key, (Double) value);
-      } else if (value instanceof Collection<?> values && !values.isEmpty()) {
+      } else if (value instanceof Collection<?> values) {
         Object firstValue = values.iterator().next();
+        Iterator<?> iterator = values.iterator();
+        int count = 0;
+        int valueCount = values.size();
         if (firstValue instanceof Boolean) {
-          values.forEach(v -> builder.put(key, (Boolean) v));
+          boolean[] parsedValues = new boolean[valueCount];
+          while (iterator.hasNext()) {
+            parsedValues[count++] = (Boolean) iterator.next();
+          }
+          builder.put(key, parsedValues);
         } else if (firstValue instanceof String) {
-          values.forEach(v -> builder.put(key, (String) v));
+          String[] parsedValues = new String[valueCount];
+          while (iterator.hasNext()) {
+            parsedValues[count++] = (String) iterator.next();
+          }
+          builder.put(key, parsedValues);
         } else if (firstValue instanceof Integer) {
-          values.forEach(v -> builder.put(key, (Integer) v));
+          long[] parsedValues = new long[valueCount];
+          while (iterator.hasNext()) {
+            parsedValues[count++] = (Integer) iterator.next();
+          }
+          builder.put(key, parsedValues);
         } else if (firstValue instanceof Long) {
-          values.forEach(v -> builder.put(key, (Long) v));
+          long[] parsedValues = new long[valueCount];
+          while (iterator.hasNext()) {
+            parsedValues[count++] = (Long) iterator.next();
+          }
+          builder.put(key, parsedValues);
         } else if (firstValue instanceof Float) {
-          values.forEach(v -> builder.put(key, (Float) v));
+          double[] parsedValues = new double[valueCount];
+          while (iterator.hasNext()) {
+            parsedValues[count++] = (Float) iterator.next();
+          }
+          builder.put(key, parsedValues);
         } else if (firstValue instanceof Double) {
-          values.forEach(v -> builder.put(key, (Double) v));
+          double[] parsedValues = new double[valueCount];
+          while (iterator.hasNext()) {
+            parsedValues[count++] = (Double) iterator.next();
+          }
+          builder.put(key, parsedValues);
         }
       }
     }
