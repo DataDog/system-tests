@@ -6,6 +6,7 @@ import static datadog.trace.api.DDTags.RESOURCE_NAME;
 import static datadog.trace.api.DDTags.SERVICE_NAME;
 import static datadog.trace.api.DDTags.SPAN_TYPE;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
+import static java.util.Collections.emptyList;
 
 import com.datadoghq.opentracing.dto.SpanErrorArgs;
 import com.datadoghq.opentracing.dto.SpanFinishArgs;
@@ -32,11 +33,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.io.Closeable;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/trace/span")
@@ -131,16 +134,14 @@ public class OpenTracingController implements Closeable {
   @PostMapping("inject_headers")
   public SpanInjectHeadersResult injectHeaders(@RequestBody SpanInjectHeadersArgs args) {
     LOGGER.info("Inject headers context to OT tracer: {}", args);
-    Map<String, String> headers = new HashMap<>();
     Span span = getSpan(args.spanId());
     if (span != null) {
       // Get context from span and inject it to carrier
-      TextMapAdapter carrier = new TextMapAdapter(headers);
+      TextMapAdapter carrier = TextMapAdapter.empty();
       this.tracer.inject(span.context(), TEXT_MAP, carrier);
+      return new SpanInjectHeadersResult(carrier.toHeaders());
     }
-    List<List<String>> resultHeaders = new ArrayList<>();
-    headers.forEach((name, value) -> resultHeaders.add(List.of(name, value)));
-    return new SpanInjectHeadersResult(resultHeaders);
+    return new SpanInjectHeadersResult(emptyList());
   }
 
   @PostMapping("flush")
@@ -168,25 +169,33 @@ public class OpenTracingController implements Closeable {
     this.tracer.close();
   }
 
-  private record TextMapAdapter(Map<String, String> headers) implements TextMap {
-      private static TextMapAdapter fromRequest(List<List<String>> requestHeaders) {
-        Map<String, String> headers = new HashMap<>();
-        requestHeaders.forEach(list -> {
-          if (list.size() > 1) {
-            headers.put(list.get(0), list.get(1));
-          }
-        });
-        return new TextMapAdapter(headers);
-      }
+  // Don't use Map to allow duplicate entries with the same key
+  private record TextMapAdapter(List<Map.Entry<String, String>> entries) implements TextMap {
+    private static TextMapAdapter empty() {
+      return new TextMapAdapter(new ArrayList<>());
+    }
+
+    private static TextMapAdapter fromRequest(List<List<String>> headers) {
+      return new TextMapAdapter(headers.stream()
+          .filter(list -> list.size() > 1)
+          .map(list -> new AbstractMap.SimpleEntry<>(list.get(0), list.get(1)))
+          .collect(Collectors.toCollection(ArrayList::new)));
+    }
 
     @Override
-      public Iterator<Map.Entry<String, String>> iterator() {
-        return this.headers.entrySet().iterator();
-      }
-
-      @Override
-      public void put(String key, String value) {
-        this.headers.put(key, value);
-      }
+    public Iterator<Map.Entry<String, String>> iterator() {
+      return this.entries.iterator();
     }
+
+    @Override
+    public void put(String key, String value) {
+      this.entries.add(new AbstractMap.SimpleEntry<>(key, value));
+    }
+
+    private List<List<String>> toHeaders() {
+      return this.entries.stream()
+          .map(entry -> List.of(entry.getKey(), entry.getValue()))
+          .toList();
+    }
+  }
 }
