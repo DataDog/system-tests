@@ -1,7 +1,15 @@
 package com.datadoghq.opentracing.dto;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-public record StartSpanArgs(long parentId, String name, String service, String type, String resource, String origin,
-                            Map<String, String> headers, Map<String, String> links) {
+public record StartSpanArgs(
+    @JsonProperty("parent_id") long parentId,
+    String name,
+    String service,
+    String type,
+    String resource,
+    String origin,
+    @JsonProperty("http_headers") List<HttpHeader> headers,
+    List<SpanLinks> links) {
 }

@@ -1,6 +1,7 @@
 package com.datadoghq.opentracing.dto;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
-public record SpanInjectHeadersResult(Map<String, String> headers) {
+public record SpanInjectHeadersResult( @JsonProperty("http_headers") List<HttpHeader> httpHeaders) {
 }

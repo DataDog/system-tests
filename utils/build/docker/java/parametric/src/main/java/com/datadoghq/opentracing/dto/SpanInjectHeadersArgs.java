@@ -1,4 +1,6 @@
 package com.datadoghq.opentracing.dto;
 
-public record SpanInjectHeadersArgs(long spanId) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record SpanInjectHeadersArgs(@JsonProperty("span_id") long spanId) {
 }

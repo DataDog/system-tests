@@ -7,6 +7,7 @@ import static datadog.trace.api.DDTags.SERVICE_NAME;
 import static datadog.trace.api.DDTags.SPAN_TYPE;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 
+import com.datadoghq.opentracing.dto.HttpHeader;
 import com.datadoghq.opentracing.dto.SpanErrorArgs;
 import com.datadoghq.opentracing.dto.SpanFinishArgs;
 import com.datadoghq.opentracing.dto.SpanInjectHeadersArgs;
@@ -23,7 +24,7 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.Tracer.SpanBuilder;
-import io.opentracing.propagation.TextMapAdapter;
+import io.opentracing.propagation.TextMap;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 import jakarta.annotation.PreDestroy;
@@ -32,7 +33,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -65,8 +69,8 @@ public class OpenTracingController implements Closeable {
         builder.asChildOf(parentSpan);
       }
       // Extract propagation headers from args to use them as parent context
-      if (args.headers() != null) {
-        SpanContext context = this.tracer.extract(TEXT_MAP, new TextMapAdapter(args.headers()));
+      if (args.headers() != null && !args.headers().isEmpty()) {
+        SpanContext context = this.tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(args.headers()));
         builder.asChildOf(context);
       }
       // Links are not supported as we choose to not support them through OpenTracing API
@@ -79,7 +83,7 @@ public class OpenTracingController implements Closeable {
       long traceId = DDTraceId.from(span.context().toTraceId()).toLong();
       this.spans.put(spanId, span);
       // Complete request
-      return new StartSpanResult(traceId, spanId);
+      return new StartSpanResult(spanId, traceId);
     } catch (Throwable t) {
       LOGGER.error("Uncaught throwable", t);
       return StartSpanResult.error();
@@ -135,14 +139,16 @@ public class OpenTracingController implements Closeable {
       TextMapAdapter carrier = new TextMapAdapter(headers);
       this.tracer.inject(span.context(), TEXT_MAP, carrier);
     }
-    return new SpanInjectHeadersResult(headers);
+    List<HttpHeader> resultHeaders = new ArrayList<>();
+    headers.forEach((name, value) -> resultHeaders.add(new HttpHeader(name, value)));
+    return new SpanInjectHeadersResult(resultHeaders);
   }
 
   @PostMapping("flush")
   public void flushSpans() {
     LOGGER.info("Flushing OT spans");
     try {
-      ((InternalTracer) this.tracer).flush();
+      ((InternalTracer) datadog.trace.api.GlobalTracer.get()).flush();
       this.spans.clear();
     } catch (Throwable t) {
       LOGGER.error("Uncaught throwable", t);
@@ -162,4 +168,22 @@ public class OpenTracingController implements Closeable {
     LOGGER.info("Closing OT tracer");
     this.tracer.close();
   }
+
+  private record TextMapAdapter(Map<String, String> headers) implements TextMap {
+      private static TextMapAdapter fromRequest(List<HttpHeader> requestHeaders) {
+        Map<String, String> headers = new HashMap<>();
+        requestHeaders.forEach(requestHeader -> headers.put(requestHeader.name(), requestHeader.value()));
+        return new TextMapAdapter(headers);
+      }
+
+    @Override
+      public Iterator<Map.Entry<String, String>> iterator() {
+        return this.headers.entrySet().iterator();
+      }
+
+      @Override
+      public void put(String key, String value) {
+        this.headers.put(key, value);
+      }
+    }
 }

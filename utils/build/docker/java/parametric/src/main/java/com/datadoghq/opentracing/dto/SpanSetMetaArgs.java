@@ -1,4 +1,6 @@
 package com.datadoghq.opentracing.dto;
 
-public record SpanSetMetaArgs(long spanId, String key, String value) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record SpanSetMetaArgs(@JsonProperty("span_id") long spanId, String key, String value) {
 }

@@ -1,4 +1,6 @@
 package com.datadoghq.opentracing.dto;
 
-public record SpanSetMetricArgs(long spanId, String key, float value) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record SpanSetMetricArgs(@JsonProperty("span_id") long spanId, String key, float value) {
 }

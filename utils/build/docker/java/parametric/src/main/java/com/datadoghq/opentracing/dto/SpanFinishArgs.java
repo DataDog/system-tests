@@ -1,4 +1,6 @@
 package com.datadoghq.opentracing.dto;
 
-public record SpanFinishArgs(long spanId) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record SpanFinishArgs(@JsonProperty("span_id") long spanId) {
 }
