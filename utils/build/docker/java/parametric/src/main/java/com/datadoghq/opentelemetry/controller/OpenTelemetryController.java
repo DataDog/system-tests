@@ -12,6 +12,7 @@ import com.datadoghq.opentelemetry.dto.AddEventArgs;
 import com.datadoghq.opentelemetry.dto.EndSpanArgs;
 import com.datadoghq.opentelemetry.dto.FlushArgs;
 import com.datadoghq.opentelemetry.dto.FlushResult;
+import com.datadoghq.opentelemetry.dto.HttpHeader;
 import com.datadoghq.opentelemetry.dto.IsRecordingArgs;
 import com.datadoghq.opentelemetry.dto.IsRecordingResult;
 import com.datadoghq.opentelemetry.dto.RecordExceptionArgs;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -298,20 +300,24 @@ public class OpenTelemetryController {
     this.spans.clear();
   }
 
-  private static class HeadersTextMapGetter implements TextMapGetter<Map<String, String>> {
+  private static class HeadersTextMapGetter implements TextMapGetter<List<HttpHeader>> {
     private static final HeadersTextMapGetter INSTANCE = new HeadersTextMapGetter();
 
     @Override
-    public Iterable<String> keys(Map<String, String> headers) {
-      return headers.keySet();
+    public Iterable<String> keys(List<HttpHeader> headers) {
+      return headers.stream().map(HttpHeader::name).toList();
     }
 
     @Override
-    public String get(Map<String, String> headers, String key) {
-      if (headers == null) {
+    public String get(List<HttpHeader> headers, String key) {
+      if (headers == null || headers.isEmpty()) {
         return null;
       }
-      return headers.get(key);
+      return headers.stream()
+          .filter(header -> header.name().equals(key))
+          .map(HttpHeader::value)
+          .findFirst()
+          .orElse(null);
     }
   }
 }
