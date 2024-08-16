@@ -162,8 +162,6 @@ public class OpenTracingController implements Closeable {
     return span;
   }
 
-  // TODO Implements /trace/stats/flush
-
   @PreDestroy
   public void close() {
     LOGGER.info("Closing OT tracer");
