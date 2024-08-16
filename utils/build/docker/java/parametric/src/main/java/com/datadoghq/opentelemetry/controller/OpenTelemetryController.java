@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/trace/otel", consumes = "application/json", produces = "application/json")
+@RequestMapping(value = "/trace/otel")
 public class OpenTelemetryController {
   private final Tracer tracer;
   private final TextMapPropagator propagator;

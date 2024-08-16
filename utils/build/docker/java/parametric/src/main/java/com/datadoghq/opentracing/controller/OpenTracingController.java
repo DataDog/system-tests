@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/trace/span", consumes = "application/json", produces = "application/json")
+@RequestMapping(value = "/trace/span")
 public class OpenTracingController implements Closeable {
   private final Tracer tracer;
   private final Map<Long, Span> spans;
@@ -162,6 +162,8 @@ public class OpenTracingController implements Closeable {
     }
     return span;
   }
+
+  // TODO Implements /trace/stats/flush
 
   @PreDestroy
   public void close() {
