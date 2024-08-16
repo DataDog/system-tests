@@ -15,4 +15,9 @@ java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
   -Ddd.jmxfetch.enabled=false \
   -Ddd.telemetry.dependency-collection.enabled=false \
   -Ddd.trace.otel.enabled=true \
+  -Ddd.integration.servlet-request-body.enabled=false \
+  -Ddd.integration.spring-beans.enabled=false \
+  -Ddd.integration.spring-path-filter.enabled=false \
+  -Ddd.integration.spring-web.enabled=false \
+  -Ddd.integration.tomcat.enabled=false \
   -jar target/dd-trace-java-client-1.0.0.jar
