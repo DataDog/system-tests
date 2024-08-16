@@ -156,10 +156,10 @@ public class ApmCompositeClient extends APMClientGrpc.APMClientImplBase {
         this.otelClient.otelAddEvent(request, responseObserver);
     }
 
-    @Override
-    public void otelRecordException(OtelRecordExceptionArgs request, treamObserver<OtelAddEventReturn> responseObserver) {
-        this.otelClient.otelRecordException(request, responseObserver);
-    }
+    // @Override
+    // public void otelRecordException(OtelRecordExceptionArgs request, StreamObserver<OtelRecordExceptionReturn> responseObserver) {
+    //     this.otelClient.otelRecordException(request, responseObserver);
+    // }
 
     @Override
     public void otelFlushSpans(OtelFlushSpansArgs request, StreamObserver<OtelFlushSpansReturn> responseObserver) {

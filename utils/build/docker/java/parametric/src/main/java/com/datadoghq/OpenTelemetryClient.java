@@ -4,7 +4,6 @@ import static com.datadoghq.App.LOGGER;
 import static datadog.trace.api.DDTags.RESOURCE_NAME;
 import static datadog.trace.api.DDTags.SERVICE_NAME;
 import static datadog.trace.api.DDTags.SPAN_TYPE;
-import static java.util.concurrent.TimeUnit.MICROSECONDS;
 
 import com.datadoghq.client.APMClientGrpc;
 import com.datadoghq.client.ApmTestClient;
@@ -45,6 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 import com.datadoghq.client.ApmTestClient.OtelAddEventArgs;
 import com.datadoghq.client.ApmTestClient.OtelAddEventReturn;
 
@@ -167,7 +167,7 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
                 }
             }
             if (request.hasTimestamp()) {
-                builder.setStartTimestamp(request.getTimestamp(), MICROSECONDS);
+                builder.setStartTimestamp(request.getTimestamp(), TimeUnit.MICROSECONDS);
             }
             if (request.getSpanLinksCount() > 0) {
                 for (SpanLink spanLink : request.getSpanLinksList()) {
@@ -245,7 +245,7 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
             Span span = getSpan(request.getId(), responseObserver);
             if (span != null) {
                 if (request.hasTimestamp()) {
-                    span.end(request.getTimestamp(), MICROSECONDS);
+                    span.end(request.getTimestamp(), TimeUnit.MICROSECONDS);
                 } else {
                     span.end();
                 }
@@ -350,11 +350,11 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
         try {
             Span span = getSpan(request.getSpanId(), responseObserver);
             if (span != null) {
-                if (request.hasTimestamp) {
+                if (request.hasTimestamp()) {
                     // need to do some check to dynamically choose the time unit conversion?
-                    span.addEvent(request.getName(), null, request.getTimestamp(), TimeUnit.MICROSECONDS);
+                    span.addEvent(request.getName(), parseAttributes(request.getAttributes()), request.getTimestamp(), TimeUnit.MICROSECONDS);
                 } else {
-                    span.addEvent(request.getName(), null);
+                    span.addEvent(request.getName(), parseAttributes(request.getAttributes()));
                 }
                 responseObserver.onNext(OtelAddEventReturn.newBuilder().build());
                 responseObserver.onCompleted();
@@ -365,21 +365,21 @@ public class OpenTelemetryClient extends APMClientGrpc.APMClientImplBase {
         }
     }
 
-    Override
-    public void otelRecordException(OtelRecordExceptionArgs request, treamObserver<OtelRecordExceptionReturn> responseObserver) {
-        LOGGER.info("OTel record exception: {}", request);
-        try {
-            Span span = getSpan(request.getSpanId(), responseObserver);
-            if (span != null) {
-                span.recordException(new Exception(request.getMessage()), request.getAttributes());
-                responseObserver.onNext(OtelRecordExceptionReturn.newBuilder().build());
-                responseObserver.onCompleted();
-            }
-        } catch (Throwable t) {
-            LOGGER.error("Uncaught throwable", t);
-            responseObserver.onError(t);
-        }
-    }
+    // @Override
+    // public void otelRecordException(OtelRecordExceptionArgs request, StreamObserver<OtelRecordExceptionReturn> responseObserver) {
+    //     LOGGER.info("OTel record exception: {}", request);
+    //     try {
+    //         Span span = getSpan(request.getSpanId(), responseObserver);
+    //         if (span != null) {
+    //             span.recordException(new Exception(request.getMessage()), request.getAttributes());
+    //             responseObserver.onNext(OtelRecordExceptionReturn.newBuilder().build());
+    //             responseObserver.onCompleted();
+    //         }
+    //     } catch (Throwable t) {
+    //         LOGGER.error("Uncaught throwable", t);
+    //         responseObserver.onError(t);
+    //     }
+    // }
 
 
     private Span getSpan(long spanId, StreamObserver<?> responseObserver) {
