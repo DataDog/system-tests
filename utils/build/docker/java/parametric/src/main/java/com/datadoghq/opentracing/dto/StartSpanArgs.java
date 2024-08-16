@@ -10,6 +10,6 @@ public record StartSpanArgs(
     String type,
     String resource,
     String origin,
-    @JsonProperty("http_headers") List<HttpHeader> headers,
+    @JsonProperty("http_headers") List<List<String>> headers,
     List<SpanLinks> links) {
 }

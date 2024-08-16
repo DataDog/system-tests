@@ -7,7 +7,6 @@ import static datadog.trace.api.DDTags.SERVICE_NAME;
 import static datadog.trace.api.DDTags.SPAN_TYPE;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 
-import com.datadoghq.opentracing.dto.HttpHeader;
 import com.datadoghq.opentracing.dto.SpanErrorArgs;
 import com.datadoghq.opentracing.dto.SpanFinishArgs;
 import com.datadoghq.opentracing.dto.SpanInjectHeadersArgs;
@@ -139,8 +138,8 @@ public class OpenTracingController implements Closeable {
       TextMapAdapter carrier = new TextMapAdapter(headers);
       this.tracer.inject(span.context(), TEXT_MAP, carrier);
     }
-    List<HttpHeader> resultHeaders = new ArrayList<>();
-    headers.forEach((name, value) -> resultHeaders.add(new HttpHeader(name, value)));
+    List<List<String>> resultHeaders = new ArrayList<>();
+    headers.forEach((name, value) -> resultHeaders.add(List.of(name, value)));
     return new SpanInjectHeadersResult(resultHeaders);
   }
 
@@ -172,9 +171,13 @@ public class OpenTracingController implements Closeable {
   }
 
   private record TextMapAdapter(Map<String, String> headers) implements TextMap {
-      private static TextMapAdapter fromRequest(List<HttpHeader> requestHeaders) {
+      private static TextMapAdapter fromRequest(List<List<String>> requestHeaders) {
         Map<String, String> headers = new HashMap<>();
-        requestHeaders.forEach(requestHeader -> headers.put(requestHeader.name(), requestHeader.value()));
+        requestHeaders.forEach(list -> {
+          if (list.size() > 1) {
+            headers.put(list.get(0), list.get(1));
+          }
+        });
         return new TextMapAdapter(headers);
       }
 
