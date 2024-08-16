@@ -42,7 +42,7 @@ class Test_Crashtracking:
         for req in requests:
             event = json.loads(base64.b64decode(req["body"]))
 
-            if (event["request_type"] == "logs"):
+            if event["request_type"] == "logs":
                 assert self.is_crash_report(event) == False
 
     def is_crash_report(self, event) -> bool:
