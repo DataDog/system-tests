@@ -83,8 +83,12 @@ public class OpenTelemetryController {
         builder.put(key, (Boolean) value);
       } else if (value instanceof String) {
         builder.put(key, (String) value);
+      } else if (value instanceof Integer) {
+        builder.put(key, ((Integer) value));
       } else if (value instanceof Long) {
         builder.put(key, (Long) value);
+      } else if (value instanceof Float) {
+        builder.put(key, (Float) value);
       } else if (value instanceof Double) {
         builder.put(key, (Double) value);
       } else if (value instanceof Collection<?> values && !values.isEmpty()) {
@@ -93,8 +97,12 @@ public class OpenTelemetryController {
           values.forEach(v -> builder.put(key, (Boolean) v));
         } else if (firstValue instanceof String) {
           values.forEach(v -> builder.put(key, (String) v));
+        } else if (firstValue instanceof Integer) {
+          values.forEach(v -> builder.put(key, (Integer) v));
         } else if (firstValue instanceof Long) {
           values.forEach(v -> builder.put(key, (Long) v));
+        } else if (firstValue instanceof Float) {
+          values.forEach(v -> builder.put(key, (Float) v));
         } else if (firstValue instanceof Double) {
           values.forEach(v -> builder.put(key, (Double) v));
         }
