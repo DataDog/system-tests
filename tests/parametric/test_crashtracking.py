@@ -45,12 +45,7 @@ class Test_Crashtracking:
                 assert(self.is_crash_report(event) == False)
 
     def is_crash_report(self, event) -> bool:
-        message = json.loads(event["payload"][0]["message"])
-        tags = message["tags"]
+        tags = event["payload"][0]["tags"]
+        tags_dict = dict(item.split(":") for item in tags.split(","))
 
-        if "severity" in tags:
-            return tags["severity"] == "crash"
-        elif "is_crash" in tags:
-            return  tags["is_crash"] == True
-
-        return False
+        return "signum"
