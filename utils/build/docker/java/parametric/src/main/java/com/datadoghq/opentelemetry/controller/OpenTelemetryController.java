@@ -296,10 +296,6 @@ public class OpenTelemetryController {
     return span;
   }
 
-  void clearSpans() {
-    this.spans.clear();
-  }
-
   private static class HeadersTextMapGetter implements TextMapGetter<List<HttpHeader>> {
     private static final HeadersTextMapGetter INSTANCE = new HeadersTextMapGetter();
 
