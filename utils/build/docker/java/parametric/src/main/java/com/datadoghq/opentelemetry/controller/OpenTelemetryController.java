@@ -7,12 +7,12 @@ import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.SpanKind.PRODUCER;
 import static io.opentelemetry.api.trace.SpanKind.SERVER;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static java.util.function.Predicate.not;
 
 import com.datadoghq.opentelemetry.dto.AddEventArgs;
 import com.datadoghq.opentelemetry.dto.EndSpanArgs;
 import com.datadoghq.opentelemetry.dto.FlushArgs;
 import com.datadoghq.opentelemetry.dto.FlushResult;
-import com.datadoghq.opentelemetry.dto.HttpHeader;
 import com.datadoghq.opentelemetry.dto.IsRecordingArgs;
 import com.datadoghq.opentelemetry.dto.IsRecordingResult;
 import com.datadoghq.opentelemetry.dto.RecordExceptionArgs;
@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping(value = "/trace/otel")
@@ -300,22 +301,26 @@ public class OpenTelemetryController {
     return span;
   }
 
-  private static class HeadersTextMapGetter implements TextMapGetter<List<HttpHeader>> {
+  private static class HeadersTextMapGetter implements TextMapGetter<List<List<String>>> {
     private static final HeadersTextMapGetter INSTANCE = new HeadersTextMapGetter();
 
     @Override
-    public Iterable<String> keys(List<HttpHeader> headers) {
-      return headers.stream().map(HttpHeader::name).toList();
+    public Iterable<String> keys(List<List<String>> headers) {
+      return headers.stream()
+          .filter(not(List::isEmpty))
+          .map(list -> list.get(0))
+          .toList();
     }
 
     @Override
-    public String get(List<HttpHeader> headers, String key) {
+    public String get(List<List<String>> headers, String key) {
       if (headers == null || headers.isEmpty()) {
         return null;
       }
       return headers.stream()
-          .filter(header -> header.name().equals(key))
-          .map(HttpHeader::value)
+          .filter(list -> list.size() > 1)
+          .filter(list -> Objects.equals(key, list.get(0)))
+          .map(list -> list.get(1))
           .findFirst()
           .orElse(null);
     }

@@ -9,7 +9,7 @@ public record StartSpanArgs(
     String name,
     @JsonProperty("span_kind") int spanKind,
     long timestamp,
-    @JsonProperty("http_headers") List<HttpHeader> httpHeaders,
+    @JsonProperty("http_headers") List<List<String>> httpHeaders,
     List<SpanLink> links,
     Map<String, Object> attributes) {
 }

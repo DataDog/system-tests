@@ -7,5 +7,5 @@ import java.util.Map;
 public record SpanLink(
     @JsonProperty("parent_id") long parentId,
     Map<String, Object> attributes,
-    @JsonProperty("http_headers") List<HttpHeader> httpHeaders) {
+    @JsonProperty("http_headers") List<List<String>> httpHeaders) {
 }

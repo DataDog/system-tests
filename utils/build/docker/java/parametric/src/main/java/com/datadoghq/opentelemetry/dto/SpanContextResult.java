@@ -9,6 +9,6 @@ public record SpanContextResult(
     @JsonProperty("trace_state") String traceState,
     boolean remote) {
   public static SpanContextResult error() {
-    return new SpanContextResult("0000000000000000", "00000000000000000000000000000000", "0", "", false);
+    return new SpanContextResult("0000000000000000", "00000000000000000000000000000000", "00", "", false);
   }
 }
