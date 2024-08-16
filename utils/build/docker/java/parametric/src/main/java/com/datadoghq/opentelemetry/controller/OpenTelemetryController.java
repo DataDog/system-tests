@@ -111,10 +111,6 @@ public class OpenTelemetryController {
     return builder.build();
   }
 
-  private static String formatTraceFlags(TraceFlags traceFlags) {
-    return Integer.toBinaryString(traceFlags.asByte());
-  }
-
   private static String formatTraceState(TraceState traceState) {
     StringBuilder builder = new StringBuilder();
     traceState.forEach((memberKey, memberValue) -> {
@@ -208,7 +204,7 @@ public class OpenTelemetryController {
     return new SpanContextResult(
         spanContext.getSpanId(),
         spanContext.getTraceId(),
-        formatTraceFlags(spanContext.getTraceFlags()),
+        spanContext.getTraceFlags().asHex(),
         formatTraceState(spanContext.getTraceState()),
         spanContext.isRemote()
     );
