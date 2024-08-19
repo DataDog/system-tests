@@ -6,8 +6,6 @@ import tests.debugger.utils as base
 import time, json, os
 from utils import scenarios, interfaces, weblog, features
 
-from utils.tools import logger
-
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
