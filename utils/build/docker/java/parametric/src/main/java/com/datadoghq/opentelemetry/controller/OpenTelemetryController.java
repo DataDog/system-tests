@@ -7,7 +7,6 @@ import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.SpanKind.PRODUCER;
 import static io.opentelemetry.api.trace.SpanKind.SERVER;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
-import static java.util.function.Predicate.not;
 
 import com.datadoghq.opentelemetry.dto.AddEventArgs;
 import com.datadoghq.opentelemetry.dto.EndSpanArgs;
@@ -15,6 +14,7 @@ import com.datadoghq.opentelemetry.dto.FlushArgs;
 import com.datadoghq.opentelemetry.dto.FlushResult;
 import com.datadoghq.opentelemetry.dto.IsRecordingArgs;
 import com.datadoghq.opentelemetry.dto.IsRecordingResult;
+import com.datadoghq.opentelemetry.dto.KeyValue;
 import com.datadoghq.opentelemetry.dto.RecordExceptionArgs;
 import com.datadoghq.opentelemetry.dto.SetAttributesArgs;
 import com.datadoghq.opentelemetry.dto.SetNameArgs;
@@ -332,26 +332,24 @@ public class OpenTelemetryController {
     return span;
   }
 
-  private static class HeadersTextMapGetter implements TextMapGetter<List<List<String>>> {
+  private static class HeadersTextMapGetter implements TextMapGetter<List<KeyValue>> {
     private static final HeadersTextMapGetter INSTANCE = new HeadersTextMapGetter();
 
     @Override
-    public Iterable<String> keys(List<List<String>> headers) {
+    public Iterable<String> keys(List<KeyValue> headers) {
       return headers.stream()
-          .filter(not(List::isEmpty))
-          .map(list -> list.get(0))
+          .map(KeyValue::key)
           .toList();
     }
 
     @Override
-    public String get(List<List<String>> headers, String key) {
+    public String get(List<KeyValue> headers, String key) {
       if (headers == null || headers.isEmpty()) {
         return null;
       }
       return headers.stream()
-          .filter(list -> list.size() > 1)
-          .filter(list -> Objects.equals(key, list.get(0)))
-          .map(list -> list.get(1))
+          .filter(kv -> Objects.equals(key, kv.key()))
+          .map(KeyValue::value)
           .findFirst()
           .orElse(null);
     }
