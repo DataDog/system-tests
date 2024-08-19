@@ -415,6 +415,20 @@ function initSourceRoutes (app: Express): void {
     })
   }
 
+
+  async function getKafkaConsumer (kafka: any, topic: string, groupId: string) {
+    const consumer = kafka.consumer({
+      groupId,
+      heartbeatInterval: 10000, // should be lower than sessionTimeout
+      sessionTimeout: 60000
+    })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic, fromBeginning: true })
+
+    return consumer
+  }
+
   app.get('/iast/source/kafkavalue/test', (req: Request, res: Response): void => {
     const kafka = getKafka()
     const topic = 'dsm-system-tests-queue'
@@ -422,36 +436,29 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({
-        groupId: 'testgroup2',
-        heartbeatInterval: 10000, // should be lower than sessionTimeout
-        sessionTimeout: 60000
-      })
-
-      await consumer.connect()
-      await consumer.subscribe({ topic, fromBeginning: false })
-
       const deferred: {
         resolve?: Function,
         reject?: Function
       } = {}
-
+      
       const promise = new Promise((resolve: Function, reject: Function): void => {
         deferred.resolve = resolve
         deferred.reject = reject
       })
-
+      
+      consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-value')
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
-          const vulnValue = message.value.toString()
-          try {
-            readFileSync(vulnValue)
-          } catch {
-            // do nothing
-          }
+          if (!message.value) return
 
-          // in some occasions we consume messages from dsm tests
+          const vulnValue = message.value.toString()
           if (vulnValue === 'hello value!') {
+            try {
+              readFileSync(vulnValue)
+            } catch {
+              // do nothing
+            }
+
             deferred.resolve?.()
           }
         }
@@ -492,15 +499,6 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({
-        groupId: 'testgroup2',
-        heartbeatInterval: 10000, // should be lower than sessionTimeout
-        sessionTimeout: 60000
-      })
-
-      await consumer.connect()
-      await consumer.subscribe({ topic, fromBeginning: false })
-
       const deferred: {
         resolve?: Function,
         reject?: Function
@@ -511,19 +509,19 @@ function initSourceRoutes (app: Express): void {
         deferred.reject = reject
       })
 
+      consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-key')
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
-          // in some occasions we consume messages from dsm tests
           if (!message.key) return
 
           const vulnKey = message.key.toString()
-          try {
-            readFileSync(vulnKey)
-          } catch {
-            // do nothing
-          }
-
           if (vulnKey === 'hello key!') {
+            try {
+              readFileSync(vulnKey)
+            } catch {
+              // do nothing
+            }
+
             deferred.resolve?.()
           }
         }
