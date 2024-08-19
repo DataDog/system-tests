@@ -440,12 +440,12 @@ function initSourceRoutes (app: Express): void {
         resolve?: Function,
         reject?: Function
       } = {}
-      
+
       const promise = new Promise((resolve: Function, reject: Function): void => {
         deferred.resolve = resolve
         deferred.reject = reject
       })
-      
+
       consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-value')
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
