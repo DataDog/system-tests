@@ -622,7 +622,6 @@ tests/:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-openliberty: missing_feature (weblog returns error 500)
-        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_V2_Login_Events_Anon:
@@ -634,7 +633,6 @@ tests/:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-openliberty: missing_feature (weblog returns error 500)
-        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_V2_Login_Events_RC:
@@ -646,7 +644,6 @@ tests/:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-openliberty: missing_feature (weblog returns error 500)
-        spring-boot-wildfly: bug (manual.keep should be in meta when _sampling_priority_v1 is not MANUAL_KEEP)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
     test_blocking_addresses.py:
@@ -804,10 +801,6 @@ tests/:
         '*': v0.100.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_RuleSet_1_3_1:
-        '*': v0.99.0
-        akka-http: v1.22.0
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_customconf.py:
       Test_ConfRuleSet:
         '*': v0.93.0
@@ -893,17 +886,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
-        '*': missing_feature
+        '*': v1.9.0
         akka-http: v1.22.0
-        jersey-grizzly2: v1.9.0
         play: v1.22.0
-        ratpack: v1.9.0
-        resteasy-netty3: v1.9.0
-        spring-boot: v1.9.0
-        spring-boot-jetty: v1.9.0
-        spring-boot-openliberty: v1.9.0
-        spring-boot-undertow: v1.9.0
-        vertx3: v1.9.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_runtime_activation.py:
       Test_RuntimeActivation:
         '*': v0.115.0
@@ -927,7 +913,10 @@ tests/:
         vertx3: missing_feature (endpoint not implemented)
         vertx4: missing_feature (endpoint not implemented)
     test_suspicious_attacker_blocking.py:
-      Test_Suspicious_Attacker_Blocking: missing_feature
+      Test_Suspicious_Attacker_Blocking:
+        '*': v1.39.0
+        play: bug (endpoint returns 404)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0

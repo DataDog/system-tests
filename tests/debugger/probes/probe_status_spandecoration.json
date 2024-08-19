@@ -1,6 +1,7 @@
 [
     {
         "language": "",
+        "type": "",
         "id": "decorcf2-meth-45cf-9f39-591received",
         "targetSpan": "ACTIVE",
         "decorations": [
@@ -28,6 +29,7 @@
     },
     {
         "language": "",
+        "type": "",
         "id": "decorcf2-meth-45cf-9f39-59installed",
         "targetSpan": "ACTIVE",
         "decorations": [
@@ -55,6 +57,7 @@
     },
     {
         "language": "",
+        "type": "",
         "id": "decorcf2-line-45cf-9f39-59installed",
         "targetSpan": "ACTIVE",
         "decorations": [
