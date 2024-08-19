@@ -602,6 +602,7 @@ class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
+    @bug(context.library > "nodejs@5.21.0", reason="APMAPI-213")
     def test_app_started_product_disabled(self):
         data_found = False
         app_started_found = False
