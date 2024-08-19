@@ -26,7 +26,9 @@ public class LoggingResponseBodyAdvice implements ResponseBodyAdvice<Object> {
       ServerHttpRequest request,
       ServerHttpResponse response) {
 
-    if (body != null) {
+    if (body == null) {
+      LOGGER.info("Empty response");
+    } else {
       LOGGER.info("Response {}", body);
     }
 
