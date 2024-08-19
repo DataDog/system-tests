@@ -75,6 +75,10 @@ public class OpenTracingController implements Closeable {
         SpanContext context = this.tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(args.headers()));
         builder.asChildOf(context);
       }
+      // Apply tags
+      if (args.tags() != null && !args.tags().isEmpty()) {
+        args.tags().forEach(tag -> builder.withTag(tag.key(), tag.value()));
+      }
       // Links are not supported as we choose to not support them through OpenTracing API
       if (args.links() != null && !args.links().isEmpty()) {
         LOGGER.warn("Span links are unsupported using the OpenTracing API");
