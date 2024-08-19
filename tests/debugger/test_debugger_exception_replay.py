@@ -67,11 +67,16 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
                 assert expected == snapshot
 
         agent_logs_endpoint_requests = list(interfaces.agent.get_data(base._LOGS_PATH))
-
+        
+        snapshot_found = False
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
             if content:
                 for item in content:
                     snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
                     if snapshot:
+                        snapshot_found = True
                         __approve(snapshot)
+
+        assert snapshot_found, "Snapshot not found"
+        
