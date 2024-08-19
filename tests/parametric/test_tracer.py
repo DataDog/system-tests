@@ -69,7 +69,7 @@ class Test_TracerSCITagging:
 
         first_span = find_first_span_in_trace_payload(trace)
         # the repository url should be injected ONLY in the first span of the trace
-        spans_with_git = [span for span in trace if "_dd.git.repository_url" in span["meta"]]
+        spans_with_git = [span for span in trace if span.get("meta", {}).get("_dd.git.repository_url")]
         assert len(spans_with_git) == 1
         assert first_span == spans_with_git[0]
         assert first_span["meta"]["_dd.git.repository_url"] == library_env["DD_GIT_REPOSITORY_URL"]
@@ -95,7 +95,7 @@ class Test_TracerSCITagging:
 
         first_span = find_first_span_in_trace_payload(trace)
         # the repository url should be injected ONLY in the first span of the trace
-        spans_with_git = [span for span in trace if "_dd.git.commit.sha" in span["meta"]]
+        spans_with_git = [span for span in trace if span.get("meta", {}).get("_dd.git.commit.sha")]
         assert len(spans_with_git) == 1
         assert first_span == spans_with_git[0]
 
