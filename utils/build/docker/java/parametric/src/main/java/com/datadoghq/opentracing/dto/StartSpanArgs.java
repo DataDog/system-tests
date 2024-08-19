@@ -12,7 +12,7 @@ public record StartSpanArgs(
     String type,
     String resource,
     String origin,
-    @JsonProperty("http_headers") List<List<String>> headers,
+    @JsonProperty("http_headers") @JsonDeserialize(using = KeyValueListDeserializer.class) List<KeyValue> headers,
     List<SpanLinks> links,
     @JsonProperty("span_tags") @JsonDeserialize(using = KeyValueListDeserializer.class) List<KeyValue> tags) {
 }

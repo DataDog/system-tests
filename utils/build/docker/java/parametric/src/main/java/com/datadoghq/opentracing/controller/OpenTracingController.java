@@ -7,7 +7,9 @@ import static datadog.trace.api.DDTags.SERVICE_NAME;
 import static datadog.trace.api.DDTags.SPAN_TYPE;
 import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toCollection;
 
+import com.datadoghq.opentracing.dto.KeyValue;
 import com.datadoghq.opentracing.dto.SpanErrorArgs;
 import com.datadoghq.opentracing.dto.SpanFinishArgs;
 import com.datadoghq.opentracing.dto.SpanInjectHeadersArgs;
@@ -33,13 +35,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.io.Closeable;
-import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/trace/span")
@@ -179,11 +180,10 @@ public class OpenTracingController implements Closeable {
       return new TextMapAdapter(new ArrayList<>());
     }
 
-    private static TextMapAdapter fromRequest(List<List<String>> headers) {
+    private static TextMapAdapter fromRequest(List<KeyValue> headers) {
       return new TextMapAdapter(headers.stream()
-          .filter(list -> list.size() > 1)
-          .map(list -> new AbstractMap.SimpleEntry<>(list.get(0), list.get(1)))
-          .collect(Collectors.toCollection(ArrayList::new)));
+          .map(kv -> new SimpleEntry<>(kv.key(), kv.value()))
+          .collect(toCollection(ArrayList::new)));
     }
 
     @Override
@@ -193,12 +193,12 @@ public class OpenTracingController implements Closeable {
 
     @Override
     public void put(String key, String value) {
-      this.entries.add(new AbstractMap.SimpleEntry<>(key, value));
+      this.entries.add(new SimpleEntry<>(key, value));
     }
 
-    private List<List<String>> toHeaders() {
+    private List<KeyValue> toHeaders() {
       return this.entries.stream()
-          .map(entry -> List.of(entry.getKey(), entry.getValue()))
+          .map(entry -> new KeyValue(entry.getKey(), entry.getValue()))
           .toList();
     }
   }
