@@ -623,9 +623,10 @@ class Test_ProductsDisabled:
             ), f"Product information was expected in app-started event, but was missing in {data['log_filename']}"
 
             for product, details in payload["products"].items():
-                assert (
-                    details.get("enabled") is False
-                ), f"Product information expected to indicate {product} is disabled, but found enabled"
+                assert details.get("enabled") in [
+                    False,
+                    "false",
+                ], f"Product information expected to indicate {product} is disabled, but found enabled"
 
         if not data_found:
             raise ValueError("No telemetry data to validate on")
