@@ -8,8 +8,9 @@ case $(echo "${DD_TRACE_DEBUG:-false}" | tr '[:upper:]' '[:lower:]') in
   *);;
 esac
 
-# TODO Need to disable all instrumentations related to Spring Boot
-
+# Run client library with:
+# - OTel integration enabled to use the OTel API
+# - Spring and its web-server integrations disabled to prevent generating unrelated spans
 java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
   -XX:TieredStopAtLevel=1 \
   -Ddd.jmxfetch.enabled=false \
