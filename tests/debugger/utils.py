@@ -146,7 +146,7 @@ class _Base_Debugger_Test:
 
         for respone in self.weblog_responses:
             logger.debug(f"Response is {respone.text}")
-            assert respone.status_code == excpected_code
+            assert respone.status_code == expected_code
 
     def assert_all_states_not_error(self):
         def _get_full_id(probe_id):
