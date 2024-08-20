@@ -33,6 +33,11 @@ class _BaseTestK8sInitImageValidator:
 class TestK8sInitImageValidator(_BaseTestK8sInitImageValidator):
     """ Validate that the weblog is instrumented automatically when the lang version is supported."""
 
+    # Disable the prod test because of the incident 29739
+    @bug(
+        condition=os.getenv("LIB_INIT_IMAGE").endswith("latest") and context.library.library == "nodejs",
+        reason="Rolled back the latest tag because of #incident-29739 . Basically, serverless-init had some docs that specified an exact folder layout for .Net and nodejs init containers. We rolled back the tag while we worked on a longer term solution",
+    )
     def test_valid_weblog_instrumented(self):
         logger.info("Launching test test_weblog_instrumented")
         self._check_weblog_running()
