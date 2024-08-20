@@ -1010,10 +1010,6 @@ class MountInjectionVolume(TestedContainer):
             self.kwargs["volumes"] = {
                 _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},
             }
-        if "dd-lib-ruby-init" in lib_init_image:
-            self.kwargs["volumes"] = {
-                _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},
-            }
 
     def remove(self):
         super().remove()
