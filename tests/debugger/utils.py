@@ -60,10 +60,7 @@ def read_diagnostic_data():
         else:
             path = _LOGS_PATH
     elif tracer["language"] == "python":
-        # if tracer_version > version.parse("2.49.0"):
         path = _DEBUGER_PATH
-    # else:
-    # path = _LOGS_PATH
     else:
         path = _LOGS_PATH
 
@@ -99,7 +96,8 @@ def get_probes_map(data_set):
                 for d_content in d_contents:
                     _process_debugger(d_content["debugger"])
             else:
-                _process_debugger(content["debugger"])
+                if "debugger" in content:
+                    _process_debugger(content["debugger"])
 
     return probe_hash
 
