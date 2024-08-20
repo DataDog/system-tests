@@ -75,7 +75,7 @@ jobs:
         for weblog in weblogs["${{ inputs.library }}"]:
           if weblog["supported"] == "true":
             results_supported_langs.append(weblog["name"])
-        
+
         #Use the latest init image for prod version, latest_snapshot init image for dev version
         if "${{ inputs.version }}" == 'prod':
           result_init_image = prod_init_images["${{ inputs.library }}"]
