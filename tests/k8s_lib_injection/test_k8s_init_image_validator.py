@@ -35,7 +35,7 @@ class TestK8sInitImageValidator(_BaseTestK8sInitImageValidator):
 
     # Disable the prod test because of the incident 29739
     @bug(
-        condition=os.getenv("LIB_INIT_IMAGE").endswith("latest") and context.library.library == "nodejs",
+        condition=os.getenv("LIB_INIT_IMAGE", "").endswith("latest") and context.library.library == "nodejs",
         reason="Rolled back the latest tag because of #incident-29739 . Basically, serverless-init had some docs that specified an exact folder layout for .Net and nodejs init containers. We rolled back the tag while we worked on a longer term solution",
     )
     def test_valid_weblog_instrumented(self):
