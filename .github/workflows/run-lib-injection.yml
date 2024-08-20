@@ -70,7 +70,6 @@ jobs:
         }
         #All weblog variants
         result = weblogs["${{ inputs.library }}"]
-
         #Only supported weblog variants
         results_supported_langs = []
         for weblog in weblogs["${{ inputs.library }}"]:
