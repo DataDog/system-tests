@@ -141,7 +141,7 @@ class _Base_Debugger_Test:
             missing_probes = set(self.expected_probe_ids) - set(self.installed_ids)
             assert not missing_probes, f"Not all probes are installed. Missing ids: {', '.join(missing_probes)}"
 
-    def assert_all_weblog_responses_ok(self, excpected_code=200):
+    def assert_all_weblog_responses_ok(self, expected_code=200):
         assert len(self.weblog_responses) > 0, "No responses available."
 
         for respone in self.weblog_responses:
