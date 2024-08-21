@@ -13,24 +13,6 @@
     {
         "language": "",
         "type": "",
-        "id": "metricaa-acda-4453-9111-1478a6method",
-        "metricName": "MetricCountInt",
-        "kind": "COUNT",
-        "value": {
-            "json": {
-                "ref": "id"
-            }
-        },
-        "where": {
-            "typeName": "ACTUAL_TYPE_NAME",
-            "methodName": "MetricProbe",
-            "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
-    },
-    {
-        "language": "",
-        "type": "",
         "id": "span70aa-acda-4453-9111-1478a6method",
         "where": {
             "typeName": "ACTUAL_TYPE_NAME",
@@ -47,6 +29,7 @@
         "decorations": [
             {
                 "when": {
+                    "dsl" : "",
                     "json": {
                         "gt": [
                             {
@@ -65,6 +48,7 @@
                             "template": null,
                             "segments": [
                                 {
+                                    "dsl" : "",
                                     "json": {
                                         "ref": "intLocal"
                                     }

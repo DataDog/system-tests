@@ -7,6 +7,7 @@
         "decorations": [
             {
                 "when": {
+                    "dsl" : "",
                     "json": {
                         "gt": [
                             {
@@ -35,6 +36,7 @@
         "decorations": [
             {
                 "when": {
+                    "dsl" : "",
                     "json": {
                         "gt": [
                             {
@@ -63,6 +65,7 @@
         "decorations": [
             {
                 "when": {
+                    "dsl" : "",
                     "json": {
                         "gt": [
                             {
@@ -78,6 +81,7 @@
         ],
         "where": {
             "typeName": null,
+            "dsl" : "",
             "sourceFile": "ACTUAL_SOURCE_FILE",
             "lines": [
                 "44"

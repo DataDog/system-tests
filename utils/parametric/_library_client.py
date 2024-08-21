@@ -32,6 +32,9 @@ class Link(TypedDict):
 
 
 class APMLibraryClient:
+    def crash(self) -> None:
+        raise NotImplementedError
+
     def trace_start_span(
         self,
         name: str,
@@ -175,6 +178,13 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
+
+    def crash(self) -> None:
+        try:
+            self._session.get(self._url("/trace/crash"))
+        except:
+            # Expected
+            pass
 
     def trace_start_span(
         self,
@@ -711,6 +721,9 @@ class APMLibrary:
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
             self.flush()
+
+    def crash(self) -> None:
+        self._client.crash()
 
     @contextlib.contextmanager
     def start_span(
