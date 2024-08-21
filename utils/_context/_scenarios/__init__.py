@@ -797,13 +797,6 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
-    k8s_library_injection_full = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_FULL",
-        doc=" Kubernetes Instrumentation complete scenario.",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
     k8s_library_injection_basic = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
     )

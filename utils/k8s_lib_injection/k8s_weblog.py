@@ -173,81 +173,6 @@ class K8sWeblog:
         self.k8s_wrapper.create_namespaced_pod(body=pod_body)
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
-    def deploy_app_auto(self):
-        """ Installs a target app for auto library injection testing.
-            It returns when the deployment is available and the rollout is finished."""
-        deployment_name = f"test-{self.library}-deployment"
-
-        deployment_metadata = client.V1ObjectMeta(
-            name=deployment_name, namespace="default", labels={"app": f"{self.library}-app"},
-        )
-
-        # Configureate Pod template container
-        container = client.V1Container(
-            name=f"{self.library}-app",
-            image=self.app_image,
-            env=[client.V1EnvVar(name="SERVER_PORT", value="18080"),],
-            readiness_probe=client.V1Probe(
-                timeout_seconds=5,
-                success_threshold=3,
-                failure_threshold=10,
-                http_get=client.V1HTTPGetAction(path="/", port=18080),
-                initial_delay_seconds=20,
-                period_seconds=10,
-            ),
-            ports=[client.V1ContainerPort(container_port=18080, host_port=18080, name="http", protocol="TCP")],
-        )
-
-        # Create and configure a spec section
-        template = client.V1PodTemplateSpec(
-            metadata=client.V1ObjectMeta(labels={"app": f"{self.library}-app"}),
-            spec=client.V1PodSpec(containers=[container], restart_policy="Always"),
-        )
-
-        # Create the specification of deployment
-        spec = client.V1DeploymentSpec(
-            replicas=1, template=template, selector={"matchLabels": {"app": f"{self.library}-app"}}
-        )
-
-        # Instantiate the deployment object
-        deployment = client.V1Deployment(
-            api_version="apps/v1", kind="Deployment", metadata=deployment_metadata, spec=spec,
-        )
-        # Create deployment. retry if it fails
-        self.k8s_wrapper.create_namespaced_deployment(body=deployment)
-
-        self._wait_for_deployment_complete(deployment_name, timeout=180)
-
-    def wait_for_weblog_after_apply_configmap(self, app_name, timeout=200):
-        """ Waits for the weblog to be ready after applying a configmap. We added a lot of debug traces 
-        because we have seen some flakiness in the past."""
-        pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector=f"app={app_name}")
-        self.logger.info(f"[Weblog] Currently running pods [{app_name}]:[{len(pods.items)}]")
-        if len(pods.items) == 2:
-            for pod in pods.items:
-                self.logger.info(f"[Weblog] Pod name: {pod.metadata.name} - Pod status: {pod.status.phase}")
-            if pods.items[0].status.phase == "Pending" or pods.items[1].status.phase == "Pending":
-                pod_name_pending = (
-                    pods.items[0].metadata.name
-                    if pods.items[0].status.phase == "Pending"
-                    else pods.items[1].metadata.name
-                )
-                pod_name_running = (
-                    pods.items[0].metadata.name
-                    if pods.items[0].status.phase == "Running"
-                    else pods.items[1].metadata.name
-                )
-
-                self.logger.info(f"[Weblog] Deleting previous pod {pod_name_running}")
-                self.k8s_wrapper.delete_namespaced_pod(pod_name_running, "default")
-
-                # weird behavior, sometimes the pod is not deleted or a new one is created. Debug info is needed
-                time.sleep(5)
-
-                self.logger.info(f"[Weblog] Waiting for pod {pod_name_pending} to be running")
-                self.wait_for_weblog_ready_by_pod_name(pod_name_pending, timeout=timeout)
-                self.logger.info(f"[Weblog] Pod {pod_name_pending} is ready")
-
     def wait_for_weblog_ready_by_label_app(self, app_name, timeout=60):
         self.logger.info(
             f"[Deploy weblog] Waiting for weblog to be ready(by label) .App {app_name}. Timeout {timeout} seconds."
@@ -276,51 +201,6 @@ class K8sWeblog:
             pod_logs = self.k8s_wrapper.read_namespaced_pod_log(name="my-app", namespace="default")
             self.logger.error(f"[Deploy weblog] weblog logs: {pod_logs}")
             raise Exception("[Deploy weblog] Weblog not created")
-
-    def wait_for_weblog_ready_by_pod_name(self, pod_name, timeout=60):
-        self.logger.info(
-            f"[Deploy weblog] Waiting for weblog to be ready(by pod name) .App {pod_name}. Timeout {timeout} seconds."
-        )
-
-        start = datetime.datetime.now()
-        while True:
-            pod = self.k8s_wrapper.read_namespaced_pod(pod_name)
-            if pod is not None and pod.status.phase == "Running" and pod.status.container_statuses[0].ready:
-                self.logger.info("[Deploy weblog] Weblog pod started!")
-                return
-            time.sleep(1)
-            now = datetime.datetime.now()
-            if (now - start).seconds > timeout:
-                self.logger.error(f"[Deploy weblog] weblog did not start in {timeout} seconds")
-                raise Exception(f"Pod {pod_name} did not start in {timeout} seconds")
-
-    def _wait_for_deployment_complete(self, deployment_name, timeout=60):
-        self.logger.info("[Deploy weblog] Waiting for weblog deployment complete!")
-        start = time.time()
-        while time.time() - start < timeout:
-            time.sleep(2)
-            try:
-                response = self.k8s_wrapper.read_namespaced_deployment_status(deployment_name, "default")
-                s = response.status if response is not None else None
-                if (
-                    s is not None
-                    and s.updated_replicas == response.spec.replicas
-                    and s.replicas == response.spec.replicas
-                    and s.available_replicas == response.spec.replicas
-                    and s.observed_generation >= response.metadata.generation
-                ):
-                    self.logger.info("[Deploy weblog] Weblog deployment completed!")
-                    return True
-                else:
-                    if s is not None:
-                        self.logger.info(
-                            f"[updated_replicas:{s.updated_replicas},replicas:{s.replicas}"
-                            f"available_replicas:{s.available_replicas},observed_generation:{s.observed_generation}] waiting..."
-                        )
-            except Exception as e:
-                self.logger.info(f"Error checking deployment status: {e}")
-        self.logger.error(f"[Deploy weblog: {deployment_name}] weblog deployment did not start in {timeout} seconds")
-        raise RuntimeError(f"Waiting timeout for deployment {deployment_name}")
 
     def export_debug_info(self):
         """ Extracts debug info from the k8s weblog app and logs it to the specified folder."""
