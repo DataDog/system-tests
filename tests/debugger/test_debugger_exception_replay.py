@@ -21,7 +21,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
         self._setup("/debugger/expression/exception")
 
     def test_exception_replay_simple(self):
-        self.assert_all_weblog_responses_ok(excpected_code=500)
+        self.assert_all_weblog_responses_ok(expected_code=500)
 
         self._validate_exception_replay_snapshots(test_name="exception_replay_simple")
 
