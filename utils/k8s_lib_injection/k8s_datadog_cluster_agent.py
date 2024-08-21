@@ -37,7 +37,7 @@ class K8sDatadogClusterTestAgent:
 
         container = client.V1Container(
             name="trace-agent",
-            image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.16.0",
+            image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
             image_pull_policy="Always",
             ports=[client.V1ContainerPort(container_port=8126, host_port=8126, name="traceport", protocol="TCP")],
             command=["ddapm-test-agent"],
