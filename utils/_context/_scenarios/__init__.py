@@ -30,8 +30,10 @@ update_environ_with_local_env()
 class KubernetesScenario(Scenario):
     """ Scenario that tests kubernetes lib injection """
 
-    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
+    def __init__(self, name, doc, github_workflow=None, scenario_groups=None, api_key=None, app_key=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+        self.api_key = api_key
+        self.app_key = app_key
 
     def configure(self, config):
         super().configure(config)
@@ -47,7 +49,9 @@ class KubernetesScenario(Scenario):
         self._weblog_variant = os.getenv("WEBLOG_VARIANT")
         self._weblog_variant_image = os.getenv("LIBRARY_INJECTION_TEST_APP_IMAGE")
         self._library_init_image = os.getenv("LIB_INIT_IMAGE")
-
+        if self.api_key is None or self.app_key is None:
+            self.api_key = os.getenv("DD_API_KEY")
+            self.app_key = os.getenv("DD_APP_KEY")
         logger.stdout("K8s Lib Injection environment:")
         logger.stdout(f"Library: {self._library}")
         logger.stdout(f"Weblog variant: {self._weblog_variant}")
@@ -803,7 +807,18 @@ class scenarios:
     k8s_library_injection_basic = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
     )
-
+    k8s_library_injection_asm = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_ASM",
+        doc=" Kubernetes auto instrumentation, asm activation",
+        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
+        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
+    )
+    k8s_library_injection_profiling = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_PROFILING",
+        doc=" Kubernetes auto instrumentation, profiling activation",
+        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
+        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
+    )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",
