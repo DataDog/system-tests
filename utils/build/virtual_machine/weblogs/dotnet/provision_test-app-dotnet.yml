@@ -14,8 +14,9 @@ lang_variant:
 
 weblog:
     name: test-app-dotnet
+    #ubuntu 22 arm excluded due to "dotnet-runtime-6.0 : Depends: liblttng-ust1 (>= 2.13.0) but it is not installable"
     #amazon_linux2_dotnet6 excluded due to https://datadoghq.atlassian.net/browse/AIT-10335
-    excluded_os_branches: [ubuntu22_amd64, ubuntu18_amd64, amazon_linux2_amd64, amazon_linux2_dotnet6, centos_7_amd64]
+    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu18_amd64, amazon_linux2_amd64, amazon_linux2_dotnet6, centos_7_amd64]
     install: 
       - os_type: linux
         copy_files:

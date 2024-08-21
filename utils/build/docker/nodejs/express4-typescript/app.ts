@@ -2,7 +2,7 @@
 
 import { Request, Response } from "express";
 
-const tracer = require('dd-trace').init({ debug: true });
+const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
 const { promisify } = require('util')
 const app = require('express')();
@@ -29,6 +29,21 @@ app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
   res.send('Hello\n');
 });
+
+app.get('/healthcheck', (req: Request, res: Response) => {
+  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
+  const maybeRequire = (name: string) => { try { return require(name) } catch (e) {} }
+
+  res.json({
+    status: 'ok',
+    library: {
+      language: 'nodejs',
+      version: require('dd-trace/package.json').version,
+      libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
+      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
+    }
+  });
+})
 
 app.all(['/waf', '/waf/*'], (req: Request, res: Response) => {
   res.send('Hello\n');
@@ -262,7 +277,7 @@ app.get('/flush', (req: Request, res: Response) => {
 
 app.get('/requestdownstream', async (req: Request, res: Response) => {
   try {
-    const resFetch = await axios.get('http://localhost:7777/returnheaders')
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
     return res.json(resFetch.data)
   } catch (e) {
     return res.status(500).send(e)

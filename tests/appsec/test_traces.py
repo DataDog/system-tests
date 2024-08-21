@@ -103,7 +103,8 @@ class Test_AppSecEventSpanTags:
         """Appsec tags are not on span where type is not web, http or rpc"""
         valid_appsec_span_types = ["web", "http", "rpc"]
         spans = [span for _, _, span in interfaces.library.get_spans()]
-        assert spans, "No AppSec events found"
+        assert spans, "No spans to validate"
+        assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
         for span in spans:
             if span.get("type") in valid_appsec_span_types:
                 continue

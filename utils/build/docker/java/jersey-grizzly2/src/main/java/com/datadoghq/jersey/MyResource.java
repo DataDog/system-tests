@@ -157,6 +157,7 @@ public class MyResource {
 
     @GET
     @Path("/user_login_success_event")
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
     public String userLoginSuccess(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId) {
         datadog.trace.api.GlobalTracer.getEventTracker()
                 .trackLoginSuccessEvent(userId, METADATA);
@@ -166,6 +167,7 @@ public class MyResource {
 
     @GET
     @Path("/user_login_failure_event")
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
     public String userLoginFailure(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId,
                                    @DefaultValue("true") @QueryParam("event_user_exists") boolean eventUserExists) {
         datadog.trace.api.GlobalTracer.getEventTracker()

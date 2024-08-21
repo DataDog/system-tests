@@ -166,9 +166,9 @@ object IastRoutes {
           } ~
           path("cookiename" / "test") {
             extractRequest { r =>
-              val maybeCookiePair = r.cookies.find(_.name.equals("user"))
+              val maybeCookiePair = r.cookies.find(_.name.equals("table"))
               if (maybeCookiePair.isEmpty) {
-                complete(StatusCodes.BadRequest, "No cookie named 'user'")
+                complete(StatusCodes.BadRequest, "No cookie named 'table'")
               } else {
                 val c = maybeCookiePair.get
                 sql.insecureSql(c.name,

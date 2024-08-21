@@ -80,13 +80,14 @@ app.post('/trace/span/start', (req, res) => {
   const extracted = tracer.extract('http_headers', convertedHeaders)
   if (extracted !== null) parent = extracted
 
+  const tags = { service: request.service }
+  for (const [key, value] of request.span_tags) tags[key] = value
+
   const span = tracer.startSpan(request.name, {
     type: request.type,
     resource: request.resource,
     childOf: parent,
-    tags: {
-        service: request.service
-    }
+    tags
   })
 
   for (const link of request.links || []) {

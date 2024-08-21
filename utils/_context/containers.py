@@ -7,6 +7,7 @@ from subprocess import run
 import time
 from functools import lru_cache
 import platform
+from threading import RLock, Thread
 
 import docker
 from docker.errors import APIError, DockerException
@@ -80,15 +81,28 @@ class TestedContainer:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
         self.host_log_folder = host_log_folder
-        self.display_logs_on_remove = False  # in case of error, it may be convenient to display logs
         self.allow_old_container = allow_old_container
 
         self.image = ImageInfo(image_name)
         self.healthcheck = healthcheck
+
+        # healthy values:
+        # None: container did not tried to start yet, or hasn't be started for another reason
+        # False: container is not healthy
+        # True: container is healthy
+        self.healthy = None
+
         self.environment = environment or {}
         self.kwargs = kwargs
         self._container = None
+        self.depends_on: list[TestedContainer] = []
+        self._starting_lock = RLock()
+        self._starting_thread = None
         self.stdout_interface = stdout_interface
+
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        """ returns the image list that will be loaded to be able to run/build the container """
+        return [self.image.name]
 
     def configure(self, replay):
 
@@ -102,9 +116,6 @@ class TestedContainer:
             self.image.save_image_info(self.log_folder_path)
         else:
             self.image.load_from_logs(self.log_folder_path)
-
-        if self.stdout_interface is not None:
-            self.stdout_interface.configure(replay)
 
     @property
     def container_name(self):
@@ -129,6 +140,7 @@ class TestedContainer:
             old_container.remove(force=True)
 
     def start(self) -> Container:
+        """ Start the actual underlying Docker container directly """
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -155,8 +167,54 @@ class TestedContainer:
             **self.kwargs,
         )
 
-        self.wait_for_health()
-        self.warmup()
+        self.healthy = self.wait_for_health()
+        if self.healthy:
+            self.warmup()
+
+    def async_start(self) -> Thread:
+        """ Start the container and its dependencies in a thread with circular dependency detection """
+        self.check_circular_dependencies([])
+
+        return self._async_start_recursive()
+
+    def check_circular_dependencies(self, seen: list):
+        """ Check if the container has a circular dependency """
+        if self in seen:
+            dependencies = " -> ".join([s.name for s in seen] + [self.name,])
+            raise RuntimeError(f"Circular dependency detected between containers: {dependencies}")
+
+        seen.append(self)
+
+        for dependency in self.depends_on:
+            dependency.check_circular_dependencies(list(seen))
+
+    def _async_start_recursive(self):
+        """ Recursive version of async_start for circular dependency detection """
+        with self._starting_lock:
+            if self._starting_thread is None:
+                self._starting_thread = Thread(target=self._start_with_dependencies, name=f"start_{self.name}")
+                self._starting_thread.start()
+
+        return self._starting_thread
+
+    def _start_with_dependencies(self):
+        """ Start all dependencies of a container and then start the container """
+        threads = [dependency._async_start_recursive() for dependency in self.depends_on]
+
+        for thread in threads:
+            thread.join()
+
+        for dependency in self.depends_on:
+            if not dependency.healthy:
+                return
+
+        # this function is executed in a thread
+        # the main thread will take care of the exception
+        try:
+            self.start()
+        except Exception as e:
+            logger.exception(f"Error while starting {self.name}: {e}")
+            self.healthy = False
 
     def warmup(self):
         """ if some stuff must be done after healthcheck """
@@ -168,17 +226,27 @@ class TestedContainer:
     def healthcheck_log_file(self):
         return f"{self.log_folder_path}/healthcheck.log"
 
-    def wait_for_health(self):
+    def wait_for_health(self) -> bool:
         if self.healthcheck:
-            result = self.execute_command(**self.healthcheck)
+            exit_code, output = self.execute_command(**self.healthcheck)
 
             with open(self.healthcheck_log_file, "w", encoding="utf-8") as f:
-                f.write(result.output.decode("utf-8"))
+                f.write(output)
 
-    def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
+            if exit_code != 0:
+                logger.stdout(f"Healthcheck failed for {self.name}:\n{output}")
+                return False
+
+        return True
+
+    def execute_command(
+        self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000
+    ) -> tuple[int, str]:
         """
             Execute a command inside a container. Usefull for healthcheck and warmups.
             test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+            This function does not raise any exception, it returns a tuple with the exit code and the output
+            The exit code is 0 (success) or any other integer (failure)
         """
 
         cmd = test
@@ -196,6 +264,8 @@ class TestedContainer:
 
         logger.info(f"Executing command {cmd} for {self.name}")
 
+        result = None
+
         for i in range(retries + 1):
             try:
                 result = self._container.exec_run(cmd)
@@ -203,20 +273,25 @@ class TestedContainer:
                 logger.debug(f"Try #{i}: {result}")
 
                 if result.exit_code == 0:
-                    return result
+                    break
 
             except APIError as e:
                 logger.exception(f"Try #{i} failed")
-                self.display_logs_on_remove = True
-
-                pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
+                return 1, f"Command {cmd} failed for {self._container.name}: {e.explanation}"
 
             except Exception as e:
                 logger.debug(f"Try #{i}: {e}")
 
+            self._container.reload()
+            if self._container.status != "running":
+                return 1, f"Container {self._container.name} is not running"
+
             time.sleep(interval)
 
-        pytest.exit(f"Command {cmd} failed for {self._container.name}", 1)
+        if not result:
+            return 1, f"Command {cmd} can't be executed for {self._container.name}"
+
+        return result.exit_code, result.output.decode("utf-8")
 
     def _fix_host_pwd_in_volumes(self):
         # on docker compose, volume host path can starts with a "."
@@ -236,7 +311,9 @@ class TestedContainer:
         self.kwargs["volumes"] = result
 
     def stop(self):
-        self._container.stop()
+        if self._container:
+            self._container.stop()
+        self._starting_thread = None
 
     def collect_logs(self):
         stdout = self._container.logs(stdout=True, stderr=False)
@@ -248,12 +325,12 @@ class TestedContainer:
         with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
             f.write(stderr)
 
-        if self.display_logs_on_remove:
+        if not self.healthy:
             sep = "=" * 30
-            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
-            logger.stdout(stdout.decode("utf-8"))
             logger.stdout(f"\n{sep} {self.name} STDERR {sep}")
             logger.stdout(stderr.decode("utf-8"))
+            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
+            logger.stdout(stdout.decode("utf-8"))
             logger.stdout("")
 
     def remove(self):
@@ -347,9 +424,7 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder, proxy_state, rc_api_enabled: bool) -> None:
-        if rc_api_enabled and proxy_state is not None:
-            raise ValueError("rc_api_enabled and proxy_state cannot be used together")
+    def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool) -> None:
 
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
@@ -360,8 +435,8 @@ class ProxyContainer(TestedContainer):
                 "DD_API_KEY": os.environ.get("DD_API_KEY"),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
-                "PROXY_STATE": json.dumps(proxy_state or {}),
-                "RC_API_ENABLED": str(rc_api_enabled),
+                "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
+                "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
             },
             working_dir="/app",
             volumes={
@@ -403,6 +478,18 @@ class AgentContainer(TestedContainer):
         )
 
         self.agent_version = None
+
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        try:
+            with open("binaries/agent-image", "r", encoding="utf-8") as f:
+                return [
+                    f.read().strip(),
+                ]
+        except FileNotFoundError:
+            # not the cleanest way to do it, but we save ARG parsing
+            return [
+                "datadog/agent:latest",
+            ]
 
     def configure(self, replay):
         super().configure(replay)
@@ -468,12 +555,26 @@ class WeblogContainer(TestedContainer):
 
         self.port = weblog.port
 
+        volumes = {
+            f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
+        }
+
+        try:
+            with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+                path = f.read().strip(" \r\n")
+                volumes[os.path.abspath(path)] = {
+                    "bind": "/volumes/dd-trace-js",
+                    "mode": "ro",
+                }
+        except Exception:
+            pass
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
             environment=environment or {},
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},},
+            volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
@@ -489,6 +590,7 @@ class WeblogContainer(TestedContainer):
         self.weblog_variant = ""
         self.libddwaf_version = None
         self.appsec_rules_version = None
+        self._library: LibraryVersion = None
 
         # Basic env set for all scenarios
         self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
@@ -507,6 +609,40 @@ class WeblogContainer(TestedContainer):
             self.environment["DD_AGENT_HOST"] = "agent"
             self.environment["DD_TRACE_AGENT_PORT"] = 8127
 
+    @staticmethod
+    def _get_image_list_from_dockerfile(dockerfile) -> list[str]:
+        result = []
+
+        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
+        with open(dockerfile, "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                if match := pattern.match(line):
+                    result.append(match.group("image_name"))
+
+        return result
+
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        """ parse the Dockerfile and extract all images reference in a FROM section """
+        result = []
+        args = {}
+
+        pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
+        arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
+        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                if match := arg_pattern.match(line):
+                    args[match.group("arg_name")] = match.group("arg_value")
+
+                if match := pattern.match(line):
+                    image_name = match.group("image_name")
+
+                    for name, value in args.items():
+                        image_name = image_name.replace(f"${name}", value)
+
+                    result.append(image_name)
+
+        return result
+
     def configure(self, replay):
         super().configure(replay)
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
@@ -516,6 +652,17 @@ class WeblogContainer(TestedContainer):
 
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
+
+        self._library = LibraryVersion(
+            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
+        )
+
+        # https://github.com/DataDog/system-tests/issues/2799
+        if self.library in ("nodejs",):
+            self.healthcheck = {
+                "test": f"curl --fail --silent --show-error localhost:{self.port}/healthcheck",
+                "retries": 60,
+            }
 
         if self.library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
@@ -547,6 +694,19 @@ class WeblogContainer(TestedContainer):
 
         logger.debug(f"Docker host is {weblog.domain}")
 
+        # new way of getting info from the weblog. Only working for nodejs right now
+        # https://github.com/DataDog/system-tests/issues/2799
+        if self.library == "nodejs":
+            with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+                data = json.load(f)
+                lib = data["library"]
+
+            self._library = LibraryVersion(lib["language"], lib["version"])
+            self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
+
+            if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
+                self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
+
         logger.stdout(f"Library: {self.library}")
 
         if self.libddwaf_version:
@@ -560,11 +720,11 @@ class WeblogContainer(TestedContainer):
 
         logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
+        self.stdout_interface.init_patterns(self.library)
+
     @property
-    def library(self):
-        return LibraryVersion(
-            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
-        )
+    def library(self) -> LibraryVersion:
+        return self._library
 
     @property
     def uds_socket(self):
@@ -586,7 +746,7 @@ class WeblogContainer(TestedContainer):
 class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="postgres:latest",
+            image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
             user="postgres",
@@ -616,26 +776,30 @@ class MongoContainer(TestedContainer):
 class KafkaContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="bitnami/kafka:3.1",
+            # TODO: Look into apache/kafka-native but it doesn't include scripts.
+            image_name="apache/kafka:3.7.1",
             name="kafka",
             host_log_folder=host_log_folder,
             environment={
-                "KAFKA_LISTENERS": "PLAINTEXT://:9092",
+                "KAFKA_PROCESS_ROLES": "broker,controller",
+                "KAFKA_NODE_ID": "1",
+                "KAFKA_LISTENERS": "PLAINTEXT://:9092,CONTROLLER://:9093",
+                "KAFKA_CONTROLLER_QUORUM_VOTERS": "1@kafka:9093",
+                "KAFKA_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
+                "KAFKA_CLUSTER_ID": "r4zt_wrqTRuT7W2NJsB_GA",
                 "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
-                "ALLOW_PLAINTEXT_LISTENER": "yes",
-                "KAFKA_ADVERTISED_HOST_NAME": "kafka",
-                "KAFKA_ADVERTISED_PORT": "9092",
-                "KAFKA_PORT": "9092",
-                "KAFKA_BROKER_ID": "1",
-                "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
+                "KAFKA_INTER_BROKER_LISTENER_NAME": "PLAINTEXT",
+                "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT",
+                "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
+                "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS": "0",
             },
             allow_old_container=True,
             healthcheck={
-                "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
-                "start_period": 5 * 1_000_000_000,
-                "interval": 2 * 1_000_000_000,
-                "timeout": 2 * 1_000_000_000,
-                "retries": 25,
+                "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
+                "start_period": 1 * 1_000_000_000,
+                "interval": 1 * 1_000_000_000,
+                "timeout": 1 * 1_000_000_000,
+                "retries": 30,
             },
         )
 
@@ -646,24 +810,17 @@ class KafkaContainer(TestedContainer):
         kafka_options = f"--topic {topic} --bootstrap-server {server}"
 
         commands = [
-            f"kafka-topics.sh --create {kafka_options}",
-            f'bash -c "echo hello | kafka-console-producer.sh {kafka_options}"',
-            f"kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
+            f"/opt/kafka/bin/kafka-topics.sh --create {kafka_options}",
+            f'bash -c "echo hello | /opt/kafka/bin/kafka-console-producer.sh {kafka_options}"',
+            f"/opt/kafka/bin/kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
         ]
 
         for command in commands:
-            self.execute_command(test=command, interval=2 * 1_000_000_000, retries=15)
-
-
-class ZooKeeperContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="bitnami/zookeeper:latest",
-            name="zookeeper",
-            host_log_folder=host_log_folder,
-            environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
-            allow_old_container=True,
-        )
+            exit_code, output = self.execute_command(test=command, interval=1 * 1_000_000_000, retries=30)
+            if exit_code != 0:
+                logger.stdout(f"Command {command} failed for {self._container.name}: {output}")
+                self.healthy = False
+                return
 
 
 class CassandraContainer(TestedContainer):
@@ -717,8 +874,9 @@ class SqlServerContainer(SqlDbTestedContainer):
         if not platform.processor().startswith("arm"):
             # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
             # see https://hub.docker.com/_/microsoft-azure-sql-edge
+            # XXX: Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
             healthcheck = {
-                "test": '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
+                "test": '/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
                 "retries": 20,
             }
 
@@ -764,7 +922,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         )
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
-    def wait_for_health(self):
+    def wait_for_health(self) -> bool:
         time.sleep(20)  # It takes long for otel collector to start
 
         for i in range(61):
@@ -772,11 +930,13 @@ class OpenTelemetryCollectorContainer(TestedContainer):
                 r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
                 if r.status_code == 200:
-                    return
+                    return True
             except Exception as e:
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")
             time.sleep(1)
-        pytest.exit(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request", 1)
+
+        logger.stdout(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request")
+        return False
 
     def start(self) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,
@@ -792,7 +952,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class ElasticMQContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="softwaremill/elasticmq:latest",
+            image_name="softwaremill/elasticmq-native:latest",
             name="elasticmq",
             host_log_folder=host_log_folder,
             environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
@@ -841,15 +1001,12 @@ class MountInjectionVolume(TestedContainer):
             name=name,
             host_log_folder=host_log_folder,
             command="/bin/true",
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/package", "mode": "rw"},},
         )
 
     def _lib_init_image(self, lib_init_image):
         self.image = ImageInfo(lib_init_image)
-        if "dd-lib-js-init" in lib_init_image:
-            self.kwargs["volumes"] = {
-                _VOLUME_INJECTOR_NAME: {"bind": "/operator-build", "mode": "rw"},
-            }
+        # Dotnet compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {
                 _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},

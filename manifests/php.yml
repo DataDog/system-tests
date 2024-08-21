@@ -9,7 +9,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -25,6 +25,8 @@ tests/:
         Test_Schema_Response_Headers: v0.94.0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_passwords.py:
@@ -58,6 +60,8 @@ tests/:
           TestSSRF: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
@@ -105,6 +109,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
@@ -114,15 +119,12 @@ tests/:
         Test_BodyJson: v0.98.1 # TODO what is the earliest version?
         Test_BodyRaw: v0.68.3
         Test_BodyUrlEncoded: v0.68.3
-        Test_BodyXml: missing_feature
-        Test_ClientIP: missing_feature
+        Test_BodyXml: v0.98.0
         Test_Cookies: v0.68.3
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v0.68.3
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams: v0.71.0
         Test_UrlQuery: v0.68.3
         Test_UrlQueryKey: v0.74.0
@@ -158,15 +160,13 @@ tests/:
         Test_XSS: v0.68.3
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
-      Test_Login_Events: v0.89.0
-      Test_Login_Events_Extended: v0.89.0
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
+      Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
+      Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
+      Test_V2_Login_Events: v1.3.0-dev
+      Test_V2_Login_Events_Anon: v1.3.0-dev
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
@@ -177,18 +177,31 @@ tests/:
       Test_Suspicious_Request_Blocking: missing_feature (v0.86.0 but test is not implemented)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Header_And_Network: missing_feature
     test_identify.py:
       Test_Basic: v0.85.0
     test_logs.py:
       Test_StandardizationBlockMode: missing_feature
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: v0.8.0
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, but was flaky
+    test_request_blocking.py:
+      Test_AppSecRequestBlocking: missing_feature # missing version
+    test_runtime_activation.py:
+      Test_RuntimeActivation: missing_feature # missing version
+      Test_RuntimeDeactivation: missing_feature # missing version
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
-      Test_CollectDefaultRequestHeader: missing_feature
-      Test_ExternalWafRequestsIdentification: missing_feature
+      Test_CollectDefaultRequestHeader: v1.0.0
+      Test_ExternalWafRequestsIdentification: v1.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
@@ -278,7 +291,7 @@ tests/:
       Test_Trace_Sampling_Tags_Feb2024_Revision: v0.96.0
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
-      Test_TracerSCITagging: missing_feature
+      Test_TracerSCITagging: v1.2.0
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
   remote_config/:
@@ -288,6 +301,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

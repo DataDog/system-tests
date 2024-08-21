@@ -495,6 +495,87 @@
       ]
     },
     {
+      "id": "tst-037-012",
+      "name": "Test block on multiple request addresses",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000012",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.method"
+              }
+            ],
+            "regex": "GET"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "regex": "ypMrmzrWATkLrPKLblvpRGGltBSgHWrK"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.path_params"
+              }
+            ],
+            "regex": "cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies"
+              }
+            ],
+            "regex": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              }
+            ],
+            "regex": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
       "id": "monitor-resolvers",
       "name": "Monitor Resolvers",
       "tags": {

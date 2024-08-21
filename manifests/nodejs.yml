@@ -33,6 +33,7 @@ refs:
   - &ref_5_16_0 '>=5.16.0 || ^4.40.0'
   - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
+  - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -45,7 +46,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: *ref_5_3_0
         Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling: *ref_4_21_0
       test_schemas.py:
@@ -66,6 +67,10 @@ tests/:
         Test_Schema_Response_Headers: *ref_4_21_0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection:
+            '*': *ref_5_20_0
+            nextjs: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0
@@ -127,6 +132,8 @@ tests/:
             nextjs: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': *ref_4_3_0
@@ -199,12 +206,26 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_shi.py: missing_feature
       test_span_tags.py:
         Test_Mandatory_SpanTags: *ref_5_18_0
         Test_Optional_SpanTags: *ref_5_18_0
       test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
-      test_stack_traces.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyUrlEncoded:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyXml: missing_feature # xml body not supported
+        Test_Ssrf_UrlQuery:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+      test_stack_traces.py:
+        Test_StackTrace:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -217,7 +238,6 @@ tests/:
         Test_BodyXml:
           '*': v2.2.0
           nextjs: irrelevant # Body xml is not converted to JSON in nextjs
-        Test_ClientIP: missing_feature
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
@@ -225,8 +245,6 @@ tests/:
           nextjs: irrelevant # nextjs is not related with graphql
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v2.0.0
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           '*': v2.0.0
           nextjs: missing_feature
@@ -270,8 +288,6 @@ tests/:
         Test_XSS: v2.0.0
       test_telemetry.py:
         Test_TelemetryMetrics: *ref_4_17_0
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
@@ -317,10 +333,9 @@ tests/:
       Test_StandardTagsClientIp: *ref_3_6_0
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
-      Test_RuleSet_1_3_1: v2.5.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
-      Test_MissingRules: missing_feature
+      Test_MissingRules: v2.0.0
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
       Test_CustomEvent:
@@ -332,6 +347,9 @@ tests/:
       Test_UserLoginSuccessEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Header_And_Network: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
@@ -341,6 +359,9 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
+      Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
       Test_Info: v2.0.0
@@ -352,8 +373,11 @@ tests/:
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
+      Test_RuntimeDeactivation: *ref_3_9_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
@@ -454,9 +478,9 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
-      TestDynamicConfigTracingEnabled: missing_feature
+      TestDynamicConfigTracingEnabled: *ref_5_4_0
       TestDynamicConfigV1: *ref_4_11_0
-      TestDynamicConfigV1_ServiceTargets: missing_feature
+      TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
       TestDynamicConfigV2: *ref_4_23_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
@@ -470,12 +494,12 @@ tests/:
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: missing_feature
-      Test_Trace_Sampling_Globs: missing_feature
+      Test_Trace_Sampling_Basic: *ref_5_16_0 #actual version unknown
+      Test_Trace_Sampling_Globs: *ref_5_16_0 #actual version unknown
       Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0 #actual version unknown
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: *ref_3_21_0
@@ -488,7 +512,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: *ref_3_9_0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_distributed.py:
     Test_DistributedHttp: missing_feature
@@ -507,7 +531,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
-    Test_Profile: bug (Not receiving profiles)
+    Test_Profile: *ref_5_16_0 #actual version unknown
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
     Test_UrlQuery:
@@ -532,13 +556,13 @@ tests/:
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
     Test_Log_Generation: missing_feature
-    Test_MessageBatch: missing_feature
+    Test_MessageBatch: *ref_4_21_0
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
-    Test_ProductsDisabled: missing_feature
+    Test_ProductsDisabled: *ref_4_21_0
     Test_Telemetry:
       '*': *ref_3_2_0
       nextjs: missing_feature
       uds-express4: *ref_3_7_0
     Test_TelemetrySCAEnvVar: missing_feature
-    Test_TelemetryV2: missing_feature
+    Test_TelemetryV2: *ref_4_21_0

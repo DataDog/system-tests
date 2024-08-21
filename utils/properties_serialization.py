@@ -87,8 +87,12 @@ class SetupProperties:
             json.dump(self._store, f, indent=2, cls=_PropertiesEncoder)
 
     def load(self, host_log_folder: str):
-        with open(f"{host_log_folder}/setup_properties.json", "r", encoding="utf-8") as f:
-            self._store = json.load(f, cls=_PropertiesDecoder)
+        filename = f"{host_log_folder}/setup_properties.json"
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                self._store = json.load(f, cls=_PropertiesDecoder)
+        except FileNotFoundError:
+            pytest.exit(f"{filename} does not exists. Did you run the tests without any INTERNALERROR output?")
 
     def log_requests(self, item: pytest.Item) -> None:
         if properties := self._store.get(item.nodeid):

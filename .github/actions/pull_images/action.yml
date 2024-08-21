@@ -1,16 +1,26 @@
 name: "Pull docker images"
 description: "Pull docker images"
 inputs:
+  library:
+    description: "Which library will be tested (python, cpp, java, ...)"
+    required: true
+  weblog:
+    description: "Which weblog will be tested"
+    required: true
   scenarios:
     description: "JSON array of scenarios that will be executed"
-    default: "[]"
     required: true
+  cleanup:
+    description: "Whether to cleanup the disk to free up more space. Should be disabled when a larger machine can be used instead."
+    type: boolean
+    required: false
+    default: true
 
 runs:
   using: composite
   steps:
     - name: Free some place for scenarios known to require lot of images
-      if: ${{ contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"') }}
+      if: ${{ (inputs.cleanup == true || inputs.cleanup == 'true') && (contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')) }}
       shell: bash
       run: |
         df -h
@@ -29,7 +39,7 @@ runs:
       shell: bash
       run: |
         source venv/bin/activate
-        python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' > compose.yaml
+        python utils/scripts/get-image-list.py ${{ inputs.library }} ${{ inputs.weblog }} '${{ inputs.scenarios }}' > compose.yaml
       env:
         PYTHONPATH: "."
 

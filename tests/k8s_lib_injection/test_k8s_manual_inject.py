@@ -8,6 +8,7 @@ from utils import scenarios, context, features
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
+from utils import scenarios, context, features, flaky
 
 
 class _TestAdmisionController:
@@ -22,6 +23,7 @@ class _TestAdmisionController:
             time.sleep(2)
         return []
 
+    @flaky(library="python", reason="APMRP-359")
     def test_inject_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test _test_inject_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
@@ -33,6 +35,7 @@ class _TestAdmisionController:
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_admission_controller finished")
 
+    @flaky(library="python", reason="APMRP-359")
     def test_inject_uds_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test test_inject_uds_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
@@ -129,14 +132,6 @@ def backend_trace_validator(trace_id, trace_data):
     if trace_data["trace"]["spans"][root_id]["metrics"]["_dd.appsec.enabled"] == 1.0:
         return True
     return False
-
-
-@features.k8s_admission_controller
-@scenarios.k8s_lib_injection_basic
-class TestAdmisionControllerBasic_DEPRECATED(_TestAdmisionController):
-    """To be removed after the chages on the pipeline are merged for all the tracers."""
-
-    pass
 
 
 @features.k8s_admission_controller

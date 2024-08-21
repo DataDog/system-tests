@@ -102,21 +102,26 @@ class AWSPulumiProvider(VmProvider):
         self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
 
     def stack_destroy(self):
-        logger.info(f"Destroying VMs: {self.vms}")
-        try:
-            self.stack.destroy(on_output=logger.info, debug=True)
-            self.datadog_event_sender.sendEventToDatadog(
-                f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
-                "",
-                ["operation:destroy", "result:ok", f"stack:{self.stack_name}"],
-            )
-        except Exception as pulumi_exception:
-            logger.error("Exception destroying aws provision infraestructure")
-            logger.exception(pulumi_exception)
-            self.datadog_event_sender.sendEventToDatadog(
-                f"[E2E] Stack {self.stack_name}  : error on Pulumi stack destroy",
-                repr(pulumi_exception),
-                ["operation:destroy", "result:fail", f"stack:{self.stack_name}"],
+        if os.getenv("ONBOARDING_KEEP_VMS") is None:
+            logger.info(f"Destroying VMs: {self.vms}")
+            try:
+                self.stack.destroy(on_output=logger.info, debug=True)
+                self.datadog_event_sender.sendEventToDatadog(
+                    f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
+                    "",
+                    ["operation:destroy", "result:ok", f"stack:{self.stack_name}"],
+                )
+            except Exception as pulumi_exception:
+                logger.error("Exception destroying aws provision infraestructure")
+                logger.exception(pulumi_exception)
+                self.datadog_event_sender.sendEventToDatadog(
+                    f"[E2E] Stack {self.stack_name}  : error on Pulumi stack destroy",
+                    repr(pulumi_exception),
+                    ["operation:destroy", "result:fail", f"stack:{self.stack_name}"],
+                )
+        else:
+            logger.info(
+                f"Did not destroy VMs as ONBOARDING_KEEP_VMS is set. To destroy them, re-run the test without this env var."
             )
 
     def _get_cached_ami(self, vm):
@@ -228,8 +233,22 @@ class AWSCommander(Commander):
         return last_task
 
     def remote_command(
-        self, vm, installation_id, remote_command, env, connection, last_task, logger_name=None, output_callback=None
+        self,
+        vm,
+        installation_id,
+        remote_command,
+        env,
+        connection,
+        last_task,
+        logger_name=None,
+        output_callback=None,
+        populate_env=True,
     ):
+        if not populate_env:
+            ##error: Unable to set 'DD_env'. This only works if your SSH server is configured to accept
+            logger.debug(f"No populate environment variables for installation id: {installation_id} ")
+            env = {}
+
         cmd_exec_install = command.remote.Command(
             f"-{vm.name}-{installation_id}",
             connection=connection,

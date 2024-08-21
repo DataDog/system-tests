@@ -1,22 +1,55 @@
 import dataclasses
-from typing import Dict, List, Literal, Tuple, Union
+from typing import Dict, List, Literal, Union
 
 import json
 import glob
+from functools import lru_cache
 import os
 import shutil
 import subprocess
+import time
 
 import pytest
+import psutil
+import docker
+from docker.errors import DockerException, APIError
+from docker.models.containers import Container
+from docker.models.networks import Network
 
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
-from .core import _Scenario, ScenarioGroup
+from .core import Scenario, ScenarioGroup
 
 
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
+_NETWORK_PREFIX = "apm_shared_tests_network"
+# _TEST_CLIENT_PREFIX = "apm_shared_tests_container"
+
+
+@lru_cache
+def _get_client() -> docker.DockerClient:
+    try:
+        return docker.DockerClient.from_env()
+    except DockerException as e:
+        # Failed to start the default Docker client... Let's see if we have
+        # better luck with docker contexts...
+        try:
+            ctx_name = subprocess.run(
+                ["docker", "context", "show"], capture_output=True, check=True, text=True
+            ).stdout.strip()
+            endpoint = subprocess.run(
+                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
+                capture_output=True,
+                check=True,
+                text=True,
+            ).stdout.strip()
+            return docker.DockerClient(base_url=endpoint)
+        except:
+            pass
+
+        raise e
 
 
 @dataclasses.dataclass
@@ -31,12 +64,18 @@ class APMLibraryTestServer:
     container_cmd: List[str]
     container_build_dir: str
     container_build_context: str = "."
-    port: str = os.getenv("APM_LIBRARY_SERVER_PORT", "50052")
+
+    container_port: str = int(os.getenv("APM_LIBRARY_SERVER_PORT", "50052"))
+    host_port: int = None  # Will be assigned by get_host_port()
+
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
-    volumes: List[Tuple[str, str]] = dataclasses.field(default_factory=list)
+    volumes: Dict[str, str] = dataclasses.field(default_factory=dict)
+
+    container: Container = None
 
 
-class ParametricScenario(_Scenario):
+class ParametricScenario(Scenario):
+    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0"
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -84,7 +123,6 @@ class ParametricScenario(_Scenario):
         library = os.getenv("TEST_LIBRARY")
 
         # get tracer version info building and executing the ddtracer-version.docker file
-        parametric_appdir = os.path.join("utils", "build", "docker", library, "parametric")
 
         factory = {
             "cpp": cpp_library_factory,
@@ -103,31 +141,25 @@ class ParametricScenario(_Scenario):
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             self._build_apm_test_server_image()
+            self._pull_test_agent_image()
+            self._clean_containers()
+            self._clean_networks()
 
-        command = [
-            "docker",
-            "run",
-            "--rm",
-            "-t",
-            self.apm_test_server_definition.container_tag,
-            "cat",
-            "SYSTEM_TESTS_LIBRARY_VERSION",
-        ]
-
-        logger.debug(f"Get library version: {' '.join(command)}")
-        result = subprocess.run(
-            command, cwd=parametric_appdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
-        )
-
-        if result.returncode != 0:
-            message = f"======== STDOUT ========\n{result.stdout.decode('utf-8')}\n\n"
-            message += f"======== STDERR ========\n{result.stderr.decode('utf-8')}"
-            pytest.exit(
-                f"Can't get the tracer version image. Please read tested container {self.apm_test_server_definition.container_tag} output:\n{message}",
-                1,
+        # https://github.com/DataDog/system-tests/issues/2799
+        if library in ("nodejs",):
+            output = _get_client().containers.run(
+                self.apm_test_server_definition.container_tag,
+                remove=True,
+                command=["./system_tests_library_version.sh"],
+            )
+        else:
+            output = _get_client().containers.run(
+                self.apm_test_server_definition.container_tag,
+                remove=True,
+                command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
             )
 
-        self._library = LibraryVersion(library, result.stdout.decode("utf-8"))
+        self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
     def _get_warmups(self):
@@ -135,6 +167,24 @@ class ParametricScenario(_Scenario):
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
         return result
+
+    def _pull_test_agent_image(self):
+        logger.stdout("Pulling test agent image...")
+        _get_client().images.pull(self.TEST_AGENT_IMAGE)
+
+    def _clean_containers(self):
+        """ some containers may still exists from previous unfinished sessions """
+
+        for container in _get_client().containers.list(all=True):
+            if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
+                logger.info(f"Removing {container}")
+
+                container.remove(force=True)
+
+    def _clean_networks(self):
+        """ some network may still exists from previous unfinished sessions """
+        logger.info("Removing unused network")
+        _get_client().networks.prune()
 
     @property
     def library(self):
@@ -177,6 +227,9 @@ class ParametricScenario(_Scenario):
             env = os.environ.copy()
             env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
 
+            # python tracer takes more than 5mn to build
+            timeout = default_subprocess_run_timeout if apm_test_server_definition.lang != "python" else 600
+
             p = subprocess.run(
                 cmd,
                 cwd=root_path,
@@ -185,7 +238,7 @@ class ParametricScenario(_Scenario):
                 stdout=log_file,
                 stderr=log_file,
                 env=env,
-                timeout=default_subprocess_run_timeout,
+                timeout=timeout,
                 check=False,
             )
 
@@ -196,6 +249,74 @@ class ParametricScenario(_Scenario):
                 pytest.exit(f"Failed to build the container: {failure_text}", 1)
 
             logger.debug("Build tested container finished")
+
+    def create_docker_network(self, test_id: str) -> Network:
+        docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
+
+        return _get_client().networks.create(name=docker_network_name, driver="bridge",)
+
+    @staticmethod
+    def get_host_port(worker_id: str, base_port: int) -> int:
+        """ deterministic port allocation for each worker """
+
+        if worker_id == "master":  # xdist disabled
+            return base_port
+
+        if worker_id.startswith("gw"):
+            return base_port + int(worker_id[2:])
+
+        raise ValueError(f"Unexpected worker_id: {worker_id}")
+
+    def docker_run(
+        self,
+        image: str,
+        name: str,
+        env: Dict[str, str],
+        volumes: Dict[str, str],
+        network: str,
+        host_port: int,
+        container_port: int,
+        command: List[str],
+    ) -> Container:
+
+        # Convert volumes to the format expected by the docker-py API
+        fixed_volumes = {}
+        for key, value in volumes.items():
+            if isinstance(value, dict):
+                fixed_volumes[key] = value
+            elif isinstance(value, str):
+                fixed_volumes[key] = {"bind": value, "mode": "rw"}
+            else:
+                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
+
+        logger.debug(f"Run container {name} from image {image}")
+
+        attempt = 3
+        while attempt > 0:
+            try:
+                container: Container = _get_client().containers.run(
+                    image,
+                    name=name,
+                    environment=env,
+                    volumes=fixed_volumes,
+                    network=network,
+                    ports={f"{container_port}/tcp": host_port},  # let docker choose an host port
+                    command=command,
+                    detach=True,
+                )
+                return container
+            except APIError:
+                logger.exception(f"Failed to run container {name}, retrying...")
+
+                # at this point, even if it failed to start, the container may exists!
+                for container in _get_client().containers.list(filters={"name": name}, all=True):
+                    container.remove(force=True)
+
+                time.sleep(0.5)  # give some to time to docker daemon to free resources
+                attempt -= 1
+
+        _log_open_port_informations(host_port)
+        raise RuntimeError(f"Failed to run container {name}, please see logs")
 
 
 def _get_base_directory():
@@ -224,9 +345,7 @@ ENV DD_PATCH_MODULES="fastapi:false"
         container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(python_absolute_appdir, "apm_test_client"), "/app/apm_test_client"),],
-        env={},
-        port="",
+        volumes={os.path.join(python_absolute_appdir, "apm_test_client"): "/app/apm_test_client"},
     )
 
 
@@ -234,6 +353,15 @@ def node_library_factory() -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
     nodejs_reldir = nodejs_appdir.replace("\\", "/")
+    volumes = {}
+
+    try:
+        with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+            path = f.read().strip(" \r\n")
+            source = os.path.join(_get_base_directory(), path)
+            volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
+    except Exception:
+        pass
 
     return APMLibraryTestServer(
         lang="nodejs",
@@ -241,12 +369,16 @@ def node_library_factory() -> APMLibraryTestServer:
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
-FROM node:18.10-slim
-RUN apt-get update && apt-get install -y jq git
+FROM node:18.10-alpine
+RUN apk add --no-cache bash curl git jq
 WORKDIR /usr/app
+COPY {nodejs_reldir}/../app.sh /usr/app/
+RUN printf 'node server.js' >> app.sh
+RUN chmod +x app.sh
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
+COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
 RUN npm install
@@ -255,11 +387,10 @@ COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 """,
-        container_cmd=["node", "server.js"],
+        container_cmd=["./app.sh"],
         container_build_dir=nodejs_absolute_appdir,
         container_build_context=_get_base_directory(),
-        env={},
-        port="",
+        volumes=volumes,
     )
 
 
@@ -271,9 +402,9 @@ def golang_library_factory():
         lang="golang",
         protocol="grpc",
         container_name="go-test-library",
-        container_tag="go118-test-library",
+        container_tag="go122-test-library",
         container_img=f"""
-FROM golang:1.20
+FROM golang:1.22
 
 # install jq
 RUN apt-get update && apt-get -y install jq
@@ -290,9 +421,7 @@ RUN go install
         container_cmd=["main"],
         container_build_dir=golang_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(golang_absolute_appdir), "/client"),],
-        env={},
-        port="",
+        volumes={os.path.join(golang_absolute_appdir): "/client"},
     )
 
 
@@ -340,6 +469,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV CORECLR_ENABLE_PROFILING=0
 ENV CORECLR_PROFILER={{846F5F1C-F9AE-4B07-969E-05C26BC060D8}}
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
+ENV LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
 # disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
@@ -356,9 +486,6 @@ CMD ["./ApmTestApi"]
         container_cmd=[],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[],
-        env={},
-        port="",
     )
 
     return server
@@ -381,22 +508,18 @@ def java_library_factory():
         container_img=f"""
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
-RUN java -jar ./tracer/dd-java-agent.jar > SYSTEM_TESTS_LIBRARY_VERSION
+RUN mkdir ./tracer
 COPY {java_reldir}/src src
-COPY {java_reldir}/build.sh .
+COPY {java_reldir}/install_ddtrace.sh .
 COPY {java_reldir}/pom.xml .
 COPY {protofile} src/main/proto/
 COPY binaries /binaries
-RUN bash build.sh
+RUN bash install_ddtrace.sh
 COPY {java_reldir}/run.sh .
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[],
-        env={},
-        port="",
     )
 
 
@@ -425,9 +548,8 @@ ADD {php_reldir}/server.php .
         container_cmd=["php", "server.php"],
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
-        volumes=[(os.path.join(php_absolute_appdir, "server.php"), "/client/server.php"),],
+        volumes={os.path.join(php_absolute_appdir, "server.php"): "/client/server.php"},
         env={},
-        port="",
     )
 
 
@@ -461,7 +583,6 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_build_dir=ruby_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
-        port="",
     )
 
 
@@ -496,5 +617,20 @@ COPY --from=build /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VE
         container_build_dir=cpp_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
-        port="",
     )
+
+
+def _log_open_port_informations(port):
+
+    p: psutil.Process
+
+    for p in psutil.process_iter():
+        try:
+            connections = p.connections()
+        except:
+            connections = []
+
+        for c in connections:
+            if c.status == "LISTEN" and c.laddr.port == port:
+                logger.error(f"Port {port} is already in use by process {p.pid} {p.name()} {p.cmdline()}")
+                return

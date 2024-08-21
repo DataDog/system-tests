@@ -183,6 +183,33 @@ def rasp_sqli(request, *args, **kwargs):
         return HttpResponse(f"DB request failure: {e!r}", status=201)
 
 
+@csrf_exempt
+def rasp_shi(request, *args, **kwargs):
+    list_dir = None
+    if request.method == "GET":
+        list_dir = request.GET.get("list_dir")
+    elif request.method == "POST":
+        try:
+            list_dir = (request.POST or json.loads(request.body)).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if list_dir is None:
+                list_dir = xmltodict.parse(request.body).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if list_dir is None:
+        return HttpResponse("missing list_dir parameter", status=400)
+    try:
+        res = os.system(f"ls {list_dir}")
+        return HttpResponse(f"Shell command with result: {res}")
+    except Exception as e:
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return HttpResponse(f"Shell command failure: {e!r}", status=201)
+
+
 ### END EXPLOIT PREVENTION
 
 
@@ -455,7 +482,7 @@ def view_iast_source_body(request):
 
 
 def view_iast_source_cookie_name(request):
-    param = [key for key in request.COOKIES.keys() if key == "user"]
+    param = [key for key in request.COOKIES.keys() if key == "table"]
     _sink_point_path_traversal(param[0])
     return HttpResponse("OK")
 
@@ -643,8 +670,9 @@ urlpatterns = [
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
     path("rasp/lfi", rasp_lfi),
-    path("rasp/ssrf", rasp_ssrf),
+    path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),
+    path("rasp/ssrf", rasp_ssrf),
     path("params/<appscan_fingerprint>", waf),
     path("tag_value/<str:tag_value>/<int:status_code>", waf),
     path("createextraservice", create_extra_service),

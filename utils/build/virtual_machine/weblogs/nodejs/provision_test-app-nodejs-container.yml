@@ -4,11 +4,11 @@ weblog:
     install: 
       - os_type: linux
         copy_files:
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-container/test-app-nodejs_docker_compose_run.sh
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-container/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
           - name: copy-nodejs-app
             local_path: lib-injection/build/docker/nodejs/sample-app
@@ -16,4 +16,4 @@ weblog:
           - name: copy-nodejs-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-container/Dockerfile.template
 
-        remote-command: sh test-app-nodejs_docker_compose_run.sh
+        remote-command: sh create_and_run_app_container.sh

@@ -169,6 +169,7 @@ class VmProvider:
             last_task,
             logger_name=logger_name,
             output_callback=output_callback,
+            populate_env=installation.populate_env,
         )
 
 
@@ -197,7 +198,9 @@ class Commander:
             Return the current task executed."""
         raise NotImplementedError
 
-    def remote_command(self, id, remote_command, connection, last_task, logger_name, output_callback=None):
+    def remote_command(
+        self, id, remote_command, connection, last_task, logger_name, output_callback=None, populate_env=True
+    ):
         """ Execute a command in the remote server. 
             Use last_task to depend on the last executed task.
             logger_name is the name of the logger to use to store the output of the command.

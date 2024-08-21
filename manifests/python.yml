@@ -24,7 +24,7 @@ tests/:
           python3.12: v2.6.0dev
           uds-flask: v2.6.0dev
           uwsgi-poc: v2.6.0dev
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: missing_feature # waf does not support it yet
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling: missing_feature
       test_schemas.py:
@@ -59,6 +59,8 @@ tests/:
           fastapi: v2.5.0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0.dev
@@ -111,6 +113,8 @@ tests/:
             fastapi: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
@@ -187,6 +191,11 @@ tests/:
         Test_Lfi_BodyUrlEncoded: v2.10.0.dev
         Test_Lfi_BodyXml: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
+      test_shi.py:
+        Test_Shi_BodyJson: v2.11.0-rc2
+        Test_Shi_BodyUrlEncoded: v2.11.0-rc2
+        Test_Shi_BodyXml: v2.11.0-rc2
+        Test_Shi_UrlQuery: v2.11.0-rc2
       test_span_tags.py:
         Test_Mandatory_SpanTags: v2.10.0.dev
         Test_Optional_SpanTags: v2.10.0.dev
@@ -218,7 +227,6 @@ tests/:
         Test_BodyXml:
           '*': v1.5.0rc1.dev
           fastapi: v2.4.0.dev1
-        Test_ClientIP: missing_feature (v1.5.0rc1.dev but test is not implemented)
         Test_Cookies:
           django-poc: v1.1.0rc2.dev
           fastapi: v2.4.0.dev1
@@ -231,8 +239,6 @@ tests/:
         Test_GraphQL: missing_feature
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v1.6
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           django-poc: v1.1.0rc2.dev
           fastapi: v2.4.0.dev1
@@ -337,16 +343,13 @@ tests/:
         Test_TelemetryMetrics:
           '*': v1.14.0
           fastapi: v2.4.0.dev1
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v1.1.0rc2.dev
         fastapi: v2.4.0.dev1
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': v2.10.0-rc1
-        uwsgi-poc: bug
+        '*': v2.10.0rc1
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0.dev but will be replaced by V2)
@@ -415,15 +418,12 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0.dev1
         flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: missing_feature (v1.20.0, but test is not implemented)
+      Test_Suspicious_Request_Blocking: v2.4.0.dev1
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
       Test_ConfigurationVariables:
         '*': v1.1.2
-        fastapi: v2.4.0.dev1
-      Test_RuleSet_1_3_1:
-        '*': v1.2.1
         fastapi: v2.4.0.dev1
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0rc2.dev
@@ -434,13 +434,21 @@ tests/:
         '*': v2.10.0.dev
       Test_UserLoginSuccessEvent:
         '*': v2.10.0.dev
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: v2.11.0.dev
+      Test_Fingerprinting_Header_And_Network: v2.11.0.dev
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: v1.10.0 # partially missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_AppSecIPBlockingFullDenylist: v2.11.0.dev
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_rate_limiter.py:
+      Test_Main: v2.0.0
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: v2.10.1
+      Test_UpdateRuleFileWithRemoteConfig: v2.11.0rc
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
       Test_Info: v1.1.0rc2.dev
@@ -451,9 +459,12 @@ tests/:
         '*': v1.10.0
         fastapi: v2.4.0.dev1
     test_runtime_activation.py:
-      Test_RuntimeActivation: missing_feature
+      Test_RuntimeActivation: v2.10.1
+      Test_RuntimeDeactivation: v2.10.1
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: v2.11.0rc
     test_traces.py:
       Test_AppSecEventSpanTags: v0.58.5
       Test_AppSecObfuscator:
@@ -466,7 +477,7 @@ tests/:
       Test_ExternalWafRequestsIdentification: v2.9.0.dev1
       Test_RetainTraces: v1.1.0rc2.dev
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v1.10.0 # partially missing_feature missing_feature (Python supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_UserBlocking_FullDenylist: v2.11.0.dev
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:

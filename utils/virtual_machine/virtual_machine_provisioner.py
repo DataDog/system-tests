@@ -150,6 +150,7 @@ class VirtualMachineProvisioner:
         installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
         installation.id = step_name
         installation.cache = provision_step["cache"] if "cache" in provision_step else False
+        installation.populate_env = provision_step["populate_env"] if "populate_env" in provision_step else True
         return installation
 
     def _get_tested_components(self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data):
@@ -180,6 +181,7 @@ class VirtualMachineProvisioner:
         installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
         installation.id = lang_variant["name"]
         installation.cache = lang_variant["cache"] if "cache" in lang_variant else False
+        installation.populate_env = lang_variant["populate_env"] if "populate_env" in lang_variant else True
         return installation
 
     def _get_weblog_provision(
@@ -253,6 +255,7 @@ class Intallation:
     def __init__(self):
         self.id = False
         self.cache = False
+        self.populate_env = True
         self.local_command = None
         self.local_script = None
         self.remote_command = None

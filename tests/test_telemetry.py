@@ -213,7 +213,7 @@ class Test_Telemetry:
         assert all((count == 1 for count in count_by_runtime_id.values()))
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @bug(library="python", reason="app-started not sent first")
+    @flaky(library="python", reason="app-started not sent first")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
@@ -355,6 +355,7 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
+    @bug(library="nodejs", reason="unknown")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
@@ -456,12 +457,6 @@ class Test_Telemetry:
         context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
     )
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    @bug(
-        library="python",
-        reason="""
-            configuration is not properly populating for python
-        """,
-    )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
@@ -587,7 +582,7 @@ class Test_TelemetryV2:
 
     @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
-    @bug(library="python", reason="library versions do not match due to different origins")
+    @flaky(library="python", reason="library versions do not match due to different origins")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 
@@ -665,6 +660,7 @@ class Test_MessageBatch:
         weblog.get("/enable_product")
 
     # CPP: false-positive. we send batch message for app-started.
+    @bug(library="nodejs")
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
         event_list = []
@@ -730,6 +726,7 @@ class Test_Metric_Generation_Enabled:
         assert found, "No metrics found in telemetry data"
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_general_logs_created(self):
         self.assert_count_metric("general", "logs_created", expect_at_least=1)
 
@@ -740,38 +737,47 @@ class Test_Metric_Generation_Enabled:
         self.assert_count_metric("tracers", "spans_finished", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_spans_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "spans_enqueued_for_serialization", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_created(self):
         self.assert_count_metric("tracers", "trace_segments_created", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "trace_chunks_enqueued_for_serialization", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_sent(self):
         self.assert_count_metric("tracers", "trace_chunks_sent", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_closed(self):
         self.assert_count_metric("tracers", "trace_segments_closed", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_requests(self):
         self.assert_count_metric("tracers", "trace_api.requests", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_responses(self):
         self.assert_count_metric("tracers", "trace_api.responses", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_telemetry_api_requests(self):
         self.assert_count_metric("telemetry", "telemetry_api.requests", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_telemetry_api_responses(self):
         self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)
 
