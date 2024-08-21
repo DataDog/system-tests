@@ -15,6 +15,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
     tracer = None
 
     def _setup(self, probes, request_path):
+        self.installed_ids = set()
         self.expected_probe_ids = base.extract_probe_ids(probes)
 
         Test_Debugger_Expression_Language.version += 1
@@ -471,7 +472,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
 
-            if content is not None:
+            if content:
                 for content in content:
                     probe_id = content["debugger"]["snapshot"]["probe"]["id"]
 

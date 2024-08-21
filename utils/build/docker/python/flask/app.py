@@ -68,6 +68,7 @@ from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
+from debugger_controller import debugger_blueprint
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -95,6 +96,7 @@ MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 app = Flask(__name__)
 app.secret_key = "SECRET_FOR_TEST"
 app.config["SESSION_TYPE"] = "memcached"
+app.register_blueprint(debugger_blueprint)
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
