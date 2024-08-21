@@ -106,31 +106,16 @@ class K8sInstance:
         self.test_agent.deploy_datadog_cluster_agent(features=features)
 
     def deploy_test_agent(self):
-        self.test_agent.desploy_test_agent()
+        self.test_agent.deploy_test_agent()
 
     def deploy_agent(self):
-        self.test_agent.desploy_agent()
+        self.test_agent.deploy_agent()
 
     def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False, env=None):
         if with_admission_controller:
             self.test_weblog.install_weblog_pod_with_admission_controller(env=env)
         else:
             self.test_weblog.install_weblog_pod_without_admission_controller(use_uds, env=env)
-
-    def deploy_weblog_as_deployment(self):
-        self.test_weblog.deploy_app_auto()
-        return self.test_weblog
-
-    def apply_config_auto_inject(self, config_data, rev=0, timeout=200):
-        self.test_agent.apply_config_auto_inject(config_data, rev=rev)
-        # After coonfigmap is applied, we need to wait for the weblog to be restarted.
-        # But let's give the kubernetes cluster 5 seconds to react by launching the redeployments.
-        time.sleep(5)
-        self.test_weblog.wait_for_weblog_after_apply_configmap(f"{self.library}-app", timeout=timeout)
-        return self.test_agent
-
-    def deploy_operator_auto(self):
-        self.test_agent.deploy_operator_auto()
 
     def export_debug_info(self):
         self.test_agent.export_debug_info()

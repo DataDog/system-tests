@@ -138,9 +138,3 @@ def backend_trace_validator(trace_id, trace_data):
 @scenarios.k8s_library_injection_basic
 class TestAdmisionControllerBasic(_TestAdmisionController):
     pass
-
-
-@features.k8s_admission_controller
-@scenarios.k8s_library_injection_full
-class TestAdmisionControllerComplete(_TestAdmisionController):
-    pass
