@@ -37,7 +37,7 @@ class K8sDatadogClusterTestAgent:
 
         container = client.V1Container(
             name="trace-agent",
-            image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.16.0",
             image_pull_policy="Always",
             ports=[client.V1ContainerPort(container_port=8126, host_port=8126, name="traceport", protocol="TCP")],
             command=["ddapm-test-agent"],
@@ -236,10 +236,7 @@ class K8sDatadogClusterTestAgent:
 
         if not daemonset_created:
             self.logger.info("[Test agent] Daemonset not created. Last status: %s" % daemonset_status)
-            execute_command_sync(
-                f"kubectl get pods",
-                self.k8s_kind_cluster
-            )
+            execute_command_sync(f"kubectl get pods", self.k8s_kind_cluster)
             raise Exception("Daemonset not created")
 
         w = watch.Watch()
