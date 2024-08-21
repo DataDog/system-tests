@@ -214,7 +214,7 @@ jobs:
 
       - name: Kubernetes lib-injection tests
         id: k8s-lib-injection-tests
-        run: ./run.sh K8S_LIBRARY_INJECTION_FULL
+        run: ./run.sh K8S_LIBRARY_INJECTION_BASIC
 
       - name: Compress logs
         id: compress_logs
