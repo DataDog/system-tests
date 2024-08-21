@@ -141,7 +141,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2524")
     def test_expression_language_comparison_operators(self):
-        self._assert(resposnses_ok=False)
+        self._assert()
 
     def setup_expression_language_instance_of(self):
         message_map, probes = self._create_expression_probes(
