@@ -99,7 +99,10 @@ class K8sInstance:
             logger.error(f"Error loading kube config: {e}")
 
     def destroy_instance(self):
-        destroy_cluster(self.k8s_kind_cluster)
+        try:
+            destroy_cluster(self.k8s_kind_cluster)
+        except Exception as e:
+            logger.error(f"Error destroying cluster: {e}. Ignoring failure...")
 
     def deploy_datadog_cluster_agent(self, use_uds=False, features=None):
         """ Deploys datadog cluster agent with admission controller and given features."""
