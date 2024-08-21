@@ -286,6 +286,8 @@ tests/:
       Test_DsmSNS: missing_feature
       Test_DsmSQS: v2.48.0
   parametric/:
+    test_crashtracking.py:
+      Test_Crashtracking: v3.2.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v2.53.2
