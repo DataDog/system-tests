@@ -685,7 +685,9 @@ class scenarios:
     )
 
     k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+        "K8S_LIBRARY_INJECTION_BASIC",
+        doc=" Kubernetes Instrumentation basic scenario",
+        scenario_groups=[ScenarioGroup.LIB_INJECTION],
     )
     k8s_library_injection_asm = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_ASM",
