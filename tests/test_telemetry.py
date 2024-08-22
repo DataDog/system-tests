@@ -291,14 +291,15 @@ class Test_Telemetry:
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
-    @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
-    @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
+    @flaky(context.library < "java@1.18.0", reason="Telemetry interval drifts")
+    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     @flaky(library="ruby")
     @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
-    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
+    @flaky(context.library >= "dotnet@2.57.0", reason="APMAPI-224")  # but probably sooner
     @features.telemetry_heart_beat_collected
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
