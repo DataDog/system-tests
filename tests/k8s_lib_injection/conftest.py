@@ -100,8 +100,8 @@ class K8sInstance:
 
     def destroy_instance(self):
         try:
-            # destroy_cluster(self.k8s_kind_cluster)
-            pass
+            destroy_cluster(self.k8s_kind_cluster)
+            # pass
         except Exception as e:
             logger.error(f"Error destroying cluster: {e}. Ignoring failure...")
 

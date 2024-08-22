@@ -107,6 +107,7 @@ class K8sWeblog:
                 initial_delay_seconds=15,
                 period_seconds=10,
             ),
+            restart_policy="Never",
             ports=[client.V1ContainerPort(container_port=18080, host_port=18080, name="http", protocol="TCP")],
         )
 
@@ -207,6 +208,7 @@ class K8sWeblog:
             self.logger.error("[Deploy weblog] weblog not created. Last status: %s" % pod_status)
             pod_logs = self.k8s_wrapper.read_namespaced_pod_log(name=app_name, namespace="default")
             self.logger.error(f"[Deploy weblog] weblog logs: {pod_logs}")
+            self.logger.error(f"[Deploy weblog] Generating weblog error log")
             # Export pod logs
             execute_command_sync(
                 f"kubectl logs {app_name} --all-containers",
