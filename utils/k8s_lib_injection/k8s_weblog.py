@@ -2,6 +2,13 @@ import time, datetime
 from kubernetes import client, config, watch
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
+from utils.k8s_lib_injection.k8s_command_utils import (
+    helm_add_repo,
+    helm_install_chart,
+    execute_command_sync,
+    path_clusterrole,
+)
+
 
 class K8sWeblog:
     manual_injection_props = {
@@ -87,7 +94,7 @@ class K8sWeblog:
             for k, v in env.items():
                 default_pod_env.append(client.V1EnvVar(name=k, value=v))
 
-        self.logger.info(f"RMM Default pod env: {default_pod_env}")
+        self.logger.info(f"Default pod env: {default_pod_env}")
         container1 = client.V1Container(
             name="my-app",
             image=self.app_image,
@@ -116,7 +123,7 @@ class K8sWeblog:
         pod_body = self._get_base_weblog_pod(env=env)
         self.k8s_wrapper.create_namespaced_pod(body=pod_body)
         self.logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
-        self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
+        self.wait_for_weblog_ready_by_label_app("my-app", timeout=150)
 
     def install_weblog_pod_without_admission_controller(self, use_uds, env=None):
         pod_body = self._get_base_weblog_pod()
@@ -196,10 +203,17 @@ class K8sWeblog:
                 break
 
         if not pod_ready:
-            pod_status = self.k8s_wrapper.read_namespaced_pod_status(name="my-app", namespace="default")
+            pod_status = self.k8s_wrapper.read_namespaced_pod_status(name=app_name, namespace="default")
             self.logger.error("[Deploy weblog] weblog not created. Last status: %s" % pod_status)
-            pod_logs = self.k8s_wrapper.read_namespaced_pod_log(name="my-app", namespace="default")
+            pod_logs = self.k8s_wrapper.read_namespaced_pod_log(name=app_name, namespace="default")
             self.logger.error(f"[Deploy weblog] weblog logs: {pod_logs}")
+            # Export pod logs
+            execute_command_sync(
+                f"kubectl logs {app_name} --all-containers",
+                self.k8s_kind_cluster,
+                logfile=f"{self.output_folder}/weblog_error.log",
+            )
+
             raise Exception("[Deploy weblog] Weblog not created")
 
     def export_debug_info(self):

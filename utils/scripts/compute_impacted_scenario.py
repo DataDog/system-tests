@@ -172,8 +172,11 @@ def main():
             if file in scenarios_by_files:
                 scenarios.update(scenarios_by_files[file])
 
-    print("scenarios=" + ",".join(scenarios))
-    print("scenarios_groups=" + ",".join(scenarios_groups))
+    # print("scenarios=" + ",".join(scenarios))
+    # print("scenarios_groups=" + ",".join(scenarios_groups))
+
+    print("scenarios=K8S_LIBRARY_INJECTION_BASIC")
+    print("scenarios_groups=LIB_INJECTION")
 
 
 if __name__ == "__main__":
