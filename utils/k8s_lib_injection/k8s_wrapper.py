@@ -3,6 +3,9 @@ from kubernetes import client, config, watch
 from utils.tools import logger
 from retry import retry
 
+from kubernetes.client import ApiClient, Configuration
+from kubernetes.config import load_kube_config
+
 
 class K8sWrapper:
     """ Wrap methods from CoreV1Api and AppsV1Api to make it fail-safe.
@@ -15,11 +18,32 @@ class K8sWrapper:
 
     @retry(delay=1, tries=5)
     def core_v1_api(self):
-        return client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+
+        client_config = type.__call__(Configuration)
+        client_config.debug = True
+        load_kube_config(
+            config_file=None,
+            context=self.k8s_kind_cluster.context_name,
+            client_configuration=client_config,
+            persist_config=True,
+        )
+        return client.CoreV1Api(api_client=ApiClient(configuration=client_config))
+
+    # return client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
     @retry(delay=1, tries=5)
     def apps_api(self):
-        return client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
+
+        client_config = type.__call__(Configuration)
+        client_config.debug = True
+        load_kube_config(
+            config_file=None,
+            context=self.k8s_kind_cluster.context_name,
+            client_configuration=client_config,
+            persist_config=True,
+        )
+        return client.AppsV1Api(api_client=ApiClient(configuration=client_config))
+        # return client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
     @retry(delay=1, tries=5)
     def create_namespaced_daemon_set(self, namespace="default", body=None):
