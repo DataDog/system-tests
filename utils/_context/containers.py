@@ -18,7 +18,6 @@ import requests
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils import interfaces
-from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 
 
 @lru_cache
@@ -1030,6 +1029,8 @@ class WeblogInjectionInitContainer(TestedContainer):
         )
 
     def set_environment_for_library(self, library):
+        from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
+
         lib_inject_props = {}
         for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.library == "nodejs" else library.library]:
             lib_inject_props[lang_env_vars["name"]] = lang_env_vars["value"]
