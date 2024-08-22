@@ -263,8 +263,11 @@ class K8sDatadog:
                 k8s_logger(self.output_folder, self.test_name, "get.deployments").info(deployment)
 
         # Daemonset describe
-        api_response = self.k8s_wrapper.read_namespaced_daemon_set(name="datadog")
-        k8s_logger(self.output_folder, self.test_name, "daemon.set.describe").info(api_response)
+        try:
+            api_response = self.k8s_wrapper.read_namespaced_daemon_set(name="datadog")
+            k8s_logger(self.output_folder, self.test_name, "daemon.set.describe").info(api_response)
+        except Exception as e:
+            self.logger.error(f"Error exporting daemonset logs: {e}")
 
         # Cluster logs, admission controller
         try:
