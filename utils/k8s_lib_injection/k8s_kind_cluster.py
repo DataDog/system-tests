@@ -77,7 +77,7 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
         if not item:
             continue
         container = json.loads(item)
-        if container["Names"].endswith("-build") or "libdatadog-build" in container["Names"]:
+        if container["Names"].endswith("-build") or "libdatadog-build" in container["Image"]:
             build_container_id = container["ID"]
         if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
             # Ports is of the form: "127.0.0.1:44371->6443/tcp",
