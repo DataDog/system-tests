@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 @SpringBootApplication
 public class ApmTestClient {
     private static final String SERVER_PORT_ARG = "APM_TEST_CLIENT_SERVER_PORT";
-    public static final Logger LOGGER = LoggerFactory.getLogger(ApmTestClient.class.getName());
+    public static final Logger LOGGER = LoggerFactory.getLogger(ApmTestClient.class);
 
 	public static void main(String[] args) {
 		SpringApplication application = new SpringApplication(ApmTestClient.class);
