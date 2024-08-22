@@ -151,6 +151,21 @@ jobs:
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
+  fancy-report:
+    runs-on: ubuntu-latest
+    needs:
+    - system_tests
+    if: always()
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - run: pip install requests
+    - run: python utils/scripts/get-workflow-summary.py ${{ github.run_id }} >> $GITHUB_STEP_SUMMARY
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   update-CI-visibility:
     name: Update CI Visibility Dashboard
     runs-on: ubuntu-latest

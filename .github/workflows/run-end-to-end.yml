@@ -376,7 +376,3 @@ jobs:
       env:
         FP_API_KEY: ${{ secrets.FP_API_KEY }}
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
-
-    - name: Print fancy log report
-      if: ${{ always() }}
-      run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
