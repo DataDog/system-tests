@@ -57,7 +57,7 @@ def destroy_cluster(k8s_kind_cluster):
         try:
             execute_command(f"docker network disconnect kind {k8s_kind_cluster.build_container_id}")
         except Exception as e:
-            pass # ignore exception as container could already be disconnected
+            pass  # ignore exception as container could already be disconnected
 
 
 def setup_kind_in_gitlab(k8s_kind_cluster):
@@ -77,7 +77,7 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
         if not item:
             continue
         container = json.loads(item)
-        if container["Names"].endswith("-build"):
+        if container["Names"].endswith("-build") or container["Names"].contains("libdatadog-build"):
             build_container_id = container["ID"]
         if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
             # Ports is of the form: "127.0.0.1:44371->6443/tcp",
@@ -97,7 +97,8 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
 
     # Replace server config with dns name + internal port
     execute_command(
-        f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}-control-plane:6443/g\" {os.environ['HOME']}/.kube/config")
+        f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}-control-plane:6443/g\" {os.environ['HOME']}/.kube/config"
+    )
 
     execute_command(f"cat {os.environ['HOME']}/.kube/config")
     k8s_kind_cluster.build_container_id = build_container_id
