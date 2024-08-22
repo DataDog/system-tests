@@ -176,7 +176,7 @@ def main():
     # print("scenarios_groups=" + ",".join(scenarios_groups))
 
     print("scenarios=K8S_LIBRARY_INJECTION_BASIC")
-    print("scenarios_groups=LIB_INJECTION")
+    print("scenarios_groups=lib-injection")
 
 
 if __name__ == "__main__":
