@@ -658,7 +658,7 @@ class WeblogContainer(TestedContainer):
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs",):
+        if self.library in ("nodejs", "python"):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -694,9 +694,9 @@ class WeblogContainer(TestedContainer):
 
         logger.debug(f"Docker host is {weblog.domain}")
 
-        # new way of getting info from the weblog. Only working for nodejs right now
+        # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library == "nodejs":
+        if self.library in ("nodejs", "python"):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
@@ -749,6 +749,10 @@ class PostgresContainer(SqlDbTestedContainer):
             image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
+            # healthcheck={
+            #     "test": "pg_isready -q -U postgres -d system_tests_dbname",
+            #     "retries": 30,
+            # },
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
