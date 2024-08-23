@@ -326,12 +326,19 @@ class TestedContainer:
             f.write(stderr)
 
         if not self.healthy:
+            stdout = stdout.decode("utf-8")
+            stderr = stderr.decode("utf-8")
+
+            tail = 30
+            stdout = "\n".join(stdout.splitlines()[-tail:])
+            stderr = "\n".join(stderr.splitlines()[-tail:])
+
             sep = "=" * 30
-            logger.stdout(f"\n{sep} {self.name} STDERR {sep}")
-            logger.stdout(stderr.decode("utf-8"))
-            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
-            logger.stdout(stdout.decode("utf-8"))
-            logger.stdout("")
+            logger.stdout(f"\n{sep} {self.name} STDOUT last {str(tail)} lines {sep}")
+            logger.stdout(stdout)
+            logger.stdout(f"\n{sep} {self.name} STDERR last {str(tail)} lines {sep}")
+            logger.stdout(stderr)
+            logger.stdout(f"\n{sep}============================{sep}")
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")
