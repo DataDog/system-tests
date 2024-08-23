@@ -22,7 +22,7 @@ def ensure_cluster():
 
 def _ensure_cluster():
     k8s_kind_cluster = K8sKindCluster()
-    k8s_kind_cluster.configure_networking(use_localhost_dns="GITLAB_CI" not in os.environ)
+    k8s_kind_cluster.configure_networking(docker_in_docker="GITLAB_CI" in os.environ)
 
     kind_data = ""
     with open("utils/k8s_lib_injection/resources/kind-config-template.yaml", "r") as file:
