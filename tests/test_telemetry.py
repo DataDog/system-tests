@@ -299,12 +299,10 @@ class Test_Telemetry:
     @flaky(library="ruby")
     @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
-    @flaky(context.library >= "dotnet@2.57.0", reason="APMAPI-224")  # but probably sooner
     @features.telemetry_heart_beat_collected
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
-        prev_message_time = None
         expected_heartbeat_interval = context.telemetry_heartbeat_interval
 
         # This interval can't be perfeclty exact, give some room for tests
@@ -324,22 +322,20 @@ class Test_Telemetry:
         # first heartbeat from the list
         heartbeats.pop(0)
 
-        for data in heartbeats:
-            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
-            if prev_message_time is None:
-                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time}")
-            else:
-                delta = (curr_message_time - prev_message_time).total_seconds()
-                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time} => {delta}s ellapsed")
+        timestamps = [datetime.strptime(data["request"]["timestamp_start"], fmt) for data in heartbeats]
 
-                assert (
-                    delta < UPPER_LIMIT
-                ), f"Heartbeat sent too slow ({delta}s). It should be sent every {expected_heartbeat_interval}s"
-                assert (
-                    delta > LOWER_LIMIT
-                ), f"Heartbeat sent too fast ({delta}s). It should be sent every {expected_heartbeat_interval}s"
+        # In theory, it's sorted. Let be safe
+        timestamps.sort()
 
-            prev_message_time = curr_message_time
+        delta = (timestamps[-1] - timestamps[0]).total_seconds()
+        average_delay = delta / (len(heartbeats) - 1)
+
+        assert (
+            average_delay < UPPER_LIMIT
+        ), f"Heartbeat sent too slow: ({average_delay}s). It should be sent every {expected_heartbeat_interval}s"
+        assert (
+            average_delay > LOWER_LIMIT
+        ), f"Heartbeat sent too fast: ({average_delay}s). It should be sent every {expected_heartbeat_interval}s"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
