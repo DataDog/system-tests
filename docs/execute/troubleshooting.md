@@ -48,3 +48,7 @@ The GRPC interface seems to be less stable. No other solution than retry so far.
 ## Parametric scenario : `Fail to bind port`
 
 Docker seems to sometimes keep a host port open, even after the container being removed. There is wait and rety mechanism, but it may be not enough. No other solution than retry so far.
+
+## Install python3.12 on ubuntu
+
+`apt-get install python3.12 python3.12-dev python3.12-venv`
