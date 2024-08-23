@@ -22,7 +22,7 @@ def ensure_cluster():
 
 def _ensure_cluster():
     k8s_kind_cluster = K8sKindCluster()
-    k8s_kind_cluster.confiure_ports()
+    k8s_kind_cluster.configure_networking(use_localhost_dns="GITLAB_CI" not in os.environ)
 
     kind_data = ""
     with open("utils/k8s_lib_injection/resources/kind-config-template.yaml", "r") as file:
@@ -122,10 +122,17 @@ class K8sKindCluster:
     def __init__(self):
         self.cluster_name = f"lib-injection-testing-{str(uuid4())[:8]}"
         self.context_name = f"kind-{self.cluster_name}"
-        self.agent_port = 18126
-        self.weblog_port = 18080
+        self.cluster_host_name = "localhost"
+        self.agent_port = None
+        self.weblog_port = None
 
-    def confiure_ports(self):
-        # Get random free ports
-        self.agent_port = get_free_port()
-        self.weblog_port = get_free_port()
+    def configure_networking(self, use_localhost_dns=False):
+        if use_localhost_dns:
+            # All cluster nodes will be reachable from localhost, we need different ports for each cluster
+            self.agent_port = get_free_port()
+            self.weblog_port = get_free_port()
+        else:
+            # we are going to use the cluser name as dns name. We can use the default internal ports
+            self.agent_port = 18126
+            self.weblog_port = 18080
+            self.cluster_host_name = f"{self.cluster_name}-control-plane"

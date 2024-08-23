@@ -8,10 +8,13 @@ from utils import scenarios, context, features, flaky
 
 
 class _TestAdmisionController:
-    def _get_dev_agent_traces(self, agent_port, retry=10):
+    def _get_dev_agent_traces(self, k8s_kind_cluster, retry=10):
+
         for _ in range(retry):
             logger.info(f"[Check traces] Checking traces:")
-            response = requests.get(f"http://localhost:{agent_port}/test/traces")
+            response = requests.get(
+                f"http://{k8s_kind_cluster.cluster_host_name}:{k8s_kind_cluster.agent_port}/test/traces"
+            )
             traces_json = response.json()
             if len(traces_json) > 0:
                 logger.debug(f"Test traces response: {traces_json}")
@@ -27,7 +30,7 @@ class _TestAdmisionController:
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_manual()
         test_k8s_instance.deploy_weblog_as_pod()
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_admission_controller finished")
 
@@ -39,7 +42,7 @@ class _TestAdmisionController:
         test_agent = test_k8s_instance.deploy_test_agent()
         test_agent.deploy_operator_manual(use_uds=True)
         test_k8s_instance.deploy_weblog_as_pod()
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_inject_uds_admission_controller finished")
 
@@ -49,7 +52,7 @@ class _TestAdmisionController:
         )
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False)
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_without_admission_controller finished")
 
@@ -59,7 +62,7 @@ class _TestAdmisionController:
         )
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False, use_uds=True)
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_inject_uds_without_admission_controller finished")
 
