@@ -52,13 +52,6 @@ def destroy_cluster(k8s_kind_cluster):
     execute_command(f"kind delete cluster --name {k8s_kind_cluster.cluster_name}")
     execute_command(f"docker rm -f {k8s_kind_cluster.cluster_name}-control-plane")
 
-    # remove the docker container from the kind network. See the Gitlab comments above
-    if k8s_kind_cluster.build_container_id:
-        try:
-            execute_command(f"docker network disconnect kind {k8s_kind_cluster.build_container_id}")
-        except Exception as e:
-            pass  # ignore exception as container could already be disconnected
-
 
 def setup_kind_in_gitlab(k8s_kind_cluster):
     # The build runs in a docker container:
