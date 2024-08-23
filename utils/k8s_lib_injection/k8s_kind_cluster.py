@@ -68,6 +68,7 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
 
     build_container_id = ""
     control_plane_server = ""
+    control_plane_server_container_id = ""
 
     for item in container_info.decode().split("\n"):
         if not item:
@@ -76,6 +77,7 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
         if container["Names"].endswith("-build") or "libdatadog-build" in container["Image"]:
             build_container_id = container["ID"]
         if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
+            control_plane_server_container_id = container["ID"]
             # Ports is of the form: "127.0.0.1:44371->6443/tcp",
             logger.debug(f"[setup_kind_in_gitlab] Container ports: {container['Ports']}")
             all_ports = container["Ports"].split(",")
@@ -95,6 +97,9 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
         logger.debug(f"[setup_kind_in_gitlab] Connected build container to kind network")
     except Exception as e:
         logger.debug(f"[setup_kind_in_gitlab] Ignoring error connecting build container to kind network: {e}")
+
+    # Connect control_plane_server to the bridget network. Access to internet
+    execute_command(f"docker network connect bridge {control_plane_server_container_id}")
 
     # Replace server config with dns name + internal port
     execute_command(
