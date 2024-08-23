@@ -93,8 +93,7 @@ class K8sInstance:
             logger.error(f"Error loading kube config: {e}")
 
     def destroy_instance(self):
-        # destroy_cluster(self.k8s_kind_cluster)
-        pass
+        destroy_cluster(self.k8s_kind_cluster)
 
     def deploy_test_agent(self):
         self.test_agent.desploy_test_agent()
