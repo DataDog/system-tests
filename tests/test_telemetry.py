@@ -297,7 +297,6 @@ class Test_Telemetry:
     @flaky(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     @flaky(library="ruby")
-    @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeat(self):
