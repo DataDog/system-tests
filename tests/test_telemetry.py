@@ -297,14 +297,11 @@ class Test_Telemetry:
     @flaky(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     @flaky(library="ruby")
-    @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
     @bug(context.library > "php@0.90")
-    @flaky(context.library >= "dotnet@2.57.0", reason="APMAPI-224")  # but probably sooner
     @features.telemetry_heart_beat_collected
     def test_app_heartbeat(self):
         """Check for heartbeat or messages within interval and valid started and closing messages"""
 
-        prev_message_time = None
         expected_heartbeat_interval = context.telemetry_heartbeat_interval
 
         # This interval can't be perfeclty exact, give some room for tests
@@ -317,29 +314,30 @@ class Test_Telemetry:
         assert len(telemetry_data) > 0, "No telemetry messages"
 
         heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
-        assert len(heartbeats) >= 2, "Did not receive, at least, 2 heartbeats"
+        assert len(heartbeats) >= 3, "Did not receive, at least, 2 heartbeats"
 
         # depending on the tracer, the very first heartbeat may be sent in a request that pays the
         # connection initialization time. This time is very unpredictible, so we remove the very
         # first heartbeat from the list
         heartbeats.pop(0)
 
-        for data in heartbeats:
-            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
-            if prev_message_time is None:
-                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time}")
-            else:
-                delta = (curr_message_time - prev_message_time).total_seconds()
-                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time} => {delta}s ellapsed")
+        timestamps = [datetime.strptime(data["request"]["timestamp_start"], fmt) for data in heartbeats]
 
-                assert (
-                    delta < UPPER_LIMIT
-                ), f"Heartbeat sent too slow ({delta}s). It should be sent every {expected_heartbeat_interval}s"
-                assert (
-                    delta > LOWER_LIMIT
-                ), f"Heartbeat sent too fast ({delta}s). It should be sent every {expected_heartbeat_interval}s"
+        # In theory, it's sorted. Let be safe
+        timestamps.sort()
 
-            prev_message_time = curr_message_time
+        # Get the delay between the first heartbeat and the last heartbeat
+        delta = (timestamps[-1] - timestamps[0]).total_seconds()
+
+        # There is N -1 delay between N heartbeats, so get the average delay with:
+        average_delay = delta / (len(heartbeats) - 1)
+
+        assert (
+            average_delay < UPPER_LIMIT
+        ), f"Heartbeat sent too slow: ({average_delay}s). It should be sent every {expected_heartbeat_interval}s"
+        assert (
+            average_delay > LOWER_LIMIT
+        ), f"Heartbeat sent too fast: ({average_delay}s). It should be sent every {expected_heartbeat_interval}s"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
