@@ -89,8 +89,9 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
     # Add build container to kind network
     try:
         execute_command(f"docker network connect kind {build_container_id}")
+        logger.debug(f"[setup_kind_in_gitlab] Connected build container to kind network")
     except Exception as e:
-        pass  # ignore exception. May already be connected
+        logger.debug(f"[setup_kind_in_gitlab] Ignoring error connecting build container to kind network: {e}")
 
     # Replace server config with dns name + internal port
     execute_command(
