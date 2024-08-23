@@ -137,6 +137,6 @@ class K8sKindCluster:
             self.weblog_port = get_free_port()
         else:
             # we are going to use the cluser name as dns name. We can use the default internal ports
-            self.agent_port = 18126
+            self.agent_port = 8126
             self.weblog_port = 18080
             self.cluster_host_name = f"{self.cluster_name}-control-plane"
