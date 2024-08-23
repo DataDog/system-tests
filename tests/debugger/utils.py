@@ -141,12 +141,12 @@ class _Base_Debugger_Test:
             missing_probes = set(self.expected_probe_ids) - set(self.installed_ids)
             assert not missing_probes, f"Not all probes are installed. Missing ids: {', '.join(missing_probes)}"
 
-    def assert_all_weblog_responses_ok(self):
+    def assert_all_weblog_responses_ok(self, expected_code=200):
         assert len(self.weblog_responses) > 0, "No responses available."
 
         for respone in self.weblog_responses:
             logger.debug(f"Response is {respone.text}")
-            assert respone.status_code == 200
+            assert respone.status_code == expected_code
 
     def assert_all_states_not_error(self):
         def _get_full_id(probe_id):
