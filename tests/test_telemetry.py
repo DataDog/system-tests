@@ -326,7 +326,10 @@ class Test_Telemetry:
         # In theory, it's sorted. Let be safe
         timestamps.sort()
 
+        # Get the delay between the first heartbeat and the last heartbeat
         delta = (timestamps[-1] - timestamps[0]).total_seconds()
+
+        # There is N -1 delay between N heartbeats, so get the average delay with:
         average_delay = delta / (len(heartbeats) - 1)
 
         assert (
