@@ -81,8 +81,11 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
             build_container_id = container["ID"]
         if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
             # Ports is of the form: "127.0.0.1:44371->6443/tcp",
+            logger.debug(f"[setup_kind_in_gitlab] Container ports: {container['Ports']}")
             mapping_divider = container["Ports"].index("-")
+            logger.debug(f"[setup_kind_in_gitlab] mapping_divider: {mapping_divider}")
             control_plane_server = container["Ports"][:mapping_divider]
+            logger.debug(f"[setup_kind_in_gitlab] control_plane_server: {control_plane_server}")
 
     if not build_container_id:
         raise Exception("Unable to find build container ID")
