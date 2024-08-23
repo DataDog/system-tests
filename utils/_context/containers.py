@@ -312,6 +312,10 @@ class TestedContainer:
 
     def stop(self):
         if self._container:
+            self._container.reload()
+            if self._container.status != "running":
+                self.healthy = False
+
             self._container.stop()
         self._starting_thread = None
 
