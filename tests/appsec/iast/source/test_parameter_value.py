@@ -29,8 +29,11 @@ class TestParameterValue(BaseSourceTest):
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @irrelevant(library="python", reason="Flask and Django need a header; otherwise, they return a 415 status code."
-                                         "TODO: When FastAPI implements POST body source, verify if it does too.")
+    @irrelevant(
+        library="python",
+        reason="Flask and Django need a header; otherwise, they return a 415 status code."
+        "TODO: When FastAPI implements POST body source, verify if it does too.",
+    )
     @flaky(context.weblog_variant == "resteasy-netty3", reason="Issue with weak references, needs investigation")
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
