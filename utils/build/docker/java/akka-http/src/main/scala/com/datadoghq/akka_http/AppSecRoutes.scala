@@ -33,6 +33,14 @@ object AppSecRoutes {
         }
       }
     } ~
+    path("createextraservice") {
+      get {
+        parameter("serviceName") { serviceName =>
+          setRootSpanTag("service", serviceName)
+          complete("OK")
+        }
+      }
+    } ~
       path("headers") {
         get {
           val entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "012345678901234567890123456789012345678901")
