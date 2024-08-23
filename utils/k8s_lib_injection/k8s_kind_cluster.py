@@ -129,14 +129,25 @@ class K8sKindCluster:
         self.cluster_host_name = "localhost"
         self.agent_port = None
         self.weblog_port = None
+        self.internal_agent_port = None
+        self.internal_weblog_port = None
+        self.docker_in_docker = False
 
-    def configure_networking(self, use_localhost_dns=False):
-        if use_localhost_dns:
-            # All cluster nodes will be reachable from localhost, we need different ports for each cluster
-            self.agent_port = get_free_port()
-            self.weblog_port = get_free_port()
-        else:
-            # we are going to use the cluser name as dns name. We can use the default internal ports
-            self.agent_port = 8126
-            self.weblog_port = 18080
+    def configure_networking(self, docker_in_docker=False):
+        self.docker_in_docker = docker_in_docker
+        self.agent_port = get_free_port()
+        self.weblog_port = get_free_port()
+        self.internal_agent_port = 8126
+        self.internal_weblog_port = 18080
+        if docker_in_docker:
             self.cluster_host_name = f"{self.cluster_name}-control-plane"
+
+    def get_agent_port(self):
+        if self.docker_in_docker:
+            return self.internal_agent_port
+        return self.agent_port
+
+    def get_weblog_port(self):
+        if self.docker_in_docker:
+            return self.internal_weblog_port
+        return self.weblog_port

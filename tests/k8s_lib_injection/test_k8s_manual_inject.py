@@ -13,7 +13,7 @@ class _TestAdmisionController:
         for _ in range(retry):
             logger.info(f"[Check traces] Checking traces:")
             response = requests.get(
-                f"http://{k8s_kind_cluster.cluster_host_name}:{k8s_kind_cluster.agent_port}/test/traces"
+                f"http://{k8s_kind_cluster.cluster_host_name}:{k8s_kind_cluster.get_agent_port()}/test/traces"
             )
             traces_json = response.json()
             if len(traces_json) > 0:
