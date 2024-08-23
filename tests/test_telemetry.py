@@ -324,7 +324,7 @@ class Test_Telemetry:
     @flaky(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @flaky(library="nodejs", reason="AIT-9176")
     @flaky(library="ruby", reason="APMAPI-226")
-    # @bug(context.library > "php@0.90")
+    @flaky(library="php", reason="APMAPI-227")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeat_not_too_fast(self):
         """ Check for telemetry heartbeat are not sent to fast, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL """
@@ -344,7 +344,6 @@ class Test_Telemetry:
     @flaky(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     @flaky(library="ruby", reason="APMAPI-226")
-    # @bug(context.library > "php@0.90")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeat_not_too_slow(self):
         """
