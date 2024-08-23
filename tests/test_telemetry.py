@@ -338,7 +338,7 @@ class Test_Telemetry:
         return delays_by_runtime
 
     @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library < "java@1.18.0", reason="Telemetry interval drifts")
+    @flaky(context.library <= "java@1.38.1", reason="Telemetry second heartbeat was sent too fast")
     @flaky(library="nodejs", reason="AIT-9176")
     @flaky(library="ruby", reason="APMAPI-226")
     @features.telemetry_heart_beat_collected
@@ -358,7 +358,6 @@ class Test_Telemetry:
                 ), f"Heartbeat sent too fast: ({delay}s). It should be sent every {context.telemetry_heartbeat_interval}s"
 
     @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library < "java@1.18.0", reason="Telemetry interval drifts")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     @flaky(library="ruby", reason="APMAPI-226")
     @features.telemetry_heart_beat_collected
