@@ -65,7 +65,7 @@ jobs:
           "java": ["ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
           "nodejs": ["ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
           "php": [],
-          "python": ["gcr.io/datadoghq/dd-lib-python-init:v2.10.4"], #"ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
+          "python": ["gcr.io/datadoghq/dd-lib-python-init:v2.10.5"], #"ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
           "ruby": ["ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
         }
         #All weblog variants
