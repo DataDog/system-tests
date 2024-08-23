@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features, flaky
+from utils import context, missing_feature, irrelevant, features, flaky
 from ..utils import BaseSourceTest
 
 
@@ -29,7 +29,8 @@ class TestParameterValue(BaseSourceTest):
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
+    @irrelevant(library="python", reason="Flask and Django need a header; otherwise, they return a 415 status code."
+                                         "TODO: When FastAPI implements POST body source, verify if it does too.")
     @flaky(context.weblog_variant == "resteasy-netty3", reason="Issue with weak references, needs investigation")
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
