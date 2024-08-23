@@ -315,7 +315,7 @@ class Test_Telemetry:
         assert len(telemetry_data) > 0, "No telemetry messages"
 
         heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
-        assert len(heartbeats) >= 2, "Did not receive, at least, 2 heartbeats"
+        assert len(heartbeats) >= 3, "Did not receive, at least, 2 heartbeats"
 
         # depending on the tracer, the very first heartbeat may be sent in a request that pays the
         # connection initialization time. This time is very unpredictible, so we remove the very
