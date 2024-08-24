@@ -1299,6 +1299,15 @@ class features:
         return test_object
 
     @staticmethod
+    def kafkaspan_creationcontext_propagation_with_dd_trace_and_otel(test_object):
+        """
+        [Kafka][Span Creation][Context Propagation] with dd-trace and OpenTelemetry
+        https://feature-parity.us1.prod.dog/#/?feature=307
+        """
+        pytest.mark.features(feature_id=307)(test_object)
+        return test_object
+
+    @staticmethod
     def open_tracing_api(test_object):
         """
         Open Tracing API
@@ -1915,6 +1924,16 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=264
         """
         pytest.mark.features(feature_id=264)(test_object)
+        return test_object
+
+    @staticmethod
+    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace_with_otel(test_object):
+        """
+        [AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace and otel
+
+        https://feature-parity.us1.prod.dog/#/?feature=308
+        """
+        pytest.mark.features(feature_id=308)(test_object)
         return test_object
 
     @staticmethod

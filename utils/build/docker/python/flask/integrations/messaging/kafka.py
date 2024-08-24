@@ -11,6 +11,7 @@ def kafka_produce(topic, message, callback=None):
     else:
         producer.produce(topic, value=message)
     producer.flush()
+
     return {"result": "ok"}
 
 
@@ -27,7 +28,6 @@ def kafka_consume(topic, group_id, timeout=120):
 
     msg = None
     start_time = time.time()
-
     while not msg and time.time() - start_time < timeout:
         msg = consumer.poll(1)
         if msg is None:
@@ -36,8 +36,16 @@ def kafka_consume(topic, group_id, timeout=120):
             logging.info("[kafka] Consumed message but got error " + msg.error().str())
         else:
             logging.info("[kafka] Consumed message")
+    try:
+        # otel has a bug in their kafka integration where they do not wrap the consumer close
+        # method and the later consume span is never closed
+        from opentelemetry.instrumentation.confluent_kafka.utils import _end_current_consume_span
 
-    consumer.close()
+        _end_current_consume_span(consumer)
+        consumer.close()
+    except Exception:
+        # close consumer now after we ensure consumer otel span is sent
+        consumer.close()
 
     if msg is None:
         return {"error": "message not found"}
