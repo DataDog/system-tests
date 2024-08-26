@@ -62,6 +62,7 @@ class K8sWeblog:
         container1 = client.V1Container(
             name="my-app",
             image=self.app_image,
+            image_pull_policy="Never",
             env=[
                 client.V1EnvVar(name="SERVER_PORT", value="18080"),
                 client.V1EnvVar(
