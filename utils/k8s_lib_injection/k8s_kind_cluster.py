@@ -45,6 +45,10 @@ def _ensure_cluster():
         execute_command(
             f"kind load docker-image gcr.io/datadoghq/cluster-agent:7.56.0 --name {k8s_kind_cluster.cluster_name}"
         )
+        execute_command(
+            f"kind load docker-image {os.getenv('LIBRARY_INJECTION_TEST_APP_IMAGE')} --name {k8s_kind_cluster.cluster_name}"
+        )
+        execute_command(f"kind load docker-image {os.getenv('LIB_INIT_IMAGE')} --name {k8s_kind_cluster.cluster_name}")
 
         if "GITLAB_CI" in os.environ:
             setup_kind_in_gitlab(k8s_kind_cluster)
