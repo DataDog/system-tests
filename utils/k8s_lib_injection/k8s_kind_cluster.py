@@ -110,7 +110,8 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
 
     # Replace server config with dns name + internal port
     execute_command_sync(
-        f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}-control-plane:6443/g\" {os.environ['HOME']}/.kube/config"
+        f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}-control-plane:6443/g\" {os.environ['HOME']}/.kube/config",
+        k8s_kind_cluster,
     )
 
     execute_command_sync(f"cat {os.environ['HOME']}/.kube/config")
