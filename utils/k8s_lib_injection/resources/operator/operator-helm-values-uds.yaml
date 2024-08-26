@@ -30,7 +30,7 @@ clusterAgent:
    # name: ""
    # tag: master
    # repository: datadog/cluster-agent-dev
-    pullPolicy: Always
+    pullPolicy: Never
     doNotCheckTag: true
   admissionController:
     configMode: socket
