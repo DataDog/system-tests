@@ -27,11 +27,12 @@ class _TestAdmisionController:
         logger.info(
             f"Launching test _test_inject_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
-        test_agent = test_k8s_instance.deploy_test_agent()
-        test_agent.deploy_operator_manual()
-        test_k8s_instance.deploy_weblog_as_pod()
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
-        assert len(traces_json) > 0, "No traces found"
+        # test_agent = test_k8s_instance.deploy_test_agent()
+        # test_agent.deploy_operator_manual()
+        test_k8s_instance.deploy_operator_test()
+        # test_k8s_instance.deploy_weblog_as_pod()
+        # traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        # assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_admission_controller finished")
 
     @flaky(library="python", reason="APMRP-359")

@@ -100,6 +100,11 @@ class K8sInstance:
         self.test_agent.desploy_test_agent()
         return self.test_agent
 
+    def deploy_operator_test(self):
+        # self.test_agent.desploy_test_agent()
+        self.test_agent.deploy_operator_manual()
+        return self.test_agent
+
     def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False):
         if with_admission_controller:
             self.test_weblog.install_weblog_pod_with_admission_controller()
