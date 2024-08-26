@@ -1,3 +1,5 @@
+import ddtrace
+
 import base64
 import http.client
 import json
@@ -61,7 +63,6 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_consume
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
-import ddtrace
 from ddtrace import Pin
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
