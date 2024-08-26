@@ -27,13 +27,7 @@ def _get_span_meta(request, metastruct=False):
 
 def get_iast_event(request):
     meta, meta_struct = _get_span_meta(request=request)
-
-    if "_dd.iast.json" in meta:
-        return meta["_dd.iast.json"]
-    elif "iast" in meta_struct:
-        return meta_struct["iast"]
-
-    raise AssertionError("No IAST event found in span")
+    return meta.get("_dd.iast.json") or meta_struct.get("iast")
 
 
 def assert_iast_vulnerability(
@@ -170,8 +164,7 @@ class BaseSinkTestWithoutTelemetry:
     @staticmethod
     def assert_no_iast_event(request):
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
-        meta = _get_span_meta(request=request)
-        iast_json = meta.get("_dd.iast.json")
+        iast_json = get_iast_event(request=request)
         assert iast_json is None, f"Unexpected vulnerabilities reported: {iast_json}"
 
 
