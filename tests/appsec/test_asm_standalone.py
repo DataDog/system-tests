@@ -16,7 +16,6 @@ REQUESTDOWNSTREAM_RESOURCE_PATTERN = re.compile(r"GET /?requestdownstream/?")
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
-@bug(context.library > "python@2.9.2", reason="Missing Jira ticket")
 class Test_AppSecStandalone_UpstreamPropagation:
     """APM correctly propagates AppSec events in distributing tracing."""
 
@@ -78,11 +77,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(
-        library="java",
-        weblog_variant="play",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}

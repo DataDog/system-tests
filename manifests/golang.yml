@@ -39,6 +39,8 @@ tests/:
         Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
         test_hardcoded_passwords.py:
@@ -284,14 +286,15 @@ tests/:
       Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
-    test_conf.py:
-      Test_RuleSet_1_3_1: v1.38.0
     test_customconf.py:
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:
       Test_CustomEvent: v1.47.0
       Test_UserLoginFailureEvent: v1.47.0
       Test_UserLoginSuccessEvent: v1.47.0
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Header_And_Network: missing_feature
     test_identify.py:
       Test_Basic: v1.37.0
     test_ip_blocking_full_denylist.py:
@@ -302,6 +305,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature
     test_reports.py:
       Test_ExtraTagsFromRule:
         '*': v1.62.0
@@ -325,6 +329,8 @@ tests/:
       Test_RuntimeDeactivation: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v1.36.0
@@ -347,6 +353,8 @@ tests/:
         '*': v1.36.0
         gin: v1.37.0
   debugger/:
+    test_debugger_exception_replay.py:
+      Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:

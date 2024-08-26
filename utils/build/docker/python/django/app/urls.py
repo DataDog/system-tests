@@ -25,6 +25,7 @@ from iast import (
     weak_hash_secure_algorithm,
 )
 
+import ddtrace
 from ddtrace import Pin, tracer, patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
@@ -61,6 +62,29 @@ def sample_rate(request, i):
 
 
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
+
+
+@csrf_exempt
+def healthcheck(request):
+    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "metadata" not in data:
+        appsec_event_rules_version = "1.2.5"
+    else:
+        appsec_event_rules_version = data["metadata"]["rules_version"]
+
+    result = {
+        "status": "ok",
+        "library": {
+            "language": "python",
+            "version": ddtrace.__version__,
+            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
+            "appsec_event_rules_version": appsec_event_rules_version,
+        },
+    }
+
+    return HttpResponse(json.dumps(result), content_type="application/json")
 
 
 @csrf_exempt
@@ -181,6 +205,33 @@ def rasp_sqli(request, *args, **kwargs):
     except Exception as e:
         print(f"DB request failure: {e!r}", file=sys.stderr)
         return HttpResponse(f"DB request failure: {e!r}", status=201)
+
+
+@csrf_exempt
+def rasp_shi(request, *args, **kwargs):
+    list_dir = None
+    if request.method == "GET":
+        list_dir = request.GET.get("list_dir")
+    elif request.method == "POST":
+        try:
+            list_dir = (request.POST or json.loads(request.body)).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if list_dir is None:
+                list_dir = xmltodict.parse(request.body).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if list_dir is None:
+        return HttpResponse("missing list_dir parameter", status=400)
+    try:
+        res = os.system(f"ls {list_dir}")
+        return HttpResponse(f"Shell command with result: {res}")
+    except Exception as e:
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return HttpResponse(f"Shell command failure: {e!r}", status=201)
 
 
 ### END EXPLOIT PREVENTION
@@ -635,6 +686,7 @@ def create_extra_service(request):
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
+    path("healthcheck", healthcheck),
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
@@ -643,8 +695,9 @@ urlpatterns = [
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
     path("rasp/lfi", rasp_lfi),
-    path("rasp/ssrf", rasp_ssrf),
+    path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),
+    path("rasp/ssrf", rasp_ssrf),
     path("params/<appscan_fingerprint>", waf),
     path("tag_value/<str:tag_value>/<int:status_code>", waf),
     path("createextraservice", create_extra_service),

@@ -27,6 +27,7 @@ import requests
 import urllib3
 import xmltodict
 
+import ddtrace
 from ddtrace import Pin
 from ddtrace import patch_all
 from ddtrace import tracer
@@ -62,6 +63,27 @@ async def custom_404_handler(request: Request, _):
 @app.options("/", response_class=PlainTextResponse)
 async def root():
     return "Hello, World!"
+
+
+@app.get("/healthcheck")
+async def healthcheck():
+    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "metadata" not in data:
+        appsec_event_rules_version = "1.2.5"
+    else:
+        appsec_event_rules_version = data["metadata"]["rules_version"]
+
+    return {
+        "status": "ok",
+        "library": {
+            "language": "python",
+            "version": ddtrace.__version__,
+            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
+            "appsec_event_rules_version": appsec_event_rules_version,
+        },
+    }
 
 
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
@@ -204,6 +226,36 @@ async def rasp_sqli(request: Request):
     except Exception as e:
         print(f"DB request failure: {e!r}", file=sys.stderr)
         return PlainTextResponse(f"DB request failure: {e!r}", status_code=201)
+
+
+@app.get("/rasp/shi")
+@app.post("/rasp/shi")
+async def rasp_shi(request: Request):
+    list_dir = None
+    if request.method == "GET":
+        list_dir = request.query_params.get("list_dir")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            list_dir = ((await request.form()) or json.loads(body) or {}).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if list_dir is None:
+                list_dir = xmltodict.parse(body).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if list_dir is None:
+        return PlainTextResponse("missing list_dir parameter", status_code=400)
+    try:
+        command = f"ls {list_dir}"
+        res = os.system(command)
+        return PlainTextResponse(f"Shell command [{command}] with result: {res}")
+    except Exception as e:
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
 
 
 ### END EXPLOIT PREVENTION

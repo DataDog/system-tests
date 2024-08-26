@@ -9,7 +9,6 @@ from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY  # noqa
 from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE  # noqa
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY  # noqa
 from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE  # noqa
-from utils.parametric.spec.trace import Span  # noqa
 from utils.parametric.spec.trace import find_span_in_traces  # noqa
 
 UNSET = -420
@@ -27,10 +26,10 @@ def _get_spans(test_agent, test_library, child_span_tag=None):
                 if child_span_tag:
                     cs.set_meta(child_span_tag, None)
 
-    traces = test_agent.wait_for_num_spans(2, clear=True)
+    traces = test_agent.wait_for_num_spans(2, clear=True, sort_by_start=False)
 
-    parent_span = find_span_in_traces(traces, Span(name="parent", service="webserver"))
-    child_span = find_span_in_traces(traces, Span(name="child", service="webserver"))
+    parent_span = find_span_in_traces(traces, ps.trace_id, ps.span_id)
+    child_span = find_span_in_traces(traces, cs.trace_id, cs.span_id)
     return parent_span, child_span, traces[0][0]
 
 
