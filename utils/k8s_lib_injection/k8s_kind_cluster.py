@@ -39,9 +39,9 @@ def _ensure_cluster():
         execute_command(
             f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {k8s_kind_cluster.cluster_name} --config {cluster_config} --wait 1m"
         )
-        # execute_command(
-        #    f"kind load docker-image ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest --name {k8s_kind_cluster.cluster_name}"
-        # )
+        execute_command(
+            f"kind load docker-image ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest --name {k8s_kind_cluster.cluster_name}"
+        )
 
         if "GITLAB_CI" in os.environ:
             setup_kind_in_gitlab(k8s_kind_cluster)
