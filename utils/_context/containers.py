@@ -745,10 +745,7 @@ class PostgresContainer(SqlDbTestedContainer):
             image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
-            # healthcheck={
-            #     "test": "pg_isready -q -U postgres -d system_tests_dbname",
-            #     "retries": 30,
-            # },
+            healthcheck={"test": "pg_isready -q -U postgres -d system_tests_dbname", "retries": 30,},
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
