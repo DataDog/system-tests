@@ -94,8 +94,9 @@ class K8sDatadogClusterTestAgent:
         daemonset = client.V1DaemonSet(
             api_version="apps/v1", kind="DaemonSet", metadata=client.V1ObjectMeta(name="datadog"), spec=spec
         )
-
+        self.logger.info("[Test agent] Creating Daemonset ")
         self.k8s_wrapper.create_namespaced_daemon_set(body=daemonset)
+        self.logger.info("[Test agent] Waiting for Daemonset ")
         self.wait_for_test_agent()
         self.logger.info("[Test agent] Daemonset created")
 
@@ -239,6 +240,8 @@ class K8sDatadogClusterTestAgent:
             self.logger.info("[Test agent] Daemonset not created. Last status: %s" % daemonset_status)
             execute_command_sync(f"kubectl get pods", self.k8s_kind_cluster)
             raise Exception("Daemonset not created")
+        else:
+            self.logger.info("[Test agent] Daemonset created")
 
         w = watch.Watch()
         for event in w.stream(
@@ -251,6 +254,7 @@ class K8sDatadogClusterTestAgent:
                 w.stop()
                 self.logger.info("Datadog test agent started!")
                 break
+        self.logger.info("RMM Datadog test agent finished!")
 
     def _wait_for_operator_ready(self):
         operator_ready = False
