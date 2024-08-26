@@ -23,7 +23,7 @@ class _TestAdmisionController:
         return []
 
     @flaky(library="python", reason="APMRP-359")
-    def test_inject_admission_controller(self, test_k8s_instance):
+    def _test_inject_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test _test_inject_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
@@ -35,7 +35,7 @@ class _TestAdmisionController:
         logger.info(f"Test _test_inject_admission_controller finished")
 
     @flaky(library="python", reason="APMRP-359")
-    def _test_inject_uds_admission_controller(self, test_k8s_instance):
+    def test_inject_uds_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test test_inject_uds_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
