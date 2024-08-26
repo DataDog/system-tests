@@ -2318,6 +2318,16 @@ class features:
         return test_object
 
     @staticmethod
+    def crashtracking(test_object):
+        """
+        Crashtracking
+
+        https://feature-parity.us1.prod.dog/#/?feature=317
+        """
+        pytest.mark.features(feature_id=317)(test_object)
+        return test_object
+
+    @staticmethod
     def rasp_shell_injection(test_object):
         """
         Appsec RASP rule : shell injection
@@ -2325,4 +2335,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=318
         """
         pytest.mark.features(feature_id=318)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_exception_replay(test_object):
+        """
+        Exception replay
+
+        https://feature-parity.us1.prod.dog/#/?feature=321
+        """
+        pytest.mark.features(feature_id=321)(test_object)
         return test_object

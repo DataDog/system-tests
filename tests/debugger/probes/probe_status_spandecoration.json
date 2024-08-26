@@ -1,11 +1,13 @@
 [
     {
         "language": "",
+        "type": "",
         "id": "decorcf2-meth-45cf-9f39-591received",
         "targetSpan": "ACTIVE",
         "decorations": [
             {
                 "when": {
+                    "dsl" : "",
                     "json": {
                         "gt": [
                             {
@@ -28,11 +30,13 @@
     },
     {
         "language": "",
+        "type": "",
         "id": "decorcf2-meth-45cf-9f39-59installed",
         "targetSpan": "ACTIVE",
         "decorations": [
             {
                 "when": {
+                    "dsl" : "",
                     "json": {
                         "gt": [
                             {
@@ -55,11 +59,13 @@
     },
     {
         "language": "",
+        "type": "",
         "id": "decorcf2-line-45cf-9f39-59installed",
         "targetSpan": "ACTIVE",
         "decorations": [
             {
                 "when": {
+                    "dsl" : "",
                     "json": {
                         "gt": [
                             {
@@ -75,6 +81,7 @@
         ],
         "where": {
             "typeName": null,
+            "dsl" : "",
             "sourceFile": "ACTUAL_SOURCE_FILE",
             "lines": [
                 "44"
