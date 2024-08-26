@@ -114,7 +114,7 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
         k8s_kind_cluster,
     )
 
-    execute_command_sync(f"cat {os.environ['HOME']}/.kube/config")
+    execute_command_sync(f"cat {os.environ['HOME']}/.kube/config", k8s_kind_cluster)
     k8s_kind_cluster.build_container_id = build_container_id
 
 
