@@ -215,14 +215,24 @@ def build_debugger_command(probes: list, version: int):
                     probe["where"]["methodName"] = (
                         probe["where"]["methodName"][0].lower() + probe["where"]["methodName"][1:]
                     )
+                elif library_name == "python":
+                    probe["where"]["typeName"] = "debugger_controller"
+                    probe["where"]["methodName"] = re.sub(
+                        r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
+                    ).lower()
             elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                 if library_name == "dotnet":
                     probe["where"]["sourceFile"] = "DebuggerController.cs"
                 elif library_name == "java":
                     probe["where"]["sourceFile"] = "DebuggerController.java"
+                elif library_name == "python":
+                    probe["where"]["sourceFile"] = "debugger_controller.py"
 
-            probe_64 = _json_to_base64(probe)
+            logger.debug(f"RC probe is:\n{json.dumps(probe, indent=2)}")
             probe_type = _get_probe_type(probe["id"])
+            probe["type"] = re.sub(r"(?<!^)(?=[A-Z])", "_", probe_type).upper()
+            probe_64 = _json_to_base64(probe)
+
             path = "datadog/2/LIVE_DEBUGGING/" + probe_type + "_" + probe["id"] + "/config"
 
             target["hashes"]["sha256"] = _sha256(probe_64)

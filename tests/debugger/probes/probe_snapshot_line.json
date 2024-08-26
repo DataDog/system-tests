@@ -14,31 +14,12 @@
     {
         "language": "",
         "type": "",
-        "id": "metricaa-acda-4453-9111-1478a697line",
-        "kind": "COUNT",
-        "metricName": "MetricCountInt",
-        "value": {
-            "json": {
-                "ref": "id"
-            }
-        },
-        "where": {
-            "typeName": null,
-            "sourceFile": "ACTUAL_SOURCE_FILE",
-            "lines": [
-                "28"
-            ]
-        },
-        "evaluateAt": "EXIT"
-    },
-    {
-        "language": "",
-        "type": "",
         "id": "decor0aa-acda-4453-9111-1478a697line",
         "targetSpan": "ACTIVE",
         "decorations": [
             {
                 "when": {
+                    "dsl": "",
                     "json": {
                         "gt": [
                             {
@@ -57,6 +38,7 @@
                             "template": null,
                             "segments": [
                                 {
+                                    "dsl": "",
                                     "json": {
                                         "ref": "intLocal"
                                     }

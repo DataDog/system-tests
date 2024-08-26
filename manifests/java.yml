@@ -836,8 +836,12 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint: missing_feature
-      Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Endpoint:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Header_And_Network:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
@@ -955,6 +959,16 @@ tests/:
     test_versions.py:
       Test_Events: v0.90.0
   debugger/:
+    test_debugger_exception_replay.py:
+      Test_Debugger_Exception_Replay:
+        '*': missing_feature
+        spring-boot: bug (DEBUG-2784, should be v1.38.0)  # real version not known
+        spring-boot-jetty: bug (DEBUG-2784, should be v1.38.0)  # real version not known
+        spring-boot-openliberty: bug (DEBUG-2784, should be v1.38.0)  # real version not known
+        spring-boot-payara: bug (DEBUG-2784, should be v1.38.0)  # real version not known
+        spring-boot-undertow: bug (DEBUG-2784, should be v1.38.0)  # real version not known
+        spring-boot-wildfly: bug (DEBUG-2784, should be v1.38.0)  # real version not known
+        uds-spring-boot: bug (DEBUG-2784, should be v1.38.0)  # real version not known
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature

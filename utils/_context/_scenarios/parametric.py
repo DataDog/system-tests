@@ -146,7 +146,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs",):
+        if library in ("nodejs", "python"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -338,7 +338,8 @@ FROM ghcr.io/datadog/dd-trace-py/testrunner:9e3bd1fb9e42a4aa143cae661547517c7fbd
 WORKDIR /app
 RUN pyenv global 3.9.16
 RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
-COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
+COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
+COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_PATCH_MODULES="fastapi:false"
 """,
@@ -497,12 +498,11 @@ def java_library_factory():
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
-    protofile = os.path.join("utils", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
 
     # TODO : use official install_ddtrace.sh
     return APMLibraryTestServer(
         lang="java",
-        protocol="grpc",
+        protocol="http",
         container_name="java-test-client",
         container_tag="java-test-client",
         container_img=f"""
@@ -512,7 +512,6 @@ RUN mkdir ./tracer
 COPY {java_reldir}/src src
 COPY {java_reldir}/install_ddtrace.sh .
 COPY {java_reldir}/pom.xml .
-COPY {protofile} src/main/proto/
 COPY binaries /binaries
 RUN bash install_ddtrace.sh
 COPY {java_reldir}/run.sh .

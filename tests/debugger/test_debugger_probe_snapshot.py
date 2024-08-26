@@ -4,13 +4,7 @@
 
 import tests.debugger.utils as base
 
-from utils import (
-    scenarios,
-    interfaces,
-    weblog,
-    features,
-    remote_config as rc,
-)
+from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug
 
 
 @features.debugger
@@ -24,11 +18,11 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.weblog_responses = [
             weblog.get("/debugger/log"),
-            weblog.get("/debugger/metric/1"),
             weblog.get("/debugger/span"),
             weblog.get("/debugger/span-decoration/asd/1"),
         ]
 
+    @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
     def test_method_probe_snaphots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
@@ -53,10 +47,10 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
 
         self.weblog_responses = [
             weblog.get("/debugger/log"),
-            weblog.get("/debugger/metric/1"),
             weblog.get("/debugger/span-decoration/asd/1"),
         ]
 
+    @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
     def test_line_probe_snaphots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
@@ -77,10 +71,10 @@ class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
         self.expected_probe_ids = base.extract_probe_ids(probes)
         self.rc_state = rc.send_debugger_command(probes, version=1)
 
-        self.rc_state = rc.send_debugger_command(probes, version=1)
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.weblog_responses = [weblog.get("/debugger/mix/asd/1")]
 
+    @bug(library="python", reason="DEBUG-2710")
     def test_mix_probe(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
@@ -95,18 +89,19 @@ class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
 
 
 def _validate_snapshots(expected_snapshots):
-    def get_snapshot_map():
+    def __get_snapshot_map():
         agent_logs_endpoint_requests = list(interfaces.agent.get_data(base._LOGS_PATH))
         snapshot_hash = {}
 
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
-            if content is not None:
-                for content in content:
-                    debugger = content["debugger"]
-                    if "snapshot" in debugger:
-                        probe_id = debugger["snapshot"]["probe"]["id"]
-                        snapshot_hash[probe_id] = debugger["snapshot"]
+            if content:
+                for item in content:
+                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                    if snapshot:
+
+                        probe_id = snapshot["probe"]["id"]
+                        snapshot_hash[probe_id] = snapshot
 
         return snapshot_hash
 
@@ -114,18 +109,18 @@ def _validate_snapshots(expected_snapshots):
         if expected_id not in snapshot_status_map:
             raise ValueError("Snapshot " + expected_id + " was not received.")
 
-    snapshot_map = get_snapshot_map()
+    snapshot_map = __get_snapshot_map()
     for expected_snapshot in expected_snapshots:
         check_snapshot(expected_snapshot, snapshot_map)
 
 
 def _validate_spans(expected_spans):
-    def get_span_map():
+    def __get_span_map():
         agent_logs_endpoint_requests = list(interfaces.agent.get_data(base._TRACES_PATH))
         span_hash = {}
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
-            if content is not None:
+            if content:
                 for payload in content["tracerPayloads"]:
                     for chunk in payload["chunks"]:
                         for span in chunk["spans"]:
@@ -142,6 +137,6 @@ def _validate_spans(expected_spans):
         if expected_id not in trace_map:
             raise ValueError("Trace " + expected_id + " was not received.")
 
-    span_map = get_span_map()
+    span_map = __get_span_map()
     for expected_trace in expected_spans:
         check_trace(expected_trace, span_map)

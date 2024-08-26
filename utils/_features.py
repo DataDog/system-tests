@@ -2336,3 +2336,13 @@ class features:
         """
         pytest.mark.features(feature_id=318)(test_object)
         return test_object
+
+    @staticmethod
+    def debugger_exception_replay(test_object):
+        """
+        Exception replay
+
+        https://feature-parity.us1.prod.dog/#/?feature=321
+        """
+        pytest.mark.features(feature_id=321)(test_object)
+        return test_object
