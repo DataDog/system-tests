@@ -99,7 +99,7 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
         logger.debug(f"[setup_kind_in_gitlab] Ignoring error connecting build container to kind network: {e}")
 
     # Connect control_plane_server to the bridget network. Access to internet
-    execute_command(f"docker network connect bridge {control_plane_server_container_id}")
+    # execute_command(f"docker network connect bridge {control_plane_server_container_id}")
 
     # Replace server config with dns name + internal port
     execute_command(
