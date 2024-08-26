@@ -76,6 +76,9 @@ public class OpenTelemetryController {
   }
 
   private static Attributes parseAttributes(Map<String, Object> attributes) {
+    if(attributes == null) {
+      return null;
+    }
     AttributesBuilder builder = Attributes.builder();
     for (Map.Entry<String, Object> entry : attributes.entrySet()) {
       String key = entry.getKey();
@@ -285,7 +288,13 @@ public class OpenTelemetryController {
     LOGGER.info("Adding OTel span event: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null) {
-      span.addEvent(args.name(), parseAttributes(args.attributes()), args.timestamp(), MICROSECONDS);
+      if (args.timestamp() == 0L) {
+        System.out.println("MTOFF: adding "+ args.name());
+        span.addEvent(args.name(), parseAttributes(args.attributes()));
+      } else {
+        System.out.println("MTOFF: adding "+ args.name());
+        span.addEvent(args.name(), parseAttributes(args.attributes()), args.timestamp(), MICROSECONDS);
+      }
     }
   }
 
