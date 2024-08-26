@@ -228,6 +228,7 @@ def build_debugger_command(probes: list, version: int):
                 elif library_name == "python":
                     probe["where"]["sourceFile"] = "debugger_controller.py"
 
+            logger.debug(f"RC probe is:\n{json.dumps(probe, indent=2)}")
             probe_type = _get_probe_type(probe["id"])
             probe["type"] = re.sub(r"(?<!^)(?=[A-Z])", "_", probe_type).upper()
             probe_64 = _json_to_base64(probe)
