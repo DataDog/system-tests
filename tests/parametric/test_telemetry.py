@@ -166,7 +166,6 @@ class Test_Environment:
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
@@ -239,7 +238,6 @@ class Test_Environment:
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
