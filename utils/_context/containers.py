@@ -685,10 +685,6 @@ class WeblogContainer(TestedContainer):
         else:
             self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
-        if self.weblog_variant == "python3.12":
-            if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
-                self.environment["DD_PROFILING_ENABLED"] = "false"
-
     def post_start(self):
         from utils import weblog
 
