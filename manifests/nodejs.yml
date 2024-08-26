@@ -505,10 +505,10 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
-      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
       Test_SecurityEvents_Appsec_Metastruct_Disabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
       Test_SecurityEvents_Iast_Metastruct_Disabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
