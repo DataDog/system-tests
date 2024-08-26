@@ -7,8 +7,8 @@ cd /binaries
 if [ -e "dd-trace-py" ]; then
     echo "Install from local folder /binaries/dd-trace-py"
     pip install /binaries/dd-trace-py
-elif [ "$(ls *.whl | wc -l)" = "1" ]; then
-    path=$(readlink -f $(ls *.whl))
+elif [ "$(ls *.whl *.tar.gz | wc -l)" = "1" ]; then
+    path=$(readlink -f $(ls *.whl *.tar.gz))
     echo "Install ddtrace from ${path}"
     pip install "ddtrace[appsec-beta] @ file://${path}"
 elif [ $(ls python-load-from-pip | wc -l) = 1 ]; then
