@@ -122,7 +122,7 @@ class K8sWeblog:
             command=["sh", "copy-lib.sh", "/datadog-lib"],
             name="datadog-tracer-init",
             image=self.library_init_image,
-            image_pull_policy="Always",
+            image_pull_policy="Never",
             termination_message_path="/dev/termination-log",
             termination_message_policy="File",
             volume_mounts=[client.V1VolumeMount(mount_path="/datadog-lib", name="datadog-auto-instrumentation")],
