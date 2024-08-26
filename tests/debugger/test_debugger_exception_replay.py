@@ -14,7 +14,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
     def _setup(self, request_path):
         self.weblog_responses = [weblog.get(request_path)]
-        time.sleep(1)
+        time.sleep(5)
         self.weblog_responses.append(weblog.get(request_path))
 
     def setup_exception_replay_simple(self):
