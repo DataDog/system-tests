@@ -52,16 +52,6 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  # generates a unique ID used for Cross Tracer Propagation Tests (for naming AWS resource uniquely). We need this ID to be saved and reused for replay scenario.
-  generate-id:
-    runs-on: ubuntu-latest
-    outputs:
-      unique-id: ${{ steps.generate-id.outputs.unique-id }}
-    steps:
-      - name: Generate Unique ID
-        id: generate-id
-        run: echo "::set-output name=unique-id::$(uuidgen | tr -d '-' | head -c 10)"
-
   end-to-end:
     runs-on: ubuntu-latest
     strategy:
@@ -93,8 +83,9 @@ jobs:
     # generates a unique ID used for Cross Tracer Propagation Tests (for naming AWS resource uniquely). We need this ID to be saved and reused for replay scenario.
       id: generate_unique_id
       run: |
-        UNIQUE_ID=$(uuidgen | tr -d '-' | head -c 10)
-        echo "UNIQUE_ID=${UNIQUE_ID}_${{ inputs.library }}_${{ matrix.weblog }}" >> $GITHUB_ENV
+        HASH=$(uuidgen | tr -d '-' | head -c 10)
+        UNIQUE_ID=${HASH}_${{ inputs.library }}_${{ matrix.weblog }}
+        echo "::set-output name=unique_id::$UNIQUE_ID"
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
@@ -107,7 +98,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-        UNIQUE_ID: ${{ needs.generate-id.outputs.unique-id }}
+        UNIQUE_ID: ${{ steps.generate_unique_id.outputs.unique_id }}
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
@@ -130,7 +121,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-        UNIQUE_ID: ${{ needs.generate-id.outputs.unique-id }}
+        UNIQUE_ID: ${{ steps.generate_unique_id.outputs.unique_id }}
     # - name: Run DEFAULT scenario
     #   if: steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
     #   run: ./run.sh DEFAULT
@@ -145,7 +136,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-        UNIQUE_ID: ${{ needs.generate-id.outputs.unique-id }}
+        UNIQUE_ID: ${{ steps.generate_unique_id.outputs.unique_id }}
     # - name: Run PROFILING scenario
     #   if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
     #   run: ./run.sh PROFILING
@@ -165,7 +156,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-        UNIQUE_ID: ${{ needs.generate-id.outputs.unique-id }}
+        UNIQUE_ID: ${{ steps.generate_unique_id.outputs.unique_id }}
     # - name: Run APM_TRACING_E2E_OTEL scenario
     #   if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
     #   run: ./run.sh APM_TRACING_E2E_OTEL
