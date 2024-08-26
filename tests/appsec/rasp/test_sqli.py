@@ -9,9 +9,7 @@ from utils import features, weblog, interfaces, scenarios, rfc, context, flaky
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
 @flaky(
-    context.library > "java@1.38.1",
-    context.weblog_variant in ("vertx3", "vertx4", "akka-http", "play"),
-    reason="APPSEC-54578",
+    context.weblog_variant in ("vertx3", "vertx4", "akka-http", "play"), reason="APPSEC-54578",
 )
 class Test_Sqli_UrlQuery:
     """ SQL Injection through query parameters """
@@ -37,9 +35,7 @@ class Test_Sqli_UrlQuery:
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
 @flaky(
-    context.library > "java@1.38.1",
-    context.weblog_variant in ("vertx3", "vertx4", "akka-http", "play"),
-    reason="APPSEC-54578",
+    context.weblog_variant in ("vertx3", "vertx4", "akka-http", "play"), reason="APPSEC-54578",
 )
 class Test_Sqli_BodyUrlEncoded:
     """ SQL Injection through a url-encoded body parameter """
@@ -65,9 +61,7 @@ class Test_Sqli_BodyUrlEncoded:
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
 @flaky(
-    context.library > "java@1.38.1",
-    context.weblog_variant in ("vertx3", "vertx4", "akka-http", "play"),
-    reason="APPSEC-54578",
+    context.weblog_variant in ("vertx3", "vertx4", "akka-http", "play"), reason="APPSEC-54578",
 )
 class Test_Sqli_BodyXml:
     """ SQL Injection through an xml body parameter """
@@ -94,9 +88,7 @@ class Test_Sqli_BodyXml:
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
 @flaky(
-    context.library > "java@1.38.1",
-    context.weblog_variant in ("vertx3", "vertx4", "akka-http", "play"),
-    reason="APPSEC-54578",
+    context.weblog_variant in ("vertx3", "vertx4", "akka-http", "play"), reason="APPSEC-54578",
 )
 class Test_Sqli_BodyJson:
     """ SQL Injection through a json body parameter """
