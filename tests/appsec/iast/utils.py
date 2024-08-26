@@ -16,25 +16,16 @@ def _get_expectation(d):
     raise TypeError(f"Unsupported expectation type: {d}")
 
 
-def _get_span_meta(request):
+def _get_span_meta(request, metastruct=False):
     spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
     assert spans, "No root span found"
     span = spans[0]
     meta = span.get("meta", {})
-    return meta
-
-
-def _get_span_meta_struct(request):
-    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No root span found"
-    span = spans[0]
     meta_struct = span.get("meta_struct", {})
-    return meta_struct
-
+    return meta, meta_struct
 
 def get_iast_event(request):
-    meta = _get_span_meta(request=request)
-    meta_struct = _get_span_meta_struct(request=request)
+    meta, meta_struct = _get_span_meta(request=request)
 
     if "_dd.iast.json" in meta:
         return meta["_dd.iast.json"]
