@@ -6,7 +6,7 @@ import random
 import tempfile
 from uuid import uuid4
 
-from utils.k8s_lib_injection.k8s_command_utils import execute_command
+from utils.k8s_lib_injection.k8s_command_utils import execute_command, execute_command_sync
 from utils.tools import logger
 from utils import context
 
@@ -109,11 +109,11 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
     # execute_command(f"docker network connect bridge {control_plane_server_container_id}")
 
     # Replace server config with dns name + internal port
-    execute_command(
+    execute_command_sync(
         f"sed -i -e \"s/{control_plane_server}/{k8s_kind_cluster.cluster_name}-control-plane:6443/g\" {os.environ['HOME']}/.kube/config"
     )
 
-    execute_command(f"cat {os.environ['HOME']}/.kube/config")
+    execute_command_sync(f"cat {os.environ['HOME']}/.kube/config")
     k8s_kind_cluster.build_container_id = build_container_id
 
 
