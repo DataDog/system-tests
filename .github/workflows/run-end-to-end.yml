@@ -284,6 +284,11 @@ jobs:
       run: ./run.sh APPSEC_STANDALONE
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_META_STRUCT_ENABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_META_STRUCT_ENABLED"')
+      run: ./run.sh APPSEC_META_STRUCT_ENABLED
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_META_STRUCT_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_META_STRUCT_DISABLED"')
       run: ./run.sh APPSEC_META_STRUCT_DISABLED

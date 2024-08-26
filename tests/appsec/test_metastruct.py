@@ -30,6 +30,7 @@ class Test_SecurityEvents_Appsec_Metastruct_Enabled:
             # There is at least one rule triggered
             assert len(meta_struct["appsec"].get("triggers", [])) > 0
 
+
 @features.security_events_metastruct
 @scenarios.appsec_meta_struct_enabled
 class Test_SecurityEvents_Iast_Metastruct_Enabled:
@@ -56,6 +57,7 @@ class Test_SecurityEvents_Iast_Metastruct_Enabled:
             # There is at least one vulnerability detected
             assert len(meta_struct["iast"].get("vulnerabilities", [])) > 0
 
+
 @features.security_events_metastruct
 @scenarios.appsec_meta_struct_disabled
 class Test_SecurityEvents_Appsec_Metastruct_Disabled:
@@ -80,6 +82,7 @@ class Test_SecurityEvents_Appsec_Metastruct_Disabled:
 
             # There is at least one rule triggered
             assert len(meta["_dd.appsec.json"].get("triggers", [])) > 0
+
 
 @features.security_events_metastruct
 @scenarios.appsec_meta_struct_disabled

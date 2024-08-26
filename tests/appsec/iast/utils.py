@@ -24,6 +24,7 @@ def _get_span_meta(request, metastruct=False):
     meta_struct = span.get("meta_struct", {})
     return meta, meta_struct
 
+
 def get_iast_event(request):
     meta, meta_struct = _get_span_meta(request=request)
 
