@@ -6,8 +6,9 @@ from utils import weblog, context, interfaces, bug, missing_feature, scenarios, 
 
 
 @features.security_events_metastruct
-class Test_SecurityEvents_Metastruct:
-    """Tests to verify that security events are correctly set in meta struct when the agent supports it."""
+@scenarios.appsec_meta_struct_enabled
+class Test_SecurityEvents_Appsec_Metastruct_Enabled:
+    """Test to verify that appsec events are correctly set in meta struct when supported by the agent."""
 
     def setup_appsec_event_use_metastruct(self):
         self.r = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
@@ -28,6 +29,11 @@ class Test_SecurityEvents_Metastruct:
 
             # There is at least one rule triggered
             assert len(meta_struct["appsec"].get("triggers", [])) > 0
+
+@features.security_events_metastruct
+@scenarios.appsec_meta_struct_enabled
+class Test_SecurityEvents_Iast_Metastruct_Enabled:
+    """Test to verify that IAST events are correctly set in meta struct when supported by the agent."""
 
     def setup_iast_event_use_metastruct(self):
         # Using this vulnerability because that's one that is implemented in all tracers
@@ -50,10 +56,14 @@ class Test_SecurityEvents_Metastruct:
             # There is at least one vulnerability detected
             assert len(meta_struct["iast"].get("vulnerabilities", [])) > 0
 
+@features.security_events_metastruct
+@scenarios.appsec_meta_struct_disabled
+class Test_SecurityEvents_Appsec_Metastruct_Disabled:
+    """Test to verify that Appsec events are set in the json tag when meta struct is not supported by the agent."""
+
     def setup_appsec_event_fallback_json(self):
         self.r = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
 
-    @scenarios.appsec_meta_struct_disabled
     def test_appsec_event_fallback_json(self):
         spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)]
         assert spans
@@ -71,11 +81,15 @@ class Test_SecurityEvents_Metastruct:
             # There is at least one rule triggered
             assert len(meta["_dd.appsec.json"].get("triggers", [])) > 0
 
+@features.security_events_metastruct
+@scenarios.appsec_meta_struct_disabled
+class Test_SecurityEvents_Iast_Metastruct_Disabled:
+    """Test to verify that IAST events are set in the json tag when meta struct is not supported by the agent."""
+
     def setup_iast_event_fallback_json(self):
         # Using this vulnerability because that's one that is implemented in all tracers
         self.r = weblog.post("/iast/cmdi/test_insecure", data={"cmd": "echo 'metastruct'"})
 
-    @scenarios.appsec_meta_struct_disabled
     def test_iast_event_fallback_json(self):
         spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)]
         assert spans
