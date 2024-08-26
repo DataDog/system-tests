@@ -289,10 +289,8 @@ public class OpenTelemetryController {
     Span span = getSpan(args.spanId());
     if (span != null) {
       if (args.timestamp() == 0L) {
-        System.out.println("MTOFF: adding "+ args.name());
         span.addEvent(args.name(), parseAttributes(args.attributes()));
       } else {
-        System.out.println("MTOFF: adding "+ args.name());
         span.addEvent(args.name(), parseAttributes(args.attributes()), args.timestamp(), MICROSECONDS);
       }
     }
