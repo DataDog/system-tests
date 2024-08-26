@@ -119,8 +119,12 @@ class ParametricScenario(Scenario):
 
     def configure(self, config):
         super().configure(config)
-        assert "TEST_LIBRARY" in os.environ
-        library = os.getenv("TEST_LIBRARY")
+        if config.option.library:
+            library = config.option.library
+        elif "TEST_LIBRARY" in os.environ:
+            library = os.getenv("TEST_LIBRARY")
+        else:
+            raise ValueError("No library specified, please set -L option")
 
         # get tracer version info building and executing the ddtracer-version.docker file
 
@@ -189,6 +193,10 @@ class ParametricScenario(Scenario):
     @property
     def library(self):
         return self._library
+
+    @property
+    def weblog_variant(self):
+        return f"parametric-{self.library.library}"
 
     def _build_apm_test_server_image(self) -> str:
 
