@@ -1,6 +1,7 @@
 import time
 import os
 import json
+import base64
 
 from kubernetes import client, watch
 
@@ -9,26 +10,69 @@ from utils.k8s_lib_injection.k8s_command_utils import (
     helm_install_chart,
     execute_command_sync,
     path_clusterrole,
+    kubectl_apply,
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
-class K8sDatadogClusterTestAgent:
-    def __init__(self, prefix_library_init_image, output_folder, test_name):
+class K8sDatadog:
+    def __init__(
+        self, prefix_library_init_image, output_folder, test_name, api_key=None, app_key=None, real_agent_image=None
+    ):
         self.k8s_kind_cluster = None
         self.prefix_library_init_image = prefix_library_init_image
         self.output_folder = output_folder
         self.test_name = test_name
         self.logger = None
         self.k8s_wrapper = None
+        self._api_key = api_key
+        self._app_key = app_key
+        self.real_agent_image = real_agent_image
 
     def configure(self, k8s_kind_cluster, k8s_wrapper):
         self.k8s_kind_cluster = k8s_kind_cluster
         self.k8s_wrapper = k8s_wrapper
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
-        self.logger.info(f"K8sDatadogClusterTestAgent configured with cluster: {self.k8s_kind_cluster.cluster_name}")
+        self.logger.info(f"K8sDatadog configured with cluster: {self.k8s_kind_cluster.cluster_name}")
 
-    def desploy_test_agent(self):
+    def deploy_agent(self):
+        """ Installs the real agent daemonset using previously download datadog-agent-apm template.
+        Following this doc: https://docs.datadoghq.com/containers/guide/kubernetes_daemonset/?tab=tcp"""
+        self.logger.info(
+            f"[Real agent] Deploying Datadog test agent on the cluster: {self.k8s_kind_cluster.cluster_name}"
+        )
+        agent_data = ""
+        with open("utils/k8s_lib_injection/resources/datadog-agent-apm.yaml", "r") as file:
+            agent_data = file.read()
+
+        if self.real_agent_image:
+            agent_data = agent_data.replace("gcr.io/datadoghq/agent:7.45.0", self.real_agent_image)
+
+        agent_config = f"{self.output_folder}/{self.k8s_kind_cluster.cluster_name}_datadog-agent-apm.yaml"
+
+        with open(agent_config, "w") as fp:
+            fp.write(agent_data)
+            fp.seek(0)
+        self.logger.info("[real agent] Creating agent")
+        kubectl_apply(
+            self.k8s_kind_cluster,
+            "https://raw.githubusercontent.com/DataDog/datadog-agent/master/Dockerfiles/manifests/rbac/clusterrole.yaml",
+        )
+        kubectl_apply(
+            self.k8s_kind_cluster,
+            "https://raw.githubusercontent.com/DataDog/datadog-agent/master/Dockerfiles/manifests/rbac/serviceaccount.yaml",
+        )
+        kubectl_apply(
+            self.k8s_kind_cluster,
+            "https://raw.githubusercontent.com/DataDog/datadog-agent/master/Dockerfiles/manifests/rbac/clusterrolebinding.yaml",
+        )
+
+        kubectl_apply(self.k8s_kind_cluster, agent_config)
+        self.logger.info("[real agent] Agent created. Waiting for the agent to be ready")
+        self.wait_for_test_agent()
+        self.logger.info("[real agent] Daemonset created")
+
+    def deploy_test_agent(self):
         """ Installs the test agent pod."""
 
         self.logger.info(
@@ -99,127 +143,33 @@ class K8sDatadogClusterTestAgent:
         self.wait_for_test_agent()
         self.logger.info("[Test agent] Daemonset created")
 
-    def deploy_operator_manual(self, use_uds=False):
+    def deploy_datadog_cluster_agent(self, use_uds=False, features={}):
         """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
             It returns when the Cluster Agent pod is ready."""
 
-        self.logger.info("[Deploy operator] Deploying Datadog Operator")
+        self.logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
 
         operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values.yaml"
         if use_uds:
-            self.logger.info("[Deploy operator] Using UDS")
+            self.logger.info("[Deploy datadog cluster] Using UDS")
             operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-uds.yaml"
 
-        self.logger.info("[Deploy operator] Configuring helm repository")
+        self.logger.info("[Deploy datadog cluster] Configuring helm repository")
         helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_kind_cluster, update=True)
 
-        self.logger.info(f"[Deploy operator] helm install datadog with config file [{operator_file}]")
+        self.logger.info(f"[Deploy datadog cluster]helm install datadog with config file [{operator_file}]")
+        datadog_keys = {"datadog.apiKey": self._api_key, "datadog.appKey": self._app_key}
+        if features:
+            features = features | datadog_keys
+        else:
+            features = datadog_keys
 
         helm_install_chart(
-            self.k8s_kind_cluster,
-            "datadog",
-            "datadog/datadog",
-            value_file=operator_file,
-            set_dict={"datadog.apiKey": os.getenv("DD_API_KEY"), "datadog.appKey": os.getenv("DD_APP_KEY")},
+            self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
         )
 
-        self.logger.info("[Deploy operator] Waiting for the operator to be ready")
+        self.logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_operator_ready()
-
-    def deploy_operator_auto(self):
-        """ Installs the Datadog Cluster Agent via helm for auto library injection testing.
-            It returns when the Cluster Agent pod is ready."""
-
-        self.logger.info("[Deploy operator] Using Patcher")
-        operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-auto.yaml"
-
-        self.create_configmap_auto_inject()
-        self.logger.info("[Deploy operator] Configuring helm repository")
-        helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_kind_cluster, update=True)
-
-        self.logger.info(f"[Deploy operator] helm install datadog with config file [{operator_file}]")
-
-        helm_install_chart(
-            self.k8s_kind_cluster,
-            "datadog",
-            "datadog/datadog",
-            value_file=operator_file,
-            set_dict={"datadog.apiKey": os.getenv("DD_API_KEY"), "datadog.appKey": os.getenv("DD_APP_KEY")},
-            prefix_library_init_image=self.prefix_library_init_image,
-        )
-        self._wait_for_operator_ready()
-
-        # TODO: This is a hack until the patching permission is added in the official helm chart.
-        self.logger.info("[Deploy operator] adding patch permissions to the datadog-cluster-agent clusterrole")
-        path_clusterrole(self.k8s_kind_cluster)
-
-        self._wait_for_operator_ready()
-
-    def apply_config_auto_inject(self, config_data, rev=0):
-        """ Applies an configuration change for auto injection.
-            It returns when the targeted deployment finishes the rollout."""
-
-        self.logger.info(f"[Auto Config] Applying config for auto-inject: {config_data}")
-        metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
-        configmap = client.V1ConfigMap(kind="ConfigMap", data={"auto-instru.json": config_data,}, metadata=metadata)
-        r = self.k8s_wrapper.replace_namespaced_config_map(name="auto-instru", body=configmap)
-        self.logger.info(f"[Auto Config] Configmap replaced!")
-        k8s_logger(self.output_folder, self.test_name, "applied_configmaps").info(r)
-        self.wait_configmap_auto_inject(timeout=150, rev=rev)
-
-    def create_configmap_auto_inject(self):
-        """ Minimal configuration needed when we install operator auto """
-
-        self.logger.info("[Auto Config] Creating configmap for auto-inject")
-        metadata = client.V1ObjectMeta(name="auto-instru", namespace="default",)
-        configmap = client.V1ConfigMap(
-            kind="ConfigMap",
-            data={
-                "auto-instru.json": """| 
-                []""",
-            },
-            metadata=metadata,
-        )
-        self.k8s_wrapper.create_namespaced_config_map(body=configmap)
-        time.sleep(5)
-
-    def wait_configmap_auto_inject(self, timeout=90, rev=0):
-        """ wait for the configmap to be read by the datadog-cluster-agent."""
-
-        patch_id = "11777398274940883092"
-        self.logger.info("[Auto Config] Waiting for the configmap to be read by the datadog-cluster-agent.")
-        # First we need to wait for the configmap to be created
-        w = watch.Watch()
-        for event in w.stream(
-            func=self.k8s_wrapper.list_namespaced_config_map, namespace="default", timeout_seconds=timeout
-        ):
-            k8s_logger(self.output_folder, self.test_name, "events_configmaps").info(event)
-            if (
-                event["type"] == "ADDED"
-                and hasattr(event["object"], "metadata")
-                and event["object"].metadata.name == "auto-instru"
-            ):
-                self.logger.info("[Auto Config] Configmap applied!")
-                w.stop()
-                break
-
-        # Second wait for datadog-cluster-agent read the configmap
-        expected_log = f'Applying Remote Config ID "{patch_id}" with revision "{rev}" and action'
-        pods = self.k8s_wrapper.list_namespaced_pod("default", label_selector="app=datadog-cluster-agent")
-        assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
-        pod_cluster_agent_name = pods.items[0].metadata.name
-        timeout = time.time() + timeout
-        while True:
-            api_response = self.k8s_wrapper.read_namespaced_pod_log(name=pod_cluster_agent_name)
-            if api_response is not None:
-                for log_line in api_response.splitlines():
-                    if log_line.find(expected_log) != -1:
-                        self.logger.info(f"Configmap read by datadog-cluster-agent: {log_line}")
-                        return
-            if time.time() > timeout:
-                self.logger.error(f"Timeout waiting for the datadog-cluster-agent to read the configmap")
-                raise TimeoutError("Timeout waiting for the datadog-cluster-agent to read the configmap")
-            time.sleep(5)
 
     def wait_for_test_agent(self):
         """ Waits for the test agent to be ready."""
@@ -232,6 +182,8 @@ class K8sDatadogClusterTestAgent:
                 self.logger.info(f"[Test agent] daemonset status datadog running!")
                 daemonset_created = True
                 break
+            elif daemonset_status is None:
+                self.logger.info(f"[Test agent] daemonset status datadog not found")
             time.sleep(5)
 
         if not daemonset_created:

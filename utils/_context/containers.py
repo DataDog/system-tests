@@ -658,7 +658,7 @@ class WeblogContainer(TestedContainer):
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs",):
+        if self.library in ("nodejs", "python"):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -685,18 +685,14 @@ class WeblogContainer(TestedContainer):
         else:
             self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
-        if self.weblog_variant == "python3.12":
-            if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
-                self.environment["DD_PROFILING_ENABLED"] = "false"
-
     def post_start(self):
         from utils import weblog
 
         logger.debug(f"Docker host is {weblog.domain}")
 
-        # new way of getting info from the weblog. Only working for nodejs right now
+        # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library == "nodejs":
+        if self.library in ("nodejs", "python"):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
@@ -749,6 +745,10 @@ class PostgresContainer(SqlDbTestedContainer):
             image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
+            # healthcheck={
+            #     "test": "pg_isready -q -U postgres -d system_tests_dbname",
+            #     "retries": 30,
+            # },
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
@@ -1001,15 +1001,12 @@ class MountInjectionVolume(TestedContainer):
             name=name,
             host_log_folder=host_log_folder,
             command="/bin/true",
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/package", "mode": "rw"},},
         )
 
     def _lib_init_image(self, lib_init_image):
         self.image = ImageInfo(lib_init_image)
-        if "dd-lib-js-init" in lib_init_image:
-            self.kwargs["volumes"] = {
-                _VOLUME_INJECTOR_NAME: {"bind": "/operator-build", "mode": "rw"},
-            }
+        # Dotnet compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {
                 _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},

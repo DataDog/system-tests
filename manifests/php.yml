@@ -205,6 +205,8 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
+    test_debugger_exception_replay.py:
+      Test_Debugger_Exception_Replay: irrelevant
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: irrelevant
     test_debugger_pii.py:
@@ -291,7 +293,7 @@ tests/:
       Test_Trace_Sampling_Tags_Feb2024_Revision: v0.96.0
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
-      Test_TracerSCITagging: missing_feature
+      Test_TracerSCITagging: v1.2.0
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
   remote_config/:

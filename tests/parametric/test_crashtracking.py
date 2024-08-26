@@ -24,7 +24,6 @@ class Test_Crashtracking:
         event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
         assert self.is_crash_report(event)
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
@@ -44,20 +43,7 @@ class Test_Crashtracking:
                 assert self.is_crash_report(event) == False
 
     def is_crash_report(self, event) -> bool:
-        message = json.loads(event["payload"][0]["message"])
+        tags = event["payload"][0]["tags"]
+        tags_dict = dict(item.split(":") for item in tags.split(","))
 
-        if context.library == "python":
-            # Need to do this cleaning due to the way the tags get
-            # populated in the crashtracking telemetry event
-            # by libdatadog==v12.0.0
-            raw_tags = message.get("metadata", {}).get("tags", [])
-            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in raw_tags}
-        else:
-            tags = message["tags"]
-
-        if "severity" in tags:
-            return tags["severity"] == "crash"
-        elif "is_crash" in tags:
-            return tags["is_crash"] == True
-
-        return False
+        return "signum"

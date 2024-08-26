@@ -1,6 +1,7 @@
 [
   {
     "language": "",
+    "type": "",
     "id": "loga0cf2-meth-45cf-9f39-591received",
     "where": {
       "typeName": "NotReallyExists",
@@ -11,6 +12,7 @@
   },
   {
     "language": "",
+    "type": "",
     "id": "loga0cf2-meth-45cf-9f39-59installed",
     "where": {
       "typeName": "ACTUAL_TYPE_NAME",
@@ -21,6 +23,7 @@
   },
   {
     "language": "",
+    "type": "",
     "id": "loga0cf2-line-45cf-9f39-59installed",
     "where": {
       "typeName": null,
