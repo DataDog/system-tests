@@ -12,7 +12,6 @@ from utils import bug, context, features, irrelevant, missing_feature, rfc, scen
 @scenarios.parametric
 @features.crashtracking
 class Test_Crashtracking:
-    @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
@@ -24,7 +23,6 @@ class Test_Crashtracking:
         event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
         assert self.is_crash_report(event)
 
-    @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")

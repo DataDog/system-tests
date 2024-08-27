@@ -1104,6 +1104,8 @@ tests/:
     test_sql.py:
       Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
   parametric/:
+    test_crashtracking.py:
+      Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.34.0
