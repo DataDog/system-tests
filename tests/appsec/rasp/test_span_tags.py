@@ -30,6 +30,7 @@ class Test_Mandatory_SpanTags:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(library="java", reason="Not supported yet")
     def test_lfi_span_tags(self):
         validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration"])
 
@@ -58,6 +59,7 @@ class Test_Optional_SpanTags:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     @missing_feature(library="nodejs", reason="Not supported yet")
+    @missing_feature(library="java", reason="Not supported yet")
     def test_lfi_span_tags(self):
         validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
