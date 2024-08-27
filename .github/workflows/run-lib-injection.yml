@@ -54,7 +54,7 @@ jobs:
           "java": ["gcr.io/datadoghq/dd-lib-java-init:latest"],
           "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest"],
           "php": [],
-          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:dde426217bedc2d20ae439e1383ced8e3b7c74ce-amd64"],
+          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:9f00f11f1ab318250b6c8f5354cf68e6e1edf2f1-amd64"],
           "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest"],
         }
 
@@ -65,7 +65,7 @@ jobs:
           "java": ["ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
           "nodejs": ["ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
           "php": [],
-          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:442a31535218ef94056b214913a1669abbfdd58e-amd64"], ##"gcr.io/datadoghq/dd-lib-python-init:v2.10.4"], ##"ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
+          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:5b129fbc516388a6e0550f0d2ee0ded583c4857a-amd64"], ##"gcr.io/datadoghq/dd-lib-python-init:v2.10.4"], ##"ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
           "ruby": ["ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
         }
         #All weblog variants
