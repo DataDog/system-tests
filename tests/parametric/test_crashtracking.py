@@ -46,4 +46,4 @@ class Test_Crashtracking:
         tags = event["payload"][0]["tags"]
         tags_dict = dict(item.split(":") for item in tags.split(","))
 
-        return "signum"
+        return "signum" in tags_dict
