@@ -83,7 +83,7 @@ jobs:
       run: |
         HASH=$(uuidgen | tr -d '-' | head -c 10)
         UNIQUE_ID=${HASH}_${{ inputs.library }}_${{ matrix.weblog }}
-        echo "::set-output name=unique_id::$UNIQUE_ID"
+        echo "UNIQUE_ID=$UNIQUE_ID" >> $GITHUB_ENV
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
