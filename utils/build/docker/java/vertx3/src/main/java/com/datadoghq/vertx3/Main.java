@@ -4,6 +4,8 @@ import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
+import com.datadoghq.vertx3.rasp.RaspRouteProvider;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -12,6 +14,8 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.http.HttpClient;
 
 import javax.naming.directory.InitialDirContext;
 import javax.sql.DataSource;
@@ -26,6 +30,8 @@ import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
+import okhttp3.*;
+
 public class Main {
     static {
         try {
@@ -36,6 +42,8 @@ public class Main {
             throw new UndeclaredThrowableException(e);
         }
     }
+
+    private static final OkHttpClient client = new OkHttpClient();
 
     public static void main(String[] args) {
         Vertx vertx = Vertx.vertx();
@@ -111,6 +119,17 @@ public class Main {
                     int code = Integer.parseInt(codeString);
                     ctx.response().setStatusCode(code).end();
                 });
+        router.get("/users")
+                .handler(ctx -> {
+                    final String user = ctx.request().getParam("user");
+                    final Span span = GlobalTracer.get().activeSpan();
+                    if ((span instanceof MutableSpan)) {
+                        MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+                        localRootSpan.setTag("usr.id", user);
+                    }
+                    Blocking.forUser(user).blockIfMatch();
+                    ctx.response().end("Hello " + user);
+                });
         router.get("/user_login_success_event")
                 .handler(ctx -> {
                     String event_user_id = ctx.request().getParam("event_user_id");
@@ -147,14 +166,47 @@ public class Main {
                             .trackCustomEvent(event_name, METADATA);
                     ctx.response().end("ok");
                 });
+        router.get("/requestdownstream")
+                .handler(ctx -> {
+                    String url = "http://localhost:7777/returnheaders";
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            ctx.response().setStatusCode(500).end(e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                ctx.response().setStatusCode(500).end(response.message());
+                            } else {
+                                ctx.response().end(response.body().string());
+                            }
+                        }
+                    });
+                });
+        router.get("/returnheaders")
+                .handler(ctx -> {
+                    JsonObject headersJson = new JsonObject();
+                    ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
+                    ctx.response().end(headersJson.encode());
+                });
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
-
+        raspRouteProviders().forEach(provider -> provider.accept(router));
         server.requestHandler(router::accept).listen(7777);
     }
 
     private static Stream<Consumer<Router>> iastRouteProviders() {
         return Stream.of(new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT), new IastSourceRouteProvider(DATA_SOURCE));
+    }
+
+    private static Stream<Consumer<Router>> raspRouteProviders() {
+        return Stream.of(new RaspRouteProvider(DATA_SOURCE));
     }
 
     private static final Map<String, String> METADATA = createMetadata();

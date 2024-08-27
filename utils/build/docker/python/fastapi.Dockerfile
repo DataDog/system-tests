@@ -1,8 +1,8 @@
-FROM datadog/system-tests:fastapi.base-v0
+FROM datadog/system-tests:fastapi.base-v1
 
 WORKDIR /app
 
-COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
+COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 RUN python3.10 -m pip install --upgrade pip
 RUN python3.10 -m pip install PyYAML uvicorn requests psycopg2-binary python-multipart

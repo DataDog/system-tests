@@ -43,7 +43,7 @@ public class RabbitmqConnectorForTopicExchange extends RabbitmqConnector {
         channel.queueBind(TOPIC_EXCHANGE_QUEUE_3, TOPIC_EXCHANGE_NAME, "test.topic.chocolate.*");
 	}
 
-    public void startProducingMessages() throws Exception {
+    public Thread startProducingMessages() throws Exception {
         Thread thread = new Thread("RabbitmqProduce_Topic") {
             public void run() {
                 String message = "hello world";
@@ -61,9 +61,10 @@ public class RabbitmqConnectorForTopicExchange extends RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 
-    public void startConsumingMessages() throws Exception {
+    public Thread startConsumingMessages() throws Exception {
         Thread thread = new Thread("RabbitmqConsume_Topic") {
             public void run() {
                 try {
@@ -81,5 +82,6 @@ public class RabbitmqConnectorForTopicExchange extends RabbitmqConnector {
             }
         };
         thread.start();
+        return thread;
     }
 }

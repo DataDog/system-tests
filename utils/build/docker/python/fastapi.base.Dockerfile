@@ -9,6 +9,10 @@ RUN python --version && curl --version
 # install python deps
 RUN pip install fastapi uvicorn
 
+# Install Rust toolchain
+RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
+ENV PATH="/root/.cargo/bin:$PATH"
+
 RUN mkdir app
 WORKDIR /app
 

@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, irrelevant, features
-from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
+from utils import context, irrelevant, features, missing_feature, flaky
+from ..utils import BaseSinkTestWithoutTelemetry
 
 
 def _expected_location():
@@ -40,12 +40,18 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     def test_insecure(self):
         super().test_insecure()
 
+    # there is probably an issue with how system test handles redirection
+    # it's suspicious that three deifferent languages have the same issue
     @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
+    @missing_feature(library="dotnet", reason="weblog does not respond")
+    @missing_feature(library="java", reason="weblog does not respond")
+    @missing_feature(library="nodejs", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 
 
 @features.iast_sink_unvalidatedheader
+@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection threw header."""
 
@@ -55,3 +61,9 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     secure_endpoint = "/iast/unvalidated_redirect/test_secure_header"
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
+
+    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 405")
+    @missing_feature(context.weblog_variant == "resteasy-netty3", reason="Endpoint responds 405")
+    @missing_feature(context.weblog_variant == "vertx3", reason="Endpoint responds 403")
+    def test_secure(self):
+        return super().test_secure()

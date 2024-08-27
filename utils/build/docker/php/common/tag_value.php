@@ -30,4 +30,13 @@ foreach ($_GET as $key => $value) {
 if ($response_code !== 200) {
     http_response_code($response_code);
 }
-echo "Value tagged";
+
+$body = "Value tagged";
+$payloadInResponse = 'payload_in_response_body';
+if (substr($value, 0, strlen($payloadInResponse)) === $payloadInResponse && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	header('content-type: application/json');
+	parse_str(file_get_contents('php://input'), $parsedRequest);
+	$body = sprintf('{"payload": %s }', json_encode($parsedRequest));
+}
+
+echo $body;

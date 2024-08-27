@@ -24,6 +24,7 @@ RUN pip show opentelemetry-distro | grep Version: | cut -d' ' -f2 > SYSTEM_TESTS
 RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
+ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 ENV FLASK_APP=app.py
 CMD ./app.sh
 

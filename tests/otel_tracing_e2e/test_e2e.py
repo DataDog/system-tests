@@ -4,9 +4,9 @@ import time
 
 from utils import context, weblog, interfaces, scenarios, irrelevant
 from utils.tools import logger, get_rid_from_request
-from ._test_validator_trace import validate_all_traces
-from ._test_validator_log import validate_log, validate_log_trace_correlation
-from ._test_validator_metric import validate_metrics
+from utils.otel_validators.validator_trace import validate_all_traces
+from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
+from utils.otel_validators.validator_metric import validate_metrics
 
 
 def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
@@ -101,6 +101,19 @@ class Test_OTelMetricE2E:
                 for metric in self.expected_metrics
             ]
 
+            # The 2nd account has metrics via the backend OTLP intake endpoint
+            metrics_intake = [
+                interfaces.backend.query_timeseries(
+                    start=self.start,
+                    end=end,
+                    rid=rid,
+                    metric=metric,
+                    dd_api_key=os.environ["DD_API_KEY_2"],
+                    dd_app_key=os.environ.get("DD_APP_KEY_2"),
+                )
+                for metric in self.expected_metrics
+            ]
+
             # The 3rd account has metrics sent by OTel Collector
             metrics_collector = [
                 interfaces.backend.query_timeseries(
@@ -118,7 +131,8 @@ class Test_OTelMetricE2E:
             logger.warning("Backend does not provide series")
             return
 
-        validate_metrics(metrics_agent, metrics_collector)
+        validate_metrics(metrics_agent, metrics_collector, "Agent", "Collector")
+        validate_metrics(metrics_agent, metrics_intake, "Agent", "Intake")
 
 
 @scenarios.otel_log_e2e

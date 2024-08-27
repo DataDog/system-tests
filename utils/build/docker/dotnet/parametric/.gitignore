@@ -1,9 +1,0 @@
-.idea/
-.vs/
-.vscode/
-bin/
-obj/
-packages/
-out/
-*.user
-*.suo

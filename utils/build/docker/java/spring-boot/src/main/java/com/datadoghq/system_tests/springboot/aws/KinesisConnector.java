@@ -63,7 +63,7 @@ public class KinesisConnector {
         }
     }
 
-    public void startProducingMessage(String message) throws Exception {
+    public Thread startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("KinesisProduce") {
             public void run() {
                 try {
@@ -76,9 +76,10 @@ public class KinesisConnector {
         };
         thread.start();
         System.out.println("[Kinesis] Started Kinesis producer thread");
+        return thread;
     }
 
-    public void startConsumingMessages(int timeout) throws Exception {
+    public Thread startConsumingMessages(int timeout) throws Exception {
         Thread thread = new Thread("KinesisConsume") {
             public void run() {
                 boolean recordFound = false;
@@ -94,6 +95,7 @@ public class KinesisConnector {
         };
         thread.start();
         System.out.println("[Kinesis] Started consumer thread");
+        return thread;
     }
 
     public void produceMessageWithoutNewThread(String message) throws Exception {
@@ -103,7 +105,7 @@ public class KinesisConnector {
 
         long startTime = System.currentTimeMillis();
         long endTime = startTime + 60000;
-    
+
         while (System.currentTimeMillis() < endTime) {
             try {
                 PutRecordRequest putRecordRequest = PutRecordRequest.builder()
@@ -123,10 +125,10 @@ public class KinesisConnector {
 
     public boolean consumeMessageWithoutNewThread(int timeout) throws Exception {
         KinesisClient kinesisClient = this.createKinesisClient();
-    
+
         long startTime = System.currentTimeMillis();
         long endTime = startTime + timeout * 1000; // Convert timeout to milliseconds
-    
+
         while (System.currentTimeMillis() < endTime) {
             try {
                 DescribeStreamRequest describeStreamRequest = DescribeStreamRequest.builder()
@@ -134,27 +136,27 @@ public class KinesisConnector {
                     .build();
                 DescribeStreamResponse describeStreamResponse = kinesisClient.describeStream(describeStreamRequest);
                 StreamStatus streamStatus = describeStreamResponse.streamDescription().streamStatus();
-        
+
                 if (streamStatus != StreamStatus.ACTIVE) {
                     System.out.println("[Kinesis] Kinesis Stream is not active");
                     Thread.sleep(1000); // Wait 1 second before checking again
                     continue;
                 }
-        
+
                 String shardIterator = kinesisClient.getShardIterator(r -> r.streamName(this.stream).shardId("shardId-000000000000").shardIteratorType(ShardIteratorType.TRIM_HORIZON)).shardIterator();
-        
+
                 GetRecordsRequest getRecordsRequest = GetRecordsRequest.builder()
                     .shardIterator(shardIterator)
                     .limit(1)
                     .build();
-        
+
                 GetRecordsResponse getRecordsResponse = kinesisClient.getRecords(getRecordsRequest);
                 List<Record> records = getRecordsResponse.records();
-        
+
                 for (Record record : records) {
                     System.out.println("[Kinesis] got message! " + new String(record.data().asByteArray()));
                 }
-        
+
                 if (!records.isEmpty()) {
                     return true;
                 }

@@ -1,5 +1,6 @@
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Union
 
@@ -28,6 +29,7 @@ from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
 from ddtrace.propagation.http import HTTPPropagator
+from ddtrace.internal.utils.version import parse_version
 
 
 spans: Dict[int, Span] = {}
@@ -84,8 +86,8 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
     for link in args.links:
-        link_parent_id = link["parent_id"]
-        if link_parent_id != 0:  # we have a parent_id to create link instead
+        link_parent_id = link.get("parent_id", 0)
+        if link_parent_id > 0:  # we have a parent_id to create link instead
             link_parent = spans[link_parent_id]
             span.link_span(link_parent.context, link.get("attributes"))
         else:
@@ -103,6 +105,30 @@ class SpanFinishArgs(BaseModel):
 
 class SpanFinishReturn(BaseModel):
     pass
+
+
+class TraceConfigReturn(BaseModel):
+    config: dict[str, Optional[str]]
+
+
+@app.get("/trace/config")
+def trace_config() -> TraceConfigReturn:
+    return TraceConfigReturn(
+        config={
+            "dd_service": config.service,
+            "dd_log_level": None,
+            "dd_trace_sample_rate": str(config._trace_sample_rate),
+            "dd_trace_enabled": str(config._tracing_enabled).lower(),
+            "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
+            "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
+            "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
+            "dd_trace_debug": str(config._debug_mode).lower(),
+            "dd_trace_otel_enabled": str(config._otel_enabled).lower(),
+            "dd_trace_sample_ignore_parent": None,
+            "dd_env": config.env,
+            "dd_version": config.version,
+        }
+    )
 
 
 @app.post("/trace/span/finish")
@@ -156,9 +182,13 @@ class SpanInjectReturn(BaseModel):
 
 @app.post("/trace/span/inject_headers")
 def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
-    ctx = spans[args.span_id].context
+    span = spans[args.span_id]
     headers = {}
-    HTTPPropagator.inject(ctx, headers)
+    # span was added as a kwarg for inject in ddtrace 2.8
+    if get_ddtrace_version() >= (2, 8, 0):
+        HTTPPropagator.inject(span.context, headers, span)
+    else:
+        HTTPPropagator.inject(span.context, headers)
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
@@ -344,6 +374,41 @@ def otel_start_span(args: OtelStartSpanArgs):
     return OtelStartSpanReturn(span_id=ctx.span_id, trace_id=ctx.trace_id)
 
 
+class OtelAddEventReturn(BaseModel):
+    pass
+
+
+class OtelAddEventArgs(BaseModel):
+    span_id: int
+    name: str
+    timestamp: Optional[int] = None
+    attributes: Optional[dict] = None
+
+
+@app.post("/trace/otel/add_event")
+def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
+    span = otel_spans[args.span_id]
+    span.add_event(args.name, args.attributes, args.timestamp)
+    return OtelAddEventReturn()
+
+
+class OtelRecordExceptionReturn(BaseModel):
+    pass
+
+
+class OtelRecordExceptionArgs(BaseModel):
+    span_id: int
+    message: str
+    attributes: dict
+
+
+@app.post("/trace/otel/record_exception")
+def otel_record_exception(args: OtelRecordExceptionArgs) -> OtelRecordExceptionReturn:
+    span = otel_spans[args.span_id]
+    span.record_exception(Exception(args.message), args.attributes)
+    return OtelRecordExceptionReturn()
+
+
 class OtelEndSpanArgs(BaseModel):
     id: int
     timestamp: int
@@ -473,6 +538,10 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
     attributes = args.attributes
     span.set_attributes(attributes)
     return OtelSetAttributesReturn()
+
+
+def get_ddtrace_version() -> Tuple[int, int, int]:
+    return parse_version(getattr(ddtrace, "__version__", ""))
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests

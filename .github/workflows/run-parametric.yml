@@ -1,32 +1,47 @@
 name: Parametric
 on:
   workflow_call:
+    inputs:
+      library:
+        description: "Library to test"
+        required: true
+        type: string
+      binaries_artifact:
+        description: "Artifact name containing the binaries to test"
+        default: ''
+        required: false
+        type: string
+      ci_environment:
+        description: "Which CI environment is running the tests, used for FPD"
+        default: 'custom'
+        required: false
+        type: string
+      _experimental_job_count:
+        description: "How many job should be spawned for the parametric test"
+        default: 1
+        required: false
+        type: number
+      _experimental_job_matrix:
+        # github action syntax is not very powerfull, it require a job to compute this.
+        # => save on job, by asking the caller to compute this list
+        description: "Job matrix, JSON array of number from 1 to _experimental_job_count"
+        default: '[1]'
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
 jobs:
+
   parametric:
     runs-on:
       group: "APM Larger Runners"
     strategy:
-      matrix:
-        library:
-          - cpp
-          - dotnet
-          - golang
-          - java
-          - nodejs
-          - php
-          - python
-          - ruby
-        version:
-          - prod
-          - dev
- 
       fail-fast: false
+      matrix:
+        job_instance: ${{ fromJson( inputs._experimental_job_matrix ) }}
     env:
-      TEST_LIBRARY: ${{ matrix.library }}
-      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ matrix.version }}
+      SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Checkout
@@ -35,17 +50,20 @@ jobs:
           repository: 'DataDog/system-tests'
       - name: Install runner
         uses: ./.github/actions/install_runner
-      - name: Load library binary
-        if: ${{ matrix.version == 'dev' }}
-        run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
+      - name: Get binaries artifact
+        if : ${{ inputs.binaries_artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.binaries_artifact }}
+          path: binaries/
       - name: Run parametric tests (with timeout)
-        if: ${{ matrix.library == 'java' }}
+        if: ${{ inputs.library == 'java' }}
         run: |
           set +e
           RUN_ATTEMPTS=1
           while [ $RUN_ATTEMPTS -le 3 ]; do
             echo "Running parametric test attempt $RUN_ATTEMPTS"
-            timeout 720s ./run.sh PARAMETRIC
+            timeout 720s ./run.sh PARAMETRIC -L ${{ inputs.library }} --splits=${{ inputs._experimental_job_count }} --group=${{ matrix.job_instance }}
             status=$?
             #timneout returns 124 if it times out
             #if the return code is not 124, then we exit with the status
@@ -58,10 +76,10 @@ jobs:
               #Max attempts reached, exit with 124
               exit 124
             fi
-          done          
+          done
       - name: Run parametric (without timeout)
-        if: ${{ matrix.library != 'java' }}
-        run: ./run.sh PARAMETRIC
+        if: ${{ inputs.library != 'java' }}
+        run: ./run.sh PARAMETRIC -L ${{ inputs.library }} --splits=${{ inputs._experimental_job_count }} --group=${{ matrix.job_instance }}
       - name: Compress logs
         id: compress_logs
         if: always()
@@ -70,13 +88,10 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_parametric_${{ matrix.library}}_parametric_${{ matrix.version }}
+          name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}
           path: artifact.tar.gz
-      - name: Upload results CI Visibility
-        if: ${{ always() }}
-        run: ./utils/scripts/upload_results_CI_visibility.sh ${{ matrix.version }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-        env:
-          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
-      - name: Print fancy log report
-        if: ${{ always() }}
-        run: python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY
+      # - name: Upload results CI Visibility
+      #   if: ${{ always() }}
+      #   run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.ci_environment }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+      #   env:
+      #     DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}

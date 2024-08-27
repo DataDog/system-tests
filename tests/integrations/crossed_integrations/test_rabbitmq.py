@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tests.integrations.crossed_integrations.test_kafka import _java_buddy
+from utils.buddies import java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
@@ -14,6 +14,8 @@ class _Test_RabbitMQ:
     WEBLOG_TO_BUDDY_QUEUE = None
     WEBLOG_TO_BUDDY_EXCHANGE = None
     BUDDY_TO_WEBLOG_EXCHANGE = None
+    BUDDY_TO_WEBLOG_ROUTING_KEY = None
+    WEBLOG_TO_BUDDY_ROUTING_KEY = None
     buddy = None
     buddy_interface = None
 
@@ -39,11 +41,12 @@ class _Test_RabbitMQ:
                     continue
 
                 meta = span.get("meta")
-                component = meta.get("component", "")
                 if (
                     queue.lower() not in span.get("resource").lower()
                     and exchange.lower() not in span.get("resource").lower()
-                    and queue.lower() not in meta.get(f"{component}.routing_key", "").lower()
+                    and queue.lower() not in meta.get(f"rabbitmq.routing_key", "").lower()
+                    # this is where we find the queue name in dotnet 👇
+                    and queue.lower() not in meta.get(f"amqp.routing_key", "").lower()
                 ):
                     continue
 
@@ -61,12 +64,21 @@ class _Test_RabbitMQ:
 
         self.production_response = weblog.get(
             "/rabbitmq/produce",
-            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE},
+            params={
+                "queue": self.WEBLOG_TO_BUDDY_QUEUE,
+                "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE,
+                "routing_key": self.WEBLOG_TO_BUDDY_ROUTING_KEY,
+            },
             timeout=60,
         )
         self.consume_response = self.buddy.get(
             "/rabbitmq/consume",
-            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE, "timeout": 60},
+            params={
+                "queue": self.WEBLOG_TO_BUDDY_QUEUE,
+                "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE,
+                "routing_key": self.WEBLOG_TO_BUDDY_ROUTING_KEY,
+                "timeout": 60,
+            },
             timeout=61,
         )
 
@@ -119,12 +131,21 @@ class _Test_RabbitMQ:
 
         self.production_response = self.buddy.get(
             "/rabbitmq/produce",
-            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "exchange": self.BUDDY_TO_WEBLOG_EXCHANGE},
+            params={
+                "queue": self.BUDDY_TO_WEBLOG_QUEUE,
+                "exchange": self.BUDDY_TO_WEBLOG_EXCHANGE,
+                "routing_key": self.BUDDY_TO_WEBLOG_ROUTING_KEY,
+            },
             timeout=60,
         )
         self.consume_response = weblog.get(
             "/rabbitmq/consume",
-            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE, "timeout": 60},
+            params={
+                "queue": self.BUDDY_TO_WEBLOG_QUEUE,
+                "exchange": self.WEBLOG_TO_BUDDY_EXCHANGE,
+                "routing_key": self.BUDDY_TO_WEBLOG_ROUTING_KEY,
+                "timeout": 60,
+            },
             timeout=61,
         )
 
@@ -172,7 +193,7 @@ class _Test_RabbitMQ:
         It works the same for both test_produce and test_consume
         """
 
-        # Check that the producer did not created any consumer span
+        # Check that the producer did not create any consumer span
         assert (
             self.get_span(
                 producer_interface,
@@ -184,7 +205,7 @@ class _Test_RabbitMQ:
             is None
         )
 
-        # Check that the consumer did not created any producer span
+        # Check that the consumer did not create any producer span
         assert (
             self.get_span(
                 consumer_interface, span_kind="producer", queue=queue, exchange=exchange, operation=["publish"],
@@ -213,8 +234,10 @@ class _Test_RabbitMQ:
 @features.rabbitmq_span_creationcontext_propagation_with_dd_trace
 class Test_RabbitMQ_Trace_Context_Propagation(_Test_RabbitMQ):
     buddy_interface = interfaces.java_buddy
-    buddy = _java_buddy
+    buddy = java_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_RabbitMQ_Propagation_weblog_to_buddy"
     WEBLOG_TO_BUDDY_EXCHANGE = "Test_RabbitMQ_Propagation_weblog_to_buddy_exchange"
+    WEBLOG_TO_BUDDY_ROUTING_KEY = "Test_RabbitMQ_Propagation_weblog_to_buddy_routing_key"
     BUDDY_TO_WEBLOG_QUEUE = "Test_RabbitMQ_Propagation_buddy_to_weblog"
     BUDDY_TO_WEBLOG_EXCHANGE = "Test_RabbitMQ_Propagation_buddy_to_weblog_exchange"
+    BUDDY_TO_WEBLOG_ROUTING_KEY = "Test_RabbitMQ_Propagation_buddy_to_weblog_routing_key"

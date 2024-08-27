@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import context, missing_feature, flaky, features
-from .._test_iast_fixtures import BaseSinkTest
+from ..utils import BaseSinkTest
 
 
 @features.weak_cipher_detection
@@ -20,7 +20,6 @@ class TestWeakCipher(BaseSinkTest):
     }
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 
-    @flaky(library="python", reason="PATH_TRAVERSAL on Crypto.Cipher.AES is reported, approx 10%")
     def test_secure(self):
         super().test_secure()
 

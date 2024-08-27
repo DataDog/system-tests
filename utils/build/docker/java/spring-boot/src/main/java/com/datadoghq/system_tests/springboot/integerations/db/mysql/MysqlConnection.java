@@ -10,7 +10,7 @@ public class MysqlConnection implements IDBConnector {
             throws SQLException, ClassNotFoundException {
         String dbDriver = "com.mysql.jdbc.Driver";
         String dbURL = "jdbc:mysql://mysqldb:3306/";
-        String dbName = "world";
+        String dbName = "mysql_dbname";
         String dbUsername = "mysqldb";
         String dbPassword = "mysqldb";
 

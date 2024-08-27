@@ -20,19 +20,24 @@ async function rabbitmqConsume (queue, timeout) {
   await channel.assertQueue(queue)
 
   return new Promise((resolve, reject) => {
-    const handleMessage = async (msg) => {
-      console.log({
-        value: msg.content.toString()
-      })
-      channel.ack(msg)
-      resolve()
+    try {
+      const handleMessage = async (msg) => {
+        console.log({
+          value: msg.content.toString()
+        })
+        console.log(msg.properties.headers)
+        channel.ack(msg)
+        resolve()
+      }
+
+      channel.consume(queue, handleMessage)
+
+      setTimeout(() => {
+        reject(new Error('Message not received'))
+      }, timeout) // Set a timeout of n seconds for message reception
+    } catch (e) {
+      reject(e)
     }
-
-    channel.consume(queue, handleMessage)
-
-    setTimeout(() => {
-      reject(new Error('Message not received'))
-    }, timeout) // Set a timeout of n seconds for message reception
   })
     .finally(async () => {
       await channel.close()

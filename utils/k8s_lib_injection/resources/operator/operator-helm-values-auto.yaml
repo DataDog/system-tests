@@ -1,0 +1,47 @@
+agents:
+  enabled: false
+datadog:
+  clusterName: $$CLUSTER_NAME$$
+  logLevel: DEBUG
+  apm:
+    enabled: true
+    portEnabled: true
+clusterAgent:
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 12
+  readinessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 12
+  image:
+    #tag: master
+    #repository: datadog/cluster-agent-dev
+    #tag: liliya-belaus-7-52-0-rc2-test
+    #repository: datadog/cluster-agent-dev
+    pullPolicy: Always
+    doNotCheckTag: true
+  env:
+    - name: DD_REMOTE_CONFIGURATION_ENABLED
+      value: "false"
+    - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PATCHER_ENABLED
+      value: "true"
+    - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PATCHER_FALLBACK_TO_FILE_PROVIDER
+      value: "true"
+    - name: DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_CONTAINER_REGISTRY
+      value: "$$PREFIX_INIT_IMAGE$$"
+  volumes:
+    - name: auto-instru
+      configMap:
+        name: auto-instru
+        items:
+        - key: auto-instru.json
+          path: auto-instru.json
+  volumeMounts:
+    - name: auto-instru
+      mountPath: /etc/datadog-agent/patch

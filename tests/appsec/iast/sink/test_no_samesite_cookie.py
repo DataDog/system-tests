@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, bug, weblog, features
-from .._test_iast_fixtures import BaseSinkTest
+from ..utils import BaseSinkTest
 
 
 @features.iast_sink_samesite_cookie
@@ -24,6 +24,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
     def setup_empty_cookie(self):
         self.request_empty_cookie = weblog.get("/iast/no-samesite-cookie/test_empty_cookie", data={})
 
+    @missing_feature(library="python", reason="Endpoint not implemented")
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)
 

@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"weblog/internal/rasp"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
@@ -184,6 +185,10 @@ func main() {
 		}
 		w.Write([]byte(content))
 	})
+
+	mux.HandleFunc("/rasp/lfi", rasp.LFI)
+	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
+	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

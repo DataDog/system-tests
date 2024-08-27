@@ -1,5 +1,5 @@
 from utils import context, weblog, interfaces, rfc, scenarios, missing_feature
-from tests.apm_tracing_e2e.constants import (
+from utils.dd_constants import (
     SAMPLING_PRIORITY_KEY,
     SINGLE_SPAN_SAMPLING_MECHANISM,
     SINGLE_SPAN_SAMPLING_MECHANISM_VALUE,
@@ -27,8 +27,8 @@ class Test_SingleSpan:
 
     def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
-        spans = _get_spans_submitted(self.req)
-        assert 1 == len(spans), _assert_msg(1, len(spans), "Agent did not submit the spans we want!")
+        spans = interfaces.agent.get_spans_list(self.req)
+        assert 1 == len(spans), "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
         span = spans[0]
@@ -39,7 +39,7 @@ class Test_SingleSpan:
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_single_spans_exist(self.req)
-        assert 1 == len(spans), _assert_msg(1, len(spans))
+        assert 1 == len(spans)
         _assert_single_span_event(spans[0], "parent.span.single_span_submitted", is_root=True)
 
     def setup_child_span_is_single_span(self):
@@ -50,8 +50,8 @@ class Test_SingleSpan:
 
     def test_child_span_is_single_span(self):
         # Only the child should be submitted to the backend!
-        spans = _get_spans_submitted(self.req)
-        assert 1 == len(spans), _assert_msg(1, len(spans), "Agent did not submit the spans we want!")
+        spans = interfaces.agent.get_spans_list(self.req)
+        assert 1 == len(spans), "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
         span = spans[0]
@@ -61,7 +61,7 @@ class Test_SingleSpan:
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_single_spans_exist(self.req)
-        assert 1 == len(spans), _assert_msg(1, len(spans))
+        assert 1 == len(spans)
         _assert_single_span_event(spans[0], "child.span.single_span_submitted", is_root=False)
 
 
@@ -83,11 +83,3 @@ def _assert_single_span_metrics(span):
     assert span["metrics"][SINGLE_SPAN_SAMPLING_RATE] == 1.0
     assert span["metrics"][SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
     assert span["metrics"][SINGLE_SPAN_SAMPLING_MAX_PER_SEC] == 50.0
-
-
-def _get_spans_submitted(request):
-    return [span for _, span in interfaces.agent.get_spans(request)]
-
-
-def _assert_msg(expected, actual, msg=None):
-    return f"{msg or ''}\n\tExpected:\t{expected}\n\tActual:\t\t{actual}\n\n"

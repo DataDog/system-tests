@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features
-from .._test_iast_fixtures import BaseSourceTest
+from utils import context, missing_feature, irrelevant, features, flaky
+from ..utils import BaseSourceTest
 
 
 @features.iast_source_request_parameter_value
@@ -24,27 +24,26 @@ class TestParameterValue(BaseSourceTest):
     )
     source_names = ["table"]
 
-    def test_source_reported(self):
-        # overwrite the base test, to handle the source_type spcial use case in node
-        ...
+    # remove the base test, to handle the source_type spcial use case in node
+    test_source_reported = None
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
-    @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
+    @irrelevant(
+        library="python",
+        reason="Flask and Django need a header; otherwise, they return a 415 status code."
+        "TODO: When FastAPI implements POST body source, verify if it does too.",
+    )
+    @flaky(context.weblog_variant == "resteasy-netty3", reason="Issue with weak references, needs investigation")
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
-    @bug(weblog_variant="jersey-grizzly2", reason="name field of source not set")
     def test_source_get_reported(self):
         self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 
     @missing_feature(context.library < "java@1.9.0", reason="Not implemented")
-    @missing_feature(
-        context.library == "java" and not context.weblog_variant.startswith("spring-boot"), reason="Not implemented"
-    )
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",

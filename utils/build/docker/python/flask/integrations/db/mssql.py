@@ -1,7 +1,7 @@
 try:
     import pyodbc
 except ModuleNotFoundError:
-    print("pmysql not loaded")
+    print("pyodbc not loaded")
 
 database_mssql_loaded = 0
 SERVER = "mssql"

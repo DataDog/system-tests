@@ -1,6 +1,6 @@
 from utils import context, bug, features, irrelevant, missing_feature, scenarios
 from utils.tools import logger
-from .sql_utils import BaseDbIntegrationsTestClass
+from .utils import BaseDbIntegrationsTestClass
 
 
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
@@ -109,7 +109,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            if db_operation in ["update", "delete", "procedure", "select_error"]:
+            if db_operation in ["update", "delete", "procedure", "select_error", "select"]:
                 assert (
                     span["meta"]["db.statement"].count("?") == 2
                 ), f"The query is not properly obfuscated for operation {db_operation}"
@@ -203,6 +203,10 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
             if db_operation in ["insert", "select"]:
                 expected_obfuscation_count = 3
             else:
+                expected_obfuscation_count = 2
+
+            # Fix for Java otel 2.2.0
+            if db_operation == "select" and context.library == "java_otel":
                 expected_obfuscation_count = 2
 
             observed_obfuscation_count = span["meta"]["db.statement"].count("?")

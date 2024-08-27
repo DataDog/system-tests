@@ -14,5 +14,6 @@ class Test_NoExceptions:
             pattern=r"[A-Za-z]+\.[A-Za-z]*Exception",
             allowed_patterns=[
                 r"System.DllNotFoundException: Unable to load shared library 'Datadog.AutoInstrumentation.Profiler.Native.x64'",  # pylint: disable=line-too-long
+                r"Logger retrieved for: Datadog.Trace.Debugger.ExceptionAutoInstrumentation.ExceptionDebugging",  # pylint: disable=line-too-long
             ],
         )

@@ -19,7 +19,7 @@ set -eu
 
 BRANCH=${GITHUB_REF#refs/heads/}
 TITLE=${TITLE:-System tests}
-TEXT_MESSAGE="*<$URL|$TITLE>: $STATUS*\nRef: <https://github.com/$GITHUB_REPOSITORY/tree/$BRANCH|$BRANCH>, SHA: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|${GITHUB_SHA:0:7}>" 
+TEXT_MESSAGE="*<$URL|$TITLE>: $STATUS*\nRef: <https://github.com/$GITHUB_REPOSITORY/tree/$BRANCH|$BRANCH>, SHA: <https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA|${GITHUB_SHA:0:7}>"
 
 if [ "$STATUS" = "success" ]; then
     COLOR="#00FF00"
@@ -42,7 +42,7 @@ MESSAGE="{
                     \"text\": \"$TEXT_MESSAGE\"
                 }
             }]
-        }   
+        }
     ]
 }"
 

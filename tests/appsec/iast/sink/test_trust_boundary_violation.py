@@ -3,11 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import bug, context, missing_feature, features
-from .._test_iast_fixtures import BaseSinkTest
+from ..utils import BaseSinkTest
 
 
 @features.iast_sink_trustboundaryviolation
-@bug(context.library < "java@1.22.0", reason="APPSEC-12201")
 class Test_TrustBoundaryViolation(BaseSinkTest):
     """Test Trust Boundary Violation detection."""
 

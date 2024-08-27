@@ -21,8 +21,8 @@ cd system-tests-dashboard
 git config user.name "${GITHUB_USER}"
 git config user.email "${GITHUB_MAIL}"
 
-git pull #avoid problems with multiple pushes at same time 
+git pull #avoid problems with multiple pushes at same time
 git add reports/
-git commit -m "add onboarding report"  
+git commit -m "add onboarding report"
 git push
 echo "DONE Reports commited to system-tests-dashboard!"

@@ -38,6 +38,7 @@ def sns_consume(queue, timeout=60):
     """
     The goal of this function is to trigger sqs consumer calls
     """
+
     # Create an SQS client
     sqs = boto3.client("sqs", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
 
@@ -50,7 +51,9 @@ def sns_consume(queue, timeout=60):
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     consumed_message = message["Body"]
-                    print("[SNS->SQS] Consumed the following: " + consumed_message)
+                    logging.info("[SNS->SQS] Consumed the following message with params:")
+                    logging.info(message)
+                    logging.info("[SNS->SQS] Consumed the following: " + consumed_message)
         except Exception as e:
             logging.warning("[SNS->SQS] " + str(e))
         time.sleep(1)

@@ -13,7 +13,6 @@ from utils.tools import logger
 @bug(
     context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427",
 )
-@bug(context.library >= "php@0.92.0.dev", reason="AppSec need to update their dev version")
 @scenarios.appsec_rate_limiter
 @features.appsec_rate_limiter
 class Test_Main:
@@ -41,7 +40,10 @@ class Test_Main:
 
         logger.debug(f"Sent 50 requests in {(datetime.datetime.now() - start_time).total_seconds()} s")
 
-    @bug(context.library > "nodejs@3.14.1", reason="_sampling_priority_v1 is missing")
+    @bug(
+        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0",
+        reason="_sampling_priority_v1 is missing",
+    )
     @flaky("rails" in context.weblog_variant, reason="APPSEC-10303")
     def test_main(self):
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""

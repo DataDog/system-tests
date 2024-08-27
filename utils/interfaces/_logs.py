@@ -131,9 +131,10 @@ class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
 class _LibraryStdout(_StdoutLogsInterfaceValidator):
     def __init__(self):
         super().__init__("weblog")
+        self.library = None
 
-    def configure(self, replay):
-        super().configure(replay)
+    def init_patterns(self, library):
+        self.library = library
         p = "(?P<{}>{})".format
 
         self._skipped_patterns += [
@@ -141,7 +142,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             re.compile(r"systemtests_weblog_1 exited with code \d+"),
         ]
 
-        if context.library == "java":
+        if library == "java":
             self._skipped_patterns += [
                 re.compile(r"^[ /\\_,''.()=`|]*$"),  # Java Spring ASCII art
                 re.compile(r"^ +:: Spring Boot :: +\(v\d+.\d+.\d+(-SNAPSHOT)?\)$"),
@@ -160,9 +161,9 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             klass = p("klass", r"[\w\.$\[\]/]+")
             self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
 
-        elif context.library == "dotnet":
+        elif library == "dotnet":
             self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
-        elif context.library == "php":
+        elif library == "php":
             self._skipped_patterns += [
                 re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])"),
             ]
@@ -183,7 +184,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
         return line
 
     def _get_standardized_level(self, level):
-        if context.library == "php":
+        if self.library == "php":
             return level.upper()
 
         return super()._get_standardized_level(level)

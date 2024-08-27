@@ -11,7 +11,7 @@ data:
       "action": "enable",
       "lib_config": {
         "library_language": "python",
-        "library_version": "v1.6.0",
+        "library_version": "latest",
         "service_name": "test-python-service",
         "env": "dev",
         "tracing_enabled": true,

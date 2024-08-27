@@ -8,7 +8,13 @@ GEM
       msgpack
     debase-ruby_core_source (0.10.14)
     ffi (1.15.5)
+    libddwaf (1.0.14.2.0.beta1)
+      ffi (~> 1.0)
     libddwaf (1.0.14.2.0.beta1-aarch64-linux)
+      ffi (~> 1.0)
+    libddwaf (1.0.14.2.0.beta1-arm64-darwin)
+      ffi (~> 1.0)
+    libddwaf (1.0.14.2.0.beta1-x86_64-darwin)
       ffi (~> 1.0)
     libddwaf (1.0.14.2.0.beta1-x86_64-linux)
       ffi (~> 1.0)
@@ -25,8 +31,11 @@ GEM
       rack (~> 2.0)
 
 PLATFORMS
-  aarch64-linux
-  x86_64-linux
+  aarch64-linux-gnu
+  arm64-darwin
+  ruby
+  x86_64-darwin
+  x86_64-linux-gnu
 
 DEPENDENCIES
   ddtrace (~> 1.0.0.a)
@@ -35,4 +44,4 @@ DEPENDENCIES
   rack-contrib
 
 BUNDLED WITH
-   2.2.32
+   2.3.26

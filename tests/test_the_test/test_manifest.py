@@ -1,5 +1,7 @@
 from functools import lru_cache
 import os
+import re
+import semantic_version as semver
 
 from manifests.parser.core import validate_manifest_files, load
 
@@ -52,6 +54,23 @@ def test_content():
 
         assert_in(elements, getattr(module, name), nodeid)
 
+    def assert_valid_declaration(declaration):
+        assert isinstance(declaration, str)
+
+        if re.match(r"^(bug|flaky|irrelevant|missing_feature)( \(.+\))?$", declaration):
+            return
+
+        # must be a version declaration or semver spec
+        if declaration.startswith("v"):
+            assert re.match(r"^v\d.+", declaration)
+        else:
+            try:
+                semver.NpmSpec(declaration)
+            except Exception as e:
+                raise ValueError(
+                    f"{declaration} is neither a version, a version range or a test state (bug, flaky ...)"
+                ) from e
+
     manifest = load()
 
     variants_map = get_variants_map()
@@ -77,10 +96,9 @@ def test_content():
         # check variant names
         for component, declaration in manifest[nodeid].items():
             if isinstance(declaration, str):
+                assert_valid_declaration(declaration)
                 continue
 
             for variant in declaration:
                 assert variant in variants_map[component], f"Variant {variant} does not exists for {component}"
-
-
-test_content()
+                assert_valid_declaration(declaration[variant])

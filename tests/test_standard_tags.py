@@ -112,7 +112,7 @@ class Test_StandardTagsUrl:
         ]
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby"],
+        context.library in ["golang", "nodejs", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
@@ -146,7 +146,7 @@ class Test_StandardTagsUrl:
         )
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby"],
+        context.library in ["golang", "nodejs", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
@@ -317,9 +317,10 @@ class Test_StandardTagsClientIp:
         context.library < "java@1.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )
     @missing_feature(library="golang", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
-    @missing_feature(library="nodejs", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(
+        context.library < "nodejs@4.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
+    )
     @missing_feature(library="ruby", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
-    @missing_feature(library="php", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
     def test_client_ip_with_appsec_event_and_vendor_headers(self):
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
         meta = self._get_root_span_meta(self.request_with_attack)
