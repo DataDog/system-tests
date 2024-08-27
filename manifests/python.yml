@@ -211,7 +211,7 @@ tests/:
         Test_Sqli_Mandatory_SpanTags: v2.10.0.dev
         Test_Sqli_Optional_SpanTags: v2.10.0.dev
         Test_Sqli_StackTrace: v2.10.0.dev
-        Test_Shi_Telemetry: v2.10.0.dev
+        Test_Sqli_Telemetry: v2.10.0.dev
         Test_Sqli_UrlQuery: v2.10.0.dev
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0.dev
