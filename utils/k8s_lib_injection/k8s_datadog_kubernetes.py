@@ -171,7 +171,7 @@ class K8sDatadog:
         )
         if self.k8s_kind_cluster.offline_mode:
             helm_install_chart(
-                self.k8s_kind_cluster, "datadog", "datadog-*.tgz", value_file=operator_file, set_dict=features,
+                self.k8s_kind_cluster, "datadog", "datadog.tgz", value_file=operator_file, set_dict=features,
             )
         else:
             helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_kind_cluster, update=True)
