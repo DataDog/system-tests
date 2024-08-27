@@ -35,14 +35,31 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
         if data["path"] == base._LOGS_PATH:
 
             contents = data["request"].get("content", []) or []
-            if contents:
-                for content in contents:
-                    snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
-                    if snapshot and snapshot["probe"]["location"]["method"].lower().replace("_", "") == self.method:
-                        self.snapshot = snapshot
+            for content in contents:
+                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
-                        logger.debug("Snapshot received")
-                        return True
+                if not snapshot:
+                    continue
+
+                if (
+                    "probe" not in snapshot
+                    or "location" not in snapshot["probe"]
+                    or "method" not in snapshot["probe"]["location"]
+                ):
+                    continue
+
+                method = snapshot["probe"]["location"]["method"]
+
+                if not isinstance(method, str):
+                    continue
+
+                method = method.lower().replace("_", "")
+
+                if method == self.method:
+                    self.snapshot = snapshot
+
+                    logger.debug("Snapshot received")
+                    return True
 
         return False
 
