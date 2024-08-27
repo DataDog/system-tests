@@ -221,6 +221,7 @@ tests/:
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
           nextjs: missing_feature
+        Test_Ssrf_Telemetry: missing_feature
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           nextjs: missing_feature

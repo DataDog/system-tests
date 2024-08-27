@@ -416,6 +416,10 @@ tests/:
         Test_Sqli_Mandatory_SpanTags: missing_feature
         Test_Sqli_Optional_SpanTags: missing_feature
         Test_Sqli_StackTrace: missing_feature
+        Test_Sqli_Telemetry:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
         Test_Sqli_UrlQuery:
           '*': v1.38.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
