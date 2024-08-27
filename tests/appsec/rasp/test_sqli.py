@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, interfaces, scenarios, rfc, context, flaky
+from tests.appsec.rasp.utils import validate_span_tags, validate_stack_traces
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
@@ -10,7 +11,7 @@ from utils import features, weblog, interfaces, scenarios, rfc, context, flaky
 @scenarios.appsec_rasp
 @flaky(context.library == "java", reason="APPSEC-54578")
 class Test_Sqli_UrlQuery:
-    """ SQL Injection through query parameters """
+    """SQL Injection through query parameters"""
 
     def setup_sqli_get(self):
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
@@ -22,7 +23,7 @@ class Test_Sqli_UrlQuery:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
                 "params": {"address": "server.request.query", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -34,7 +35,7 @@ class Test_Sqli_UrlQuery:
 @scenarios.appsec_rasp
 @flaky(context.library == "java", reason="APPSEC-54578")
 class Test_Sqli_BodyUrlEncoded:
-    """ SQL Injection through a url-encoded body parameter """
+    """SQL Injection through a url-encoded body parameter"""
 
     def setup_sqli_post_urlencoded(self):
         self.r = weblog.post("/rasp/sqli", data={"user_id": "' OR 1 = 1 --"})
@@ -46,7 +47,7 @@ class Test_Sqli_BodyUrlEncoded:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -58,7 +59,7 @@ class Test_Sqli_BodyUrlEncoded:
 @scenarios.appsec_rasp
 @flaky(context.library == "java", reason="APPSEC-54578")
 class Test_Sqli_BodyXml:
-    """ SQL Injection through an xml body parameter """
+    """SQL Injection through an xml body parameter"""
 
     def setup_sqli_post_xml(self):
         data = "<?xml version='1.0' encoding='utf-8'?><user_id>' OR 1 = 1 --</user_id>"
@@ -71,7 +72,7 @@ class Test_Sqli_BodyXml:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -83,7 +84,7 @@ class Test_Sqli_BodyXml:
 @scenarios.appsec_rasp
 @flaky(context.library == "java", reason="APPSEC-54578")
 class Test_Sqli_BodyJson:
-    """ SQL Injection through a json body parameter """
+    """SQL Injection through a json body parameter"""
 
     def setup_sqli_post_json(self):
         """AppSec detects attacks in JSON body values"""
@@ -96,8 +97,53 @@ class Test_Sqli_BodyJson:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
         )
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
+@features.rasp_span_tags
+@features.rasp_sql_injection
+@scenarios.appsec_rasp
+class Test_Sqli_Mandatory_SpanTags:
+    """Validate span tag generation on exploit attempts"""
+
+    def setup_sqli_span_tags(self):
+        self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
+
+    def test_sqli_span_tags(self):
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration"])
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
+@features.rasp_span_tags
+@features.rasp_sql_injection
+@scenarios.appsec_rasp
+class Test_Sqli_Optional_SpanTags:
+    """Validate span tag generation on exploit attempts"""
+
+    def setup_sqli_span_tags(self):
+        self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
+
+    def test_sqli_span_tags(self):
+        validate_span_tags(
+            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
+        )
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")
+@features.rasp_stack_trace
+@features.rasp_sql_injection
+@scenarios.appsec_rasp
+class Test_Sqli_StackTrace:
+    """Validate stack trace generation on exploit attempts"""
+
+    def setup_sqli_stack_trace(self):
+        self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
+
+    def test_sqli_stack_trace(self):
+        assert self.r.status_code == 403
+        validate_stack_traces(self.r)
