@@ -6,10 +6,10 @@ if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
     go mod edit -replace github.com/DataDog/dd-trace-go/v2=/binaries/dd-trace-go
     go mod edit -replace github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2=/binaries/dd-trace-go/contrib/IBM/sarama/v2
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2=/binaries/dd-trace-go/contrib/gin/v2-gonic/gin
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2=/binaries/dd-trace-go/contrib/go/v2-chi/chi.v5
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2=/binaries/dd-trace-go/contrib/google/v2.golang.org/grpc
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2=/binaries/dd-trace-go/contrib/labstack/echo/v2.v4
+    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2=/binaries/dd-trace-go/contrib/gin-gonic/gin/v2
+    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2=/binaries/dd-trace-go/contrib/go-chi/chi.v5/v2
+    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2=/binaries/dd-trace-go/contrib/google.golang.org/grpc/v2
+    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2=/binaries/dd-trace-go/contrib/labstack/echo.v4/v2
     go mod edit -replace github.com/DataDog/dd-trace-go/contrib/net/http/v2=/binaries/dd-trace-go/contrib/net/http/v2
 
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
