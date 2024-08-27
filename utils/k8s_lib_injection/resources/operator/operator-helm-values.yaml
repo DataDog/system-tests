@@ -32,7 +32,7 @@ clusterAgent:
     #tag: master
     #tag: liliya-belaus-7-52-0-rc2-test
     #repository: datadog/cluster-agent-dev
-    pullPolicy: Never
+    #pullPolicy: Never
     doNotCheckTag: true
   admissionController:
     configMode: hostip

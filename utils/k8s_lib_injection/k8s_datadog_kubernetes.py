@@ -82,7 +82,7 @@ class K8sDatadog:
         container = client.V1Container(
             name="trace-agent",
             image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
-            image_pull_policy="Never",
+            image_pull_policy="Never" if self.k8s_kind_cluster.offline_mode else "Always",
             ports=[client.V1ContainerPort(container_port=8126, host_port=8126, name="traceport", protocol="TCP")],
             command=["ddapm-test-agent"],
             env=[
@@ -154,9 +154,6 @@ class K8sDatadog:
             self.logger.info("[Deploy datadog cluster] Using UDS")
             operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-uds.yaml"
 
-        self.logger.info("[Deploy datadog cluster] Configuring helm repository")
-        # helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_kind_cluster, update=True)
-
         self.logger.info(f"[Deploy datadog cluster]helm install datadog with config file [{operator_file}]")
         datadog_keys = {"datadog.apiKey": self._api_key, "datadog.appKey": self._app_key}
         if features:
@@ -164,13 +161,23 @@ class K8sDatadog:
         else:
             features = datadog_keys
 
-        # helm_install_chart(
-        #     self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
-        # )
-        helm_install_chart(
-            self.k8s_kind_cluster, "datadog", "datadog-3.70.1.tgz", value_file=operator_file, set_dict=features,
-        )
+        datadog_cluster_keys = {
+            "clusterAgent.image.pullPolicy": "Never" if self.k8s_kind_cluster.offline_mode else "Always"
+        }
+        features = features | datadog_cluster_keys
 
+        self.logger.info(
+            f"[Deploy datadog cluster] Configuring helm repository. Offline [{self.k8s_kind_cluster.offline_mode}]"
+        )
+        if self.k8s_kind_cluster.offline_mode:
+            helm_install_chart(
+                self.k8s_kind_cluster, "datadog", "datadog-3.70.1.tgz", value_file=operator_file, set_dict=features,
+            )
+        else:
+            helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_kind_cluster, update=True)
+            helm_install_chart(
+                self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
+            )
         self.logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_operator_ready()
 

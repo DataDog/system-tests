@@ -87,11 +87,12 @@ class K8sWeblog:
             for k, v in env.items():
                 default_pod_env.append(client.V1EnvVar(name=k, value=v))
 
-        self.logger.info(f"RMM Default pod env: {default_pod_env}")
+        self.logger.info(f"Default pod env: {default_pod_env}")
+
         container1 = client.V1Container(
             name="my-app",
             image=self.app_image,
-            image_pull_policy="Never",
+            image_pull_policy="Never" if self.k8s_kind_cluster.offline_mode else "Always",
             env=default_pod_env,
             readiness_probe=client.V1Probe(
                 timeout_seconds=5,
@@ -126,7 +127,7 @@ class K8sWeblog:
             command=["sh", "copy-lib.sh", "/datadog-lib"],
             name="datadog-tracer-init",
             image=self.library_init_image,
-            image_pull_policy="Never",
+            image_pull_policy="Never" if self.k8s_kind_cluster.offline_mode else "Always",
             termination_message_path="/dev/termination-log",
             termination_message_policy="File",
             volume_mounts=[client.V1VolumeMount(mount_path="/datadog-lib", name="datadog-auto-instrumentation")],
