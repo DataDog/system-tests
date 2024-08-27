@@ -7,16 +7,15 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"weblog/internal/rasp"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 
 	"github.com/go-chi/chi/v5"
 
+	chitrace "github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
-	chitrace "github.com/DataDog/dd-trace-go/v2/contrib/go-chi/chi.v5"
-	httptrace "github.com/DataDog/dd-trace-go/v2/contrib/net/http"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
@@ -186,9 +185,9 @@ func main() {
 		w.Write([]byte(content))
 	})
 
-	mux.HandleFunc("/rasp/lfi", rasp.LFI)
+	/*mux.HandleFunc("/rasp/lfi", rasp.LFI)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
-	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+	mux.HandleFunc("/rasp/sqli", rasp.SQLi)*/
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

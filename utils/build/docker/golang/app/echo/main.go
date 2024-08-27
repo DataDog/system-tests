@@ -7,13 +7,12 @@ import (
 	"strconv"
 	"weblog/internal/common"
 	"weblog/internal/grpc"
-	"weblog/internal/rasp"
 
 	"github.com/labstack/echo/v4"
 
+	echotrace "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
-	echotrace "github.com/DataDog/dd-trace-go/v2/contrib/labstack/echo.v4"
-	httptrace "github.com/DataDog/dd-trace-go/v2/contrib/net/http"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
@@ -154,9 +153,9 @@ func main() {
 		return ctx.String(http.StatusOK, string(content))
 	})
 
-	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
+	/*r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
-	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
+	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))*/
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()

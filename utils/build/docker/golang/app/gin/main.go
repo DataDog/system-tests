@@ -7,13 +7,12 @@ import (
 	"strconv"
 	"weblog/internal/common"
 	"weblog/internal/grpc"
-	"weblog/internal/rasp"
 
 	"github.com/gin-gonic/gin"
 
+	gintrace "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
-	gintrace "github.com/DataDog/dd-trace-go/v2/contrib/gin-gonic/gin"
-	httptrace "github.com/DataDog/dd-trace-go/v2/contrib/net/http"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
@@ -148,9 +147,9 @@ func main() {
 		ctx.Writer.Write(content)
 	})
 
-	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
+	/*r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
-	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
+	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))*/
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()
