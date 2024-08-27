@@ -66,7 +66,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     def setup_exception_replay_simple(self):
         self._setup("/debugger/expression/exception", "expressionexception")
 
-    @bug(library="dotnet", reason="DEBUG-2787")
+    @bug(library="java", reason="DEBUG-2787")
     def test_exception_replay_simple(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
         assert self.snapshot, "Snapshot not found"
@@ -149,7 +149,6 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
             expected = self.__read(test_name, "tags_expected")
             assert expected == tags
 
-            # Check for the existence of specific keys
             assert "_dd.debug.error.exception_id" in tags, "Missing '_dd.debug.error.exception_id' in tags"
             assert "_dd.debug.error.exception_hash" in tags, "Missing '_dd.debug.error.exception_hash' in tags"
             for i in range(number_of_frames):
