@@ -395,32 +395,43 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
+      # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
         Test_Sqli_BodyJson:
-          '*': v1.38.0
+          '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          spring-boot-payara: bug (produces 500 errors)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Sqli_BodyUrlEncoded:
-          '*': v1.38.0
+          '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          spring-boot-payara: bug (produces 500 errors)
         Test_Sqli_BodyXml:
-          '*': v1.38.0
+          '*': v1.39.0
           akka-http: missing_feature (Requires parsed body instrumentation)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          spring-boot-payara: bug (produces 500 errors)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
-        Test_Sqli_Mandatory_SpanTags: missing_feature
-        Test_Sqli_Optional_SpanTags: missing_feature
-        Test_Sqli_StackTrace: missing_feature
-        Test_Sqli_Telemetry: bug (consistant failure on 1.39.0)
-        Test_Sqli_UrlQuery:
-          '*': v1.38.0
+        Test_Sqli_Mandatory_SpanTags:
+          '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+        Test_Sqli_Optional_SpanTags:
+          '*': v1.39.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Sqli_StackTrace:
+          '*': v1.39.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (produces 500 errors)
+        Test_Sqli_Telemetry:
+          '*': v1.39.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (produces 500 errors)
+        Test_Sqli_UrlQuery:
+          '*': v1.39.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (produces 500 errors)
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
