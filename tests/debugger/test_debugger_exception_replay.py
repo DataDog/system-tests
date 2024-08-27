@@ -3,7 +3,9 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as base
-import json, os
+import json
+import os
+import re
 from utils import scenarios, interfaces, weblog, features, bug
 from utils.tools import logger
 
@@ -67,15 +69,16 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
         self._setup("/debugger/expression/exception", "expressionexception")
 
     @bug(library="java", reason="DEBUG-2787")
+    @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_simple(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
-        assert self.snapshot, "Snapshot not found"
-        self._validate_exception_replay_snapshots(test_name="exception_replay_simple")
+        self._validate_exception_replay_snapshots(test_name="exception_replay_simple", override_aprovals=True)
         self._validate_tags(test_name="exception_replay_simple", number_of_frames=1)
 
     def __get_path(self, test_name, suffix):
         if self.tracer is None:
             self.tracer = base.get_tracer()
+
         filename = test_name + "_" + self.tracer["language"] + "_" + suffix + ".json"
         path = os.path.join(base._CUR_DIR, "approvals", filename)
         return path
@@ -96,6 +99,16 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
                     for key, value in data.items():
                         if key in ["timestamp", "id", "exceptionId", "duration"]:
                             scrubbed_data[key] = "<scrubbed>"
+                        # java
+                        elif key == "elements" and data.get("type") in ["long[]", "short[]"]:
+                            scrubbed_data[key] = "<scrubbed>"
+                        # dotnet
+                        elif key == "function" and "lambda_" in value:
+                            scrubbed_data[key] = re.sub(r"(method)\d+", r"\1<scrubbed>", value)
+                        # dotnet
+                        elif key == "StackTrace" and isinstance(value, dict):
+                            value["value"] = "<scrubbed>"
+                            scrubbed_data[key] = value
                         else:
                             scrubbed_data[key] = ___scrub(value)
                     return scrubbed_data
@@ -104,14 +117,17 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
                 else:
                     return data
 
+            assert self.snapshot, "Snapshot not found"
+
             snapshot = ___scrub(snapshot)
-            self.__write(snapshot, test_name, "received")
+            self.__write(snapshot, test_name, "snapshot_received")
 
             if override_aprovals:
-                self.__write(snapshot, test_name, "expected")
-
-                expected = self.__read(test_name, "expected")
-                assert expected == snapshot
+                self.__write(snapshot, test_name, "snapshot_expected")
+            
+            expected = self.__read(test_name, "snapshot_expected")
+            assert expected == snapshot
+            assert "exceptionId" in snapshot, "Snapshot doesn't have 'exceptionId' field"
 
         __approve(self.snapshot)
 

@@ -964,71 +964,66 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        spring-boot-jetty: v1.38.0  # real version not known
-        spring-boot-openliberty: v1.38.0  # real version not known
-        spring-boot-payara: v1.38.0  # real version not known
-        spring-boot-undertow: v1.38.0  # real version not known
-        spring-boot-wildfly: v1.38.0  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot: v1.33.0
+        uds-spring-boot: v1.33.0
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        spring-boot-jetty: v1.38.0  # real version not known
-        spring-boot-openliberty: v1.38.0  # real version not known
-        spring-boot-payara: v1.38.0  # real version not known
-        spring-boot-undertow: v1.38.0  # real version not known
-        spring-boot-wildfly: v1.38.0  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot:  v1.33.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot:  v1.33.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
         spring-boot: v1.33.0
-        spring-boot-jetty: v1.38.0  # real version not known
-        spring-boot-openliberty: v1.38.0  # real version not known
-        spring-boot-payara: v1.38.0  # real version not known
-        spring-boot-undertow: v1.38.0  # real version not known
-        spring-boot-wildfly: v1.38.0  # real version not known
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        spring-boot-jetty: v1.38.0  # real version not known
-        spring-boot-openliberty: v1.38.0  # real version not known
-        spring-boot-payara: v1.38.0  # real version not known
-        spring-boot-undertow: v1.38.0  # real version not known
-        spring-boot-wildfly: v1.38.0  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot:  v1.33.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.33.0
       Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        spring-boot-jetty: v1.38.0  # real version not known
-        spring-boot-openliberty: v1.38.0  # real version not known
-        spring-boot-payara: v1.38.0  # real version not known
-        spring-boot-undertow: v1.38.0  # real version not known
-        spring-boot-wildfly: v1.38.0  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot: v1.33.0 
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v0.1
       Test_Debugger_Mix_Log_Probe:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        spring-boot-jetty: v1.38.0  # real version not known
-        spring-boot-openliberty: v1.38.0  # real version not known
-        spring-boot-payara: v1.38.0  # real version not known
-        spring-boot-undertow: v1.38.0  # real version not known
-        spring-boot-wildfly: v1.38.0  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': missing_feature
-        spring-boot: v0.1  # real version not known
-        spring-boot-jetty: v1.38.0  # real version not known
-        spring-boot-openliberty: v1.38.0  # real version not known
-        spring-boot-payara: v1.38.0  # real version not known
-        spring-boot-undertow: v1.38.0  # real version not known
-        spring-boot-wildfly: v1.38.0  # real version not known
-        uds-spring-boot: v0.1  # real version not known
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
