@@ -77,7 +77,8 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
     control_plane_server = ""
     control_plane_server_container_id = ""
 
-    for item in container_info.decode().split("\n"):
+    # for item in container_info.decode().split("\n"):
+    for item in container_info.split("\n"):
         if not item:
             continue
         container = json.loads(item)
