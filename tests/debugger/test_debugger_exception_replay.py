@@ -38,14 +38,14 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
             if contents:
                 for content in contents:
                     snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
-                    if snapshot and snapshot["probe"]["location"]["method"].lower().replace('_', '') == self.method:
+                    if snapshot and snapshot["probe"]["location"]["method"].lower().replace("_", "") == self.method:
                         self.snapshot = snapshot
 
                         logger.debug("Snapshot received")
                         return True
-                        
+
         return False
-        
+
     def setup_exception_replay_simple(self):
         self._setup("/debugger/expression/exception", "expressionexception")
 
@@ -94,5 +94,5 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
                 expected = __read("expected")
                 assert expected == snapshot
-        
+
         __approve(self.snapshot)
