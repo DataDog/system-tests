@@ -54,7 +54,7 @@ jobs:
           "java": ["gcr.io/datadoghq/dd-lib-java-init:latest"],
           "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest"],
           "php": [],
-          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:92a6074d7341ab8b25135852145647bb57db7336-amd64"],
+          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:500cfeda86f712c83a3b4b6863974b4cbac3abb6-amd64"],
           "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest"],
         }
 
