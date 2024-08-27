@@ -76,6 +76,9 @@ public class OpenTelemetryController {
   }
 
   private static Attributes parseAttributes(Map<String, Object> attributes) {
+    if (attributes == null || attributes.isEmpty()) {
+      return Attributes.empty();
+    }
     AttributesBuilder builder = Attributes.builder();
     for (Map.Entry<String, Object> entry : attributes.entrySet()) {
       String key = entry.getKey();
@@ -184,14 +187,12 @@ public class OpenTelemetryController {
     if (args.links() != null && !args.links().isEmpty()) {
       for (SpanLink spanLink : args.links()) {
         SpanContext spanContext = null;
-        LOGGER.warn("Span link: {}", spanLink);
+        LOGGER.debug("Span link: {}", spanLink);
         if (spanLink.parentId() > 0) {
-          LOGGER.warn("Parent id found");
           Span span = getSpan(spanLink.parentId());
           if (span == null) {
             return StartSpanResult.error();
           }
-          LOGGER.warn("Parent span found");
           spanContext = span.getSpanContext();
         } else if (spanLink.httpHeaders() != null && !spanLink.httpHeaders().isEmpty()) {
           Context extractedContext = this.propagator.extract(
@@ -200,22 +201,14 @@ public class OpenTelemetryController {
               HeadersTextMapGetter.INSTANCE
           );
           spanContext = Span.fromContext(extractedContext).getSpanContext();
-          LOGGER.warn("Extracted context {} | valid {}", spanContext, spanContext.isValid());
         }
         if (spanContext != null && spanContext.isValid()) {
-          if (spanLink.attributes() != null && !spanLink.attributes().isEmpty()) {
-            LOGGER.warn("Adding links with attributes {}", spanContext);
-            builder.addLink(spanContext, parseAttributes(spanLink.attributes()));
-          } else {
-            LOGGER.warn("Adding link without attributes {}", spanContext);
-            builder.addLink(spanContext);
-          }
+          LOGGER.debug("Adding links from context {}", spanContext);
+          builder.addLink(spanContext, parseAttributes(spanLink.attributes()));
         }
       }
     }
-    if (args.attributes() != null && !args.attributes().isEmpty()) {
-      builder.setAllAttributes(parseAttributes(args.attributes()));
-    }
+    builder.setAllAttributes(parseAttributes(args.attributes()));
     Span span = builder.startSpan();
     // Store span
     long traceId = DDTraceId.fromHex(span.getSpanContext().getTraceId()).toLong();
