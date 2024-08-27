@@ -59,8 +59,6 @@ jobs:
         weblog: ${{ fromJson(inputs.weblogs) }}
       fail-fast: false
     env:
-      TEST_LIBRARY: ${{ inputs.library }}
-      WEBLOG_VARIANT: ${{ matrix.weblog }}
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -114,7 +112,10 @@ jobs:
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }}
+    - name: Run DEFAULT scenario
+      if: steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
+      run: ./run.sh DEFAULT
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -392,6 +393,7 @@ jobs:
       if: always() && steps.compress_logs.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
+        # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
         name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblog }}_${{ inputs.ci_environment }}
         path: artifact.tar.gz
 

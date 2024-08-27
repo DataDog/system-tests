@@ -962,13 +962,13 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: bug (DEBUG-2784, should be v1.38.0)  # real version not known
-        spring-boot-jetty: bug (DEBUG-2784, should be v1.38.0)  # real version not known
-        spring-boot-openliberty: bug (DEBUG-2784, should be v1.38.0)  # real version not known
-        spring-boot-payara: bug (DEBUG-2784, should be v1.38.0)  # real version not known
-        spring-boot-undertow: bug (DEBUG-2784, should be v1.38.0)  # real version not known
-        spring-boot-wildfly: bug (DEBUG-2784, should be v1.38.0)  # real version not known
-        uds-spring-boot: bug (DEBUG-2784, should be v1.38.0)  # real version not known
+        spring-boot: v0.1  # real version not known
+        spring-boot-jetty: v1.38.0  # real version not known
+        spring-boot-openliberty: v1.38.0  # real version not known
+        spring-boot-payara: v1.38.0  # real version not known
+        spring-boot-undertow: v1.38.0  # real version not known
+        spring-boot-wildfly: v1.38.0  # real version not known
+        uds-spring-boot: v0.1  # real version not known
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
