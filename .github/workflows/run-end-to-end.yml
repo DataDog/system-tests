@@ -97,7 +97,7 @@ jobs:
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }}
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT
