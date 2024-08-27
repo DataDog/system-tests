@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, interfaces, scenarios, rfc
-from tests.appsec.rasp.rasp_utils import validate_span_tags, validate_stack_traces
+from tests.appsec.rasp.utils import validate_span_tags, validate_stack_traces
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
