@@ -3,7 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, interfaces, scenarios, rfc
-from tests.appsec.rasp.utils import validate_span_tags, validate_stack_traces
+from tests.appsec.rasp.utils import (
+    validate_span_tags,
+    validate_stack_traces,
+    find_series,
+    validate_metric,
+)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
@@ -139,3 +144,28 @@ class Test_Shi_StackTrace:
     def test_shi_stack_trace(self):
         assert self.r.status_code == 403
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
+@features.rasp_shell_injection
+@scenarios.appsec_rasp
+class Test_Shi_Telemetry:
+    """Validate Telemetry data on exploit attempts"""
+
+    def setup_ssrf_telemetry(self):
+        self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
+
+    def test_ssrf_telemetry(self):
+        assert self.r.status_code == 403
+
+        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        assert series_eval
+        assert any(validate_metric("rasp.rule.eval", "command_injection", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
+
+        series_match = find_series(True, "appsec", "rasp.rule.match")
+        assert series_match
+        assert any(validate_metric("rasp.rule.match", "command_injection", s) for s in series_match), [
+            s.get("tags") for s in series_match
+        ]
