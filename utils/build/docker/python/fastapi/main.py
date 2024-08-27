@@ -27,6 +27,7 @@ import requests
 import urllib3
 import xmltodict
 
+import ddtrace
 from ddtrace import Pin
 from ddtrace import patch_all
 from ddtrace import tracer
@@ -62,6 +63,27 @@ async def custom_404_handler(request: Request, _):
 @app.options("/", response_class=PlainTextResponse)
 async def root():
     return "Hello, World!"
+
+
+@app.get("/healthcheck")
+async def healthcheck():
+    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "metadata" not in data:
+        appsec_event_rules_version = "1.2.5"
+    else:
+        appsec_event_rules_version = data["metadata"]["rules_version"]
+
+    return {
+        "status": "ok",
+        "library": {
+            "language": "python",
+            "version": ddtrace.__version__,
+            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
+            "appsec_event_rules_version": appsec_event_rules_version,
+        },
+    }
 
 
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)

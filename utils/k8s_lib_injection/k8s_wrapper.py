@@ -72,23 +72,3 @@ class K8sWrapper:
     @retry(delay=1, tries=5)
     def create_namespaced_pod(self, namespace="default", body=None):
         return self.core_v1_api().create_namespaced_pod(namespace=namespace, body=body)
-
-    @retry(delay=1, tries=5)
-    def create_namespaced_deployment(self, body=None, namespace="default"):
-        return self.apps_api().create_namespaced_deployment(namespace=namespace, body=body)
-
-    @retry(delay=1, tries=5)
-    def read_namespaced_deployment_status(self, deployment_name, namespace="default"):
-        return self.apps_api().read_namespaced_deployment_status(deployment_name, namespace=namespace)
-
-    @retry(delay=1, tries=10)
-    def read_namespaced_deployment(self, deployment_name, namespace="default"):
-        return self.apps_api().read_namespaced_deployment(deployment_name, namespace=namespace)
-
-    @retry(delay=1, tries=5)
-    def patch_namespaced_deployment(self, deployment_name, namespace, deploy_data):
-        return self.apps_api().patch_namespaced_deployment(deployment_name, namespace, deploy_data)
-
-    @retry(delay=1, tries=5)
-    def delete_namespaced_pod(self, pod_name_running, namespace):
-        return self.core_v1_api().delete_namespaced_pod(pod_name_running, namespace=namespace)

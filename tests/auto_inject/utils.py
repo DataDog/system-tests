@@ -7,6 +7,7 @@ from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
 from utils import context
+from threading import Timer
 
 
 class AutoInjectBaseTest:
@@ -34,6 +35,13 @@ class AutoInjectBaseTest:
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
+    def close_channel(self, channel):
+        try:
+            if not channel.eof_received:
+                channel.close()
+        except Exception as e:
+            logger.error(f"Error closing the channel: {e}")
+
     def execute_command(self, virtual_machine, command):
         # Env for the command
         prefix_env = ""
@@ -43,12 +51,14 @@ class AutoInjectBaseTest:
         command_with_env = f"{prefix_env} {command}"
 
         with virtual_machine.ssh_config.get_ssh_connection() as ssh:
-            try:
-                _, stdout, stderr = ssh.exec_command(command_with_env, timeout=120)
-                stdout.channel.set_combine_stderr(True)
-            except paramiko.buffered_pipe.PipeTimeout:
-                if not stdout.channel.eof_received:
-                    stdout.channel.close()
+            timeout = 120
+
+            _, stdout, _ = ssh.exec_command(command_with_env, timeout=timeout + 5)
+            stdout.channel.set_combine_stderr(True)
+
+            # Enforce that even if we reach the 2min mark we can still have a partial output of the command
+            # and thus see where it is stuck.
+            Timer(timeout, self.close_channel, (stdout.channel,)).start()
 
             # Read the output line by line
             command_output = ""
@@ -102,16 +112,17 @@ class AutoInjectBaseTest:
 
     def _test_uninstall(self, virtual_machine):
 
-        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):
-            # Host
+        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):  # Host
+
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
             if context.scenario.library.library in ["ruby", "python", "dotnet"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-        else:
-            # Container
+        else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
-            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+            #   On older Docker versions, the network recreation can hang. The solution is to restart Docker.
+            #   https://github.com/docker-archive/classicswarm/issues/1931
+            start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up"
 
         install_command = "sudo datadog-installer apm instrument"
         uninstall_command = "sudo datadog-installer apm uninstrument"

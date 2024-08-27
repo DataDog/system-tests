@@ -1,4 +1,4 @@
-FROM golang:1.21 AS build
+FROM golang:1.22 AS build
 
 # print important lib versions
 RUN go version && curl --version
@@ -23,7 +23,7 @@ RUN go build -v -tags appsec -o weblog ./net-http
 
 # ==============================================================================
 
-FROM golang:1.21
+FROM golang:1.22
 
 COPY --from=build /app/weblog /app/weblog
 COPY --from=build /app/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_VERSION
