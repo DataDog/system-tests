@@ -6,7 +6,7 @@ from utils import weblog, context, interfaces, bug, missing_feature, scenarios, 
 
 
 @features.security_events_metastruct
-@scenarios.appsec_meta_struct_enabled
+# @scenarios.appsec_meta_struct_enabled
 class Test_SecurityEvents_Appsec_Metastruct_Enabled:
     """Test to verify that appsec events are correctly set in meta struct when supported by the agent."""
 
@@ -32,13 +32,13 @@ class Test_SecurityEvents_Appsec_Metastruct_Enabled:
 
 
 @features.security_events_metastruct
-@scenarios.appsec_meta_struct_enabled
+# @scenarios.appsec_meta_struct_enabled
 class Test_SecurityEvents_Iast_Metastruct_Enabled:
     """Test to verify that IAST events are correctly set in meta struct when supported by the agent."""
 
     def setup_iast_event_use_metastruct(self):
         # Using this vulnerability because that's one that is implemented in all tracers
-        self.r = weblog.post("/iast/cmdi/test_insecure", data={"cmd": "echo 'metastruct'"})
+        self.r = weblog.get("/iast/insecure-cookie/test_insecure", data={"user": "metastruct"})
 
     def test_iast_event_use_metastruct(self):
         spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)]
@@ -91,7 +91,7 @@ class Test_SecurityEvents_Iast_Metastruct_Disabled:
 
     def setup_iast_event_fallback_json(self):
         # Using this vulnerability because that's one that is implemented in all tracers
-        self.r = weblog.post("/iast/cmdi/test_insecure", data={"cmd": "echo 'metastruct'"})
+        self.r = weblog.get("/iast/insecure-cookie/test_insecure", data={"user": "metastruct"})
 
     def test_iast_event_fallback_json(self):
         spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)]

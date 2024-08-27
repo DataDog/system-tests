@@ -205,9 +205,9 @@ namespace weblog
         }
 
         [HttpGet("insecure-cookie/test_insecure")]
-        public IActionResult test_insecure_insecureCookie()
+        public IActionResult test_insecure_insecureCookie([FromForm] RequestData data)
         {
-            Response.Headers.Append("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
+            Response.Headers.Append("Set-Cookie", data.user + "=7;HttpOnly;SameSite=Strict");
             return StatusCode(200);
         }
 

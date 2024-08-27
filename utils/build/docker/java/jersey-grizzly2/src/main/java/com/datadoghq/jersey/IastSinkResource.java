@@ -205,8 +205,8 @@ public class IastSinkResource {
 
     @GET
     @Path("/insecure-cookie/test_insecure")
-    public Response  insecureCookie() {
-        return Response.status(Response.Status.OK).header("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict").build();
+    public Response  insecureCookie(@FormParam("user") final String user) {
+        return Response.status(Response.Status.OK).header("Set-Cookie", user + "=7;HttpOnly;SameSite=Strict").build();
     }
 
     @GET
