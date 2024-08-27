@@ -77,20 +77,22 @@ class _Test_Kinesis:
         send request A to weblog : this request will produce a Kinesis message
         send request B to library buddy, this request will consume Kinesis message
         """
-        message = (
-            "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
-        )
+        try:
+            message = (
+                "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
+                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
+            )
 
-        self.production_response = weblog.get(
-            "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message}, timeout=120
-        )
-        self.consume_response = self.buddy.get(
-            "/kinesis/consume",
-            params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message, "timeout": 60},
-            timeout=61,
-        )
-        delete_kinesis_stream(self.WEBLOG_TO_BUDDY_STREAM)
+            self.production_response = weblog.get(
+                "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message}, timeout=120
+            )
+            self.consume_response = self.buddy.get(
+                "/kinesis/consume",
+                params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message, "timeout": 60},
+                timeout=61,
+            )
+        finally:
+            delete_kinesis_stream(self.WEBLOG_TO_BUDDY_STREAM)
 
     def test_produce(self):
         """Check that a message produced to Kinesis is correctly ingested by a Datadog tracer"""
@@ -138,20 +140,22 @@ class _Test_Kinesis:
         request A: GET /library_buddy/produce_kinesis_message
         request B: GET /weblog/consume_kinesis_message
         """
-        message = (
-            "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
-        )
+        try:
+            message = (
+                "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
+                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
+            )
 
-        self.production_response = self.buddy.get(
-            "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message}, timeout=500
-        )
-        self.consume_response = weblog.get(
-            "/kinesis/consume",
-            params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message, "timeout": 60},
-            timeout=61,
-        )
-        delete_kinesis_stream(self.BUDDY_TO_WEBLOG_STREAM)
+            self.production_response = self.buddy.get(
+                "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message}, timeout=500
+            )
+            self.consume_response = weblog.get(
+                "/kinesis/consume",
+                params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message, "timeout": 60},
+                timeout=61,
+            )
+        finally:
+            delete_kinesis_stream(self.BUDDY_TO_WEBLOG_STREAM)
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -219,9 +223,5 @@ class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_Kinesis):
 
     time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
 
-    WEBLOG_TO_BUDDY_STREAM = (
-        f"Kinesis_prop_via_msg_attrs_{context.library.library}_{context.weblog_variant}_weblog_to_buddy_{time_hash}"
-    )
-    BUDDY_TO_WEBLOG_STREAM = (
-        f"Kinesis_prop_via_msg_attrs_buddy_to_{context.library.library}_{context.weblog_variant}_weblog_{time_hash}"
-    )
+    WEBLOG_TO_BUDDY_STREAM = f"Kinesis_prop_via_msg_attributes_weblog_to_buddy_{time_hash}"
+    BUDDY_TO_WEBLOG_STREAM = f"Kinesis_prop_via_msg_attributes_buddy_to_weblog_{time_hash}"

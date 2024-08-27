@@ -92,18 +92,22 @@ class _Test_SQS:
         send request A to weblog : this request will produce a sqs message
         send request B to library buddy, this request will consume sqs message
         """
-        message = (
-            "[crossed_integrations/sqs.py][SQS] Hello from SQS "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
-        )
+        try:
+            message = (
+                "[crossed_integrations/sqs.py][SQS] Hello from SQS "
+                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
+            )
 
-        self.production_response = weblog.get(
-            "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
-        )
-        self.consume_response = self.buddy.get(
-            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message}, timeout=61
-        )
-        delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
+            self.production_response = weblog.get(
+                "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
+            )
+            self.consume_response = self.buddy.get(
+                "/sqs/consume",
+                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
+                timeout=61,
+            )
+        finally:
+            delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
 
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
@@ -152,18 +156,22 @@ class _Test_SQS:
         request A: GET /library_buddy/produce_sqs_message
         request B: GET /weblog/consume_sqs_message
         """
-        message = (
-            "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
-        )
+        try:
+            message = (
+                "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
+                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
+            )
 
-        self.production_response = self.buddy.get(
-            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
-        )
-        self.consume_response = weblog.get(
-            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message}, timeout=61
-        )
-        delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
+            self.production_response = self.buddy.get(
+                "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
+            )
+            self.consume_response = weblog.get(
+                "/sqs/consume",
+                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
+                timeout=61,
+            )
+        finally:
+            delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -232,12 +240,8 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 
     time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
 
-    WEBLOG_TO_BUDDY_QUEUE = (
-        f"SQS_propagation_via_msg_attrs_{context.library.library}_{context.weblog_variant}_weblog_to_buddy_{time_hash}"
-    )
-    BUDDY_TO_WEBLOG_QUEUE = (
-        f"SQS_propagation_via_msg_attrs_buddy_to_{context.library.library}_{context.weblog_variant}_weblog_{time_hash}"
-    )
+    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_msg_attributes_weblog_to_buddy_{time_hash}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_msg_attributes_buddy_to_weblog_{time_hash}"
 
 
 @scenarios.crossed_tracing_libraries
@@ -248,12 +252,8 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
 
     time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
 
-    WEBLOG_TO_BUDDY_QUEUE = (
-        f"SQS_propagation_via_xray_{context.library.library}_{context.weblog_variant}_weblog_to_buddy_{time_hash}"
-    )
-    BUDDY_TO_WEBLOG_QUEUE = (
-        f"SQS_propagation_via_xray_buddy_to_{context.library.library}_{context.weblog_variant}_weblog_{time_hash}"
-    )
+    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_headers_weblog_to_buddy_{time_hash}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_headers_buddy_to_weblog_{time_hash}"
 
     @missing_feature(
         library="nodejs",
