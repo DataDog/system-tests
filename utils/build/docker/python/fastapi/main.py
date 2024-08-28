@@ -394,6 +394,7 @@ def _sink_point(table="user", id="1"):  # noqa: A002
     cursor = postgres_db.cursor()
     cursor.execute(sql)
 
+
 def _sink_point_path_traversal(tainted_str="user"):
     try:
         m = open(tainted_str)
