@@ -340,6 +340,7 @@ class Test_Telemetry:
     @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(context.library <= "java@1.38.1", reason="Telemetry second heartbeat was sent too fast")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
+    @flaky(library="ruby", reason="APMAPI-226")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """
