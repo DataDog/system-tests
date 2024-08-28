@@ -16,6 +16,7 @@ import com.datadoghq.trace.opentracing.dto.SpanInjectHeadersArgs;
 import com.datadoghq.trace.opentracing.dto.SpanInjectHeadersResult;
 import com.datadoghq.trace.opentracing.dto.SpanSetMetaArgs;
 import com.datadoghq.trace.opentracing.dto.SpanSetMetricArgs;
+import com.datadoghq.trace.opentracing.dto.SpanSetResourceArgs;
 import com.datadoghq.trace.opentracing.dto.StartSpanArgs;
 import com.datadoghq.trace.opentracing.dto.StartSpanResult;
 import datadog.trace.api.DDSpanId;
@@ -30,6 +31,7 @@ import io.opentracing.propagation.TextMap;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 import jakarta.annotation.PreDestroy;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -97,12 +99,32 @@ public class OpenTracingController implements Closeable {
     }
   }
 
+  @GetMapping("current")
+  public StartSpanResult currentSpan() {
+    Span span = this.tracer.activeSpan();
+    if (span == null) {
+      return StartSpanResult.error();
+    }
+    long spanId = DDSpanId.from(span.context().toSpanId());
+    long traceId = DDTraceId.from(span.context().toTraceId()).toLong();
+    return new StartSpanResult(spanId, traceId);
+  }
+
   @PostMapping("finish")
   public void finishSpan(@RequestBody SpanFinishArgs args) {
     LOGGER.info("Finishing OT span: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null) {
       span.finish();
+    }
+  }
+
+  @PostMapping("set_resource")
+  public void setResource(@RequestBody SpanSetResourceArgs args) {
+    LOGGER.info("Setting resource for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null && args.resource() != null) {
+      span.setTag(RESOURCE_NAME, args.resource());
     }
   }
 
