@@ -351,14 +351,14 @@ class Test_Telemetry:
         delays_by_runtime = self._get_heartbeat_delays_by_runtime()
 
         # This interval can't be perfeclty exact, give some room for tests
-        LOWER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
-        UPPER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
+        LOWER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
+        UPPER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
         expectation = f"It should be sent every {context.telemetry_heartbeat_interval}s"
 
         for delays in delays_by_runtime.values():
             average_delay = sum(delays) / len(delays)
-            assert average_delay < LOWER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
-            assert average_delay < UPPER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
+            assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
+            assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
