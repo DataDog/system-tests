@@ -193,6 +193,7 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.10.0.dev
         Test_Lfi_Optional_SpanTags: v2.10.0.dev
         Test_Lfi_StackTrace: v2.10.0.dev
+        Test_Lfi_Telemetry: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
@@ -201,6 +202,7 @@ tests/:
         Test_Shi_Mandatory_SpanTags: v2.11.0-rc2
         Test_Shi_Optional_SpanTags: v2.11.0-rc2
         Test_Shi_StackTrace: v2.11.0-rc2
+        Test_Shi_Telemetry: v2.11.0-rc2
         Test_Shi_UrlQuery: v2.11.0-rc2
       test_sqli.py:
         Test_Sqli_BodyJson: v2.10.0.dev
@@ -209,6 +211,7 @@ tests/:
         Test_Sqli_Mandatory_SpanTags: v2.10.0.dev
         Test_Sqli_Optional_SpanTags: v2.10.0.dev
         Test_Sqli_StackTrace: v2.10.0.dev
+        Test_Sqli_Telemetry: v2.10.0.dev
         Test_Sqli_UrlQuery: v2.10.0.dev
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0.dev
@@ -217,6 +220,7 @@ tests/:
         Test_Ssrf_Mandatory_SpanTags: v2.10.0.dev
         Test_Ssrf_Optional_SpanTags: v2.10.0.dev
         Test_Ssrf_StackTrace: v2.10.0.dev
+        Test_Ssrf_Telemetry: v2.10.0.dev
         Test_Ssrf_UrlQuery: v2.10.0.dev
     waf/:
       test_addresses.py:
