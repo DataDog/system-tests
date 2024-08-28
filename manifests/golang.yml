@@ -425,10 +425,10 @@ tests/:
       Test_DsmSQS:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
-      Test_Dsm_Manual_Checkpoint_Inter_Process: 
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
-      Test_Dsm_Manual_Checkpoint_Intra_Process: 
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
   parametric/:

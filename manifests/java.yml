@@ -1097,10 +1097,10 @@ tests/:
       Test_DsmSQS:
         "*": irrelevant
         spring-boot: v0.1 # real version not known
-      Test_Dsm_Manual_Checkpoint_Inter_Process: 
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
         spring-boot: v0.1 # real version not known
-      Test_Dsm_Manual_Checkpoint_Intra_Process: 
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         spring-boot: v0.1 # real version not known
     test_mongo.py:
