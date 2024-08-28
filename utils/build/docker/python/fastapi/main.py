@@ -394,6 +394,13 @@ def _sink_point(table="user", id="1"):  # noqa: A002
     cursor = postgres_db.cursor()
     cursor.execute(sql)
 
+def _sink_point_path_traversal(tainted_str="user"):
+    try:
+        m = open(tainted_str)
+        _ = m.read()
+    except Exception:
+        pass
+
 
 class Body_for_iast(BaseModel):
     table: str
@@ -410,20 +417,20 @@ async def view_iast_source_body(body: Body_for_iast):
 async def view_iast_source_cookie_name(request: Request):
     param = [key for key in request.cookies if key == "table"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(tainted_str=param[0])
         return "OK"
     return "KO"
 
 
 @app.get("/iast/source/cookievalue/test", response_class=PlainTextResponse)
 async def view_iast_source_cookie_value(table: typing.Annotated[str, Cookie()] = "undefined"):
-    _sink_point(table=table)
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
 @app.get("/iast/source/header/test", response_class=PlainTextResponse)
 async def view_iast_source_header_value(table: typing.Annotated[str, Header()] = "undefined"):
-    _sink_point(table=table)
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
