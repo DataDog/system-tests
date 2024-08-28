@@ -16,7 +16,7 @@ public class SetCookieEndpoint : ISystemTestEndpoint
 
             await context.Response.WriteAsync("Ok");
         });
-        
+
     }
 
 }

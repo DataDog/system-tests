@@ -216,6 +216,12 @@ public class Main {
                                 String json = mapper.writeValueAsString(headerMap);
 
                                 ctx.getResponse().send("application/json", json);
+                            })
+                            .get("set_cookie", ctx -> {
+                                final String name = ctx.getRequest().getQueryParams().get("name");
+                                final String value = ctx.getRequest().getQueryParams().get("value");
+                                ctx.getResponse().getHeaders().add("Set-Cookie", name + "=" + value);
+                                ctx.getResponse().send("text/plain", "ok");
                             });
                         iastHandlers.setup(chain);
                         raspHandlers.setup(chain);

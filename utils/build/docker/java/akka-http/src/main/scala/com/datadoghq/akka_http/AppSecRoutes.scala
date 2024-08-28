@@ -173,6 +173,16 @@ object AppSecRoutes {
             complete(StatusCodes.OK, headers)(jsonMarshaller)
           }
         }
+      } ~
+      path("set_cookie") {
+        get {
+          parameters('name.as[String], 'value.as[String]) { (name, value) =>
+            val cookieHeader = RawHeader("Set-Cookie", HttpCookiePair(name, value).toString())
+            respondWithHeader(cookieHeader) {
+              complete("ok")
+            }
+          }
+        }
       }
 
 
