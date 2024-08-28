@@ -1,6 +1,5 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
-from functools import lru_cache
 import time
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
@@ -45,6 +44,7 @@ def is_v1_payload(data):
     return get_request_content(data).get("api_version") == "v1"
 
 
+@rfc("https://docs.google.com/document/d/1Fai2gZlkvfa_WQs_yJsmi3nUwiOsMtNu2LFBnbTHJRA/edit#heading=h.llmi584vls7r")
 @features.telemetry_instrumentation
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
