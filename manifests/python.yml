@@ -630,7 +630,10 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0
-      Test_Dsm_Manual_Checkpoint:
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        flask-poc: v2.8.0
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         flask-poc: v2.8.0
   parametric/:

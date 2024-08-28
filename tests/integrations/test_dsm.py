@@ -490,10 +490,10 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
         parent_producer_hash = language_hashes.get(context.library.library, {}).get("parent", 0)
-        edge_tags_out = language_hashes.get(context.library.library).get(
+        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default")).get(
             "edge_tags_out", language_hashes.get("default")["edge_tags_out"]
         )
-        edge_tags_in = language_hashes.get(context.library.library).get(
+        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default")).get(
             "edge_tags_in", language_hashes.get("default")["edge_tags_in"]
         )
 
@@ -564,10 +564,10 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
         parent_producer_hash = language_hashes.get(context.library.library, {}).get("parent", 0)
-        edge_tags_out = language_hashes.get(context.library.library).get(
+        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default")).get(
             "edge_tags_out", language_hashes.get("default")["edge_tags_out"]
         )
-        edge_tags_in = language_hashes.get(context.library.library).get(
+        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default")).get(
             "edge_tags_in", language_hashes.get("default")["edge_tags_in"]
         )
 
