@@ -3,26 +3,72 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as base
-import time, json, os
+import json, os
 from utils import scenarios, interfaces, weblog, features
+from utils.tools import logger
 
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
 class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     tracer = None
+    snapshot = None
+    method = None
 
-    def _setup(self, request_path):
-        self.weblog_responses = [weblog.get(request_path)]
-        time.sleep(1)
-        self.weblog_responses.append(weblog.get(request_path))
+    def _setup(self, request_path, method):
+        self.snapshot = None
+        self.weblog_responses = set()
+        self.method = method
+
+        retries = 0
+        max_retries = 60
+
+        while not self.snapshot and retries < max_retries:
+            logger.debug(f"Waiting for snapshot, retry #{retries}")
+
+            self.weblog_responses.add(weblog.get(request_path))
+            interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=1)
+
+            retries += 1
+
+    def _wait_for_snapshot_received(self, data):
+        if data["path"] == base._LOGS_PATH:
+
+            contents = data["request"].get("content", []) or []
+            for content in contents:
+                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+
+                if not snapshot:
+                    continue
+
+                if (
+                    "probe" not in snapshot
+                    or "location" not in snapshot["probe"]
+                    or "method" not in snapshot["probe"]["location"]
+                ):
+                    continue
+
+                method = snapshot["probe"]["location"]["method"]
+
+                if not isinstance(method, str):
+                    continue
+
+                method = method.lower().replace("_", "")
+
+                if method == self.method:
+                    self.snapshot = snapshot
+
+                    logger.debug("Snapshot received")
+                    return True
+
+        return False
 
     def setup_exception_replay_simple(self):
-        self._setup("/debugger/expression/exception")
+        self._setup("/debugger/expression/exception", "expressionexception")
 
     def test_exception_replay_simple(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
-
+        assert self.snapshot, "Snapshot not found"
         self._validate_exception_replay_snapshots(test_name="exception_replay_simple")
 
     def _validate_exception_replay_snapshots(self, test_name: str, override_aprovals: bool = False):
@@ -66,16 +112,4 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
                 expected = __read("expected")
                 assert expected == snapshot
 
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(base._LOGS_PATH))
-
-        snapshot_found = False
-        for request in agent_logs_endpoint_requests:
-            content = request["request"]["content"]
-            if content:
-                for item in content:
-                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
-                    if snapshot:
-                        snapshot_found = True
-                        __approve(snapshot)
-
-        assert snapshot_found, "Snapshot not found"
+        __approve(self.snapshot)
