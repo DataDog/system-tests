@@ -121,6 +121,9 @@ jobs:
         - dev
       fail-fast: false
     uses: ./.github/workflows/system-tests.yml
+    permissions:
+      contents: read
+      packages: write
     secrets: inherit
     with:
       library: ${{ matrix.library }}
