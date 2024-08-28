@@ -1048,7 +1048,7 @@ def view_sqli_insecure():
     return Response("OK")
 
 
-@app.route("/set-cookie")
+@app.route("/set_cookie")
 def set_cookie():
     name = flask_request.args.get("name")
     value = flask_request.args.get("value")
