@@ -60,6 +60,7 @@ namespace weblog
                 } else {
                     await context.Response.WriteAsync("unknown integration: " + integration);
                 }
+                Thread.Sleep(5000);
             });
         }
     }
