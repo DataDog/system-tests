@@ -12,7 +12,7 @@
 /tests/otel_tracing_e2e/ @DataDog/opentelemetry @DataDog/system-tests-core
 /tests/remote_config/ @DataDog/system-tests-core @DataDog/remote-config @DataDog/system-tests-core
 /tests/appsec/ @DataDog/asm-libraries @DataDog/system-tests-core
-/tests/debugger/ @DataDog/debugger
+/tests/debugger/ @DataDog/debugger @DataDog/system-tests-core
 /manifests/cpp.yml @DataDog/system-tests-core
 /manifests/dotnet.yml @DataDog/apm-dotnet @DataDog/asm-dotnet @DataDog/system-tests-core
 /manifests/golang.yml @DataDog/dd-trace-go-guild @DataDog/system-tests-core
