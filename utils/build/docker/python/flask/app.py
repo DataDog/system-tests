@@ -795,9 +795,9 @@ def dsm_manual_checkpoint_consume():
     def getter(k):
         return carrier[k]
 
-    ctx = set_consume_checkpoint(typ, source, getter)
+    set_consume_checkpoint(typ, source, getter)
     flush_dsm_checkpoints()
-    return Response(str(ctx))
+    return Response("ok")
 
 
 @app.route("/dsm/manual/consume_with_thread")
@@ -808,7 +808,7 @@ def dsm_manual_checkpoint_consume_with_thread():
         def getter(k):
             return headers[k]
 
-        ctx = set_consume_checkpoint(typ, target, getter)
+        set_consume_checkpoint(typ, target, getter)
 
     typ = flask_request.args.get("type")
     source = flask_request.args.get("source")
@@ -820,7 +820,7 @@ def dsm_manual_checkpoint_consume_with_thread():
     thread.join()  # Wait for the thread to complete for this example
     flush_dsm_checkpoints()
 
-    return Response("OK")
+    return Response("ok")
 
 
 @app.route("/dsm/inject")
