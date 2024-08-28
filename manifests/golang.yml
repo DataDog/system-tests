@@ -124,18 +124,24 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
-      test_span_tags.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson: v1.66.0-dev
         Test_Sqli_BodyUrlEncoded: v1.66.0-dev
         Test_Sqli_BodyXml: v1.66.0-dev
+        Test_Sqli_Mandatory_SpanTags: missing_feature
+        Test_Sqli_Optional_SpanTags: missing_feature
+        Test_Sqli_StackTrace: v1.66.0-dev
+        Test_Sqli_Telemetry: missing_feature
         Test_Sqli_UrlQuery: v1.66.0-dev
       test_ssrf.py:
         Test_Ssrf_BodyJson: v1.65.1-rc.1
         Test_Ssrf_BodyUrlEncoded: v1.65.1-rc.1
         Test_Ssrf_BodyXml: v1.65.1-rc.1
+        Test_Ssrf_Mandatory_SpanTags: missing_feature
+        Test_Ssrf_Optional_SpanTags: missing_feature
+        Test_Ssrf_StackTrace: v1.65.1-rc.1
+        Test_Ssrf_Telemetry: missing_feature
         Test_Ssrf_UrlQuery: v1.65.1-rc.1
-      test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0

@@ -41,8 +41,6 @@ jobs:
       fail-fast: false
 
     env:
-      TEST_LIBRARY: ${{ inputs.library }}
-      WEBLOG_VARIANT: ${{ matrix.weblog }}
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
@@ -72,7 +70,7 @@ jobs:
 
       - name: Build weblog
         id: build
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }}
 
       - name: Run GRAPHQL_APPSEC scenario
         run: ./run.sh GRAPHQL_APPSEC

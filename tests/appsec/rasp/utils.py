@@ -2,7 +2,22 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc, missing_feature
+from utils import interfaces
+
+
+def validate_span_tags(request, expected_meta=[], expected_metrics=[]):
+    """Validate RASP span tags are added when an event is generated"""
+    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
+    assert spans, "No spans to validate"
+
+    for span in spans:
+        meta = span["meta"]
+        for m in expected_meta:
+            assert m in meta, f"missing span meta tag `{m}` in {meta}"
+
+        metrics = span["metrics"]
+        for m in expected_metrics:
+            assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
 
 
 def validate_stack_traces(request):
@@ -50,32 +65,27 @@ def validate_stack_traces(request):
             assert len(stack["frames"]) <= 32, "stack trace above size limit (32 frames)"
 
 
-@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")
-@features.rasp_stack_trace
-@scenarios.appsec_rasp
-class Test_StackTrace:
-    """ Validate stack trace generation on exploit attempts """
+def find_series(is_metrics: bool, namespace, metric):
+    request_type = "generate-metrics" if is_metrics else "distributions"
+    series = []
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        if content.get("request_type") != request_type:
+            continue
+        fallback_namespace = content["payload"].get("namespace")
+        for serie in content["payload"]["series"]:
+            computed_namespace = serie.get("namespace", fallback_namespace)
+            # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+            serie["_computed_namespace"] = computed_namespace
+            if computed_namespace == namespace and serie["metric"] == metric:
+                series.append(serie)
+    return series
 
-    def setup_lfi_stack_trace(self):
-        self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-    @missing_feature(library="nodejs")
-    def test_lfi_stack_trace(self):
-        assert self.r.status_code == 403
-        validate_stack_traces(self.r)
-
-    def setup_ssrf_stack_trace(self):
-        self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
-
-    def test_ssrf_stack_trace(self):
-        assert self.r.status_code == 403
-        validate_stack_traces(self.r)
-
-    def setup_sqli_stack_trace(self):
-        self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
-
-    @missing_feature(library="dotnet")
-    @missing_feature(library="nodejs")
-    def test_sqli_stack_trace(self):
-        assert self.r.status_code == 403
-        validate_stack_traces(self.r)
+def validate_metric(name, type, metric):
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{type}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+    )

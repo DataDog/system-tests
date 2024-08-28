@@ -15,16 +15,25 @@ from _deserializer import deserialize
 os.umask(0)
 
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-handler.setFormatter(logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S"))
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
 
 messages_counts = defaultdict(int)
+
+
+class CustomFormatter(logging.Formatter):
+    def __init__(self, keys: list[str], *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._keys = keys
+
+    def format(self, record):
+        result = super().format(record)
+
+        for key in self._keys:
+            result = result.replace(key, "{redacted-by-system-tests-proxy}")
+
+        return result
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -36,9 +45,23 @@ class ObjectDumpEncoder(json.JSONEncoder):
 
 class _RequestLogger:
     def __init__(self) -> None:
-        self.dd_api_key = os.environ["DD_API_KEY"]
-        self.dd_application_key = os.environ.get("DD_APPLICATION_KEY")
-        self.dd_app_key = os.environ.get("DD_APP_KEY")
+        self._keys = [
+            os.environ["DD_API_KEY"],
+            os.environ.get("DD_APPLICATION_KEY"),
+            os.environ.get("DD_APP_KEY"),
+        ]
+
+        self._keys = [key for key in self._keys if key is not None]
+
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        formatter = CustomFormatter(
+            fmt="%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", datefmt="%H:%M:%S", keys=self._keys
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
         self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
 
         # request -> original port
@@ -58,11 +81,9 @@ class _RequestLogger:
 
     def _scrub(self, content):
         if isinstance(content, str):
-            content = content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
-            if self.dd_app_key:
-                content = content.replace(self.dd_app_key, "{redacted-by-system-tests-proxy}")
-            if self.dd_application_key:
-                content = content.replace(self.dd_application_key, "{redacted-by-system-tests-proxy}")
+            for key in self._keys:
+                content = content.replace(key, "{redacted-by-system-tests-proxy}")
+
             return content
 
         if isinstance(content, (list, set, tuple)):

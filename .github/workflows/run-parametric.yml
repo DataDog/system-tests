@@ -41,7 +41,6 @@ jobs:
       matrix:
         job_instance: ${{ fromJson( inputs._experimental_job_matrix ) }}
     env:
-      TEST_LIBRARY: ${{ inputs.library }}
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
@@ -64,7 +63,7 @@ jobs:
           RUN_ATTEMPTS=1
           while [ $RUN_ATTEMPTS -le 3 ]; do
             echo "Running parametric test attempt $RUN_ATTEMPTS"
-            timeout 720s ./run.sh PARAMETRIC --splits=${{ inputs._experimental_job_count }} --group=${{ matrix.job_instance }}
+            timeout 720s ./run.sh PARAMETRIC -L ${{ inputs.library }} --splits=${{ inputs._experimental_job_count }} --group=${{ matrix.job_instance }}
             status=$?
             #timneout returns 124 if it times out
             #if the return code is not 124, then we exit with the status
@@ -80,7 +79,7 @@ jobs:
           done
       - name: Run parametric (without timeout)
         if: ${{ inputs.library != 'java' }}
-        run: ./run.sh PARAMETRIC --splits=${{ inputs._experimental_job_count }} --group=${{ matrix.job_instance }}
+        run: ./run.sh PARAMETRIC -L ${{ inputs.library }} --splits=${{ inputs._experimental_job_count }} --group=${{ matrix.job_instance }}
       - name: Compress logs
         id: compress_logs
         if: always()

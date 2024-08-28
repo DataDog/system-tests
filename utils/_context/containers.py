@@ -319,6 +319,16 @@ class TestedContainer:
         stdout = self._container.logs(stdout=True, stderr=False)
         stderr = self._container.logs(stdout=False, stderr=True)
 
+        keys = [
+            bytearray(os.environ["DD_API_KEY"], "utf-8"),
+        ]
+        if "DD_APP_KEY" in os.environ:
+            keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
+
+        for key in keys:
+            stdout = stdout.replace(key, b"***")
+            stderr = stderr.replace(key, b"***")
+
         with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
             f.write(stdout)
 
@@ -745,10 +755,7 @@ class PostgresContainer(SqlDbTestedContainer):
             image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
-            # healthcheck={
-            #     "test": "pg_isready -q -U postgres -d system_tests_dbname",
-            #     "retries": 30,
-            # },
+            healthcheck={"test": "pg_isready -q -U postgres -d system_tests_dbname", "retries": 30,},
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
