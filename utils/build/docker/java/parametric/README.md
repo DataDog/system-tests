@@ -3,13 +3,21 @@
 ## Design
 
 This application is based on Spring Boot and its web starter.
-It bundles three controllers:
+It bundles four controllers:
 
-* One for the Datadog Tracing API (`trace/span`)
-* One for the Datadog Metrics API (`trace/stats`)
-* One for the OpenTelemetry Tracing API (`trace/otel`)
+* One root controller general commands (`/trace` endpoint)
+* One for the Datadog Tracing API (`/trace/span` endpoint)
+* One for the Datadog Metrics API (`/trace/stats` endpoint)
+* One for the OpenTelemetry Tracing API (`/trace/otel` endpoint)
 
 Each controller has its own package and DTO classes.
+
+### General commands
+
+The only command support is `crash`, to test the crash tracking feature enabled in `run.sh`.
+
+> [!NOTE]
+> Getting tracer configuration is not supported as not exposed, even using internal APIs, making `config` command unsupported.
 
 ### Datadog Tracing API
 
@@ -18,9 +26,6 @@ Access to internal features, like `flush`, is done using internal API (`Internal
 
 > [!NOTE]
 > Span links are not supported as they choose to not add their support to the deprecated OpenTracing API.
-
-> [!NOTE]
-> Getting tracer configuration is not supported as not exposed, even using internal APIs.
 
 ### Datadog Metrics API
 

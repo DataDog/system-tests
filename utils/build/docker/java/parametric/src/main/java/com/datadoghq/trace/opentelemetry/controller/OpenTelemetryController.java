@@ -40,6 +40,7 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -215,6 +216,16 @@ public class OpenTelemetryController {
     long spanId = DDSpanId.fromHex(span.getSpanContext().getSpanId());
     this.spans.put(spanId, span);
     // Return result
+    return new StartSpanResult(spanId, traceId);
+  }
+
+  @GetMapping("current_span")
+  public StartSpanResult currentSpan() {
+    LOGGER.info("Getting current OTel span");
+    Span current = Span.current();
+    SpanContext spanContext = current.getSpanContext();
+    long traceId = DDTraceId.fromHex(spanContext.getTraceId()).toLong();
+    long spanId = DDSpanId.fromHex(spanContext.getSpanId());
     return new StartSpanResult(spanId, traceId);
   }
 
