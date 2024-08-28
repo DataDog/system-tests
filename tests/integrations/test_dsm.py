@@ -447,7 +447,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         )
 
     def test_dsm_manual_checkpoint_intra_process(self):
-        assert self.produce.text not in ['', None]
+        assert self.produce.text not in ["", None]
 
         self.produce.text = json.loads(self.produce.text)
 
@@ -521,8 +521,8 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
         )
 
     def test_dsm_manual_checkpoint_inter_process(self):
-        assert self.produce.text not in ['', None]
-        
+        assert self.produce.text not in ["", None]
+
         self.produce_threaded.text = json.loads(self.produce_threaded.text)
 
         assert self.produce_threaded.status_code == 200
