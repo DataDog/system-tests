@@ -182,7 +182,9 @@ tests/:
             '*': v2.9.0.dev
             fastapi: missing_feature
         test_path.py:
-          TestPath: missing_feature
+          TestPath:
+            '*': v2.9.0.dev
+            fastapi: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
