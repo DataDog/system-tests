@@ -204,13 +204,6 @@ namespace weblog
             }
         }
 
-        [HttpGet("set-cookie")]  // TODO : move this out of IAST controller
-        public IActionResult test_set_cookie([FromQuery] string name, [FromQuery] string value)
-        {
-            Response.Headers.Append("Set-Cookie", name + "=" + value);
-            return Content("Ok", "text/html");
-        }
-
         [HttpGet("insecure-cookie/test_insecure")]
         public IActionResult test_insecure_insecureCookie()
         {
