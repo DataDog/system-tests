@@ -923,6 +923,10 @@ public class App {
         return ResponseEntity.ok(headers);
     }
 
+    @GetMapping(value = "/set_cookie")
+    public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
+        return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
+    }
 
     @Bean
     @ConditionalOnProperty(

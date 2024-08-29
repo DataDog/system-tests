@@ -263,6 +263,12 @@ public class MyResource {
         return json;
     }
 
+    @GET
+    @Path("/set_cookie")
+    public Response setCookie(@QueryParam("name") String name, @QueryParam("value") String value) {
+        return Response.ok().header("Set-Cookie", name + "=" + value).build();
+    }
+
     public static final class DistantCallResponse {
         public String url;
         public int status_code;

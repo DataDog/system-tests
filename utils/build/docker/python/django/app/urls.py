@@ -121,6 +121,13 @@ def request_downstream(request, *args, **kwargs):
     return HttpResponse(response.data)
 
 
+@csrf_exempt
+def set_cookie(request):
+    res = HttpResponse("OK")
+    res.headers["Set-Cookie"] = f"{request.GET.get('name')}={request.GET.get('value')}"
+    return res
+
+
 ### BEGIN EXPLOIT PREVENTION
 
 
@@ -702,6 +709,7 @@ urlpatterns = [
     path("requestdownstream/", request_downstream),
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
+    path("set_cookie", set_cookie),
     path("rasp/lfi", rasp_lfi),
     path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),
