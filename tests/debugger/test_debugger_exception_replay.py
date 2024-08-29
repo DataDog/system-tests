@@ -72,7 +72,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_simple(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
-        self._validate_exception_replay_snapshots(test_name="exception_replay_simple", override_aprovals=True)
+        self._validate_exception_replay_snapshots(test_name="exception_replay_simple")
         self._validate_tags(test_name="exception_replay_simple", number_of_frames=1)
 
     def __get_path(self, test_name, suffix):
