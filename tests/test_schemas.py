@@ -4,7 +4,7 @@
 
 """Test format specifications"""
 
-from utils import weblog, interfaces, bug, irrelevant, context, scenarios
+from utils import weblog, interfaces, bug, irrelevant, context, scenarios, missing_feature
 
 
 @scenarios.all_endtoend_scenarios
@@ -15,6 +15,7 @@ class Test_library:
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})
 
+    @missing_feature(library="cpp")
     def test_library_schema_full(self):
         interfaces.library.assert_schema_points(
             excluded_points=[
@@ -58,6 +59,7 @@ class Test_Agent:
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})
 
+    @missing_feature(library="cpp")
     def test_agent_schema_full(self):
         interfaces.agent.assert_schema_points(
             excluded_points=[
