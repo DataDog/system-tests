@@ -148,11 +148,11 @@ tests/:
         test_cookie_name.py:
           TestCookieName:
             '*': v2.10.0dev
-            fastapi: missing_feature
+            fastapi: v2.13.0dev
         test_cookie_value.py:
           TestCookieValue:
             '*': v2.10.0dev
-            fastapi: missing_feature
+            fastapi: v2.13.0dev
         test_graphql_resolver.py:
           TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
@@ -162,7 +162,7 @@ tests/:
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
-            fastapi: missing_feature
+            fastapi: v2.13.0.dev
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -180,7 +180,7 @@ tests/:
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0.dev
-            fastapi: missing_feature
+            fastapi: v2.13.0.dev
         test_path.py:
           TestPath:
             '*': v2.9.0.dev
