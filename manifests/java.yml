@@ -2,12 +2,26 @@ tests/:
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span:
-        '*': missing_feature (/e2e_otel_span endpoint is only implemented in Java Spring Boot at the moment)
-        spring-boot:  v0.1 # real version not known
+        '*': v0.1 # real version not known
+        akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        ratpack: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        resteasy-netty3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        spring-boot-3-native: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
     test_single_span.py:
       Test_SingleSpan:
-        '*': missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
-        spring-boot:  v0.1 # real version not known
+        '*': v0.1 # real version not known
+        akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        ratpack: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        resteasy-netty3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        spring-boot-3-native: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
   appsec/:
     api_security/:
       test_api_security_rc.py:
