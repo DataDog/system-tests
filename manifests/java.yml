@@ -998,7 +998,7 @@ tests/:
         uds-spring-boot: v1.33.0
       Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
-        spring-boot: v1.33.0 
+        spring-boot: v1.33.0
         spring-boot-jetty: v1.38.0
         spring-boot-openliberty: v1.38.0
         spring-boot-payara: v1.38.0

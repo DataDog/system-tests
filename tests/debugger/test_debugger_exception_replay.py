@@ -124,7 +124,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
             if override_aprovals:
                 self.__write(snapshot, test_name, "snapshot_expected")
-            
+
             expected = self.__read(test_name, "snapshot_expected")
             assert expected == snapshot
             assert "exceptionId" in snapshot, "Snapshot doesn't have 'exceptionId' field"
