@@ -51,5 +51,5 @@ class Test_Crashtracking:
         # but Java isn't so we end up with testing for severity tag.
         if test_library.lang == "java":
             return "severity" in tags_dict and tags_dict["severity"] == "crash"
-        else:
-            return "signum" in tags_dict
+
+        return "signum" in tags_dict
