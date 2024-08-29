@@ -34,5 +34,5 @@ java -jar /client/tracer/dd-java-agent.jar  > /client/SYSTEM_TESTS_LIBRARY_VERSI
 echo "Running Maven build with profiles ${MAVEN_PROFILES}"
 
 # shellcheck disable=SC2086
-mvn -q $MAVEN_PROFILES -Dclient.protobuf.path=src/main/proto/ package
+mvn -q $MAVEN_PROFILES package
 
