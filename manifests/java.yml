@@ -446,7 +446,31 @@ tests/:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
-      test_ssrf.py: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson:
+          '*': irrelevant
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_BodyUrlEncoded:
+          '*': irrelevant
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_BodyXml:
+          '*': irrelevant
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_Mandatory_SpanTags:
+          '*': irrelevant
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_Optional_SpanTags:
+          '*': irrelevant
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_StackTrace:
+          '*': irrelevant
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_Telemetry:
+          '*': irrelevant
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_UrlQuery:
+          '*': irrelevant
+          spring-boot: 'v1.39.0'
     waf/:
       test_addresses.py:
         Test_BodyJson:
