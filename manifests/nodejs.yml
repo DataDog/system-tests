@@ -34,6 +34,7 @@ refs:
   - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
   - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
+  - &ref_5_22_0 '>=5.22.0 || ^4.46.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -221,7 +222,9 @@ tests/:
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
           nextjs: missing_feature
-        Test_Ssrf_Telemetry: missing_feature
+        Test_Ssrf_Telemetry:
+          '*': *ref_5_22_0
+          nextjs: missing_feature
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           nextjs: missing_feature
