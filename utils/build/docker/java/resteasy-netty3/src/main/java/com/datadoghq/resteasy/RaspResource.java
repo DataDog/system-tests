@@ -44,6 +44,25 @@ public class RaspResource {
         return executeSql(user.getUserId());
     }
 
+    @GET
+    @Path("/lfi")
+    public String sqliGet(@QueryParam("user_id") final String userId) throws Exception {
+        return executeSql(userId);
+    }
+
+    @POST
+    @Path("/lfi")
+    public String sqliPost(@FormParam("user_id") final String userId) throws Exception {
+        return executeSql(userId);
+    }
+
+    @POST
+    @Path("/lfi")
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
+    public String sqliBody(final UserDTO user) throws Exception {
+        return executeSql(user.getUserId());
+    }
+
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private String executeSql(final String userId) throws Exception {
         try (final Connection conn = DATA_SOURCE.getConnection()) {
