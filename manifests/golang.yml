@@ -446,6 +446,7 @@ tests/:
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature
+      Test_Consistent_Configs: v1.67.0
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
