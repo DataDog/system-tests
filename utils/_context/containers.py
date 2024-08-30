@@ -311,17 +311,19 @@ class TestedContainer:
         self.kwargs["volumes"] = result
 
     def stop(self):
+        self._starting_thread = None
+
         if self._container:
             self._container.reload()
             if self._container.status != "running":
                 self.healthy = False
+                raise ValueError(f"Container {self.name} is not running, please check logs")
 
             self._container.stop()
-        self._starting_thread = None
 
     def collect_logs(self):
-        stdout = self._container.logs(stdout=True, stderr=False)
-        stderr = self._container.logs(stdout=False, stderr=True)
+        TAIL_LIMIT = 50
+        SEP = "=" * 30
 
         keys = [
             bytearray(os.environ["DD_API_KEY"], "utf-8"),
@@ -329,30 +331,29 @@ class TestedContainer:
         if "DD_APP_KEY" in os.environ:
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
 
-        for key in keys:
-            stdout = stdout.replace(key, b"***")
-            stderr = stderr.replace(key, b"***")
+        data = (
+            ("stdout", self._container.logs(stdout=True, stderr=False)),
+            ("stderr", self._container.logs(stdout=False, stderr=True)),
+        )
 
-        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(stdout)
+        for output_name, output in data:
+            filename = f"{self.log_folder_path}/{output_name}.log"
 
-        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(stderr)
+            for key in keys:
+                output = output.replace(key, b"***")
 
-        if not self.healthy:
-            stdout = stdout.decode("utf-8")
-            stderr = stderr.decode("utf-8")
+            with open(filename, "wb") as f:
+                f.write(output)
 
-            tail = 30
-            stdout = "\n".join(stdout.splitlines()[-tail:])
-            stderr = "\n".join(stderr.splitlines()[-tail:])
+            if not self.healthy:
+                decoded_output = output.decode("utf-8")
 
-            sep = "=" * 30
-            logger.stdout(f"\n{sep} {self.name} STDOUT last {str(tail)} lines {sep}")
-            logger.stdout(stdout)
-            logger.stdout(f"\n{sep} {self.name} STDERR last {str(tail)} lines {sep}")
-            logger.stdout(stderr)
-            logger.stdout(f"\n{sep}============================{sep}")
+                logger.stdout(f"\n{SEP} {self.name} {output_name.upper()} last {TAIL_LIMIT} lines {SEP}")
+                logger.stdout(f"-> See {filename} for full logs")
+                logger.stdout("")
+                # print last <tail> lines in stdout
+                logger.stdout("\n".join(decoded_output.splitlines()[-TAIL_LIMIT:]))
+                logger.stdout("")
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")
@@ -362,7 +363,7 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except:
+            except Exception:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
