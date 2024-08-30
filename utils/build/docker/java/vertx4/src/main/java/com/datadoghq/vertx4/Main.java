@@ -200,6 +200,12 @@ public class Main {
                     String value = ctx.request().getParam("value");
                     ctx.response().putHeader("Set-Cookie", name + "=" + value).end("ok");
                 });
+        router.get("/createextraservice")
+                .handler(ctx -> {
+                    String serviceName = ctx.request().getParam("serviceName");
+                    setRootSpanTag("service", serviceName);
+                    ctx.response().end("ok");
+                });
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));

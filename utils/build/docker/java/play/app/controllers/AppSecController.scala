@@ -162,6 +162,11 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     Ok(Json.toJson(headers))
   }
 
+  def createextraservice(serviceName: String) = Action { request =>
+    setRootSpanTag("service", serviceName)
+    Results.Ok("ok")
+  }
+
   def setCookie(name: Option[String], value: Option[String]) = Action { request =>
     val cookieName = name.getOrElse("defaultName")
     val cookieValue = value.getOrElse("defaultValue")
