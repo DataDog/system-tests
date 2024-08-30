@@ -1060,7 +1060,6 @@ def set_cookie():
 @app.route("/iast/insecure-cookie/test_insecure")
 def test_insecure_cookie():
     resp = Response("OK")
-    user_param = flask_request.form.get("user")
     resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="None")
     return resp
 

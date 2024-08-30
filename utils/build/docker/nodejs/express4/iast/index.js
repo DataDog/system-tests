@@ -120,7 +120,7 @@ function initRoutes (app, tracer) {
   })
 
   app.get('/iast/insecure-cookie/test_insecure', (req, res) => {
-    res.cookie('insecure-' + req.body.user, 'cookie')
+    res.cookie('insecure', 'cookie')
     res.send('OK')
   })
 

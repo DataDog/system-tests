@@ -20,7 +20,6 @@ APPSEC_SCENARIOS: &appsec_scenarios
   - APPSEC_AUTO_EVENTS_RC
   - APPSEC_STANDALONE
   - APPSEC_RASP
-  - APPSEC_META_STRUCT_ENABLED
   - APPSEC_META_STRUCT_DISABLED
 
 # Scenarios covering Remote Configuration

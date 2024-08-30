@@ -327,8 +327,7 @@ def view_weak_cipher_secure(request):
 
 def view_insecure_cookies_insecure(request):
     res = HttpResponse("OK")
-    user = request.POST.get("user", "")
-    res.set_cookie("insecure-" + user, "cookie", secure=False)
+    res.set_cookie("insecure", "cookie", secure=False)
     return res
 
 

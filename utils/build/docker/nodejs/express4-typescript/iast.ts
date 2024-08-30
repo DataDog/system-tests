@@ -127,7 +127,7 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/insecure-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('insecure-' + req.body.user, 'cookie')
+    res.cookie('insecure', 'cookie')
     res.send('OK')
   })
 
