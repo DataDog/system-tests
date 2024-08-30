@@ -230,9 +230,8 @@ public class AppSecIast {
     }
 
     @GetMapping("/insecure-cookie/test_insecure")
-    String insecureCookie(final ServletRequest request, final HttpServletResponse response) {
-        final String user = request.getParameter("user");
-        response.addHeader("Set-Cookie", user + "=7;HttpOnly;SameSite=Strict");
+    String insecureCookie(final HttpServletResponse response) {
+        response.addHeader("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
         return "ok";
     }
 

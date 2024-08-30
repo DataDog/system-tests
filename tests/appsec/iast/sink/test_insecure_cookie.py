@@ -14,7 +14,7 @@ class TestInsecureCookie(BaseSinkTest):
     http_method = "GET"
     insecure_endpoint = "/iast/insecure-cookie/test_insecure"
     secure_endpoint = "/iast/insecure-cookie/test_secure"
-    data = {"user": "user-id"}
+    data = {}
     location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
     @bug(context.library < "java@1.18.3", reason="APMRP-360")

@@ -130,10 +130,7 @@ public class IastSinkRouteProvider implements Consumer<Router> {
                 ctx.response().putHeader("Set-Cookie", "").end()
         );
         router.get("/iast/insecure-cookie/test_insecure").handler(ctx ->
-                {
-                    final String user = ctx.request().getParam("user");
-                    ctx.response().putHeader("Set-Cookie", user + "=7;HttpOnly;SameSite=Strict").end();
-                }
+                ctx.response().putHeader("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict").end()
         );
         router.get("/iast/insecure-cookie/test_secure").handler(ctx ->
                 ctx.response().putHeader("Set-Cookie", "user-id=7;Secure;HttpOnly;SameSite=Strict").end()

@@ -660,7 +660,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
 @app.get("/iast/insecure-cookie/test_insecure")
 async def test_insecure_cookie():
     resp = PlainTextResponse("OK")
-    resp.set_cookie("insecure-" + user, "cookie", secure=False, httponly=False, samesite="none")
+    resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="none")
     return resp
 
 
