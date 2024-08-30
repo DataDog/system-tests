@@ -119,8 +119,12 @@ class ParametricScenario(Scenario):
 
     def configure(self, config):
         super().configure(config)
-        assert "TEST_LIBRARY" in os.environ
-        library = os.getenv("TEST_LIBRARY")
+        if config.option.library:
+            library = config.option.library
+        elif "TEST_LIBRARY" in os.environ:
+            library = os.getenv("TEST_LIBRARY")
+        else:
+            raise ValueError("No library specified, please set -L option")
 
         # get tracer version info building and executing the ddtracer-version.docker file
 
@@ -146,7 +150,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs",):
+        if library in ("nodejs", "python"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -189,6 +193,10 @@ class ParametricScenario(Scenario):
     @property
     def library(self):
         return self._library
+
+    @property
+    def weblog_variant(self):
+        return f"parametric-{self.library.library}"
 
     def _build_apm_test_server_image(self) -> str:
 
@@ -338,7 +346,8 @@ FROM ghcr.io/datadog/dd-trace-py/testrunner:9e3bd1fb9e42a4aa143cae661547517c7fbd
 WORKDIR /app
 RUN pyenv global 3.9.16
 RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
-COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
+COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
+COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_PATCH_MODULES="fastapi:false"
 """,

@@ -44,6 +44,7 @@ def is_v1_payload(data):
     return get_request_content(data).get("api_version") == "v1"
 
 
+@rfc("https://docs.google.com/document/d/1Fai2gZlkvfa_WQs_yJsmi3nUwiOsMtNu2LFBnbTHJRA/edit#heading=h.llmi584vls7r")
 @features.telemetry_instrumentation
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
@@ -279,7 +280,7 @@ class Test_Telemetry:
                 lib_message, lib_log_file = lib_data["request"]["content"], lib_data["log_filename"]
 
                 if agent_message != lib_message:
-                    raise Exception(
+                    raise ValueError(
                         f"Telemetry proxy message different in messages {lib_log_file} and {agent_log_file}:\n"
                         f"library sent {lib_message}\n"
                         f"agent sent {agent_message}"
@@ -291,53 +292,74 @@ class Test_Telemetry:
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
-    @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
-    @flaky(context.library < "java@1.18.0", reason="Telemetry interval drifts")
-    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
-    @flaky(library="ruby")
-    @bug(context.library > "php@0.90")
-    @features.telemetry_heart_beat_collected
-    def test_app_heartbeat(self):
-        """Check for heartbeat or messages within interval and valid started and closing messages"""
-
-        expected_heartbeat_interval = context.telemetry_heartbeat_interval
-
-        # This interval can't be perfeclty exact, give some room for tests
-        UPPER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 2).total_seconds()
-        LOWER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 0.75).total_seconds()
+    @staticmethod
+    def _get_heartbeat_delays_by_runtime() -> dict:
+        """ 
+            Returns a dict where :
+            The key is the runtime id
+            The value is a list of delay observed on this runtime id
+        """
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
-        assert len(telemetry_data) > 0, "No telemetry messages"
+        heartbeats_by_runtime = defaultdict(list)
 
-        heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
-        assert len(heartbeats) >= 3, "Did not receive, at least, 2 heartbeats"
+        for data in telemetry_data:
+            if data["request"]["content"].get("request_type") == "app-heartbeat":
+                heartbeats_by_runtime[data["request"]["content"]["runtime_id"]].append(data)
 
-        # depending on the tracer, the very first heartbeat may be sent in a request that pays the
-        # connection initialization time. This time is very unpredictible, so we remove the very
-        # first heartbeat from the list
-        heartbeats.pop(0)
+        delays_by_runtime = {}
 
-        timestamps = [datetime.strptime(data["request"]["timestamp_start"], fmt) for data in heartbeats]
+        for runtime_id, heartbeats in heartbeats_by_runtime.items():
 
-        # In theory, it's sorted. Let be safe
-        timestamps.sort()
+            assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
 
-        # Get the delay between the first heartbeat and the last heartbeat
-        delta = (timestamps[-1] - timestamps[0]).total_seconds()
+            logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
-        # There is N -1 delay between N heartbeats, so get the average delay with:
-        average_delay = delta / (len(heartbeats) - 1)
+            # In theory, it's sorted. Let be safe
+            heartbeats.sort(key=lambda data: datetime.strptime(data["request"]["timestamp_start"], fmt))
 
-        assert (
-            average_delay < UPPER_LIMIT
-        ), f"Heartbeat sent too slow: ({average_delay}s). It should be sent every {expected_heartbeat_interval}s"
-        assert (
-            average_delay > LOWER_LIMIT
-        ), f"Heartbeat sent too fast: ({average_delay}s). It should be sent every {expected_heartbeat_interval}s"
+            prev_message_time = None
+            delays = []
+            for data in heartbeats:
+                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+                if prev_message_time is None:
+                    logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
+                else:
+                    delay = (curr_message_time - prev_message_time).total_seconds()
+                    logger.debug(f"  * {data['log_filename']}: {curr_message_time} => {delay}s ellapsed")
+                    delays.append(delay)
+
+                prev_message_time = curr_message_time
+
+            delays_by_runtime[runtime_id] = delays
+
+        return delays_by_runtime
+
+    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @flaky(context.library <= "java@1.38.1", reason="Telemetry second heartbeat was sent too fast")
+    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
+    @flaky(library="ruby", reason="APMAPI-226")
+    @features.telemetry_heart_beat_collected
+    def test_app_heartbeats_delays(self):
+        """
+            Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+            There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
+            to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
+        """
+
+        delays_by_runtime = self._get_heartbeat_delays_by_runtime()
+
+        # This interval can't be perfeclty exact, give some room for tests
+        LOWER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
+        UPPER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
+        expectation = f"It should be sent every {context.telemetry_heartbeat_interval}s"
+
+        for delays in delays_by_runtime.values():
+            average_delay = sum(delays) / len(delays)
+            assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
+            assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")

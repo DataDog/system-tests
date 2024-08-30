@@ -25,6 +25,7 @@ from iast import (
     weak_hash_secure_algorithm,
 )
 
+import ddtrace
 from ddtrace import Pin, tracer, patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
@@ -64,6 +65,29 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 
 @csrf_exempt
+def healthcheck(request):
+    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "metadata" not in data:
+        appsec_event_rules_version = "1.2.5"
+    else:
+        appsec_event_rules_version = data["metadata"]["rules_version"]
+
+    result = {
+        "status": "ok",
+        "library": {
+            "language": "python",
+            "version": ddtrace.__version__,
+            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
+            "appsec_event_rules_version": appsec_event_rules_version,
+        },
+    }
+
+    return HttpResponse(json.dumps(result), content_type="application/json")
+
+
+@csrf_exempt
 def waf(request, *args, **kwargs):
     if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
@@ -95,6 +119,13 @@ def request_downstream(request, *args, **kwargs):
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http.request("GET", "http://localhost:7777/returnheaders")
     return HttpResponse(response.data)
+
+
+@csrf_exempt
+def set_cookie(request):
+    res = HttpResponse("OK")
+    res.headers["Set-Cookie"] = f"{request.GET.get('name')}={request.GET.get('value')}"
+    return res
 
 
 ### BEGIN EXPLOIT PREVENTION
@@ -529,6 +560,14 @@ def view_iast_source_parameter(request):
 
 
 @csrf_exempt
+def view_iast_source_path(request):
+    table = request.path_info
+    _sink_point_sqli(table=table[0])
+
+    return HttpResponse("OK")
+
+
+@csrf_exempt
 def view_iast_header_injection_insecure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
@@ -662,6 +701,7 @@ def create_extra_service(request):
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
+    path("healthcheck", healthcheck),
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
@@ -669,6 +709,7 @@ urlpatterns = [
     path("requestdownstream/", request_downstream),
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
+    path("set_cookie", set_cookie),
     path("rasp/lfi", rasp_lfi),
     path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),
@@ -713,6 +754,7 @@ urlpatterns = [
     path("iast/source/header/test", view_iast_source_header_value),
     path("iast/source/parametername/test", view_iast_source_parametername),
     path("iast/source/parameter/test", view_iast_source_parameter),
+    path("iast/source/path/test", view_iast_source_path),
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("make_distant_call", make_distant_call),

@@ -2,12 +2,26 @@ tests/:
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span:
-        '*': missing_feature (/e2e_otel_span endpoint is only implemented in Java Spring Boot at the moment)
-        spring-boot:  v0.1 # real version not known
+        '*': v0.1 # real version not known
+        akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        ratpack: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        resteasy-netty3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        spring-boot-3-native: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
     test_single_span.py:
       Test_SingleSpan:
-        '*': missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
-        spring-boot:  v0.1 # real version not known
+        '*': v0.1 # real version not known
+        akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        ratpack: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        resteasy-netty3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        spring-boot-3-native: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
   appsec/:
     api_security/:
       test_api_security_rc.py:
@@ -395,31 +409,44 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
-      test_span_tags.py: missing_feature
+      # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
         Test_Sqli_BodyJson:
-          '*': v1.38.0
+          '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          spring-boot-payara: bug (produces 500 errors)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Sqli_BodyUrlEncoded:
-          '*': v1.38.0
+          '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          spring-boot-payara: bug (produces 500 errors)
         Test_Sqli_BodyXml:
-          '*': v1.38.0
+          '*': v1.39.0
           akka-http: missing_feature (Requires parsed body instrumentation)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+          spring-boot-payara: bug (produces 500 errors)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
-        Test_Sqli_UrlQuery:
-          '*': v1.38.0
+        Test_Sqli_Mandatory_SpanTags:
+          '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (Requires payara blockng functionallity)
+        Test_Sqli_Optional_SpanTags:
+          '*': v1.39.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Sqli_StackTrace:
+          '*': v1.39.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (produces 500 errors)
+        Test_Sqli_Telemetry:
+          '*': v1.39.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (produces 500 errors)
+        Test_Sqli_UrlQuery:
+          '*': v1.39.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (produces 500 errors)
       test_ssrf.py: missing_feature
-      test_stack_traces.py: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -836,8 +863,12 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint: missing_feature
-      Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Endpoint:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Header_And_Network:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
@@ -958,13 +989,13 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: v1.38.0  # real version not known
+        spring-boot: v0.1  # real version not known
         spring-boot-jetty: v1.38.0  # real version not known
         spring-boot-openliberty: v1.38.0  # real version not known
         spring-boot-payara: v1.38.0  # real version not known
         spring-boot-undertow: v1.38.0  # real version not known
         spring-boot-wildfly: v1.38.0  # real version not known
-        uds-spring-boot: v1.38.0  # real version not known
+        uds-spring-boot: v0.1  # real version not known
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
@@ -1098,6 +1129,8 @@ tests/:
     test_sql.py:
       Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
   parametric/:
+    test_crashtracking.py:
+      Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.34.0

@@ -167,6 +167,28 @@ def hello_world():
     return "Hello, World!\\n"
 
 
+@app.route("/healthcheck")
+def healthcheck():
+    path = ddtrace.appsec.__path__[0] + "/rules.json"
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "metadata" not in data:
+        appsec_event_rules_version = "1.2.5"
+    else:
+        appsec_event_rules_version = data["metadata"]["rules_version"]
+
+    return {
+        "status": "ok",
+        "library": {
+            "language": "python",
+            "version": ddtrace.__version__,
+            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
+            "appsec_event_rules_version": appsec_event_rules_version,
+        },
+    }
+
+
 @app.route("/sample_rate_route/<i>")
 def sample_rate(i):
     return "OK"
@@ -856,6 +878,13 @@ def view_iast_source_parameter():
     return Response("OK")
 
 
+@app.route("/iast/source/path/test", methods=["GET", "POST"])
+def view_iast_source_path():
+    table = flask_request.path
+    _sink_point_sqli(table=table)
+    return Response("OK")
+
+
 @app.route("/iast/path_traversal/test_insecure", methods=["POST"])
 def view_iast_path_traversal_insecure():
     path = flask_request.form["path"]
@@ -1017,6 +1046,15 @@ def view_sqli_insecure():
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     return Response("OK")
+
+
+@app.route("/set_cookie", methods=["GET"])
+def set_cookie():
+    name = flask_request.args.get("name")
+    value = flask_request.args.get("value")
+    resp = Response("OK")
+    resp.headers["Set-Cookie"] = f"{name}={value}"
+    return resp
 
 
 @app.route("/iast/insecure-cookie/test_insecure")
