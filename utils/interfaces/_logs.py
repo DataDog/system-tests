@@ -160,7 +160,15 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d")
             klass = p("klass", r"[\w\.$\[\]/]+")
             self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
-
+        elif context.library == "cpp":
+            # XXX: should be limited to nginx, but context.weblog_variant is unset at this point
+            # messages are like '2024/04/30 09:31:49 [info] 25#25: AppSec loaded 154 rules from file embedded ruleset'
+            self._new_log_line_pattern = re.compile(r".")
+            timestamp = p("timestamp", r"\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}")
+            level = p("level", r"\w+")
+            thread = p("thread", r"\d+#\d+")
+            message = p("message", r".+")
+            self._parsers.append(re.compile(rf"^{timestamp} \[{level}\] {thread}: {message}"))
         elif library == "dotnet":
             self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
         elif library == "php":
@@ -184,7 +192,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
         return line
 
     def _get_standardized_level(self, level):
-        if self.library == "php":
+        if self.library == "php" or context.weblog_variant == "nginx":
             return level.upper()
 
         return super()._get_standardized_level(level)

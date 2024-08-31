@@ -176,8 +176,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
-      # C++ 1.2.0 freeze when the rules file is missing
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && inputs.library != 'cpp'
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && matrix.weblog != 'nginx'
+      # nginx 1.2.0 refuses to start without a valid rules files
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -187,8 +187,8 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      # C++ 1.2.0 freeze when the rules file is missing
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && inputs.library != 'cpp'
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && matrix.weblog != 'nginx'
+      # nginx 1.2.0 refuses to start without a valid rules files
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}

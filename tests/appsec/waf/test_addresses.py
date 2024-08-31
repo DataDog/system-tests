@@ -100,6 +100,7 @@ class Test_Headers:
 
     @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
+    @irrelevant(weblog_variant="nginx", reason="nginx discards headers with underscores")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
         """attacks on specific header X_Filename, and report it"""

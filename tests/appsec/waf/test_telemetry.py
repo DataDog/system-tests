@@ -211,6 +211,8 @@ def _validate_headers(headers, request_type):
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     elif context.library >= "java@1.23.0":
         expected_headers["DD-Telemetry-API-Version"] = "v2"
+    elif context.library == "cpp":
+        expected_headers["DD-Telemetry-API-Version"] = "v2"
     else:
         expected_headers["DD-Telemetry-API-Version"] = "v1"
 

@@ -54,6 +54,7 @@ class Test_Blocking_client_ip:
     def setup_blocking_before(self):
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512/200", headers={"X-Forwarded-For": "1.1.1.1"})
 
+    @irrelevant(weblog_variant="nginx", reason="tag setting oin nginx config is done unconditionally")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # second request should block and must not set the tag in span
@@ -106,6 +107,7 @@ class Test_Blocking_request_method:
         self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
     @flaky(context.library < "java@1.16.0")
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -158,6 +160,7 @@ class Test_Blocking_request_uri:
         self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -202,6 +205,7 @@ class Test_Blocking_request_path_params:
         self.set_req1 = weblog.get("/tag_value/clean_value_3878/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_AiKfOeRcvG45/200")
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -249,6 +253,7 @@ class Test_Blocking_request_query:
         self.set_req1 = weblog.get("/tag_value/clean_value_3879/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -296,6 +301,7 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -343,6 +349,7 @@ class Test_Blocking_request_cookies:
         self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
+    @bug(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
