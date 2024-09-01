@@ -144,4 +144,13 @@ public class DebuggerController {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Recursion exception");
         }
     }
+
+    @GetMapping("/exceptionreplay/inner")
+    public Void exceptionReplayInner() {
+        try {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Inner exception");
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Outer exception");
+        }
+    }
 }
