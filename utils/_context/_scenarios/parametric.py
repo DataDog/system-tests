@@ -150,7 +150,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python"):
+        if library in ("nodejs", "python", "golang"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -423,6 +423,7 @@ COPY {golang_reldir}/go.sum /app
 COPY {golang_reldir}/. /app
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+COPY utils/build/docker/golang/parametric/system_tests_library_version.sh system_tests_library_version.sh
 RUN /binaries/install_ddtrace.sh
 
 RUN go install

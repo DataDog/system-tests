@@ -49,6 +49,40 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		tracerVersion, err := os.ReadFile("SYSTEM_TESTS_LIBRARY_VERSION")
+        if err != nil {
+            http.Error(w, "Can't get SYSTEM_TESTS_LIBRARY_VERSION", http.StatusInternalServerError)
+            return
+        }
+
+		appsec_rules_version, err := os.ReadFile("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION")
+        if err != nil {
+            http.Error(w, "Can't get SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", http.StatusInternalServerError)
+            return
+        }
+		
+        libray := map[string]interface{}{
+            "language":  "golang",
+            "version":   string(tracerVersion),
+            "appsec_event_rules_version": string(appsec_rules_version),
+        }
+
+        data := map[string]interface{}{
+            "status": "ok",
+            "library": libray,
+        }
+
+        jsonData, err := json.Marshal(data)
+        if err != nil {
+            http.Error(w, "Can;t build JSON data", http.StatusInternalServerError)
+            return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(jsonData)
+	})
+
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
 		body, err := common.ParseBody(r)
 		if err == nil {
