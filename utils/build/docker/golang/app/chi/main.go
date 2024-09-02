@@ -10,6 +10,7 @@ import (
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
+	"weblog/internal/rasp"
 
 	"github.com/go-chi/chi/v5"
 
@@ -185,9 +186,9 @@ func main() {
 		w.Write([]byte(content))
 	})
 
-	/*mux.HandleFunc("/rasp/lfi", rasp.LFI)
+	mux.HandleFunc("/rasp/lfi", rasp.LFI)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
-	mux.HandleFunc("/rasp/sqli", rasp.SQLi)*/
+	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
