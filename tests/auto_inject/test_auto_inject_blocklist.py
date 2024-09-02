@@ -16,6 +16,7 @@ class _AutoInjectBlockListBaseTest:
         "python": "DD_PYTHON_IGNORED_ARGS",
         "nodejs": "DD_NODE_IGNORED_ARGS",
         "ruby": "DD_RUBY_IGNORED_ARGS",
+        "php": "DD_PHP_IGNORED_ARGS",
     }
 
     yml_config_template = """
@@ -25,7 +26,7 @@ output_paths:
   - file:///tmp/host_injection.log
 env: dev
 config_sources: BASIC
-ignored_processes: 
+ignored_processes:
         - DD_IGNORED_PROCESSES
 ignored_arguments:
     Java:
@@ -38,6 +39,8 @@ ignored_arguments:
         - DD_NODE_IGNORED_ARGS
     Ruby:
         - DD_RUBY_IGNORED_ARGS
+    PHP:
+        - DD_PHP_IGNORED_ARGS
 """
 
     def _execute_remote_command(self, ssh_client, command, config={}, use_injection_config=False):
@@ -206,6 +209,12 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"ignored_args": "test1,test2", "command": "ruby names.rb --name pepe", "skip": False},
             {"ignored_args": "--name", "command": "ruby names.rb --name pepe", "skip": True},
         ],
+        "php": [
+            {"ignored_args": "", "command": "php index.php -a -b -c", "skip": False},
+            {"ignored_args": "-c", "command": "php index.php -a -b -c", "skip": True},
+            {"ignored_args": "", "command": "php index.php -f --custom Override", "skip": False},
+            {"ignored_args": "--custom", "command": "php index.php -f --custom Override", "skip": True},
+        ],
     }
 
     @irrelevant(
@@ -265,7 +274,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         reason="Block list not fully implemented ",
     )
     def test_user_ignored_args(self, virtual_machine):
-        """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
+        """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python,php) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
         language = context.scenario.library.library
         if language in self.user_args_commands:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()
