@@ -16,7 +16,7 @@
             "lineNumber": 0
           },
           {
-            "function": "Unknown.lambda_method122",
+            "function": "Unknown.lambda_method<scrubbed>",
             "lineNumber": 0
           },
           {
@@ -56,7 +56,7 @@
             },
             "StackTrace": {
               "type": "String",
-              "value": "   at weblog.DebuggerController.ExpressionException() in /app/DebuggerController.cs:line 81\n   at lambda_method122(Closure, Object, Object[])\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.SyncActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)\n   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)"
+              "value": "<scrubbed>"
             }
           }
         }
@@ -84,7 +84,7 @@
       "lineNumber": 81
     },
     {
-      "function": "Unknown.lambda_method122",
+      "function": "Unknown.lambda_method<scrubbed>",
       "lineNumber": 0
     },
     {
