@@ -305,7 +305,7 @@ public abstract class ApmTestApi
             { "dd_runtime_metrics_enabled", runtimeMetricsEnabled.ToString().ToLowerInvariant() },
             { "dd_tags", tracerSettings.GlobalTags.Select(kvp => $"{kvp.Key}:{kvp.Value}").ToArray() },
             { "dd_trace_propagation_style", string.Join(",", propagationStyleInject) },
-            { "dd_trace_debug", globalSettings.DebugEnabled ? "true" : "false" },
+            { "dd_trace_debug", null },  // not supported
             { "dd_trace_otel_enabled", isOtelEnabled.ToString().ToLowerInvariant() },
             { "dd_log_level", null },
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
