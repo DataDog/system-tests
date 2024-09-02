@@ -153,7 +153,9 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
             expected_snapshots = self.__read(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
-            assert all("exceptionId" in snapshot for snapshot in snapshots), "One or more snapshots don't have 'exceptionId' field"
+            assert all(
+                "exceptionId" in snapshot for snapshot in snapshots
+            ), "One or more snapshots don't have 'exceptionId' field"
 
         __approve(self.snapshots)
 
