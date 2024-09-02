@@ -288,6 +288,14 @@ app.get('/returnheaders', (req: Request, res: Response) => {
   res.json({ ...req.headers })
 })
 
+app.get('/set_cookie', (req: Request, res: Response) => {
+  const name = req.query['name']
+  const value = req.query['value']
+
+  res.header('Set-Cookie', `${name}=${value}`)
+  res.send('OK')
+})
+
 require('./rasp')(app)
 
 require('./graphql')(app).then(() => {

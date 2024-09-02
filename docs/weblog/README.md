@@ -541,3 +541,7 @@ system("ls $list_dir");
 Examples:
 - `GET`: `/rasp/shi?list_dir=$(cat /etc/passwd 1>&2 ; echo .)
 - `POST`: `{"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}`
+
+### \[GET\] /set_cookie
+
+This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response

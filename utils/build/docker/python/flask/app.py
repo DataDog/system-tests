@@ -878,6 +878,13 @@ def view_iast_source_parameter():
     return Response("OK")
 
 
+@app.route("/iast/source/path/test", methods=["GET", "POST"])
+def view_iast_source_path():
+    table = flask_request.path
+    _sink_point_sqli(table=table)
+    return Response("OK")
+
+
 @app.route("/iast/path_traversal/test_insecure", methods=["POST"])
 def view_iast_path_traversal_insecure():
     path = flask_request.form["path"]
@@ -1039,6 +1046,15 @@ def view_sqli_insecure():
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     return Response("OK")
+
+
+@app.route("/set_cookie", methods=["GET"])
+def set_cookie():
+    name = flask_request.args.get("name")
+    value = flask_request.args.get("value")
+    resp = Response("OK")
+    resp.headers["Set-Cookie"] = f"{name}={value}"
+    return resp
 
 
 @app.route("/iast/insecure-cookie/test_insecure")

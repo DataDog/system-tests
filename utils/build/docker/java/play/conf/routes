@@ -16,3 +16,4 @@ GET  /rasp/sqli                controllers.RaspController.sqli
 POST /rasp/sqli                controllers.RaspController.sqli
 GET  /requestdownstream        controllers.AppSecController.requestdownstream
 GET  /returnheaders            controllers.AppSecController.returnheaders
+GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)
