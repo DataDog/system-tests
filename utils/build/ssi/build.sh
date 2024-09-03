@@ -33,16 +33,6 @@ print_usage() {
     echo -e "    ./build.sh java -w dd-lib-java-init-test-app --base-image ubuntu:22.04 --runtime_version 11.0.24-zulu"
     echo -e "  Build a java weblog based on ubuntu:22.04 AMD64 with java runtime version 11.0.24-zulu:"
     echo -e "    ./build.sh java -w dd-lib-java-init-test-app --base-image ubuntu:22.04 --runtime_version 11.0.24-zulu --arch linux/amd64"
-    echo -e "  Build default images for Dotnet with binary path:"
-    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""
-    echo -e "  Build default images for Dotnet with binary url:"
-    echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
-    echo -e "  List libraries:"
-    echo -e "    ${SCRIPT_NAME} --list-libraries"
-    echo -e "  List weblogs for PHP:"
-    echo -e "    ${SCRIPT_NAME} --list-weblogs --library php"
-    echo -e "  Print default weblog for Python:"
-    echo -e "    ${SCRIPT_NAME} --default-weblog --library python"
     echo
     echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
@@ -82,7 +72,7 @@ if [ -z "${ARCH-}" ]; then
 fi
 
 if [ -z "${BASE_IMAGE-}" ]; then
-   docker buildx build --platform ${ARCH} -f ${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile --build-context lib_injection=../../../lib-injection/build/docker  -t weblog-injection:latest --load .
+   docker buildx build --platform "${ARCH}" -f "${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" --build-context lib_injection=../../../lib-injection/build/docker  -t weblog-injection:latest --load .
 else
     #TODO check the base image is correct
     #TODO check the runtime version is correct
@@ -96,9 +86,9 @@ else
         echo "Must provide the runtime version of the language to be installed on the base image. Please use the command 'build.sh --list-allowed-runtimes' to check the available runtimes. Exiting...."
         exit 1
     fi
-    docker buildx build -f base/base_lang.Dockerfile  -t "${TAG}" --build-arg BASE_IMAGE=${BASE_IMAGE} --build-arg ARCH=${ARCH} --build-arg LANG=${TEST_LIBRARY} --build-arg RUNTIME_VERSIONS=${RUNTIME_VERSIONS} --load .
-    docker buildx build -f base/base_ssi.Dockerfile  -t "ssi_${TAG}" --build-arg BASE_IMAGE=${TAG} --build-arg ARCH=${ARCH} --build-arg LANG=${TEST_LIBRARY} --load .
-    docker buildx build -f ${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile --build-context lib_injection=../../../lib-injection/build/docker --build-arg BASE_IMAGE=ssi_${TAG} -t weblog-injection:latest --load .
+    docker buildx build -f base/base_lang.Dockerfile  -t "${TAG}" --build-arg BASE_IMAGE="${BASE_IMAGE}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --build-arg RUNTIME_VERSIONS="${RUNTIME_VERSIONS}" --load .
+    docker buildx build -f base/base_ssi.Dockerfile  -t "ssi_${TAG}" --build-arg BASE_IMAGE="${TAG}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --load .
+    docker buildx build -f "${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" --build-context lib_injection=../../../lib-injection/build/docker --build-arg BASE_IMAGE="ssi_${TAG}" -t weblog-injection:latest --load .
 fi
  #BASE_IMAGE=ubuntu:22.04
  #ARCH=linux/amd64
