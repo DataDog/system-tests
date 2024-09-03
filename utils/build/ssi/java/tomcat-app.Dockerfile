@@ -4,12 +4,12 @@ WORKDIR /app
 #COPY apps/java/enterprise/ ./
 COPY --from=lib_injection java/enterprise/ ./
 RUN mvn clean package
- 
+
 FROM tomcat:9
-ENV DD_INSTALL_ONLY=true 
+ENV DD_INSTALL_ONLY=true
 ENV DD_API_KEY=abc
-ENV DD_APM_INSTRUMENTATION_ENABLED=host 
-ENV DD_APM_INSTRUMENTATION_LIBRARIES=java 
+ENV DD_APM_INSTRUMENTATION_ENABLED=host
+ENV DD_APM_INSTRUMENTATION_LIBRARIES=java
 RUN /bin/bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 COPY --from=build app/payment-service/target/payment-service*.war /usr/local/tomcat/webapps/
 
