@@ -1,0 +1,46 @@
+name: Open telemetry tests
+
+on:
+  workflow_call:
+    inputs:
+      library:
+        description: "Library to test"
+        required: true
+        type: string
+      weblogs:
+        description: "JSON array of weblogs to run"
+        default: "[]"
+        required: false
+        type: string
+
+jobs:
+  docker-ssi-check-injection:
+    if: inputs.library == 'java'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        weblog: ${{ fromJson(inputs.weblogs) }}
+
+      fail-fast: false
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    - name: Build weblog
+      id: build
+      run: utils/build/ssi/build.sh java -w ${{inputs.library}} --base-image ubuntu:22.04 --runtime_version 11.0.24-zulu
+    - name: Run Docker SSI scenario
+      if: always() && steps.build.outcome == 'success'
+      run: ./run.sh DOCKER_SSI
+    - name: Compress logs
+      if: always() && steps.build.outcome == 'success'
+      run: tar -czvf artifact.tar.gz $(ls | grep logs)
+    - name: Upload artifact
+      if: always() && steps.build.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.weblog }}
+        path: artifact.tar.gz
