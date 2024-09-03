@@ -867,7 +867,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(
         context.library != "golang@1.66.0-dev" and context.library < "golang@1.67.0", reason="Implemented in v1.67.0"
     )
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
@@ -921,7 +921,7 @@ class Test_Otel_Span_Methods:
         assert event3["attributes"].get("string_array")[1] == "6"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library < "php@0.95.0", reason="Implemented in 0.96.0")
+    @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
@@ -942,7 +942,7 @@ class Test_Otel_Span_Methods:
         assert "error" not in root_span or root_span["error"] == 0
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
@@ -984,11 +984,14 @@ class Test_Otel_Span_Methods:
         assert event3.get("time_unix_nano") > event2.get("time_unix_nano")
 
         assert root_span["error"] == 1
-        assert "error.type" in root_span["meta"]
         assert "error.stack" in root_span["meta"]
+        # For PHP we set only the error.stack tag on the meta to not interfere with the defined semantics of the PHP tracer
+        # https://github.com/DataDog/dd-trace-php/pull/2754#discussion_r1704232289
+        if context.library != "php":
+            assert "error.type" in root_span["meta"]
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
@@ -1026,8 +1029,11 @@ class Test_Otel_Span_Methods:
         event3 = events[2]
         assert event3["attributes"].get("exception.message") == "message override"
 
-        error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
-        assert error_message == "message override"
+        # For PHP we set only the error.stack tag on the meta to not interfere with the defined semantics of the PHP tracer
+        # https://github.com/DataDog/dd-trace-php/pull/2754#discussion_r1704232289
+        if context.library != "php":
+            error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
+            assert error_message == "message override"
 
 
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
