@@ -35,6 +35,8 @@ jobs:
     - name: Run Docker SSI scenario
       if: always() && steps.build.outcome == 'success'
       run: ./run.sh DOCKER_SSI
+      env:
+        TEST_LIBRARY: ${{ inputs.library }}
     - name: Compress logs
       if: always() && steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
