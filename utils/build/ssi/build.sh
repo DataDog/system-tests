@@ -14,7 +14,7 @@
 
 DEFAULT_ARCH="linux/amd64"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-cd "${SCRIPT_DIR}"
+cd "${SCRIPT_DIR}" || exit
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
