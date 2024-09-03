@@ -36,3 +36,9 @@ echo "Running Maven build with profiles ${MAVEN_PROFILES}"
 # shellcheck disable=SC2086
 mvn -q $MAVEN_PROFILES package
 
+# Extract application and its dependencies from class lookup performance improvements
+java -Djarmode=tools -jar target/dd-trace-java-client-1.0.0.jar extract --destination application
+# Warm up application and create CDS archive
+APM_TEST_CLIENT_SERVER_PORT=8080 java \
+  -XX:ArchiveClassesAtExit=application.jsa -Dspring.context.exit=onRefresh \
+  -jar application/dd-trace-java-client-1.0.0.jar
