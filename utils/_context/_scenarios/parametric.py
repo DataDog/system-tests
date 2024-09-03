@@ -119,8 +119,12 @@ class ParametricScenario(Scenario):
 
     def configure(self, config):
         super().configure(config)
-        assert "TEST_LIBRARY" in os.environ
-        library = os.getenv("TEST_LIBRARY")
+        if config.option.library:
+            library = config.option.library
+        elif "TEST_LIBRARY" in os.environ:
+            library = os.getenv("TEST_LIBRARY")
+        else:
+            raise ValueError("No library specified, please set -L option")
 
         # get tracer version info building and executing the ddtracer-version.docker file
 
@@ -145,9 +149,19 @@ class ParametricScenario(Scenario):
             self._clean_containers()
             self._clean_networks()
 
-        output = _get_client().containers.run(
-            self.apm_test_server_definition.container_tag, remove=True, command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
-        )
+        # https://github.com/DataDog/system-tests/issues/2799
+        if library in ("nodejs", "python"):
+            output = _get_client().containers.run(
+                self.apm_test_server_definition.container_tag,
+                remove=True,
+                command=["./system_tests_library_version.sh"],
+            )
+        else:
+            output = _get_client().containers.run(
+                self.apm_test_server_definition.container_tag,
+                remove=True,
+                command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
+            )
 
         self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
@@ -179,6 +193,10 @@ class ParametricScenario(Scenario):
     @property
     def library(self):
         return self._library
+
+    @property
+    def weblog_variant(self):
+        return f"parametric-{self.library.library}"
 
     def _build_apm_test_server_image(self) -> str:
 
@@ -328,7 +346,8 @@ FROM ghcr.io/datadog/dd-trace-py/testrunner:9e3bd1fb9e42a4aa143cae661547517c7fbd
 WORKDIR /app
 RUN pyenv global 3.9.16
 RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
-COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
+COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
+COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_PATCH_MODULES="fastapi:false"
 """,
@@ -343,6 +362,15 @@ def node_library_factory() -> APMLibraryTestServer:
     nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
     nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
     nodejs_reldir = nodejs_appdir.replace("\\", "/")
+    volumes = {}
+
+    try:
+        with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+            path = f.read().strip(" \r\n")
+            source = os.path.join(_get_base_directory(), path)
+            volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
+    except Exception:
+        pass
 
     return APMLibraryTestServer(
         lang="nodejs",
@@ -350,12 +378,16 @@ def node_library_factory() -> APMLibraryTestServer:
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
-FROM node:18.10-slim
-RUN apt-get update && apt-get install -y jq git
+FROM node:18.10-alpine
+RUN apk add --no-cache bash curl git jq
 WORKDIR /usr/app
+COPY {nodejs_reldir}/../app.sh /usr/app/
+RUN printf 'node server.js' >> app.sh
+RUN chmod +x app.sh
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
+COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
 RUN npm install
@@ -364,9 +396,10 @@ COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 """,
-        container_cmd=["node", "server.js"],
+        container_cmd=["./app.sh"],
         container_build_dir=nodejs_absolute_appdir,
         container_build_context=_get_base_directory(),
+        volumes=volumes,
     )
 
 
@@ -445,6 +478,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV CORECLR_ENABLE_PROFILING=0
 ENV CORECLR_PROFILER={{846F5F1C-F9AE-4B07-969E-05C26BC060D8}}
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
+ENV LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
 # disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
@@ -472,25 +506,22 @@ def java_library_factory():
 
     # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
     java_reldir = java_appdir.replace("\\", "/")
-    protofile = os.path.join("utils", "parametric", "protos", "apm_test_client.proto").replace("\\", "/")
 
     # TODO : use official install_ddtrace.sh
     return APMLibraryTestServer(
         lang="java",
-        protocol="grpc",
+        protocol="http",
         container_name="java-test-client",
         container_tag="java-test-client",
         container_img=f"""
 FROM maven:3.9.2-eclipse-temurin-17
 WORKDIR /client
-RUN mkdir ./tracer/ && wget -O ./tracer/dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
-RUN java -jar ./tracer/dd-java-agent.jar > SYSTEM_TESTS_LIBRARY_VERSION
+RUN mkdir ./tracer
 COPY {java_reldir}/src src
-COPY {java_reldir}/build.sh .
+COPY {java_reldir}/install_ddtrace.sh .
 COPY {java_reldir}/pom.xml .
-COPY {protofile} src/main/proto/
 COPY binaries /binaries
-RUN bash build.sh
+RUN bash install_ddtrace.sh
 COPY {java_reldir}/run.sh .
 """,
         container_cmd=["./run.sh"],

@@ -116,6 +116,8 @@ def main():
                     r"binaries/.*": None,  # nothing to do
                     r"\.circleci/.*": None,  # nothing to do
                     r"\.vscode/.*": None,  # nothing to do
+                    ## .github folder
+                    r"\.github/workflows/run-parametric\.yml": ScenarioGroup.PARAMETRIC.value,
                     r"\.github/.*": None,  # nothing to do??
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
@@ -128,8 +130,10 @@ def main():
                     r"utils/_context/_scenarios/auto_injection\.py": None,
                     r"utils/_context/virtual_machine\.py": None,
                     #### Parametric case
+                    r"utils/build/docker/\w+/parametric/.*": ScenarioGroup.PARAMETRIC.value,
                     r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
                     r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
+                    r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC.value,
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect

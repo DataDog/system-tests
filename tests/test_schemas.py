@@ -21,8 +21,19 @@ class Test_library:
                 ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
                 ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
                 ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
+                ("/debugger/v1/input", "$[].dd.span_id"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
             ]
         )
+
+    @bug(context.library == "python", reason="DEBUG-2743")
+    def test_library_schema_debugger(self):
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].dd.span_id")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].dd.trace_id")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.captures")
 
     @bug(context.library >= "nodejs@2.27.1", reason="APPSEC-52805")
     def test_library_schema_telemetry_conf_value(self):

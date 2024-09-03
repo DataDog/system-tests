@@ -32,6 +32,9 @@ class Link(TypedDict):
 
 
 class APMLibraryClient:
+    def crash(self) -> None:
+        raise NotImplementedError
+
     def trace_start_span(
         self,
         name: str,
@@ -176,6 +179,13 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
 
+    def crash(self) -> None:
+        try:
+            self._session.get(self._url("/trace/crash"))
+        except:
+            # Expected
+            pass
+
     def trace_start_span(
         self,
         name: str,
@@ -207,7 +217,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
             raise pytest.fail(f"Failed to start span: {resp.text}", pytrace=False)
 
         resp_json = resp.json()
-        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
+        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def current_span(self) -> Union[SpanResponse, None]:
         resp_json = self._session.get(self._url("/trace/span/current")).json()
@@ -290,6 +300,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "attributes": attributes or {},
             },
         ).json()
+        # TODO: Some http endpoints return span_id and trace_id as strings (ex: dotnet), some as uint64 (ex: go)
+        # and others with bignum trace_ids and uint64 span_ids (ex: python). We should standardize this.
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
     def otel_current_span(self) -> Union[SpanResponse, None]:
@@ -384,7 +396,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
 
 class _TestSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int = 0, parent_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int, parent_id: int = 0):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -421,7 +433,7 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -474,11 +486,11 @@ class APMLibraryClientGRPC:
         channel = grpc.insecure_channel(url)
         try:
             grpc.channel_ready_future(channel).result(timeout=timeout)
-        except grpc.FutureTimeoutError:
+        except grpc.FutureTimeoutError as e:
             logger.error("gRPC timeout, stopping test.")
             self._log_container_stdout()
 
-            raise RuntimeError(f"Container {container.name} did not respond to gRPC request")
+            raise RuntimeError(f"Container {container.name} did not respond to gRPC request") from e
 
         client = apm_test_client_pb2_grpc.APMClientStub(channel)
         self._client = client
@@ -710,6 +722,9 @@ class APMLibrary:
         if exc_type is None:
             self.flush()
 
+    def crash(self) -> None:
+        self._client.crash()
+
     @contextlib.contextmanager
     def start_span(
         self,
@@ -734,7 +749,7 @@ class APMLibrary:
             links=links if links is not None else [],
             tags=tags if tags is not None else [],
         )
-        span = _TestSpan(self._client, resp["span_id"])
+        span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
         span.finish()
 
@@ -758,7 +773,7 @@ class APMLibrary:
             attributes=attributes,
             http_headers=http_headers if http_headers is not None else [],
         )
-        span = _TestOtelSpan(self._client, resp["span_id"])
+        span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
 
         return {

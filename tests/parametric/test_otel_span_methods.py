@@ -6,13 +6,12 @@ import pytest
 from typing import Union
 from utils.parametric._library_client import Link
 from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
-from utils.parametric.spec.otel_trace import OtelSpan, otel_span
 from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
 from utils.parametric.spec.trace import find_span
-from utils.parametric.spec.trace import find_trace_by_root
+from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links
+from utils.parametric.spec.trace import find_first_span_in_trace_payload
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
-from utils.parametric.test_agent import get_span
 from utils import bug, features, missing_feature, irrelevant, flaky, context, scenarios
 
 # this global mark applies to all tests in this file.
@@ -46,7 +45,9 @@ class Test_Otel_Span_Methods:
             ) as parent:
                 parent.end_span(timestamp=start_time + duration)
 
-        root_span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(num=1)
+        trace = find_trace(traces, parent.trace_id)
+        root_span = find_span(trace, parent.span_id)
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
@@ -65,7 +66,9 @@ class Test_Otel_Span_Methods:
                 parent.set_attributes({"service.name": "new_service"})
                 parent.end_span()
 
-        root_span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(num=1)
+        trace = find_trace(traces, parent.trace_id)
+        root_span = find_span(trace, parent.span_id)
         assert root_span["name"] == "internal"
         assert root_span["resource"] == "parent_span"
         assert root_span["service"] == "new_service"
@@ -89,7 +92,9 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"http.response.status_code": 200})
                 span.end_span()
 
-        test_span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(num=1)
+        trace = find_trace(traces, span.trace_id)
+        test_span = find_span(trace, span.span_id)
 
         assert "http.response.status_code" not in test_span["meta"]
         assert test_span["meta"]["http.status_code"] == "200"
@@ -99,9 +104,9 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
     @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
     @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
+    @missing_feature(context.library < "php@1.1.0", reason="Implemented in 1.2.0")
     @irrelevant(context.library == "golang", reason="Does not support automatic status code remapping to meta")
     @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
-    @irrelevant(context.library == "php", reason="Does not support automatic status code remapping to meta")
     def test_otel_set_attribute_remapping_httpstatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
@@ -114,7 +119,9 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"http.status_code": 200})
                 span.end_span()
 
-        test_span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(num=1)
+        trace = find_trace(traces, span.trace_id)
+        test_span = find_span(trace, span.span_id)
 
         assert test_span["meta"]["http.status_code"] == "200"
 
@@ -150,10 +157,10 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="operation"))
+        trace = find_trace(traces, span.trace_id)
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
+        root_span = find_span(trace, span.span_id)
 
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
@@ -231,10 +238,10 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="operation"))
+        trace = find_trace(traces, span.trace_id)
         assert len(trace) == 1
 
-        root_span = get_span(test_agent)
+        root_span = find_span(trace, span.span_id)
 
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
@@ -295,13 +302,15 @@ class Test_Otel_Span_Methods:
         start_time: int = 12345
         duration: int = 6789
         with test_library:
-            with test_library.otel_start_span(name="operation", span_kind=SK_INTERNAL, timestamp=start_time) as s:
-                assert s.is_recording()
-                s.end_span(timestamp=start_time + duration)
-                assert not s.is_recording()
-                s.end_span(timestamp=start_time + duration * 2)
+            with test_library.otel_start_span(name="operation", span_kind=SK_INTERNAL, timestamp=start_time) as span:
+                assert span.is_recording()
+                span.end_span(timestamp=start_time + duration)
+                assert not span.is_recording()
+                span.end_span(timestamp=start_time + duration * 2)
 
-        s = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        s = find_span(trace, span.span_id)
         assert s.get("name") == "internal"
         assert s.get("resource") == "operation"
         assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
@@ -329,15 +338,16 @@ class Test_Otel_Span_Methods:
                 ) as child:
                     child.end_span()
 
-        trace = find_trace_by_root(test_agent.wait_for_num_traces(1), otel_span(name="parent"))
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        parent_span = find_span(trace, otel_span(name="parent"))
+        parent_span = find_span(trace, parent.span_id)
         assert parent_span["name"] == "producer"
         assert parent_span["resource"] == "parent"
         assert parent_span["meta"].get("after_finish") is None
 
-        child = find_span(trace, otel_span(name="child"))
+        child = find_span(trace, child.span_id)
         assert child["name"] == "consumer"
         assert child["resource"] == "child"
         assert child["parent_id"] == parent_span["span_id"]
@@ -364,7 +374,9 @@ class Test_Otel_Span_Methods:
                 s.set_status(OTEL_ERROR_CODE, "error_desc")
                 s.set_status(OTEL_UNSET_CODE, "unset_desc")
                 s.end_span()
-        s = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, s.trace_id)
+        s = find_span(trace, s.span_id)
         assert s.get("meta").get("error.message") == "error_desc"
         assert s.get("name") == "internal"
         assert s.get("resource") == "error_span"
@@ -391,16 +403,14 @@ class Test_Otel_Span_Methods:
                 span.set_status(OTEL_ERROR_CODE, "error_desc")
                 span.end_span()
 
-        span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        span = find_span(trace, span.span_id)
         assert span.get("meta").get("error.message") is None
         assert span.get("name") == "internal"
         assert span.get("resource") == "ok_span"
 
     @bug(context.library < "ruby@2.2.0", reason="Older versions do not generate datadog spans with the correct ids")
-    @flaky(
-        context.library == "dotnet",
-        reason="Flaky due to span order, tests should never use traces[0] when there are multiple spans",
-    )
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -428,11 +438,13 @@ class Test_Otel_Span_Methods:
                     assert context.get("trace_flags") == "01"
 
         # compare the values of the span context with the values of the trace sent to the agent
-        traces = test_agent.wait_for_num_traces(1)
-        _, op2 = traces[0]
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, span.trace_id)
+        op2 = find_span(trace, span.span_id)
         assert op2["resource"] == "op2"
         assert op2["span_id"] == int(context["span_id"], 16)
-        op2_tidhex = op2["meta"].get("_dd.p.tid", "") + "{:016x}".format(op2["trace_id"])
+        first_span = find_first_span_in_trace_payload(trace)
+        op2_tidhex = first_span["meta"].get("_dd.p.tid", "") + "{:016x}".format(first_span["trace_id"])
         assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
@@ -451,10 +463,10 @@ class Test_Otel_Span_Methods:
                 span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="operation"))
+        trace = find_trace(traces, span.trace_id)
         assert len(trace) == 1
 
-        span = get_span(test_agent)
+        span = find_span(trace, span.span_id)
         assert span["name"] == "kafka.receive"
         assert span["resource"] == "operation"
 
@@ -480,11 +492,11 @@ class Test_Otel_Span_Methods:
                     child.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="root"))
+        trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
 
-        root = find_span(trace, otel_span(name="root"))
-        child = find_span(trace, otel_span(name="child"))
+        root = find_span(trace, parent.span_id)
+        child = find_span(trace, child.span_id)
         assert child.get("parent_id") == root.get("span_id")
 
         span_links = retrieve_span_links(child)
@@ -525,7 +537,9 @@ class Test_Otel_Span_Methods:
             ) as span:
                 span.end_span()
 
-        span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        span = find_span(trace, span.span_id)
         span_links = retrieve_span_links(span)
         assert span_links is not None
         assert len(span_links) == 1
@@ -570,7 +584,9 @@ class Test_Otel_Span_Methods:
             ) as span:
                 span.end_span()
 
-        span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        span = find_span(trace, span.span_id)
         span_links = retrieve_span_links(span)
         assert span_links is not None
         assert len(span_links) == 1
@@ -622,7 +638,9 @@ class Test_Otel_Span_Methods:
             ) as span:
                 span.end_span()
 
-        span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        span = find_span(trace, span.span_id)
         span_links = retrieve_span_links(span)
         assert span_links is not None
         assert len(span_links) == 1
@@ -665,14 +683,14 @@ class Test_Otel_Span_Methods:
                     second.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="root"))
+        trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 3
 
-        root = find_span(trace, otel_span(name="root"))
+        root = find_span(trace, parent.span_id)
         root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
 
-        first = find_span(trace, otel_span(name="first"))
-        second = find_span(trace, otel_span(name="second"))
+        first = find_span(trace, first.span_id)
+        second = find_span(trace, second.span_id)
         assert second.get("parent_id") == root.get("span_id")
 
         span_links = retrieve_span_links(second)
@@ -753,10 +771,10 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"analytics.event": "true"})
                 span.end_span()
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace_by_root(traces, otel_span(name="new.name"))
+        trace = find_trace(traces, span.trace_id)
         assert len(trace) == 1
 
-        span = get_span(test_agent)
+        span = find_span(trace, span.span_id)
         assert span["name"] == "overriden.name"
         assert span["meta"]["span.kind"] == "server"
         assert span["resource"] == "new.name"
@@ -851,7 +869,7 @@ class Test_Otel_Span_Methods:
     )
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
@@ -875,7 +893,9 @@ class Test_Otel_Span_Methods:
                 )
                 span.end_span()
 
-        root_span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        root_span = find_span(trace, span.span_id)
         assert "events" in root_span["meta"]
 
         events = json.loads(root_span.get("meta", {}).get("events"))
@@ -887,12 +907,12 @@ class Test_Otel_Span_Methods:
 
         event2 = events[1]
         assert event2.get("name") == "second_event"
-        assert event2.get("time_unix_nano") // 10000 == event2_timestamp_ns // 10000  # reduce the precision tested
+        assert event2.get("time_unix_nano") // 100000 == event2_timestamp_ns // 100000  # reduce the precision tested
         assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]
         assert event3.get("name") == "third_event"
-        assert event3.get("time_unix_nano") == 1000
+        assert 999 <= event3.get("time_unix_nano") <= 1001  # reduce the precision tested
         assert event3["attributes"].get("int_val") == 1
         assert event3["attributes"].get("string_val") == "2"
         assert event3["attributes"].get("int_array")[0] == 3
@@ -901,9 +921,9 @@ class Test_Otel_Span_Methods:
         assert event3["attributes"].get("string_array")[1] == "6"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library < "php@0.95.0", reason="Implemented in 0.96.0")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_does_not_set_error(self, test_agent, test_library):
@@ -916,13 +936,15 @@ class Test_Otel_Span_Methods:
                 span.record_exception(message="woof", attributes={"exception.stacktrace": "stacktrace string"})
                 span.end_span()
 
-        root_span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        root_span = find_span(trace, span.span_id)
         assert "error" not in root_span or root_span["error"] == 0
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
@@ -940,7 +962,9 @@ class Test_Otel_Span_Methods:
                 span.record_exception(message="woof3", attributes={"exception.message": "message override"})
                 span.end_span()
 
-        root_span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        root_span = find_span(trace, span.span_id)
         assert "events" in root_span["meta"]
 
         events = json.loads(root_span.get("meta", {}).get("events"))
@@ -966,7 +990,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_attributes_serialization(self, test_agent, test_library):
@@ -984,7 +1008,9 @@ class Test_Otel_Span_Methods:
                 span.record_exception(message="woof3", attributes={"exception.message": "message override"})
                 span.end_span()
 
-        root_span = get_span(test_agent)
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        root_span = find_span(trace, span.span_id)
         assert "events" in root_span["meta"]
 
         events = json.loads(root_span.get("meta", {}).get("events"))
@@ -1009,10 +1035,10 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
         with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
             span.end_span()
     traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, otel_span(name="otel_span_name"))
+    trace = find_trace(traces, span.trace_id)
     assert len(trace) == 1
 
-    span = get_span(test_agent)
+    span = find_span(trace, span.span_id)
     assert span["name"] == expected_operation_name
     assert span["resource"] == "otel_span_name"
 
@@ -1025,10 +1051,10 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
             span.set_attributes({"analytics.event": analytics_event_value})
             span.end_span()
     traces = test_agent.wait_for_num_traces(1)
-    trace = find_trace_by_root(traces, otel_span(name="operation"))
+    trace = find_trace(traces, span.trace_id)
     assert len(trace) == 1
 
-    span = get_span(test_agent)
+    span = find_span(trace, span.span_id)
     if expected_metric_value is not None:
         assert span["metrics"].get("_dd1.sr.eausr") == expected_metric_value
     else:

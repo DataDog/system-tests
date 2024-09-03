@@ -7,19 +7,46 @@ This enables us to write unit/integration-style test cases that can be shared.
 Example:
 
 ```python
-@parametrize("library_env", [{"DD_ENV": "prod"}, {"DD_ENV": "dev"}])
-def test_tracer_env_environment_variable(library_env, test_library, test_agent):
-  with test_library:
-    with test_library.start_span("operation"):
-      pass
+from utils.parametric.spec.trace import find_span, find_trace, find_span_in_traces, find_first_span_in_trace_payload, find_root_span
 
-  traces = test_agent.traces()
-  trace = find_trace_by_root(traces, Span(name="operation"))
-  assert len(trace) == 1
+@pytest.mark.parametrize("library_env", [{"DD_ENV": "prod"}])
+def test_datadog_spans(library_env, test_library, test_agent):
+    with test_library:
+        with test_library.start_span("operation") as s1:
+            with test_library.start_span("operation1", service="hello", parent_id=s1.span_id) as s2:
+                pass
 
-  span = find_span(trace, Span(name="operation"))
-  assert span["name"] == "operation"
-  assert span["meta"]["env"] == library_env["DD_ENV"]
+        with test_library.start_span("otel_rocks") as os1:
+            pass
+
+    # Waits for 2 traces to be captured and avoids sorting the received spans by start time
+    # Here we want to perserve the order of spans to easily access the chunk root span (first span in payload)
+    traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
+    assert len(traces) == 2, traces
+
+    trace1 = find_trace(traces, s1.trace_id)
+    assert len(trace1) == 2
+
+    span1 = find_span(trace1, s1.span_id)
+    # Ensure span1 is the root span of trace1
+    assert span1 == find_root_span(trace1)
+    assert span1["name"] == "operation"
+
+    span2 = find_span(trace1, s2.span_id)
+    assert span2["name"] == "operation1"
+    assert span2["service"] == "hello"
+
+    # Chunk root span can be span1 or span2 depending on how the trace was serialized
+    # This span will contain trace level tags (ex: _dd.p.tid)
+    first_span = find_first_span_in_trace_payload(trace1)
+    # Make sure trace level tags exist on the chunk root span
+    assert "language" in first_span["meta"]
+    assert first_span["meta"]["env"] == "prod"
+
+    # Get one span from the list of captured traces
+    ospan = find_span_in_traces(traces, os1.trace_id, os1.span_id)
+    assert ospan["resource"] == "otel_rocks"
+    assert ospan["meta"]["env"] == "prod"
 ```
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
@@ -144,10 +171,14 @@ TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-tra
 
 #### NodeJS
 
-There is two ways for running the NodeJS tests with a custom tracer:
+There is three ways for running the NodeJS tests with a custom tracer:
 1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
     * `DataDog/dd-trace-js#master`
 2. Clone the dd-trace-js repo inside `binaries`
+3. Create a file `nodejs-load-from-local` in `binaries/`, this will disable installing with `npm install dd-trace` and
+   will instead get the content of the file, and use it as a location of the `dd-trace-js` repo and then mount it as a
+   volume and `npm link` to it. For instance, if this repo is at the location, you can set the content of this file to
+   `../dd-trace-js`. This also removes the need to rebuild the weblog image since the code is mounted at runtime.
 
 #### Ruby
 
@@ -263,7 +294,21 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 ### Shared Interface
 
-#### GRPC
+#### HTTP
+
+An HTTP interface can be used instead of the GRPC. To view the interface run
+
+```
+./utils/scripts/parametric/run_reference_http.sh
+```
+
+and navigate to http://localhost:8000/docs. The OpenAPI schema can be downloaded at
+http://localhost:8000/openapi.json. The schema can be imported
+into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
+other tooling to assist in development.
+
+
+#### Legacy GRPC
 
 In order to achieve shared tests, we introduce a shared GRPC interface to the clients. Thus, each client need only implement the GRPC interface server and then these shared tests can be run against the library. The GRPC interface implements common APIs across the clients which provide the building blocks for test cases.
 
@@ -280,19 +325,6 @@ service APMClient {
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
 ```
-
-#### HTTP
-
-An HTTP interface can be used instead of the GRPC. To view the interface run
-
-```
-PORT=8000 ./utils/scripts/parametric/run_reference_http.sh
-```
-
-and navigate to http://localhost:8000/docs. The OpenAPI schema can be downloaded at
-http://localhost:8000/openapi.json. The schema can be imported
-into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
-other tooling to assist in development.
 
 
 ### Architecture

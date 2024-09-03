@@ -45,6 +45,17 @@ def pytest_addoption(parser):
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
 
+    # Parametric scenario options
+    parser.addoption(
+        "--library",
+        "-L",
+        type=str,
+        action="store",
+        default="",
+        help="Library to test (e.g. 'python', 'ruby')",
+        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby"],
+    )
+
     # report data to feature parity dashboard
     parser.addoption(
         "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report",

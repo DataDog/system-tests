@@ -107,9 +107,6 @@ $activeSpan = null;
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan) {
     if ($parent = arg($req, 'parent_id')) {
-        if (!ctype_digit($parent)) {
-            $parent = largeBaseConvert($parent, 16, 10);
-        }
         \DDTrace\switch_stack($spans[$parent]);
         \DDTrace\create_stack();
         $span = \DDTrace\start_span();
@@ -236,9 +233,6 @@ $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(func
 }));
 $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans, &$activeSpan) {
     $span_id = arg($req, 'span_id');
-    if (!ctype_digit($span_id)) {
-        $span_id = largeBaseConvert($span_id, 16, 10);
-    }
 
     if (!isset($spans[$span_id])) {
         return jsonResponse([]);
@@ -392,11 +386,11 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
 
     /** @var SDK\Span $span */
     $span = $spanBuilder->startSpan();
-    $spanId = $span->getContext()->getSpanId();
-    $traceId = $span->getContext()->getTraceId();
+    $spanId = largeBaseConvert($span->getContext()->getSpanId(), 16, 10);
+    $traceId = largeBaseConvert($span->getContext()->getTraceId(), 16, 10);
     $scopes[$spanId] = $span->activate();
     $otelSpans[$spanId] = $span;
-    $spans[largeBaseConvert($spanId, 16, 10)] = $span->getDDSpan();
+    $spans[$spanId] = $span->getDDSpan();
     $activeSpan = $span->getDDSpan();
 
     return jsonResponse([
@@ -415,9 +409,9 @@ $router->addRoute('POST', '/trace/otel/end_span', new ClosureRequestHandler(func
         $scope?->detach();
         $span->end($timestamp ? $timestamp * 1000 : null);
         $ddSpan = $span->getDDSpan();
-        unset($spans[largeBaseConvert($spanId, 16, 10)]);
+        unset($spans[$spanId]);
         $activeSpan = $ddSpan->parent ?? end($spans) ?? null;
-        $closed_spans[largeBaseConvert($spanId, 16, 10)] = $ddSpan;
+        $closed_spans[$spanId] = $ddSpan;
     }
 
     return jsonResponse([]);
@@ -511,16 +505,18 @@ $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(
 $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(function (Request $req) use (&$otelSpans, &$spans, &$activeSpan) {
     \DDTrace\switch_stack($activeSpan);
     $span = Span::getCurrent();
-    $spanId = $span->getContext()->getSpanId();
-    $traceId = $span->getContext()->getTraceId();
+    $otelSpanId = $span->getContext()->getSpanId();
+    $otelTraceId = $span->getContext()->getTraceId();
+    $spanId = largeBaseConvert($otelSpanId, 16, 10);
+    $traceId = largeBaseConvert($otelTraceId, 16, 10);
 
-    if ($spanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $traceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
+    if ($otelSpanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $otelTraceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
         $otelSpans[$spanId] = $span;
     }
 
     return jsonResponse([
-        'span_id' => $spanId,
-        'trace_id' => $traceId,
+        'span_id' => (string)$spanId,
+        'trace_id' => (string)$traceId,
     ]);
 }));
 $router->addRoute('POST', '/trace/otel/get_attribute', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
@@ -637,6 +633,11 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
         'config' => $config
     ));
 
+}));
+$router->addRoute('GET', '/trace/crash', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    posix_kill(posix_getpid(), 11);
+
+    return jsonResponse([]);
 }));
 $server->start($router, $errorHandler);
 

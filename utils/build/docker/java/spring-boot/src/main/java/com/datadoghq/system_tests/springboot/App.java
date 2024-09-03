@@ -86,6 +86,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
@@ -736,6 +739,15 @@ public class App {
         return result;
     }
 
+    @RequestMapping("/createextraservice")
+    public String createextraservice(@RequestParam String serviceName) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("service", serviceName);
+        }
+        return "OK";
+    }
+
     public static final class DistantCallResponse {
         public String url;
         public int status_code;
@@ -923,6 +935,10 @@ public class App {
         return ResponseEntity.ok(headers);
     }
 
+    @GetMapping(value = "/set_cookie")
+    public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
+        return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
+    }
 
     @Bean
     @ConditionalOnProperty(

@@ -222,12 +222,14 @@ class _TestAgentAPI:
             if resp.status_code != 200:
                 raise RuntimeError(resp.text.decode("utf-8"), returncode=1)
 
-    def wait_for_num_traces(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
+    def wait_for_num_traces(
+        self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+    ) -> List[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
 
-        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
+        When sort_by_start=True returned traces are sorted by the span start time to simplify assertions by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
         for i in range(wait_loops):
@@ -240,22 +242,26 @@ class _TestAgentAPI:
                 if num_received == num:
                     if clear:
                         self.clear()
-                    for trace in traces:
-                        # Due to partial flushing the testagent may receive trace chunks out of order
-                        # so we must sort the spans by start time
-                        trace.sort(key=lambda x: x["start"])
-                    return sorted(traces, key=lambda trace: trace[0]["start"])
+                    if sort_by_start:
+                        for trace in traces:
+                            # The testagent may receive spans and trace chunks in any order,
+                            # so we sort the spans by start time if needed
+                            trace.sort(key=lambda x: x["start"])
+                        return sorted(traces, key=lambda trace: trace[0]["start"])
+                    return traces
             time.sleep(0.1)
         raise ValueError(
             "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
         )
 
-    def wait_for_num_spans(self, num: int, clear: bool = False, wait_loops: int = 30) -> List[Trace]:
+    def wait_for_num_spans(
+        self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+    ) -> List[Trace]:
         """Wait for `num` spans to be received from the test agent.
 
         Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
 
-        Returned traces are sorted by the first span start time to simplify assertions for more than one trace by knowing that returned traces are in the same order as they have been created.
+        When sort_by_start=True returned traces are sorted by the span start time to simplify assertions by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
         for i in range(wait_loops):
@@ -270,7 +276,14 @@ class _TestAgentAPI:
                 if num_received == num:
                     if clear:
                         self.clear()
-                    return sorted(traces, key=lambda trace: trace[0]["start"])
+
+                    if sort_by_start:
+                        for trace in traces:
+                            # The testagent may receive spans and trace chunks in any order,
+                            # so we sort the spans by start time if needed
+                            trace.sort(key=lambda x: x["start"])
+                        return sorted(traces, key=lambda trace: trace[0]["start"])
+                    return traces
             time.sleep(0.1)
         raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
 
