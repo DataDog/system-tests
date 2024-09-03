@@ -1,13 +1,11 @@
 from utils import scenarios, features, bug, flaky, context
 from utils.tools import logger
 from utils import scenarios, features
-import tests.auto_inject.utils as base
 import requests
 import time
 import ddapm_test_agent.client as agent_client
 import json
 import pathlib
-import jsondiff as jd
 from deepdiff import DeepDiff
 
 
