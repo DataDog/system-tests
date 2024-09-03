@@ -1,0 +1,117 @@
+{
+    "include": [
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:22.04",
+        "arch": "linux/amd64",
+        "runtime": "22.0.2-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:22.04",
+        "arch": "linux/arm64",
+        "runtime": "22.0.2-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:22.04",
+        "arch": "linux/amd64",
+        "runtime": "21.0.4-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:22.04",
+        "arch": "linux/arm64",
+        "runtime": "21.0.4-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:22.04",
+        "arch": "linux/amd64",
+        "runtime": "17.0.12-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:22.04",
+        "arch": "linux/arm64",
+        "runtime": "17.0.12-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:22.04",
+        "arch": "linux/amd64",
+        "runtime": "11.0.24-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:22.04",
+        "arch": "linux/arm64",
+        "runtime": "11.0.24-zulu",
+        "runtime_suported":"true"
+    },
+
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:16.04",
+        "arch": "linux/amd64",
+        "runtime": "22.0.2-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:16.04",
+        "arch": "linux/arm64",
+        "runtime": "22.0.2-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:16.04",
+        "arch": "linux/amd64",
+        "runtime": "21.0.4-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:16.04",
+        "arch": "linux/arm64",
+        "runtime": "21.0.4-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:16.04",
+        "arch": "linux/amd64",
+        "runtime": "17.0.12-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:16.04",
+        "arch": "linux/arm64",
+        "runtime": "17.0.12-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:16.04",
+        "arch": "linux/amd64",
+        "runtime": "11.0.24-zulu",
+        "runtime_suported":"true"
+    },
+    {
+        "weblog": "dd-lib-java-init-test-app",
+        "base_image": "ubuntu:16.04",
+        "arch": "linux/arm64",
+        "runtime": "11.0.24-zulu",
+        "runtime_suported":"true"
+    }  
+    ]
+}

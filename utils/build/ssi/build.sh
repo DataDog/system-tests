@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 #11.0.24-zulu
 
 #docker buildx build -f base/base_lang.Dockerfile  -t ubuntu_22:java_11 --build-arg BASE_IMAGE=ubuntu:22.04 --build-arg ARCH=linux/amd64 --build-arg LANG=java --build-arg RUNTIME_VERSIONS=11.0.24-zulu --load .

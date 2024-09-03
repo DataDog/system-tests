@@ -18,10 +18,11 @@ jobs:
     if: inputs.library == 'java'
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        weblog: ${{ fromJson(inputs.weblogs) }}
-        base_image: ["ubuntu:22.04", "ubuntu:16.04", "centos:7"]
-        runtime_version: ["22.0.2-zulu", "21.0.4-zulu", "17.0.12-zulu", "11.0.24-zulu"]
+    #  matrix:
+      matrix: ${{ fromJson(inputs.weblogs) }}
+     #   weblog: {{ fromJson(inputs.weblogs) }}
+     #   base_image: ["ubuntu:22.04", "ubuntu:16.04", "centos:7"]
+     #   runtime_version: ["22.0.2-zulu", "21.0.4-zulu", "17.0.12-zulu", "11.0.24-zulu"]
       fail-fast: false
     steps:
     - name: Checkout
@@ -32,7 +33,7 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Build weblog
       id: build
-      run: utils/build/ssi/build.sh java -w ${{matrix.weblog}} --base-image ${{matrix.base_image}} --runtime_version ${{matrix.runtime_version}} --arch linux/amd64
+      run: utils/build/ssi/build.sh java -w ${{matrix.weblog}} --base-image ${{matrix.base_image}} --runtime_version ${{matrix.runtime}} --arch ${{matrix.arch}}
     - name: Run Docker SSI scenario
       if: always() && steps.build.outcome == 'success'
       run: ./run.sh DOCKER_SSI
@@ -41,9 +42,9 @@ jobs:
     - name: Compress logs
       if: always() && steps.build.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
-    - name: Upload artifact
-      if: always() && steps.build.outcome == 'success'
-      uses: actions/upload-artifact@v4
-      with:
-        name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.weblog }}_${{ matrix.base_image }}_${{ matrix.runtime_version }}
-        path: artifact.tar.gz
+  #  - name: Upload artifact
+  #    if: always() && steps.build.outcome == 'success'
+  #    uses: actions/upload-artifact@v4
+  #    with:
+  #      name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.weblog }}_${{ matrix.base_image }}_${{ matrix.runtime_version }}
+  #      path: artifact.tar.gz

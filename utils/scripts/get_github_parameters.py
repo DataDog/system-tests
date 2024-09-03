@@ -116,8 +116,9 @@ def get_docker_ssi_weblogs(library):
         "python": [],
         "ruby": [],
     }
-
-    return weblogs[library]
+    with open(f"utils/build/ssi/java/{weblogs[library]}.json") as f:
+        d = json.load(f)
+        return d
 
 
 def main():
