@@ -1,3 +1,5 @@
+#!/bin/bash
+
 declare -r ARCH="$1"
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then

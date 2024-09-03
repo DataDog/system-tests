@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 #11.0.24-zulu
 
@@ -79,7 +80,7 @@ else
     #TODO check the weblog variant is correct
 
     TAG=$(echo "${BASE_IMAGE}" | tr ":" "_")
-    TAG=$(echo "${TAG}:${TEST_LIBRARY}_${RUNTIME_VERSIONS}")
+    TAG="${TAG}:${TEST_LIBRARY}_${RUNTIME_VERSIONS}"
     echo "Building from base image ${BASE_IMAGE} with tag: ${TAG} and ARCH: ${ARCH}"
 
     if [ -z "${RUNTIME_VERSIONS-}" ]; then
