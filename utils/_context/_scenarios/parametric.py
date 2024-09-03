@@ -118,7 +118,6 @@ class ParametricScenario(Scenario):
         return self._parametric_tests_confs
 
     def configure(self, config):
-        super().configure(config)
         if config.option.library:
             library = config.option.library
         elif "TEST_LIBRARY" in os.environ:
@@ -166,8 +165,8 @@ class ParametricScenario(Scenario):
         self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
-    def _get_warmups(self):
-        result = super()._get_warmups()
+    def get_warmups(self):
+        result = super().get_warmups()
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
         return result

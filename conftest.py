@@ -83,7 +83,7 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    context.scenario.configure(config)
+    context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
@@ -96,15 +96,14 @@ def pytest_sessionstart(session):
     # get the terminal to allow logging directly in stdout
     setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
 
+    # if only collect tests, do not start the scenario
+    if not session.config.option.collectonly:
+        context.scenario.pytest_sessionstart(session)
+
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
         logger.terminal.write("\n ********************************************************** \n\n")
-
-    if session.config.option.collectonly:
-        return
-
-    context.scenario.session_start()
 
 
 # called when each test item is collected
@@ -356,7 +355,10 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_sessionfinish(session, exitstatus):
 
-    context.scenario.pytest_sessionfinish(session)
+    logger.info("Executing pytest_sessionfinish")
+
+    context.scenario.close_targets()
+
     if session.config.option.collectonly or session.config.option.replay:
         return
 

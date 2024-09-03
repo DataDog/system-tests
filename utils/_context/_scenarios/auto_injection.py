@@ -1,15 +1,8 @@
-import json
-import glob
 import os
-import shutil
-import subprocess
-
-import pytest
 
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
-from .core import Scenario, ScenarioGroup
 
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
@@ -21,6 +14,8 @@ from utils._context.virtual_machines import (
     AmazonLinux2amd64,
     Centos7amd64,
 )
+
+from .core import Scenario
 
 
 class _VirtualMachineScenario(Scenario):
@@ -73,11 +68,6 @@ class _VirtualMachineScenario(Scenario):
         if include_centos_7_amd64:
             self.required_vms.append(Centos7amd64())
 
-    def session_start(self):
-        super().session_start()
-        self.fill_context()
-        self.print_installed_components()
-
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
         for component in self.components:
@@ -87,7 +77,6 @@ class _VirtualMachineScenario(Scenario):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
         from utils.virtual_machine.virtual_machine_provisioner import provisioner
 
-        super().configure(config)
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
         self._library = LibraryVersion(config.option.vm_library, "0.0")
@@ -139,21 +128,23 @@ class _VirtualMachineScenario(Scenario):
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
 
-    def _get_warmups(self):
-        logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True)
-        return [self.vm_provider.stack_up]
+    def get_warmups(self):
+        warmups = super().get_warmups()
+
+        warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
+        warmups.append(self.vm_provider.stack_up)
+        warmups.append(self.fill_context)
+        warmups.append(self.print_installed_components)
+
+        return warmups
 
     def fill_context(self):
         for vm in self.required_vms:
             for key in vm.tested_components:
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ")
 
-    def pytest_sessionfinish(self, session):
-        logger.info(f"Closing  _VirtualMachineScenario scenario")
-        self.close_targets()
-
     def close_targets(self):
-        logger.info(f"Destroying virtual machines")
+        logger.info("Destroying virtual machines")
         self.vm_provider.stack_destroy()
 
     @property
