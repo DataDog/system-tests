@@ -295,7 +295,14 @@ be returned.
 
 Expected query params:
   - `integration`: Name of messaging tech
-    - Possible Values: `kafka`, `rabbitmq`, `sqs`
+    - Possible Values: `kafka`, `rabbitmq`, `sqs`, `kinesis`, `sns`
+  - `message`: Specific message to produce and consume
+  - `topic`: Name of messaging topic (if using `integration=sns`)
+  - `queue`: Name of messaging queue (if using `integration=kafka|rabbitmq|sqs|sns (for sns->sqs tests)`)
+  - `stream`: Name of messaging stream (if using `integration=kinesis`)
+  - `exchange`: Name of messaging exchange (if using `integration=rabbitmq`)
+  - `routingKey`: Name of message routing key (if using `integration=rabbitmq`)
+  - `timeout`: Timeout in seconds
 
 ### GET /user_login_success_event
 
