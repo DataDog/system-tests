@@ -25,7 +25,7 @@ docker==6.0.0
 paramiko==3.1.0
 scp==0.14.5
 
-ddapm-test-agent==1.16.1.dev17+gf575987  # for parametric tests and docker ssi
+ddapm-test-agent @ git+https://github.com/Datadog/dd-apm-test-agent@f5759876a48fba618659ce45fe7f812dd525eb4b # for parametric tests and docker ssi
 filelock==3.12.2  # for parametric tests
 dictdiffer==0.9.0  # for parametric tests
 
