@@ -31,7 +31,7 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Build weblog
       id: build
-      run: utils/build/ssi/build.sh java -w ${{inputs.library}} --base-image ubuntu:22.04 --runtime_version 11.0.24-zulu
+      run: utils/build/ssi/build.sh java -w ${{matrix.weblog}} --base-image ubuntu:22.04 --runtime_version 11.0.24-zulu
     - name: Run Docker SSI scenario
       if: always() && steps.build.outcome == 'success'
       run: ./run.sh DOCKER_SSI
