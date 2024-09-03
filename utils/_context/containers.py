@@ -992,12 +992,18 @@ class LocalstackContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            # image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
-            environment={"SNAPSHOT_CI": "0",},
+            environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket"},
+            healthcheck={"test": f"curl --fail --silent --show-error http://localhost:8126/info", "retries": 60,},
             ports={"8126": ("127.0.0.1", 8126)},
             allow_old_container=True,
+            volumes={
+                f"./{host_log_folder}/interfaces/": {"bind": "/var/run/datadog/", "mode": "rw",}
+                # f"/Users/roberto.montero/Documents/development/guardrails-testing/temp": {"bind": "/var/run/datadog/", "mode": "rw",}
+            },
         )
 
 
@@ -1043,3 +1049,27 @@ class WeblogInjectionInitContainer(TestedContainer):
         lib_inject_props["DD_AGENT_HOST"] = "ddapm-test-agent"
         lib_inject_props["DD_TRACE_DEBUG"] = "true"
         self.environment = lib_inject_props
+
+
+class DockerSSIContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+
+        super().__init__(
+            image_name="docker.io/library/weblog-injection:latest",
+            name="weblog-injection",
+            host_log_folder=host_log_folder,
+            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080)},
+            healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
+            allow_old_container=True,
+            environment={"DD_DEBUG": "true"},
+            volumes={f"./{host_log_folder}/interfaces/": {"bind": "/var/run/datadog/", "mode": "rw",}},
+        )
+
+    def get_env(self, env_var):
+        """Get env variables from the container (only works for started containers)"""
+        env_vars = self._container.attrs["Config"]["Env"]
+        logger.info(f"Container weblog has env vars: {env_vars}")
+        for env_var in env_vars:
+            if env_var.startswith(f"{env_var}="):
+                return env_var.split("=")[1]
+        return None

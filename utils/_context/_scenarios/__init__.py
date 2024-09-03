@@ -13,6 +13,7 @@ from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
+from .docker_ssi import DockerSSIScenario
 
 update_environ_with_local_env()
 
@@ -725,6 +726,18 @@ class scenarios:
         doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    docker_ssi = DockerSSIScenario(
+        "DOCKER_SSI",
+        doc="Validates the installer and the ssi on a docker environment",
+        scenario_groups=[ScenarioGroup.ALL],
+    )
+
+    docker_ssi_service_name = DockerSSIScenario(
+        "DOCKER_SSI_SERVICE_NAME",
+        doc="Validates the service naming features using the ssi on a docker environment",
+        scenario_groups=[ScenarioGroup.ALL],
     )
 
     appsec_rasp = EndToEndScenario(
