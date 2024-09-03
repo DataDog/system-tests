@@ -83,17 +83,21 @@ else
     #TODO check the runtime version is correct
     #TODO check the weblog variant is correct
 
-    TAG=$(echo "${BASE_IMAGE}" | tr ":" "_")
-    TAG="${TAG}:${TEST_LIBRARY}_${RUNTIME_VERSIONS}"
-    echo "Building from base image ${BASE_IMAGE} with tag: ${TAG} and ARCH: ${ARCH}"
 
+    echo "Building from base image ${BASE_IMAGE} with tag: ${TAG} and ARCH: ${ARCH}"
+    TAG=$(echo "${BASE_IMAGE}" | tr ":" "_")
     if [ -z "${RUNTIME_VERSIONS-}" ]; then
-        echo "Must provide the runtime version of the language to be installed on the base image. Please use the command 'build.sh --list-allowed-runtimes' to check the available runtimes. Exiting...."
-        exit 1
+        TAG="${TAG}:${TEST_LIBRARY}"
+        docker buildx build -f base/base_deps.Dockerfile  -t "${TAG}" --build-arg BASE_IMAGE="${BASE_IMAGE}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --build-arg RUNTIME_VERSIONS="${RUNTIME_VERSIONS}" --load .
+        docker buildx build -f base/base_ssi.Dockerfile  -t "ssi_${TAG}" --build-arg BASE_IMAGE="${TAG}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --load .
+        docker buildx build -f "${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" --build-context lib_injection=../../../lib-injection/build/docker --build-arg BASE_IMAGE="ssi_${TAG}" -t weblog-injection:latest --load .
+    else
+        
+        TAG="${TAG}:${TEST_LIBRARY}_${RUNTIME_VERSIONS}"
+        docker buildx build -f base/base_lang.Dockerfile  -t "${TAG}" --build-arg BASE_IMAGE="${BASE_IMAGE}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --build-arg RUNTIME_VERSIONS="${RUNTIME_VERSIONS}" --load .
+        docker buildx build -f base/base_ssi.Dockerfile  -t "ssi_${TAG}" --build-arg BASE_IMAGE="${TAG}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --load .
+        docker buildx build -f "${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" --build-context lib_injection=../../../lib-injection/build/docker --build-arg BASE_IMAGE="ssi_${TAG}" -t weblog-injection:latest --load .
     fi
-    docker buildx build -f base/base_lang.Dockerfile  -t "${TAG}" --build-arg BASE_IMAGE="${BASE_IMAGE}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --build-arg RUNTIME_VERSIONS="${RUNTIME_VERSIONS}" --load .
-    docker buildx build -f base/base_ssi.Dockerfile  -t "ssi_${TAG}" --build-arg BASE_IMAGE="${TAG}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --load .
-    docker buildx build -f "${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" --build-context lib_injection=../../../lib-injection/build/docker --build-arg BASE_IMAGE="ssi_${TAG}" -t weblog-injection:latest --load .
 fi
  #BASE_IMAGE=ubuntu:22.04
  #ARCH=linux/amd64
