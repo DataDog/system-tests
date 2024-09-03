@@ -1036,7 +1036,9 @@ class Test_Otel_Span_Methods:
             assert error_message == "message override"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not supported: DD only sets error.stack to not break tracer semantics")
+    @missing_feature(
+        context.library == "php", reason="Not supported: DD only sets error.stack to not break tracer semantics"
+    )
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
@@ -1062,7 +1064,8 @@ class Test_Otel_Span_Methods:
         assert "error.stack" in root_span["meta"]
         assert "error.message" in root_span["meta"]
         assert "error.type" in root_span["meta"]
-        
+
+
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
     with test_library:
         with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
