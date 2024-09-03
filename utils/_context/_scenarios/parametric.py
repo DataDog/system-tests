@@ -459,7 +459,6 @@ RUN dotnet restore "./ApmTestApi.csproj"
 
 # dotnet publish
 COPY {dotnet_reldir} ./
-# RUN dotnet publish --no-restore -c Release -f net8.0 -o out
 RUN dotnet publish --no-restore -c Release -o out
 
 ##################
