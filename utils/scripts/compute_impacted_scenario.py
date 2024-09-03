@@ -178,7 +178,7 @@ def main():
     # print("scenarios=" + ",".join(scenarios))
     # print("scenarios_groups=" + ",".join(scenarios_groups))
     # TODO RMM REMOVE THIS
-    scenarios = set(["DEFAULT"])
+    scenarios = set(["DOCKER_SSI"])
     scenarios_groups = set([ScenarioGroup.DOCKER_SSI.value])
     print("scenarios=" + ",".join(scenarios))
     print("scenarios_groups=" + ",".join(scenarios_groups))
