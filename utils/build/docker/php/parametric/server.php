@@ -205,7 +205,7 @@ $router->addRoute('POST', '/trace/span/add_event', new ClosureRequestHandler(fun
 
     $event = new \DDTrace\SpanEvent($name, $attributes, $timestamp * 1000);
     $span->events[] = $event;
-    
+
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
