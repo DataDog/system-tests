@@ -56,15 +56,15 @@ class _Context:
 
     @property
     def libddwaf_version(self):
-        return self._get_scenario_property("libddwaf_version", None)
+        return self._get_scenario_property("libddwaf_version", "")
 
     @property
     def appsec_rules_file(self):
-        return self._get_scenario_property("appsec_rules_file", None)
+        return self._get_scenario_property("appsec_rules_file", "")
 
     @property
     def appsec_rules_version(self):
-        return self._get_scenario_property("appsec_rules_version", None)
+        return self._get_scenario_property("appsec_rules_version", "")
 
     @property
     def components(self):
