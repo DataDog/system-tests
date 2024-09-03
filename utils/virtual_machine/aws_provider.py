@@ -223,11 +223,18 @@ class AWSCommander(Commander):
         return last_task
 
     def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
-        last_task = command.remote.CopyFile(
+        # last_task = command.remote.CopyFile(
+        #    id,
+        #    connection=connection,
+        #    local_path=local_path,
+        #    remote_path=remote_path,
+        #    opts=pulumi.ResourceOptions(depends_on=[last_task]),
+        # )
+
+        last_task = command.remote.Command(
             id,
             connection=connection,
-            local_path=local_path,
-            remote_path=remote_path,
+            create=f"cp sytem-tests/{local_path} {remote_path}",
             opts=pulumi.ResourceOptions(depends_on=[last_task]),
         )
         return last_task

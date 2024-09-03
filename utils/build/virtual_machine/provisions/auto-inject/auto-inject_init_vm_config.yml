@@ -45,6 +45,9 @@
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo systemctl restart sshd.service || true
+    #Install git to clone the system-tests repo (avoid upload files to the VM)
+    sudo apt-get install -y git
+    git clone https://github.com/DataDog/system-tests.git
     echo "DONE"
 - os_type: linux
   os_distro: rpm
@@ -60,7 +63,9 @@
     sudo yum clean expire-cache
     #sudo yum -y update
     sudo systemctl restart sshd.service
-
+    #Install git to clone the system-tests repo (avoid upload files to the VM)
+    sudo yum install git -y
+    git clone https://github.com/DataDog/system-tests.git
 - os_type: linux
   os_distro: rpm
   remote-command: |
@@ -70,3 +75,6 @@
     sudo yum clean expire-cache
     #sudo yum -y update
     sudo systemctl restart sshd.service
+    #Install git to clone the system-tests repo (avoid upload files to the VM)
+    sudo yum install git -y
+    git clone https://github.com/DataDog/system-tests.git
