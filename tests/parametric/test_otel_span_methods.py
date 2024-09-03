@@ -1035,7 +1035,34 @@ class Test_Otel_Span_Methods:
             error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
             assert error_message == "message override"
 
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not supported: DD only sets error.stack to not break tracer semantics")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
+    @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
+    def test_otel_record_exception_sets_all_error_tracking_tags(self, test_agent, test_library):
+        """
+            Tests the Span.RecordException API (requires Span.AddEvent API support)
+            and its serialization into the Datadog error tags and the 'events' tag
+        """
+        with test_library:
+            with test_library.otel_start_span("operation") as span:
+                span.set_status(OTEL_ERROR_CODE, "error_desc")
+                span.record_exception(
+                    message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
+                )
+                span.end_span()
 
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        root_span = find_span(trace, span.span_id)
+
+        assert root_span["error"] == 1
+        assert "error.stack" in root_span["meta"]
+        assert "error.message" in root_span["meta"]
+        assert "error.type" in root_span["meta"]
+        
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
     with test_library:
         with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
