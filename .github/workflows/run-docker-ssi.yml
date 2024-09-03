@@ -32,7 +32,7 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Build weblog
       id: build
-      run: utils/build/ssi/build.sh java -w ${{matrix.weblog}} --base-image ${{matrix.base_image}} --runtime_version ${{matrix.runtime_version}}
+      run: utils/build/ssi/build.sh java -w ${{matrix.weblog}} --base-image ${{matrix.base_image}} --runtime_version ${{matrix.runtime_version}} --arch linux/amd64
     - name: Run Docker SSI scenario
       if: always() && steps.build.outcome == 'success'
       run: ./run.sh DOCKER_SSI
@@ -45,5 +45,5 @@ jobs:
       if: always() && steps.build.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.weblog }}
+        name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.weblog }}_${{ matrix.base_image }}_${{ matrix.runtime_version }}
         path: artifact.tar.gz
