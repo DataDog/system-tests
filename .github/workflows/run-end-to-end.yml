@@ -104,7 +104,7 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run DEFAULT scenario
-      if: steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
