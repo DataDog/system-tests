@@ -86,6 +86,13 @@ async def healthcheck():
     }
 
 
+@app.get("/set_cookie", response_class=PlainTextResponse)
+async def set_cookie(request: Request):
+    return PlainTextResponse(
+        "OK", headers={"Set-Cookie": f"{request.query_params['name']}={request.query_params['value']}"}
+    )
+
+
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"
