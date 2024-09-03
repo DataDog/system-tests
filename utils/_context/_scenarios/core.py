@@ -43,6 +43,7 @@ class ScenarioGroup(Enum):
     PROFILING = "profiling"
     SAMPLING = "sampling"
     ONBOARDING = "onboarding"
+    DOCKER_SSI = "docker-ssi"
 
 
 VALID_GITHUB_WORKFLOWS = {
@@ -53,6 +54,7 @@ VALID_GITHUB_WORKFLOWS = {
     "opentelemetry",
     "parametric",
     "testthetest",
+    "docker-ssi",
 }
 
 

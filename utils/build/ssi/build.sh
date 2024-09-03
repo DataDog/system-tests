@@ -13,6 +13,8 @@
 #docker buildx build --platform linux/arm64 -f java/tomcat-app.Dockerfile --build-context lib_injection=../../../lib-injection/build/docker  -t weblog-injection:latest --load .
 
 DEFAULT_ARCH="linux/amd64"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd "${SCRIPT_DIR}"
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"

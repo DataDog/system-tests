@@ -104,6 +104,22 @@ def get_opentelemetry_weblogs(library):
     return weblogs[library]
 
 
+def get_docker_ssi_weblogs(library):
+
+    weblogs = {
+        "cpp": [],
+        "dotnet": [],
+        "golang": [],
+        "java": ["dd-lib-java-init-test-app"],
+        "nodejs": [],
+        "php": [],
+        "python": [],
+        "ruby": [],
+    }
+
+    return weblogs[library]
+
+
 def main():
     scenario_map = get_github_workflow_map(
         os.environ["SCENARIOS"].split(","), os.environ["SCENARIOS_GROUPS"].split(",")
@@ -122,6 +138,9 @@ def main():
 
     _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
     print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
+
+    docker_ssi_weblogs = get_docker_ssi_weblogs(os.environ["LIBRARY"])
+    print(f"docker_ssi_weblogs={json.dumps(docker_ssi_weblogs)}")
 
 
 if __name__ == "__main__":

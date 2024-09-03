@@ -29,6 +29,8 @@ def handle_labels(labels: list[str], scenarios_groups: set[str]):
             scenarios_groups.add(ScenarioGroup.GRAPHQL.value)
         if "run-libinjection-scenarios" in labels:
             scenarios_groups.add(ScenarioGroup.LIB_INJECTION.value)
+        if "run-docker-ssi-scenarios" in labels:
+            scenarios_groups.add(ScenarioGroup.DOCKER_SSI.value)
 
 
 def main():
@@ -173,6 +175,11 @@ def main():
             if file in scenarios_by_files:
                 scenarios.update(scenarios_by_files[file])
 
+    # print("scenarios=" + ",".join(scenarios))
+    # print("scenarios_groups=" + ",".join(scenarios_groups))
+    # TODO RMM REMOVE THIS
+    scenarios = set(["DEFAULT"])
+    scenarios = set([ScenarioGroup.DOCKER_SSI.value])
     print("scenarios=" + ",".join(scenarios))
     print("scenarios_groups=" + ",".join(scenarios_groups))
 
