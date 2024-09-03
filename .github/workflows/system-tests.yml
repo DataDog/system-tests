@@ -121,6 +121,9 @@ jobs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.libinjection_scenarios != '[]' }}
     uses: ./.github/workflows/run-lib-injection.yml
+    permissions:
+      contents: read
+      packages: write
     secrets: inherit
     with:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}

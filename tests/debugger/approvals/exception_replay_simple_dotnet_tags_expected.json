@@ -1,0 +1,7 @@
+{
+  "_dd.debug.error.exception_id": "<scrubbed>",
+  "_dd.debug.error.0.frame_data.function": "ExpressionException",
+  "_dd.debug.error.0.frame_data.class_name": "DebuggerController",
+  "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+  "_dd.debug.error.exception_hash": "fe62c94e-f8e2-3c67-9ae1-51ba95f25f4f"
+}

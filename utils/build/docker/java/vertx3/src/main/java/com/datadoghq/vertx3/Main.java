@@ -195,6 +195,18 @@ public class Main {
                     ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
                     ctx.response().end(headersJson.encode());
                 });
+        router.get("/set_cookie")
+                .handler(ctx -> {
+                    String name = ctx.request().getParam("name");
+                    String value = ctx.request().getParam("value");
+                    ctx.response().putHeader("Set-Cookie", name + "=" + value).end("ok");
+                });
+        router.get("/createextraservice")
+                .handler(ctx -> {
+                    String serviceName = ctx.request().getParam("serviceName");
+                    setRootSpanTag("service", serviceName);
+                    ctx.response().end("ok");
+                });
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));

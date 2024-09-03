@@ -33,6 +33,14 @@ object AppSecRoutes {
         }
       }
     } ~
+    path("createextraservice") {
+      get {
+        parameter("serviceName") { serviceName =>
+          setRootSpanTag("service", serviceName)
+          complete("OK")
+        }
+      }
+    } ~
       path("headers") {
         get {
           val entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "012345678901234567890123456789012345678901")
@@ -171,6 +179,16 @@ object AppSecRoutes {
           extractRequest { request =>
             val headers = request.headers.map(header => header.name() -> header.value()).toMap
             complete(StatusCodes.OK, headers)(jsonMarshaller)
+          }
+        }
+      } ~
+      path("set_cookie") {
+        get {
+          parameters('name.as[String], 'value.as[String]) { (name, value) =>
+            val cookieHeader = RawHeader("Set-Cookie", HttpCookiePair(name, value).toString())
+            respondWithHeader(cookieHeader) {
+              complete("ok")
+            }
           }
         }
       }
