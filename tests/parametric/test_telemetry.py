@@ -31,6 +31,7 @@ def _mapped_telemetry_name(context, apm_telemetry_name):
             return mapped_name
     return apm_telemetry_name
 
+
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
 @features.telemetry_app_started_event
@@ -87,6 +88,7 @@ class Test_Defaults:
                 assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("origin") == "default", "Unexpected origin for '{}'".format(apm_telemetry_name)
 
+
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o")
 @features.telemetry_app_started_event
@@ -94,13 +96,14 @@ class Test_Defaults:
 # And replace the `missing_feature` marker under the lang's manifest file, for Test_Consistent_Configs
 class Test_Consistent_Configs:
     """Clients should report modifications to features."""
+
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 # Decrease the heartbeat/poll intervals to speed up the tests
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "DD_TRACE_INTEGRATION_DISABLED": "mysql", # TODO: Does it have to be an integration to show up in telemetry? If so, no way to generalize this to apply to all tracers. Would have to add multiple values to catch all tracers.
+                "DD_TRACE_INTEGRATION_DISABLED": "mysql",  # TODO: Does it have to be an integration to show up in telemetry? If so, no way to generalize this to apply to all tracers. Would have to add multiple values to catch all tracers.
                 "DD_TRACE_RATE_LIMIT": 100,
                 "DD_TRACE_HEADER_TAGS": "header:tag",
                 "DD_TRACE_ENABLED": "true",
@@ -112,7 +115,7 @@ class Test_Consistent_Configs:
                 "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "true",
                 "DD_TRACE_CLIENT_IP_HEADER": "X-Forwarded-For",
                 "DD_TRACE_SERVICE_MAPPING": "plugin:custom",
-                "DD_TRACE_AGENT_URL": "my-host:1234"
+                "DD_TRACE_AGENT_URL": "my-host:1234",
             }
         ],
     )
@@ -134,17 +137,17 @@ class Test_Consistent_Configs:
             ("trace_http_client_error_statuses", "400"),
             ("trace_http_server_error_statuses", "500"),
             ("trace_http_client_tag_query_string", ("true", True)),
-            ("trace_client_ip_header", "x-forwarded-for"), # Unclear if correct key, see: https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit?disco=AAABVcOUNfU
-            ("trace_service_mappings", "plugin:custom"), 
-            ("trace_agent_url", "my-host:1234") 
-
+            (
+                "trace_client_ip_header",
+                "x-forwarded-for",
+            ),  # Unclear if correct key, see: https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit?disco=AAABVcOUNfU
+            ("trace_service_mappings", "plugin:custom"),
+            ("trace_agent_url", "my-host:1234"),
         ]:
             if context.library == "golang" and apm_telemetry_name in ("trace_disabled_integrations",):
                 continue
             if context.library == "cpp":
-                unsupported_fields = (
-                    "trace_header_tags",
-                )
+                unsupported_fields = ("trace_header_tags",)
                 if apm_telemetry_name in unsupported_fields:
                     continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
@@ -155,7 +158,7 @@ class Test_Consistent_Configs:
                 assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
             else:
                 assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
-            assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name) 
+            assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
 
 
 @scenarios.parametric
