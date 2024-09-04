@@ -454,7 +454,7 @@ RUN /binaries/install_ddtrace.sh
 
 # dotnet restore
 COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
-RUN dotnet restore "./ApmTestApi.csproj"
+RUN dotnet restore -p:Configuration=Release "./ApmTestApi.csproj"
 
 # dotnet publish
 COPY {dotnet_reldir} ./
