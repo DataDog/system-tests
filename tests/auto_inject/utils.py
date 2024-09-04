@@ -84,17 +84,17 @@ class AutoInjectBaseTest:
         weblog_url = f"http://{vm_ip}:{vm_port}/"
 
         # Kill the app before the uninstallation
-        logger.info(f"uninstall {virtual_machine.name}. Before stop 0")
+        logger.info(f"[Uninstall {virtual_machine.name}] Stop app")
         self.execute_command(virtual_machine, stop_weblog_command)
-        logger.info(f"uninstall {virtual_machine.name}. After stop 0 ")
+        logger.info(f"[Uninstall {virtual_machine.name}] Stop app done")
         # Uninstall the auto inject
-        logger.info(f"uninstall {virtual_machine.name}. Before uninstall")
+        logger.info(f"[Uninstall {virtual_machine.name}] Uninstall command")
         self.execute_command(virtual_machine, uninstall_command)
-        logger.info(f"uninstall {virtual_machine.name}. After uninstall")
+        logger.info(f"[Uninstall {virtual_machine.name}] Uninstall command done")
         # Start the app again
-        logger.info(f"uninstall {virtual_machine.name}. Before start 0")
+        logger.info(f"[Uninstall {virtual_machine.name}] Start app")
         self.execute_command(virtual_machine, start_weblog_command)
-        logger.info(f"uninstall {virtual_machine.name}. after start 0")
+        logger.info(f"[Uninstall {virtual_machine.name}] Start app done")
 
         wait_for_port(vm_port, vm_ip, 40.0)
         warmup_weblog(weblog_url)
@@ -107,17 +107,17 @@ class AutoInjectBaseTest:
             # OK there are no traces, the weblog app is not instrumented
             pass
         # Kill the app before restore the installation
-        logger.info(f"uninstall {virtual_machine.name}. Before stop 1")
+        logger.info(f"[Uninstall {virtual_machine.name}] Stop app before restore")
         self.execute_command(virtual_machine, stop_weblog_command)
-        logger.info(f"uninstall {virtual_machine.name}. After stop 1 ")
+        logger.info(f"[Uninstall {virtual_machine.name}] Stop app before restore done")
         # reinstall the auto inject
-        logger.info(f"uninstall {virtual_machine.name}. Before reinstall")
+        logger.info(f"[Uninstall {virtual_machine.name}] Reinstall dd ssi")
         self.execute_command(virtual_machine, install_command)
-        logger.info(f"uninstall {virtual_machine.name}. After reinstall")
+        logger.info(f"[Uninstall {virtual_machine.name}] Reinstall dd ssi done")
         # Start the app again
-        logger.info(f"uninstall {virtual_machine.name}. Before start 1")
+        logger.info(f"[Uninstall {virtual_machine.name}] Start app after reinstall dd ssi")
         self.execute_command(virtual_machine, start_weblog_command)
-        logger.info(f"uninstall {virtual_machine.name}. after start 1")
+        logger.info(f"[Uninstall {virtual_machine.name}] Start app after reinstall dd ssi done")
         # The app should be instrumented and reporting traces to the backend
         self._test_install(virtual_machine)
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
