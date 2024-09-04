@@ -103,6 +103,7 @@ def pytest_sessionstart(session):
 
     if session.config.option.collectonly:
         return
+
     if not hasattr(session.config, "workerinput"):
         context.scenario.session_start()
 

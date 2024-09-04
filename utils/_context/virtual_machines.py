@@ -104,6 +104,24 @@ class _VirtualMachine:
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
 
+    def get_ip(self):
+        """ If we run the tests using xdist we lost the ip address of the VM. We can recover it from the logs"""
+        if not self.ssh_config.hostname:
+            self._load_ip_from_logs()
+        return self.ssh_config.hostname
+
+    def _load_ip_from_logs(self):
+        """ Load the ip address from the logs"""
+        vms_desc_file = f"{context.scenario.host_log_folder}/vms_desc.log"
+        logger.info(f"Loading ip for {self.name} from {vms_desc_file}")
+        if os.path.isfile(vms_desc_file):
+            with open(vms_desc_file, "r") as f:
+                for line in f:
+                    if self.name in line:
+                        self.ssh_config.hostname = line.split(":")[0]
+                        logger.info(f"IP found for {self.name}. IP: {self.ssh_config.hostname}")
+                        break
+
     def get_log_folder(self):
         vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
         if not os.path.exists(vm_folder):

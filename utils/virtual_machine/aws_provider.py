@@ -29,6 +29,14 @@ class AWSPulumiProvider(VmProvider):
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_onboarding"
 
+    def configure(self, required_vms):
+        super().configure(required_vms)
+        # Configure the ssh connection for the VMs
+        self.pulumi_ssh = PulumiSSH()
+        self.pulumi_ssh.load(required_vms)
+        for vm in required_vms:
+            vm.ssh_config.username = vm.aws_config.user
+
     def stack_up(self):
         logger.info(f"Starting AWS VMs: {self.vms}")
 

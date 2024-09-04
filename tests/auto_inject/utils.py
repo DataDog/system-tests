@@ -15,7 +15,7 @@ class AutoInjectBaseTest:
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
         request_uuid = None
@@ -79,16 +79,22 @@ class AutoInjectBaseTest:
         and reporting traces to the backend."""
         logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
 
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         weblog_url = f"http://{vm_ip}:{vm_port}/"
 
         # Kill the app before the uninstallation
+        logger.info(f"uninstall {virtual_machine.name}. Before stop 0")
         self.execute_command(virtual_machine, stop_weblog_command)
+        logger.info(f"uninstall {virtual_machine.name}. After stop 0 ")
         # Uninstall the auto inject
+        logger.info(f"uninstall {virtual_machine.name}. Before uninstall")
         self.execute_command(virtual_machine, uninstall_command)
+        logger.info(f"uninstall {virtual_machine.name}. After uninstall")
         # Start the app again
+        logger.info(f"uninstall {virtual_machine.name}. Before start 0")
         self.execute_command(virtual_machine, start_weblog_command)
+        logger.info(f"uninstall {virtual_machine.name}. after start 0")
 
         wait_for_port(vm_port, vm_ip, 40.0)
         warmup_weblog(weblog_url)
@@ -101,11 +107,17 @@ class AutoInjectBaseTest:
             # OK there are no traces, the weblog app is not instrumented
             pass
         # Kill the app before restore the installation
+        logger.info(f"uninstall {virtual_machine.name}. Before stop 1")
         self.execute_command(virtual_machine, stop_weblog_command)
+        logger.info(f"uninstall {virtual_machine.name}. After stop 1 ")
         # reinstall the auto inject
+        logger.info(f"uninstall {virtual_machine.name}. Before reinstall")
         self.execute_command(virtual_machine, install_command)
+        logger.info(f"uninstall {virtual_machine.name}. After reinstall")
         # Start the app again
+        logger.info(f"uninstall {virtual_machine.name}. Before start 1")
         self.execute_command(virtual_machine, start_weblog_command)
+        logger.info(f"uninstall {virtual_machine.name}. after start 1")
         # The app should be instrumented and reporting traces to the backend
         self._test_install(virtual_machine)
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
