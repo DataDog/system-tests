@@ -133,8 +133,8 @@ class _VirtualMachineScenario(Scenario):
 
         if self.is_main_worker:
             warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
+            warmups.append(self.vm_provider.stack_up)
 
-        warmups.append(self.vm_provider.stack_up)
         warmups.append(self.fill_context)
 
         if self.is_main_worker:
@@ -148,8 +148,9 @@ class _VirtualMachineScenario(Scenario):
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ")
 
     def close_targets(self):
-        logger.info("Destroying virtual machines")
-        self.vm_provider.stack_destroy()
+        if self.is_main_worker:
+            logger.info("Destroying virtual machines")
+            self.vm_provider.stack_destroy()
 
     @property
     def library(self):
