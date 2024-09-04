@@ -551,7 +551,11 @@ RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
 ADD {php_reldir}/server.php .
 """,
-        container_cmd=["php", "server.php"],
+        container_cmd=[
+            "bash",
+            "-c",
+            "php server.php || sleep 2s",
+        ],  # In case of crash, give time to the sidecar to upload the crash report
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes={os.path.join(php_absolute_appdir, "server.php"): "/client/server.php"},
