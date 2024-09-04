@@ -17,7 +17,6 @@ class TestRequestBody(BaseSourceTest):
     source_value = None
 
     @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_source_reported(self):
         super().test_source_reported()
 
@@ -28,7 +27,6 @@ class TestRequestBody(BaseSourceTest):
     )
     @bug(context.library >= "java@1.13.0" and context.library < "java@1.17.0", reason="Not reported")
     @missing_feature(library="dotnet", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
@@ -38,6 +36,5 @@ class TestRequestBody(BaseSourceTest):
         reason="Metrics not implemented",
     )
     @missing_feature(library="dotnet", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

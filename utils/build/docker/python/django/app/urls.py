@@ -507,8 +507,7 @@ def view_iast_source_body(request):
     import json
 
     table = json.loads(request.body).get("name")
-    user = json.loads(request.body).get("value")
-    _sink_point_sqli(table=table, id=user)
+    _sink_point_sqli(table=table)
     return HttpResponse("OK")
 
 

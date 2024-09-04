@@ -118,7 +118,6 @@ class ParametricScenario(Scenario):
         return self._parametric_tests_confs
 
     def configure(self, config):
-        super().configure(config)
         if config.option.library:
             library = config.option.library
         elif "TEST_LIBRARY" in os.environ:
@@ -141,7 +140,7 @@ class ParametricScenario(Scenario):
 
         self.apm_test_server_definition = factory()
 
-        if not hasattr(config, "workerinput"):
+        if self.is_main_worker:
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             self._build_apm_test_server_image()
@@ -166,8 +165,8 @@ class ParametricScenario(Scenario):
         self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
-    def _get_warmups(self):
-        result = super()._get_warmups()
+    def get_warmups(self):
+        result = super().get_warmups()
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
         return result

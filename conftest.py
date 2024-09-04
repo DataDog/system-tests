@@ -83,7 +83,7 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    context.scenario.configure(config)
+    context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
@@ -96,16 +96,14 @@ def pytest_sessionstart(session):
     # get the terminal to allow logging directly in stdout
     setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
 
+    # if only collect tests, do not start the scenario
+    if not session.config.option.collectonly:
+        context.scenario.pytest_sessionstart(session)
+
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
         logger.terminal.write("\n ********************************************************** \n\n")
-
-    if session.config.option.collectonly:
-        return
-
-    if not hasattr(session.config, "workerinput"):
-        context.scenario.session_start()
 
 
 # called when each test item is collected
@@ -357,13 +355,16 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_sessionfinish(session, exitstatus):
 
-    context.scenario.pytest_sessionfinish(session)
+    logger.info("Executing pytest_sessionfinish")
+
+    context.scenario.close_targets()
+
     if session.config.option.collectonly or session.config.option.replay:
         return
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
     # it will run in the master thread after all other processes have finished testing
-    if not hasattr(session.config, "workerinput"):
+    if context.scenario.is_main_worker:
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
                 {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
@@ -389,7 +390,7 @@ def export_feature_parity_dashboard(session, data):
         "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
         "language": context.scenario.library.library,
-        "variant": context.scenario.weblog_variant,
+        "variant": context.weblog_variant,
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
         ],
