@@ -9,11 +9,29 @@ A scenario is the abstraction for a context to test, and anything can be defined
 from .core import Scenario
 
 class CustomScenario(Scenario):
-    def session_start(self, session):
-        """ if needed, use this function to start anything needed to your scenario """
+    def configure(self, config):
+        """
+            If needed, configure the context => mainly, only get infos from config
+            At this point, logger.stdout is unavailable, so this function should not fail, unless
+            there is some config error from the user
+        """
 
-    def pytest_sessionfinish(self):
-        """ if needed, clean what need to be cleaned at the end of the test session"
+    def get_warmups(self):
+        """
+            Use this function to start anything needed to your scenario (build, run targets)
+            This function returns a list of callable that will be called sequentially
+        """
+        warmups = super().get_warmups()
+
+        warmups.append(self.start_target)
+
+        return warmups
+
+    def post_setup(self):
+        """ called after setup functions, and before test functions """
+
+    def close_targets(self):
+        """ Clean what need to be cleaned at the end of the test session """
 ```
 
 And include you scenario in `utils/_context/_scenarios/__init__.py`
