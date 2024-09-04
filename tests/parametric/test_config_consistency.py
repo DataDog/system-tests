@@ -4,6 +4,7 @@ Test configuration consistency for functions among different languages for APM.
 import pytest
 
 from utils import scenarios
+
 parametrize = pytest.mark.parametrize
 
 TEST_SERVICE = "test_service"
@@ -15,7 +16,6 @@ DEFAULT_ENVVARS = {
 
 @scenarios.parametric
 class TestTraceEnabled:
-    
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "true"},],
     )
@@ -26,9 +26,11 @@ class TestTraceEnabled:
                 with test_library.start_span("allowed"):
                     pass
             test_agent.wait_for_num_traces(num=1, clear=True)
-            assert True, "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
+            assert (
+                True
+            ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
         else:
-            assert False, f"Assertion failed: expected {"true"}, but got {library_env.get("DD_TRACE_ENABLED")}"
+            assert False, f"Assertion failed: expected true, but got " + str(trace_enabled_env)
 
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
@@ -42,7 +44,9 @@ class TestTraceEnabled:
             with pytest.raises(ValueError):
                 test_agent.wait_for_num_traces(num=1, clear=True)
 
-            assert True, "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace." #wait_for_num_traces will throw an error if not received within 2 sec
+            assert (
+                True
+            ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec
 
         else:
-            assert False, f"Assertion failed: expected {"false"}, but got {library_env.get("DD_TRACE_ENABLED")}"
+            assert False, f"Assertion failed: expected false, but got " + str(trace_enabled_env)
