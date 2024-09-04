@@ -19,12 +19,15 @@ ENABLE_CRASH_TRACKING=(-XX:OnError="/tmp/datadog/java/dd_crash_uploader.sh %p" \
 # Disable features
 DISABLED_FEATURES=(-Ddd.telemetry.dependency-collection.enabled=false)
 
-# Disable Spring Boot related integration to avoid creating unexpected spans
+# Disable integrations to avoid creating unexpected spans
+# - Spring Boot related integrations
+# - AppSec process monitoring
 DISABLE_INTEGRATIONS=(-Ddd.integration.servlet-request-body.enabled=false \
   -Ddd.integration.spring-beans.enabled=false \
   -Ddd.integration.spring-path-filter.enabled=false \
   -Ddd.integration.spring-web.enabled=false \
-  -Ddd.integration.tomcat.enabled=false)
+  -Ddd.integration.tomcat.enabled=false \
+  -Ddd.integration.java-lang-appsec.enabled=false)
 
 # Limit JIT to tier one as the client application is a short-lived process that frequently killed / restarted
 OPTIMIZATION_OPTIONS=(-XX:TieredStopAtLevel=1)
