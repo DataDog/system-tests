@@ -6,7 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, missing_feature
 from utils.tools import logger
 
 
@@ -113,7 +113,7 @@ class Test_Dbm:
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
-    @irrelevant(
+    @missing_feature(
         context.library == "dotnet",
         reason="temporary disable while we add support for DBM full mode for SQL Server in dotnet",
     )
