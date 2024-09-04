@@ -48,6 +48,7 @@
         <PackageReference Include="RabbitMQ.Client" Version="6.4.0"/>
         <PackageReference Include="MongoDB.Driver" Version="2.23.1"/>
 
-        <PackageReference Include="Datadog.Trace" Version="*" />
+        <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
+        <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" Condition="'$(Configuration)' == 'Release'" />
     </ItemGroup>
 </Project>
