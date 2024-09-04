@@ -5,8 +5,15 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "parametric", "parametric\parametric.csproj", "{08891E61-2C64-4073-9797-70C2C8F7FC41}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "weblog", "weblog", "{18EFC90D-7671-4898-AFD6-E79818EDFE13}"
+	ProjectSection(SolutionItems) = preProject
+		poc.Dockerfile = poc.Dockerfile
+		uds.Dockerfile = uds.Dockerfile
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "parametric", "parametric", "{09EF0251-CF88-4AF2-9E01-D482D8C3E245}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\_context\_scenarios\parametric.py = ..\..\..\_context\_scenarios\parametric.py
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

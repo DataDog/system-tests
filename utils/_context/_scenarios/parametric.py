@@ -453,8 +453,8 @@ COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/quer
 RUN /binaries/install_ddtrace.sh
 
 # dotnet restore
-COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
-RUN dotnet restore -p:Configuration=Release "./ApmTestApi.csproj"
+COPY {dotnet_reldir}/parametric.csproj {dotnet_reldir}/nuget.config ./
+RUN dotnet restore -p:Configuration=Release
 
 # dotnet publish
 COPY {dotnet_reldir} ./
@@ -489,7 +489,7 @@ COPY --from=build /app/out /app
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /opt/datadog /opt/datadog
 
-CMD ["./ApmTestApi"]
+CMD ["./parametric"]
 """,
         container_cmd=[],
         container_build_dir=dotnet_absolute_appdir,

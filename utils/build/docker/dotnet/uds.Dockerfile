@@ -8,7 +8,7 @@ COPY utils/build/docker/dotnet/install_ddtrace.sh utils/build/docker/dotnet/quer
 RUN /binaries/install_ddtrace.sh
 
 # dotnet restore
-COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
+COPY utils/build/docker/dotnet/weblog/weblog.csproj ./
 
 RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") \
     dotnet restore -p:Configuration=Release
