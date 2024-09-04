@@ -1,6 +1,7 @@
 import json
 import os
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
+from utils.onboarding.docker_ssi_definitions import get_github_matrix
 
 
 def get_github_workflow_map(scenarios, scenarios_groups):
@@ -140,7 +141,7 @@ def main():
     _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
     print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
 
-    docker_ssi_weblogs = get_docker_ssi_weblogs(os.environ["LIBRARY"])
+    docker_ssi_weblogs = get_github_matrix(os.environ["LIBRARY"])
     print(f"docker_ssi_weblogs={json.dumps(docker_ssi_weblogs)}")
 
 
