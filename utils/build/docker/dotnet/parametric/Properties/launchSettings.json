@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ApmTestApi": {
+    "parametric": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

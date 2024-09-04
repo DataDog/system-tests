@@ -7,6 +7,7 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <UserSecretsId>f56b479c-4bfa-4286-bb36-96a6273695e3</UserSecretsId>
     <Configuration Condition="'$(Configuration)' == ''">Development</Configuration>
+    <RootNamespace>ApmTestApi</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
