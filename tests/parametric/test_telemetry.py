@@ -91,26 +91,26 @@ class Test_Defaults:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o")
 @features.telemetry_app_started_event
 class Test_Consistent_Configs:
-    """Clients should use and report the same default values for features."""
-
+    """Clients should report modifications to features."""
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 # Decrease the heartbeat/poll intervals to speed up the tests
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                # "DD_TRACE_SERVICE_MAPPING": "plugin:custom"
-                "DD_TRACE_INTEGRATION_DISABLED": "mysql", # TODO: Does it have to be an integration to show up in telemetry?
+                "DD_TRACE_SERVICE_MAPPING": "plugin:custom",
+                # "DD_TRACE_INTEGRATION_DISABLED": "mysql", # TODO: Does it have to be an integration to show up in telemetry? If so, no way to generalize this to apply to all tracers. Would have to add multiple values to catch all tracers.
                 "DD_TRACE_RATE_LIMIT": 100,
                 "DD_TRACE_HEADER_TAGS": "header:tag",
                 "DD_TRACE_ENABLED": "true",
-                "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-                # "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory"
+                "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "^[a-zA-Z]$",
+                "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory",
                 "DD_VERSION": "123",
                 "DD_HTTP_CLIENT_ERROR_STATUSES": "400",
                 "DD_HTTP_SERVER_ERROR_STATUSES": "500",
                 "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "true",
                 "DD_TRACE_CLIENT_IP_HEADER": "X-Forwarded-For",
+                "DD_TRACE_AGENT_URL": "my-host:1234"
             }
         ],
     )
@@ -127,15 +127,15 @@ class Test_Consistent_Configs:
             ("trace_disabled_integrations", "mysql"),
             ("trace_obfuscation_query_string_regexp", "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"),
             ("trace_log_directory", "/some/temporary/directory"),
-            ("version", 123),
+            ("version", "123"),
             ("trace_http_client_error_statuses", "400"),
             ("trace_http_server_error_statuses", "500"),
             ("trace_http_client_tag_query_string", ("true", True)),
-            ("client_ip_header", "x-forwarded-for"),
-            ("trace_service_mappings", "plugin:custom") 
+            ("trace_client_ip_header", "x-forwarded-for"), # Unclear if correct key, see: https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit?disco=AAABVcOUNfU
+            ("trace_service_mappings", "plugin:custom"), 
+            ("trace_agent_url", "my-host:1234") 
 
         ]:
-            # TODO: This may change
             if context.library == "golang" and apm_telemetry_name in ("trace_disabled_integrations",):
                 continue
             if context.library == "cpp":
@@ -152,12 +152,7 @@ class Test_Consistent_Configs:
                 assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
             else:
                 assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
-            # assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name) TODO: Split tests up for env var vs default origin
-        # TODO: trace_agent_url is determined by container addresses, trace_tags may be empty or contain runtime-id by default.
-        # for apm_telemetry_name in ["trace_agent_url", "trace_tags"]:
-        for apm_telemetry_name in ["trace_tags"]:
-            cfg_item = configuration_by_name.get(apm_telemetry_name)
-            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name) 
 
 
 @scenarios.parametric
