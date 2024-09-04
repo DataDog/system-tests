@@ -594,6 +594,11 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
     ));
 
 }));
+$router->addRoute('GET', '/trace/crash', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    posix_kill(posix_getpid(), 11);
+
+    return jsonResponse([]);
+}));
 $server->start($router, $errorHandler);
 
 $signal = trapSignal([SIGINT, SIGTERM]);
