@@ -4,15 +4,17 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <InvariantGlobalization>true</InvariantGlobalization>
     <UserSecretsId>f56b479c-4bfa-4286-bb36-96a6273695e3</UserSecretsId>
-    <Configuration Condition="'$(Configuration)' == ''">Development</Configuration>
     <RootNamespace>Parametric</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    
+    <!-- Datadog.Trace nuget package contains Datadog.Trace.Manual.dll and is only used for debug builds locally -->
     <PackageReference Include="Datadog.Trace" Version="*" Condition="'$(Configuration)' != 'Release'" />
+    
+    <!-- Datadog.Trace.dll is used in CI, see install_ddtrace.sh and Dockerfile -->
     <Reference Include="/opt/datadog/netcoreapp3.1/Datadog.Trace.dll" Condition="'$(Configuration)' == 'Release'" />
   </ItemGroup>
 
