@@ -821,8 +821,7 @@ def _sink_point_path_traversal(tainted_str="user"):
 @app.route("/iast/source/body/test", methods=["POST"])
 def view_iast_source_body():
     table = flask_request.json.get("name")
-    user = flask_request.json.get("value")
-    _sink_point_sqli(table=table, id=user)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
@@ -1046,6 +1045,15 @@ def view_sqli_insecure():
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     return Response("OK")
+
+
+@app.route("/set_cookie", methods=["GET"])
+def set_cookie():
+    name = flask_request.args.get("name")
+    value = flask_request.args.get("value")
+    resp = Response("OK")
+    resp.headers["Set-Cookie"] = f"{name}={value}"
+    return resp
 
 
 @app.route("/iast/insecure-cookie/test_insecure")
