@@ -419,7 +419,7 @@ function main() {
             pytest_numprocesses=$(nproc)
         fi
         if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
-            pytest_numprocesses=$(nproc)
+            pytest_numprocesses=6
         fi
     done
 
