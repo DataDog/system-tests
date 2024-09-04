@@ -152,6 +152,9 @@ public class App {
                             .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                             .addHeader("dd-otlp-path", "intake-logs")
                             .build());
+            logRecordExporters.add(
+                    OtlpJsonLoggingLogRecordExporter.create()
+            );
         }
         if (isCollectorEnabled()) {
             logRecordExporters.add(
