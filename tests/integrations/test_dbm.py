@@ -113,12 +113,17 @@ class Test_Dbm:
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
+    @irrelevant(
+        context.library == "dotnet",
+        reason="temporary disable while we add support for DBM full mode for SQL Server in dotnet",
+    )
     def test_trace_payload_full(self):
         assert self.requests, "No requests to validate"
         for request in self.requests:
             span = self._get_db_span(request)
 
-            if span.get("meta", {}).get("db.type") == "sql-server":
+            # full mode for sql server is supported in dotnet (via the context_info)
+            if self.library_name != "dotnet" and span.get("meta", {}).get("db.type") == "sql-server":
                 self._assert_span_is_untagged(span)
             else:
                 self._assert_span_is_tagged(span)
