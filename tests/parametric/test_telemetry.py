@@ -90,6 +90,7 @@ class Test_Defaults:
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o")
 @features.telemetry_app_started_event
+# To pass this test, ensure the lang you are testing has the necessary mapping in its config_rules.json file: https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static
 class Test_Consistent_Configs:
     """Clients should report modifications to features."""
     @pytest.mark.parametrize(
@@ -98,8 +99,7 @@ class Test_Consistent_Configs:
             {
                 # Decrease the heartbeat/poll intervals to speed up the tests
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "DD_TRACE_SERVICE_MAPPING": "plugin:custom",
-                # "DD_TRACE_INTEGRATION_DISABLED": "mysql", # TODO: Does it have to be an integration to show up in telemetry? If so, no way to generalize this to apply to all tracers. Would have to add multiple values to catch all tracers.
+                "DD_TRACE_INTEGRATION_DISABLED": "mysql", # TODO: Does it have to be an integration to show up in telemetry? If so, no way to generalize this to apply to all tracers. Would have to add multiple values to catch all tracers.
                 "DD_TRACE_RATE_LIMIT": 100,
                 "DD_TRACE_HEADER_TAGS": "header:tag",
                 "DD_TRACE_ENABLED": "true",
@@ -110,6 +110,7 @@ class Test_Consistent_Configs:
                 "DD_HTTP_SERVER_ERROR_STATUSES": "500",
                 "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "true",
                 "DD_TRACE_CLIENT_IP_HEADER": "X-Forwarded-For",
+                "DD_TRACE_SERVICE_MAPPING": "plugin:custom",
                 "DD_TRACE_AGENT_URL": "my-host:1234"
             }
         ],
@@ -122,9 +123,10 @@ class Test_Consistent_Configs:
 
         configuration_by_name = {item["name"]: item for item in configuration}
         for apm_telemetry_name, value in [
+            ("trace_disabled_integrations", "mysql"),
+            ("trace_rate_limit", "100"),
             ("trace_header_tags", "header:tag"),
             ("trace_enabled", ("true", True)),
-            ("trace_disabled_integrations", "mysql"),
             ("trace_obfuscation_query_string_regexp", "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"),
             ("trace_log_directory", "/some/temporary/directory"),
             ("version", "123"),

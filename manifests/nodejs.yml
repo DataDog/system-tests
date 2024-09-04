@@ -497,6 +497,7 @@ tests/:
       Test_Environment: *ref_5_6_0
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
+      Test_Consistent_Configs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: *ref_5_16_0 #actual version unknown
       Test_Trace_Sampling_Globs: *ref_5_16_0 #actual version unknown
