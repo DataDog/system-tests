@@ -28,11 +28,11 @@ class _Context:
 
     @property
     def agent_version(self):
-        return self._get_scenario_property("agent_version", None)
+        return self._get_scenario_property("agent_version", "")
 
     @property
     def weblog_variant(self):
-        return self._get_scenario_property("weblog_variant", None)
+        return self._get_scenario_property("weblog_variant", "")
 
     @property
     def uds_mode(self):
