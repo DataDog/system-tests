@@ -565,11 +565,13 @@ def view_iast_source_path(request):
 
     return HttpResponse("OK")
 
+
 @csrf_exempt
 def view_iast_source_path_parameter(request, table):
     _sink_point_sqli(table=table)
 
     return HttpResponse("OK")
+
 
 @csrf_exempt
 def view_iast_header_injection_insecure(request):

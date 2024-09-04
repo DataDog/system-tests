@@ -482,10 +482,12 @@ async def view_iast_source_path(request: Request):
     _sink_point_path_traversal(tainted_str=request.url.path)
     return "OK"
 
+
 @app.get("/iast/source/path_parameter/test/{table}", response_class=PlainTextResponse)
 async def view_iast_source_path(table):
     _sink_point_path_traversal(tainted_str=table)
     return "OK"
+
 
 @app.post("/iast/path_traversal/test_secure", response_class=PlainTextResponse)
 def view_iast_path_traversal_secure(path: typing.Annotated[str, Form()]):
