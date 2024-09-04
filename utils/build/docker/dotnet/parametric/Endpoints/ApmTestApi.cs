@@ -1,10 +1,8 @@
-using Datadog.Trace;
-using Datadog.Trace.Configuration;
 using System.Reflection;
-using System.Threading;
+using Datadog.Trace;
 using Newtonsoft.Json;
 
-namespace ApmTestApi.Endpoints;
+namespace Parametric.Endpoints;
 
 public abstract class ApmTestApi
 {

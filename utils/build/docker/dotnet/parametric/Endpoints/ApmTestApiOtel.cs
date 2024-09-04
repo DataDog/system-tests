@@ -3,9 +3,9 @@ using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace ApmTestApi.Endpoints;
+namespace Parametric.Endpoints;
 
-public abstract class ApmTestApiOtel : ApmTestApi
+public abstract class ApmTestApiOtel : Parametric.Endpoints.ApmTestApi
 {
     internal static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
     internal static readonly Dictionary<ulong, Activity> Activities = new();
