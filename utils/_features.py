@@ -2346,3 +2346,13 @@ class features:
         """
         pytest.mark.features(feature_id=321)(test_object)
         return test_object
+
+    @staticmethod
+    def iast_source_path_parameter(test_object):
+        """
+        IAST Source: URI
+
+        https://feature-parity.us1.prod.dog/#/?feature=324
+        """
+        pytest.mark.features(feature_id=324)(test_object)
+        return test_object

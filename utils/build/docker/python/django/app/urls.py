@@ -565,6 +565,11 @@ def view_iast_source_path(request):
 
     return HttpResponse("OK")
 
+@csrf_exempt
+def view_iast_source_path_parameter(request, table):
+    _sink_point_sqli(table=table)
+
+    return HttpResponse("OK")
 
 @csrf_exempt
 def view_iast_header_injection_insecure(request):
@@ -754,6 +759,7 @@ urlpatterns = [
     path("iast/source/parametername/test", view_iast_source_parametername),
     path("iast/source/parameter/test", view_iast_source_parameter),
     path("iast/source/path/test", view_iast_source_path),
+    path("iast/source/path_parameter/test/<str:table>", view_iast_source_path_parameter),
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("make_distant_call", make_distant_call),

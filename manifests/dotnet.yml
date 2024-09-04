@@ -106,6 +106,8 @@ tests/:
           TestParameterValue: v2.28.0
         test_path.py:
           TestPath: v2.39.0
+        test_path_parameter.py:
+          TestPathParameter: missing_feature
         test_uri.py:
           TestURI: irrelevant
     rasp/:
