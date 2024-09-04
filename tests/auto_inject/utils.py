@@ -112,7 +112,7 @@ class AutoInjectBaseTest:
 
     def _test_uninstall(self, virtual_machine):
 
-        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):  # Host
+        if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
 
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
