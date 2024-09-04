@@ -149,8 +149,9 @@ class _VirtualMachineScenario(Scenario):
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ")
 
     def pytest_sessionfinish(self, session):
-        logger.info(f"Closing  _VirtualMachineScenario scenario")
-        self.close_targets()
+        if not hasattr(session.config, "workerinput"):
+            logger.info(f"Closing  _VirtualMachineScenario scenario")
+            self.close_targets()
 
     def close_targets(self):
         logger.info(f"Destroying virtual machines")

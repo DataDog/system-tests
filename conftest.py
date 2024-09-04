@@ -103,8 +103,8 @@ def pytest_sessionstart(session):
 
     if session.config.option.collectonly:
         return
-
-    context.scenario.session_start()
+    if not hasattr(session.config, "workerinput"):
+        context.scenario.session_start()
 
 
 # called when each test item is collected
