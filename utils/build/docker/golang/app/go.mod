@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.36
 	github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2 v2.0.0-20240902131707-47c2b19fbd05
 	github.com/DataDog/dd-trace-go/contrib/Shopify/sarama/v2 v2.0.0-20240902131707-47c2b19fbd05
+	github.com/DataDog/dd-trace-go/contrib/database/sql/v2 v2.0.0-20240903135118-8746ff738150
 	github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2 v2.0.0-20240902131707-47c2b19fbd05
 	github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2 v2.0.0-20240902131707-47c2b19fbd05
 	github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2 v2.0.0-beta.2.0.20240902131707-47c2b19fbd05
@@ -16,11 +17,12 @@ require (
 	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240902131707-47c2b19fbd05
 	github.com/Shopify/sarama v1.38.1
 	github.com/gin-gonic/gin v1.9.1
-	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/chi/v5 v5.1.0
 	github.com/graph-gophers/graphql-go v1.5.0
 	github.com/graphql-go/graphql v0.8.1
 	github.com/graphql-go/handler v0.2.3
 	github.com/labstack/echo/v4 v4.11.1
+	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/vektah/gqlparser/v2 v2.5.16
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.44.0
 	go.opentelemetry.io/otel v1.20.0
