@@ -97,7 +97,17 @@ if __name__ == "__main__":
         help="One of the supported Datadog languages",
         choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
     )
+    parser.add_argument(
+        "--repo-slug",
+        "-r",
+        type=str,
+        help="repository slug in the format owner/repo",
+        default="DataDog/system-tests-dashboard",
+    )
+    parser.add_argument(
+        "--workflow-file", "-w", type=str, help="Yml file name for the nightly workflow", default="nightly.yml",
+    )
     parser.add_argument("pattern", type=str, help="Exact pattern to search for in the logs")
     args = parser.parse_args()
 
-    main(language=args.language, log_pattern=args.pattern)
+    main(language=args.language, log_pattern=args.pattern, repo_slug=args.repo_slug, workflow_file=args.workflow_file)

@@ -118,7 +118,6 @@ class ParametricScenario(Scenario):
         return self._parametric_tests_confs
 
     def configure(self, config):
-        super().configure(config)
         if config.option.library:
             library = config.option.library
         elif "TEST_LIBRARY" in os.environ:
@@ -141,7 +140,7 @@ class ParametricScenario(Scenario):
 
         self.apm_test_server_definition = factory()
 
-        if not hasattr(config, "workerinput"):
+        if self.is_main_worker:
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             self._build_apm_test_server_image()
@@ -166,8 +165,8 @@ class ParametricScenario(Scenario):
         self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
-    def _get_warmups(self):
-        result = super()._get_warmups()
+    def get_warmups(self):
+        result = super().get_warmups()
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
         return result
@@ -459,7 +458,6 @@ RUN dotnet restore "./ApmTestApi.csproj"
 
 # dotnet publish
 COPY {dotnet_reldir} ./
-# RUN dotnet publish --no-restore -c Release -f net8.0 -o out
 RUN dotnet publish --no-restore -c Release -o out
 
 ##################
@@ -470,8 +468,7 @@ WORKDIR /app
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-# Set up automatic instrumentation (required for OpenTelemetry tests),
-# but don't enable it globally
+# Set up automatic instrumentation
 ENV CORECLR_ENABLE_PROFILING=1
 ENV CORECLR_PROFILER='{{846F5F1C-F9AE-4B07-969E-05C26BC060D8}}'
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so

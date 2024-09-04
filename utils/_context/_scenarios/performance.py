@@ -1,7 +1,7 @@
 import os
 import time
 
-from .core import EndToEndScenario
+from .endtoend import EndToEndScenario
 
 
 class PerformanceScenario(EndToEndScenario):
@@ -16,8 +16,8 @@ class PerformanceScenario(EndToEndScenario):
     def host_log_folder(self):
         return "logs_with_appsec" if self.appsec_enabled else "logs_without_appsec"
 
-    def _get_warmups(self):
-        result = super()._get_warmups()
+    def get_warmups(self):
+        result = super().get_warmups()
         result.append(self._extra_weblog_warmup)
 
         return result
