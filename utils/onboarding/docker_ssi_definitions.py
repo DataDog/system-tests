@@ -64,7 +64,8 @@ class JavaRuntimeVersions:
 
 
 class WeblogDescriptor:
-    """ Encapsulates information of the weblog: name, library and supported images with the supported runtime versions """
+    """ Encapsulates information of the weblog: name, library and 
+        supported images with the supported runtime versions """
 
     def __init__(self, name, library, supported_images) -> None:
         self.name = name
