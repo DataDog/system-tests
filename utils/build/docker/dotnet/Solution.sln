@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "app", "weblog\app.csproj", "{AD07B011-CC75-4D7D-AE39-72EC4CE2B6F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApmTestApi", "parametric\ApmTestApi.csproj", "{08891E61-2C64-4073-9797-70C2C8F7FC41}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD07B011-CC75-4D7D-AE39-72EC4CE2B6F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD07B011-CC75-4D7D-AE39-72EC4CE2B6F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD07B011-CC75-4D7D-AE39-72EC4CE2B6F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD07B011-CC75-4D7D-AE39-72EC4CE2B6F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08891E61-2C64-4073-9797-70C2C8F7FC41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08891E61-2C64-4073-9797-70C2C8F7FC41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08891E61-2C64-4073-9797-70C2C8F7FC41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08891E61-2C64-4073-9797-70C2C8F7FC41}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
