@@ -118,7 +118,7 @@ class _VirtualMachine:
             with open(vms_desc_file, "r") as f:
                 for line in f:
                     if self.name in line:
-                        self.ssh_config.hostname = line.split(":")[0]
+                        self.ssh_config.hostname = line.split(":")[1]
                         logger.info(f"IP found for {self.name}. IP: {self.ssh_config.hostname}")
                         break
 

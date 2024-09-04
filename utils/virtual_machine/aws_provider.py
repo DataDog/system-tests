@@ -271,7 +271,7 @@ class AWSCommander(Commander):
         else:
             # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
             # same remote machine in the same log file
-            header = "*****************************************************************"
+            header = "\n *****************************************************************"
             Output.all(vm.name, installation_id, remote_command, cmd_exec_install.stdout).apply(
                 lambda args: vm_logger(context.scenario.name, args[0]).info(
                     f"{header} \n  - COMMAND: {args[1]} \n {header} \n {args[2]} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {args[3]}"
