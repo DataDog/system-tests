@@ -45,4 +45,4 @@ class TestTraceEnabled:
             assert True, "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace." #wait_for_num_traces will throw an error if not received within 2 sec
 
         else:
-            assert library_env.get("DD_TRACE_ENABLED", "false") == True, f"Assertion failed: expected {False}, but got {library_env.get("DD_TRACE_ENABLED")}"
+            assert False, f"Assertion failed: expected {"false"}, but got {library_env.get("DD_TRACE_ENABLED")}"
