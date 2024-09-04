@@ -92,7 +92,7 @@ else
         docker buildx build -f base/base_ssi.Dockerfile  -t "ssi_${TAG}" --build-arg BASE_IMAGE="${TAG}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --load .
         docker buildx build -f "${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile" --build-context lib_injection=../../../lib-injection/build/docker --build-arg BASE_IMAGE="ssi_${TAG}" -t weblog-injection:latest --load .
     else
-        
+
         TAG="${TAG}:${TEST_LIBRARY}_${RUNTIME_VERSIONS}"
         docker buildx build -f base/base_lang.Dockerfile  -t "${TAG}" --build-arg BASE_IMAGE="${BASE_IMAGE}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --build-arg RUNTIME_VERSIONS="${RUNTIME_VERSIONS}" --load .
         docker buildx build -f base/base_ssi.Dockerfile  -t "ssi_${TAG}" --build-arg BASE_IMAGE="${TAG}" --build-arg ARCH="${ARCH}" --build-arg LANG="${TEST_LIBRARY}" --load .
