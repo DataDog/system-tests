@@ -131,10 +131,14 @@ class _VirtualMachineScenario(Scenario):
     def get_warmups(self):
         warmups = super().get_warmups()
 
-        warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
+        if self.is_main_worker:
+            warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
+
         warmups.append(self.vm_provider.stack_up)
         warmups.append(self.fill_context)
-        warmups.append(self.print_installed_components)
+
+        if self.is_main_worker:
+            warmups.append(self.print_installed_components)
 
         return warmups
 

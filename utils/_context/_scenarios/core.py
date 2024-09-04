@@ -46,6 +46,9 @@ class Scenario:
 
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
 
+        # if xdist is used, this property will be set to false for sub workers
+        self.is_main_worker: bool = True
+
         assert (
             self.github_workflow in VALID_GITHUB_WORKFLOWS
         ), f"Invalid github_workflow {self.github_workflow} for {self.name}"
@@ -79,10 +82,11 @@ class Scenario:
     def pytest_configure(self, config):
         self.replay = config.option.replay
 
-        if not hasattr(config, "workerinput"):
-            # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
-            # we are in the main worker, not in a xdist sub-worker
+        # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
+        # we are in the main worker, not in a xdist sub-worker
+        self.is_main_worker = not hasattr(config, "workerinput")
 
+        if self.is_main_worker:
             # xdist use case: with xdist subworkers, this function is called
             # * at very first command
             # * then once per worker

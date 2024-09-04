@@ -364,7 +364,7 @@ def pytest_sessionfinish(session, exitstatus):
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
     # it will run in the master thread after all other processes have finished testing
-    if not hasattr(session.config, "workerinput"):
+    if context.scenario.is_main_worker:
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
                 {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
@@ -390,7 +390,7 @@ def export_feature_parity_dashboard(session, data):
         "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
         "language": context.scenario.library.library,
-        "variant": context.scenario.weblog_variant,
+        "variant": context.weblog_variant,
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
         ],
