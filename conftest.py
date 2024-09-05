@@ -45,6 +45,15 @@ def pytest_addoption(parser):
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
 
+    # Docker ssi scenarios
+    parser.addoption("--ssi-weblog", type=str, action="store", help="Set docker ssi weblog")
+    parser.addoption("--ssi-library", type=str, action="store", help="Set docker ssi library to test")
+    parser.addoption("--ssi-base-image", type=str, action="store", help="Set docker ssi base image to build")
+    parser.addoption("--ssi-arch", type=str, action="store", help="Set docker ssi archictecture of the base image")
+    parser.addoption(
+        "--ssi-runtime", type=str, action="store", help="Set the language runtime to install on the docker base image"
+    )
+
     # Parametric scenario options
     parser.addoption(
         "--library",

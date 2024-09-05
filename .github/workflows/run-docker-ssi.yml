@@ -31,16 +31,13 @@ jobs:
         repository: 'DataDog/system-tests'
     - name: Install runner
       uses: ./.github/actions/install_runner
-    - name: Build weblog
-      id: build
-      run: utils/build/ssi/build.sh java -w ${{matrix.weblog}} --base-image ${{matrix.base_image}} --runtime_version ${{matrix.runtime}} --arch ${{matrix.arch}}
     - name: Run Docker SSI scenario
-      if: always() && steps.build.outcome == 'success'
-      run: ./run.sh DOCKER_SSI
+      if: always()
+      run: ./run.sh DOCKER_SSI --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-runtime ${{matrix.runtime}}
       env:
         TEST_LIBRARY: ${{ inputs.library }}
     - name: Compress logs
-      if: always() && steps.build.outcome == 'success'
+      if: always()
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
   #  - name: Upload artifact
   #    if: always() && steps.build.outcome == 'success'

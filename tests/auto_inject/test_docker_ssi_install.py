@@ -13,6 +13,9 @@ import pathlib
 @scenarios.docker_ssi
 class TestDockerSSIInstall:
     def test_install(self):
+        self._test_install()
+
+    def _test_install(self):
         requests.get(
             context.scenario.weblog_url, timeout=10,
         )
@@ -65,3 +68,4 @@ class TestDockerSSIInstall:
         assert len(injection_metric) >= 1
         assert injection_metric[0]["metric"] == "inject.success"
         assert pathlib.Path(f"{context.scenario.host_log_folder}/traces.json").exists()
+        logger.info("OK DONE!!!")

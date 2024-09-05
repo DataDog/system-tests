@@ -100,7 +100,7 @@ DD_LIB_JAVA_INIT_TEST_APP = WeblogDescriptor(
     "dd-lib-java-init-test-app",
     "java",
     [
-        SupportedImages().UBUNTU_22_AMD64.add_allowed_runtime_version(JavaRuntimeVersions.JAVA_11)
+        SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeVersions.JAVA_11)
         #  SupportedImages.UBUNTU_22_ARM64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
         #  SupportedImages.UBUNTU_16_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
         #  SupportedImages.UBUNTU_16_ARM64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
