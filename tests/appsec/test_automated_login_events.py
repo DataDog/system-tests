@@ -65,7 +65,7 @@ class Test_Login_Events:
 
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     @irrelevant(
-        context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
+        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
         reason="APM reports all user id for now on Django",
     )
     def test_login_pii_success_local(self):
@@ -83,7 +83,7 @@ class Test_Login_Events:
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
     @irrelevant(
-        context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
+        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
         reason="APM reports all user id for now on Django",
     )
     def test_login_pii_success_basic(self):

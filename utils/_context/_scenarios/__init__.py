@@ -6,7 +6,8 @@ import pytest
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.tools import update_environ_with_local_env
 
-from .core import Scenario, ScenarioGroup, DockerScenario, EndToEndScenario
+from .core import Scenario, ScenarioGroup
+from .endtoend import DockerScenario, EndToEndScenario
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
