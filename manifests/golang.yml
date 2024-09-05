@@ -432,6 +432,8 @@ tests/:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
+    test_config_consistency.py:
+      TestTraceEnabled: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.64.0-dev
@@ -469,8 +471,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
-  test_config_consistency.py:
-    TestTraceEnabled: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:

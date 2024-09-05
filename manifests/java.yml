@@ -1124,6 +1124,8 @@ tests/:
     test_sql.py:
       Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
   parametric/:
+    test_config_consistency.py:
+      TestTraceEnabled: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
@@ -1179,8 +1181,6 @@ tests/:
     test_json_report.py:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
-  test_config_consistency.py:
-    TestTraceEnabled: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v1.29.0
   test_distributed.py:

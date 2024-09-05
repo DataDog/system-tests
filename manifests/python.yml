@@ -646,6 +646,8 @@ tests/:
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
+    test_config_consistency.py:
+      TestTraceEnabled: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -721,8 +723,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
-  test_config_consistency.py:
-    TestTraceEnabled: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v2.7.0
   test_distributed.py:

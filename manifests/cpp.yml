@@ -133,6 +133,8 @@ tests/:
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
   parametric/:
+    test_config_consistency.py:
+      TestTraceEnabled: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
@@ -160,8 +162,6 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
-  test_config_consistency.py:
-    TestTraceEnabled: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant
