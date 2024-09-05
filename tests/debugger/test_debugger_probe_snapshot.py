@@ -50,7 +50,6 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
             weblog.get("/debugger/span-decoration/asd/1"),
         ]
 
-    @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
     def test_line_probe_snaphots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
