@@ -16,7 +16,7 @@ def _get_unique_id(replay: bool, host_log_folder: str) -> str:
             unique_id = f.read()
     else:
         # pick a statistically unique id for the scenario
-        unique_id = "".join(random.choices(string.hexdigits, k=32))
+        unique_id = "".join(random.choices(string.hexdigits, k=16))
         with open(replay_file, "w", encoding="utf-8") as f:
             f.write(unique_id)
 
