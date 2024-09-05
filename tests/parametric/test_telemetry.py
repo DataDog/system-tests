@@ -103,7 +103,7 @@ class Test_Consistent_Configs:
             {
                 # Decrease the heartbeat/poll intervals to speed up the tests
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "DD_TRACE_INTEGRATION_DISABLED": "mysql",  # TODO: Does it have to be an integration to show up in telemetry? If so, would have to add multiple values to catch integrations that apply to all tracers.
+                "DD_TRACE_MYSQL_ENABLED": "false",  # TODO: Does it have to be an integration to show up in telemetry? If so, would have to add multiple entries to catch integrations that apply to all tracers.
                 "DD_TRACE_RATE_LIMIT": 100,
                 "DD_TRACE_HEADER_TAGS": "header:tag",
                 "DD_TRACE_ENABLED": "true",
