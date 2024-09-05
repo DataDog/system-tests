@@ -270,7 +270,7 @@ class TestedContainer:
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.debug(f"Try #{i}: {result}")
+                logger.debug(f"Try #{i} for {self.name}: {result}")
 
                 if result.exit_code == 0:
                     break

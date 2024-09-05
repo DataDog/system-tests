@@ -13,7 +13,8 @@ from utils._context.containers import (
 )
 
 
-from .core import DockerScenario, ScenarioGroup
+from .core import ScenarioGroup
+from .endtoend import DockerScenario
 
 
 class OpenTelemetryScenario(DockerScenario):
@@ -84,9 +85,9 @@ class OpenTelemetryScenario(DockerScenario):
 
     def _create_interface_folders(self):
         for interface in ("open_telemetry", "backend"):
-            self.create_log_subfolder(f"interfaces/{interface}")
+            self._create_log_subfolder(f"interfaces/{interface}")
         if self.include_agent:
-            self.create_log_subfolder("interfaces/agent")
+            self._create_log_subfolder("interfaces/agent")
 
     def _start_interface_watchdog(self):
         from utils import interfaces
@@ -114,8 +115,8 @@ class OpenTelemetryScenario(DockerScenario):
 
         observer.start()
 
-    def _get_warmups(self):
-        warmups = super()._get_warmups()
+    def get_warmups(self):
+        warmups = super().get_warmups()
 
         if not self.replay:
             warmups.insert(0, self._create_interface_folders)
