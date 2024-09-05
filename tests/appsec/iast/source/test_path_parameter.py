@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, missing_feature
+from utils import features
 from ..utils import BaseSourceTest
 
 
@@ -15,6 +15,3 @@ class TestPathParameter(BaseSourceTest):
     source_names = ["table"]
     source_value = "user"
     requests_kwargs = [{"method": "GET"}]
-
-    def test_telemetry_metric_instrumented_source(self):
-        super().test_telemetry_metric_instrumented_source()
