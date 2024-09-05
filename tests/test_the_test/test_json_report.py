@@ -3,7 +3,7 @@ import json
 import pytest
 from utils.tools import logger
 
-from utils import missing_feature, irrelevant, coverage, scenarios, rfc, features, bug, flaky
+from utils import missing_feature, irrelevant, scenarios, rfc, features, bug, flaky
 
 pytestmark = pytest.mark.features(feature_id=666)
 
@@ -136,7 +136,6 @@ class Test_Json_Report:
 
 @scenarios.mock_the_test
 @rfc("https://mock")
-@coverage.good
 @features.telemetry_api_v2_implemented
 @features.b3_headers_propagation
 class Test_Mock:

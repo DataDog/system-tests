@@ -35,8 +35,9 @@ public class AppSecIast {
     private final WeakRandomnessExamples weakRandomnessExamples;
     private final XPathExamples xPathExamples;
     private final XSSExamples xssExamples;
-
     private final HardcodedSecretExamples hardcodedSecretExamples;
+    private final ReflectionExamples reflectionExamples;
+    private final DeserializationExamples deserializationExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -49,6 +50,8 @@ public class AppSecIast {
         this.xPathExamples = new XPathExamples();
         this.xssExamples = new XSSExamples();
         this.hardcodedSecretExamples = new HardcodedSecretExamples();
+        this.reflectionExamples = new ReflectionExamples();
+        this.deserializationExamples = new DeserializationExamples();
     }
 
     @RequestMapping("/hardcoded_secrets/test_insecure")
@@ -225,6 +228,7 @@ public class AppSecIast {
         response.addHeader("Set-Cookie", "");
         return "ok";
     }
+
     @GetMapping("/insecure-cookie/test_insecure")
     String insecureCookie(final HttpServletResponse response) {
         response.addHeader("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
@@ -255,7 +259,7 @@ public class AppSecIast {
         return "ok";
     }
 
-    @GetMapping("/no-httponly-cookie-cookie/test_empty_cookie")
+    @GetMapping("/no-httponly-cookie/test_empty_cookie")
     String noHttpOnlyCookieEmptyCookie(final HttpServletResponse response) {
         response.addHeader("Set-Cookie", "");
         return "ok";
@@ -345,6 +349,35 @@ public class AppSecIast {
       String paramValue = request.getParameter("test");
         response.addHeader("Sec-WebSocket-Location", paramValue);
       return "Ok";
+    }
+
+    @GetMapping(value = "/insecure-auth-protocol/test")
+    public String insecureAuthProtocol(HttpServletResponse response) {
+        response.setStatus(HttpStatus.OK.value());
+        return "ok";
+    }
+
+    @PostMapping(value = "/reflection_injection/test_secure")
+    public String secureReflection() {
+        return reflectionExamples.secureClassForName();
+    }
+
+    @PostMapping(value = "/reflection_injection/test_insecure")
+    public String insecureReflection(HttpServletRequest request) {
+        final String className = request.getParameter("param");
+        return reflectionExamples.insecureClassForName(className);
+    }
+
+    @GetMapping("/untrusted_deserialization/test_insecure")
+    public String insecureUntrustedDeserialization(final HttpServletRequest request) throws IOException{
+        deserializationExamples.insecureDeserialization(request.getInputStream());
+        return "ok";
+    }
+
+    @GetMapping("/untrusted_deserialization/test_secure")
+    public String secureUntrustedDeserialization(final HttpServletRequest request) throws IOException {
+        deserializationExamples.secureDeserialization(request.getInputStream());
+        return "ok";
     }
 
 

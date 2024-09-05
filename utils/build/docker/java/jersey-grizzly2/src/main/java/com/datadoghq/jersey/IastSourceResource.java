@@ -85,7 +85,7 @@ public class IastSourceResource {
     @Path("/cookiename/test")
     public String sourceCookieName(@Context final HttpHeaders headers) {
         Collection<Cookie> cookies = headers.getCookies().values();
-        final String table = find(cookies, c -> c.getName().equalsIgnoreCase("user"), Cookie::getName);
+        final String table = find(cookies, c -> c.getName().equalsIgnoreCase("table"), Cookie::getName);
         sql.insecureSql(table, (statement, sql) -> statement.executeQuery(sql));
         return String.format("Request Cookies => %s", cookies);
     }

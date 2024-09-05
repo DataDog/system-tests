@@ -2,34 +2,18 @@ from __future__ import annotations
 
 import json
 
-from utils import interfaces, scenarios, coverage, weblog, missing_feature, features, context, irrelevant
-from utils._weblog import _Weblog
+from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils.buddies import java_buddy
 from utils.tools import logger
-
-
-# TODO: move this class in utils
-class _Buddy(_Weblog):
-    def __init__(self, port, language, domain="localhost"):
-        from collections import defaultdict
-
-        self.port = port
-        self.domain = domain
-
-        self.responses = defaultdict(list)
-        self.current_nodeid = "not used"
-        self.replay = False
-        self.language = language
-
-
-_python_buddy = _Buddy(9001, "python")
-_nodejs_buddy = _Buddy(9002, "nodejs")
-_java_buddy = _Buddy(9003, "java")
-_ruby_buddy = _Buddy(9004, "ruby")
-_golang_buddy = _Buddy(9005, "golang")
 
 
 class _Test_Kafka:
     """Test kafka compatibility with inputted datadog tracer"""
+
+    buddy = None
+    WEBLOG_TO_BUDDY_TOPIC = None
+    BUDDY_TO_WEBLOG_TOPIC = None
+    buddy_interface = None
 
     @classmethod
     def get_span(cls, interface, span_kind, topic):
@@ -92,18 +76,6 @@ class _Test_Kafka:
         )
 
     @missing_feature(
-        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
         library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
     )
     def test_produce_trace_equality(self):
@@ -145,18 +117,6 @@ class _Test_Kafka:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(
-        library="nodejs", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="python", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="java", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
-    @missing_feature(
-        library="golang", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     @missing_feature(
         library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
     )
@@ -200,74 +160,17 @@ class _Test_Kafka:
 
 
 @scenarios.crossed_tracing_libraries
-@coverage.basic
-@features.kafkaspan_creationcontext_propagation_with_dd_trace_js
-class Test_NodeJSKafka(_Test_Kafka):
-    buddy_interface = interfaces.nodejs_buddy
-    buddy = _nodejs_buddy
-    WEBLOG_TO_BUDDY_TOPIC = "Test_NodeJSKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_NodeJSKafka_buddy_to_weblog"
-
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    def test_produce_trace_equality(self):
-        super().test_produce_trace_equality()
-
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    def test_consume_trace_equality(self):
-        super().test_consume_trace_equality()
-
-
-@scenarios.crossed_tracing_libraries
-@coverage.basic
-@features.kafkaspan_creationcontext_propagation_with_dd_trace_py
-class Test_PythonKafka(_Test_Kafka):
-    buddy_interface = interfaces.python_buddy
-    buddy = _python_buddy
-    WEBLOG_TO_BUDDY_TOPIC = "Test_PythonKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_PythonKafka_buddy_to_weblog"
-
-
-@scenarios.crossed_tracing_libraries
-@coverage.basic
-@features.kafkaspan_creationcontext_propagation_with_dd_trace_java
-class Test_JavaKafka(_Test_Kafka):
+@features.kafkaspan_creationcontext_propagation_with_dd_trace
+class Test_Kafka(_Test_Kafka):
     buddy_interface = interfaces.java_buddy
-    buddy = _java_buddy
-    WEBLOG_TO_BUDDY_TOPIC = "Test_JavaKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_JavaKafka_buddy_to_weblog"
+    buddy = java_buddy
+    WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()
-
-
-@scenarios.crossed_tracing_libraries
-@coverage.basic
-@features.kafkaspan_creationcontext_propagation_with_dd_trace_rb
-class Test_RubyKafka(_Test_Kafka):
-    buddy_interface = interfaces.ruby_buddy
-    buddy = _ruby_buddy
-    WEBLOG_TO_BUDDY_TOPIC = "Test_RubyKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_RubyKafka_buddy_to_weblog"
-
-
-@scenarios.crossed_tracing_libraries
-@coverage.basic
-@features.kafkaspan_creationcontext_propagation_with_dd_trace_go
-class Test_GolangKafka(_Test_Kafka):
-    buddy_interface = interfaces.golang_buddy
-    buddy = _golang_buddy
-    WEBLOG_TO_BUDDY_TOPIC = "Test_GolangKafka_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_TOPIC = "Test_GolangKafka_buddy_to_weblog"

@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import sys
 from collections import defaultdict
 import requests
 
@@ -37,7 +36,7 @@ HEADER = f"""# Unless explicitly stated otherwise all files in this repository a
 #    python utils/scripts/extract_appsec_waf_rules.py
 """
 
-with open("tests/appsec/waf/utils/rules.py", "w") as f:
+with open("utils/waf_rules.py", "w") as f:
     f.write(HEADER)
 
     for key, rules in result.items():

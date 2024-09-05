@@ -101,6 +101,8 @@ GEM
       responders
       warden (~> 1.2.3)
     digest (3.1.0)
+    digest-crc (0.6.5)
+      rake (>= 12.0.0, < 14.0.0)
     erubi (1.10.0)
     ffi (1.15.5)
     globalid (1.0.0)
@@ -117,9 +119,13 @@ GEM
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
+    libddwaf (1.0.14.2.0.beta1)
+      ffi (~> 1.0)
     libddwaf (1.0.14.2.0.beta1-aarch64-linux)
       ffi (~> 1.0)
     libddwaf (1.0.14.2.0.beta1-arm64-darwin)
+      ffi (~> 1.0)
+    libddwaf (1.0.14.2.0.beta1-x86_64-darwin)
       ffi (~> 1.0)
     libddwaf (1.0.14.2.0.beta1-x86_64-linux)
       ffi (~> 1.0)
@@ -132,6 +138,7 @@ GEM
     matrix (0.4.2)
     method_source (1.0.0)
     mini_mime (1.1.2)
+    mini_portile2 (2.7.1)
     minitest (5.15.0)
     msgpack (1.4.4)
     net-imap (0.2.3)
@@ -150,9 +157,14 @@ GEM
       net-protocol
       timeout
     nio4r (2.5.8)
+    nokogiri (1.13.1)
+      mini_portile2 (~> 2.7.0)
+      racc (~> 1.4)
     nokogiri (1.13.1-aarch64-linux)
       racc (~> 1.4)
     nokogiri (1.13.1-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.13.1-x86_64-darwin)
       racc (~> 1.4)
     nokogiri (1.13.1-x86_64-linux)
       racc (~> 1.4)
@@ -201,6 +213,8 @@ GEM
       actionpack (>= 5.2)
       railties (>= 5.2)
     rexml (3.2.5)
+    ruby-kafka (1.5.0)
+      digest-crc
     rubyzip (2.3.2)
     selenium-webdriver (4.1.0)
       childprocess (>= 0.5, < 5.0)
@@ -243,9 +257,11 @@ GEM
     zeitwerk (2.5.4)
 
 PLATFORMS
-  aarch64-linux
-  arm64-darwin-22
-  x86_64-linux
+  aarch64-linux-gnu
+  arm64-darwin
+  ruby
+  x86_64-darwin
+  x86_64-linux-gnu
 
 DEPENDENCIES
   bootsnap
@@ -258,6 +274,7 @@ DEPENDENCIES
   pry
   puma (~> 5.0)
   rails (~> 7.0.1)
+  ruby-kafka
   selenium-webdriver
   sprockets-rails
   sqlite3 (~> 1.4)
@@ -271,4 +288,4 @@ RUBY VERSION
    ruby 3.1.0p0
 
 BUNDLED WITH
-   2.3.3
+   2.3.26

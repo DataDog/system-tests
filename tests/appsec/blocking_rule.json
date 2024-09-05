@@ -208,7 +208,7 @@
                 ]
               }
             ],
-            "regex": "en-us|krypton"
+            "regex": "fo-fo|krypton"
           },
           "operator": "match_regex",
           "options": {
@@ -495,10 +495,114 @@
       ]
     },
     {
+      "id": "tst-037-012",
+      "name": "Test block on multiple request addresses",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000012",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.method"
+              }
+            ],
+            "regex": "GET"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "regex": "ypMrmzrWATkLrPKLblvpRGGltBSgHWrK"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.path_params"
+              }
+            ],
+            "regex": "cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies"
+              }
+            ],
+            "regex": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              }
+            ],
+            "regex": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
       "id": "monitor-resolvers",
       "name": "Monitor Resolvers",
       "tags": {
-        "type": "monitor_resolver",
+        "type": "monitor_single_resolver",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "graphql.server.resolver"
+              }
+            ],
+            "data": "monitor_resolvers"
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": []
+    },
+    {
+      "id": "monitor-all-resolvers",
+      "name": "Monitor All Resolvers",
+      "tags": {
+        "type": "monitor_all_resolvers",
         "category": "attack_attempt"
       },
       "conditions": [
@@ -509,13 +613,41 @@
                 "address": "graphql.server.all_resolvers"
               }
             ],
-            "data": "blocked_resolvers"
+            "data": "monitor_resolvers"
           },
           "operator": "exact_match"
         }
       ],
       "transformers": [],
       "on_match": []
+    },
+    {
+      "id": "block-resolvers",
+      "name": "Block Resolvers",
+      "tags": {
+        "type": "block_resolver",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "graphql.server.all_resolvers"
+              },
+              {
+                "address": "graphql.server.resolver"
+              }
+            ],
+            "data": "blocked_resolvers"
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
     }
   ],
   "actions": [
@@ -574,11 +706,21 @@
       ]
     },
     {
-      "id": "blocked_resolvers",
+      "id": "monitor_resolvers",
       "type": "data_with_expiration",
       "data": [
         {
           "value": "testattack",
+          "expiration": 0
+        }
+      ]
+    },
+    {
+      "id": "blocked_resolvers",
+      "type": "data_with_expiration",
+      "data": [
+        {
+          "value": "testblockresolver",
           "expiration": 0
         }
       ]

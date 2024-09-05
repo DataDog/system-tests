@@ -30,6 +30,9 @@ VARIANT_COMPONENT_MAP = {
     "django-poc": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "gqlgen": "99designs/gqlgen",
+    "graph-gophers": "graph-gophers/graphql-go",
+    "graphql-go": "graphql-go/graphql",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
     "sinatra": {"rack.request": "rack"},
@@ -135,7 +138,6 @@ class Test_Meta:
     """meta object in spans respect all conventions"""
 
     @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
-    @bug(library="python", reason="Span.kind not implemented yet")
     @bug(library="php", reason="All PHP current weblog variants trace with C++ tracers that do not have Span.Kind")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
@@ -228,9 +230,9 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
-    @bug(library="cpp", reason="language tag not implemented")
     @bug(library="php", reason="language tag not implemented")
-    @bug(library="java", reason="language tag implemented but not for all spans")
+    # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
+    @bug(context.library < "java@1.1.0", reason="language tag implemented but not for all spans")
     @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
@@ -255,6 +257,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
+    @bug(context.library >= "nodejs@4.44.0", reason="http is reported as component, io framework's name")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -282,7 +285,6 @@ class Test_Meta:
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="cpp", reason="runtime-id tag not implemented")
     @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
@@ -320,16 +322,9 @@ class Test_MetaDatadogTags:
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
-    @bug(library="cpp", reason="Not implemented")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
-
-        def validator(span):
-            if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
-
+        spans = [s for _, s in interfaces.library.get_root_spans()]
+        assert spans, "Did not recieve any root spans to validate."
+        for span in spans:
             assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"
-
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
-        # checking that we have at least one root span
-        assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."

@@ -23,6 +23,8 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 
 ENV DD_JMXFETCH_ENABLED=false
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
+# FIXME: Fails on APPSEC_BLOCKING, see APPSEC-51405
+# ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 
 ENV JVM_ARGS='-javaagent:/app/dd-java-agent.jar'
 

@@ -2,10 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import bug, context, coverage, interfaces, irrelevant, missing_feature, rfc, weblog, features
+from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features
 
 
-@coverage.good
 @features.security_events_metadata
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -32,7 +31,6 @@ class Test_StandardTagsMethod:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@coverage.basic
 @features.security_events_metadata
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -114,7 +112,7 @@ class Test_StandardTagsUrl:
         ]
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby", "python"],
+        context.library in ["golang", "nodejs", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
@@ -148,7 +146,7 @@ class Test_StandardTagsUrl:
         )
 
     @missing_feature(
-        context.library in ["golang", "nodejs", "php", "ruby", "python"],
+        context.library in ["golang", "nodejs", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
@@ -161,7 +159,6 @@ class Test_StandardTagsUrl:
         )
 
 
-@coverage.basic
 @features.security_events_metadata
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -175,7 +172,6 @@ class Test_StandardTagsUserAgent:
         interfaces.library.add_span_tag_validation(self.r, tags=tags, value_as_regular_expression=True)
 
 
-@coverage.good
 @features.security_events_metadata
 class Test_StandardTagsStatusCode:
     """Tests to verify that libraries annotate spans with correct http.status_code tags"""
@@ -189,7 +185,6 @@ class Test_StandardTagsStatusCode:
             interfaces.library.add_span_tag_validation(request=r, tags={"http.status_code": code})
 
 
-@coverage.basic
 @features.security_events_metadata
 class Test_StandardTagsRoute:
     """Tests to verify that libraries annotate spans with correct http.route tags"""
@@ -221,7 +216,6 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@coverage.basic
 @features.security_events_metadata
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
@@ -279,7 +273,10 @@ class Test_StandardTagsClientIp:
         self._setup_without_attack()
         self._setup_with_attack()
 
-    @bug(library="python", reason="cf-connecting-ipv6 seems to have higher precedence than it should")
+    @bug(
+        context.library < "java@1.11.0",
+        reason="X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878",
+    )
     def test_client_ip(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled"""
         meta = self._get_root_span_meta(self.request_with_attack)
@@ -292,6 +289,9 @@ class Test_StandardTagsClientIp:
         self._setup_without_attack()
 
     @bug(library="golang", reason="missing cf-connecting-ipv6")
+    @bug(
+        context.library < "java@1.11.0", reason="not supported, see https://github.com/DataDog/dd-trace-java/pull/4878"
+    )
     def test_client_ip_vendor(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled when using vendor headers"""
         self._test_client_ip(self.FORWARD_HEADERS_VENDOR)
@@ -317,9 +317,10 @@ class Test_StandardTagsClientIp:
         context.library < "java@1.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )
     @missing_feature(library="golang", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
-    @missing_feature(library="nodejs", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(
+        context.library < "nodejs@4.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
+    )
     @missing_feature(library="ruby", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
-    @missing_feature(library="php", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
     def test_client_ip_with_appsec_event_and_vendor_headers(self):
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
         meta = self._get_root_span_meta(self.request_with_attack)

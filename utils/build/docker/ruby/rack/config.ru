@@ -5,7 +5,7 @@ require 'json'
 
 # tracer configuration of Rack integration
 
-require 'ddtrace/auto_instrument'
+require 'datadog/auto_instrument'
 require 'datadog/kit/appsec/events'
 
 Datadog.configure do |c|

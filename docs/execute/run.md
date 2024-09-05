@@ -39,6 +39,15 @@ Without providing a scenario argument, only the tests without any `@scenario` de
 # e.g, "LIBRARY_CONF_CUSTOM_HEADER_TAGS" to run the LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
 ```
 
+## Run a scenario group
+
+You can run a group of scenarios as they are defined in `scenario_groups.yml`
+
+```bash
+./run.sh <SCENARIO_GROUP_NAME>
+# e.g, "APPSEC_SCENARIOS" to run most of APPSEC scenarios
+```
+
 ## Spawn componenents, but do nothing
 
 ```bash

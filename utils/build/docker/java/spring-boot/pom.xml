@@ -33,8 +33,13 @@
             <artifactId>spring-session-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.12.6</version>
         </dependency>
         <dependency>
             <groupId>com.datadoghq</groupId>
@@ -157,6 +162,16 @@
             <artifactId>sqs</artifactId>
             <version>2.17.51</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sns</artifactId>
+            <version>2.17.51</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>kinesis</artifactId>
+            <version>2.17.51</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -224,6 +239,10 @@
         </profile>
         <profile>
             <id>openliberty</id>
+            <properties>
+                <!-- Defaults to latest OpenLiberty version, which might break during releases. -->
+                <liberty.runtime.version>23.0.0.12</liberty.runtime.version>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
@@ -235,7 +254,7 @@
                     <plugin>
                         <groupId>io.openliberty.tools</groupId>
                         <artifactId>liberty-maven-plugin</artifactId>
-                        <version>3.5.1</version>
+                        <version>3.10</version>
                         <configuration>
                             <appsDirectory>apps</appsDirectory>
                             <installAppPackages>spring-boot-project</installAppPackages>
@@ -417,8 +436,8 @@
         </plugins>
     </build>
     <properties>
-        <protobuf.version>3.16.3</protobuf.version>
-        <grpc.version>1.31.0</grpc.version>
+        <protobuf.version>3.25.3</protobuf.version>
+        <grpc.version>1.65.1</grpc.version>
         <packaging.type>jar</packaging.type>
 	</properties>
 </project>

@@ -15,6 +15,10 @@ But, obviously, testing validated versions of components is not really interesti
 ## .Net library
 
 * Add a file `datadog-dotnet-apm-<VERSION>.tar.gz` in `binaries/`. `<VERSION>` must be a valid version number.
+  * One way to get that file is from an Azure pipeline (either a recent one from master if the changes you want to test were merged recently, or the one from your PR if it's open)
+<img width="1318" alt="Screenshot 2024-03-04 at 14 13 57" src="https://github.com/DataDog/system-tests/assets/1932410/de78860a-5a48-42a0-98cc-85da5613f645">
+<img width="558" alt="Screenshot 2024-03-04 at 14 17 09" src="https://github.com/DataDog/system-tests/assets/1932410/934aa4e2-c8a9-4aea-804b-c222d2e51e93">
+
 
 ## Golang library
 
@@ -31,6 +35,10 @@ But, obviously, testing validated versions of components is not really interesti
 1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
     * `DataDog/dd-trace-js#master`
 2. Clone the dd-trace-js repo inside `binaries`
+3. Create a file `nodejs-load-from-local` in `binaries/`, this will disable installing with `npm install dd-trace` and
+   will instead get the content of the file, and use it as a location of the `dd-trace-js` repo and then mount it as a
+   volume and `npm link` to it. For instance, if this repo is at the location, you can set the content of this file to
+   `../dd-trace-js`. This also removes the need to rebuild the weblog image since the code is mounted at runtime.
 
 ## PHP library
 

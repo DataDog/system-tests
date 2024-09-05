@@ -1,6 +1,6 @@
 System tests are feature-oriented. It means that "features" drives how tests are organized.
 
-Let's take an example with a new `Awesome feature`, part of meta feature `stuffs`, so we add a new file called `tests/test_stuffs.py` and add a test class with some boilerplate code, and a basic test: 
+Let's take an example with a new `Awesome feature`, part of meta feature `stuffs`, so we add a new file called `tests/test_stuffs.py` and add a test class with some boilerplate code, and a basic test:
 
 ## Hello world test
 

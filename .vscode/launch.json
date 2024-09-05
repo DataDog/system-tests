@@ -11,7 +11,8 @@
             "module": "pytest",
             "args": ["-p", "no:warnings"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Replay DEFAULT scenario",
@@ -20,7 +21,8 @@
             "module": "pytest",
             "args": ["-p", "no:warnings", "--replay"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Run INTEGRATIONS scenario",
@@ -29,7 +31,18 @@
             "module": "pytest",
             "args": ["-S", "INTEGRATIONS", "-p", "no:warnings"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Replay CROSSED_TRACING_LIBRARIES scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "CROSSED_TRACING_LIBRARIES", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario",
@@ -38,7 +51,8 @@
             "module": "pytest",
             "args": ["-S", "LIBRARY_CONF_CUSTOM_HEADER_TAGS", "-p", "no:warnings"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Run PROFILING scenario",
@@ -47,7 +61,8 @@
             "module": "pytest",
             "args": ["-S", "PROFILING", "-p", "no:warnings"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario",
@@ -56,7 +71,8 @@
             "module": "pytest",
             "args": ["-S", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES", "-p", "no:warnings"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Replay REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario",
@@ -65,7 +81,8 @@
             "module": "pytest",
             "args": ["-S", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES", "-p", "no:warnings", "--replay"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Replay SAMPLING scenario",
@@ -74,7 +91,8 @@
             "module": "pytest",
             "args": ["-S", "SAMPLING", "-p", "no:warnings", "--replay"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Run TEST_THE_TEST scenario",
@@ -83,7 +101,18 @@
             "module": "pytest",
             "args": ["-S", "TEST_THE_TEST", "-p", "no:warnings"],
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Run GRAPHQL_APPSEC scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "GRAPHQL_APPSEC", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
         },
         {
             "name": "Python: Current File",

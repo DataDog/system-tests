@@ -21,7 +21,7 @@ class Test_Feature():
         assert 1 + 1 == 2
 ```
 
-Please note that you don't have to rebuild images at each iteration. Simply re-run `run.sh`. And you can also specify the test you want to run, don't be overflooded by logs: 
+Please note that you don't have to rebuild images at each iteration. Simply re-run `run.sh`. And you can also specify the test you want to run, don't be overflooded by logs:
 
 ```
 ./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail
@@ -42,7 +42,7 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-And it's also a good idea to declare a [coverage](./coverage.md) for your feature, and sometimes [skip a test](./features.md)
+Sometimes [skip a test](./features.md) is needed
 
 ```python
 from utils import weblog, interfaces, context, bug

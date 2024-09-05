@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
+
+### 2024-06 (92 PR merged)
+
+* 2024-06-26 [add pytest-split to allow splitting test running in groups](https://github.com/DataDog/system-tests/pull/2589) by @rochdev
+* 2024-06-24 [Remote config test API](https://github.com/DataDog/system-tests/pull/2586) by @cbeauchesne
+* 2024-06-20 [[golang] Enable RASP SSRF tests](https://github.com/DataDog/system-tests/pull/2576) by @eliottness
+* 2024-06-24 [RASP SQLi: enhance test & activate for Go](https://github.com/DataDog/system-tests/pull/2574) by @Hellzy
+* 2024-06-19 [[go] implement RASP endpoints](https://github.com/DataDog/system-tests/pull/2551) by @eliottness
+* 2024-06-03 [[python] RASP sqli tests for python](https://github.com/DataDog/system-tests/pull/2514) by @christophe-papazian
+
+
+### 2024-05 (90 PR merged)
+
+* 2024-05-27 [Use semver for version parser](https://github.com/DataDog/system-tests/pull/2487) by @cbeauchesne
+* 2024-05-07 [[python] decrease the waiting time for python libraries from 25s to 5s](https://github.com/DataDog/system-tests/pull/2431) by @christophe-papazian
+* 2024-05-29 [Manifest references + Node semver migration](https://github.com/DataDog/system-tests/pull/2416) by @simon-id
+* 2024-05-03 [Dynamically compute scenarios to run](https://github.com/DataDog/system-tests/pull/2408) by @cbeauchesne
+
+
+### 2024-04 (104 PR merged)
+
+* 2024-04-18 [Compute dynamically the matrix to run in CI](https://github.com/DataDog/system-tests/pull/2356) by @cbeauchesne
+* 2024-04-18 [Build docker images if there is a label](https://github.com/DataDog/system-tests/pull/2321) by @robertomonteromiguel
+* 2024-04-03 [K8s lib injection: new python variants](https://github.com/DataDog/system-tests/pull/2293) by @robertomonteromiguel
+* 2024-04-25 [Support semver version ranges for `released` decorator (and manifests)](https://github.com/DataDog/system-tests/pull/2045) by @simon-id
+
+
+### 2024-03 (85 PR merged)
+
+* 2024-03-29 [Fix test that triggers false XPASS](https://github.com/DataDog/system-tests/pull/2281) by @cbeauchesne
+* 2024-03-27 [Add more ruby variants](https://github.com/DataDog/system-tests/pull/2246) by @lloeki
+* 2024-03-20 [New Ruby variant : Rails 7.1](https://github.com/DataDog/system-tests/pull/2242) by @lloeki
+* 2024-03-18 [Add OTel Interoperability System tests](https://github.com/DataDog/system-tests/pull/2128) by @PROFeNoM
+
+
+### 2024-02 (73 PR merged)
+
+* 2024-02-15 [Allow the main workflow to be called in a distant workflow](https://github.com/DataDog/system-tests/pull/2150) by @cbeauchesne
+* 2024-02-16 [Conti/add aws kinesis tests](https://github.com/DataDog/system-tests/pull/2143) by @wconti27
+* 2024-02-15 [feat: add aws sns context propagation and DSM tests](https://github.com/DataDog/system-tests/pull/2095) by @wconti27
+* 2024-02-01 [OnBoarding: new tests for args block list](https://github.com/DataDog/system-tests/pull/2089) by @robertomonteromiguel
+* 2024-02-01 [feat: add rabbitmq sample apps](https://github.com/DataDog/system-tests/pull/2066) by @wconti27
+* 2024-02-13 [Graphql blocking tests](https://github.com/DataDog/system-tests/pull/1879) by @uurien
+
+
+### 2024-01 (86 PR merged)
+
+* 2024-01-31 [Remove entirely the coverage decorator](https://github.com/DataDog/system-tests/pull/2091) by @cbeauchesne
+* 2024-01-29 [Check variant names in manifest validation](https://github.com/DataDog/system-tests/pull/2082) by @cbeauchesne
+* 2024-01-29 [Generate buddies on merge if needed](https://github.com/DataDog/system-tests/pull/2068) by @robertomonteromiguel
+* 2024-01-15 [Support for PHP unified client library](https://github.com/DataDog/system-tests/pull/1998) by @robertomonteromiguel
+* 2024-01-08 Parametric: test "dev" version of clienty libraries by @robertomonteromiguel
+* 2024-01-04 [parametric: test C++ client library](https://github.com/DataDog/system-tests/pull/1942) by @dmehala
+
 ### December 2023 (75 PR merged)
 
 * 2023-12-26 [Remove legacy coverage decorator](https://github.com/DataDog/system-tests/pull/1961) by @cbeauchesne (Testing coverage is not dependant of system-tests only, so it's now declared directly in Feature Parity Dashbaord)
@@ -53,7 +107,7 @@ All notable changes to this project will be documented in this file.
 * 2023-06-22 [Migrate parametric tests](https://github.com/DataDog/system-tests/pull/1279): Parametric tests are now a regular scenario of system tests
 * 2023-06-07 [New onboarding tests](https://github.com/DataDog/system-tests/pull/1191): Test the APM onboarding experience for customers using lib injection ([doc](https://github.com/DataDog/system-tests/tree/main/tests/onboarding))
 * 2023-06-26 [New java weblog: spring-boot-payara](https://github.com/DataDog/system-tests/pull/1287)
-* Some performance improvements on build step. 
+* Some performance improvements on build step.
 
 
 ### May 2023 (65 PR merged)

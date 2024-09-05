@@ -2,8 +2,9 @@
 
 import { Request, Response } from "express";
 
-const tracer = require('dd-trace').init({ debug: true });
+const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
+const { promisify } = require('util')
 const app = require('express')();
 const axios = require('axios');
 const passport = require('passport')
@@ -22,13 +23,27 @@ app.use(require('cookie-parser')());
 iast.initMiddlewares(app)
 
 require('./auth')(app, passport, tracer)
-require('./graphql')(app)
 iast.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
   res.send('Hello\n');
 });
+
+app.get('/healthcheck', (req: Request, res: Response) => {
+  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
+  const maybeRequire = (name: string) => { try { return require(name) } catch (e) {} }
+
+  res.json({
+    status: 'ok',
+    library: {
+      language: 'nodejs',
+      version: require('dd-trace/package.json').version,
+      libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
+      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
+    }
+  });
+})
 
 app.all(['/waf', '/waf/*'], (req: Request, res: Response) => {
   res.send('Hello\n');
@@ -174,13 +189,13 @@ app.get("/dsm", (req: Request, res: Response) => {
     })
   }
   doKafkaOperations()
-      .then(() => {
-        res.send('ok');
-      })
-      .catch((error: Error) => {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      });
+    .then(() => {
+      res.send('ok');
+    })
+    .catch((error: Error) => {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+    });
 });
 
 app.get('/load_dependency', (req: Request, res: Response) => {
@@ -196,7 +211,13 @@ app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
     res.set(k, v && v.toString());
   }
 
-  res.status(parseInt(req.params.status) || 200).send('Value tagged');
+  res.status(parseInt(req.params.status) || 200)
+
+  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+    res.send({ payload: req.body });
+  } else {
+    res.send('Value tagged');
+  }
 });
 
 app.post('/shell_execution', (req: Request, res: Response) => {
@@ -224,7 +245,62 @@ app.get('/createextraservice', (req: Request, res: Response) => {
   res.send('OK')
 })
 
-app.listen(7777, '0.0.0.0', () => {
-  tracer.trace('init.service', () => {});
-  console.log('listening');
-});
+// try to flush as much stuff as possible from the library
+app.get('/flush', (req: Request, res: Response) => {
+  // doesn't have a callback :(
+  // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
+  tracer.dogstatsd?.flush?.()
+  tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+
+  // does have a callback :)
+  const promises = []
+
+  const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+  if (profiler?._collect) {
+    promises.push(profiler._collect('on_shutdown'))
+  }
+
+  if (tracer._tracer?._exporter?._writer?.flush) {
+    promises.push(promisify((err: any) => tracer._tracer._exporter._writer.flush(err)))
+  }
+
+  if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
+    promises.push(promisify((err: any) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+  }
+
+  Promise.all(promises).then(() => {
+    res.status(200).send('OK')
+  }).catch((err) => {
+    res.status(500).send(err)
+  })
+})
+
+app.get('/requestdownstream', async (req: Request, res: Response) => {
+  try {
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return res.json(resFetch.data)
+  } catch (e) {
+    return res.status(500).send(e)
+  }
+})
+
+app.get('/returnheaders', (req: Request, res: Response) => {
+  res.json({ ...req.headers })
+})
+
+app.get('/set_cookie', (req: Request, res: Response) => {
+  const name = req.query['name']
+  const value = req.query['value']
+
+  res.header('Set-Cookie', `${name}=${value}`)
+  res.send('OK')
+})
+
+require('./rasp')(app)
+
+require('./graphql')(app).then(() => {
+  app.listen(7777, '0.0.0.0', () => {
+    tracer.trace('init.service', () => { })
+    console.log('listening')
+  })
+})

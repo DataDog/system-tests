@@ -1,4 +1,4 @@
-FROM golang:1.20
+FROM golang:1.22 AS build
 
 # print important lib versions
 RUN go version && curl --version
@@ -8,7 +8,7 @@ RUN apt-get update && apt-get -y install jq
 
 # download go dependencies
 RUN mkdir -p /app
-COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app
+COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
 WORKDIR /app
 RUN go mod download && go mod verify
 
@@ -18,11 +18,24 @@ COPY utils/build/docker/golang/app /app
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
+RUN go build -v -tags appsec -o weblog ./net-http
+
+# ==============================================================================
+
+FROM golang:1.22
+
+COPY --from=build /app/weblog /app/weblog
+COPY --from=build /app/SYSTEM_TESTS_LIBDDWAF_VERSION /app/SYSTEM_TESTS_LIBDDWAF_VERSION
+COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+
+WORKDIR /app
+
 ENV DD_TRACE_HEADER_TAGS='user-agent'
+ENV DD_DATA_STREAMS_ENABLED=true
 
-RUN go build -v -tags appsec -o weblog ./net-http.go ./common.go ./grpc.go ./weblog_grpc.pb.go ./weblog.pb.go
-
-RUN echo "#!/bin/bash\n./weblog" > app.sh
+RUN printf "#!/bin/bash\n./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 

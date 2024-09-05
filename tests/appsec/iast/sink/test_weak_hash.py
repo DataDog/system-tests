@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, bug, missing_feature, coverage, features
-from .._test_iast_fixtures import BaseSinkTest, assert_iast_vulnerability
+from utils import weblog, context, flaky, missing_feature, features
+from ..utils import BaseSinkTest, assert_iast_vulnerability
 
 
 def _expected_location():
@@ -34,8 +34,8 @@ def _expected_evidence():
         return "md5"
 
 
-@coverage.basic
 @features.weak_hash_vulnerability_detection
+@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestWeakHash(BaseSinkTest):
     """Verify weak hash detection."""
 
@@ -50,7 +50,6 @@ class TestWeakHash(BaseSinkTest):
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
 
-    @missing_feature(weblog_variant="spring-boot-openliberty")
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability"""
@@ -65,7 +64,6 @@ class TestWeakHash(BaseSinkTest):
     def setup_insecure_hash_multiple(self):
         self.r_insecure_hash_multiple = weblog.get("/iast/insecure_hashing/multiple_hash")
 
-    @bug(weblog_variant="spring-boot-openliberty")
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
         assert_iast_vulnerability(
@@ -75,12 +73,12 @@ class TestWeakHash(BaseSinkTest):
             expected_location=self.expected_location,
         )
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
+    @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
     @missing_feature(context.library < "dotnet@2.38.0", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()

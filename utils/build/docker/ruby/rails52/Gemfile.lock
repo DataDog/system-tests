@@ -47,6 +47,7 @@ GEM
     archive-zip (0.12.0)
       io-like (~> 0.3.0)
     arel (9.0.0)
+    bcrypt (3.1.20)
     bindex (0.8.1)
     bootsnap (1.10.2)
       msgpack (~> 1.2)
@@ -80,6 +81,12 @@ GEM
       libddwaf (~> 1.0.14.2.0.a)
       msgpack
     debase-ruby_core_source (0.10.14)
+    devise (4.9.3)
+      bcrypt (~> 3.0)
+      orm_adapter (~> 0.1)
+      railties (>= 4.1.0)
+      responders
+      warden (~> 1.2.3)
     erubi (1.10.0)
     execjs (2.8.1)
     ffi (1.15.5)
@@ -93,9 +100,19 @@ GEM
       activesupport (>= 5.0.0)
     libddwaf (1.0.14.2.0.beta1)
       ffi (~> 1.0)
+    libddwaf (1.0.14.2.0.beta1-aarch64-linux)
+      ffi (~> 1.0)
+    libddwaf (1.0.14.2.0.beta1-arm64-darwin)
+      ffi (~> 1.0)
+    libddwaf (1.0.14.2.0.beta1-x86_64-darwin)
+      ffi (~> 1.0)
     libddwaf (1.0.14.2.0.beta1-x86_64-linux)
       ffi (~> 1.0)
     libv8-node (16.10.0.0)
+    libv8-node (16.10.0.0-aarch64-linux)
+    libv8-node (16.10.0.0-arm64-darwin)
+    libv8-node (16.10.0.0-x86_64-darwin)
+    libv8-node (16.10.0.0-x86_64-linux)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
@@ -118,8 +135,7 @@ GEM
     nokogiri (1.13.1)
       mini_portile2 (~> 2.7.0)
       racc (~> 1.4)
-    nokogiri (1.13.1-x86_64-linux)
-      racc (~> 1.4)
+    orm_adapter (0.5.0)
     pry (0.14.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -158,6 +174,9 @@ GEM
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     regexp_parser (2.2.0)
+    responders (3.1.1)
+      actionpack (>= 5.2)
+      railties (>= 5.2)
     rexml (3.2.5)
     ruby_dep (1.5.0)
     rubyzip (2.3.2)
@@ -198,6 +217,8 @@ GEM
       thread_safe (~> 0.1)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
+    warden (1.2.9)
+      rack (>= 2.0.9)
     web-console (3.7.0)
       actionview (>= 5.0)
       activemodel (>= 5.0)
@@ -210,8 +231,11 @@ GEM
       nokogiri (~> 1.8)
 
 PLATFORMS
+  aarch64-linux-gnu
+  arm64-darwin
   ruby
-  x86_64-linux
+  x86_64-darwin
+  x86_64-linux-gnu
 
 DEPENDENCIES
   bootsnap (>= 1.1.0)
@@ -220,9 +244,11 @@ DEPENDENCIES
   chromedriver-helper
   coffee-rails (~> 4.2)
   ddtrace (~> 1.0.0.a)
+  devise
   jbuilder (~> 2.5)
   listen (>= 3.0.5, < 3.2)
   mini_racer (~> 0.6.2)
+  nokogiri
   pry
   puma (~> 3.11)
   rails (~> 5.2.6)
@@ -240,4 +266,4 @@ RUBY VERSION
    ruby 2.7.4p191
 
 BUNDLED WITH
-   2.1.4
+   2.3.27

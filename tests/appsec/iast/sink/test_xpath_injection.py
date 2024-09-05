@@ -2,12 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, features
-from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
+from utils import features, context, flaky
+from ..utils import BaseSinkTestWithoutTelemetry
 
 
 @features.iast_sink_xpathinjection
-@coverage.basic
+@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestXPathInjection(BaseSinkTestWithoutTelemetry):
     """Test xpath injection detection."""
 

@@ -1,6 +1,6 @@
-FROM node:18
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y jq
+RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 
@@ -11,21 +11,23 @@ COPY utils/build/docker/nodejs/express4 /usr/app
 
 WORKDIR /usr/app
 
+ENV NODE_ENV=production
+
 RUN npm install
 
 EXPOSE 7777
 
 ENV PGUSER=system_tests_user
 ENV PGPASSWORD=system_tests
-ENV PGDATABASE=system_tests
+ENV PGDATABASE=system_tests_dbname
 ENV PGHOST=postgres
 ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
-RUN echo '#!/bin/bash\nnode app.js' > app.sh
-RUN chmod +x app.sh
+COPY utils/build/docker/nodejs/app.sh app.sh
+RUN printf 'node app.js' >> app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/

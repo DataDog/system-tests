@@ -16,19 +16,26 @@ import java.util.List;
 import java.net.URI;
 
 public class SqsConnector {
-    public static final String ENDPOINT = "http://elasticmq:9324";
+    public static String DEFAULT_ENDPOINT = "http://elasticmq:9324";
     public final String queue;
+    public final String endpoint;
 
     public SqsConnector(String queue){
         this.queue = queue;
+        this.endpoint = DEFAULT_ENDPOINT;
     }
 
-    private static SqsClient createSqsClient() {
+    public SqsConnector(String queue, String endpoint){
+        this.queue = queue;
+        this.endpoint = endpoint;
+    }
+
+    public SqsClient createSqsClient() {
         SqsClient sqsClient = SqsClient.builder()
             .region(Region.US_EAST_1)
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
             .applyMutation(builder -> {
-                builder.endpointOverride(URI.create(ENDPOINT));
+                builder.endpointOverride(URI.create(this.endpoint));
             })
             .build();
         return sqsClient;
@@ -51,7 +58,7 @@ public class SqsConnector {
         }
     }
 
-    public void startProducingMessage(String message) throws Exception {
+    public Thread startProducingMessage(String message) throws Exception {
         Thread thread = new Thread("SqsProduce") {
             public void run() {
                 try {
@@ -64,29 +71,31 @@ public class SqsConnector {
         };
         thread.start();
         System.out.println("[SQS] Started Sqs producer thread");
+        return thread;
     }
 
-    public void startConsumingMessages() throws Exception {
-        Thread thread = new Thread("SqsConsume") {
+    public Thread startConsumingMessages(String service) throws Exception {
+        Thread thread = new Thread(service + "Consume") {
             public void run() {
                 boolean recordFound = false;
                 while (!recordFound) {
                     try {
-                        recordFound = consumeMessageWithoutNewThread();
+                        recordFound = consumeMessageWithoutNewThread(service);
                     } catch (Exception e) {
-                        System.err.println("[SQS] Failed to consume message in thread...");
-                        System.err.println("[SQS] Error consuming: " + e);
+                        System.err.println("[" + service.toUpperCase() + "] Failed to consume message in thread...");
+                        System.err.println("[" + service.toUpperCase() + "] Error consuming: " + e);
                     }
                 }
             }
         };
         thread.start();
-        System.out.println("[SQS] Started Sqs consumer thread");
+        System.out.println("[" + service.toUpperCase() + "] Started consumer thread");
+        return thread;
     }
 
     // For APM testing, produce message without starting a new thread
     public void produceMessageWithoutNewThread(String message) throws Exception {
-        SqsClient sqsClient = createSqsClient();
+        SqsClient sqsClient = this.createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, true);
         System.out.printf("[SQS] Publishing message: %s%n", message);
         sqsClient.sendMessage(SendMessageRequest.builder()
@@ -96,8 +105,8 @@ public class SqsConnector {
     }
 
     // For APM testing, a consume message without starting a new thread
-    public boolean consumeMessageWithoutNewThread() throws Exception {
-        SqsClient sqsClient = createSqsClient();
+    public boolean consumeMessageWithoutNewThread(String service) throws Exception {
+        SqsClient sqsClient = this.createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, false);
 
         ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
@@ -110,7 +119,7 @@ public class SqsConnector {
             ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
             List<Message> messages = response.messages();
             for (Message message : messages) {
-                System.out.println("[SQS] got message! " + message.body() + " from " + queue);
+                System.out.println("[" + service.toUpperCase() + "] got message! " + message.body() + " from " + queue);
                 recordFound = true;
             }
             return recordFound;

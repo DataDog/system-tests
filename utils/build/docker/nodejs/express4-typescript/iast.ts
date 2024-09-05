@@ -13,6 +13,7 @@ const { MongoClient } = require('mongodb')
 const mongoSanitize = require('express-mongo-sanitize')
 const { join } = require('path')
 const { Client } = require('pg')
+const { Kafka } = require('kafkajs')
 
 const ldap = require('./integrations/ldap')
 
@@ -220,7 +221,7 @@ function initSinkRoutes (app: Express): void {
 
   app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
   app.post(
-    '/iast/mongodb-nosql-injection/test_secure', 
+    '/iast/mongodb-nosql-injection/test_secure',
     async function (req: Request, res: Response): Promise<void> {
       const url: string = 'mongodb://mongodb:27017/'
       const client = new MongoClient(url)
@@ -257,7 +258,7 @@ function initSinkRoutes (app: Express): void {
       .then((client: LdapClient) =>
         client.search(
           'ou=people',
-          filter, 
+          filter,
           (err: Error | null, searchRes: SearchCallbackResponse): Response | void => {
             if (err) return sendError(err)
 
@@ -282,13 +283,23 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/hardcoded_secrets/test_insecure', (req: Request, res: Response): void => {
-    const secret: string = 'A3TMAWZUKIWR6O0OGR7B'
-    res.send(`OK:${secret}`)
+    const s3cret = 'A3TMAWZUKIWR6O0OGR7B'
+    res.send(`OK:${s3cret}`)
   })
 
-  app.get('/iast/hardcoded_secrets/test_secure', (req: Request, res: Response): void => {
-    const secret: string = 'unknown_secret'
-    res.send(`OK:${secret}`)
+  app.get('/iast/hardcoded_secrets_extended/test_insecure', (req: Request, res: Response): void => {
+    const datadogS3cret = 'p5opobitzpi9g5e3z6w7hsanjbd0zrekz5684m7m'
+    res.send(`OK:${datadogS3cret}`)
+  })
+
+  app.get('/iast/hardcoded_passwords/test_insecure', (req: Request, res: Response): void => {
+    const hashpwd = 'hpu0-ig=3o5slyr0rkqszidgxw-bc23tivq8e1-qvt.4191vlwm8ddk.ce64m4q0kga'
+    res.send(`OK:${hashpwd}`)
+  })
+
+  app.get('/iast/hardcoded_passwords/test_secure', (req: Request, res: Response): void => {
+    const token = 'unknown_secret'
+    res.send(`OK:${token}`)
   })
 
   app.post('/iast/header_injection/test_insecure', (req: Request, res: Response): void => {
@@ -300,7 +311,7 @@ function initSinkRoutes (app: Express): void {
     res.setHeader('testheader', 'not_tainted_string')
     res.send('OK')
   })
-  
+
   app.get('/iast/weak_randomness/test_insecure', (req: Request, res: Response): void => {
     const randomNumber: number = Math.random()
     res.send(`OK:${randomNumber}`)
@@ -309,6 +320,18 @@ function initSinkRoutes (app: Express): void {
   app.get('/iast/weak_randomness/test_secure', (req: Request, res: Response): void => {
     const randomBytes: string = crypto.randomBytes(256).toString('hex')
     res.send(`OK:${randomBytes}`)
+  })
+
+  app.post('/iast/code_injection/test_insecure', (req: Request, res: Response) => {
+    // eslint-disable-next-line no-eval
+    eval(req.body.code)
+    res.send('OK')
+  })
+
+  app.post('/iast/code_injection/test_secure', (req: Request, res: Response) => {
+    // eslint-disable-next-line no-eval
+    eval('1+2')
+    res.send('OK')
   })
 }
 
@@ -379,6 +402,157 @@ function initSourceRoutes (app: Express): void {
     })
     readFileSync(vulnParam)
     res.send('OK')
+  })
+
+  function getKafka () {
+    return new Kafka({
+      clientId: 'my-app-iast',
+      brokers: ['kafka:9092'],
+      retry: {
+        initialRetryTime: 100, // Time to wait in milliseconds before the first retry
+        retries: 20 // Number of retries before giving up
+      }
+    })
+  }
+
+
+  async function getKafkaConsumer (kafka: any, topic: string, groupId: string) {
+    const consumer = kafka.consumer({
+      groupId,
+      heartbeatInterval: 10000, // should be lower than sessionTimeout
+      sessionTimeout: 60000
+    })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic, fromBeginning: true })
+
+    return consumer
+  }
+
+  app.get('/iast/source/kafkavalue/test', (req: Request, res: Response): void => {
+    const kafka = getKafka()
+    const topic = 'dsm-system-tests-queue'
+    const timeout = 60000
+
+    let consumer: any
+    const doKafkaOperations = async () => {
+      const deferred: {
+        resolve?: Function,
+        reject?: Function
+      } = {}
+
+      const promise = new Promise((resolve: Function, reject: Function): void => {
+        deferred.resolve = resolve
+        deferred.reject = reject
+      })
+
+      consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-value')
+      await consumer.run({
+        eachMessage: async ({ message }: { message: any }) => {
+          if (!message.value) return
+
+          const vulnValue = message.value.toString()
+          if (vulnValue === 'hello value!') {
+            try {
+              readFileSync(vulnValue)
+            } catch {
+              // do nothing
+            }
+
+            deferred.resolve?.()
+          }
+        }
+      })
+
+      setTimeout(() => {
+        deferred.reject?.(new Error('Message not received'))
+      }, timeout)
+
+      const producer = kafka.producer()
+      await producer.connect()
+      await producer.send({
+        topic,
+        messages: [{ value: 'hello value!' }]
+      })
+      await producer.disconnect()
+
+      return promise
+    }
+
+    doKafkaOperations()
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+
+        res.send('ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+      })
+  })
+
+  app.get('/iast/source/kafkakey/test', (req: Request, res: Response): void => {
+    const kafka = getKafka()
+    const topic = 'dsm-system-tests-queue'
+    const timeout = 60000
+
+    let consumer: any
+    const doKafkaOperations = async () => {
+      const deferred: {
+        resolve?: Function,
+        reject?: Function
+      } = {}
+
+      const promise = new Promise((resolve: Function, reject: Function): void => {
+        deferred.resolve = resolve
+        deferred.reject = reject
+      })
+
+      consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-key')
+      await consumer.run({
+        eachMessage: async ({ message }: { message: any }) => {
+          if (!message.key) return
+
+          const vulnKey = message.key.toString()
+          if (vulnKey === 'hello key!') {
+            try {
+              readFileSync(vulnKey)
+            } catch {
+              // do nothing
+            }
+
+            deferred.resolve?.()
+          }
+        }
+      })
+
+      setTimeout(() => {
+        deferred.reject?.(new Error('Message not received'))
+      }, timeout)
+
+      const producer = kafka.producer()
+      await producer.connect()
+      await producer.send({
+        topic,
+        messages: [{ key: 'hello key!', value: 'value' }]
+      })
+      await producer.disconnect()
+
+      return promise
+    }
+
+    doKafkaOperations()
+      .then(async () => {
+        await consumer.stop()
+        await consumer.disconnect()
+
+        res.send('ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error')
+      })
   })
 }
 

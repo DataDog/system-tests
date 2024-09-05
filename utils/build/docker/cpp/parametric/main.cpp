@@ -34,9 +34,9 @@ int main() {
   datadog::tracing::TracerConfig config;
   config.logger = logger;
   config.agent.event_scheduler = event_scheduler;
-  config.defaults.service = "cpp-parametric-test";
-  config.defaults.environment = "staging";
-  config.defaults.name = "grpc.request";
+  config.service = "cpp-parametric-test";
+  config.environment = "staging";
+  config.name = "grpc.request";
 
   // Finalize configuration so we can create a tracer.
   auto finalized_config = datadog::tracing::finalize_config(config);

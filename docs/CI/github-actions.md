@@ -23,15 +23,13 @@ jobs:
             weblog-variant: net-http
       fail-fast: false
     env:
-      TEST_LIBRARY: ${{ matrix.library }}
-      WEBLOG_VARIANT: ${{ matrix.weblog-variant }}
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
-          token: ${{ secrets.GH_TOKEN }}
+          persist_credentials: false
 
       - name: Get component binary
         # you need to copy a valid binary of your component inside binaries/ folder.
@@ -39,13 +37,13 @@ jobs:
         run: <...>
 
       - name: Build
-        run: ./build.sh
+        run: ./build.sh ${{ matrix.library }} -w ${{ matrix.weblog-variant }}
 
       - name: Run
         run: ./run.sh
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: logs_${{ matrix.library }}_${{ matrix.weblog-variant }}

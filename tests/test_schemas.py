@@ -4,106 +4,85 @@
 
 """Test format specifications"""
 
-from utils import weblog, interfaces, bug, context
+from utils import weblog, interfaces, bug, irrelevant, context, scenarios
 
 
-class Test_Library:
+@scenarios.all_endtoend_scenarios
+class Test_library:
     """Libraries's payload are valid regarding schemas"""
 
-    def setup_full(self):
+    def setup_library_schema_full(self):
         # send some requests to be sure to trigger events
-        weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        weblog.get("/waf", params={"key": "\n :"})
 
-    @bug(context.library < "golang@1.36.0")
-    @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "dotnet@2.24.0")
-    @bug(context.library >= "nodejs@2.27.1")
-    @bug(
-        context.library >= "python@1.16.0rc2.dev37"
-        and context.agent_version >= "7.47.0rc2"
-        and context.appsec_rules_file is not None,
-        reason="on /v0.7/config, client.products is an empty array",
-    )
-    def test_full(self):
-        interfaces.library.assert_schemas()
+    def test_library_schema_full(self):
+        interfaces.library.assert_schema_points(
+            excluded_points=[
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
+                ("/debugger/v1/input", "$[].dd.span_id"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
+            ]
+        )
 
-    def test_non_regression(self):
-        """ Non-regression test on shemas """
+    @bug(context.library == "python", reason="DEBUG-2743")
+    def test_library_schema_debugger(self):
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].dd.span_id")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].dd.trace_id")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.captures")
 
-        # Never skip this test. As a full respect of shemas may be hard, this test ensure that
-        # at least the part that was ok stays ok.
+    @bug(context.library >= "nodejs@2.27.1", reason="APPSEC-52805")
+    def test_library_schema_telemetry_conf_value(self):
+        interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]")
 
-        allowed_errors = None
-        if context.library == "golang":
-            allowed_errors = (
-                r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
-                r"'protocol_version' is a required property on instance ",
-            )
-        elif context.library == "java":
-            # pylint: disable=line-too-long
-            allowed_errors = (
-                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
-                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
-                r"'idempotency_key' is a required property on instance ",
-            )
-        elif context.library == "dotnet":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "nodejs":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "python":
-            allowed_errors = (r"\[\] is too short on instance \['client'\]\['products'\]",)
+    @bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
+    def test_library_schema_telemetry_job_object(self):
+        interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
 
-        interfaces.library.assert_schemas(allowed_errors=allowed_errors)
+    @bug(library="golang", reason="APMS-12697")
+    def test_library_telenetry_configuration_value(self):
+        interfaces.library.assert_schema_point(
+            "/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"
+        )
 
 
+@scenarios.all_endtoend_scenarios
 class Test_Agent:
     """Agents's payload are valid regarding schemas"""
 
-    def setup_full(self):
+    def setup_agent_schema_full(self):
         # send some requests to be sure to trigger events
-        weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
+        weblog.get("/waf", params={"key": "\n :"})
 
-    @bug(context.library < "golang@1.36.0")
-    @bug(context.library < "java@0.93.0")
-    @bug(context.library >= "dotnet@2.24.0")
-    @bug(context.library >= "nodejs@2.27.1")
-    def test_full(self):
-        interfaces.agent.assert_schemas()
+    def test_agent_schema_full(self):
+        interfaces.agent.assert_schema_points(
+            excluded_points=[
+                ("/api/v2/apmtelemetry", "$.payload.configuration[]"),
+                ("/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
+                ("/api/v2/apmtelemetry", "$"),  # the main payload sent by the agent may be an array i/o an object
+                ("/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
+            ]
+        )
 
-    def test_non_regression(self):
-        """ Non-regression test on shemas """
+    @bug(context.library >= "nodejs@2.27.1", reason="APPSEC-52805")
+    @irrelevant(context.scenario is scenarios.crossed_tracing_libraries, reason="APPSEC-52805")
+    @irrelevant(context.scenario is scenarios.graphql_appsec, reason="APPSEC-52805")
+    def test_agent_schema_telemetry_conf_value(self):
+        interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[]")
 
-        # Never skip this test. As a full respect of shemas may be hard, this test ensure that
-        # at least the part that was ok stays ok.
+    @bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
+    @irrelevant(context.scenario is scenarios.crossed_tracing_libraries, reason="APPSEC-52805")
+    def test_agent_schema_telemetry_job_object(self):
+        interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload")
 
-        allowed_errors = None
-        if context.library == "golang":
-            allowed_errors = (
-                r"'actor' is a required property on instance \['events'\]\[\d+\]\['context'\]",
-                r"'protocol_version' is a required property on instance ",
-            )
-        elif context.library == "java":
-            # pylint: disable=line-too-long
-            allowed_errors = (
-                r"'appsec' was expected on instance \['events'\]\[\d+\]\['event_type'\]",
-                r"'headers' is a required property on instance \['events'\]\[\d+\]\['context'\]\['http'\]\['response'\]",
-                r"'idempotency_key' is a required property on instance ",
-            )
-        elif context.library == "dotnet":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
-        elif context.library == "nodejs":
-            allowed_errors = (
-                # value is missing in configuration object in telemetry payloads
-                r"'value' is a required property on instance \['payload'\]\['configuration'\]\[\d+\]",
-            )
+    @bug(context.agent_version > "7.53.0", reason="Jira missing")
+    def test_agent_schema_telemetry_main_payload(self):
+        interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$")
 
-        interfaces.agent.assert_schemas(allowed_errors=allowed_errors)
+    @bug(library="golang", reason="APMS-12697")
+    def test_library_telenetry_configuration_value(self):
+        interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[].value")

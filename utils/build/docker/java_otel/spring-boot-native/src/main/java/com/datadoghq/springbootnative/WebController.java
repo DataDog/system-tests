@@ -47,6 +47,7 @@ public class WebController {
               .addLink(spanContext, Attributes.of(AttributeKey.stringKey("messaging.operation"), "publish"))
               .setAttribute(SemanticAttributes.HTTP_ROUTE, "/")
               .setAttribute(SemanticAttributes.HTTP_METHOD, "GET")
+              .setAttribute(AttributeKey.booleanKey("bool_key"), false)
               .setAttribute("http.request.headers.user-agent", headers.get("User-Agent").get(0))
               .startSpan();
       try (Scope ignored = span.makeCurrent()) {

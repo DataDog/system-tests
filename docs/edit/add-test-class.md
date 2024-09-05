@@ -1,4 +1,4 @@
-When you add a test class (see [features](./features.md)), you need to declare what feature it belongs to in the [Feature Parity Dashbaord](https://feature-parity.us1.prod.dog/). To achieve that, use `@features` decorators : 
+When you add a test class (see [features](./features.md)), you need to declare what feature it belongs to in the [Feature Parity Dashbaord](https://feature-parity.us1.prod.dog/). To achieve that, use `@features` decorators :
 
 
 ```python

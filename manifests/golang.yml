@@ -10,6 +10,10 @@ tests/:
         chi: v0.1  # real version not known
   appsec/:
     api_security/:
+      test_api_security_rc.py:
+        Test_API_Security_RC_ASM_DD_processors: missing_feature
+        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_sampling:
           '*': v1.60.0-dev
@@ -19,7 +23,6 @@ tests/:
         Test_Schema_Request_Cookies:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
-          uds-echo: bug (APPSEC-18224)
         Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers:
           '*': v1.60.0-dev
@@ -36,14 +39,21 @@ tests/:
         Test_Schema_Response_Headers: missing_feature
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
+        test_hardcoded_passwords.py:
+          Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
+          Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
+        test_insecure_auth_protocol.py:
+          Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
         test_ldap_injection.py:
@@ -56,12 +66,16 @@ tests/:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
+        test_reflection_injection.py:
+          TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection: missing_feature
         test_ssrf.py:
           TestSSRF: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+        test_untrusted_deserialization.py:
+          TestUntrustedDeserialization: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
           TestUnvalidatedRedirect: missing_feature
@@ -87,10 +101,16 @@ tests/:
           TestCookieName: missing_feature
         test_cookie_value.py:
           TestCookieValue: missing_feature
+        test_graphql_resolver.py:
+          TestGraphqlResolverArgument: missing_feature
         test_header_name.py:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue: missing_feature
+        test_kafka_key.py:
+          TestKafkaKey: missing_feature
+        test_kafka_value.py:
+          TestKafkaValue: missing_feature
         test_multipart.py:
           TestMultipart: missing_feature
         test_parameter_name.py:
@@ -101,13 +121,33 @@ tests/:
           TestPath: missing_feature
         test_uri.py:
           TestURI: missing_feature
+    rasp/:
+      test_lfi.py: missing_feature
+      test_shi.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson: v1.66.0-dev
+        Test_Sqli_BodyUrlEncoded: v1.66.0-dev
+        Test_Sqli_BodyXml: v1.66.0-dev
+        Test_Sqli_Mandatory_SpanTags: missing_feature
+        Test_Sqli_Optional_SpanTags: missing_feature
+        Test_Sqli_StackTrace: v1.66.0-dev
+        Test_Sqli_Telemetry: missing_feature
+        Test_Sqli_UrlQuery: v1.66.0-dev
+      test_ssrf.py:
+        Test_Ssrf_BodyJson: v1.65.1-rc.1
+        Test_Ssrf_BodyUrlEncoded: v1.65.1-rc.1
+        Test_Ssrf_BodyXml: v1.65.1-rc.1
+        Test_Ssrf_Mandatory_SpanTags: missing_feature
+        Test_Ssrf_Optional_SpanTags: missing_feature
+        Test_Ssrf_StackTrace: v1.65.1-rc.1
+        Test_Ssrf_Telemetry: missing_feature
+        Test_Ssrf_UrlQuery: v1.65.1-rc.1
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded: v1.37.0
         Test_BodyXml: v1.37.0
-        Test_ClientIP: missing_feature
         Test_Cookies:
           '*': v1.34.0
           chi: v1.36.0
@@ -115,13 +155,12 @@ tests/:
           gin: v1.37.0
         Test_FullGrpc: missing_feature
         Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: v1.62.0
         Test_Headers:
           '*': v1.34.0
           chi: v1.36.0
           echo: v1.36.0
           gin: v1.37.0
-        Test_Lambda: missing_feature
-        Test_Method: missing_feature
         Test_PathParams:
           '*': v1.36.0
           gin: v1.37.0
@@ -141,9 +180,9 @@ tests/:
         Test_gRPC: v1.36.0
       test_blocking.py:
         Test_Blocking: v1.50.0-rc.1
+        Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse:
-          '*': v1.53.0
-          uds-echo: bug
+          '*': v1.63.0
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
       test_exclusions.py:
@@ -210,22 +249,25 @@ tests/:
           gin: v1.37.0
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-    test_PII.py:
-      Test_Scrubbing: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v1.34.0
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+    test_asm_standalone.py:
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
+      Test_V2_Login_Events: missing_feature
+      Test_V2_Login_Events_Anon: missing_feature
+      Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingAddresses: v1.51.0
-      Test_BlockingGraphqlResolvers:
-        '*': missing_feature
+      Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip: v1.51.0
       Test_Blocking_request_body: missing_feature
+      Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
       Test_Blocking_request_cookies:
         '*': v1.51.0
         net-http: irrelevant
@@ -246,33 +288,33 @@ tests/:
         net-http: irrelevant
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
+      Test_Blocking_user_id: v1.51.0
       Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
-    test_conf.py:
-      Test_RuleSet_1_3_1: v1.38.0
     test_customconf.py:
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:
       Test_CustomEvent: v1.47.0
       Test_UserLoginFailureEvent: v1.47.0
       Test_UserLoginSuccessEvent: v1.47.0
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Header_And_Network: missing_feature
     test_identify.py:
       Test_Basic: v1.37.0
     test_ip_blocking_full_denylist.py:
       Test_AppSecIPBlockingFullDenylist:
         '*': v1.47.0
-        uds-echo: bug
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_remote_config_rule_changes.py:
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature
     test_reports.py:
-      Test_ExtraTagsFromRule: missing_feature
-      Test_HttpClientIP:
-        '*': v1.34.0
-        chi: v1.36.0
-        echo: v1.36.0
-        gin: v1.37.0
+      Test_ExtraTagsFromRule:
+        '*': v1.62.0
       Test_Info:
         '*': v1.34.0
         chi: v1.36.0
@@ -290,17 +332,23 @@ tests/:
       Test_AppSecRequestBlocking: v1.50.0-rc.1
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
+      Test_RuntimeDeactivation: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v1.36.0
         gin: v1.37.0
       Test_AppSecObfuscator: v1.38.0
+      Test_CollectDefaultRequestHeader:
+        '*': v1.36.2
+        gin: v1.37.0
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0
-      Test_DistributedTraceInfo: missing_feature (test not implemented)
+      Test_ExternalWafRequestsIdentification: v1.63.0-dev
       Test_RetainTraces:
         '*': v1.36.0
         gin: v1.37.0
@@ -311,36 +359,43 @@ tests/:
         '*': v1.36.0
         gin: v1.37.0
   debugger/:
-    test_debugger.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
-      Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_exception_replay.py:
+      Test_Debugger_Exception_Replay: missing_feature (feature not implented)
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: missing_feature (feature not implented)
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
+    test_debugger_probe_snapshot.py:
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+    test_debugger_probe_status.py:
+      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_GolangKafka:
+        Test_Kafka:
           "*": irrelevant
           net-http: v0.1 # real version not known
-        Test_JavaKafka:
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          net-http: v0.1 # real version not known
-        Test_NodeJSKafka:
-          "*": irrelevant
-          net-http: v0.1 # real version not known
-        Test_PythonKafka:
-          "*": irrelevant
-          net-http: v0.1 # real version not known
-        Test_RubyKafka:
-          "*": irrelevant
-          net-http: v0.1 # real version not known
+          net-http: missing_feature (Endpoint not implemented)
       test_rabbitmq.py:
-        Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+        Test_RabbitMQ_Trace_Context_Propagation:
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation:
+          "*": irrelevant
+          net-http: missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": missing_feature (Endpoint not implemented)
+          "*": irrelevant
+          net-http: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -348,27 +403,59 @@ tests/:
     test_dbm.py:
       Test_Dbm: missing_feature
     test_dsm.py:
+      Test_DsmContext_Extraction_Base64:
+        "*": irrelevant
+        net-http: v0.1  # real version unknown
+      Test_DsmContext_Injection_Base64:
+        "*": irrelevant
+        net-http: v0.1  # real version unknown
       Test_DsmHttp: missing_feature
-      Test_DsmKafka: missing_feature
-      Test_DsmRabbitmq: missing_feature
-      Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
-      Test_DsmSQS: missing_feature
+      Test_DsmKafka:
+        "*": irrelevant
+        net-http: v0.1  # real version unknown
+      Test_DsmKinesis:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq_FanoutExchange:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmRabbitmq_TopicExchange:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmSNS:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
+      Test_DsmSQS:
+        "*": irrelevant
+        net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_dynamic_configuration.py:
-      TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: v1.59.0-dev
-      TestDynamicConfigV2: v1.59.0-dev
+      TestDynamicConfigHeaderTags: missing_feature
+      TestDynamicConfigSamplingRules: v1.64.0-dev
+      TestDynamicConfigTracingEnabled: v1.61.0
+      TestDynamicConfigV1: v1.59.0
+      TestDynamicConfigV1_ServiceTargets: v1.59.0
+      TestDynamicConfigV2: v1.59.0
+    test_otel_api_interoperability.py: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: missing_feature
+    test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetrySCAEnvVar: v1.63.0-rc.1
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Globs: v1.60.0
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v1.64.0-dev
+      Test_Trace_Sampling_Resource: v1.60.0
+      Test_Trace_Sampling_Tags: v1.60.0
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v1.64.0-dev
     test_tracer.py:
       Test_TracerSCITagging: v1.48.0
     test_tracer_flare.py:
@@ -421,4 +508,5 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
+    Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.49.1

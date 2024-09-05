@@ -1,0 +1,31 @@
+lang_variant:
+    name: node18
+    cache: true
+    version: 18
+    install: 
+      - os_type: linux
+        os_distro: deb
+        remote-command: curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && sudo apt-get install -y nodejs  
+      - os_type: linux
+        os_distro: rpm
+        remote-command: | 
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          nvm install --no-progress 18.0.0
+          nvm use node
+          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
+
+weblog:
+    name: test-shell-script
+    # Requires libc6 >= 2.28, not available in ubuntu18_amd64 / centos_7_amd64 / amazon_linux2_amd64
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64, amazon_linux2_amd64, ubuntu18_amd64, centos_7_amd64]
+    install:
+      - os_type: linux
+        remote-command: |
+          sudo mkdir /var/log/datadog_weblog && sudo chmod -R 777 /var/log/datadog_weblog
+          sudo touch /var/log/datadog_weblog/host_injection.log && sudo chmod 777 /var/log/datadog_weblog/host_injection.log
+          sudo sh -c 'echo "DD_APM_INSTRUMENTATION_DEBUG=TRUE" >> /etc/environment'
+          sudo sh -c 'echo "DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/var/log/datadog_weblog/host_injection.log" >> /etc/environment'
+          source /etc/environment

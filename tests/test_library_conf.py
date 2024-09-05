@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import coverage, weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, features
 from utils._context.header_tag_vars import *
 
 # basic / legacy tests, just tests user-agent can be received as a tag
-@coverage.basic
 @features.security_events_metadata
 class Test_HeaderTags:
     """DD_TRACE_HEADER_TAGS env var support"""
@@ -19,7 +18,6 @@ class Test_HeaderTags:
                 assert "http.request.headers.user-agent" in span.get("meta", {})
 
 
-@coverage.basic
 @scenarios.library_conf_custom_header_tags
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Short:
@@ -32,12 +30,11 @@ class Test_HeaderTags_Short:
     def test_trace_header_tags(self):
         tags = {TAG_SHORT: HEADER_VAL_BASIC}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
 
-@coverage.basic
 @scenarios.library_conf_custom_header_tags
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Long:
@@ -50,12 +47,11 @@ class Test_HeaderTags_Long:
     def test_trace_header_tags(self):
         tags = {TAG_LONG: HEADER_VAL_BASIC}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
 
-@coverage.basic
 @scenarios.library_conf_custom_header_tags
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Header:
@@ -69,12 +65,11 @@ class Test_HeaderTags_Whitespace_Header:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_HEADER: HEADER_VAL_BASIC}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
 
-@coverage.basic
 @scenarios.library_conf_custom_header_tags
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Tag:
@@ -88,12 +83,11 @@ class Test_HeaderTags_Whitespace_Tag:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_TAG: HEADER_VAL_BASIC}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
 
-@coverage.basic
 @scenarios.library_conf_custom_header_tags
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Val_Short:
@@ -107,12 +101,11 @@ class Test_HeaderTags_Whitespace_Val_Short:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT.strip()}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
 
-@coverage.basic
 @scenarios.library_conf_custom_header_tags
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Val_Long:
@@ -126,12 +119,11 @@ class Test_HeaderTags_Whitespace_Val_Long:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_VAL_LONG: HEADER_VAL_WHITESPACE_VAL_LONG.strip()}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
 
 
-@coverage.basic
 @scenarios.library_conf_custom_header_tags_invalid
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Colon_Leading:
@@ -149,12 +141,11 @@ class Test_HeaderTags_Colon_Leading:
             CONFIG_COLON_LEADING.split(":")[1],
         ]
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in nottags:
                 assert tag not in span["meta"]
 
 
-@coverage.basic
 @scenarios.library_conf_custom_header_tags_invalid
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Colon_Trailing:
@@ -172,6 +163,6 @@ class Test_HeaderTags_Colon_Trailing:
             CONFIG_COLON_TRAILING.split(":")[1],
         ]
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in nottags:
                 assert tag not in span["meta"]
