@@ -25,6 +25,7 @@ namespace weblog
                 string routing_key = context.Request.Query["routing_key"]!;
                 string group = context.Request.Query["group"]!;
                 string message = context.Request.Query["message"]!;
+                bool delay_response = true;
 
                 Console.WriteLine("Hello World! Received dsm call with integration " + integration);
                 if ("kafka".Equals(integration)) {
@@ -58,9 +59,13 @@ namespace weblog
 #pragma warning restore CS4014
                     await context.Response.WriteAsync("ok");
                 } else {
+                    delay_response = false;
                     await context.Response.WriteAsync("unknown integration: " + integration);
                 }
-                Task.Delay(5000).Wait();
+                // wait until all DSM checkpoints are flushed, flush interval is 10000 ms
+                if (delay_response) { 
+                    Task.Delay(11000).Wait();
+                }
             });
         }
     }
