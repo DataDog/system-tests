@@ -39,9 +39,9 @@ jobs:
     - name: Compress logs
       if: always()
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
-  #  - name: Upload artifact
-  #    if: always() && steps.build.outcome == 'success'
-  #    uses: actions/upload-artifact@v4
-  #    with:
-  #      name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.weblog }}_${{ matrix.base_image }}_${{ matrix.runtime_version }}
-  #      path: artifact.tar.gz
+    - name: Upload artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.weblog }}
+        path: artifact.tar.gz
