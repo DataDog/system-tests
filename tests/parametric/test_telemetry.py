@@ -104,8 +104,8 @@ class Test_Consistent_Configs:
                 # Decrease the heartbeat/poll intervals to speed up the tests
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
                 # Multiple integrations disabled to capture compatibility across tracers
-                "DD_TRACE_GRPC_ENABLED": "false", # applies to python, java, dotnet, ruby, node
-                "DD_TRACE_PHPREDIS_ENABLED": "false", # applies to php only
+                "DD_TRACE_GRPC_ENABLED": "false",  # applies to python, java, dotnet, ruby, node
+                "DD_TRACE_PHPREDIS_ENABLED": "false",  # applies to php only
                 "DD_TRACE_RATE_LIMIT": 100,
                 "DD_TRACE_HEADER_TAGS": "header:tag",
                 "DD_TRACE_ENABLED": "true",
@@ -155,8 +155,15 @@ class Test_Consistent_Configs:
             else:
                 assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
-        # Golang and CPP do not support DD_TRACE_<INTEGRATION>_ENABLED
-        if context.library == "java" or context.library == "dotnet" or context.library == "node" or context.library == "python" or context.library == "ruby":
+
+        # Golang and CPP do not support DD_TRACE_<INTEGRATION>_ENABLED, so don't test them.
+        if (
+            context.library == "java"
+            or context.library == "dotnet"
+            or context.library == "node"
+            or context.library == "python"
+            or context.library == "ruby"
+        ):
             cfg_item = configuration_by_name.get("trace_disabled_integrations")
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format("trace_disabled_integrations")
             assert cfg_item.get("value") is "grpc"
