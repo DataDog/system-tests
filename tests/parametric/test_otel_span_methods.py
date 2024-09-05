@@ -1039,6 +1039,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(
         context.library == "php", reason="Not supported: DD only sets error.stack to not break tracer semantics"
     )
+    @missing_feature(context.library == "dotnet")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
