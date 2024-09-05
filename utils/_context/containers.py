@@ -317,7 +317,7 @@ class TestedContainer:
             self._container.reload()
             if self._container.status != "running":
                 self.healthy = False
-                raise ValueError(f"Container {self.name} is not running, please check logs")
+                pytest.exit(f"Container {self.name} is not running, please check logs", 1)
 
             self._container.stop()
 
