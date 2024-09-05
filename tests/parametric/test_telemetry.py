@@ -103,7 +103,9 @@ class Test_Consistent_Configs:
             {
                 # Decrease the heartbeat/poll intervals to speed up the tests
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "DD_TRACE_GRPC_ENABLED": "false",  # TODO: Does it have to be an integration to show up in telemetry? If so, would have to add multiple entries to catch integrations that apply to all tracers.
+                # Multiple integrations disabled to capture compatibility across tracers
+                "DD_TRACE_GRPC_ENABLED": "false", # applies to python, java, dotnet, ruby, node
+                "DD_TRACE_PHPREDIS_ENABLED": "false", # applies to php only
                 "DD_TRACE_RATE_LIMIT": 100,
                 "DD_TRACE_HEADER_TAGS": "header:tag",
                 "DD_TRACE_ENABLED": "true",
@@ -127,7 +129,6 @@ class Test_Consistent_Configs:
 
         configuration_by_name = {item["name"]: item for item in configuration}
         for apm_telemetry_name, value in [
-            ("trace_disabled_integrations", "grpc"),
             ("trace_rate_limit", "100"),
             ("trace_header_tags", "header:tag"),
             ("trace_enabled", ("true", True)),
@@ -144,12 +145,9 @@ class Test_Consistent_Configs:
             ("trace_service_mappings", "plugin:custom"),
             ("trace_agent_url", "my-host:1234"),
         ]:
-            if context.library == "golang" and apm_telemetry_name in ("trace_disabled_integrations"):
-                continue
             if context.library == "cpp" and apm_telemetry_name in ("trace_header_tags"):
                 continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
-
             cfg_item = configuration_by_name.get(apm_telemetry_name)
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             if isinstance(value, tuple):
@@ -157,6 +155,15 @@ class Test_Consistent_Configs:
             else:
                 assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
+        # Golang and CPP do not support DD_TRACE_<INTEGRATION>_ENABLED
+        if context.library == "java" or context.library == "dotnet" or context.library == "node" or context.library == "python" or context.library == "ruby":
+            cfg_item = configuration_by_name.get("trace_disabled_integrations")
+            assert cfg_item is not None, "Missing telemetry config item for '{}'".format("trace_disabled_integrations")
+            assert cfg_item.get("value") is "grpc"
+        if context.library == "php":
+            cfg_item = configuration_by_name.get("trace_disabled_integrations")
+            assert cfg_item is not None, "Missing telemetry config item for '{}'".format("trace_disabled_integrations")
+            assert cfg_item.get("value") is "phpredis"
 
 
 @scenarios.parametric
