@@ -16,7 +16,8 @@ on:
 jobs:
   docker-ssi-check-injection:
     if: inputs.library == 'java'
-    runs-on: ubuntu-latest
+    runs-on:
+      group: "APM Larger Runners"
     strategy:
     #  matrix:
       matrix: ${{ fromJson(inputs.weblogs) }}
@@ -30,23 +31,17 @@ jobs:
       with:
         repository: 'DataDog/system-tests'
 
-    - name: Install docker
-      if: ${{ matrix.platform.runner }} == 'arm-4core-linux'
-      # The ARM64 Ubuntu has less things installed by default
-      # We need docker, and acl allows us to use docker in the same session
-      run: |
-        curl -fsSL https://get.docker.com -o get-docker.sh
-        sudo sh get-docker.sh
-        sudo usermod -a -G docker $USER
-        sudo apt install -y acl
-        sudo setfacl --modify user:runner:rw /var/run/docker.sock
+  #  - name: Install docker
+  #    if: ${{ matrix.platform.runner }} == 'arm-4core-linux'
+  #    # The ARM64 Ubuntu has less things installed by default
+  #    # We need docker, and acl allows us to use docker in the same session
+  #    run: |
+  #      curl -fsSL https://get.docker.com -o get-docker.sh
+  #      sudo sh get-docker.sh
+  #      sudo usermod -a -G docker $USER
+  #      sudo apt install -y acl
+  #      sudo setfacl --modify user:runner:rw /var/run/docker.sock
     - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-        cache: 'pip'
-        cache-dependency-path: '**/requirements.txt'
     - name: Set up QEMU for docker cross platform setup
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
