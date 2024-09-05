@@ -63,7 +63,7 @@ namespace weblog
                     await context.Response.WriteAsync("unknown integration: " + integration);
                 }
                 // wait until all DSM checkpoints are flushed, flush interval is 10000 ms
-                if (delay_response) { 
+                if (delay_response) {
                     Task.Delay(11000).Wait();
                 }
             });
