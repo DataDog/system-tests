@@ -1,3 +1,6 @@
+import os
+import json
+
 LINUX_AMD64 = "linux/amd64"
 LINUX_ARM64 = "linux/arm64"
 
@@ -22,6 +25,10 @@ class DockerImage:
         self.runtime_versions = runtime_versions
         return self
 
+    def add_allowed_runtime_version(self, runtime_version):
+        self.runtime_versions.append(runtime_version)
+        return self
+
     def tag_name(self):
         return self.tag.rsplit("/", 1)[-1]
 
@@ -32,17 +39,19 @@ class DockerImage:
 class SupportedImages:
     """ All supported images """
 
-    UBUNTU_22_AMD64 = DockerImage("ubuntu:22.04", LINUX_AMD64)
-    UBUNTU_22_ARM64 = DockerImage("ubuntu:22.04", LINUX_ARM64)
-    UBUNTU_16_AMD64 = DockerImage("ubuntu:16.04", LINUX_AMD64)
-    UBUNTU_16_ARM64 = DockerImage("ubuntu:16.04", LINUX_ARM64)
-    CENTOS_7_AMD64 = DockerImage("centos:7", LINUX_AMD64)
-    # Currently bugged
-    # DockerImage("centos:7", LINUX_ARM64, short_name="centos_7")
-    # DockerImage("alpine:3", LINUX_AMD64, short_name="alpine_3"),
-    # DockerImage("alpine:3", LINUX_ARM64, short_name="alpine_3"),
-    TOMCAT_9_AMD64 = DockerImage("tomcat:9", LINUX_AMD64)
-    TOMCAT_9_ARM64 = DockerImage("tomcat:9", LINUX_ARM64)
+    def __init__(self) -> None:
+
+        self.UBUNTU_22_AMD64 = DockerImage("ubuntu:22.04", LINUX_AMD64)
+        self.UBUNTU_22_ARM64 = DockerImage("ubuntu:22.04", LINUX_ARM64)
+        self.UBUNTU_16_AMD64 = DockerImage("ubuntu:16.04", LINUX_AMD64)
+        self.UBUNTU_16_ARM64 = DockerImage("ubuntu:16.04", LINUX_ARM64)
+        self.CENTOS_7_AMD64 = DockerImage("centos:7", LINUX_AMD64)
+        # Currently bugged
+        # DockerImage("centos:7", LINUX_ARM64, short_name="centos_7")
+        # DockerImage("alpine:3", LINUX_AMD64, short_name="alpine_3"),
+        # DockerImage("alpine:3", LINUX_ARM64, short_name="alpine_3"),
+        self.TOMCAT_9_AMD64 = DockerImage("tomcat:9", LINUX_AMD64)
+        self.TOMCAT_9_ARM64 = DockerImage("tomcat:9", LINUX_ARM64)
 
 
 class JavaRuntimeVersions:
@@ -74,20 +83,35 @@ class WeblogDescriptor:
 
 
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND RUNTIME VERSIONS
+DD_LIB_JAVA_INIT_TEST_APP_2 = WeblogDescriptor(
+    "dd-lib-java-init-test-app2",
+    "java",
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+        SupportedImages().UBUNTU_16_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+        SupportedImages().UBUNTU_16_ARM64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+        SupportedImages().CENTOS_7_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+    ],
+)
+
+# HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND RUNTIME VERSIONS
 DD_LIB_JAVA_INIT_TEST_APP = WeblogDescriptor(
     "dd-lib-java-init-test-app",
     "java",
     [
-        SupportedImages.UBUNTU_22_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
-        SupportedImages.UBUNTU_22_ARM64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
-        SupportedImages.UBUNTU_16_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
-        SupportedImages.UBUNTU_16_ARM64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
-        SupportedImages.CENTOS_7_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+        SupportedImages().UBUNTU_22_AMD64.add_allowed_runtime_version(JavaRuntimeVersions.JAVA_11)
+        #  SupportedImages.UBUNTU_22_ARM64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+        #  SupportedImages.UBUNTU_16_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+        #  SupportedImages.UBUNTU_16_ARM64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
+        #  SupportedImages.CENTOS_7_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
     ],
 )
 
-TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages.TOMCAT_9_AMD64, SupportedImages.TOMCAT_9_ARM64])
-JAVA7_APP = WeblogDescriptor("java7-app", "python", [SupportedImages.UBUNTU_22_AMD64])
+TOMCAT_APP = WeblogDescriptor(
+    "tomcat-app", "python", [SupportedImages().TOMCAT_9_AMD64, SupportedImages().TOMCAT_9_ARM64]
+)
+JAVA7_APP = WeblogDescriptor("java7-app", "python", [SupportedImages().UBUNTU_22_AMD64])
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
 ALL_WEBLOGS = [DD_LIB_JAVA_INIT_TEST_APP, TOMCAT_APP, JAVA7_APP]
@@ -115,13 +139,13 @@ def get_github_matrix(library):
             if not image.runtime_versions:
                 tests.append({"weblog": weblog.name, "base_image": image.tag, "arch": image.platform, "runtime": ""})
             else:
-                for version in image.runtime_versions:
+                for runtime_version in image.runtime_versions:
                     tests.append(
                         {
                             "weblog": weblog.name,
                             "base_image": image.tag,
                             "arch": image.platform,
-                            "runtime": version.version,
+                            "runtime": runtime_version.version,
                         }
                     )
 
@@ -130,9 +154,10 @@ def get_github_matrix(library):
 
 
 def main():
-    _print_matrix("java")
-    github_matrix = get_github_matrix("java")
-    print(github_matrix)
+    if not os.getenv("TEST_LIBRARY"):
+        raise ValueError("TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby")
+    github_matrix = get_github_matrix(os.getenv("TEST_LIBRARY"))
+    print(json.dumps(github_matrix))
 
 
 if __name__ == "__main__":
