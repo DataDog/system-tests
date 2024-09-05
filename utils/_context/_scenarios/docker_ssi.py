@@ -105,21 +105,25 @@ class DockerSSIImageBuilder:
             .replace(":", "_")
             .replace("/", "_")
         )
-        logger.info(f"Building docker lang image with tag (install lang into base image): {docker_tag}")
+        try:
+            logger.info(f"Building docker lang image with tag (install lang into base image): {docker_tag}")
 
-        _, build_logs = self.docker_client.images.build(
-            path="utils/build/ssi/",
-            dockerfile="base/base_lang.Dockerfile",
-            tag=docker_tag,
-            platform=self._arch,
-            buildargs={
-                "ARCH": self._arch,
-                "LANG": self._library,
-                "RUNTIME_VERSIONS": self._runtime,
-                "BASE_IMAGE": self._base_image,
-            },
-        )
-        self.print_docker_build_logs(docker_tag, build_logs)
+            _, build_logs = self.docker_client.images.build(
+                path="utils/build/ssi/",
+                dockerfile="base/base_lang.Dockerfile",
+                tag=docker_tag,
+                platform=self._arch,
+                buildargs={
+                    "ARCH": self._arch,
+                    "LANG": self._library,
+                    "RUNTIME_VERSIONS": self._runtime,
+                    "BASE_IMAGE": self._base_image,
+                },
+            )
+            self.print_docker_build_logs(docker_tag, build_logs)
+        except Exception as e:
+            logger.exception(f"Failed to build docker image: {e}")
+            raise e
         return docker_tag
 
     def build_ssi_image(self, docker_tag):
