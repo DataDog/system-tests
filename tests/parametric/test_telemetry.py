@@ -103,7 +103,7 @@ class Test_Consistent_Configs:
             {
                 # Decrease the heartbeat/poll intervals to speed up the tests
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "DD_TRACE_INTEGRATION_DISABLED": "mysql",  # TODO: Does it have to be an integration to show up in telemetry? If so, no way to generalize this to apply to all tracers. Would have to add multiple values to catch all tracers.
+                "DD_TRACE_INTEGRATION_DISABLED": "mysql",  # TODO: Does it have to be an integration to show up in telemetry? If so, would have to add multiple values to catch integrations that apply to all tracers.
                 "DD_TRACE_RATE_LIMIT": 100,
                 "DD_TRACE_HEADER_TAGS": "header:tag",
                 "DD_TRACE_ENABLED": "true",
@@ -144,12 +144,10 @@ class Test_Consistent_Configs:
             ("trace_service_mappings", "plugin:custom"),
             ("trace_agent_url", "my-host:1234"),
         ]:
-            if context.library == "golang" and apm_telemetry_name in ("trace_disabled_integrations",):
+            if context.library == "golang" and apm_telemetry_name in ("trace_disabled_integrations"):
                 continue
-            if context.library == "cpp":
-                unsupported_fields = ("trace_header_tags",)
-                if apm_telemetry_name in unsupported_fields:
-                    continue
+            if context.library == "cpp" and apm_telemetry_name in ("trace_header_tags"):
+                continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
             cfg_item = configuration_by_name.get(apm_telemetry_name)
