@@ -118,7 +118,6 @@ class ParametricScenario(Scenario):
         return self._parametric_tests_confs
 
     def configure(self, config):
-        super().configure(config)
         if config.option.library:
             library = config.option.library
         elif "TEST_LIBRARY" in os.environ:
@@ -141,7 +140,7 @@ class ParametricScenario(Scenario):
 
         self.apm_test_server_definition = factory()
 
-        if not hasattr(config, "workerinput"):
+        if self.is_main_worker:
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             self._build_apm_test_server_image()
@@ -166,8 +165,8 @@ class ParametricScenario(Scenario):
         self._library = LibraryVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
-    def _get_warmups(self):
-        result = super()._get_warmups()
+    def get_warmups(self):
+        result = super().get_warmups()
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
 
         return result
@@ -551,7 +550,11 @@ RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
 ADD {php_reldir}/server.php .
 """,
-        container_cmd=["php", "server.php"],
+        container_cmd=[
+            "bash",
+            "-c",
+            "php server.php || sleep 2s",
+        ],  # In case of crash, give time to the sidecar to upload the crash report
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes={os.path.join(php_absolute_appdir, "server.php"): "/client/server.php"},

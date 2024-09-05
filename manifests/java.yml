@@ -421,8 +421,6 @@ tests/:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
-          vertx3: bug (issue in context propagation)
-          vertx4: bug (issue in context propagation)
         Test_Sqli_BodyXml:
           '*': v1.39.0
           akka-http: missing_feature (Requires parsed body instrumentation)
@@ -433,31 +431,21 @@ tests/:
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (issue in context propagation)
-          vertx4: bug (issue in context propagation)
         Test_Sqli_Optional_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (issue in context propagation)
-          vertx4: bug (issue in context propagation)
         Test_Sqli_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
-          vertx3: bug (issue in context propagation)
-          vertx4: bug (issue in context propagation)
         Test_Sqli_Telemetry:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
-          vertx3: bug (issue in context propagation)
-          vertx4: bug (issue in context propagation)
         Test_Sqli_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
-          vertx3: bug (issue in context propagation)
-          vertx4: bug (issue in context propagation)
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:

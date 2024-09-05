@@ -418,6 +418,9 @@ function main() {
         if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
         fi
+        if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
+            pytest_numprocesses=6
+        fi
     done
 
     case "${pytest_numprocesses}" in
