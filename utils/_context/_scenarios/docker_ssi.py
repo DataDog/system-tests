@@ -164,9 +164,6 @@ class DockerSSIImageBuilder:
                 if "stream" in chunk:
                     for line in chunk["stream"].splitlines():
                         vm_logger(scenario_name, "docker_build").info(line)
-                else:
-                    vm_logger(scenario_name, "docker_build").info(build_logs)
-                    break
 
     @lru_cache
     def _get_docker_client(self):
