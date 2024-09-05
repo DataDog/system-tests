@@ -113,10 +113,6 @@ class Test_Dbm:
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
-    @missing_feature(
-        context.library == "dotnet",
-        reason="temporary disable while we add support for DBM full mode for SQL Server in dotnet",
-    )
     def test_trace_payload_full(self):
         assert self.requests, "No requests to validate"
         for request in self.requests:
