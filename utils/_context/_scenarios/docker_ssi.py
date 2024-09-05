@@ -144,6 +144,20 @@ class DockerSSIImageBuilder:
         weblog_docker_tag = "weblog-injection:latest"
         logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
 
+        _, build_logs = self.docker_client.images.build(
+            path=".",
+            dockerfile=f"utils/build/ssi/{self._library}/{self._weblog}.Dockerfile",
+            platform=self._arch,
+            tag=weblog_docker_tag,
+            buildargs={"BASE_IMAGE": ssi_docker_tag},
+        )
+        self.print_docker_build_logs(ssi_docker_tag, build_logs)
+
+    def build_weblog_image2(self, ssi_docker_tag):
+        """ Build the final weblog image. We use the command line because we need the --build-context option """
+        weblog_docker_tag = "weblog-injection:latest"
+        logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
+
         build_weblog_cmd = f"docker buildx build -f utils/build/ssi/{self._library}/{self._weblog}.Dockerfile --build-context lib_injection=lib-injection/build/docker --platform {self._arch} --build-arg BASE_IMAGE={ssi_docker_tag} -t {weblog_docker_tag} --load utils/build/ssi/"
 
         try:
