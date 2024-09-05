@@ -41,7 +41,7 @@ class DockerSSIScenario(Scenario):
         self._arch = config.option.ssi_arch
         self._runtime = config.option.ssi_runtime
 
-        logger.info(
+        logger.stdout(
             f"Configuring scenario with: Weblog: [{self._weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._runtime}]"
         )
         ssi_image_builder = DockerSSIImageBuilder(
@@ -76,7 +76,7 @@ class DockerSSIScenario(Scenario):
     def close_targets(self):
         for container in reversed(self._required_containers):
             try:
-                #   container.remove()
+                container.remove()
                 logger.info(f"Removing container {container}")
             except:
                 logger.exception(f"Failed to remove container {container}")
@@ -106,7 +106,7 @@ class DockerSSIImageBuilder:
             .replace("/", "_")
         )
         try:
-            logger.info(f"Building docker lang image with tag (install lang into base image): {docker_tag}")
+            logger.stdout(f"Building docker lang image with tag (install lang into base image): {docker_tag}")
 
             _, build_logs = self.docker_client.images.build(
                 path="utils/build/ssi/",
@@ -127,7 +127,7 @@ class DockerSSIImageBuilder:
         return docker_tag
 
     def build_ssi_image(self, docker_tag):
-        logger.info(f"Building docker ssi image with tag (install ssi into lang image): ssi_{docker_tag}")
+        logger.stdout(f"Building docker ssi image with tag (install ssi into lang image): ssi_{docker_tag}")
         ssi_docker_tag = f"ssi_{docker_tag}"
         _, build_logs = self.docker_client.images.build(
             path="utils/build/ssi/",
@@ -142,7 +142,7 @@ class DockerSSIImageBuilder:
     def build_weblog_image(self, ssi_docker_tag):
         """ Build the final weblog image. We use the command line because we need the --build-context option """
         weblog_docker_tag = "weblog-injection:latest"
-        logger.info(f"Building docker final weblog image with tag: {weblog_docker_tag}")
+        logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
 
         build_weblog_cmd = f"docker buildx build -f utils/build/ssi/{self._library}/{self._weblog}.Dockerfile --build-context lib_injection=lib-injection/build/docker --platform {self._arch} --build-arg BASE_IMAGE={ssi_docker_tag} -t {weblog_docker_tag} --load utils/build/ssi/"
 
