@@ -52,3 +52,15 @@ Docker seems to sometimes keep a host port open, even after the container being 
 ## Install python3.12 on ubuntu
 
 `apt-get install python3.12 python3.12-dev python3.12-venv`
+
+## Unable to start postgres instance
+
+When executing `run.sh`, postgres can fail to start and log:
+```
+/usr/local/bin/docker-entrypoint.sh: line 177: /docker-entrypoint-initdb.d/init_db.sh: Permission denied
+```
+Try running:
+```bash
+chmod 777 ./utils/build/docker/postgres-init-db.sh
+```
+then rebuild and rerun.

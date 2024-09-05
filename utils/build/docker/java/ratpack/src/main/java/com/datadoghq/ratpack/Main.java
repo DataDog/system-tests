@@ -217,6 +217,12 @@ public class Main {
 
                                 ctx.getResponse().send("application/json", json);
                             })
+                            .get("createextraservice", ctx -> {
+                                MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                                String serviceName = qp.get("serviceName");
+                                setRootSpanTag("service", serviceName);
+                                ctx.getResponse().send("ok");
+                            })
                             .get("set_cookie", ctx -> {
                                 final String name = ctx.getRequest().getQueryParams().get("name");
                                 final String value = ctx.getRequest().getQueryParams().get("value");

@@ -270,7 +270,7 @@ class TestedContainer:
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.debug(f"Try #{i}: {result}")
+                logger.debug(f"Try #{i} for {self.name}: {result}")
 
                 if result.exit_code == 0:
                     break
@@ -492,7 +492,7 @@ class AgentContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment=environment,
             healthcheck={
-                "test": f"curl --fail --silent --show-error http://localhost:{self.agent_port}/info",
+                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.agent_port}/info",
                 "retries": 60,
             },
             ports={self.agent_port: f"{self.agent_port}/tcp"},
@@ -545,7 +545,7 @@ class BuddyContainer(TestedContainer):
             name=name,
             image_name=image_name,
             host_log_folder=host_log_folder,
-            healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
+            healthcheck={"test": "curl --fail --silent --show-error --max-time 2 localhost:7777", "retries": 60},
             ports={"7777/tcp": proxy_port},  # not the proxy port
             environment={
                 **environment,
@@ -600,7 +600,10 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail --silent --show-error localhost:{self.port}", "retries": 60},
+            healthcheck={
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}",
+                "retries": 60,
+            },
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
         )
@@ -682,7 +685,7 @@ class WeblogContainer(TestedContainer):
         # https://github.com/DataDog/system-tests/issues/2799
         if self.library in ("nodejs", "python"):
             self.healthcheck = {
-                "test": f"curl --fail --silent --show-error localhost:{self.port}/healthcheck",
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
             }
 

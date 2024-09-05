@@ -86,6 +86,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
@@ -734,6 +737,15 @@ public class App {
         result.response_headers = response_headers;
 
         return result;
+    }
+
+    @RequestMapping("/createextraservice")
+    public String createextraservice(@RequestParam String serviceName) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("service", serviceName);
+        }
+        return "OK";
     }
 
     public static final class DistantCallResponse {
