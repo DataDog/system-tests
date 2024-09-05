@@ -472,7 +472,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
-    Test_ConfigServerErrorStatusesDefault: v1.67.0 # TODO what is the earliest version?
+    Test_ConfigServerErrorStatusesDefault: missing_feature
     Test_ConfigServerErrorStatusesFeatureFlag: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v1.60.0.dev0

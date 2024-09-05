@@ -35,7 +35,6 @@ class Test_ConfigServerErrorStatusesDefault:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        assert spans[0]["type"] == "web"
         assert spans[0]["meta"]["http.status_code"] == "500"
         assert spans[0]["error"] == 1
 

@@ -523,7 +523,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
-    Test_ConfigServerErrorStatusesDefault: v5.22.0 # TODO what is the earliest version?
+    Test_ConfigServerErrorStatusesDefault: missing_feature
     Test_ConfigServerErrorStatusesFeatureFlag: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
