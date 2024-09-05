@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.22.5
 
 require (
-	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240902131707-47c2b19fbd05
+	github.com/DataDog/dd-trace-go/v2 v2.0.0-20240905102449-695c69d15b36
 	go.opentelemetry.io/otel v1.20.0
 	go.opentelemetry.io/otel/trace v1.20.0
 	google.golang.org/grpc v1.64.0
