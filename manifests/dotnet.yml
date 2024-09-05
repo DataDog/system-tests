@@ -339,6 +339,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  test_config_consistency.py:
+    TestTraceEnabled: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v2.46.0
   test_distributed.py:

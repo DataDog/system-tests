@@ -1,52 +1,45 @@
 """
-Test configuration consistency for functions among different languages for APM.
+Test configuration consistency for features across supported APM SDKs.
 """
 import pytest
-
 from utils import scenarios
 
 parametrize = pytest.mark.parametrize
 
-TEST_SERVICE = "test_service"
-TEST_ENV = "test_env"
-DEFAULT_ENVVARS = {
-    "DD_SERVICE": TEST_SERVICE,
-    "DD_ENV": TEST_ENV,
-}
 
+def enable_tracing_enabled():
+    env1 = {}
+    env2 = {"DD_TRACE_ENABLED": "true"}
+    return parametrize("library_env", [env1, env2])
+
+
+def enable_tracing_disabled():
+    env = {"DD_TRACE_ENABLED": "false"}
+    return parametrize("library_env", [env])
+
+
+# feature will be added after PR is merged by @zacharycmontaya
 @scenarios.parametric
 class TestTraceEnabled:
-    @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "true"},],
-    )
+    @enable_tracing_enabled()
     def test_tracing_enabled(self, library_env, test_agent, test_library):
-        trace_enabled_env = library_env.get("DD_TRACE_ENABLED") == "true"
-        if trace_enabled_env:
-            with test_library:
-                with test_library.start_span("allowed"):
-                    pass
-            test_agent.wait_for_num_traces(num=1, clear=True)
-            assert (
-                True
-            ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
-        else:
-            assert False, f"Assertion failed: expected true, but got " + str(trace_enabled_env)
+        assert library_env.get("DD_TRACE_ENABLED", "true") == "true"
+        with test_library:
+            with test_library.start_span("allowed"):
+                pass
+        test_agent.wait_for_num_traces(num=1, clear=True)
+        assert (
+            True
+        ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
 
-    @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
-    )
+    @enable_tracing_disabled()
     def test_tracing_disabled(self, library_env, test_agent, test_library):
-        trace_enabled_env = library_env.get("DD_TRACE_ENABLED") == "false"
-        if trace_enabled_env:
-            with test_library:
-                with test_library.start_span("allowed"):
-                    pass
-            with pytest.raises(ValueError):
-                test_agent.wait_for_num_traces(num=1, clear=True)
-
-            assert (
-                True
-            ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec
-
-        else:
-            assert False, f"Assertion failed: expected false, but got " + str(trace_enabled_env)
+        assert library_env.get("DD_TRACE_ENABLED") == "false"
+        with test_library:
+            with test_library.start_span("allowed"):
+                pass
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+        assert (
+            True
+        ), "wait_for_num_traces raises an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec, so we expect to see an exception
