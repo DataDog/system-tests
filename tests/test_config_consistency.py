@@ -39,7 +39,7 @@ class Test_ConfigServerErrorStatusesDefault:
         assert spans[0]["error"] == 1
 
 
-@scenarios.tracing_config_custom_server_error_statuses
+@scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_ConfigServerErrorStatusesFeatureFlag:
     """ Verify behavior of http clients and distributed traces """

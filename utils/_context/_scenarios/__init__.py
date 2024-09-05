@@ -470,8 +470,8 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
-    tracing_config_custom_server_error_statuses = EndToEndScenario(
-        "TRACING_CONFIG_CUSTOM_SERVER_ERROR_STATUSES",
+    tracing_config_nondefault = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT",
         weblog_env={"DD_HTTP_SERVER_ERROR_STATUSES": "200-201,202"},
         doc="",
     )
