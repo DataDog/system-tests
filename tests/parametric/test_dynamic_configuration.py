@@ -164,7 +164,6 @@ class TestDynamicConfigTracingEnabled:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
     @irrelevant(library="golang")
-    @bug(library="dotnet", reason="APMAPI-862")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
 
