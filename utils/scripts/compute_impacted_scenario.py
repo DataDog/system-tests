@@ -135,6 +135,8 @@ def main():
                     r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
                     r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
                     r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC.value,
+                    #### Integrations case
+                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS.value,
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect

@@ -1,12 +1,11 @@
 from __future__ import annotations
 import json
-import os
 
 from utils.buddies import python_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
 
-from tests.integrations.utils import delete_kinesis_stream, generate_time_string
+from tests.integrations.utils import delete_kinesis_stream
 
 
 class _Test_Kinesis:
@@ -16,7 +15,7 @@ class _Test_Kinesis:
     WEBLOG_TO_BUDDY_STREAM = None
     buddy = None
     buddy_interface = None
-    time_hash = None
+    unique_id = None
 
     @classmethod
     def get_span(cls, interface, span_kind, stream, operation):
@@ -80,7 +79,7 @@ class _Test_Kinesis:
         try:
             message = (
                 "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
+                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
             )
 
             self.production_response = weblog.get(
@@ -143,7 +142,7 @@ class _Test_Kinesis:
         try:
             message = (
                 "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
+                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
             )
 
             self.production_response = self.buddy.get(
@@ -221,7 +220,6 @@ class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_Kinesis):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
-    time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
-
-    WEBLOG_TO_BUDDY_STREAM = f"Kinesis_prop_via_msg_attributes_weblog_to_buddy_{time_hash}"
-    BUDDY_TO_WEBLOG_STREAM = f"Kinesis_prop_via_msg_attributes_buddy_to_weblog_{time_hash}"
+    unique_id = scenarios.crossed_tracing_libraries.unique_id
+    WEBLOG_TO_BUDDY_STREAM = f"Kinesis_prop_via_msg_attributes_weblog_to_buddy_{unique_id}"
+    BUDDY_TO_WEBLOG_STREAM = f"Kinesis_prop_via_msg_attributes_buddy_to_weblog_{unique_id}"

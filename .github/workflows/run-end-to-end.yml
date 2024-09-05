@@ -77,13 +77,6 @@ jobs:
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
-    - name: Generate Unique ID to be used for all AWS Test Resource names
-    # generates a unique ID used for Cross Tracer Propagation Tests (for naming AWS resource uniquely). We need this ID to be saved and reused for replay scenario.
-      id: generate_unique_id
-      run: |
-        HASH=$(uuidgen | tr -d '-' | head -c 10)
-        UNIQUE_ID=${HASH}_${{ inputs.library }}_${{ matrix.weblog }}
-        echo "UNIQUE_ID=$UNIQUE_ID" >> $GITHUB_ENV
     - name: Build python's weblog base images
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |

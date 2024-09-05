@@ -2,20 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
+import base64
+import json
+
 from tests.integrations.utils import (
-    generate_time_string,
     compute_dsm_hash,
     delete_sqs_queue,
     delete_kinesis_stream,
     delete_sns_topic,
 )
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
 from utils.tools import logger
 
-import base64
-import json
-import os
 
 # Kafka specific
 DSM_CONSUMER_GROUP = "testgroup1"
@@ -37,14 +36,9 @@ DSM_TOPIC = "dsm-system-tests-topic"
 # Queue requests can take a while, so give time for them to complete
 DSM_REQUEST_TIMEOUT = 61
 
-# Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
-# from other tests. This time hash is added to the message, test consumers only stops once finding the specific
-# message
-TIME_HASH = os.environ.get("UNIQUE_ID", generate_time_string())
-
 
 def get_message(test, system):
-    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.library} DSM test: {TIME_HASH}"
+    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.library} DSM test: {scenarios.crossed_tracing_libraries.unique_id}"
 
 
 @features.datastreams_monitoring_support_for_kafka
@@ -277,7 +271,9 @@ class Test_DsmSQS:
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
             # which changes for each run with the time stamp added
             if context.library.library != "nodejs":
-                self.queue = f"{DSM_QUEUE}_{context.library.library}_{context.weblog_variant}_{TIME_HASH}"
+                self.queue = (
+                    f"{DSM_QUEUE}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
+                )
             else:
                 self.queue = f"{DSM_QUEUE}_{context.library.library}"
 
@@ -334,8 +330,10 @@ class Test_DsmSNS:
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
             # which changes for each run with the time stamp added
             if context.library.library != "nodejs":
-                self.topic = f"{DSM_TOPIC}_{context.library.library}_{context.weblog_variant}_{TIME_HASH}"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{context.weblog_variant}_{TIME_HASH}"
+                self.topic = (
+                    f"{DSM_TOPIC}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
+                )
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
             else:
                 self.topic = f"{DSM_TOPIC}_{context.library.library}"
                 self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}"
@@ -397,7 +395,7 @@ class Test_DsmKinesis:
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
             # which changes for each run with the time stamp added
             if context.library.library != "nodejs":
-                self.stream = f"{DSM_STREAM}_{context.library.library}_{context.weblog_variant}_{TIME_HASH}"
+                self.stream = f"{DSM_STREAM}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
             else:
                 self.stream = f"{DSM_STREAM}_{context.library.library}"
 

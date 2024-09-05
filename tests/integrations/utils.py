@@ -178,16 +178,6 @@ def delete_kinesis_stream(stream_name):
         pass
 
 
-def generate_time_string():
-    # Get the current time
-    current_time = datetime.now()
-
-    # Format the time string to include only two digits of seconds
-    time_str = current_time.strftime("%Y-%m-%d_%H-%M-%S") + f"-{int(current_time.microsecond / 10000):00d}"
-
-    return time_str
-
-
 def fnv(data, hval_init, fnv_prime, fnv_size):
     # type: (bytes, int, int, int) -> int
     """

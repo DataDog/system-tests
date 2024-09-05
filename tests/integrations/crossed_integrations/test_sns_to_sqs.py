@@ -1,12 +1,11 @@
 from __future__ import annotations
 import json
-import os
 
 from utils.buddies import python_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
 
-from tests.integrations.utils import delete_sns_topic, delete_sqs_queue, generate_time_string
+from tests.integrations.utils import delete_sns_topic, delete_sqs_queue
 
 
 class _Test_SNS:
@@ -18,7 +17,7 @@ class _Test_SNS:
     WEBLOG_TO_BUDDY_TOPIC = None
     buddy = None
     buddy_interface = None
-    time_hash = None
+    unique_id = None
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, topic, operation):
@@ -110,7 +109,7 @@ class _Test_SNS:
         try:
             message = (
                 "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.time_hash}"
+                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
             )
 
             self.production_response = weblog.get(
@@ -175,7 +174,7 @@ class _Test_SNS:
         try:
             message = (
                 "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.time_hash}"
+                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
             )
 
             self.production_response = self.buddy.get(
@@ -263,9 +262,9 @@ class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
-    time_hash = os.environ.get("UNIQUE_ID", generate_time_string())
+    unique_id = scenarios.crossed_tracing_libraries.unique_id
 
-    WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_msg_attributes_weblog_to_buddy_{time_hash}"
-    WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attributes_weblog_to_buddy_topic_{time_hash}"
-    BUDDY_TO_WEBLOG_QUEUE = f"SNS_Propagation_msg_attributes_buddy_to_weblog_{time_hash}"
-    BUDDY_TO_WEBLOG_TOPIC = f"SNS_Propagation_msg_attributes_buddy_to_weblog_topic_{time_hash}"
+    WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_msg_attributes_weblog_to_buddy_{unique_id}"
+    WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attributes_weblog_to_buddy_topic_{unique_id}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SNS_Propagation_msg_attributes_buddy_to_weblog_{unique_id}"
+    BUDDY_TO_WEBLOG_TOPIC = f"SNS_Propagation_msg_attributes_buddy_to_weblog_topic_{unique_id}"
