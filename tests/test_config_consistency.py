@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, scenarios, features
 
 
-@scenarios.tracing_config_default
+@scenarios.default
 @features.tracing_configuration_consistency
 class Test_ConfigServerErrorStatusesDefault:
     """ Verify behavior of http clients and distributed traces """

@@ -40,7 +40,6 @@ TELEMETRY_SCENARIOS: &telemetry_scenarios
 
 # Scenarios covering tracing configurations
 TRACING_CONFIG_SCENARIOS: &tracing_config_scenarios
-  - TRACING_CONFIG_DEFAULT
   - TRACING_CONFIG_CUSTOM_SERVER_ERROR_STATUSES
 
 # Scenarios to run before a tracer release, basically, all stable scenarios
