@@ -35,8 +35,11 @@ jobs:
       run: |
         #Black depends on libraries that requires gcc. Gcc not available in arm64 runner
         grep -v 'black' requirements.txt > requirements2.txt
+        echo "--------REQUIREMENTS 2 --------------"
+        cat  requirements2.txt
         mv requirements2.txt requirements.txt
-
+        echo "--------REQUIREMENTS FINAL --------------"
+        cat requirements.txt
         curl -fsSL https://get.docker.com -o get-docker.sh
         sudo sh get-docker.sh
         sudo usermod -a -G docker $USER
