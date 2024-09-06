@@ -421,6 +421,8 @@ tests/:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_BodyXml:
           '*': v1.39.0
           akka-http: missing_feature (Requires parsed body instrumentation)
@@ -431,21 +433,31 @@ tests/:
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_Optional_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_Telemetry:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': missing_feature (missing endpoint)
