@@ -18,10 +18,20 @@ def get_github_matrix(library):
         weblog_matrix = weblog.get_matrix()
         if not weblog_matrix:
             continue
+        _configure_github_runner(weblog_matrix)
         tests = tests + weblog_matrix
 
     github_matrix["include"] = tests
     return github_matrix
+
+
+def _configure_github_runner(weblog_matrix):
+    """ We need to select the github runned based on the architecture of the images that we want to test"""
+    for weblog in weblog_matrix:
+        if weblog["arch"] == "linux/amd64":
+            weblog["github_runner"] = "ubuntu-latest"
+        else:
+            weblog["gibhub_runner"] = "arm-8core-linux"
 
 
 def main():

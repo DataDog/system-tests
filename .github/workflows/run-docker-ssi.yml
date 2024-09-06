@@ -16,15 +16,11 @@ on:
 jobs:
   docker-ssi-check-injection:
     if: inputs.library == 'java'
-    runs-on:
-      group: "APM Larger Runners"
     strategy:
-    #  matrix:
       matrix: ${{ fromJson(inputs.weblogs) }}
-     #   weblog: {{ fromJson(inputs.weblogs) }}
-     #   base_image: ["ubuntu:22.04", "ubuntu:16.04", "centos:7"]
-     #   runtime_version: ["22.0.2-zulu", "21.0.4-zulu", "17.0.12-zulu", "11.0.24-zulu"]
       fail-fast: false
+    # the runner depends of the architecture of the image that we want to test
+    runs-on: ${{ matrix.github_runner }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
