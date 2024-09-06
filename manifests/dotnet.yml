@@ -211,7 +211,7 @@ tests/:
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
       Test_Blocking_user_id: v2.27.0
-      Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
+      Test_Suspicious_Request_Blocking: v3.2.0
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
     test_customconf.py:
