@@ -66,5 +66,5 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.weblog }}
+        name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.unique_name }}
         path: artifact.tar.gz

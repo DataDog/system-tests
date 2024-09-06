@@ -17,6 +17,7 @@ from utils.tools import logger
 
 from .core import Scenario
 from utils.virtual_machine.vm_logger import vm_logger
+from utils.onboarding.docker_ssi_definitions import RuntimeVersions
 
 
 class DockerSSIScenario(Scenario):
@@ -40,16 +41,15 @@ class DockerSSIScenario(Scenario):
         self._base_image = config.option.ssi_base_image
         self._arch = config.option.ssi_arch
         self._runtime = config.option.ssi_runtime
+        self.push_base_images = config.option.ssi_push_base_images
 
         logger.stdout(
             f"Configuring scenario with: Weblog: [{self._weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._runtime}]"
         )
-        ssi_image_builder = DockerSSIImageBuilder(
-            self._weblog, self._base_image, self._library, self._arch, self._runtime
+        self.ssi_image_builder = DockerSSIImageBuilder(
+            self._weblog, self._base_image, self._library, self._arch, self._runtime, self.push_base_images
         )
-        docker_tag = ssi_image_builder.build_lang_image()
-        ssi_docker_tag = ssi_image_builder.build_ssi_image(docker_tag)
-        ssi_image_builder.build_weblog_image(ssi_docker_tag)
+        self.ssi_image_builder.build_weblog()
         logger.info(f"Weblog build done!")
 
         for container in self._required_containers:
@@ -80,6 +80,8 @@ class DockerSSIScenario(Scenario):
                 logger.info(f"Removing container {container}")
             except:
                 logger.exception(f"Failed to remove container {container}")
+        # TODO push images only if all tests pass
+        self.ssi_image_builder.push_base_image()
 
     @property
     def library(self):
@@ -89,29 +91,58 @@ class DockerSSIScenario(Scenario):
 class DockerSSIImageBuilder:
     """ Manages the docker image building for the SSI scenario """
 
-    def __init__(self, weblog, base_image, library, arch, runtime):
+    def __init__(self, weblog, base_image, library, arch, runtime, push_base_images) -> None:
         self._weblog = weblog
         self._base_image = base_image
         self._library = library
         self._arch = arch
         self._runtime = runtime
+        self._push_base_images = push_base_images
         self.docker_client = self._get_docker_client()
 
-    def build_lang_image(self):
+        self.docker_tag = self.get_base_docker_tag()
 
-        docker_tag = (
-            f"{self._weblog}_{self._runtime}_{self._arch}".replace(".", "_")
+    def build_weblog(self):
+        if not self.exist_base_image() or self._push_base_images:
+            # Build the base image
+            docker_tag = self.build_lang_image()
+            ssi_docker_tag = self.build_ssi_image()
+        self.build_weblog_image(ssi_docker_tag)
+
+    def exist_base_image(self):
+        """ Check if the base image is available in the docker registry """
+        if True:
+            return False
+        try:
+            self.docker_client.images.pull("ssi_" + self.docker_tag)
+            return True
+        except docker.errors.ImageNotFound:
+            logger.info(f"Base image not found: ssi_{self.docker_tag}")
+            return False
+
+    def push_base_image(self):
+        self.docker_client.images.push("ssi_" + self.docker_tag)
+
+    def get_base_docker_tag(self):
+        return (
+            f"{self._base_image}_{RuntimeVersions.getVersion_id(self._library,self._runtime)}_{self._arch}".replace(
+                ".", "_"
+            )
             .replace("-", "_")
             .replace(":", "_")
             .replace("/", "_")
+            .lower()
         )
+
+    def build_lang_image(self):
+
         try:
-            logger.stdout(f"Building docker lang image with tag (install lang into base image): {docker_tag}")
+            logger.stdout(f"Building docker lang image with tag (install lang into base image): {self.docker_tag}")
 
             _, build_logs = self.docker_client.images.build(
                 path="utils/build/ssi/",
                 dockerfile="base/base_lang.Dockerfile",
-                tag=docker_tag,
+                tag=self.docker_tag,
                 platform=self._arch,
                 buildargs={
                     "ARCH": self._arch,
@@ -120,24 +151,27 @@ class DockerSSIImageBuilder:
                     "BASE_IMAGE": self._base_image,
                 },
             )
-            self.print_docker_build_logs(docker_tag, build_logs)
+            self.print_docker_build_logs(self.docker_tag, build_logs)
         except Exception as e:
             logger.exception(f"Failed to build docker image: {e}")
             raise e
-        return docker_tag
 
-    def build_ssi_image(self, docker_tag):
-        logger.stdout(f"Building docker ssi image with tag (install ssi into lang image): ssi_{docker_tag}")
-        ssi_docker_tag = f"ssi_{docker_tag}"
-        _, build_logs = self.docker_client.images.build(
-            path="utils/build/ssi/",
-            dockerfile="base/base_ssi.Dockerfile",
-            platform=self._arch,
-            tag=ssi_docker_tag,
-            buildargs={"LANG": self._library, "BASE_IMAGE": docker_tag},
-        )
-        self.print_docker_build_logs(ssi_docker_tag, build_logs)
-        return ssi_docker_tag
+    def build_ssi_image(self):
+        try:
+            logger.stdout(f"Building docker ssi image with tag (install ssi into lang image): ssi_{self.docker_tag}")
+            ssi_docker_tag = f"ssi_{self.docker_tag}"
+            _, build_logs = self.docker_client.images.build(
+                path="utils/build/ssi/",
+                dockerfile="base/base_ssi.Dockerfile",
+                platform=self._arch,
+                tag=ssi_docker_tag,
+                buildargs={"LANG": self._library, "BASE_IMAGE": self.docker_tag},
+            )
+            self.print_docker_build_logs(ssi_docker_tag, build_logs)
+            return ssi_docker_tag
+        except Exception as e:
+            logger.exception(f"Failed to build docker image: {e}")
+            raise e
 
     def build_weblog_image(self, ssi_docker_tag):
         """ Build the final weblog image. We use the command line because we need the --build-context option """
@@ -153,35 +187,16 @@ class DockerSSIImageBuilder:
         )
         self.print_docker_build_logs(ssi_docker_tag, build_logs)
 
-    def build_weblog_image2(self, ssi_docker_tag):
-        """ Build the final weblog image. We use the command line because we need the --build-context option """
-        weblog_docker_tag = "weblog-injection:latest"
-        logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
-
-        build_weblog_cmd = f"docker buildx build -f utils/build/ssi/{self._library}/{self._weblog}.Dockerfile --build-context lib_injection=lib-injection/build/docker --platform {self._arch} --build-arg BASE_IMAGE={ssi_docker_tag} -t {weblog_docker_tag} --load utils/build/ssi/"
-
-        try:
-            output = subprocess.check_output(
-                build_weblog_cmd, stderr=subprocess.STDOUT, shell=True, timeout=120, universal_newlines=True
-            )
-        except subprocess.CalledProcessError as exc:
-            logger.info("Status : FAIL", exc.returncode, exc.output)
-            self.print_docker_build_logs(weblog_docker_tag, exc.output, shell_logs=True)
-        else:
-            self.print_docker_build_logs(weblog_docker_tag, output, shell_logs=True)
-
-    def print_docker_build_logs(self, image_tag, build_logs, shell_logs=False):
+    def print_docker_build_logs(self, image_tag, build_logs):
         scenario_name = context.scenario.name
         vm_logger(scenario_name, "docker_build").info("***************************************************************")
         vm_logger(scenario_name, "docker_build").info(f"    Building docker image with tag: {image_tag}   ")
         vm_logger(scenario_name, "docker_build").info("***************************************************************")
-        if shell_logs:
-            vm_logger(scenario_name, "docker_build").info(build_logs)
-        else:
-            for chunk in build_logs:
-                if "stream" in chunk:
-                    for line in chunk["stream"].splitlines():
-                        vm_logger(scenario_name, "docker_build").info(line)
+
+        for chunk in build_logs:
+            if "stream" in chunk:
+                for line in chunk["stream"].splitlines():
+                    vm_logger(scenario_name, "docker_build").info(line)
 
     @lru_cache
     def _get_docker_client(self):

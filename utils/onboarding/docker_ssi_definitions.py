@@ -12,6 +12,13 @@ class RuntimeVersions:
         self.version_id = version_id
         self.version = version
 
+    @staticmethod
+    def getVersion_id(library, version):
+        if library == "java":
+            return JavaRuntimeVersions.get_version_id(version)
+        else:
+            raise ValueError(f"Library {library} not supported")
+
 
 class DockerImage:
     """ Encapsulates information of the docker image """
@@ -60,7 +67,7 @@ class JavaRuntimeVersions:
     JAVA_22 = RuntimeVersions("JAVA_22", "22.0.2-zulu")
     JAVA_21 = RuntimeVersions("JAVA_21", "21.0.4-zulu")
     JAVA_17 = RuntimeVersions("JAVA_17", "17.0.12-zulu")
-    JAVA_11 = RuntimeVersions("JAVA_17", "11.0.24-zulu")
+    JAVA_11 = RuntimeVersions("JAVA_11", "11.0.24-zulu")
 
     @staticmethod
     def get_all_versions():
@@ -71,20 +78,47 @@ class JavaRuntimeVersions:
             JavaRuntimeVersions.JAVA_11,
         ]
 
+    @staticmethod
+    def get_version_id(version):
+        for version_check in JavaRuntimeVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f"Java version {version} not supported")
+
 
 class WeblogDescriptor:
     """ Encapsulates information of the weblog: name, library and 
         supported images with the supported runtime versions """
 
-    def __init__(self, name, library, supported_images) -> None:
+    def __init__(self, name, library, supported_images):
         self.name = name
         self.library = library
         self.supported_images = supported_images
 
+    def get_matrix(self):
+        matrix_combinations = []
+        for image in self.supported_images:
+            if not image.runtime_versions:
+                matrix_combinations.append(
+                    {"weblog": self.name, "base_image": image.tag, "arch": image.platform, "runtime": ""}
+                )
+            else:
+                for runtime_version in image.runtime_versions:
+                    matrix_combinations.append(
+                        {
+                            "weblog": self.name,
+                            "base_image": image.tag,
+                            "arch": image.platform,
+                            "runtime": runtime_version.version,
+                            "unique_name": f"{self.name}_{image.tag.replace(':','_').replace('.','_')}_{image.platform.replace('/','_')}_{runtime_version.version_id}",
+                        }
+                    )
+        return matrix_combinations
+
 
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND RUNTIME VERSIONS
 DD_LIB_JAVA_INIT_TEST_APP_2 = WeblogDescriptor(
-    "dd-lib-java-init-test-app2",
+    "dd-lib-java-init-test-app",
     "java",
     [
         SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
@@ -135,19 +169,10 @@ def get_github_matrix(library):
 
     filtered = [weblog for weblog in ALL_WEBLOGS if weblog.library == library]
     for weblog in filtered:
-        for image in weblog.supported_images:
-            if not image.runtime_versions:
-                tests.append({"weblog": weblog.name, "base_image": image.tag, "arch": image.platform, "runtime": ""})
-            else:
-                for runtime_version in image.runtime_versions:
-                    tests.append(
-                        {
-                            "weblog": weblog.name,
-                            "base_image": image.tag,
-                            "arch": image.platform,
-                            "runtime": runtime_version.version,
-                        }
-                    )
+        weblog_matrix = weblog.get_matrix()
+        if not weblog_matrix:
+            continue
+        tests = tests + weblog_matrix
 
     github_matrix["include"] = tests
     return github_matrix
