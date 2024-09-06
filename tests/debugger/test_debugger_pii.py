@@ -2,193 +2,236 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import test_debugger_base as base
+import tests.debugger.utils as base
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, context
+from utils import (
+    scenarios,
+    interfaces,
+    weblog,
+    features,
+    bug,
+    missing_feature,
+    irrelevant,
+    context,
+    remote_config as rc,
+)
+
+REDACTED_KEYS = [
+    "_2fa",
+    "accesstoken",
+    "access_token",
+    "Access_Token",
+    "accessToken",
+    "AccessToken",
+    "ACCESSTOKEN",
+    "aiohttpsession",
+    "apikey",
+    "apisecret",
+    "apisignature",
+    "applicationkey",
+    "auth",
+    "authorization",
+    "authtoken",
+    "ccnumber",
+    "certificatepin",
+    "cipher",
+    "clientid",
+    "clientsecret",
+    "connectionstring",
+    "connectsid",
+    "cookie",
+    "credentials",
+    "creditcard",
+    "csrf",
+    "csrftoken",
+    "cvv",
+    "databaseurl",
+    "dburl",
+    "encryptionkey",
+    "encryptionkeyid",
+    "env",
+    "geolocation",
+    "gpgkey",
+    "ipaddress",
+    "jti",
+    "jwt",
+    "licensekey",
+    "masterkey",
+    "mysqlpwd",
+    "nonce",
+    "oauth",
+    "oauthtoken",
+    "otp",
+    "passhash",
+    "passwd",
+    "password",
+    "passwordb",
+    "pemfile",
+    "pgpkey",
+    "phpsessid",
+    "pin",
+    "pincode",
+    "pkcs8",
+    "privatekey",
+    "publickey",
+    "pwd",
+    "recaptchakey",
+    "refreshtoken",
+    "routingnumber",
+    "salt",
+    "secret",
+    "secretkey",
+    "secrettoken",
+    "securityanswer",
+    "securitycode",
+    "securityquestion",
+    "serviceaccountcredentials",
+    "session",
+    "sessionid",
+    "sessionkey",
+    "setcookie",
+    "signature",
+    "signaturekey",
+    "sshkey",
+    "ssn",
+    "symfony",
+    "token",
+    "transactionid",
+    "twiliotoken",
+    "usersession",
+    "voterid",
+    "xapikey",
+    "xauthtoken",
+    "xcsrftoken",
+    "xforwardedfor",
+    "xrealip",
+    "xsrf",
+    "xsrftoken",
+    "customidentifier1",
+    "customidentifier2",
+]
+
+REDACTED_TYPES = ["customPii"]
 
 
-def validate_pii_redaction(should_redact_field_names):
-    agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
-    not_redacted = []
-    not_found = list(set(should_redact_field_names))
-
-    for request in agent_logs_endpoint_requests:
-        content = request["request"]["content"]
-
-        if content is not None:
-            for content in content:
-                debugger = content["debugger"]
-
-                if "snapshot" in debugger:
-                    for field_name in should_redact_field_names:
-                        fields = debugger["snapshot"]["captures"]["return"]["locals"]["pii"]["fields"]
-
-                        if field_name in fields:
-                            not_found.remove(field_name)
-
-                            if "value" in fields[field_name]:
-                                not_redacted.append(field_name)
-    error_message = ""
-    if not_redacted:
-        not_redacted.sort()
-        error_message = "Fields not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
-
-    if not_found:
-        not_found.sort()
-        error_message += ". Fields not found: " + "".join([f"{item}, " for item in not_found])
-
-    if error_message != "":
-        raise ValueError(error_message)
+def filter(keys_to_filter):
+    return [item for item in REDACTED_KEYS if item not in keys_to_filter]
 
 
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
-class Test_Debugger_PII_Redaction(base._Base_Debugger_Snapshot_Test):
-    pii_responses = []
+class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
+    def _setup(self):
+        probes = base.read_probes("pii")
+        self.expected_probe_ids = base.extract_probe_ids(probes)
+        self.rc_state = rc.send_debugger_command(probes, version=1)
 
-    def setup_pii_redaction(self):
-        self.expected_probe_ids = [
-            "log170aa-acda-4453-9111-1478a6method",
-        ]
-
-        interfaces.library.wait_for_remote_config_request()
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
 
-        self.pii_responses.append(weblog.get("/debugger/log/pii/1"))
-        self.pii_responses.append(weblog.get("/debugger/log/pii/2"))
-        self.pii_responses.append(weblog.get("/debugger/log/pii/3"))
-        self.pii_responses.append(weblog.get("/debugger/log/pii/4"))
-        self.pii_responses.append(weblog.get("/debugger/log/pii/5"))
-        self.pii_responses.append(weblog.get("/debugger/log/pii/6"))
+        self.weblog_responses = [weblog.get("/debugger/pii")]
 
-    @missing_feature(context.library >= "java@1.27", reason="not implemented yet")
-    def test_pii_redaction(self):
-        self.assert_remote_config_is_sent()
+    def _test(self, redacted_keys, redacted_types):
+        self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
+        self.assert_all_weblog_responses_ok()
 
-        for respone in self.pii_responses:
-            assert respone.status_code == 200
+        self._validate_pii_keyword_redaction(redacted_keys)
+        self._validate_pii_type_redaction(redacted_types)
 
-        expected_probes = {
-            "log170aa-acda-4453-9111-1478a6method": "INSTALLED",
-        }
+    def setup_pii_redaction_full(self):
+        self._setup()
 
-        expected_snapshots = [
-            "log170aa-acda-4453-9111-1478a6method",
-        ]
+    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
+    @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
+    def test_pii_redaction_full(self):
+        self._test(REDACTED_KEYS, REDACTED_TYPES)
 
-        base.validate_probes(expected_probes)
-        base.validate_snapshots(expected_snapshots)
+    def setup_pii_redaction_java_1_33(self):
+        self._setup()
 
-        redacted_names = [
-            # commented fields are not redacted yet
-            # "accesstoken",
-            "address",
-            # "aiohttpsession",
-            "apikey",
-            # "apisecret",
-            # "apisignature",
-            "auth",
-            "authorization",
-            # "authtoken",
-            # "bankaccountnumber",
-            "birthdate",
-            # "ccnumber",
-            # "certificatepin",
-            "cipher",
-            # "clientid",
-            # "clientsecret",
-            "config",
-            # "connectsid",
-            "cookie",
-            "credentials",
-            "creditcard",
-            "csrf",
-            "csrftoken",
-            "cvv",
-            # "databaseurl",
-            # "dburl",
-            # "driverlicense",
-            "email",
-            # "encryptionkey",
-            # "encryptionkeyid",
-            "env",
-            # "geolocation",
-            "gpgkey",
-            # "ipaddress",
-            "jti",
-            "jwt",
-            # "licensekey",
-            "licenseplate",
-            "maidenname",
-            "mailaddress",
-            # "masterkey",
-            # "mysqlpwd",
-            "nonce",
-            "oauth",
-            # "oauthtoken",
-            "otp",
-            "passhash",
-            "passport",
-            "passportno",
-            "passportnum",
-            # "passportnumber",
-            "passwd",
-            "password",
-            "passwordb",
-            # "pemfile",
-            "pgpkey",
-            "phone",
-            "phoneno",
-            "phonenum",
-            "phonenumber",
-            # "phpsessid",
-            "pin",
-            "pincode",
-            "pkcs8",
-            "plateno",
-            "platenum",
-            "platenumber",
-            "privatekey",
-            "province",
-            # "publickey",
-            "pwd",
-            # "recaptchakey",
-            # "refreshtoken",
-            # "remoteaddr",
-            # "routingnumber",
-            "salt",
-            "secret",
-            # "secretkey",
-            # "secrettoken",
-            # "securityanswer",
-            # "securitycode",
-            # "securityquestion",
-            # "serviceaccountcredentials",
-            "session",
-            "sessionid",
-            # "sessionkey",
-            # "setcookie",
-            "signature",
-            # "signaturekey",
-            "sshkey",
-            "ssn",
-            "symfony",
-            # "taxidentificationnumber",
-            "telephone",
-            "token",
-            # "transactionid",
-            # "twiliotoken",
-            # "usersession",
-            # "voterid",
-            # "xapikey",
-            # "xauthtoken",
-            # "xcsrftoken",
-            # "xforwardedfor",
-            # "xrealip",
-            "zipcode",
-            # "xsrf",
-            # "xsrftoken",
-        ]
+    @irrelevant(context.library != "java@1.33", reason="not relevant for other version")
+    def test_pii_redaction_java_1_33(self):
+        self._test(
+            filter(
+                [
+                    "address",
+                    "connectionstring",
+                    "connectsid",
+                    "geolocation",
+                    "ipaddress",
+                    "oauthtoken",
+                    "secretkey",
+                    "xsrf",
+                ]
+            ),
+            REDACTED_TYPES,
+        )
 
-        validate_pii_redaction(redacted_names)
+    def setup_pii_redaction_dotnet_2_50(self):
+        self._setup()
+
+    @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
+    @bug(
+        weblog_variant="uds" and context.library == "dotnet@2.50.0", reason="bug with UDS protocol on this version",
+    )
+    def test_pii_redaction_dotnet_2_50(self):
+        self._test(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)
+
+    def _validate_pii_keyword_redaction(self, should_redact_field_names):
+        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
+        not_redacted = []
+        not_found = list(set(should_redact_field_names))
+
+        for request in agent_logs_endpoint_requests:
+            content = request["request"]["content"]
+
+            if content:
+                for item in content:
+                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+
+                    if snapshot:
+                        for field_name in should_redact_field_names:
+                            fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
+
+                            if field_name in fields:
+                                not_found.remove(field_name)
+
+                                if "value" in fields[field_name]:
+                                    not_redacted.append(field_name)
+        error_message = ""
+        if not_redacted:
+            not_redacted.sort()
+            error_message = "Fields not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
+
+        if not_found:
+            not_found.sort()
+            error_message += ". Fields not found: " + "".join([f"{item}, " for item in not_found])
+
+        if error_message != "":
+            raise ValueError(error_message)
+
+    def _validate_pii_type_redaction(self, should_redact_types):
+        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
+        not_redacted = []
+
+        for request in agent_logs_endpoint_requests:
+            content = request["request"]["content"]
+
+            if content:
+                for item in content:
+                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+
+                    if snapshot:
+                        for type_name in should_redact_types:
+                            type_info = snapshot["captures"]["return"]["locals"][type_name]
+
+                            if "fields" in type_info:
+                                not_redacted.append(type_name)
+
+        error_message = ""
+        if not_redacted:
+            not_redacted.sort()
+            error_message = "Types not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
+
+        if error_message != "":
+            raise ValueError(error_message)

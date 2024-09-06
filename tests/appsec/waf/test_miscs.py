@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, missing_feature, scenarios, features
-from .utils import rules
+from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules
 
 
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
@@ -21,7 +20,7 @@ class Test_404:
         assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(
             self.r,
-            rule=rules.security_scanner.ua0_600_12x,
+            rule=waf_rules.security_scanner.ua0_600_12x,
             pattern="Arachni/v",
             address="server.request.headers.no_cookies",
             key_path=["user-agent"],

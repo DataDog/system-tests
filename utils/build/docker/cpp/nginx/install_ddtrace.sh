@@ -38,20 +38,23 @@ if [ -z "$ARCH" ]; then
     exit 1
 fi
 
-NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
+FILENAME=ngx_http_datadog_module-appsec-$ARCH-$NGINX_VERSION.so
 
-BASE_IMAGE="nginx:${NGINX_VERSION}"
-BASE_IMAGE_WITHOUT_COLONS=$(echo "$BASE_IMAGE" | tr ':' '_')
-TARBALL="$BASE_IMAGE_WITHOUT_COLONS-$ARCH-ngx_http_datadog_module.so.tgz"
+if [ -f "$FILENAME" ]; then
+  echo "Install NGINX plugin from binaries/$FILENAME"
+  cp $FILENAME /usr/lib/nginx/modules/ngx_http_datadog_module.so
+  NGINX_DATADOG_VERSION="6.6.6"  # TODO : get the version from the file ?
+else
+  NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
+  TARBALL="$FILENAME.tgz"
+  echo "Get NGINX plugin from last github release of nginx-datadog"
+  wget "https://github.com/DataDog/nginx-datadog/releases/download/${NGINX_DATADOG_VERSION}/${TARBALL}"
+  tar -xzf "${TARBALL}" -C /usr/lib/nginx/modules
+  rm "$TARBALL"
+fi
 
-# Install NGINX plugin
-wget "https://github.com/DataDog/nginx-datadog/releases/download/${NGINX_DATADOG_VERSION}/${TARBALL}"
-tar -xzf "${TARBALL}" -C /usr/lib/nginx/modules
-rm "$TARBALL"
+strings /usr/lib/nginx/modules/ngx_http_datadog_module.so | grep -F "[dd-trace-cpp version" | sed 's/.* version \([^]]\+\).*/\1/' > SYSTEM_TESTS_LIBRARY_VERSION
+strings /usr/lib/nginx/modules/ngx_http_datadog_module.so | grep -F "[libddwaf version" | sed 's/.* version \([^]]\+\).*/\1/' > SYSTEM_TESTS_LIBDDWAF_VERSION
+strings /usr/lib/nginx/modules/ngx_http_datadog_module.so | grep -F "[waf_rules version" | sed 's/.* version \([^]]\+\).*/\1/' > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
-# Sys test stuff
-echo "DataDog/nginx-datadog version: ${NGINX_DATADOG_VERSION}"
-echo $NGINX_DATADOG_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
-touch SYSTEM_TESTS_LIBDDWAF_VERSION
-echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 echo "Library version : $(cat SYSTEM_TESTS_LIBRARY_VERSION)"

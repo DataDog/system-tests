@@ -4,17 +4,18 @@
 
 """ This file contains base class used to validate interfaces """
 
-import threading
 import json
 from os import listdir
 from os.path import isfile, join
 import re
+import threading
 import time
 
 import pytest
 
 from utils._context.core import context
 from utils.tools import logger
+from utils.interfaces._schemas_validators import SchemaValidator, SchemaError
 
 
 class InterfaceValidator:
@@ -50,6 +51,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._lock = threading.RLock()
         self._data_list = []
         self._ingested_files = set()
+        self._schema_errors = None
 
     @property
     def _log_folder(self):
@@ -152,6 +154,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         with self._lock:
             for data in self._data_list:
                 if wait_for_function(data):
+                    logger.info(f"wait for {wait_for_function} finished in success with existing data")
                     return
 
             # then set the lock, and wait for append_data to release it
@@ -165,6 +168,67 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             logger.error(f"Wait for {wait_for_function} finished in error")
 
         self._wait_for_function = None
+
+    def get_schemas_errors(self) -> list[SchemaError]:
+        if self._schema_errors is None:
+            self._schema_errors = []
+            validator = SchemaValidator(self.name)
+
+            for data in self.get_data():
+                self._schema_errors.extend(validator.get_errors(data))
+
+        return self._schema_errors
+
+    def assert_schema_point(self, endpoint, data_path):
+        has_error = False
+
+        for error in self.get_schemas_errors():
+            if error.endpoint == endpoint and error.data_path == data_path:
+                has_error = True
+                logger.error(f"* {error.message}")
+
+        assert not has_error, f"Schema is invalid for endpoint {endpoint} on data path {data_path}"
+
+    def assert_schema_points(self, excluded_points=None):
+        has_error = False
+        excluded_points = excluded_points or []
+
+        for error in self.get_schemas_errors():
+            if (error.endpoint, error.data_path) in excluded_points:
+                continue
+
+            has_error = True
+            logger.error(f"* {error.message}")
+
+        assert not has_error, f"Schema validation failed for {self.name}"
+
+    def assert_request_header(self, path, header_name_pattern: str, header_value_pattern: str) -> None:
+        """
+            Assert that a header, and its value are present in all requests for a given path
+            header_name_pattern: a regular expression to match the header name (lower case)
+            header_value_pattern: a regular expression to match the header value
+        """
+
+        data_found = False
+
+        for data in self.get_data(path):
+            data_found = True
+
+            found = False
+
+            for header, value in data["request"]["headers"]:
+                if re.fullmatch(header_name_pattern, header.lower()):
+                    if not re.fullmatch(header_value_pattern, value):
+                        logger.error(f"Header {header} found in {data['log_filename']}, but value is {value}")
+                    else:
+                        found = True
+                        continue
+
+            if not found:
+                raise ValueError(f"{header_name_pattern} not found (or incorrect) in {data['log_filename']}")
+
+        if not data_found:
+            raise ValueError(f"No data found for {path}")
 
 
 class ValidationError(Exception):

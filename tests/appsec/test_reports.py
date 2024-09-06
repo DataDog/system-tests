@@ -40,41 +40,6 @@ class Test_StatusCode:
         interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@missing_feature(
-    True, reason="Bug on system test: with the runner on the host, we do not have the real IP from weblog POV"
-)
-@features.security_events_metadata
-class Test_HttpClientIP:
-    """AppSec reports good http client IP"""
-
-    def setup_http_remote_ip(self):
-        headers = {"User-Agent": "Arachni/v1"}
-        self.r = weblog.get("/waf/", headers=headers, stream=True)
-        try:
-            s = socket.fromfd(self.r.raw.fileno(), socket.AF_INET, socket.SOCK_STREAM)
-            self.actual_remote_ip = s.getsockname()[0]
-            self.r.close()
-        except:
-            self.actual_remote_ip = None
-
-    def test_http_remote_ip(self):
-        """AppSec reports the HTTP request peer IP."""
-
-        def legacy_validator(event):
-            remote_ip = event["context"]["http"]["request"]["remote_ip"]
-            assert remote_ip == self.actual_remote_ip, f"request remote ip should be {self.actual_remote_ip}"
-
-            return True
-
-        def validator(span, appsec_data):
-            ip = span["meta"]["network.client.ip"]
-            assert ip == self.actual_remote_ip, f"network.client.ip should be {self.actual_remote_ip}"
-
-            return True
-
-        interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
-
-
 @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
 @features.security_events_metadata
 class Test_Info:

@@ -234,7 +234,7 @@ public class IastSinkResource {
     }
 
     @GET
-    @Path("/no-httponly-cookie-cookie/test_empty_cookie")
+    @Path("/no-httponly-cookie/test_empty_cookie")
     public Response  noHttpOnlyCookieEmptyCookie() {
         return Response.status(Response.Status.OK).header("Set-Cookie", "").build();
     }

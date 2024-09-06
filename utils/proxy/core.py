@@ -5,28 +5,35 @@ import logging
 import os
 from datetime import datetime
 
-from mitmproxy import master, options
+from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError, Flow
 
-import rc_debugger
-from rc_mock import MOCKED_RESPONSES
 from _deserializer import deserialize
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
 
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-handler.setFormatter(logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S"))
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
 
 messages_counts = defaultdict(int)
+
+
+class CustomFormatter(logging.Formatter):
+    def __init__(self, keys: list[str], *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._keys = keys
+
+    def format(self, record):
+        result = super().format(record)
+
+        for key in self._keys:
+            result = result.replace(key, "{redacted-by-system-tests-proxy}")
+
+        return result
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -38,30 +45,45 @@ class ObjectDumpEncoder(json.JSONEncoder):
 
 class _RequestLogger:
     def __init__(self) -> None:
-        self.dd_api_key = os.environ["DD_API_KEY"]
-        self.dd_application_key = os.environ.get("DD_APPLICATION_KEY")
-        self.dd_app_key = os.environ.get("DD_APP_KEY")
-        self.state = json.loads(os.environ.get("PROXY_STATE", "{}"))
+        self._keys = [
+            os.environ["DD_API_KEY"],
+            os.environ.get("DD_APPLICATION_KEY"),
+            os.environ.get("DD_APP_KEY"),
+        ]
+
+        self._keys = [key for key in self._keys if key is not None]
+
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        formatter = CustomFormatter(
+            fmt="%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", datefmt="%H:%M:%S", keys=self._keys
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
         self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
-
-        # for config backend mock
-        self.config_request_count = defaultdict(int)
-
-        logger.debug(f"Proxy state: {self.state}")
 
         # request -> original port
         # as the port is overwritten at request stage, we loose it on response stage
         # this property will keep it
-
         self.original_ports = {}
+
+        self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
+        self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
+
+        self.rc_api_command = None
+        self.rc_api_runtime_ids_applied = set()
+
+        # mimic the old API
+        self.rc_api_sequential_commands = None
+        self.rc_api_runtime_ids_request_count = None
 
     def _scrub(self, content):
         if isinstance(content, str):
-            content = content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
-            if self.dd_app_key:
-                content = content.replace(self.dd_app_key, "{redacted-by-system-tests-proxy}")
-            if self.dd_application_key:
-                content = content.replace(self.dd_application_key, "{redacted-by-system-tests-proxy}")
+            for key in self._keys:
+                content = content.replace(key, "{redacted-by-system-tests-proxy}")
+
             return content
 
         if isinstance(content, (list, set, tuple)):
@@ -74,11 +96,35 @@ class _RequestLogger:
             return content
 
         logger.error(f"Can't scrub type {type(content)}")
-        return content
+        return "Content not properly deserialized by system-tests proxy. Please reach #apm-shared-testing on slack."
+
+    @staticmethod
+    def get_error_response(message):
+        logger.error(message)
+        return http.Response.make(400, message)
 
     def request(self, flow: Flow):
 
         logger.info(f"{flow.request.method} {flow.request.pretty_url}")
+
+        if flow.request.port == 11111:
+            if not self.rc_api_enabled:
+                flow.response = self.get_error_response(b"RC API is not enabled")
+            else:
+                if flow.request.path == "/unique_command":
+                    logger.info("Store RC command to mock")
+                    self.rc_api_command = flow.request.content
+                    self.rc_api_runtime_ids_applied.clear()
+                    flow.response = http.Response.make(200, b"Ok")
+                elif flow.request.path == "/sequential_commands":
+                    logger.info("Reset mocked RC sequential commands")
+                    self.rc_api_sequential_commands = json.loads(flow.request.content)
+                    self.rc_api_runtime_ids_request_count = defaultdict(int)
+                    flow.response = http.Response.make(200, b"Ok")
+                else:
+                    flow.response = http.Response.make(404, b"Not found")
+
+            return
 
         self.original_ports[flow.id] = flow.request.port
 
@@ -117,6 +163,8 @@ class _RequestLogger:
         return request.host == "agent"
 
     def response(self, flow):
+        if flow.request.port == 11111:
+            return
 
         try:
             logger.info(f"    => Response {flow.response.status_code}")
@@ -198,18 +246,57 @@ class _RequestLogger:
             logger.exception("Unexpected error")
 
     def _modify_response(self, flow):
-        rc_config = self.state.get("mock_remote_config_backend")
-        if rc_config is None:
-            return
-        mocked_responses = MOCKED_RESPONSES.get(rc_config)
-        if mocked_responses is None:
-            return
-        self._modify_response_rc(flow, mocked_responses)
+        if self.request_is_from_tracer(flow.request):
+            if self.rc_api_enabled:
+                self._add_rc_capabilities_in_info_request(flow)
 
-    def _modify_response_rc(self, flow, mocked_responses):
-        if not self.request_is_from_tracer(flow.request):
-            return  # modify only tracer/agent flow
+                if flow.request.path == "/v0.7/config":
+                    if self.rc_api_command is not None:
+                        request_content = json.loads(flow.request.content)
+                        runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
 
+                        if runtime_id in self.rc_api_runtime_ids_applied:
+                            # this runtime id has already been applied
+                            return
+
+                        logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
+
+                        flow.response.status_code = 200
+                        flow.response.content = self.rc_api_command
+
+                        self.rc_api_runtime_ids_applied.add(runtime_id)
+                    elif self.rc_api_sequential_commands is not None:
+                        request_content = json.loads(flow.request.content)
+                        runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
+                        logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
+                        logger.info(
+                            f"    => Overwriting /v0.7/config response #{self.rc_api_runtime_ids_request_count[runtime_id] + 1}"
+                        )
+
+                        if self.rc_api_runtime_ids_request_count[runtime_id] + 1 > len(self.rc_api_sequential_commands):
+                            response = {}  # default content when there isn't an RC update
+                        else:
+                            response = self.rc_api_sequential_commands[
+                                self.rc_api_runtime_ids_request_count[runtime_id]
+                            ]
+
+                        flow.response.status_code = 200
+                        flow.response.content = json.dumps(response).encode()
+
+                        self.rc_api_runtime_ids_request_count[runtime_id] += 1
+
+            if self.span_meta_structs_disabled:
+                self._remove_meta_structs_support(flow)
+
+    def _remove_meta_structs_support(self, flow):
+        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
+            c = json.loads(flow.response.content)
+            if "span_meta_structs" in c:
+                logger.info("    => Overwriting /info response to remove span_meta_structs field")
+                c.pop("span_meta_structs")
+                flow.response.content = json.dumps(c).encode()
+
+    def _add_rc_capabilities_in_info_request(self, flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
 
@@ -217,36 +304,6 @@ class _RequestLogger:
                 logger.info("    => Overwriting /info response to include /v0.7/config")
                 c["endpoints"].append("/v0.7/config")
                 flow.response.content = json.dumps(c).encode()
-
-        elif flow.request.path == "/v0.7/config":
-            request_content = json.loads(flow.request.content)
-
-            runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
-            logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
-            logger.info(f"    => Overwriting /v0.7/config response #{self.config_request_count[runtime_id] + 1}")
-
-            if self.config_request_count[runtime_id] + 1 > len(mocked_responses):
-                response = {}  # default content when there isn't an RC update
-            else:
-                if self.state.get("mock_remote_config_backend") in (
-                    "DEBUGGER_PROBES_STATUS",
-                    "DEBUGGER_LINE_PROBES_SNAPSHOT",
-                    "DEBUGGER_METHOD_PROBES_SNAPSHOT",
-                    "DEBUGGER_MIX_LOG_PROBE",
-                    "DEBUGGER_PII_REDACTION",
-                ):
-                    response = rc_debugger.create_rcm_probe_response(
-                        request_content["client"]["client_tracer"]["language"],
-                        mocked_responses[self.config_request_count[runtime_id]],
-                        self.config_request_count[runtime_id],
-                    )
-                else:
-                    response = mocked_responses[self.config_request_count[runtime_id]]
-
-            flow.response.status_code = 200
-            flow.response.content = json.dumps(response).encode()
-
-            self.config_request_count[runtime_id] += 1
 
 
 def start_proxy() -> None:
@@ -259,6 +316,7 @@ def start_proxy() -> None:
         "regular@9003",  # java_buddy
         "regular@9004",  # ruby_buddy
         "regular@9005",  # golang_buddy
+        "regular@11111",  # RC payload API
     ]
 
     loop = asyncio.new_event_loop()

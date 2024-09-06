@@ -233,7 +233,7 @@ A GET request using a cookie with name `table` and any value. The value must be 
 
 #### GET /iast/source/cookiename/test
 
-A GET request using a cookie with name `user` and any value. The name must be used in the vulnerability.
+A GET request using a cookie with name `table` and any value. The name must be used in the vulnerability.
 
 #### POST /iast/source/multipart/test
 A multipart request uploading a file (with a file name).
@@ -387,7 +387,7 @@ Additionally both methods support the following query parameters to use the sdk 
 - `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
 
 ### GET /debugger
-These endpoints are used for the Live Debugger tests in `test_debugger.py`. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
+These endpoints are used for the Dynamic Instrumentation tests.
 
 #### GET /debugger/log
 This endpoint will be used to validate the log probe.
@@ -401,9 +401,14 @@ This endpoint will be used to validate the span probe.
 #### GET /debugger/span-decoration
 This endpoint will be used to validate the span decoration probe.
 
-The following query parameters are required for each endpoint:
-- `arg`: This is a parameter that can take any string as an argument.
-- `intArg`: This is a parameter that can take any integer as an argument.
+#### GET /debugger/pii
+This endpoint will be used to validate Dynamic Instrumentation pii redaction feature.
+
+#### GET /expression/*
+These endpoints will be used to validate Dynamic Instrumentation expression language feature.
+
+#### GET /exceptionreplay/*
+These endpoints will be used to validate Dynamic Instrumentation exception replay feature.
 
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
@@ -420,3 +425,121 @@ It supports the following body fields:
 
 ### GET /flush
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.
+
+### \[GET,POST\] /rasp/lfi
+
+This endpoint is used to test for local file inclusion / path traversal attacks, consequently it must perform an operation on a file or directory, e.g. `open` with a relative path. The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `file`: containing the string to inject on the file operation.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+open($file);
+```
+
+Examples:
+- `GET`: `/rasp/lfi?file=../etc/passwd`
+- `POST`: `{"file": "../etc/passwd"}`
+
+### \[GET,POST\] /rasp/ssrf
+
+This endpoint is used to test for server side request forgery attacks, consequently it must perform a network operation, e.g. an HTTP request. The chosen operation must be partially injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `domain`: containing the string to partially inject on the network operation.
+
+The endpoint should support the following content types:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The url used in the network operation should be similar to the following:
+```
+http://$domain
+```
+
+Examples:
+- `GET`: `/rasp/ssrf?domain=169.254.169.254`
+- `POST`: `{"domain": "169.254.169.254"}`
+
+### \[GET,POST\] /rasp/sqli
+
+This endpoint is used to test for SQL injection attacks, consequently it must perform a database query. The chosen operation must be partially injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `user_id`: containing the string to partially inject on the SQL query.
+
+The endpoint should support the following content types:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The statement used in the query should be similar to the following:
+
+```sql
+SELECT * FROM users WHERE id='$user_id';
+```
+
+Examples:
+- `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
+- `POST`: `{"user_id": "' OR 1 = 1 --"}`
+
+### GET /dsm/inject
+This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
+
+### GET /dsm/extract
+This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.
+
+### \[GET,POST\] /requestdownstream
+This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning it's value (the headers received) to inspect them, looking for
+distributed tracing propagation headers.
+
+### \[GET,POST\] /returnheaders
+This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
+
+### GET /healthcheck
+
+Returns a JSON dict, with those values :
+
+```js
+{
+    "status": "ok",
+    "library": {
+      "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
+      "version": "1.2.3",  // version of the library
+      "libddwaf_version": "4.5.6"  // version of libddwaf,
+      "appsec_event_rules_version": "7.8.9"  // version of appsec event rules
+    }
+  }
+```
+
+### \[GET,POST\] /rasp/shi
+
+This endpoint is used to test for shell injection attacks, consequently it must call a shell command by using a function or method which results in an actual shell being launched (e.g. /bin/sh). The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `list_dir`: containing the string to inject on the shell command.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+system("ls $list_dir");
+```
+
+Examples:
+- `GET`: `/rasp/shi?list_dir=$(cat /etc/passwd 1>&2 ; echo .)
+- `POST`: `{"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}`
+
+### \[GET\] /set_cookie
+
+This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response

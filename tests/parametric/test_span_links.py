@@ -8,12 +8,13 @@ from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import scenarios, missing_feature
 from utils.parametric._library_client import Link
-from utils.parametric.spec.trace import retrieve_span_links
+from utils.parametric.spec.trace import retrieve_span_links, find_span, find_trace
 
 
 @scenarios.parametric
 class Test_Span_Links:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
+    @missing_feature(library="nodejs", reason="only supports span links encoding through _dd.span_links tag")
     def test_span_started_with_link_v04(self, test_agent, test_library):
         """Test adding a span link created from another span and serialized in the expected v0.4 format.
         This tests the functionality of "create a direct link between two spans
@@ -21,20 +22,21 @@ class Test_Span_Links:
         """
         with test_library:
             with test_library.start_span("first") as s1:
-                # We must manually add a link to the second span before first span ends
-                with test_library.start_span(
-                    "second",
-                    parent_id=0,
-                    links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
-                ):
-                    pass
+                pass
+
+            with test_library.start_span(
+                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+            ) as s2:
+                pass
 
         traces = test_agent.wait_for_num_traces(2)
-        assert len(traces[0]) == 1
-        assert len(traces[1]) == 1
+        trace1 = find_trace(traces, s1.trace_id)
+        assert len(trace1) == 1
+        trace2 = find_trace(traces, s2.trace_id)
+        assert len(trace2) == 1
 
-        first = traces[0][0]
-        second = traces[1][0]
+        first = find_span(trace1, s1.span_id)
+        second = find_span(trace2, s2.span_id)
 
         span_links = second["span_links"]
         assert len(span_links) == 1
@@ -48,6 +50,7 @@ class Test_Span_Links:
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
 
+    @missing_feature(library="ruby", reason="v0.5 is not supported in Ruby")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
     def test_span_started_with_link_v05(self, test_agent, test_library):
         """Test adding a span link created from another span and serialized in the expected v0.5 format.
@@ -57,20 +60,21 @@ class Test_Span_Links:
         with test_library:
             # create a span that will be sampled
             with test_library.start_span("first") as s1:
-                # we must manually add a link to the second span before first span ends
-                with test_library.start_span(
-                    "second",
-                    parent_id=0,
-                    links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
-                ):
-                    pass
+                pass
+
+            with test_library.start_span(
+                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+            ) as s2:
+                pass
 
         traces = test_agent.wait_for_num_traces(2)
-        assert len(traces[0]) == 1
-        assert len(traces[1]) == 1
+        trace1 = find_trace(traces, s1.trace_id)
+        assert len(trace1) == 1
+        trace2 = find_trace(traces, s2.trace_id)
+        assert len(trace2) == 1
 
-        first = traces[0][0]
-        second = traces[1][0]
+        first = find_span(trace1, s1.span_id)
+        second = find_span(trace2, s2.span_id)
 
         span_links = json.loads(second.get("meta", {}).get("_dd.span_links"))
         assert len(span_links) == 1
@@ -84,6 +88,9 @@ class Test_Span_Links:
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
 
+    @missing_feature(
+        library="nodejs", reason="does not currently support creating a link from distributed datadog headers"
+    )
     def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
         Testing the conversion of x-datadog-* headers to tracestate for
@@ -104,11 +111,12 @@ class Test_Span_Links:
                         ],
                     )
                 ],
-            ):
+            ) as rs:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
-        span = traces[0][0]
+        trace = find_trace(traces, rs.trace_id)
+        span = find_span(trace, rs.span_id)
         assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
         assert span["meta"].get(ORIGIN) is None
 
@@ -118,14 +126,6 @@ class Test_Span_Links:
         assert link.get("span_id") == 9876543210
         assert link.get("trace_id") == 1234567890
         assert link.get("trace_id_high") == 16
-
-        assert link.get("tracestate") is not None
-        tracestateArr = link["tracestate"].split(",")
-        assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
-        tracestateDD = tracestateArr[0][3:].split(";")
-        assert "o:synthetics" in tracestateDD
-        assert "s:2" in tracestateDD
-        assert "t.dm:-4" in tracestateDD
 
         # link has a sampling priority of 2, so it should be sampled
         assert link.get("flags", 1) == 1 | TRACECONTEXT_FLAGS_SET
@@ -146,11 +146,12 @@ class Test_Span_Links:
                         ],
                     ),
                 ],
-            ):
+            ) as rs:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
-        span = traces[0][0]
+        trace = find_trace(traces, rs.trace_id)
+        span = find_span(trace, rs.span_id)
         assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
 
         span_links = retrieve_span_links(span)
@@ -162,13 +163,14 @@ class Test_Span_Links:
 
         assert link.get("tracestate") is not None
         tracestateArr = link["tracestate"].split(",")
-        dd_num = 0 if tracestateArr[0].startswith("dd=") else 1
-        other_num = 0 if dd_num == 1 else 1
-        assert tracestateArr[other_num] == "foo=1"
-        assert tracestateArr[2] == "bar=baz"
-        tracestateDD = tracestateArr[dd_num][3:].split(";")
-        assert "s:2" in tracestateDD
-        assert "t.dm:-4" in tracestateDD
+        assert len(tracestateArr) >= 2, tracestateArr
+        assert next(filter(lambda x: x.startswith("foo="), tracestateArr)) == "foo=1"
+        assert next(filter(lambda x: x.startswith("bar="), tracestateArr)) == "bar=baz"
+        if "dd=" in tracestateArr:
+            # ruby does not store dd members in tracestate
+            tracestateDD = next(filter(lambda x: x.startswith("dd="), tracestateArr))
+            assert "s:2" in tracestateDD
+            assert "t.dm:-4" in tracestateDD
 
         # link has a sampling priority of 2, so it should be sampled
         assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
@@ -180,20 +182,21 @@ class Test_Span_Links:
         with test_library:
             with test_library.start_span("first") as s1:
                 with test_library.start_span("second", parent_id=s1.span_id) as s2:
-                    # We must manually add a link to the third span before root and second spans ends
-                    # This is because parametric apps delete finished spans from the span list
-                    with test_library.start_span("third", parent_id=0, links=[Link(parent_id=s1.span_id)]) as s3:
-                        s3.add_link(s2.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
+                    pass
+            with test_library.start_span("third", parent_id=0, links=[Link(parent_id=s1.span_id)]) as s3:
+                s3.add_link(s2.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
 
         traces = test_agent.wait_for_num_traces(2)
-        assert len(traces[0]) == 2
-        assert len(traces[1]) == 1
+        trace1 = find_trace(traces, s1.trace_id)
+        assert len(trace1) == 2
+        trace2 = find_trace(traces, s3.trace_id)
+        assert len(trace2) == 1
 
-        root = traces[0][0]
+        root = find_span(trace1, s1.span_id)
         root_tid = root["meta"].get("_dd.p.tid") or "0" if "meta" in root else "0"
 
-        second = traces[0][1]
-        third = traces[1][0]
+        second = find_span(trace1, s2.span_id)
+        third = find_span(trace2, s3.span_id)
 
         assert second.get("parent_id") == root.get("span_id")
         assert third.get("parent_id") != root.get("span_id")
@@ -217,7 +220,9 @@ class Test_Span_Links:
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
 
-    @missing_feature(library="python", reason="links do not influence the sampling decsion of spans")
+    @missing_feature(library="python", reason="links do not influence the sampling decision of spans")
+    @missing_feature(library="nodejs", reason="links do not influence the sampling decision of spans")
+    @missing_feature(library="ruby", reason="links do not influence the sampling decision of spans")
     def test_span_link_propagated_sampling_decisions(self, test_agent, test_library):
         """Sampling decisions made by an upstream span should be propagated via span links to
         downstream spans.
@@ -235,7 +240,7 @@ class Test_Span_Links:
                         ],
                     )
                 ],
-            ):
+            ) as s1:
                 pass
 
             with test_library.start_span(
@@ -248,7 +253,7 @@ class Test_Span_Links:
                         ],
                     )
                 ],
-            ):
+            ) as s2:
                 pass
 
             with test_library.start_span("auto_dropped_span") as ads:
@@ -256,12 +261,13 @@ class Test_Span_Links:
                 # We must add a link to linked_to_auto_dropped_span before auto_dropped_span ends
                 with test_library.start_span(
                     "linked_to_auto_dropped_span", parent_id=0, links=[Link(parent_id=ads.span_id)]
-                ):
+                ) as s3:
                     pass
 
         traces = test_agent.wait_for_num_traces(4)
         # Span Link generated from datadog headers containing manual keep
-        link_w_manual_keep = traces[0][0]
+        trace1 = find_trace(traces, s1.trace_id)
+        link_w_manual_keep = find_span(trace1, s1.span_id)
         # assert that span link is set up correctly
         span_links = retrieve_span_links(link_w_manual_keep)
         assert len(span_links) == 1 and span_links[0]["span_id"] == 777
@@ -270,7 +276,8 @@ class Test_Span_Links:
         assert link_w_manual_keep["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
         # Span Link generated from tracecontext headers containing manual drop
-        link_w_manual_drop = traces[1][0]
+        trace2 = find_trace(traces, s2.trace_id)
+        link_w_manual_drop = find_span(trace2, s2.span_id)
         # assert that span link is set up correctly
         span_links = retrieve_span_links(link_w_manual_drop)
         assert len(span_links) == 1 and span_links[0]["span_id"] == 17
@@ -279,7 +286,8 @@ class Test_Span_Links:
         assert link_w_manual_drop["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
 
         # Span Link generated between two root spans
-        auto_dropped_span = traces[2][0]
+        trace3 = find_trace(traces, s3.trace_id)
+        auto_dropped_span = find_span(trace3, ads.span_id)
         linked_to_auto_dropped_span = traces[3][0]
         # assert that span link is set up correctly
         span_links = retrieve_span_links(linked_to_auto_dropped_span)

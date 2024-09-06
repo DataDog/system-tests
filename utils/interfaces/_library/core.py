@@ -7,6 +7,7 @@ import json
 import threading
 
 from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
+from utils.dd_constants import RemoteConfigApplyState
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
@@ -17,7 +18,6 @@ from utils.interfaces._library.telemetry import (
 )
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-from utils.interfaces._schemas_validators import SchemaValidator
 
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -233,10 +233,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError("Nothing has been reported. No request root span with has been found")
 
-    def assert_schemas(self, allowed_errors=None):
-        validator = SchemaValidator("library", allowed_errors)
-        self.validate(validator, success_by_default=True)
-
     def assert_all_traces_requests_forwarded(self, paths):
         # TODO : move this in test class
         paths = set(paths)
@@ -284,7 +280,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             raise ValueError(f"An appsec event has been reported in {data['log_filename']}")
 
     def assert_waf_attack(
-        self, request, rule=None, pattern=None, value=None, address=None, patterns=None, key_path=None, full_trace=False
+        self,
+        request,
+        rule=None,
+        pattern=None,
+        value=None,
+        address=None,
+        patterns=None,
+        key_path=None,
+        full_trace=False,
+        span_validator=None,
     ):
         """Asserts the WAF detected an attack on the provided request.
 
@@ -294,7 +299,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         """
 
         validator = _WafAttack(
-            rule=rule, pattern=pattern, value=value, address=address, patterns=patterns, key_path=key_path,
+            rule=rule,
+            pattern=pattern,
+            value=value,
+            address=address,
+            patterns=patterns,
+            key_path=key_path,
+            span_validator=span_validator,
         )
 
         self.validate_appsec(
@@ -366,3 +377,104 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def validate_remote_configuration(self, validator, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
+
+    def assert_rc_apply_state(self, product: str, config_id: str, apply_state: RemoteConfigApplyState) -> None:
+        """
+            Check that all config_id/product have the expected apply_state returned by the library
+            Very simplified version of the assert_rc_targets_version_states
+
+        """
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            config_states = data["request"]["content"]["client"]["state"].get("config_states", [])
+
+            for config_state in config_states:
+                if config_state["id"] == config_id and config_state["product"] == product:
+                    logger.debug(f"In {data['log_filename']}: found {config_state}")
+                    assert config_state["apply_state"] == apply_state.value
+                    found = True
+
+        assert found, f"Nothing has been found for {config_id}/{product}"
+
+    def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
+        """
+            check that for a given targets_version, the config states is the one expected
+            EXPERIMENTAL (is it the good testing API ?)
+        """
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            state = data["request"]["content"]["client"]["state"]
+
+            if state["targets_version"] != targets_version:
+                continue
+
+            logger.debug(f"In {data['log_filename']}: found targets_version {targets_version}")
+
+            assert not state.get("has_error", False), f"State error found: {state.get('error')}"
+
+            observed_config_states = state.get("config_states", [])
+            logger.debug(f"Observed: {observed_config_states}")
+            logger.debug(f"expected: {config_states}")
+
+            # apply_error is optional, and can be none or empty string.
+            # remove it in that situation to simplify the comparison
+            observed_config_states = copy.deepcopy(observed_config_states)  # copy to not mess up futur checks
+            for observed_config_state in observed_config_states:
+                if "apply_error" in observed_config_state and observed_config_state["apply_error"] in (None, ""):
+                    del observed_config_state["apply_error"]
+
+            assert config_states == observed_config_states
+            found = True
+
+        assert found, f"Nothing has been found for targets_version {targets_version}"
+
+    def assert_rasp_attack(self, request, rule: str, parameters=None):
+        def validator(_, appsec_data):
+            assert "triggers" in appsec_data, "'triggers' not found in '_dd.appsec.json'"
+
+            triggers = appsec_data["triggers"]
+            assert len(triggers) == 1, "multiple appsec events found, only one expected"
+
+            trigger = triggers[0]
+            obtained_rule_id = trigger["rule"]["id"]
+            assert obtained_rule_id == rule, f"incorrect rule id, expected {rule}"
+
+            if parameters is not None:
+                rule_matches = trigger["rule_matches"]
+                assert len(rule_matches) == 1, "multiple rule matches found, only one expected"
+
+                rule_match_params = rule_matches[0]["parameters"]
+                assert len(rule_match_params) == 1, "multiple parameters found, only one expected"
+
+                obtained_parameters = rule_match_params[0]
+                for name, fields in parameters.items():
+                    address = fields["address"]
+                    value = None
+                    if "value" in fields:
+                        value = fields["value"]
+
+                    key_path = None
+                    if "key_path" in fields:
+                        key_path = fields["key_path"]
+
+                    assert name in obtained_parameters, f"parameter '{name}' not in rule match"
+
+                    obtained_param = obtained_parameters[name]
+
+                    assert (
+                        obtained_param["address"] == address
+                    ), f"incorrect address for '{name}', expected '{address}, found '{obtained_param['address']}'"
+
+                    if value is not None:
+                        assert (
+                            obtained_param["value"] == value
+                        ), f"incorrect value for '{name}', expected '{value}', found '{obtained_param['value']}'"
+
+                    if key_path is not None:
+                        assert (
+                            obtained_param["key_path"] == key_path
+                        ), f"incorrect key_path for '{name}', expected '{key_path}'"
+
+            return True
+
+        self.validate_appsec(request, validator, success_by_default=False)

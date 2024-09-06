@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -16,8 +16,20 @@ def get_header(data, origin, name):
     return None
 
 
+def get_request_content(data):
+    return data["request"]["content"]
+
+
 def get_request_type(data):
-    return data["request"]["content"].get("request_type")
+    return get_request_content(data).get("request_type")
+
+
+def get_configurations(data):
+    return get_request_content(data)["payload"].get("configuration")
+
+
+def get_service_name(data):
+    return get_request_content(data)["application"].get("service_name")
 
 
 def not_onboarding_event(data):
@@ -25,13 +37,14 @@ def not_onboarding_event(data):
 
 
 def is_v2_payload(data):
-    return data["request"]["content"].get("api_version") == "v2"
+    return get_request_content(data).get("api_version") == "v2"
 
 
 def is_v1_payload(data):
-    return data["request"]["content"].get("api_version") == "v1"
+    return get_request_content(data).get("api_version") == "v1"
 
 
+@rfc("https://docs.google.com/document/d/1Fai2gZlkvfa_WQs_yJsmi3nUwiOsMtNu2LFBnbTHJRA/edit#heading=h.llmi584vls7r")
 @features.telemetry_instrumentation
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
@@ -83,6 +96,7 @@ class Test_Telemetry:
         context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
         reason="Version reporting of trace agent is broken in 7.36.x release",
     )
+    @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -119,6 +133,7 @@ class Test_Telemetry:
         )
 
     @flaky(library="ruby", reason="AIT-8418")
+    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -180,6 +195,7 @@ class Test_Telemetry:
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
+    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
@@ -198,7 +214,7 @@ class Test_Telemetry:
         assert all((count == 1 for count in count_by_runtime_id.values()))
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @bug(library="python", reason="app-started not sent first")
+    @flaky(library="python", reason="app-started not sent first")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
@@ -210,23 +226,21 @@ class Test_Telemetry:
                 first_message.get("request_type") == "app-started"
             ), "app-started was not the first message in the first batch"
         else:
-            for data in telemetry_data:
-                req_content = data["request"]["content"]
-                if req_content["request_type"] == "app-started":
-                    seq_id = req_content["seq_id"]
-                    assert seq_id == 1, f"app-started found but it was not the first message sent"
-                    return
-
-            raise Exception(f"app-started message not found")
+            # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
+            # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
+            telemetry_data = list(sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"]))
+            app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
+            assert app_started, "app-started message not found"
+            min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
+            assert (
+                app_started[0]["request"]["content"]["seq_id"] == min_seq_id
+            ), "app-started is not the first message by seq_id"
 
     @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        weblog_variant="spring-boot-openliberty", reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
     )
-    @bug(
-        library="java", weblog_variant="spring-boot-wildfly",
-    )
+    @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
+    @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
@@ -266,7 +280,7 @@ class Test_Telemetry:
                 lib_message, lib_log_file = lib_data["request"]["content"], lib_data["log_filename"]
 
                 if agent_message != lib_message:
-                    raise Exception(
+                    raise ValueError(
                         f"Telemetry proxy message different in messages {lib_log_file} and {agent_log_file}:\n"
                         f"library sent {lib_message}\n"
                         f"agent sent {agent_message}"
@@ -278,54 +292,74 @@ class Test_Telemetry:
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
-    @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
-    @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
-    @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(library="ruby")
-    @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
-    @bug(context.library > "php@0.90")
-    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
-    @features.telemetry_heart_beat_collected
-    def test_app_heartbeat(self):
-        """Check for heartbeat or messages within interval and valid started and closing messages"""
-
-        prev_message_time = None
-        expected_heartbeat_interval = context.telemetry_heartbeat_interval
-
-        # This interval can't be perfeclty exact, give some room for tests
-        UPPER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 2).total_seconds()
-        LOWER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 0.75).total_seconds()
+    @staticmethod
+    def _get_heartbeat_delays_by_runtime() -> dict:
+        """ 
+            Returns a dict where :
+            The key is the runtime id
+            The value is a list of delay observed on this runtime id
+        """
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
-        assert len(telemetry_data) > 0, "No telemetry messages"
+        heartbeats_by_runtime = defaultdict(list)
 
-        heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
-        assert len(heartbeats) >= 2, "Did not receive, at least, 2 heartbeats"
+        for data in telemetry_data:
+            if data["request"]["content"].get("request_type") == "app-heartbeat":
+                heartbeats_by_runtime[data["request"]["content"]["runtime_id"]].append(data)
 
-        # depending on the tracer, the very first heartbeat may be sent in a request that pays the
-        # connection initialization time. This time is very unpredictible, so we remove the very
-        # first heartbeat from the list
-        heartbeats.pop(0)
+        delays_by_runtime = {}
 
-        for data in heartbeats:
-            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
-            if prev_message_time is None:
-                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time}")
-            else:
-                delta = (curr_message_time - prev_message_time).total_seconds()
-                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time} => {delta}s ellapsed")
+        for runtime_id, heartbeats in heartbeats_by_runtime.items():
 
-                assert (
-                    delta < UPPER_LIMIT
-                ), f"Heartbeat sent too slow ({delta}s). It should be sent every {expected_heartbeat_interval}s"
-                assert (
-                    delta > LOWER_LIMIT
-                ), f"Heartbeat sent too fast ({delta}s). It should be sent every {expected_heartbeat_interval}s"
+            assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
 
-            prev_message_time = curr_message_time
+            logger.debug(f"Heartbeats for runtime {runtime_id}:")
+
+            # In theory, it's sorted. Let be safe
+            heartbeats.sort(key=lambda data: datetime.strptime(data["request"]["timestamp_start"], fmt))
+
+            prev_message_time = None
+            delays = []
+            for data in heartbeats:
+                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+                if prev_message_time is None:
+                    logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
+                else:
+                    delay = (curr_message_time - prev_message_time).total_seconds()
+                    logger.debug(f"  * {data['log_filename']}: {curr_message_time} => {delay}s ellapsed")
+                    delays.append(delay)
+
+                prev_message_time = curr_message_time
+
+            delays_by_runtime[runtime_id] = delays
+
+        return delays_by_runtime
+
+    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @flaky(context.library <= "java@1.38.1", reason="Telemetry second heartbeat was sent too fast")
+    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
+    @flaky(library="ruby", reason="APMAPI-226")
+    @features.telemetry_heart_beat_collected
+    def test_app_heartbeats_delays(self):
+        """
+            Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+            There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
+            to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
+        """
+
+        delays_by_runtime = self._get_heartbeat_delays_by_runtime()
+
+        # This interval can't be perfeclty exact, give some room for tests
+        LOWER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
+        UPPER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
+        expectation = f"It should be sent every {context.telemetry_heartbeat_interval}s"
+
+        for delays in delays_by_runtime.values():
+            average_delay = sum(delays) / len(delays)
+            assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
+            assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
@@ -342,6 +376,7 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
+    @bug(library="nodejs", reason="unknown")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
@@ -443,12 +478,6 @@ class Test_Telemetry:
         context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
     )
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    @bug(
-        library="python",
-        reason="""
-            configuration is not properly populating for python
-        """,
-    )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
@@ -574,7 +603,7 @@ class Test_TelemetryV2:
 
     @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
-    @bug(library="python", reason="library versions do not match due to different origins")
+    @flaky(library="python", reason="library versions do not match due to different origins")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 
@@ -652,6 +681,7 @@ class Test_MessageBatch:
         weblog.get("/enable_product")
 
     # CPP: false-positive. we send batch message for app-started.
+    @bug(library="nodejs")
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
         event_list = []
@@ -686,9 +716,10 @@ class Test_Metric_Generation_Disabled:
     """Assert that metrics are not reported when metric generation is disabled in telemetry"""
 
     def test_metric_generation_disabled(self):
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
-            if get_request_type(data) == "generate-metrics":
-                raise Exception("Metric generate event is sent when metric generation is disabled")
+        all_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=True))
+        assert len(all_data) != 0, "No telemetry data to validate on"
+        generate_metrics_messages = [d for d in all_data if get_request_type(d) == "generate-metrics"]
+        assert len(generate_metrics_messages) == 0, "Metric generation event is sent when metric generation is disabled"
 
 
 @features.telemetry_metrics_collected
@@ -716,6 +747,7 @@ class Test_Metric_Generation_Enabled:
         assert found, "No metrics found in telemetry data"
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_general_logs_created(self):
         self.assert_count_metric("general", "logs_created", expect_at_least=1)
 
@@ -726,38 +758,47 @@ class Test_Metric_Generation_Enabled:
         self.assert_count_metric("tracers", "spans_finished", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_spans_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "spans_enqueued_for_serialization", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_created(self):
         self.assert_count_metric("tracers", "trace_segments_created", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "trace_chunks_enqueued_for_serialization", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_sent(self):
         self.assert_count_metric("tracers", "trace_chunks_sent", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_closed(self):
         self.assert_count_metric("tracers", "trace_segments_closed", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_requests(self):
         self.assert_count_metric("tracers", "trace_api.requests", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_responses(self):
         self.assert_count_metric("tracers", "trace_api.responses", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_telemetry_api_requests(self):
         self.assert_count_metric("telemetry", "telemetry_api.requests", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_telemetry_api_responses(self):
         self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)
 
@@ -776,3 +817,30 @@ class Test_Metric_Generation_Enabled:
                 count = count + p[1]
 
         assert count >= expect_at_least
+
+
+@rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
+@features.telemetry_app_started_event
+class Test_TelemetrySCAEnvVar:
+    def test_telemetry_sca_propagated(self):
+        target_service_name = "weblog"
+        target_request_type = "app-started"
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        events = []
+
+        for t in telemetry_data:
+            if get_request_type(t) == target_request_type and get_service_name(t) == target_service_name:
+                events.append(t)
+
+        assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
+
+        configurations = get_configurations(events[0])
+        found = False
+        for c in configurations:
+            if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                found = True
+                break
+
+        assert (
+            found
+        ), f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"

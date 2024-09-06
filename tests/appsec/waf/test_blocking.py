@@ -120,7 +120,7 @@ class Test_Blocking:
     @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
     @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
-    @missing_feature(context.library == "python", reason="Support for partial html not implemented")
+    @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(context.library == "ruby", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
@@ -171,7 +171,7 @@ class Test_Blocking:
     @missing_feature(context.library < "golang@1.52.0")
     @missing_feature(library="dotnet")
     @missing_feature(library="php")
-    @missing_feature(library="python")
+    @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(library="ruby")
     def test_json_template_v1(self):
         """HTML block template is v1 minified"""
@@ -187,7 +187,7 @@ class Test_Blocking:
     @missing_feature(context.library < "golang@1.52.0")
     @missing_feature(library="dotnet")
     @missing_feature(library="php")
-    @missing_feature(library="python")
+    @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(library="ruby")
     def test_html_template_v2(self):
         """HTML block template is v2 minified"""
@@ -216,7 +216,6 @@ class Test_Blocking_strip_response_headers:
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
 @scenarios.appsec_blocking
 @features.appsec_blocking_action
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""
 
@@ -238,10 +237,6 @@ class Test_CustomBlockingResponse:
     def setup_custom_redirect_wrong_status_code(self):
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v3"}, allow_redirects=False)
 
-    @bug(
-        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
-        reason="Do not check the configured redirect status code",
-    )
     def test_custom_redirect_wrong_status_code(self):
         """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
         assert self.r_cr.status_code == 303
@@ -250,7 +245,6 @@ class Test_CustomBlockingResponse:
     def setup_custom_redirect_missing_location(self):
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False)
 
-    @bug(context.library == "java", reason="Do not check the configured redirect location value")
     def test_custom_redirect_missing_location(self):
         """Block with an default page because location parameter is missing from redirect request configuration"""
         assert self.r_cr.status_code == 403

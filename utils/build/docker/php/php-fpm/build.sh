@@ -20,13 +20,14 @@ add-apt-repository ppa:ondrej/apache2 -y
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
-apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql
-apt-get install -y 
+apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml
+apt-get install -y
 
 find /var/www/html -mindepth 1 -delete
 
-
+mkdir -p /var/www/html/rasp
 cp -rf /tmp/php/common/*.php /var/www/html/
+cp -rf /tmp/php/common/rasp/*.php /var/www/html/rasp/
 cp /tmp/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 cp /tmp/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 cp /tmp/php/php-fpm/entrypoint.sh /

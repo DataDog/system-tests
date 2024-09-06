@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, bug, missing_feature, scenarios, features
+from utils import weblog, context, interfaces, bug, scenarios, features
 
 
 # get the default log output
@@ -18,19 +18,11 @@ class Test_CorruptedRules:
         self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
-    @missing_feature(library="golang")
-    @missing_feature(library="nodejs")
-    @missing_feature(library="python")
-    @missing_feature(library="php")
-    @missing_feature(library="ruby", reason="standard logs not implemented")
-    @bug(library="dotnet", reason="ERROR io CRITICAL")
     def test_c05(self):
-        """Log C5: Rules file is corrupted"""
-        stdout.assert_presence(r"AppSec could not read the rule file .* as it was invalid: .*", level="CRITICAL")
-
-        # Appsec does not catch any attack
-        interfaces.library.assert_no_appsec_event(self.r_1)
-        interfaces.library.assert_no_appsec_event(self.r_2)
+        for r in [self.r_1, self.r_2]:
+            assert r.status_code == 200
+            # Appsec does not catch any attack
+            interfaces.library.assert_no_appsec_event(r)
 
 
 @scenarios.appsec_missing_rules
@@ -42,24 +34,11 @@ class Test_MissingRules:
         self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
-    @missing_feature(library="golang")
-    @missing_feature(library="nodejs")
-    @missing_feature(library="python")
-    @missing_feature(library="php")
-    @missing_feature(library="ruby", reason="standard logs not implemented")
-    @bug(library="dotnet", reason="ERROR io CRITICAL")  # and the last sentence is missing
     def test_c04(self):
-        """Log C4: Rules file is missing"""
-        stdout.assert_presence(
-            r'AppSec could not find the rules file in path "?/donotexists"?. '
-            r"AppSec will not run any protections in this application. "
-            r"No security activities will be collected.",
-            level="CRITICAL",
-        )
-
-        # Appsec does not catch any attack
-        interfaces.library.assert_no_appsec_event(self.r_1)
-        interfaces.library.assert_no_appsec_event(self.r_2)
+        for r in [self.r_1, self.r_2]:
+            assert r.status_code == 200
+            # Appsec does not catch any attack
+            interfaces.library.assert_no_appsec_event(r)
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)

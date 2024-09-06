@@ -3,6 +3,7 @@ package com.datadoghq.system_tests.springboot;
 import com.datadoghq.system_tests.springboot.aws.KinesisConnector;
 import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
+import com.datadoghq.system_tests.springboot.Carrier;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
@@ -10,18 +11,24 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
+import com.datadoghq.system_tests.iast.utils.Utils;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.Trace;
+import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.context.Scope;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -58,6 +65,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
 import java.util.Scanner;
+import java.util.LinkedHashMap;
 
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -75,6 +83,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
@@ -89,12 +102,13 @@ public class App {
 
     CassandraConnector cassandra;
     MongoClient mongoClient;
+    int PRODUCE_CONSUME_THREAD_TIMEOUT = 5000;
 
     @RequestMapping("/")
     String home(HttpServletResponse response) {
         // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
         // if a java engineer knows how to remove this?
-        // waiting for that, just set a random value 
+        // waiting for that, just set a random value
         response.setHeader("Content-Language", "not-set");
         return "Hello World!";
     }
@@ -155,6 +169,19 @@ public class App {
         h.put("metadata0", "value0");
         h.put("metadata1", "value1");
         return h;
+    }
+
+    @GetMapping("/users")
+    String users(@RequestParam String user) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if ((span instanceof MutableSpan)) {
+            MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+            localRootSpan.setTag("usr.id", user);
+        }
+        Blocking
+                .forUser(user)
+                .blockIfMatch();
+        return "Hello " + user;
     }
 
     @GetMapping("/user_login_success_event")
@@ -414,7 +441,8 @@ public class App {
     ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         try {
-            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
+            Thread produceThread = rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
+            produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start producing message...");
             e.printStackTrace();
@@ -455,14 +483,16 @@ public class App {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);
             try {
-                kafka.startProducingMessage("hello world!");
+                Thread produceThread = kafka.startProducingMessage("hello world!");
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                kafka.startConsumingMessages("");
+                Thread consumeThread = kafka.startConsumingMessages("");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
@@ -471,14 +501,16 @@ public class App {
         } else if ("rabbitmq".equals(integration)) {
             RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange(queue, exchange, routing_key);
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start consuming message...");
                 e.printStackTrace();
@@ -487,14 +519,16 @@ public class App {
         } else if ("rabbitmq_topic_exchange".equals(integration)) {
             RabbitmqConnectorForTopicExchange rabbitmq = new RabbitmqConnectorForTopicExchange();
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_topic] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_topic] Failed to start consuming message...");
                 e.printStackTrace();
@@ -503,14 +537,16 @@ public class App {
         } else if ("rabbitmq_fanout_exchange".equals(integration)) {
             RabbitmqConnectorForFanoutExchange rabbitmq = new RabbitmqConnectorForFanoutExchange();
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_fanout] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_fanout] Failed to start consuming message...");
                 e.printStackTrace();
@@ -519,14 +555,16 @@ public class App {
         } else if ("sqs".equals(integration)) {
             SqsConnector sqs = new SqsConnector(queue);
             try {
-                sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                Thread produceThread = sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start producing message...");
                 e.printStackTrace();
                 return "[SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages("SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SQS");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
                 e.printStackTrace();
@@ -536,14 +574,16 @@ public class App {
             SnsConnector sns = new SnsConnector(topic);
             SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
             try {
-                sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+                Thread produceThread = sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start producing message...");
                 e.printStackTrace();
                 return "[SNS->SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages("SNS->SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SNS->SQS");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start consuming message...");
                 e.printStackTrace();
@@ -572,6 +612,48 @@ public class App {
         return "ok";
     }
 
+    @RequestMapping("/dsm/inject")
+    String dsmInject(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = true, name = "topic") String topic
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        Span span = GlobalTracer.get().buildSpan("kafka.produce").ignoreActiveSpan().start();
+        GlobalTracer.get().activateSpan(span);
+
+        Map<String, Object> headers = new HashMap<String, Object>();
+        Carrier headersAdapter = new Carrier(headers);
+
+        DataStreamsCheckpointer.get().setProduceCheckpoint(integration, topic, headersAdapter);
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(headers);
+
+        span.finish();
+
+        return jsonString;
+    }
+
+    @RequestMapping("/dsm/extract")
+    String dsmExtract(
+        @RequestParam(required = true, name = "integration") String integration,
+        @RequestParam(required = true, name = "topic") String topic,
+        @RequestParam(required = true, name = "ctx") String ctx
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        Span span = GlobalTracer.get().buildSpan("kafka.consume").ignoreActiveSpan().start();
+        GlobalTracer.get().activateSpan(span);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> headers = mapper.readValue(ctx, new TypeReference<Map<String, Object>>(){});
+        Carrier headersAdapter = new Carrier(headers);
+
+        DataStreamsCheckpointer.get().setConsumeCheckpoint(integration, topic, headersAdapter);
+
+        span.finish();
+
+        return "ok";
+    }
+
     @RequestMapping("/trace/ognl")
     String traceOGNL() {
         final Span span = GlobalTracer.get().activeSpan();
@@ -581,7 +663,7 @@ public class App {
 
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
-        try { 
+        try {
             Object expr = Ognl.parseExpression("[1]");
             String value = (String) Ognl.getValue(expr, list);
             return "hi OGNL, " + value;
@@ -590,64 +672,6 @@ public class App {
         }
 
         return "hi OGNL";
-    }
-
-    // E.g. curl "http://localhost:8080/sqli?q=%271%27%20union%20select%20%2A%20from%20display_names"
-    @RequestMapping("/rasp/sqli")
-    String raspSQLi(@RequestParam(required = false, name="q") String param) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        // NOTE: see README.md for setting up the docker image to quickly test this
-        String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
-        try (Connection pgConn = DriverManager.getConnection(url)) {
-            String query = "SELECT * FROM display_names WHERE full_name = ";
-            Statement st = pgConn.createStatement();
-            ResultSet rs = st.executeQuery(query + param);
-
-            int i = 0;
-            while (rs.next()) {
-                i++;
-            }
-            System.out.printf("Read %d rows", i);
-            rs.close();
-            st.close();
-        } catch (SQLException e) {
-            e.printStackTrace(System.err);
-            return "pgsql exception :(";
-        }
-
-        return "Done SQL injection with param: " + param;
-    }
-
-    @RequestMapping("/rasp/ssrf")
-    String raspSSRF(@RequestParam(required = false, name="url") String url) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        try {
-            URL server;
-            try {
-                server = new URL(url);
-            } catch (MalformedURLException e) {
-                server = new URL("http://" + url);
-            }
-
-            HttpURLConnection connection = (HttpURLConnection)server.openConnection();
-            connection.connect();
-            System.out.println("Response code:" + connection.getResponseCode());
-            System.out.println("Response message:" + connection.getResponseMessage());
-            InputStream test = connection.getErrorStream();
-            String result = new BufferedReader(new InputStreamReader(test)).lines().collect(Collectors.joining("\n"));
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            return "ssrf exception :(";
-        }
     }
 
     @RequestMapping("/make_distant_call")
@@ -685,6 +709,15 @@ public class App {
         result.response_headers = response_headers;
 
         return result;
+    }
+
+    @RequestMapping("/createextraservice")
+    public String createextraservice(@RequestParam String serviceName) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("service", serviceName);
+        }
+        return "OK";
     }
 
     public static final class DistantCallResponse {
@@ -863,19 +896,35 @@ public class App {
         return "OK";
     }
 
+    @GetMapping(value = "/requestdownstream")
+    public String requestdownstream(HttpServletResponse response) throws IOException {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GetMapping(value = "/returnheaders", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> returnheaders(@RequestHeader Map<String, String> headers) {
+        return ResponseEntity.ok(headers);
+    }
+
+    @GetMapping(value = "/set_cookie")
+    public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
+        return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
+    }
+
     @Bean
     @ConditionalOnProperty(
-        value="spring.native", 
-        havingValue = "false", 
+        value="spring.native",
+        havingValue = "false",
         matchIfMissing = true)
-    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) { 
+    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) {
         return new SynchronousWebLogGrpc(localInterface.getPort());
    }
 
     @Bean
     @ConditionalOnProperty(
-        value="spring.native", 
-        havingValue = "false", 
+        value="spring.native",
+        havingValue = "false",
         matchIfMissing = true)
     WebLogInterface localInterface() throws IOException {
         return new WebLogInterface();

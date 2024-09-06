@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, bug, features
-from .._test_iast_fixtures import BaseSourceTest
+from ..utils import BaseSourceTest
 
 
 @features.iast_source_request_parameter_name

@@ -24,7 +24,7 @@ class Test_HardcodedPasswords:
     def test_hardcoded_passwords_exec(self):
         assert self.r_hardcoded_passwords_exec.status_code == 200
         hardcoded_passwords = self.get_hardcoded_password_vulnerabilities()
-        hardcoded_passwords = [v for v in hardcoded_passwords if v["evidence"]["value"] == "hardcoded-password"]
+        hardcoded_passwords = [v for v in hardcoded_passwords if v["evidence"]["value"] == "hashpwd"]
         assert len(hardcoded_passwords) == 1
         vuln = hardcoded_passwords[0]
         assert vuln["location"]["path"] == self._get_expectation(self.location_map)

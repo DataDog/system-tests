@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, features, missing_feature
-from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
+from ..utils import BaseSinkTestWithoutTelemetry
 
 
 def _expected_location():

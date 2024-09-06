@@ -9,7 +9,7 @@
 # The purpose of this script is to download the latest development version of a component.
 #
 # Binaries sources:
-# 
+#
 # * Agent:  Docker hub datadog/agent-dev:master-py3
 # * Golang: gopkg.in/DataDog/dd-trace-go.v1@main
 # * .NET:   ghcr.io/datadog/dd-trace-dotnet
@@ -119,13 +119,13 @@ get_github_action_artifact() {
     QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
     ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
-    echo "Load artifact $HTML_URL" 
+    echo "Load artifact $HTML_URL"
     ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
 
     ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
-    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL 
+    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
 
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
@@ -146,7 +146,7 @@ get_github_release_asset() {
 
     echo "Load $url"
 
-    curl -H "Authorization: token $GH_TOKEN" --output $name -L $url 
+    curl -H "Authorization: token $GH_TOKEN" --output $name -L $url
 }
 
 if test -f ".env"; then
@@ -165,15 +165,9 @@ if [ "$TARGET" = "java" ]; then
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot .
 
 elif [ "$TARGET" = "dotnet" ]; then
+    assert_version_is_dev
     rm -rf *.tar.gz
-
-    if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
-    elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest .
-    else
-        echo "Don't know how to load version $VERSION for $TARGET"
-    fi
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
@@ -192,8 +186,8 @@ elif [ "$TARGET" = "php" ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
-    fi  
-    mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp  
+    fi
+    mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get

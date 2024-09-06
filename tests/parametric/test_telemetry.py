@@ -2,13 +2,14 @@
 Test the telemetry that should be emitted from the library.
 """
 import base64
+import copy
 import json
 import time
 import uuid
 
 import pytest
 
-from utils import context, scenarios, rfc, features
+from utils import context, scenarios, rfc, features, missing_feature
 
 
 telemetry_name_mapping = {
@@ -49,7 +50,7 @@ class Test_Defaults:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started")
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
@@ -59,7 +60,7 @@ class Test_Defaults:
             ("trace_header_tags", ""),
             ("trace_tags", ""),
             ("trace_enabled", ("true", True)),
-            ("profiling_enabled", ("false", False)),
+            ("profiling_enabled", ("false", False, None)),
             ("appsec_enabled", ("false", False, "inactive", None)),
             ("data_streams_enabled", ("false", False)),
         ]:
@@ -116,7 +117,7 @@ class Test_Environment:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started")
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
@@ -163,6 +164,140 @@ class Test_Environment:
                 )
             assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
 
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_AGENT_PORT": "agent.port",
+                "DD_TRACE_OTEL_ENABLED": 1,
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
+                "TIMEOUT": 1500,
+                "DD_SERVICE": "service",
+                "OTEL_SERVICE_NAME": "otel_service",
+                "DD_TRACE_LOG_LEVEL": "error",
+                "DD_LOG_LEVEL": "error",
+                "OTEL_LOG_LEVEL": "debug",
+                "DD_TRACE_SAMPLE_RATE": "0.5",
+                "OTEL_TRACES_SAMPLER": "traceidratio",
+                "OTEL_TRACES_SAMPLER_ARG": "0.1",
+                "DD_TRACE_ENABLED": "true",
+                "OTEL_TRACES_EXPORTER": "none",
+                "DD_RUNTIME_METRICS_ENABLED": "true",
+                "OTEL_METRICS_EXPORTER": "none",
+                "DD_TAGS": "foo:bar,baz:qux",
+                "OTEL_RESOURCE_ATTRIBUTES": "foo=bar1,baz=qux1",
+                "DD_TRACE_PROPAGATION_STYLE": "datadog",
+                "OTEL_PROPAGATORS": "datadog,tracecontext",
+                "OTEL_LOGS_EXPORTER": "none",
+                "OTEL_SDK_DISABLED": "false",
+            }
+        ],
+    )
+    def test_telemetry_otel_env_hiding(self, library_env, test_agent, test_library):
+        with test_library.start_span("test"):
+            pass
+        event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
+        payload = event["payload"]
+        assert event["request_type"] == "generate-metrics"
+
+        metrics = payload["series"]
+
+        assert payload["namespace"] == "tracers"
+
+        otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
+        otelInvalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
+
+        assert len(otelHiding) == 9
+        assert len(otelInvalid) == 0
+
+        expected_tags = [
+            ["config_datadog:dd_trace_log_level", "config_opentelemetry:otel_log_level"]
+            if context.library == "nodejs"
+            else ["config_datadog:dd_log_level", "config_opentelemetry:otel_log_level"],
+            ["config_datadog:dd_trace_propagation_style", "config_opentelemetry:otel_propagators"],
+            ["config_datadog:dd_service", "config_opentelemetry:otel_service_name"],
+            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler"],
+            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler_arg"],
+            ["config_datadog:dd_trace_enabled", "config_opentelemetry:otel_traces_exporter"],
+            ["config_datadog:dd_runtime_metrics_enabled", "config_opentelemetry:otel_metrics_exporter"],
+            ["config_datadog:dd_tags", "config_opentelemetry:otel_resource_attributes"],
+            ["config_datadog:dd_trace_otel_enabled", "config_opentelemetry:otel_sdk_disabled"],
+        ]
+
+        for expected in expected_tags:
+            assert any(all(tag in metric["tags"] for tag in expected) for metric in otelHiding)
+
+        for metric in otelHiding:
+            assert metric["points"][0][1] == 1
+
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_AGENT_PORT": "agent.port",
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
+                "TIMEOUT": 1500,
+                "OTEL_SERVICE_NAME": "otel_service",
+                "OTEL_LOG_LEVEL": "foo",
+                "OTEL_TRACES_SAMPLER": "foo",
+                "OTEL_TRACES_SAMPLER_ARG": "foo",
+                "OTEL_TRACES_EXPORTER": "foo",
+                "OTEL_METRICS_EXPORTER": "foo",
+                "OTEL_RESOURCE_ATTRIBUTES": "foo",
+                "OTEL_PROPAGATORS": "foo",
+                "OTEL_LOGS_EXPORTER": "foo",
+                "OTEL_SDK_DISABLED": "foo",
+            }
+        ],
+    )
+    def test_telemetry_otel_env_invalid(self, library_env, test_agent, test_library):
+        with test_library.start_span("test"):
+            pass
+        event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
+        payload = event["payload"]
+        assert event["request_type"] == "generate-metrics"
+
+        metrics = payload["series"]
+
+        assert payload["namespace"] == "tracers"
+
+        otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
+        otelInvalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
+
+        assert len(otelHiding) == 0
+        assert len(otelInvalid) == 8
+
+        expected_invalid_tags = [
+            ["config_datadog:dd_trace_log_level", "config_opentelemetry:otel_log_level"]
+            if context.library == "nodejs"
+            else ["config_datadog:dd_log_level", "config_opentelemetry:otel_log_level"],
+            ["config_datadog:dd_trace_propagation_style", "config_opentelemetry:otel_propagators"],
+            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler"],
+            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler_arg"],
+            ["config_datadog:dd_trace_enabled", "config_opentelemetry:otel_traces_exporter"],
+            ["config_datadog:dd_runtime_metrics_enabled", "config_opentelemetry:otel_metrics_exporter"],
+            ["config_datadog:dd_trace_otel_enabled", "config_opentelemetry:otel_sdk_disabled"],
+            ["config_opentelemetry:otel_logs_exporter"],
+        ]
+
+        for expected in expected_invalid_tags:
+            assert any(all(tag in metric["tags"] for tag in expected) for metric in otelInvalid)
+
+        for metric in otelInvalid:
+            assert metric["points"][0][1] == 1
+
 
 DEFAULT_ENVVARS = {
     # Decrease the heartbeat/poll intervals to speed up the tests
@@ -201,7 +336,7 @@ class Test_TelemetryInstallSignature:
         with test_library.start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started")
+        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
@@ -265,15 +400,32 @@ class Test_TelemetrySCAEnvVar:
     """
 
     @staticmethod
+    def flatten_message_batch(requests):
+        for request in requests:
+            body = json.loads(base64.b64decode(request["body"]))
+            if body["request_type"] == "message-batch":
+                for batch_payload in body["payload"]:
+                    # create a fresh copy of the request for each payload in the
+                    # message batch, as though they were all sent independently
+                    copied = copy.deepcopy(body)
+                    copied["request_type"] = batch_payload.get("request_type")
+                    copied["payload"] = batch_payload.get("payload")
+                    yield copied
+            else:
+                yield body
+
+    @staticmethod
     def get_app_started_configuration_by_name(test_agent, test_library):
         with test_library.start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started")
+        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+
         requests = test_agent.raw_telemetry(clear=True)
-        assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
-        for req in requests:
-            body = json.loads(base64.b64decode(req["body"]))
+        bodies = list(Test_TelemetrySCAEnvVar.flatten_message_batch(requests))
+
+        assert len(bodies) > 0, "There should be at least one telemetry event (app-started)"
+        for body in bodies:
             if body["request_type"] != "app-started":
                 continue
 
@@ -334,7 +486,7 @@ class Test_TelemetrySCAEnvVar:
 
         DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
 
-        if context.library == "java":
+        if context.library in ("java", "nodejs"):
             cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
             assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(
                 DD_APPSEC_SCA_ENABLED

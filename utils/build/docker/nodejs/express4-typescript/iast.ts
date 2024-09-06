@@ -221,7 +221,7 @@ function initSinkRoutes (app: Express): void {
 
   app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
   app.post(
-    '/iast/mongodb-nosql-injection/test_secure', 
+    '/iast/mongodb-nosql-injection/test_secure',
     async function (req: Request, res: Response): Promise<void> {
       const url: string = 'mongodb://mongodb:27017/'
       const client = new MongoClient(url)
@@ -258,7 +258,7 @@ function initSinkRoutes (app: Express): void {
       .then((client: LdapClient) =>
         client.search(
           'ou=people',
-          filter, 
+          filter,
           (err: Error | null, searchRes: SearchCallbackResponse): Response | void => {
             if (err) return sendError(err)
 
@@ -311,7 +311,7 @@ function initSinkRoutes (app: Express): void {
     res.setHeader('testheader', 'not_tainted_string')
     res.send('OK')
   })
-  
+
   app.get('/iast/weak_randomness/test_insecure', (req: Request, res: Response): void => {
     const randomNumber: number = Math.random()
     res.send(`OK:${randomNumber}`)
@@ -320,6 +320,18 @@ function initSinkRoutes (app: Express): void {
   app.get('/iast/weak_randomness/test_secure', (req: Request, res: Response): void => {
     const randomBytes: string = crypto.randomBytes(256).toString('hex')
     res.send(`OK:${randomBytes}`)
+  })
+
+  app.post('/iast/code_injection/test_insecure', (req: Request, res: Response) => {
+    // eslint-disable-next-line no-eval
+    eval(req.body.code)
+    res.send('OK')
+  })
+
+  app.post('/iast/code_injection/test_secure', (req: Request, res: Response) => {
+    // eslint-disable-next-line no-eval
+    eval('1+2')
+    res.send('OK')
   })
 }
 
@@ -403,6 +415,20 @@ function initSourceRoutes (app: Express): void {
     })
   }
 
+
+  async function getKafkaConsumer (kafka: any, topic: string, groupId: string) {
+    const consumer = kafka.consumer({
+      groupId,
+      heartbeatInterval: 10000, // should be lower than sessionTimeout
+      sessionTimeout: 60000
+    })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic, fromBeginning: true })
+
+    return consumer
+  }
+
   app.get('/iast/source/kafkavalue/test', (req: Request, res: Response): void => {
     const kafka = getKafka()
     const topic = 'dsm-system-tests-queue'
@@ -410,11 +436,6 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
-
-      await consumer.connect()
-      await consumer.subscribe({ topic, fromBeginning: false })
-
       const deferred: {
         resolve?: Function,
         reject?: Function
@@ -425,17 +446,19 @@ function initSourceRoutes (app: Express): void {
         deferred.reject = reject
       })
 
+      consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-value')
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
-          const vulnValue = message.value.toString()
-          try {
-            readFileSync(vulnValue)
-          } catch {
-            // do nothing
-          }
+          if (!message.value) return
 
-          // in some occasions we consume messages from dsm tests
+          const vulnValue = message.value.toString()
           if (vulnValue === 'hello value!') {
+            try {
+              readFileSync(vulnValue)
+            } catch {
+              // do nothing
+            }
+
             deferred.resolve?.()
           }
         }
@@ -476,11 +499,6 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({ groupId: 'testgroup2' })
-
-      await consumer.connect()
-      await consumer.subscribe({ topic, fromBeginning: false })
-
       const deferred: {
         resolve?: Function,
         reject?: Function
@@ -491,19 +509,21 @@ function initSourceRoutes (app: Express): void {
         deferred.reject = reject
       })
 
+      consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-key')
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
-          // in some occasions we consume messages from dsm tests
           if (!message.key) return
-          
-          const vulnKey = message.key.toString()
-          try {
-            readFileSync(vulnKey)
-          } catch {
-            // do nothing
-          }
 
-          deferred.resolve?.()
+          const vulnKey = message.key.toString()
+          if (vulnKey === 'hello key!') {
+            try {
+              readFileSync(vulnKey)
+            } catch {
+              // do nothing
+            }
+
+            deferred.resolve?.()
+          }
         }
       })
 

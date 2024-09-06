@@ -3,7 +3,9 @@ import logging
 
 import pytest
 
-from utils import bug, irrelevant, missing_feature, flaky, rfc
+from utils import irrelevant, missing_feature, flaky, rfc, context
+from utils._decorators import released
+from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
 
@@ -76,6 +78,42 @@ class Test_Skips:
     def test_regular(self):
         assert is_not_skipped(Test_Class)
         assert is_not_skipped(Test_Class.test_good_method)
+
+
+def test_version_range():
+    def check(declaration, tested_version, should_be_skipped):
+        class LocalClass:
+            pass
+
+        original_library = context.scenario.library  # not very clean, TODO: add a fixture for that purpose
+        context.scenario.library = LibraryVersion("java", tested_version)
+        decorated_class = released(java=declaration)(LocalClass)
+        context.scenario.library = original_library
+
+        if should_be_skipped:
+            assert hasattr(decorated_class, "pytestmark")
+            markers = decorated_class.pytestmark
+            assert (
+                markers[0].kwargs["reason"]
+                == f"missing_feature for java: declared released version is {declaration}, tested version is {tested_version}"
+            )
+        else:
+            assert not hasattr(decorated_class, "pytestmark")
+
+    declaration = "^1.2.3 || ^2.3.4 || >=3.4.5"
+
+    check(declaration, "1.2.2", should_be_skipped=True)
+    check(declaration, "1.2.3", should_be_skipped=False)
+    check(declaration, "1.9.9", should_be_skipped=False)
+    check(declaration, "2.0.0", should_be_skipped=True)
+    check(declaration, "2.3.3", should_be_skipped=True)
+    check(declaration, "2.3.4", should_be_skipped=False)
+    check(declaration, "2.9.9", should_be_skipped=False)
+    check(declaration, "3.0.0", should_be_skipped=True)
+    check(declaration, "3.4.4", should_be_skipped=True)
+    check(declaration, "3.4.5", should_be_skipped=False)
+    check(declaration, "3.9.9", should_be_skipped=False)
+    check(declaration, "4.0.0", should_be_skipped=False)
 
 
 if __name__ == "__main__":

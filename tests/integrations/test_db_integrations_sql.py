@@ -4,7 +4,7 @@
 from utils import context, bug, missing_feature, irrelevant, scenarios, features
 from utils.tools import logger
 
-from .sql_utils import BaseDbIntegrationsTestClass
+from .utils import BaseDbIntegrationsTestClass
 
 
 class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
@@ -165,6 +165,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     "db.name",
                     "peer.service",
                     "net.peer.name",
+                    "server.address",
                 ]:  # These fields hostname, user... are the same as password
                     assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
 

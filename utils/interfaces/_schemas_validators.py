@@ -7,15 +7,14 @@ Usage:
     PYTHONPATH=. python utils/interfaces/_schemas_validators.py
 """
 
+from dataclasses import dataclass
 import os
 import json
 import re
 import functools
 
-from jsonschema import Draft7Validator, RefResolver
+from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
-
-from utils.tools import logger
 
 
 def _is_bytes_or_string(_checker, instance):
@@ -70,6 +69,25 @@ def _get_schema_validator(schema_id):
     return _ApiObjectValidator(schema, resolver=resolver, format_checker=Draft7Validator.FORMAT_CHECKER)
 
 
+@dataclass
+class SchemaError:
+    interface_name: str
+    endpoint: str
+    error: ValidationError
+    data: dict
+
+    @property
+    def message(self):
+        return (
+            f"{self.error.message} on instance {self.error.json_path} in {self.endpoint}. Please check "
+            + self.data["log_filename"]
+        )
+
+    @property
+    def data_path(self):
+        return re.sub(r"\[\d+\]", "[]", self.error.json_path)
+
+
 class SchemaValidator:
     def __init__(self, interface, allowed_errors=None):
         self.interface = interface
@@ -78,39 +96,40 @@ class SchemaValidator:
         for pattern in allowed_errors or []:
             self.allowed_errors.append(re.compile(pattern))
 
-    def __call__(self, data):
+    def get_errors(self, data) -> list[SchemaError]:
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
+        if schema_id not in _get_schemas_store():
+            return []
+
         validator = _get_schema_validator(schema_id)
-        if not validator.is_valid(data["request"]["content"]):
-            messages = []
+        if validator.is_valid(data["request"]["content"]):
+            return []
 
-            for error in validator.iter_errors(data["request"]["content"]):
-                message = f"{error.message} on instance " + "".join([f"[{repr(i)}]" for i in error.path])
-                if not any(pattern.fullmatch(message) for pattern in self.allowed_errors):
-                    messages.append(message)
-
-            if len(messages) != 0:
-                for message in messages:
-                    logger.error(f"* {message}")
-
-                raise ValueError(f"Schema is invalid in {data['log_filename']}")
-
-        logger.debug(f"{data['log_filename']} schema validation ok")
+        return [
+            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data,)
+            for error in validator.iter_errors(data["request"]["content"])
+        ]
 
 
 def _main():
     for interface in ("agent", "library"):
         validator = SchemaValidator(interface)
-        path = f"logs/interfaces/{interface}"
-        files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
-        for file in files:
-            with open(os.path.join(path, file), encoding="utf-8") as f:
-                data = json.load(f)
+        folders = [folder for folder in os.listdir(".") if os.path.isdir(folder) and folder.startswith("logs")]
+        for folder in folders:
+            path = f"{folder}/interfaces/{interface}"
 
-            if "request" in data and data["request"]["length"] != 0:
-                validator(data)
+            if not os.path.exists(path):
+                continue
+            files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+            for file in files:
+                with open(os.path.join(path, file), encoding="utf-8") as f:
+                    data = json.load(f)
+
+                if "request" in data and data["request"]["length"] != 0:
+                    for error in validator.get_errors(data):
+                        print(error.message)
 
 
 if __name__ == "__main__":

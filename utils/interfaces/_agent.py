@@ -11,7 +11,6 @@ import copy
 
 from utils.tools import logger, get_rid_from_span, get_rid_from_request
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.interfaces._schemas_validators import SchemaValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 
@@ -59,10 +58,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
             if domain != expected_domain:
                 raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
-
-    def assert_schemas(self, allowed_errors=None):
-        validator = SchemaValidator("agent", allowed_errors)
-        self.validate(validator, success_by_default=True)
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
@@ -140,6 +135,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                             yield data, span
                         elif get_rid_from_span(span) == rid:
                             yield data, span
+
+    def get_spans_list(self, request):
+        return [span for _, span in self.get_spans(request)]
 
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")

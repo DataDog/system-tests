@@ -14,6 +14,6 @@ jobs:
       - name: Install deps
         run: pip install requests datadog_api_client
       - name: Push metrics
-        run: python utils/scripts/push-metrics.py 
+        run: python utils/scripts/push-metrics.py
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}

@@ -1,4 +1,4 @@
-from utils import interfaces, rfc, weblog, scenarios, context, bug, missing_feature, flaky, features
+from utils import bug, context, interfaces, irrelevant, features, flaky, missing_feature, rfc, scenarios, weblog
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -22,19 +22,6 @@ def _setup(self):
         rid_in_user_agent=False,
     )
     Test_TelemetryMetrics.__common_setup_done = True
-
-
-@features.waf_telemetry
-class Test_TelemetryResponses:
-    """ Test response from backend/agent """
-
-    setup_all_telemetry_requests_are_successful = _setup
-
-    @flaky(True, reason="Backend is far away from being stable enough")
-    def test_all_telemetry_requests_are_successful(self):
-        """Tests that all telemetry requests succeed."""
-        for data in interfaces.library.get_telemetry_data():
-            assert data["response"]["status_code"] == 202
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
@@ -73,40 +60,6 @@ class Test_TelemetryMetrics:
             assert len(series) == 2
         else:
             assert len(series) == 1
-        s = series[0]
-        assert s["_computed_namespace"] == "appsec"
-        assert s["metric"] == expected_metric_name
-        assert s["common"] is True
-        assert s["type"] == "count"
-
-        full_tags = set(s["tags"])
-        self._assert_valid_tags(
-            full_tags=full_tags, valid_prefixes=valid_tag_prefixes, mandatory_prefixes=mandatory_tag_prefixes
-        )
-
-        assert len(s["points"]) == 1
-        p = s["points"][0]
-        assert p[1] == 1
-
-    setup_metric_waf_updates = _setup
-
-    @missing_feature(reason="Test not implemented")
-    @bug(context.library < "java@1.13.0", reason="Missing tags")
-    def test_metric_waf_updates(self):
-        """Test waf.updates metric."""
-        expected_metric_name = "waf.updates"
-        mandatory_tag_prefixes = {
-            "waf_version",
-            "event_rules_version",
-        }
-        valid_tag_prefixes = {
-            "waf_version",
-            "event_rules_version",
-            "version",
-            "lib_language",
-        }
-        series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
-        assert len(series) == 1
         s = series[0]
         assert s["_computed_namespace"] == "appsec"
         assert s["metric"] == expected_metric_name

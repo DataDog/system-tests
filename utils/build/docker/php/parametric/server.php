@@ -14,6 +14,7 @@ use Amp\Http\Server\Router;
 use Amp\Http\Server\SocketHttpServer;
 use Amp\Log\ConsoleFormatter;
 use Amp\Log\StreamHandler;
+use DDTrace\Configuration;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
@@ -106,9 +107,6 @@ $activeSpan = null;
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan) {
     if ($parent = arg($req, 'parent_id')) {
-        if (!ctype_digit($parent)) {
-            $parent = largeBaseConvert($parent, 16, 10);
-        }
         \DDTrace\switch_stack($spans[$parent]);
         \DDTrace\create_stack();
         $span = \DDTrace\start_span();
@@ -199,6 +197,17 @@ $router->addRoute('POST', '/trace/span/error', new ClosureRequestHandler(functio
     $span->meta['error.stack'] = arg($req, 'stack');
     return jsonResponse([]);
 }));
+$router->addRoute('POST', '/trace/span/add_event', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $name = arg($req, 'name');
+    $attributes = arg($req, 'attributes');
+    $timestamp = arg($req, 'timestamp');
+
+    $event = new \DDTrace\SpanEvent($name, $attributes, $timestamp * 1000);
+    $span->events[] = $event;
+
+    return jsonResponse([]);
+}));
 $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
     $span = $spans[arg($req, 'span_id')];
     $parent_id = arg($req, 'parent_id');
@@ -224,9 +233,6 @@ $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(func
 }));
 $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans, &$activeSpan) {
     $span_id = arg($req, 'span_id');
-    if (!ctype_digit($span_id)) {
-        $span_id = largeBaseConvert($span_id, 16, 10);
-    }
 
     if (!isset($spans[$span_id])) {
         return jsonResponse([]);
@@ -335,6 +341,36 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
         $spanBuilder->setStartTimestamp($timestamp * 1000); // ms -> ns
     }
 
+    $links = [];
+    if ($span_links = arg($req, 'links')) {
+        foreach ($span_links as $span_link) {
+            $span_link_attributes = isset($span_link["attributes"]) ? $span_link["attributes"] : [];
+            if ($span_link_parent_id = $span_link["parent_id"]) {
+                $span_context = $otelSpans[$span_link_parent_id]->getContext();
+                $spanBuilder->addLink($span_context, $span_link_attributes);
+            } else if ($span_link_http_headers = $span_link["http_headers"]) {
+                $carrier = [];
+                foreach ($span_link_http_headers as $span_link_http_header) {
+                    $carrier[$span_link_http_header[0]] = $span_link_http_header[1];
+                }
+
+                $callback = function ($headername) use ($carrier) {
+                    return $carrier[$headername] ?? null;
+                };
+                $headers_link = \DDTrace\SpanLink::fromHeaders($callback);
+
+                $linkSpanContext = \OpenTelemetry\API\Trace\SpanContext::create(
+                    $headers_link->traceId,
+                    $headers_link->spanId,
+                    \OpenTelemetry\API\Trace\TraceFlags::DEFAULT, // trace flags are not currently embedded into the native span link
+                    new \OpenTelemetry\API\Trace\TraceState($headers_link->traceState ?? null),
+                );
+
+                $spanBuilder->addLink($linkSpanContext, $span_link_attributes);
+            }
+        }
+    }
+
     if ($httpHeaders) {
         $carrier = [];
         foreach ($httpHeaders as $headers) {
@@ -350,11 +386,11 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
 
     /** @var SDK\Span $span */
     $span = $spanBuilder->startSpan();
-    $spanId = $span->getContext()->getSpanId();
-    $traceId = $span->getContext()->getTraceId();
+    $spanId = largeBaseConvert($span->getContext()->getSpanId(), 16, 10);
+    $traceId = largeBaseConvert($span->getContext()->getTraceId(), 16, 10);
     $scopes[$spanId] = $span->activate();
     $otelSpans[$spanId] = $span;
-    $spans[largeBaseConvert($spanId, 16, 10)] = $span->getDDSpan();
+    $spans[$spanId] = $span->getDDSpan();
     $activeSpan = $span->getDDSpan();
 
     return jsonResponse([
@@ -373,9 +409,9 @@ $router->addRoute('POST', '/trace/otel/end_span', new ClosureRequestHandler(func
         $scope?->detach();
         $span->end($timestamp ? $timestamp * 1000 : null);
         $ddSpan = $span->getDDSpan();
-        unset($spans[largeBaseConvert($spanId, 16, 10)]);
+        unset($spans[$spanId]);
         $activeSpan = $ddSpan->parent ?? end($spans) ?? null;
-        $closed_spans[largeBaseConvert($spanId, 16, 10)] = $ddSpan;
+        $closed_spans[$spanId] = $ddSpan;
     }
 
     return jsonResponse([]);
@@ -469,16 +505,18 @@ $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(
 $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(function (Request $req) use (&$otelSpans, &$spans, &$activeSpan) {
     \DDTrace\switch_stack($activeSpan);
     $span = Span::getCurrent();
-    $spanId = $span->getContext()->getSpanId();
-    $traceId = $span->getContext()->getTraceId();
+    $otelSpanId = $span->getContext()->getSpanId();
+    $otelTraceId = $span->getContext()->getTraceId();
+    $spanId = largeBaseConvert($otelSpanId, 16, 10);
+    $traceId = largeBaseConvert($otelTraceId, 16, 10);
 
-    if ($spanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $traceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
+    if ($otelSpanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $otelTraceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
         $otelSpans[$spanId] = $span;
     }
 
     return jsonResponse([
-        'span_id' => $spanId,
-        'trace_id' => $traceId,
+        'span_id' => (string)$spanId,
+        'trace_id' => (string)$traceId,
     ]);
 }));
 $router->addRoute('POST', '/trace/otel/get_attribute', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
@@ -529,6 +567,75 @@ $router->addRoute('POST', '/trace/otel/get_links', new ClosureRequestHandler(fun
             'links' => $linksData
         ]);
     }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/add_event', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    $spanId = arg($req, 'span_id');
+    $name = arg($req, 'name');
+    $attributes = arg($req, 'attributes');
+    $timestamp = arg($req, 'timestamp');
+
+    /** @var ?SDK\Span $span */
+    $span = $otelSpans[$spanId];
+
+    if ($span) {
+        $span->addEvent($name, $attributes ?? [], (int)($timestamp * 1000));
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/record_exception', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    $spanId = arg($req, 'span_id');
+    $message = arg($req, 'message');
+    $attributes = arg($req, 'attributes');
+
+    /** @var ?SDK\Span $span */
+    $span = $otelSpans[$spanId];
+
+    if ($span) {
+        $span->recordException(new \Exception($message), $attributes ?? []);
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
+
+    $tags_array = \dd_trace_env_config("DD_TAGS");
+    $propagation_array = \dd_trace_env_config("DD_TRACE_PROPAGATION_STYLE");
+
+    $config_tags = [];
+    $config_propagation = "";
+
+    if (!empty($tags_array)) {
+        $callback = fn(string $k, string $v): string => "$k:$v";
+        $config_tags = array_map($callback, array_keys($tags_array), array_values($tags_array));
+    }
+
+    if (!empty($propagation_array)) {
+        $config_propagation = implode(",", array_keys($propagation_array));
+    }
+
+    $config = array(
+        'dd_service' => trim(var_export(\dd_trace_env_config("DD_SERVICE"), true), "'"),
+        'dd_env' => trim(var_export(\dd_trace_env_config("DD_ENV"), true), "'"),
+        'dd_version' => trim(var_export(\dd_trace_env_config("DD_VERSION"), true), "'"),
+        'dd_trace_sample_rate' => var_export(\dd_trace_env_config("DD_TRACE_SAMPLE_RATE"), true),
+        'dd_trace_enabled' => var_export(\dd_trace_env_config("DD_TRACE_ENABLED"), true),
+        'dd_runtime_metrics_enabled' => 'false', // PHP doesn't implement DD_RUNTIME_METRICS_ENABLED
+        'dd_tags' => $config_tags,
+        'dd_trace_propagation_style' => $config_propagation,
+        'dd_trace_debug' => var_export(\dd_trace_env_config("DD_TRACE_DEBUG"), true),
+        'dd_trace_otel_enabled' => var_export(\dd_trace_env_config("DD_TRACE_OTEL_ENABLED"), true),
+        'dd_log_level' => trim(var_export(\dd_trace_env_config("DD_TRACE_LOG_LEVEL"), true), "'"),
+    );
+    return jsonResponse(array(
+        'config' => $config
+    ));
+
+}));
+$router->addRoute('GET', '/trace/crash', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    posix_kill(posix_getpid(), 11);
 
     return jsonResponse([]);
 }));

@@ -41,7 +41,7 @@ jobs:
           elif github_context["event_name"] == "schedule":
               print("Scheduled job => run all libraries")
               result |= {"cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
-  
+
           else:
               pr_title = github_context["event"]["pull_request"]["title"].lower()
               match = re.search(rf"^\[({libraries})\]", pr_title)

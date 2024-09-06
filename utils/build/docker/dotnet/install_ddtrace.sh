@@ -23,7 +23,7 @@ else
             artifact=datadog-dotnet-apm-${DDTRACE_VERSION}.arm64.tar.gz
         else
             artifact=datadog-dotnet-apm-${DDTRACE_VERSION}.tar.gz
-        fi      
+        fi
 
         echo "Using artifact ${artifact}"
         curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
@@ -32,7 +32,7 @@ else
     tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
 fi
 
-apt-get install -y binutils #we need 'strings' command to extract assembly version which is part of binutils package
+# use 'strings' command from 'binutils' package to extract assembly version
 version=$(strings /opt/datadog/net6.0/Datadog.Trace.dll | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
 echo "${version:0:-2}" > /app/SYSTEM_TESTS_LIBRARY_VERSION
 
