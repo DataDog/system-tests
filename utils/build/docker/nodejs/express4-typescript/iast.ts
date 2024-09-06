@@ -386,6 +386,11 @@ function initSourceRoutes (app: Express): void {
     res.send('OK')
   })
 
+  app.get('/iast/source/path_parameter/test/:table', (req: Request, res: Response): void => {
+    readFileSync(req.params.table)
+    res.send('OK')
+  })
+
   app.get('/iast/source/cookiename/test', (req: Request, res: Response): void => {
     let vulnParam: string = ''
     Object.keys(req.cookies).forEach((key: string): void => {

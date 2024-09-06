@@ -204,7 +204,9 @@ tests/:
         test_path.py:
           TestPath: missing_feature
         test_path_parameter.py:
-          TestPathParameter: missing_feature
+          TestPathParameter:
+            '*': *ref_4_4_0
+            nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
