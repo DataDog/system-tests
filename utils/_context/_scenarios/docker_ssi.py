@@ -105,15 +105,18 @@ class DockerSSIImageBuilder:
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
         self._docker_registry_tag = f"ghcr.io/datadog/system-tests/ssi_{self.docker_tag}:latest"
-        self.ssi_docker_tag = f"ssi_{self.docker_tag}"
+        self.ssi_installer_docker_tag = f"ssi_installer_{self.docker_tag}"
+        self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
     def build_weblog(self):
         if not self.exist_base_image() or self._push_base_images:
             # Build the base image
             self.build_lang_image()
-            self.build_ssi_image()
+            self.build_ssi_installer_image()
             self.should_push_base_images = True
-        self.build_weblog_image(self.ssi_docker_tag if self.should_push_base_images else self._docker_registry_tag)
+        self.build_weblog_image(
+            self.ssi_installer_docker_tag if self.should_push_base_images else self._docker_registry_tag
+        )
 
     def exist_base_image(self):
         """ Check if the base image is available in the docker registry """
@@ -126,9 +129,10 @@ class DockerSSIImageBuilder:
             return False
 
     def push_base_image(self):
+        """ Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer (only with the installer, without ssi autoinject )"""
         if self.should_push_base_images:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
-            docker.APIClient().tag(self.ssi_docker_tag, self._docker_registry_tag)
+            docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
             push_logs = self.docker_client.images.push(self._docker_registry_tag)
             self.print_docker_build_logs(self._docker_registry_tag, push_logs)
 
@@ -145,7 +149,9 @@ class DockerSSIImageBuilder:
     def build_lang_image(self):
 
         try:
-            logger.stdout(f"Building docker lang image with tag (install lang into base image): {self.docker_tag}")
+            logger.stdout(
+                f"Building docker lang image from base image [{self._base_image}] with tag (install lang into base image): {self.docker_tag}"
+            )
 
             _, build_logs = self.docker_client.images.build(
                 path="utils/build/ssi/",
@@ -164,36 +170,53 @@ class DockerSSIImageBuilder:
             logger.exception(f"Failed to build docker image: {e}")
             raise e
 
-    def build_ssi_image(self):
+    def build_ssi_installer_image(self):
         try:
-            logger.stdout(f"Building docker ssi image with tag (install ssi into lang image): ssi_{self.docker_tag}")
-            ssi_docker_tag = f"ssi_{self.docker_tag}"
+            logger.stdout(
+                f"Building docker ssi installer image from base image [{self.docker_tag}]. Generating tag (install ssi installer into lang image): {self.ssi_installer_docker_tag}"
+            )
             _, build_logs = self.docker_client.images.build(
                 path="utils/build/ssi/",
-                dockerfile="base/base_ssi.Dockerfile",
+                dockerfile="base/base_ssi_installer.Dockerfile",
                 platform=self._arch,
-                tag=ssi_docker_tag,
+                tag=self.ssi_installer_docker_tag,
                 buildargs={"LANG": self._library, "BASE_IMAGE": self.docker_tag},
             )
-            self.print_docker_build_logs(ssi_docker_tag, build_logs)
+            self.print_docker_build_logs(self.ssi_installer_docker_tag, build_logs)
 
         except Exception as e:
             logger.exception(f"Failed to build docker image: {e}")
             raise e
 
-    def build_weblog_image(self, ssi_docker_tag):
-        """ Build the final weblog image. We use the command line because we need the --build-context option """
+    def build_weblog_image(self, ssi_installer_docker_tag):
+        """ Build the final weblog image. Uses base ssi installer image, install the full ssi (to perform the auto inject) and build the weblog image """
+
         weblog_docker_tag = "weblog-injection:latest"
         logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
 
+        logger.stdout(
+            f"Building weblog image from base image [{ssi_installer_docker_tag}]. Generating tag (install ssi all) : {self.ssi_all_docker_tag}"
+        )
+        # Install the ssi to run the auto instrumentation
+        _, build_logs = self.docker_client.images.build(
+            path="utils/build/ssi/",
+            dockerfile=f"base/base_ssi.Dockerfile",
+            platform=self._arch,
+            tag=self.ssi_all_docker_tag,
+            buildargs={"BASE_IMAGE": ssi_installer_docker_tag},
+        )
+        logger.stdout(
+            f"Building docker final weblog image from base [{self.ssi_all_docker_tag}]. Genrating tag (final): {weblog_docker_tag}"
+        )
+        # Build the weblog image
         _, build_logs = self.docker_client.images.build(
             path=".",
             dockerfile=f"utils/build/ssi/{self._library}/{self._weblog}.Dockerfile",
             platform=self._arch,
             tag=weblog_docker_tag,
-            buildargs={"BASE_IMAGE": ssi_docker_tag},
+            buildargs={"BASE_IMAGE": self.ssi_all_docker_tag},
         )
-        self.print_docker_build_logs(ssi_docker_tag, build_logs)
+        self.print_docker_build_logs(ssi_installer_docker_tag, build_logs)
 
     def print_docker_build_logs(self, image_tag, build_logs):
         """ Print the docker build logs to docker_build.log file """
