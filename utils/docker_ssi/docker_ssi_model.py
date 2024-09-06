@@ -60,5 +60,5 @@ class WeblogDescriptor:
                     )
         return matrix_combinations
 
-    def clean_name(self, str):
-        return str.replace(":", "_").replace("/", "_").replace(".", "_").replace("-", "_").lower()
+    def clean_name(self, tag_to_clean):
+        return tag_to_clean.replace(":", "_").replace("/", "_").replace(".", "_").replace("-", "_").lower()
