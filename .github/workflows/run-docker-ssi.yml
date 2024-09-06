@@ -56,8 +56,26 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Install runner
-      uses: ./.github/actions/install_runner
+    #- name: Install runner
+    #  uses: ./.github/actions/install_runner
+
+      # Reemplace for the actions/install_runner/action.yaml
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.9"
+    - name: Check requirements.txt
+      shell: bash
+      run: cat requirements.txt
+    - name: Build runner
+      shell: bash
+      run: ./build.sh -i runner
+    - name: Print versions
+      shell: bash
+      run: |
+        source venv/bin/activate
+        python --version
+        pip freeze
+      # End of the actions/install_runner/action.yaml
     - name: Run Docker SSI scenario
       if: always()
       run: ./run.sh DOCKER_SSI --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-runtime ${{matrix.runtime}}
