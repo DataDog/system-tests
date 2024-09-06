@@ -104,7 +104,7 @@ class DockerSSIImageBuilder:
 
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
-        self._docker_registry_tag = f"ghcr.io/datadog/system-tests/ssi_{self.docker_tag}:latest"
+        self._docker_registry_tag = f"ghcr.io/datadog/system-tests/ssi_installer_{self.docker_tag}:latest"
         self.ssi_installer_docker_tag = f"ssi_installer_{self.docker_tag}"
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
@@ -134,7 +134,7 @@ class DockerSSIImageBuilder:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
             push_logs = self.docker_client.images.push(self._docker_registry_tag)
-            self.print_docker_build_logs(self._docker_registry_tag, push_logs)
+            self.print_docker_push_logs(self._docker_registry_tag, push_logs)
 
     def get_base_docker_tag(self):
         """ Resolves and format the docker tag for the base image """
