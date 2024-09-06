@@ -24,10 +24,10 @@ If the test contains `@scenarios.SCENARIO_NAME` such as `@scenarios.integrations
 ## Run only one class, or one method
 
 ```bash
-./run.sh tests/test_waf.py::Test_WAFAddresses
+./run.sh tests/parametric/test_waf.py::Test_WAFAddresses
 
 # and one method:
-./run.sh tests/test_waf.py::Test_WAFAddresses::test_post_json_value
+./run.sh tests/parametric/test_waf.py::Test_WAFAddresses::test_post_json_value
 ```
 
 ## Run a scenario
