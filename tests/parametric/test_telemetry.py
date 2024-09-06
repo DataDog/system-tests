@@ -117,7 +117,7 @@ class Test_Consistent_Configs:
                 "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "true",
                 "DD_TRACE_CLIENT_IP_HEADER": "X-Forwarded-For",
                 "DD_TRACE_SERVICE_MAPPING": "plugin:custom",
-                "DD_TRACE_AGENT_URL": "my-host:1234",
+                # "DD_TRACE_AGENT_URL": "localhost:8126",
             }
         ],
     )
@@ -143,7 +143,6 @@ class Test_Consistent_Configs:
                 "x-forwarded-for",
             ),  # Unclear if correct key, see: https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit?disco=AAABVcOUNfU
             ("trace_service_mappings", "plugin:custom"),
-            ("trace_agent_url", "my-host:1234"),
         ]:
             if context.library == "cpp" and apm_telemetry_name in ("trace_header_tags"):
                 continue
@@ -156,7 +155,10 @@ class Test_Consistent_Configs:
                 assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
 
-        # Golang and CPP do not support DD_TRACE_<INTEGRATION>_ENABLED, so don't test them.
+        # Golang and CPP do not support DD_TRACE_<INTEGRATION>_ENABLED, so don't test them for this config.
+        apm_telemetry_name = _mapped_telemetry_name(context, "trace_disabled_integrations")
+        cfg_item = configuration_by_name.get(apm_telemetry_name)
+        assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
         if (
             context.library == "java"
             or context.library == "dotnet"
@@ -164,13 +166,15 @@ class Test_Consistent_Configs:
             or context.library == "python"
             or context.library == "ruby"
         ):
-            cfg_item = configuration_by_name.get("trace_disabled_integrations")
-            assert cfg_item is not None, "Missing telemetry config item for '{}'".format("trace_disabled_integrations")
+            
             assert cfg_item.get("value") is "grpc"
         if context.library == "php":
-            cfg_item = configuration_by_name.get("trace_disabled_integrations")
-            assert cfg_item is not None, "Missing telemetry config item for '{}'".format("trace_disabled_integrations")
+            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("value") is "phpredis"
+        # The trace_agent_url is a container address -- don't know the value, but we can assert its not empty (i.e, that it reports)
+        apm_telemetry_name = _mapped_telemetry_name(context, "trace_agent_url")
+        cfg_item = configuration_by_name.get(apm_telemetry_name)
+        assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
 
 
 @scenarios.parametric
