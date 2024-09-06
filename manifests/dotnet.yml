@@ -179,7 +179,6 @@ tests/:
         Test_Scanners: v1.28.6
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
-        Test_Consistent_Configs: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
@@ -315,6 +314,7 @@ tests/:
       Test_Otel_Tracer: v2.8.0
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
       Test_TelemetryInstallSignature: v2.45.0

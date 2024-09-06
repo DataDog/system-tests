@@ -278,11 +278,11 @@ tests/:
         See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
-      Test_Consistent_Configs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v0.96.0

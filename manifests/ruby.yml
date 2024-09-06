@@ -341,11 +341,11 @@ tests/:
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
-      Test_Consistent_Configs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v2.0.0
