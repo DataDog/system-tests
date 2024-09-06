@@ -26,9 +26,10 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: 'DataDog/system-tests'
-
+    - name: check os
+      run: echo ${{ matrix.github_runner }}
     - name: Install docker
-      if: ${{ matrix.platform.runner }} == 'arm-8core-linux'
+      if: ${{ matrix.platform.runner }} == 'arm-4core-linux'
       # The ARM64 Ubuntu has less things installed by default
       # We need docker, and acl allows us to use docker in the same session
       run: |
