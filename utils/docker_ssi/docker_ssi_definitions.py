@@ -64,8 +64,8 @@ DD_LIB_JAVA_INIT_TEST_APP_2 = WeblogDescriptor(
 )
 
 
-DD_LIB_JAVA_INIT_TEST_APP = WeblogDescriptor(
-    "dd-lib-java-init-test-app",
+JAVA_APP = WeblogDescriptor(
+    "java-app",
     "java",
     [
         SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeVersions.JAVA_11)
@@ -82,4 +82,4 @@ TOMCAT_APP = WeblogDescriptor(
 JAVA7_APP = WeblogDescriptor("java7-app", "python", [SupportedImages().UBUNTU_22_AMD64])
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [DD_LIB_JAVA_INIT_TEST_APP, TOMCAT_APP, JAVA7_APP]
+ALL_WEBLOGS = [JAVA_APP, TOMCAT_APP, JAVA7_APP]

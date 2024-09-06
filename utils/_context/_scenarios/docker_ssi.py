@@ -130,10 +130,7 @@ class DockerSSIImageBuilder:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             docker.APIClient().tag(self.ssi_docker_tag, self._docker_registry_tag)
             push_logs = self.docker_client.images.push(self._docker_registry_tag)
-            logger.info(f"Push logs: {push_logs}")
-        # self.print_docker_build_logs(self._docker_registry_tag, push_logs)
-        # docker tag $IMAGE ghcr.io/datadog/guardrails-testing/$IMAGE
-        # docker push ghcr.io/datadog/guardrails-testing/$IMAGE
+            self.print_docker_build_logs(self._docker_registry_tag, push_logs)
 
     def get_base_docker_tag(self):
         """ Resolves and format the docker tag for the base image """
@@ -209,6 +206,14 @@ class DockerSSIImageBuilder:
             if "stream" in chunk:
                 for line in chunk["stream"].splitlines():
                     vm_logger(scenario_name, "docker_build").info(line)
+
+    def print_docker_push_logs(self, image_tag, push_logs):
+        """ Print the docker push logs to docker_push.log file """
+        scenario_name = context.scenario.name
+        vm_logger(scenario_name, "docker_push").info("***************************************************************")
+        vm_logger(scenario_name, "docker_push").info(f"    Push docker image with tag: {image_tag}   ")
+        vm_logger(scenario_name, "docker_push").info("***************************************************************")
+        vm_logger(scenario_name, "docker_push").info(push_logs)
 
     @lru_cache
     def _get_docker_client(self):
