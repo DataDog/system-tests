@@ -100,30 +100,40 @@ class DockerSSIImageBuilder:
         self._runtime = runtime
         self._push_base_images = push_base_images
         self.docker_client = self._get_docker_client()
+        self.should_push_base_images = False
 
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
+        self._docker_registry_tag = f"ghcr.io/datadog/system-tests/ssi_{self.docker_tag}:latest"
+        self.ssi_docker_tag = f"ssi_{self.docker_tag}"
 
     def build_weblog(self):
         if not self.exist_base_image() or self._push_base_images:
             # Build the base image
             self.build_lang_image()
-            ssi_docker_tag = self.build_ssi_image()
-        self.build_weblog_image(ssi_docker_tag)
+            self.build_ssi_image()
+            self.should_push_base_images = True
+        self.build_weblog_image(self.ssi_docker_tag if self.should_push_base_images else self._docker_registry_tag)
 
     def exist_base_image(self):
         """ Check if the base image is available in the docker registry """
-        if True:
-            return False
         try:
-            self.docker_client.images.pull("ssi_" + self.docker_tag)
+            self.docker_client.images.pull(self._docker_registry_tag)
+            logger.info("Base image found on the registry")
             return True
-        except docker.errors.ImageNotFound:
-            logger.info(f"Base image not found: ssi_{self.docker_tag}")
+        except Exception as e:
+            logger.info(f"Base image not found on the registry: ssi_{self.docker_tag}")
             return False
 
     def push_base_image(self):
-        self.docker_client.images.push("ssi_" + self.docker_tag)
+        if self.should_push_base_images:
+            logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
+            docker.APIClient().tag(self.ssi_docker_tag, self._docker_registry_tag)
+            push_logs = self.docker_client.images.push(self._docker_registry_tag)
+            logger.info(f"Push logs: {push_logs}")
+        # self.print_docker_build_logs(self._docker_registry_tag, push_logs)
+        # docker tag $IMAGE ghcr.io/datadog/guardrails-testing/$IMAGE
+        # docker push ghcr.io/datadog/guardrails-testing/$IMAGE
 
     def get_base_docker_tag(self):
         """ Resolves and format the docker tag for the base image """
@@ -169,7 +179,7 @@ class DockerSSIImageBuilder:
                 buildargs={"LANG": self._library, "BASE_IMAGE": self.docker_tag},
             )
             self.print_docker_build_logs(ssi_docker_tag, build_logs)
-            return ssi_docker_tag
+
         except Exception as e:
             logger.exception(f"Failed to build docker image: {e}")
             raise e
