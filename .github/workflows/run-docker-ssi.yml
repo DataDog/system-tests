@@ -33,8 +33,6 @@ jobs:
       # The ARM64 Ubuntu has less things installed by default
       # We need docker, and acl allows us to use docker in the same session
       run: |
-        update-alternatives --install /usr/bin/$(gcc -dumpmachine)-gcc $(gcc -dumpmachine)-gcc /usr/bin/gcc 60 --slave /usr/bin/$(gcc -dumpmachine)-g++ $(gcc -dumpmachine)-g++ /usr/bin/g++
-
         curl -fsSL https://get.docker.com -o get-docker.sh
         sudo sh get-docker.sh
         sudo usermod -a -G docker $USER
