@@ -117,7 +117,7 @@ class Test_Consistent_Configs:
                 "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "true",
                 "DD_TRACE_CLIENT_IP_HEADER": "X-Forwarded-For",
                 "DD_TRACE_SERVICE_MAPPING": "plugin:custom",
-                # "DD_TRACE_AGENT_URL": "localhost:8126",
+                # "DD_TRACE_AGENT_URL": "some-host:some-port", # Don't want to configure this, since we need tracer <> agent connection to run these tests!
             }
         ],
     )
@@ -158,7 +158,6 @@ class Test_Consistent_Configs:
         # Golang and CPP do not support DD_TRACE_<INTEGRATION>_ENABLED, so don't test them for this config.
         apm_telemetry_name = _mapped_telemetry_name(context, "trace_disabled_integrations")
         cfg_item = configuration_by_name.get(apm_telemetry_name)
-        assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
         if (
             context.library == "java"
             or context.library == "dotnet"
@@ -166,7 +165,7 @@ class Test_Consistent_Configs:
             or context.library == "python"
             or context.library == "ruby"
         ):
-            
+            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
             assert cfg_item.get("value") is "grpc"
         if context.library == "php":
             assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
