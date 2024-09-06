@@ -29,7 +29,7 @@ jobs:
     - name: check os
       run: echo ${{ matrix.github_runner }}
     - name: Prepare arm runner
-      if: ${{ matrix.github_runner == 'arm-4core-linux' }} 
+      if: ${{ matrix.github_runner == 'arm-4core-linux' }}
       # The ARM64 Ubuntu has less things installed by default
       # We need docker, and acl allows us to use docker in the same session
       run: |
