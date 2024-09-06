@@ -421,6 +421,8 @@ tests/:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_BodyXml:
           '*': v1.39.0
           akka-http: missing_feature (Requires parsed body instrumentation)
@@ -431,22 +433,56 @@ tests/:
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_Optional_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_Telemetry:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
-      test_ssrf.py: missing_feature
+          vertx3: v1.40.0 # issue in context propagation in 1.39.0
+          vertx4: v1.40.0 # issue in context propagation in 1.39.0
+      test_ssrf.py:
+        Test_Ssrf_BodyJson:
+          '*': missing_feature (missing endpoint)
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_BodyUrlEncoded:
+          '*': missing_feature (missing endpoint)
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_BodyXml:
+          '*': missing_feature (missing endpoint)
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_Mandatory_SpanTags:
+          '*': missing_feature (missing endpoint)
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_Optional_SpanTags:
+          '*': missing_feature (missing endpoint)
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_StackTrace:
+          '*': missing_feature (missing endpoint)
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_Telemetry:
+          '*': missing_feature (missing endpoint)
+          spring-boot: 'v1.39.0'
+        Test_Ssrf_UrlQuery:
+          '*': missing_feature (missing endpoint)
+          spring-boot: 'v1.39.0'
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -1129,7 +1165,7 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.34.0
-      TestDynamicConfigTracingEnabled: missing_feature
+      TestDynamicConfigTracingEnabled: v1.32.0
       TestDynamicConfigV1: v1.17.0
       TestDynamicConfigV1_ServiceTargets: v1.31.0
       TestDynamicConfigV2: v1.31.0

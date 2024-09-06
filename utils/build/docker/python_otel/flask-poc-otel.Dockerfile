@@ -14,10 +14,10 @@ RUN pip uninstall -y psycopg2-binary
 RUN pip install psycopg2
 #############
 
-RUN pip install opentelemetry-distro==0.47b0 opentelemetry-exporter-otlp
+RUN pip install opentelemetry-distro==0.48b0 opentelemetry-exporter-otlp
 
 RUN opentelemetry-bootstrap -a install
-
+RUN pip freeze | grep opentelemetry
 RUN pip show opentelemetry-distro | grep Version: | cut -d' ' -f2 > SYSTEM_TESTS_LIBRARY_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
