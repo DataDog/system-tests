@@ -5,6 +5,7 @@ using System;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Xml.Serialization;
+
 #nullable disable
 
 namespace weblog
@@ -13,6 +14,57 @@ namespace weblog
     [Route("rasp")]
     public partial class RaspController : Controller
     {
+        [HttpGet("shi")]
+        public IActionResult shiGet(string list_dir)
+        {
+            return ExecuteCommandInternal("ls " + list_dir);
+        }
+
+        [XmlRoot("list_dir")]
+        public class ShiModel
+        {
+            [XmlText]
+            public string Value { get; set; }
+        }
+
+        [HttpPost("shi")]
+        [Consumes("application/xml")]
+        public IActionResult shiPostXml([FromBody] ShiModel data)
+        {
+            return ExecuteCommandInternal("ls " + data.Value);
+        }
+
+        [HttpPost("shi")]
+        [Consumes("application/x-www-form-urlencoded")]
+        public IActionResult shiPostForm([FromForm] Model data)
+        {
+            return ExecuteCommandInternal("ls " + data.List_dir);
+        }
+
+        [HttpPost("shi")]
+        [Consumes("application/json")]
+        public IActionResult shiPostJson([FromBody] Model data)
+        {
+            return ExecuteCommandInternal("ls " + data.List_dir);
+        }		
+		
+		private IActionResult ExecuteCommandInternal(string commandLine)
+        {
+            if (!string.IsNullOrEmpty(commandLine))
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.FileName = commandLine;
+                startInfo.UseShellExecute = true;
+                var result = Process.Start(startInfo);
+
+                return Content($"Process launched.");
+            }
+            else
+            {
+                return Content("No process name was provided");
+            }
+        }
+		
         [HttpGet("lfi")]
         public IActionResult lfiGet(string file)
         {
