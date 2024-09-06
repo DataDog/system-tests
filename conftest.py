@@ -16,7 +16,6 @@ from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
 from utils._decorators import released
-from utils._decorators import configure as configure_decorators
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -37,11 +36,6 @@ def pytest_addoption(parser):
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
-    parser.addoption(
-        "--strict-missing-features",
-        action="store_true",
-        help="Fail if an xpass is detected on a test flagged as missing feature",
-    )
 
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
@@ -79,8 +73,6 @@ def pytest_configure(config):
 
     if not config.option.report_run_url and "SYSTEM_TESTS_REPORT_RUN_URL" in os.environ:
         config.option.report_run_url = os.environ["SYSTEM_TESTS_REPORT_RUN_URL"]
-
-    configure_decorators(config)
 
     # First of all, we must get the current scenario
     for name in dir(scenarios):

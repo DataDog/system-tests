@@ -5,15 +5,6 @@ import semantic_version as semver
 from utils._context.core import context
 
 
-class _config:
-    # if True, missing features that xpass will be reported as failed
-    strict_missing_features = False
-
-
-def configure(config: pytest.Config):
-    _config.strict_missing_features = config.getoption("--strict-missing-features")
-
-
 # semver module offers two spec engine :
 # 1. SimpleSpec : not a good fit because it does not allows OR clause
 # 2. NpmSpec : not a good fit because it disallow prerelease version by default (6.0.0-pre is not in ">=5.0.0")
@@ -49,12 +40,7 @@ def _get_expected_failure_item(item, skip_reason):
         if not hasattr(item, "pytestmark"):
             setattr(item, "pytestmark", [])
 
-        if skip_reason.startswith("missing_feature"):
-            strict = _config.strict_missing_features
-        else:
-            strict = False
-
-        item.pytestmark.append(pytest.mark.xfail(reason=skip_reason, strict=strict))
+        item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
     else:
         raise ValueError(f"Unexpected skipped object: {item}")
 
