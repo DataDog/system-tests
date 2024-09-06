@@ -162,8 +162,8 @@ tests/:
     test_miscs.py:
       Test_Miscs: missing_feature
   test_config_consistency.py:
-    Test_ConfigServerErrorStatusesDefault: missing_feature
-    Test_ConfigServerErrorStatusesFeatureFlag: missing_feature
+    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant

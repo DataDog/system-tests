@@ -7,7 +7,7 @@ from utils import weblog, interfaces, scenarios, features
 
 @scenarios.default
 @features.tracing_configuration_consistency
-class Test_ConfigServerErrorStatusesDefault:
+class Test_Config_HttpServerErrorStatuses_Default:
     """ Verify behavior of http clients and distributed traces """
 
     def setup_status_code_400(self):
@@ -41,7 +41,7 @@ class Test_ConfigServerErrorStatusesDefault:
 
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
-class Test_ConfigServerErrorStatusesFeatureFlag:
+class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
     """ Verify behavior of http clients and distributed traces """
 
     def setup_status_code_200(self):
