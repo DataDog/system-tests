@@ -22,6 +22,9 @@ runs:
       with:
         path: venv
         key: runner_venv-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('requirements.txt') }}
+    - name: Check requirements.txt
+      shell: bash
+      run: cat requirements.txt
     - name: Build runner
       shell: bash
       if: steps.runner_cache.outputs.cache-hit != 'true'
