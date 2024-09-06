@@ -1,7 +1,7 @@
 import json
 import os
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from utils.onboarding.docker_ssi_definitions import get_github_matrix
+from utils.docker_ssi.docker_ssi_matrix_builder import get_github_matrix
 
 
 def get_github_workflow_map(scenarios, scenarios_groups):

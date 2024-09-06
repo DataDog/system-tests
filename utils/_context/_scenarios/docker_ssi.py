@@ -17,7 +17,7 @@ from utils.tools import logger
 
 from .core import Scenario
 from utils.virtual_machine.vm_logger import vm_logger
-from utils.onboarding.docker_ssi_definitions import RuntimeVersions
+from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 
 
 class DockerSSIScenario(Scenario):
@@ -49,6 +49,7 @@ class DockerSSIScenario(Scenario):
         self.ssi_image_builder = DockerSSIImageBuilder(
             self._weblog, self._base_image, self._library, self._arch, self._runtime, self.push_base_images
         )
+        self.ssi_image_builder.configure()
         self.ssi_image_builder.build_weblog()
         logger.info(f"Weblog build done!")
 
@@ -100,12 +101,13 @@ class DockerSSIImageBuilder:
         self._push_base_images = push_base_images
         self.docker_client = self._get_docker_client()
 
+    def configure(self):
         self.docker_tag = self.get_base_docker_tag()
 
     def build_weblog(self):
         if not self.exist_base_image() or self._push_base_images:
             # Build the base image
-            docker_tag = self.build_lang_image()
+            self.build_lang_image()
             ssi_docker_tag = self.build_ssi_image()
         self.build_weblog_image(ssi_docker_tag)
 
@@ -124,10 +126,9 @@ class DockerSSIImageBuilder:
         self.docker_client.images.push("ssi_" + self.docker_tag)
 
     def get_base_docker_tag(self):
+        """ Resolves and format the docker tag for the base image """
         return (
-            f"{self._base_image}_{RuntimeVersions.getVersion_id(self._library,self._runtime)}_{self._arch}".replace(
-                ".", "_"
-            )
+            f"{self._base_image}_{resolve_runtime_version(self._library,self._runtime)}_{self._arch}".replace(".", "_")
             .replace("-", "_")
             .replace(":", "_")
             .replace("/", "_")
@@ -188,6 +189,7 @@ class DockerSSIImageBuilder:
         self.print_docker_build_logs(ssi_docker_tag, build_logs)
 
     def print_docker_build_logs(self, image_tag, build_logs):
+        """ Print the docker build logs to docker_build.log file """
         scenario_name = context.scenario.name
         vm_logger(scenario_name, "docker_build").info("***************************************************************")
         vm_logger(scenario_name, "docker_build").info(f"    Building docker image with tag: {image_tag}   ")
