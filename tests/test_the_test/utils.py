@@ -5,12 +5,7 @@ from utils.tools import logger
 
 
 def run_system_tests(
-    scenario="MOCK_THE_TEST",
-    test_path=None,
-    verbose=False,
-    forced_test=None,
-    strict=False,
-    strict_missing_features=False,
+    scenario="MOCK_THE_TEST", test_path=None, verbose=False, forced_test=None, xfail_strict=False,
 ):
     cmd = ["./run.sh"]
 
@@ -22,10 +17,8 @@ def run_system_tests(
         cmd.append("-v")
     if forced_test:
         cmd.append(f"-F {forced_test}")
-    if strict:
-        cmd.append("--strict")
-    if strict_missing_features:
-        cmd.append("--strict-missing-features")
+    if xfail_strict:
+        cmd.append("-o xfail_strict=True")
 
     cmd = " ".join(cmd)
     logger.info(cmd)
