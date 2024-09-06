@@ -51,8 +51,8 @@ class JavaRuntimeVersions:
 
 
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND RUNTIME VERSIONS
-DD_LIB_JAVA_INIT_TEST_APP_2 = WeblogDescriptor(
-    "dd-lib-java-init-test-app",
+JAVA_APP = WeblogDescriptor(
+    "java-app",
     "java",
     [
         SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(JavaRuntimeVersions.get_all_versions()),
@@ -64,8 +64,8 @@ DD_LIB_JAVA_INIT_TEST_APP_2 = WeblogDescriptor(
 )
 
 
-JAVA_APP = WeblogDescriptor(
-    "java-app",
+JAVA_APP_2 = WeblogDescriptor(
+    "java-app_2",
     "java",
     [
         SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeVersions.JAVA_11)
