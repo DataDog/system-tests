@@ -395,6 +395,9 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+        test_path_parameter.py:
+          TestPathParameter:
+            '*': missing_feature
         test_uri.py:
           TestURI:
             '*': v1.23.0

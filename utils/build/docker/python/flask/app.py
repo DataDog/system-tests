@@ -884,6 +884,12 @@ def view_iast_source_path():
     return Response("OK")
 
 
+@app.route("/iast/source/path_parameter/test/<string:table>", methods=["GET", "POST"])
+def view_iast_source_path_parameter(table):
+    _sink_point_sqli(table=table)
+    return Response("OK")
+
+
 @app.route("/iast/path_traversal/test_insecure", methods=["POST"])
 def view_iast_path_traversal_insecure():
     path = flask_request.form["path"]
