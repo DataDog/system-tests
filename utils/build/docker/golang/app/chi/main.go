@@ -7,18 +7,17 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"weblog/internal/rasp"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
+	"weblog/internal/rasp"
 
 	"github.com/go-chi/chi/v5"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	chitrace "github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
 func main() {
@@ -153,7 +152,7 @@ func main() {
 		parentName := r.URL.Query().Get("parentName")
 		childName := r.URL.Query().Get("childName")
 
-		tags := []ddtrace.StartSpanOption{}
+		tags := []tracer.StartSpanOption{}
 
 		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
 		// and the traces/spans that will be generated below, so that we can reference to them in our tests.

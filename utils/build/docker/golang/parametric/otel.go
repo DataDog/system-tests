@@ -11,9 +11,9 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
 func ConvertKeyValsToAttributes(keyVals map[string]*ListVal) map[string][]attribute.KeyValue {
@@ -144,14 +144,11 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 				extractedContext, _ := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
 				state, _ := otel_trace.ParseTraceState(headers["tracestate"])
 
-				var traceID otel_trace.TraceID
-				var spanID otel_trace.SpanID
-				if w3cCtx, ok := extractedContext.(ddtrace.SpanContextW3C); ok {
-					traceID = w3cCtx.TraceID128Bytes()
-				} else {
-					fmt.Printf("Non-W3C context found in span, unable to get full 128 bit trace id")
-					uint64ToByte(extractedContext.TraceID(), traceID[:])
-				}
+				var (
+					traceID otel_trace.TraceID
+					spanID  otel_trace.SpanID
+				)
+				traceID = extractedContext.TraceIDBytes()
 				uint64ToByte(extractedContext.SpanID(), spanID[:])
 				config := otel_trace.SpanContextConfig{
 					TraceID:    traceID,
@@ -174,7 +171,6 @@ func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpan
 		span: span,
 		ctx:  ctx,
 	}
-
 	return &OtelStartSpanReturn{
 		SpanId:  hexSpanId,
 		TraceId: hex2int(span.SpanContext().TraceID().String()),
