@@ -32,10 +32,10 @@ func main() {
 		healthCheck, err := common.GetHealtchCheck()
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			ctx.JSON(http.StatusInternalServerError, err)
 		}
 		
-		c.JSON(http.StatusOK, healthCheck)
+		ctx.JSON(http.StatusOK, healthCheck)
 	})
 
 	r.Any("/waf", func(ctx *gin.Context) {
