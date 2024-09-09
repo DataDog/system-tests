@@ -13,6 +13,7 @@ from deepdiff import DeepDiff
 @scenarios.docker_ssi_service_name
 class TestDockerSSIServiceName:
     def test_service_name(self):
+        logger.info(f"Testing service name for {context.scenario.weblog_url}")
         requests.get(
             context.scenario.weblog_url, timeout=10,
         )
