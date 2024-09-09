@@ -73,11 +73,15 @@ jobs:
         python --version
         pip freeze
       # End of the actions/install_runner/action.yaml
+    - name: Check matrix (TODO DELETE)
+      if: always()
+      run: echo ${{ matrix.supported_features }}
     - name: Run Docker SSI scenario
       if: always()
       run: ./run.sh DOCKER_SSI --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-installable-runtime ${{matrix.installable_runtime}} --ssi-push-base-images
-      env:
-        TEST_LIBRARY: ${{ inputs.library }}
+    - name: Run Docker SSI service naming scenario
+      if: contains( matrix.supported_features, 'ssi_service_naming', )
+      run: ./run.sh DOCKER_SSI_SERVICE_NAME --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-installable-runtime ${{matrix.installable_runtime}} --ssi-push-base-images
     - name: Compress logs
       if: always()
       run: tar -czvf artifact.tar.gz $(ls | grep logs)

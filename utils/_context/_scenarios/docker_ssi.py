@@ -35,7 +35,7 @@ class DockerSSIScenario(Scenario):
         self._tested_components = {}
 
     def configure(self, config):
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
+        assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby"
 
         self._weblog = config.option.ssi_weblog
         self._library = config.option.ssi_library
@@ -50,7 +50,7 @@ class DockerSSIScenario(Scenario):
         self._push_base_images = config.option.ssi_push_base_images
         self._force_build = config.option.ssi_force_build
         self._libray_version = LibraryVersion(os.getenv(self._library), "")
-        # The runtime that is installed on the base image (bacause we installed automatically or because the weblog contains the runtime preinstalled).
+        # The runtime that is installed on the base image (because we installed automatically or because the weblog contains the runtime preinstalled).
         self._installed_runtime = None
 
         logger.stdout(
