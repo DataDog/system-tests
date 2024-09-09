@@ -69,6 +69,7 @@ class TestDockerSSIServiceName:
             "['metrics']['peer.port']",
             "['meta']['_dd.p.tid']",
             "['meta']['runtime-id']",
+            "['metrics']['thread.id']",
         ]
 
         for key in ddiffs["values_changed"]:

@@ -98,11 +98,6 @@ class DockerSSIScenario(Scenario):
     def close_targets(self):
         for container in reversed(self._required_containers):
             try:
-
-                stdout = container._container.logs(stdout=True, stderr=False)
-                stderr = container._container.logs(stdout=False, stderr=True)
-                logger.info(f"*Container {container} stdout: {stdout}")
-                logger.info(f"*Container {container} stderr: {stderr}")
                 container.remove()
                 logger.info(f"Removing container {container}")
             except:
