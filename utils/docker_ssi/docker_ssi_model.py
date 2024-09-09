@@ -43,7 +43,13 @@ class WeblogDescriptor:
         for image in self.supported_images:
             if not image.runtime_versions:
                 matrix_combinations.append(
-                    {"weblog": self.name, "base_image": image.tag, "arch": image.platform, "runtime": ""}
+                    {
+                        "weblog": self.name,
+                        "base_image": image.tag,
+                        "arch": image.platform,
+                        "runtime": "''",
+                        "unique_name": self.clean_name(f"{self.name}_{image.tag}_{image.platform}"),
+                    },
                 )
             else:
                 for runtime_version in image.runtime_versions:
@@ -52,7 +58,7 @@ class WeblogDescriptor:
                             "weblog": self.name,
                             "base_image": image.tag,
                             "arch": image.platform,
-                            "runtime": runtime_version.version if runtime_version else "''",
+                            "runtime": runtime_version.version,
                             "unique_name": self.clean_name(
                                 f"{self.name}_{image.tag}_{image.platform}_{runtime_version.version_id}"
                             ),
