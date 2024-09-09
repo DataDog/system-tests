@@ -131,7 +131,7 @@ class Test_Consistent_Configs:
             ("trace_rate_limit", "100"),
             ("trace_header_tags", "header:tag"),
             ("trace_enabled", ("true", True)),
-            ("trace_obfuscation_query_string_regexp", "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"),
+            ("trace_obfuscation_query_string_regexp", "^[a-zA-Z]$"),
             ("trace_log_directory", "/some/temporary/directory"),
             ("version", "123"),
             ("trace_http_client_error_statuses", "400"),
