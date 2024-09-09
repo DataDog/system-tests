@@ -1012,7 +1012,7 @@ class APMTestAgentContainer(TestedContainer):
             environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket"},
             healthcheck={"test": f"curl --fail --silent --show-error http://localhost:8126/info", "retries": 60,},
             ports={"8126": ("127.0.0.1", 8126)},
-            allow_old_container=True,
+            allow_old_container=False,
             volumes={
                 f"./{host_log_folder}/interfaces/": {"bind": "/var/run/datadog/", "mode": "rw",}
                 # f"/Users/roberto.montero/Documents/development/guardrails-testing/temp": {"bind": "/var/run/datadog/", "mode": "rw",}
@@ -1073,7 +1073,7 @@ class DockerSSIContainer(TestedContainer):
             host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
-            allow_old_container=True,
+            allow_old_container=False,
             environment={"DD_DEBUG": "true"},
             volumes={f"./{host_log_folder}/interfaces/": {"bind": "/var/run/datadog/", "mode": "rw",}},
         )
