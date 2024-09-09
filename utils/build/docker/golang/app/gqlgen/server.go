@@ -50,7 +50,7 @@ func main() {
 				if mod.Path == "gopkg.in/DataDog/dd-trace-go.v1" {
 					tracerVersion = mod.Version
 				} else if mod.Path == "github.com/DataDog/go-libddwaf/v3" {
-					libddwafVersion := mod.Version
+					libddwafVersion = mod.Version
 				}
 			}
 		}

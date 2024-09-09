@@ -1,10 +1,9 @@
-package main
+package getversion
 
 import (
     "os"
     "fmt"
 	"runtime/debug"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 
