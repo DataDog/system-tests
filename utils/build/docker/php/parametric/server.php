@@ -197,6 +197,17 @@ $router->addRoute('POST', '/trace/span/error', new ClosureRequestHandler(functio
     $span->meta['error.stack'] = arg($req, 'stack');
     return jsonResponse([]);
 }));
+$router->addRoute('POST', '/trace/span/add_event', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $name = arg($req, 'name');
+    $attributes = arg($req, 'attributes');
+    $timestamp = arg($req, 'timestamp');
+
+    $event = new \DDTrace\SpanEvent($name, $attributes, $timestamp * 1000);
+    $span->events[] = $event;
+
+    return jsonResponse([]);
+}));
 $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
     $span = $spans[arg($req, 'span_id')];
     $parent_id = arg($req, 'parent_id');
@@ -559,6 +570,35 @@ $router->addRoute('POST', '/trace/otel/get_links', new ClosureRequestHandler(fun
 
     return jsonResponse([]);
 }));
+$router->addRoute('POST', '/trace/otel/add_event', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    $spanId = arg($req, 'span_id');
+    $name = arg($req, 'name');
+    $attributes = arg($req, 'attributes');
+    $timestamp = arg($req, 'timestamp');
+
+    /** @var ?SDK\Span $span */
+    $span = $otelSpans[$spanId];
+
+    if ($span) {
+        $span->addEvent($name, $attributes ?? [], (int)($timestamp * 1000));
+    }
+
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/record_exception', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    $spanId = arg($req, 'span_id');
+    $message = arg($req, 'message');
+    $attributes = arg($req, 'attributes');
+
+    /** @var ?SDK\Span $span */
+    $span = $otelSpans[$spanId];
+
+    if ($span) {
+        $span->recordException(new \Exception($message), $attributes ?? []);
+    }
+
+    return jsonResponse([]);
+}));
 $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
 
     $tags_array = \dd_trace_env_config("DD_TAGS");
@@ -593,6 +633,11 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
         'config' => $config
     ));
 
+}));
+$router->addRoute('GET', '/trace/crash', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    posix_kill(posix_getpid(), 11);
+
+    return jsonResponse([]);
 }));
 $server->start($router, $errorHandler);
 

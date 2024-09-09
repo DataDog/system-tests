@@ -821,8 +821,7 @@ def _sink_point_path_traversal(tainted_str="user"):
 @app.route("/iast/source/body/test", methods=["POST"])
 def view_iast_source_body():
     table = flask_request.json.get("name")
-    user = flask_request.json.get("value")
-    _sink_point_sqli(table=table, id=user)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
@@ -881,6 +880,12 @@ def view_iast_source_parameter():
 @app.route("/iast/source/path/test", methods=["GET", "POST"])
 def view_iast_source_path():
     table = flask_request.path
+    _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/path_parameter/test/<string:table>", methods=["GET", "POST"])
+def view_iast_source_path_parameter(table):
     _sink_point_sqli(table=table)
     return Response("OK")
 

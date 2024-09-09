@@ -105,6 +105,8 @@ tests/:
           TestParameterValue: missing_feature
         test_path.py:
           TestPath: missing_feature
+        test_path_parameter.py:
+          TestPathParameter: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -251,6 +253,8 @@ tests/:
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
+    test_crashtracking.py:
+      Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: missing_feature
