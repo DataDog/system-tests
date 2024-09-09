@@ -9,7 +9,7 @@ import json
 import pathlib
 
 
-@features.host_auto_installation_script
+@features.ssi_guardrails
 @scenarios.docker_ssi
 class TestDockerSSIInstall:
     def test_install(self):

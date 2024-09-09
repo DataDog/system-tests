@@ -9,7 +9,7 @@ import pathlib
 from deepdiff import DeepDiff
 
 
-@features.host_auto_installation_script
+@features.ssi_service_naming
 @scenarios.docker_ssi_service_name
 class TestDockerSSIServiceName:
     def test_service_name(self):
