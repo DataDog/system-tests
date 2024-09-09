@@ -119,6 +119,22 @@ public class App {
         return "012345678901234567890123456789012345678901";
     }
 
+    // @GetMapping("/http-url")
+    // String getHttpUrl() {
+    //     LOGGER.info("MTOFF: Getting span http.url tag");
+    //     Span span = this.tracer.activeSpan();
+    //     if (span == null) {
+    //         LOGGER.info("MTOFF: null");
+    //         return "";
+    //     }
+    //     if (span instanceof MutableSpan) {
+    //         return (String)(((MutableSpan) span).getTag("http.url"));
+    //     } else {
+    //         LOGGER.info("MTOFF: not mutablespan");
+    //         return "";
+    //     }
+    // } 
+
     @RequestMapping(value = "/tag_value/{value}/{code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
     ResponseEntity<String> tagValue(@PathVariable final String value, @PathVariable final int code) {
         setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
@@ -939,6 +955,7 @@ public class App {
     public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
         return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
     }
+
 
     @Bean
     @ConditionalOnProperty(
