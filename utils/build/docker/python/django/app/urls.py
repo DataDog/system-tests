@@ -121,6 +121,13 @@ def request_downstream(request, *args, **kwargs):
     return HttpResponse(response.data)
 
 
+@csrf_exempt
+def set_cookie(request):
+    res = HttpResponse("OK")
+    res.headers["Set-Cookie"] = f"{request.GET.get('name')}={request.GET.get('value')}"
+    return res
+
+
 ### BEGIN EXPLOIT PREVENTION
 
 
@@ -500,8 +507,7 @@ def view_iast_source_body(request):
     import json
 
     table = json.loads(request.body).get("name")
-    user = json.loads(request.body).get("value")
-    _sink_point_sqli(table=table, id=user)
+    _sink_point_sqli(table=table)
     return HttpResponse("OK")
 
 
@@ -548,6 +554,21 @@ def view_iast_source_parameter(request):
     elif request.method == "POST":
         table = request.POST.get("table")
         _sink_point_sqli(table=table[0])
+
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_source_path(request):
+    table = request.path_info
+    _sink_point_sqli(table=table[0])
+
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_source_path_parameter(request, table):
+    _sink_point_sqli(table=table)
 
     return HttpResponse("OK")
 
@@ -694,6 +715,7 @@ urlpatterns = [
     path("requestdownstream/", request_downstream),
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
+    path("set_cookie", set_cookie),
     path("rasp/lfi", rasp_lfi),
     path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),
@@ -738,6 +760,8 @@ urlpatterns = [
     path("iast/source/header/test", view_iast_source_header_value),
     path("iast/source/parametername/test", view_iast_source_parametername),
     path("iast/source/parameter/test", view_iast_source_parameter),
+    path("iast/source/path/test", view_iast_source_path),
+    path("iast/source/path_parameter/test/<str:table>", view_iast_source_path_parameter),
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("make_distant_call", make_distant_call),

@@ -92,6 +92,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
@@ -775,34 +778,6 @@ public class App {
         return "hi OGNL";
     }
 
-    @RequestMapping("/rasp/ssrf")
-    String raspSSRF(@RequestParam(required = false, name="url") String url) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        try {
-            URL server;
-            try {
-                server = new URL(url);
-            } catch (MalformedURLException e) {
-                server = new URL("http://" + url);
-            }
-
-            HttpURLConnection connection = (HttpURLConnection)server.openConnection();
-            connection.connect();
-            System.out.println("Response code:" + connection.getResponseCode());
-            System.out.println("Response message:" + connection.getResponseMessage());
-            InputStream test = connection.getErrorStream();
-            String result = new BufferedReader(new InputStreamReader(test)).lines().collect(Collectors.joining("\n"));
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            return "ssrf exception :(";
-        }
-    }
-
     @RequestMapping("/make_distant_call")
     DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
         URL urlObject = new URL(url);
@@ -838,6 +813,15 @@ public class App {
         result.response_headers = response_headers;
 
         return result;
+    }
+
+    @RequestMapping("/createextraservice")
+    public String createextraservice(@RequestParam String serviceName) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("service", serviceName);
+        }
+        return "OK";
     }
 
     public static final class DistantCallResponse {
@@ -1027,6 +1011,10 @@ public class App {
         return ResponseEntity.ok(headers);
     }
 
+    @GetMapping(value = "/set_cookie")
+    public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
+        return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
+    }
 
     @Bean
     @ConditionalOnProperty(

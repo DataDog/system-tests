@@ -10,7 +10,7 @@ class _AutoInjectNotSupportedBaseTest:
 
     def test_app_working(self, virtual_machine):
         """ Test app is working."""
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
 

@@ -76,6 +76,7 @@ class TestedContainer:
         allow_old_container=False,
         healthcheck=None,
         stdout_interface=None,
+        local_image_only: bool = False,
         **kwargs,
     ) -> None:
         self.name = name
@@ -83,7 +84,7 @@ class TestedContainer:
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
-        self.image = ImageInfo(image_name)
+        self.image = ImageInfo(image_name, local_image_only=local_image_only)
         self.healthcheck = healthcheck
 
         # healthy values:
@@ -270,7 +271,7 @@ class TestedContainer:
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.debug(f"Try #{i}: {result}")
+                logger.debug(f"Try #{i} for {self.name}: {result}")
 
                 if result.exit_code == 0:
                     break
@@ -401,14 +402,21 @@ class SqlDbTestedContainer(TestedContainer):
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
-    def __init__(self, image_name):
+    def __init__(self, image_name: str, local_image_only: bool):
+        # local_image_only: boolean
+        # True if the image is only available locally and can't be loaded from any hub
+
         self.env = None
         self.name = image_name
+        self.local_image_only = local_image_only
 
     def load(self):
         try:
             self._image = _get_client().images.get(self.name)
         except docker.errors.ImageNotFound:
+            if self.local_image_only:
+                pytest.exit(f"Image {self.name} not found locally, please build it", 1)
+
             logger.stdout(f"Pulling {self.name}")
             self._image = _get_client().images.pull(self.name)
 
@@ -480,11 +488,12 @@ class AgentContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment=environment,
             healthcheck={
-                "test": f"curl --fail --silent --show-error http://localhost:{self.agent_port}/info",
+                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.agent_port}/info",
                 "retries": 60,
             },
             ports={self.agent_port: f"{self.agent_port}/tcp"},
             stdout_interface=interfaces.agent_stdout,
+            local_image_only=True,
         )
 
         self.agent_version = None
@@ -533,7 +542,7 @@ class BuddyContainer(TestedContainer):
             name=name,
             image_name=image_name,
             host_log_folder=host_log_folder,
-            healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
+            healthcheck={"test": "curl --fail --silent --show-error --max-time 2 localhost:7777", "retries": 60},
             ports={"7777/tcp": proxy_port},  # not the proxy port
             environment={
                 **environment,
@@ -588,9 +597,13 @@ class WeblogContainer(TestedContainer):
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail --silent --show-error localhost:{self.port}", "retries": 60},
+            healthcheck={
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}",
+                "retries": 60,
+            },
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
+            local_image_only=True,
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
@@ -670,7 +683,7 @@ class WeblogContainer(TestedContainer):
         # https://github.com/DataDog/system-tests/issues/2799
         if self.library in ("nodejs", "python"):
             self.healthcheck = {
-                "test": f"curl --fail --silent --show-error localhost:{self.port}/healthcheck",
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
             }
 
@@ -1012,7 +1025,7 @@ class MountInjectionVolume(TestedContainer):
         )
 
     def _lib_init_image(self, lib_init_image):
-        self.image = ImageInfo(lib_init_image)
+        self.image = ImageInfo(lib_init_image, local_image_only=False)
         # Dotnet compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {
