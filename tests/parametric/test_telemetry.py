@@ -116,7 +116,6 @@ class Test_Consistent_Configs:
                 "DD_HTTP_SERVER_ERROR_STATUSES": "500",
                 "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "true",
                 "DD_TRACE_CLIENT_IP_HEADER": "X-Forwarded-For",
-                "DD_TRACE_SERVICE_MAPPING": "plugin:custom",
                 # "DD_TRACE_AGENT_URL": "some-host:some-port", # Don't want to configure this, since we need tracer <> agent connection to run these tests!
             }
         ],
@@ -142,7 +141,6 @@ class Test_Consistent_Configs:
                 "trace_client_ip_header",
                 "X-Forwarded-For",
             ),  # Unclear if correct key, see: https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit?disco=AAABVcOUNfU
-            ("trace_service_mappings", "plugin:custom"),
         ]:
             if context.library == "cpp" and apm_telemetry_name in ("trace_header_tags"):
                 continue
