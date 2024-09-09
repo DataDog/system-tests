@@ -59,7 +59,7 @@ class WeblogDescriptor:
                         "weblog": self.name,
                         "base_image": image.tag,
                         "arch": image.platform,
-                        "installable_runtime": "",
+                        "installable_runtime": "''",
                         "unique_name": self.clean_name(f"{self.name}_{image.tag}_{image.platform}"),
                     },
                 )
@@ -74,6 +74,7 @@ class WeblogDescriptor:
                             "unique_name": self.clean_name(
                                 f"{self.name}_{image.tag}_{image.platform}_{runtime_version.version_id}"
                             ),
+                            "supported_feature_ids": self.suppported_feature_ids,
                         }
                     )
         return matrix_combinations
