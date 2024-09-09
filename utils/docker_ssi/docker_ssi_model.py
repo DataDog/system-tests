@@ -33,10 +33,22 @@ class WeblogDescriptor:
     """ Encapsulates information of the weblog: name, library and 
         supported images with the supported installable runtime versions """
 
-    def __init__(self, name, library, supported_images):
+    # see utils._features to check ids
+    def __init__(self, name, library, supported_images, suppported_feature_ids=[322]):
         self.name = name
         self.library = library
         self.supported_images = supported_images
+        self.suppported_feature_ids = suppported_feature_ids
+
+    def with_supported_feature_ids(self, suppported_feature_ids):
+        """ by default we allways support ss_guardrails feature, append more features if needed """
+        self.suppported_feature_ids += suppported_feature_ids
+        return self
+
+    def with_supported_only_feature_ids(self, suppported_feature_ids):
+        """ override the default supported features """
+        self.suppported_feature_ids = suppported_feature_ids
+        return self
 
     def get_matrix(self):
         matrix_combinations = []
