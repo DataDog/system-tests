@@ -1,6 +1,7 @@
 package main
 
 import (
+	"runtime/debug"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +18,18 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+type HealtchCheckLibrary struct {
+    Language   string    `json:"language"`
+    Version   string    `json:"version"`
+    AppsecEventRulesVersion   string    `json:"appsec_event_rules_version"`
+    LibddwafVersion   string    `json:"libddwaf_version"`
+}
+
+type HealtchCheck struct {
+    Status string `json:"status"`
+    Library  HealtchCheckLibrary    `json:"library"`
+}
+
 func main() {
 	tracer.Start()
 	defer tracer.Stop()
@@ -27,6 +40,45 @@ func main() {
 
 	r.Any("/", func(c echo.Context) error {
 		return c.NoContent(http.StatusOK)
+	})
+
+	r.GET("/healthcheck", func(c echo.Context) error {
+		library := HealtchCheckLibrary{
+			Language: "golang",
+			Version: "",
+			AppsecEventRulesVersion: "",
+			LibddwafVersion: "",
+        }
+
+		result := HealtchCheck{
+			Status: "ok",
+			Library: library,
+		}
+
+		if bi, ok := debug.ReadBuildInfo(); ok {
+			for _, mod := range bi.Deps {
+				println(mod.Path, mod.Version)
+
+				if mod.Path == "gopkg.in/DataDog/dd-trace-go.v1" {
+					library.Version = mod.Version
+				} else if mod.Path == "github.com/DataDog/go-libddwaf/v3" {
+					library.LibddwafVersion = mod.Version
+				}
+			}
+		}
+
+        if library.Version == "" {
+            return c.JSON(http.StatusInternalServerError, "Can't get dd-trace-go version")
+        }
+
+		appsecEventRulesVersion, err := os.ReadFile("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION")
+        if err != nil {
+            return c.JSON(http.StatusInternalServerError, "Can't get SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION")
+        }
+
+		library.AppsecEventRulesVersion = string(appsecEventRulesVersion)
+		
+		return c.JSON(http.StatusOK, result)
 	})
 
 	r.Any("/*", func(c echo.Context) error {

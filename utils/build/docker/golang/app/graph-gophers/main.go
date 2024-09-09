@@ -1,6 +1,7 @@
 package main
 
 import (
+	"runtime/debug"
 	"net/http"
 	"weblog/internal/common"
 
@@ -46,6 +47,55 @@ func main() {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		var tracerVersion string
+		var libddwafVersion string
+
+		if bi, ok := debug.ReadBuildInfo(); ok {
+			for _, mod := range bi.Deps {
+				println(mod.Path, mod.Version)
+
+				if mod.Path == "gopkg.in/DataDog/dd-trace-go.v1" {
+					tracerVersion = mod.Version
+				} else if mod.Path == "github.com/DataDog/go-libddwaf/v3" {
+					libddwafVersion := mod.Version
+				}
+			}
+		}
+
+        if tracerVersion == "" {
+            http.Error(w, "Can't get dd-trace-go version", http.StatusInternalServerError)
+            return
+        }
+
+		appsec_rules_version, err := os.ReadFile("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION")
+        if err != nil {
+            http.Error(w, "Can't get SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", http.StatusInternalServerError)
+            return
+        }
+		
+        libray := map[string]interface{}{
+            "language":  "golang",
+            "version":   string(tracerVersion),
+            "appsec_event_rules_version": string(appsec_rules_version),
+			"libddwaf_version": libddwafVersion,
+        }
+
+        data := map[string]interface{}{
+            "status": "ok",
+            "library": libray,
+        }
+
+        jsonData, err := json.Marshal(data)
+        if err != nil {
+            http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+            return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(jsonData)
 	})
 
 	common.InitDatadog()

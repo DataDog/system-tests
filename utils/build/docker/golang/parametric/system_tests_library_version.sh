@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cat SYSTEM_TESTS_LIBRARY_VERSION
+go system_tests_library_version.go
