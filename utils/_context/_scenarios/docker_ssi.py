@@ -155,7 +155,9 @@ class DockerSSIImageBuilder:
             self.build_ssi_installer_image()
             self.should_push_base_images = True if not self.exist_base_image() or self._push_base_images else False
         self.build_weblog_image(
-            self.ssi_installer_docker_tag if self.should_push_base_images else self._docker_registry_tag
+            self.ssi_installer_docker_tag
+            if self._force_build or self.should_push_base_images
+            else self._docker_registry_tag
         )
 
     def exist_base_image(self):
