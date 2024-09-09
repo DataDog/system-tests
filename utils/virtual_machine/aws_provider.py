@@ -29,6 +29,14 @@ class AWSPulumiProvider(VmProvider):
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_onboarding"
 
+    def configure(self, required_vms):
+        super().configure(required_vms)
+        # Configure the ssh connection for the VMs
+        self.pulumi_ssh = PulumiSSH()
+        self.pulumi_ssh.load(required_vms)
+        for vm in required_vms:
+            vm.ssh_config.username = vm.aws_config.user
+
     def stack_up(self):
         logger.info(f"Starting AWS VMs: {self.vms}")
 
@@ -263,7 +271,7 @@ class AWSCommander(Commander):
         else:
             # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
             # same remote machine in the same log file
-            header = "*****************************************************************"
+            header = "\n *****************************************************************"
             Output.all(vm.name, installation_id, remote_command, cmd_exec_install.stdout).apply(
                 lambda args: vm_logger(context.scenario.name, args[0]).info(
                     f"{header} \n  - COMMAND: {args[1]} \n {header} \n {args[2]} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {args[3]}"

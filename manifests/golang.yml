@@ -119,6 +119,8 @@ tests/:
           TestParameterValue: missing_feature
         test_path.py:
           TestPath: missing_feature
+        test_path_parameter.py:
+          TestPathParameter: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -131,6 +133,7 @@ tests/:
         Test_Sqli_Mandatory_SpanTags: missing_feature
         Test_Sqli_Optional_SpanTags: missing_feature
         Test_Sqli_StackTrace: v1.66.0-dev
+        Test_Sqli_Telemetry: missing_feature
         Test_Sqli_UrlQuery: v1.66.0-dev
       test_ssrf.py:
         Test_Ssrf_BodyJson: v1.65.1-rc.1
@@ -139,6 +142,7 @@ tests/:
         Test_Ssrf_Mandatory_SpanTags: missing_feature
         Test_Ssrf_Optional_SpanTags: missing_feature
         Test_Ssrf_StackTrace: v1.65.1-rc.1
+        Test_Ssrf_Telemetry: missing_feature
         Test_Ssrf_UrlQuery: v1.65.1-rc.1
     waf/:
       test_addresses.py:

@@ -8,17 +8,35 @@ case $(echo "${DD_TRACE_DEBUG:-false}" | tr '[:upper:]' '[:lower:]') in
   *);;
 esac
 
-# Run client library with:
-# - OTel integration enabled to use the OTel API
-# - Spring and its web-server integrations disabled to prevent generating unrelated spans
-java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
-  -XX:TieredStopAtLevel=1 \
-  -Ddd.jmxfetch.enabled=false \
-  -Ddd.telemetry.dependency-collection.enabled=false \
-  -Ddd.trace.otel.enabled=true \
-  -Ddd.integration.servlet-request-body.enabled=false \
+# Enable OTel Tracing API support for /trace/otel endpoint
+ENABLE_OTEL_TRACING_API=-Ddd.trace.otel.enabled=true
+
+# Enable crash tracking for /trace/crash related tests
+ENABLE_CRASH_TRACKING=(-XX:OnError="/tmp/datadog/java/dd_crash_uploader.sh %p" \
+  -XX:ErrorFile=/tmp/datadog/java/hs_err_pid_%p.log \
+  -XX:OnOutOfMemoryError="/tmp/datadog/java/dd_oome_notifier.sh %p")
+
+# Disable features
+DISABLED_FEATURES=(-Ddd.telemetry.dependency-collection.enabled=false)
+
+# Disable integrations to avoid creating unexpected spans
+# - Spring Boot related integrations
+# - AppSec process monitoring
+DISABLE_INTEGRATIONS=(-Ddd.integration.servlet-request-body.enabled=false \
   -Ddd.integration.spring-beans.enabled=false \
   -Ddd.integration.spring-path-filter.enabled=false \
   -Ddd.integration.spring-web.enabled=false \
   -Ddd.integration.tomcat.enabled=false \
+  -Ddd.integration.java-lang-appsec.enabled=false)
+
+# Limit JIT to tier one as the client application is a short-lived process that frequently killed / restarted
+OPTIMIZATION_OPTIONS=(-XX:TieredStopAtLevel=1)
+
+# Start client application
+java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
+  $ENABLE_OTEL_TRACING_API \
+  "${ENABLE_CRASH_TRACKING[@]}" \
+  "${DISABLED_FEATURES[@]}" \
+  "${DISABLE_INTEGRATIONS[@]}" \
+  "${OPTIMIZATION_OPTIONS[@]}" \
   -jar target/dd-trace-java-client-1.0.0.jar

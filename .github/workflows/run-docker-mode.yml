@@ -20,6 +20,8 @@ jobs:
           - name: proxy
             internal: datadog/system-tests:proxy-v1
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     name: Build (${{ matrix.image.name }})
     steps:
       - name: Checkout
@@ -98,6 +100,8 @@ jobs:
           # - rails70
           - rails71
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     name: Build (${{ matrix.app }})
     steps:
       - name: Checkout

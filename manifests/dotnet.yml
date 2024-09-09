@@ -106,6 +106,8 @@ tests/:
           TestParameterValue: v2.28.0
         test_path.py:
           TestPath: v2.39.0
+        test_path_parameter.py:
+          TestPathParameter: missing_feature
         test_uri.py:
           TestURI: irrelevant
     rasp/:
@@ -116,8 +118,17 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.52.0
         Test_Lfi_Optional_SpanTags: v2.52.0
         Test_Lfi_StackTrace: v2.51.0
+        Test_Lfi_Telemetry: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
-      test_shi.py: missing_feature
+      test_shi.py:
+        Test_Shi_BodyJson: v3.2.0
+        Test_Shi_BodyUrlEncoded: v3.2.0
+        Test_Shi_BodyXml: v3.2.0
+        Test_Shi_Mandatory_SpanTags: v3.2.0
+        Test_Shi_Optional_SpanTags: v3.2.0
+        Test_Shi_StackTrace: v3.2.0
+        Test_Shi_Telemetry: missing_feature
+        Test_Shi_UrlQuery: v3.2.0
       test_sqli.py:
         Test_Sqli_BodyJson: v2.54.0
         Test_Sqli_BodyUrlEncoded: v2.54.0
@@ -125,6 +136,7 @@ tests/:
         Test_Sqli_Mandatory_SpanTags: v2.54.0
         Test_Sqli_Optional_SpanTags: v2.54.0
         Test_Sqli_StackTrace: v2.54.0
+        Test_Sqli_Telemetry: v2.54.0
         Test_Sqli_UrlQuery: v2.54.0
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.51.0
@@ -133,6 +145,7 @@ tests/:
         Test_Ssrf_Mandatory_SpanTags: v2.51.0
         Test_Ssrf_Optional_SpanTags: v2.51.0
         Test_Ssrf_StackTrace: v2.51.0
+        Test_Ssrf_Telemetry: v2.51.0
         Test_Ssrf_UrlQuery: v2.51.0
     waf/:
       test_addresses.py:
@@ -200,7 +213,7 @@ tests/:
       Test_Blocking_response_headers: v2.32.0
       Test_Blocking_response_status: v2.32.0
       Test_Blocking_user_id: v2.27.0
-      Test_Suspicious_Request_Blocking: missing_feature (v2.29.0, but test is not implemented)
+      Test_Suspicious_Request_Blocking: v3.2.0
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
     test_customconf.py:
