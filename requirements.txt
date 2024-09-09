@@ -19,11 +19,11 @@ jsonschema==4.16.0
 rfc3339-validator==0.1.4
 semantic-version==2.10.0
 
-matplotlib
+matplotlib  # for performance tests
 
 docker==6.0.0
 
-paramiko==3.1.0
+paramiko==3.4.1
 scp==0.14.5
 
 ddapm-test-agent==1.18.0
