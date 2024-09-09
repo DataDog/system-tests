@@ -34,11 +34,11 @@ class WeblogDescriptor:
         supported images with the supported installable runtime versions """
 
     # see utils._features to check ids
-    def __init__(self, name, library, supported_images, suppported_feature_ids=[322]):
+    def __init__(self, name, library, supported_images):
         self.name = name
         self.library = library
         self.supported_images = supported_images
-        self.suppported_feature_ids = suppported_feature_ids
+        self.suppported_feature_ids = [322]
 
     def with_supported_feature_ids(self, suppported_feature_ids):
         """ by default we allways support ss_guardrails feature, append more features if needed """
