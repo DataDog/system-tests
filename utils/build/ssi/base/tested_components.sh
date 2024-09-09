@@ -1,7 +1,7 @@
 #!/bin/bash
+# shellcheck disable=SC2116,SC2086
 export DD_APM_INSTRUMENTATION_DEBUG=false
 DD_LANG=$1
-
 
 if [ "$DD_LANG" == "java" ]; then
     java_version=$(java -version 2>&1)
