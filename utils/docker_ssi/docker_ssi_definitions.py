@@ -64,8 +64,8 @@ JAVA_APP = WeblogDescriptor(
 )
 
 
-JAVA_APP_2 = WeblogDescriptor(
-    "java-app_2",
+JAVA_APP_ZZ = WeblogDescriptor(
+    "java-app",
     "java",
     [
         SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeVersions.JAVA_11)
@@ -76,10 +76,10 @@ JAVA_APP_2 = WeblogDescriptor(
     ],
 )
 
-TOMCAT_APP = WeblogDescriptor(
-    "tomcat-app", "python", [SupportedImages().TOMCAT_9_AMD64, SupportedImages().TOMCAT_9_ARM64]
+TOMCAT9_APP = WeblogDescriptor(
+    "tomcat9-app", "java", [SupportedImages().TOMCAT_9_AMD64, SupportedImages().TOMCAT_9_ARM64]
 )
-JAVA7_APP = WeblogDescriptor("java7-app", "python", [SupportedImages().UBUNTU_22_AMD64])
+JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JAVA_APP, TOMCAT_APP, JAVA7_APP]
+ALL_WEBLOGS = [JAVA_APP, TOMCAT9_APP, JAVA7_APP]

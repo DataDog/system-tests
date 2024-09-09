@@ -54,6 +54,7 @@ def pytest_addoption(parser):
         "--ssi-runtime", type=str, action="store", help="Set the language runtime to install on the docker base image"
     )
     parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Push docker ssi base images")
+    parser.addoption("--ssi-force-build", "-B", action="store_true", help="Force build ssi base images")
 
     # Parametric scenario options
     parser.addoption(
