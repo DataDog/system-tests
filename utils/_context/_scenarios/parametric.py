@@ -423,7 +423,6 @@ COPY {golang_reldir}/. /app
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 COPY utils/build/docker/golang/parametric/system_tests_library_version.sh system_tests_library_version.sh
-COPY utils/build/docker/golang/parametric/get_version/system_tests_library_version.go get_version/system_tests_library_version.go
 RUN /binaries/install_ddtrace.sh
 
 RUN go install
