@@ -42,7 +42,11 @@ class DockerSSIScenario(Scenario):
         self._base_image = config.option.ssi_base_image
         self._arch = config.option.ssi_arch
         # The runtime that we want to install on the base image. it could be empty if we don't need to install a runtime
-        self._installable_runtime = config.option.ssi_installable_runtime
+        self._installable_runtime = (
+            config.option.ssi_installable_runtime
+            if config.option.ssi_installable_runtime and config.option.ssi_installable_runtime != "''"
+            else None
+        )
         self._push_base_images = config.option.ssi_push_base_images
         self._force_build = config.option.ssi_force_build
         self._libray_version = LibraryVersion(os.getenv(self._library), "")

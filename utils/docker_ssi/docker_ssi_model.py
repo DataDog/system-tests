@@ -59,7 +59,7 @@ class WeblogDescriptor:
                         "weblog": self.name,
                         "base_image": image.tag,
                         "arch": image.platform,
-                        "installable_runtime": "",
+                        "installable_runtime": "''",
                         "unique_name": self.clean_name(f"{self.name}_{image.tag}_{image.platform}"),
                         "supported_features": self.suppported_features,
                     },
