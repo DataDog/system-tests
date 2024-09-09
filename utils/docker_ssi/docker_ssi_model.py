@@ -38,13 +38,15 @@ class WeblogDescriptor:
         self.name = name
         self.library = library
         self.supported_images = supported_images
-        self.suppported_features = ["ssi_guardrails"]
+        self.suppported_features = ["ssi_guardrails"]  # TODO : remove this
 
+    # TODO : remove this
     def with_supported_features(self, suppported_features):
         """ by default we allways support ss_guardrails feature, append more features if needed """
         self.suppported_features += suppported_features
         return self
 
+    # TODO : remove this
     def with_supported_only_feature(self, suppported_features):
         """ override the default supported features """
         self.suppported_features = suppported_features

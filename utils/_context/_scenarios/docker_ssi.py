@@ -28,7 +28,7 @@ class DockerSSIScenario(Scenario):
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
-        self._required_containers: list(TestedContainer) = []
+        self._required_containers: list[TestedContainer] = []
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
@@ -37,7 +37,8 @@ class DockerSSIScenario(Scenario):
     def configure(self, config):
         assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby"
 
-        self._weblog = config.option.ssi_weblog
+        self._weblog = config.option.ssi_weblog  # TODO : rename it to _base_weblog to avoid confusion
+        # TODO : assert ssi_weblog does not contains underscore, as it's used as separator
         self._library = config.option.ssi_library
         self._base_image = config.option.ssi_base_image
         self._arch = config.option.ssi_arch
@@ -133,6 +134,15 @@ class DockerSSIScenario(Scenario):
     @property
     def components(self):
         return self._tested_components
+
+    # TODO : on SSI, a weblog is defined by it base name and its arch
+    # @property
+    # def weblog(self):
+    #     return f"{self._weblog}_{self._arch}"
+
+    # @property
+    # def datadog_apm_inject_version(self):
+    #     return self._datadog_apm_inject_version
 
 
 class DockerSSIImageBuilder:

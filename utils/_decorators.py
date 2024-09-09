@@ -168,6 +168,7 @@ def released(
     nodejs_otel=None,
     ruby=None,
     agent=None,
+    # dd_apm_inject=None # TODO
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
 
@@ -226,6 +227,7 @@ def released(
             compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
             compute_declaration("ruby", "ruby", ruby, context.library.version),
             compute_declaration("*", "agent", agent, context.agent_version),
+            # compute_declaration("*", "dd_apm_inject", agent, context.dd_apm_inject_version), # TODO
         ]
 
         skip_reasons = [reason for reason in skip_reasons if reason is not None]  # remove None
