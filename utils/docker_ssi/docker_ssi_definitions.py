@@ -81,8 +81,8 @@ JAVA_APP = WeblogDescriptor(
     [SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeInstallableVersions.JAVA_11)],
 )
 
-TOMCAT9_APP = WeblogDescriptor("tomcat9-app", "java", [SupportedImages().TOMCAT_9_ARM64]).with_supported_feature_ids(
-    326
+TOMCAT9_APP = WeblogDescriptor("tomcat9-app", "java", [SupportedImages().TOMCAT_9_ARM64]).with_supported_features(
+    ["ssi_service_naming"]
 )
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
 
