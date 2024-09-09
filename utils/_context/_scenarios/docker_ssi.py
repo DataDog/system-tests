@@ -204,6 +204,7 @@ class DockerSSIImageBuilder:
                 dockerfile=dockerfile_template,
                 tag=self.docker_tag,
                 platform=self._arch,
+                nocache=self._force_build or self.should_push_base_images,
                 buildargs={
                     "ARCH": self._arch,
                     "DD_LANG": self._library,
@@ -225,6 +226,7 @@ class DockerSSIImageBuilder:
             _, build_logs = self.docker_client.images.build(
                 path="utils/build/ssi/",
                 dockerfile="base/base_ssi_installer.Dockerfile",
+                nocache=self._force_build or self.should_push_base_images,
                 platform=self._arch,
                 tag=self.ssi_installer_docker_tag,
                 buildargs={"BASE_IMAGE": self.docker_tag},
@@ -251,6 +253,7 @@ class DockerSSIImageBuilder:
                 path="utils/build/ssi/",
                 dockerfile=f"base/base_ssi.Dockerfile",
                 platform=self._arch,
+                nocache=self._force_build or self.should_push_base_images,
                 tag=self.ssi_all_docker_tag,
                 buildargs={"DD_LANG": self._library, "BASE_IMAGE": ssi_installer_docker_tag},
             )
@@ -264,6 +267,7 @@ class DockerSSIImageBuilder:
                 dockerfile=f"utils/build/ssi/{self._library}/{self._weblog}.Dockerfile",
                 platform=self._arch,
                 tag=weblog_docker_tag,
+                nocache=self._force_build or self.should_push_base_images,
                 buildargs={"BASE_IMAGE": self.ssi_all_docker_tag},
             )
             self.print_docker_build_logs(weblog_docker_tag, build_logs)
