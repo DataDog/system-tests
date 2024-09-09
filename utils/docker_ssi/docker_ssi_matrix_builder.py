@@ -1,10 +1,16 @@
 import os
 import json
 
-from .docker_ssi_definitions import ALL_WEBLOGS
+# from .docker_ssi_definitions import ALL_WEBLOGS
+
 
 def get_github_matrix(library):
     """ Matrix that will be used in the github workflow """
+    # We can call this function from a script on at runtime
+    try:
+        from utils.docker_ssi.docker_ssi_definitions import ALL_WEBLOGS
+    except ImportError:
+        from docker_ssi_definitions import ALL_WEBLOGS
 
     tests = []
     github_matrix = {"include": []}

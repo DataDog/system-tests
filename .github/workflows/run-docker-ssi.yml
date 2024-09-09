@@ -34,15 +34,13 @@ jobs:
       # We need docker, and acl allows us to use docker in the same session
       run: |
         #Black depends on libraries that requires gcc. Gcc not available in arm64 runner
-        grep -v 'black' requirements.txt > requirements2.txt
-        mv requirements2.txt requirements.txt
-        cat requirements.txt
+        grep -v 'black' requirements.txt > requirements_arm64.txt
+        mv requirements_arm64.txt requirements.txt
         curl -fsSL https://get.docker.com -o get-docker.sh
         sudo sh get-docker.sh
         sudo usermod -a -G docker $USER
         sudo apt install -y acl
         sudo setfacl --modify user:runner:rw /var/run/docker.sock
-    - uses: actions/checkout@v4
     - name: Set up QEMU for docker cross platform setup
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
@@ -53,29 +51,29 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    #- name: Install runner
-    #  uses: ./.github/actions/install_runner
+    - name: Install runner
+      uses: ./.github/actions/install_runner
 
       # Reemplace for the actions/install_runner/action.yaml
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.9"
-    - name: Check requirements.txt
-      shell: bash
-      run: cat requirements.txt
-    - name: Build runner
-      shell: bash
-      run: ./build.sh -i runner
-    - name: Print versions
-      shell: bash
-      run: |
-        source venv/bin/activate
-        python --version
-        pip freeze
+    #- uses: actions/setup-python@v5
+    #  with:
+    #    python-version: "3.9"
+    #- name: Check requirements.txt
+    #  shell: bash
+    #  run: cat requirements.txt
+    #- name: Build runner
+    #  shell: bash
+    #  run: ./build.sh -i runner
+    #- name: Print versions
+    #  shell: bash
+    #  run: |
+    #    source venv/bin/activate
+    #    python --version
+    #    pip freeze
       # End of the actions/install_runner/action.yaml
-    - name: Check matrix (TODO DELETE)
-      if: always()
-      run: echo ${{ matrix.supported_features }}
+   # - name: Check matrix (TODO DELETE)
+   #   if: always()
+   #   run: echo ${{ matrix.supported_features }}
     - name: Run Docker SSI scenario
       if: always()
       run: ./run.sh DOCKER_SSI --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-installable-runtime ${{matrix.installable_runtime}} --ssi-push-base-images

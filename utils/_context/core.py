@@ -69,7 +69,7 @@ class _Context:
     # @property
     # def dd_apm_inject_version(self):
     #     return self._get_scenario_property("dd_apm_inject_version", "")
-    
+
     @property
     def components(self):
         return self.scenario.components
