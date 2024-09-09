@@ -6,7 +6,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY ./utils/build/docker/java/play/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B -DincludeScope=compile dependency:go-offline
 
 COPY ./utils/build/docker/java/play/app ./app
 COPY ./utils/build/docker/java/play/conf ./conf
