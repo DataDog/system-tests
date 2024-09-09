@@ -170,10 +170,10 @@ function initRoutes (app, tracer) {
           debug: true,
           flushInterval: 5000
         });
-  
+
         const { type, target, headers } = workerData;
         tracer.dataStreamsCheckpointer.setProduceCheckpoint(type, target, headers);
-  
+
         parentPort.postMessage(headers);
     `, {
       eval: true,
