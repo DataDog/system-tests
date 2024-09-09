@@ -161,30 +161,42 @@ function initRoutes (app, tracer) {
     const type = req.query.type
     const target = req.query.target
     const headers = {}
+    let responseSent = false // Flag to ensure only one response is sent
 
     // Create a new worker thread to handle the setProduceCheckpoint function
     const worker = new Worker(`
-        const { parentPort, workerData } = require('worker_threads')
-
-        const { type, target, headers, tracer } = workerData
-        tracer.dataStreamsCheckpointer.setProduceCheckpoint(type, target, headers)
-
-        parentPort.postMessage(headers)
+        const { parentPort, workerData } = require('worker_threads');
+        const tracer = require('dd-trace').init({
+          debug: true,
+          flushInterval: 5000
+        });
+  
+        const { type, target, headers } = workerData;
+        tracer.dataStreamsCheckpointer.setProduceCheckpoint(type, target, headers);
+  
+        parentPort.postMessage(headers);
     `, {
       eval: true,
-      workerData: { type, target, headers, tracer }
+      workerData: { type, target, headers }
     })
 
     worker.on('message', (resultHeaders) => {
-      res.status(200).send(JSON.stringify(resultHeaders))
+      if (!responseSent) {
+        responseSent = true
+        res.status(200).send(JSON.stringify(resultHeaders))
+      }
     })
 
     worker.on('error', (error) => {
-      res.status(500).send(`Worker error: ${error.message}`)
+      if (!responseSent) {
+        responseSent = true
+        res.status(500).send(`Worker error: ${error.message}`)
+      }
     })
 
     worker.on('exit', (code) => {
-      if (code !== 0) {
+      if (code !== 0 && !responseSent) {
+        responseSent = true
         res.status(500).send(`Worker stopped with exit code ${code}`)
       }
     })
@@ -206,30 +218,42 @@ function initRoutes (app, tracer) {
     const type = req.query.type
     const source = req.query.source
     const headers = JSON.parse(req.query.headers)
+    let responseSent = false // Flag to ensure only one response is sent
 
     // Create a new worker thread to handle the setProduceCheckpoint function
     const worker = new Worker(`
       const { parentPort, workerData } = require('worker_threads')
+      const tracer = require('dd-trace').init({
+        debug: true,
+        flushInterval: 5000
+      });
 
-      const { type, source, headers, tracer } = workerData
+      const { type, source, headers } = workerData
       tracer.dataStreamsCheckpointer.setConsumeCheckpoint(type, source, headers)
 
       parentPort.postMessage("ok")
   `, {
       eval: true,
-      workerData: { type, source, headers, tracer }
+      workerData: { type, source, headers }
     })
 
     worker.on('message', () => {
-      res.status(200).send('ok')
+      if (!responseSent) {
+        responseSent = true
+        res.status(200).send('ok')
+      }
     })
 
     worker.on('error', (error) => {
-      res.status(500).send(`Worker error: ${error.message}`)
+      if (!responseSent) {
+        responseSent = true
+        res.status(500).send(`Worker error: ${error.message}`)
+      }
     })
 
     worker.on('exit', (code) => {
-      if (code !== 0) {
+      if (code !== 0 && !responseSent) {
+        responseSent = true
         res.status(500).send(`Worker stopped with exit code ${code}`)
       }
     })

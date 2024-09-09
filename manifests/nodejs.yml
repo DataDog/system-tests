@@ -484,7 +484,7 @@ tests/:
         express4: *ref_5_2_0
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         '*': irrelevant
-        express4: missing_feature # need to redo threading code
+        express4: *ref_5_20_0
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_20_0

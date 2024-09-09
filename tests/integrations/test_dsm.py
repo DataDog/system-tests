@@ -521,7 +521,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
         )
 
     def test_dsm_manual_checkpoint_inter_process(self):
-        assert self.produce.text not in ["", None]
+        assert self.produce_threaded.text not in ["", None]
 
         self.produce_threaded.text = json.loads(self.produce_threaded.text)
 
