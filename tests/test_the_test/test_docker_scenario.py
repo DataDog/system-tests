@@ -1,6 +1,6 @@
 import pytest
 
-from utils._context._scenarios.core import DockerScenario
+from utils._context._scenarios.endtoend import DockerScenario
 from utils._context.containers import TestedContainer as _TestedContainer
 from utils import scenarios
 
@@ -41,7 +41,7 @@ def test_main():
             self._required_containers = [container_a, container_b, container_c, container_d]
 
     scenario = FakeScenario()
-    scenario.session_start()
+    scenario.pytest_sessionstart(None)
 
     assert events == ["start D", "start C", "start B", "start A"]
 
@@ -64,7 +64,7 @@ def test_recursive():
 
     scenario = FakeScenario()
     with pytest.raises(RuntimeError):
-        scenario.session_start()
+        scenario.pytest_sessionstart(None)
 
 
 @scenarios.test_the_test
@@ -95,4 +95,4 @@ def test_recursive_2():
 
     scenario = FakeScenario()
     with pytest.raises(RuntimeError):
-        scenario.session_start()
+        scenario.pytest_sessionstart(None)

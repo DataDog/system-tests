@@ -5,7 +5,7 @@ import logging.config
 def vm_logger(scenario_name, log_name, level=logging.INFO):
     specified_logger = logging.getLogger(log_name)
     if len(specified_logger.handlers) == 0:
-        formatter = logging.Formatter("%(message)s")
+        formatter = logging.Formatter("%(asctime)s:%(message)s", "%Y-%m-%d %H.%M.%S")
         handler = logging.FileHandler(f"logs_{scenario_name.lower()}/{log_name}.log")
         handler.setFormatter(formatter)
         specified_logger.setLevel(level)

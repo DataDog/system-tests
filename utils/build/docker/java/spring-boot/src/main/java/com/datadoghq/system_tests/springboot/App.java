@@ -690,34 +690,6 @@ public class App {
         return "hi OGNL";
     }
 
-    @RequestMapping("/rasp/ssrf")
-    String raspSSRF(@RequestParam(required = false, name="url") String url) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        try {
-            URL server;
-            try {
-                server = new URL(url);
-            } catch (MalformedURLException e) {
-                server = new URL("http://" + url);
-            }
-
-            HttpURLConnection connection = (HttpURLConnection)server.openConnection();
-            connection.connect();
-            System.out.println("Response code:" + connection.getResponseCode());
-            System.out.println("Response message:" + connection.getResponseMessage());
-            InputStream test = connection.getErrorStream();
-            String result = new BufferedReader(new InputStreamReader(test)).lines().collect(Collectors.joining("\n"));
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            return "ssrf exception :(";
-        }
-    }
-
     @RequestMapping("/make_distant_call")
     DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
         URL urlObject = new URL(url);

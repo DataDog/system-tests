@@ -387,7 +387,7 @@ Additionally both methods support the following query parameters to use the sdk 
 - `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
 
 ### GET /debugger
-These endpoints are used for the Live Debugger tests. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
+These endpoints are used for the Dynamic Instrumentation tests.
 
 #### GET /debugger/log
 This endpoint will be used to validate the log probe.
@@ -401,16 +401,14 @@ This endpoint will be used to validate the span probe.
 #### GET /debugger/span-decoration
 This endpoint will be used to validate the span decoration probe.
 
-The following query parameters are required for each endpoint:
-- `arg`: This is a parameter that can take any string as an argument.
-- `intArg`: This is a parameter that can take any integer as an argument.
-
 #### GET /debugger/pii
-This endpoint will be used to validate debugger pii redaction feature.
+This endpoint will be used to validate Dynamic Instrumentation pii redaction feature.
 
-#### GET /expression
-#### GET /expression/exception
-These endpoints will be used to validate debugger expression language feature.
+#### GET /expression/*
+These endpoints will be used to validate Dynamic Instrumentation expression language feature.
+
+#### GET /exceptionreplay/*
+These endpoints will be used to validate Dynamic Instrumentation exception replay feature.
 
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
