@@ -219,6 +219,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp_json = resp.json()
         return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
+    def 
+
     def current_span(self) -> Union[SpanResponse, None]:
         resp_json = self._session.get(self._url("/trace/span/current")).json()
         if not resp_json:
@@ -259,6 +261,9 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def span_get_meta(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,})
         return resp.json()["value"]
+    
+    def span_get_version()
+        return span_get_meta()["version"]
 
     def span_get_metric(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,})
@@ -393,7 +398,9 @@ class APMLibraryClientHTTP(APMLibraryClient):
             "dd_env": config_dict.get("dd_env", None),
             "dd_version": config_dict.get("dd_version", None),
         }
-
+    
+    def query_string_obfuscation(self) -> str:
+        resp=self._session.get(self._url("/some-endpoint?application_key=123")).json()["http.url"]
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int, parent_id: int = 0):
