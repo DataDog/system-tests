@@ -52,7 +52,7 @@ class WeblogDescriptor:
                             "weblog": self.name,
                             "base_image": image.tag,
                             "arch": image.platform,
-                            "runtime": runtime_version.version,
+                            "runtime": runtime_version.version if runtime_version else "",
                             "unique_name": self.clean_name(
                                 f"{self.name}_{image.tag}_{image.platform}_{runtime_version.version_id}"
                             ),
