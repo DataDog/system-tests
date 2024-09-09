@@ -41,23 +41,33 @@ class DockerSSIScenario(Scenario):
         self._library = config.option.ssi_library
         self._base_image = config.option.ssi_base_image
         self._arch = config.option.ssi_arch
-        self._runtime = config.option.ssi_runtime
+        # The runtime that we want to install on the base image. it could be empty if we don't need to install a runtime
+        self._installable_runtime = config.option.ssi_installable_runtime
         self._push_base_images = config.option.ssi_push_base_images
         self._force_build = config.option.ssi_force_build
         self._libray_version = LibraryVersion(os.getenv(self._library), "")
+        # The runtime that is installed on the base image (bacause we installed automatically or because the weblog contains the runtime preinstalled).
         self._installed_runtime = None
 
         logger.stdout(
-            f"Configuring scenario with: Weblog: [{self._weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._runtime}]"
+            f"Configuring scenario with: Weblog: [{self._weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}]"
         )
 
         # Build the docker images to generate the weblog image
+        # Steps to build the docker ssi image:
+        # 1. Build the base image with the language runtime and the common dependencies
+        #    If the runtime is not needed, we install only the common dependencies
+        # 2. Build the ssi installer image with the ssi installer
+        #    This image will be push in the registry
+        # 3. Build the weblog image with the ssi installer and the weblog app
+        #    3.1 Install the ssi to run the auto instrumentation (allway build using the ssi installer image buit in the step 2)
+        #    3.2 Build the weblog image using the ssi image built in the step 3.1
         self.ssi_image_builder = DockerSSIImageBuilder(
             self._weblog,
             self._base_image,
             self._library,
             self._arch,
-            self._runtime,
+            self._installable_runtime,
             self._push_base_images,
             self._force_build,
         )
@@ -70,14 +80,6 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             container.configure(self.replay)
-
-    # def session_start(self):
-    #    """called at the very begning of the process"""
-    #    super().session_start()
-    #    container_weblog_url = self._weblog_injection.get_env("WEBLOG_URL")
-    #    if container_weblog_url:
-    #        self.weblog_url = container_weblog_url
-    #    logger.info(f"Weblog URL: {self.weblog_url}")
 
     def get_warmups(self):
         warmups = super().get_warmups()
@@ -100,6 +102,8 @@ class DockerSSIScenario(Scenario):
         self.ssi_image_builder.push_base_image()
 
     def fill_context(self, json_tested_components):
+        """ After extract the components from the weblog, fill the context with the data """
+
         logger.stdout("\nInstalled components:\n")
 
         for key in json_tested_components:
@@ -130,15 +134,18 @@ class DockerSSIScenario(Scenario):
 class DockerSSIImageBuilder:
     """ Manages the docker image building for the SSI scenario """
 
-    def __init__(self, weblog, base_image, library, arch, runtime, push_base_images, force_build) -> None:
+    def __init__(self, weblog, base_image, library, arch, installable_runtime, push_base_images, force_build) -> None:
         self._weblog = weblog
         self._base_image = base_image
         self._library = library
         self._arch = arch
-        self._runtime = runtime
+        self._installable_runtime = installable_runtime
         self._push_base_images = push_base_images
         self._force_build = force_build
         self.docker_client = self._get_docker_client()
+        # When do we need to push the base images to the docker registry?
+        # Option 1: When we added the run parameter --push-base-images
+        # Option 2: When the base image is not found on the registry
         self.should_push_base_images = False
         self._weblog_docker_image = None
 
@@ -149,6 +156,7 @@ class DockerSSIImageBuilder:
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
     def build_weblog(self):
+        """ Manages the build process of the weblog image """
         if not self.exist_base_image() or self._push_base_images or self._force_build:
             # Build the base image
             self.build_lang_deps_image()
@@ -180,7 +188,7 @@ class DockerSSIImageBuilder:
 
     def get_base_docker_tag(self):
         """ Resolves and format the docker tag for the base image """
-        runtime = resolve_runtime_version(self._library, self._runtime) if self._runtime else ""
+        runtime = resolve_runtime_version(self._library, self._installable_runtime) if self._installable_runtime else ""
         return (
             f"{self._base_image}_{runtime}_{self._arch}".replace(".", "_")
             .replace("-", "_")
@@ -191,15 +199,21 @@ class DockerSSIImageBuilder:
 
     def build_lang_deps_image(self):
         """ Build the lang image. Install the language runtime on the base image. 
-        We also install some linux deps for the ssi installer """
-
-        # If there is not runtime installation requirement, we install only the linux deps
-        # Base lang contains the scrit to install the runtime and the script to install dependencies
-        dockerfile_template = "base/base_lang.Dockerfile" if self._runtime else "base/base_deps.Dockerfile"
+        We also install some linux deps for the ssi installer 
+        If there is not runtime installation requirement, we install only the linux deps
+        Base lang contains the scrit to install the runtime and the script to install dependencies """
+        dockerfile_template = None
         try:
-            logger.stdout(
-                f"Building docker lang and/or deps image from base image [{self._base_image}]. Tag: [{self.docker_tag}]"
-            )
+            if self._installable_runtime:
+                dockerfile_template = "base/base_lang.Dockerfile"
+                logger.stdout(
+                    f"[tag: {self.docker_tag}] Installing language runtime [{self._installable_runtime}] and common dependencies on base image [{self._base_image}]."
+                )
+            else:
+                dockerfile_template = "base/base_deps.Dockerfile"
+                logger.stdout(
+                    f"[tag: {self.docker_tag}] Installing common dependencies on base image [{self._base_image}]. No language runtime installation required."
+                )
 
             _, build_logs = self.docker_client.images.build(
                 path="utils/build/ssi/",
@@ -210,21 +224,24 @@ class DockerSSIImageBuilder:
                 buildargs={
                     "ARCH": self._arch,
                     "DD_LANG": self._library,
-                    "RUNTIME_VERSIONS": self._runtime,
+                    "RUNTIME_VERSIONS": self._installable_runtime,
                     "BASE_IMAGE": self._base_image,
                 },
             )
             self.print_docker_build_logs(self.docker_tag, build_logs)
-        except Exception as e:
+
+        except BuildError as e:
             logger.exception(f"Failed to build docker image: {e}")
+            self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
             raise e
 
     def build_ssi_installer_image(self):
         """ Build the ssi installer image. Install only the ssi installer on the image """
         try:
             logger.stdout(
-                f"Building docker ssi installer image from base image [{self.docker_tag}]. Tag: [{self.ssi_installer_docker_tag}]"
+                f"[tag:{self.ssi_installer_docker_tag}]Installing DD installer on base image [{self.docker_tag}]."
             )
+
             _, build_logs = self.docker_client.images.build(
                 path="utils/build/ssi/",
                 dockerfile="base/base_ssi_installer.Dockerfile",
@@ -235,8 +252,9 @@ class DockerSSIImageBuilder:
             )
             self.print_docker_build_logs(self.ssi_installer_docker_tag, build_logs)
 
-        except Exception as e:
+        except BuildError as e:
             logger.exception(f"Failed to build docker image: {e}")
+            self.print_docker_build_logs(f"Error building installer docker file", e.build_log)
             raise e
 
     def build_weblog_image(self, ssi_installer_docker_tag):
@@ -247,7 +265,7 @@ class DockerSSIImageBuilder:
         logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
 
         logger.stdout(
-            f"Installing ssi for autoinjection on [{ssi_installer_docker_tag}]. Tag: [{self.ssi_all_docker_tag}]"
+            f"[tag:{self.ssi_all_docker_tag}]Installing dd ssi for autoinjection on base image [{ssi_installer_docker_tag}]."
         )
         try:
             # Install the ssi to run the auto instrumentation
@@ -260,9 +278,7 @@ class DockerSSIImageBuilder:
                 buildargs={"DD_LANG": self._library, "BASE_IMAGE": ssi_installer_docker_tag},
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
-            logger.stdout(
-                f"Building docker final weblog image from base [{self.ssi_all_docker_tag}]. Tag: {weblog_docker_tag}"
-            )
+            logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
             # Build the weblog image
             self._weblog_docker_image, build_logs = self.docker_client.images.build(
                 path=".",

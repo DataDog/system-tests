@@ -1,5 +1,5 @@
-class RuntimeVersions:
-    """ Encapsulates information of the version of the language """
+class RuntimeInstallableVersion:
+    """ Encapsulates information of the version of the language that can be installed automatically"""
 
     def __init__(self, version_id, version) -> None:
         self.version_id = version_id
@@ -31,7 +31,7 @@ class DockerImage:
 
 class WeblogDescriptor:
     """ Encapsulates information of the weblog: name, library and 
-        supported images with the supported runtime versions """
+        supported images with the supported installable runtime versions """
 
     def __init__(self, name, library, supported_images):
         self.name = name
@@ -47,7 +47,7 @@ class WeblogDescriptor:
                         "weblog": self.name,
                         "base_image": image.tag,
                         "arch": image.platform,
-                        "runtime": "''",
+                        "installable_runtime": "",
                         "unique_name": self.clean_name(f"{self.name}_{image.tag}_{image.platform}"),
                     },
                 )
@@ -58,7 +58,7 @@ class WeblogDescriptor:
                             "weblog": self.name,
                             "base_image": image.tag,
                             "arch": image.platform,
-                            "runtime": runtime_version.version,
+                            "installable_runtime": runtime_version.version,
                             "unique_name": self.clean_name(
                                 f"{self.name}_{image.tag}_{image.platform}_{runtime_version.version_id}"
                             ),
