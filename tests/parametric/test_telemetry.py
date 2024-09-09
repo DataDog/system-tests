@@ -140,7 +140,7 @@ class Test_Consistent_Configs:
             ("trace_http_client_tag_query_string", ("true", True)),
             (
                 "trace_client_ip_header",
-                "x-forwarded-for",
+                "X-Forwarded-For",
             ),  # Unclear if correct key, see: https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit?disco=AAABVcOUNfU
             ("trace_service_mappings", "plugin:custom"),
         ]:
