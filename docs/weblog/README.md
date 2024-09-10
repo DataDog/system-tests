@@ -297,6 +297,47 @@ Expected query params:
   - `integration`: Name of messaging tech
     - Possible Values: `kafka`, `rabbitmq`, `sqs`
 
+### GET /dsm/manual/produce
+
+This endpoint sets a DSM produce operation manual API checkpoint. A 200 response with a json body containing the DSM 
+base64 encoded context: `dd-pathway-ctx-base64` is returned upon success. Otherwise, error messages will be returned.
+
+Expected query params:
+  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+  - `target`: Target queue name
+
+### GET /dsm/manual/produce_with_thread
+
+This endpoint sets a DSM produce operation manual API checkpoint, doing so within another thread to ensure DSM context 
+API works cross-thread. A 200 response with a json body containing the DSM base64 encoded context: `dd-pathway-ctx-base64` 
+is returned upon success. Otherwise, error messages will be returned.
+
+Expected query params:
+  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+  - `target`: Target queue name
+
+### GET /dsm/manual/consume
+
+This endpoint sets a DSM consume operation manual API checkpoint. It takes a json formatted string containing the 
+DSM base64 encoded context `dd-pathway-ctx-base64`. A 200 response with text "ok" is returned upon success. Otherwise, 
+error messages will be returned.
+
+Expected query params:
+  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+  - `target`: Target queue name
+
+### GET /dsm/manual/consume_with_thread
+
+This endpoint sets a DSM consume operation manual API checkpoint, doing so within another thread to ensure DSM context 
+API works cross-thread. It takes a json formatted string containing the DSM base64 encoded context `dd-pathway-ctx-base64`.
+A 200 response with text "ok" is returned upon success. Otherwise, error messages will be returned.
+
+Expected query params:
+  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+  - `target`: Target queue name
+  - `headers`: DSM Pathway Context key and value as json formatted string
+    - example: `headers={"dd-pathway-ctx-base64":"6LmdBlekWRXsnf3Tu2T2nf3Tu2Q="}`
+
 ### GET /user_login_success_event
 
 This endpoint calls the appsec event tracking SDK function used for user login success.
