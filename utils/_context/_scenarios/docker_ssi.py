@@ -86,6 +86,11 @@ class DockerSSIScenario(Scenario):
         self.ssi_image_builder.configure()
         self.ssi_image_builder.build_weblog()
 
+        # Folder for messages from the test agent
+        self._create_log_subfolder(f"interfaces/test_agent")
+        # Socket folder for the communication between the test agent and the weblog
+        self._create_log_subfolder(f"interfaces/test_agent_socket")
+
         # Extract version of the components that we are testing.
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
@@ -108,10 +113,6 @@ class DockerSSIScenario(Scenario):
     def _start_interface_watchdog(self):
         from utils import interfaces
 
-        # Folder for messages from the test agent
-        self._create_log_subfolder(f"interfaces/test_agent")
-        # Socket folder for the communication between the test agent and the weblog
-        self._create_log_subfolder(f"interfaces/test_agent_socket")
         # Start the test agent polling for messages
         self._test_agent_polling.start(f"{self.host_log_folder}/interfaces/test_agent")
 

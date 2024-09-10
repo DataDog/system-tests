@@ -66,9 +66,9 @@ class _Context:
     def appsec_rules_version(self):
         return self._get_scenario_property("appsec_rules_version", "")
 
-    # @property
-    # def dd_apm_inject_version(self):
-    #     return self._get_scenario_property("dd_apm_inject_version", "")
+    @property
+    def dd_apm_inject_version(self):
+        return self._get_scenario_property("dd_apm_inject_version", "")
 
     @property
     def components(self):
