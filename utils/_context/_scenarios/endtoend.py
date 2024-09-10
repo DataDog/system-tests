@@ -421,6 +421,7 @@ class EndToEndScenario(DockerScenario):
                     r = self.weblog_container.request("GET", "/flush", timeout=10)
                     assert r.status_code == 200
                 except:
+                    self.weblog_container.healthy = False
                     logger.stdout(
                         f"Warning: Failed to flush weblog, please check {self.host_log_folder}/docker/weblog/stdout.log"
                     )

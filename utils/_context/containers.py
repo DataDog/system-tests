@@ -321,6 +321,9 @@ class TestedContainer:
 
             self._container.stop()
 
+            if not self.healthy:
+                pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
+
     def collect_logs(self):
         TAIL_LIMIT = 50
         SEP = "=" * 30
