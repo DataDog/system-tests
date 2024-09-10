@@ -18,6 +18,10 @@ from utils.tools import logger
 from .core import Scenario
 from utils.virtual_machine.vm_logger import vm_logger
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
+from utils.docker_ssi.test_agent_polling import TestAgentClientPolling
+
+from watchdog.observers.polling import PollingObserver
+from watchdog.events import FileSystemEventHandler
 
 
 class DockerSSIScenario(Scenario):
@@ -37,7 +41,7 @@ class DockerSSIScenario(Scenario):
     def configure(self, config):
         assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby"
 
-        self._weblog = config.option.ssi_weblog  # TODO : rename it to _base_weblog to avoid confusion
+        self._base_weblog = config.option.ssi_weblog  # TODO : rename it to _base_weblog to avoid confusion
         # TODO : assert ssi_weblog does not contains underscore, as it's used as separator
         self._library = config.option.ssi_library
         self._base_image = config.option.ssi_base_image
@@ -51,11 +55,14 @@ class DockerSSIScenario(Scenario):
         self._push_base_images = config.option.ssi_push_base_images
         self._force_build = config.option.ssi_force_build
         self._libray_version = LibraryVersion(os.getenv(self._library), "")
+        self._datadog_apm_inject_version = None
         # The runtime that is installed on the base image (because we installed automatically or because the weblog contains the runtime preinstalled).
         self._installed_runtime = None
+        # usually base_weblog + base_image + (runtime) + arch
+        self._weblog_composed_name = None
 
         logger.stdout(
-            f"Configuring scenario with: Weblog: [{self._weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}]"
+            f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}]"
         )
 
         # Build the docker images to generate the weblog image
@@ -68,7 +75,7 @@ class DockerSSIScenario(Scenario):
         #    3.1 Install the ssi to run the auto instrumentation (allway build using the ssi installer image buit in the step 2)
         #    3.2 Build the weblog image using the ssi image built in the step 3.1
         self.ssi_image_builder = DockerSSIImageBuilder(
-            self._weblog,
+            self._base_weblog,
             self._base_image,
             self._library,
             self._arch,
@@ -83,6 +90,8 @@ class DockerSSIScenario(Scenario):
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
 
+        self._weblog_composed_name = f"{self._base_weblog}_{self.ssi_image_builder.get_base_docker_tag()}"
+        self._test_agent_polling = TestAgentClientPolling()
         for container in self._required_containers:
             container.configure(self.replay)
 
@@ -93,10 +102,42 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             warmups.append(container.start)
-
+        warmups.append(self._start_interface_watchdog)
         return warmups
 
+    def _start_interface_watchdog(self):
+        from utils import interfaces
+
+        # Folder for messages from the test agent
+        self._create_log_subfolder(f"interfaces/test_agent")
+        # Socket folder for the communication between the test agent and the weblog
+        self._create_log_subfolder(f"interfaces/test_agent_socket")
+        # Start the test agent polling for messages
+        self._test_agent_polling.start(f"{self.host_log_folder}/interfaces/test_agent")
+
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def _ingest(self, event):
+                logger.info(f"Event {event.event_type} on {event.src_path}")
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+            on_modified = _ingest
+            on_created = _ingest
+
+        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
+        # limits on Linux) -> using the good old bare polling system
+        observer = PollingObserver()
+        observer.schedule(Event(interfaces.test_agent), path=f"{self.host_log_folder}/interfaces/test_agent")
+        observer.start()
+
     def close_targets(self):
+        self._test_agent_polling.stop()
         for container in reversed(self._required_containers):
             try:
                 container.remove()
@@ -117,6 +158,8 @@ class DockerSSIScenario(Scenario):
                 continue
             if key == "runtime_version" and json_tested_components[key]:
                 self._installed_runtime = json_tested_components[key].lstrip(" ")
+            if key.startswith("datadog-apm-inject") and json_tested_components[key]:
+                self._datadog_apm_inject_version = json_tested_components[key].lstrip(" ")
             if key.startswith("datadog-apm-library-") and json_tested_components[key]:
                 library_version_number = json_tested_components[key].lstrip(" ")
                 self._libray_version = LibraryVersion(self._library, library_version_number)
@@ -136,20 +179,22 @@ class DockerSSIScenario(Scenario):
         return self._tested_components
 
     # TODO : on SSI, a weblog is defined by it base name and its arch
-    # @property
-    # def weblog(self):
-    #     return f"{self._weblog}_{self._arch}"
+    @property
+    def weblog_variant(self):
+        return self._weblog_composed_name
 
-    # @property
-    # def datadog_apm_inject_version(self):
-    #     return self._datadog_apm_inject_version
+    @property
+    def datadog_apm_inject_version(self):
+        return self._datadog_apm_inject_version
 
 
 class DockerSSIImageBuilder:
     """ Manages the docker image building for the SSI scenario """
 
-    def __init__(self, weblog, base_image, library, arch, installable_runtime, push_base_images, force_build) -> None:
-        self._weblog = weblog
+    def __init__(
+        self, base_weblog, base_image, library, arch, installable_runtime, push_base_images, force_build
+    ) -> None:
+        self._base_weblog = base_weblog
         self._base_image = base_image
         self._library = library
         self._arch = arch
@@ -202,12 +247,14 @@ class DockerSSIImageBuilder:
 
     def get_base_docker_tag(self):
         """ Resolves and format the docker tag for the base image """
-        runtime = resolve_runtime_version(self._library, self._installable_runtime) if self._installable_runtime else ""
+        runtime = (
+            resolve_runtime_version(self._library, self._installable_runtime) + "_" if self._installable_runtime else ""
+        )
         return (
-            f"{self._base_image}_{runtime}_{self._arch}".replace(".", "_")
-            .replace("-", "_")
-            .replace(":", "_")
-            .replace("/", "_")
+            f"{self._base_image}_{runtime}{self._arch}".replace(".", "_")
+            .replace("-", "-")
+            .replace(":", "-")
+            .replace("/", "-")
             .lower()
         )
 
@@ -296,7 +343,7 @@ class DockerSSIImageBuilder:
             # Build the weblog image
             self._weblog_docker_image, build_logs = self.docker_client.images.build(
                 path=".",
-                dockerfile=f"utils/build/ssi/{self._library}/{self._weblog}.Dockerfile",
+                dockerfile=f"utils/build/ssi/{self._library}/{self._base_weblog}.Dockerfile",
                 platform=self._arch,
                 tag=weblog_docker_tag,
                 nocache=self._force_build or self.should_push_base_images,

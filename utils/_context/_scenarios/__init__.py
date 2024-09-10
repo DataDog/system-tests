@@ -735,12 +735,6 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DOCKER_SSI],
     )
 
-    docker_ssi_service_name = DockerSSIScenario(
-        "DOCKER_SSI_SERVICE_NAME",
-        doc="Validates the service naming features using the ssi on a docker environment",
-        scenario_groups=[ScenarioGroup.DOCKER_SSI],
-    )
-
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
         weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},

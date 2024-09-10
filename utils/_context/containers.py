@@ -1014,7 +1014,7 @@ class APMTestAgentContainer(TestedContainer):
             ports={"8126": ("127.0.0.1", 8126)},
             allow_old_container=False,
             volumes={
-                f"./{host_log_folder}/interfaces/": {"bind": "/var/run/datadog/", "mode": "rw",}
+                f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}
                 # f"/Users/roberto.montero/Documents/development/guardrails-testing/temp": {"bind": "/var/run/datadog/", "mode": "rw",}
             },
         )
@@ -1074,8 +1074,8 @@ class DockerSSIContainer(TestedContainer):
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
             allow_old_container=False,
-            environment={"DD_DEBUG": "true"},
-            volumes={f"./{host_log_folder}/interfaces/": {"bind": "/var/run/datadog/", "mode": "rw",}},
+            environment={"DD_DEBUG": "true", "DD_TRACE_SAMPLE_RATE": 1, "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5"},
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
         )
 
     def get_env(self, env_var):

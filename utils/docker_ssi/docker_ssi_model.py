@@ -38,19 +38,6 @@ class WeblogDescriptor:
         self.name = name
         self.library = library
         self.supported_images = supported_images
-        self.suppported_features = ["ssi_guardrails"]  # TODO : remove this
-
-    # TODO : remove this
-    def with_supported_features(self, suppported_features):
-        """ by default we allways support ss_guardrails feature, append more features if needed """
-        self.suppported_features += suppported_features
-        return self
-
-    # TODO : remove this
-    def with_supported_only_feature(self, suppported_features):
-        """ override the default supported features """
-        self.suppported_features = suppported_features
-        return self
 
     def get_matrix(self):
         matrix_combinations = []
@@ -63,7 +50,6 @@ class WeblogDescriptor:
                         "arch": image.platform,
                         "installable_runtime": "''",
                         "unique_name": self.clean_name(f"{self.name}_{image.tag}_{image.platform}"),
-                        "supported_features": "".join(self.suppported_features),
                     },
                 )
             else:
@@ -77,7 +63,6 @@ class WeblogDescriptor:
                             "unique_name": self.clean_name(
                                 f"{self.name}_{image.tag}_{image.platform}_{runtime_version.version_id}"
                             ),
-                            "supported_features": "".join(self.suppported_features),
                         }
                     )
         return matrix_combinations

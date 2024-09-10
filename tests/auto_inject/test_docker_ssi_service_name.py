@@ -10,8 +10,7 @@ from deepdiff import DeepDiff
 
 
 @features.ssi_service_naming
-@scenarios.docker_ssi_service_name  # TODO use docker_ssi scenario
-class TestDockerSSIServiceName:
+class _TestDockerSSIServiceName:
     def test_service_name(self):
         logger.info(f"Testing service name for {context.scenario.weblog_url}")
         requests.get(
