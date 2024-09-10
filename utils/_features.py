@@ -2282,9 +2282,9 @@ class features:
         """
         Ensure DSM Manual Checkpointing API is satisfied
 
-        https://feature-parity.us1.prod.dog/#/?feature=310
+        https://feature-parity.us1.prod.dog/#/?feature=327
         """
-        pytest.mark.features(feature_id=310)(test_object)
+        pytest.mark.features(feature_id=327)(test_object)
         return test_object
 
     @staticmethod

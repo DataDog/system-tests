@@ -1160,10 +1160,10 @@ tests/:
         spring-boot: v0.1 # real version not known
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
-        spring-boot: bug (DSM for Java is not threadsafe and sometimes uses local HTTP parent context)
+        spring-boot: bug (DSM for Java flips between using local empty DSM context and extracted context)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
-        spring-boot: v0.1 # real version not known
+        spring-boot: bug (DSM for Java flips between using local empty DSM context and extracted context)
     test_mongo.py:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:
