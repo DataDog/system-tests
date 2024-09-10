@@ -32,7 +32,7 @@ class Test_StandardTagsMethod:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.security_events_metadata
-# Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp tests classes
+# Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
 

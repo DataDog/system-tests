@@ -471,10 +471,17 @@ class scenarios:
     )
 
     tracing_config_nondefault = EndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT", weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202", "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "ssn=\d{3}-\d{2}-\d{4}"}, doc="",
+        "TRACING_CONFIG_NONDEFAULT",
+        weblog_env={
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "ssn=\d{3}-\d{2}-\d{4}",
+        },
+        doc="",
     )
 
-    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": ""}, doc="",)
+    tracing_config_empty = EndToEndScenario(
+        "TRACING_CONFIG_EMPTY", weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": ""}, doc="",
+    )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
