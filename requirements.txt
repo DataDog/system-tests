@@ -4,6 +4,7 @@ pytest==7.1.3
 pytest-json-report==1.5.0
 pytest-split==0.9.0
 pytest-xdist==3.2.1
+pluggy==1.0.0
 black==19.10b0  # TODO : move to 22.8.0
 psutil==6.0.0
 pylint==3.0.4
@@ -18,11 +19,11 @@ jsonschema==4.16.0
 rfc3339-validator==0.1.4
 semantic-version==2.10.0
 
-matplotlib
+matplotlib  # for performance tests
 
 docker==6.0.0
 
-paramiko==3.1.0
+paramiko==3.4.1
 scp==0.14.5
 
 ddapm-test-agent==1.14.0  # for parametric tests

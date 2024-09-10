@@ -149,7 +149,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python"):
+        if library in ("nodejs", "python", "golang"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -422,6 +422,7 @@ COPY {golang_reldir}/go.sum /app
 COPY {golang_reldir}/. /app
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+COPY utils/build/docker/golang/parametric/system_tests_library_version.sh system_tests_library_version.sh
 RUN /binaries/install_ddtrace.sh
 
 RUN go install
@@ -550,7 +551,11 @@ RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
 ADD {php_reldir}/server.php .
 """,
-        container_cmd=["php", "server.php"],
+        container_cmd=[
+            "bash",
+            "-c",
+            "php server.php || sleep 2s",
+        ],  # In case of crash, give time to the sidecar to upload the crash report
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes={os.path.join(php_absolute_appdir, "server.php"): "/client/server.php"},

@@ -76,6 +76,7 @@ class TestedContainer:
         allow_old_container=False,
         healthcheck=None,
         stdout_interface=None,
+        local_image_only: bool = False,
         **kwargs,
     ) -> None:
         self.name = name
@@ -83,7 +84,7 @@ class TestedContainer:
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
-        self.image = ImageInfo(image_name)
+        self.image = ImageInfo(image_name, local_image_only=local_image_only)
         self.healthcheck = healthcheck
 
         # healthy values:
@@ -311,13 +312,22 @@ class TestedContainer:
         self.kwargs["volumes"] = result
 
     def stop(self):
-        if self._container:
-            self._container.stop()
         self._starting_thread = None
 
+        if self._container:
+            self._container.reload()
+            if self._container.status != "running":
+                self.healthy = False
+                pytest.exit(f"Container {self.name} is not running, please check logs", 1)
+
+            self._container.stop()
+
+            if not self.healthy:
+                pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
+
     def collect_logs(self):
-        stdout = self._container.logs(stdout=True, stderr=False)
-        stderr = self._container.logs(stdout=False, stderr=True)
+        TAIL_LIMIT = 50
+        SEP = "=" * 30
 
         keys = [
             bytearray(os.environ["DD_API_KEY"], "utf-8"),
@@ -325,23 +335,29 @@ class TestedContainer:
         if "DD_APP_KEY" in os.environ:
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
 
-        for key in keys:
-            stdout = stdout.replace(key, b"***")
-            stderr = stderr.replace(key, b"***")
+        data = (
+            ("stdout", self._container.logs(stdout=True, stderr=False)),
+            ("stderr", self._container.logs(stdout=False, stderr=True)),
+        )
 
-        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(stdout)
+        for output_name, output in data:
+            filename = f"{self.log_folder_path}/{output_name}.log"
 
-        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(stderr)
+            for key in keys:
+                output = output.replace(key, b"***")
 
-        if not self.healthy:
-            sep = "=" * 30
-            logger.stdout(f"\n{sep} {self.name} STDERR {sep}")
-            logger.stdout(stderr.decode("utf-8"))
-            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
-            logger.stdout(stdout.decode("utf-8"))
-            logger.stdout("")
+            with open(filename, "wb") as f:
+                f.write(output)
+
+            if not self.healthy:
+                decoded_output = output.decode("utf-8")
+
+                logger.stdout(f"\n{SEP} {self.name} {output_name.upper()} last {TAIL_LIMIT} lines {SEP}")
+                logger.stdout(f"-> See {filename} for full logs")
+                logger.stdout("")
+                # print last <tail> lines in stdout
+                logger.stdout("\n".join(decoded_output.splitlines()[-TAIL_LIMIT:]))
+                logger.stdout("")
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")
@@ -351,7 +367,7 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except:
+            except Exception:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
@@ -401,14 +417,21 @@ class SqlDbTestedContainer(TestedContainer):
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
-    def __init__(self, image_name):
+    def __init__(self, image_name: str, local_image_only: bool):
+        # local_image_only: boolean
+        # True if the image is only available locally and can't be loaded from any hub
+
         self.env = None
         self.name = image_name
+        self.local_image_only = local_image_only
 
     def load(self):
         try:
             self._image = _get_client().images.get(self.name)
         except docker.errors.ImageNotFound:
+            if self.local_image_only:
+                pytest.exit(f"Image {self.name} not found locally, please build it", 1)
+
             logger.stdout(f"Pulling {self.name}")
             self._image = _get_client().images.pull(self.name)
 
@@ -485,6 +508,7 @@ class AgentContainer(TestedContainer):
             },
             ports={self.agent_port: f"{self.agent_port}/tcp"},
             stdout_interface=interfaces.agent_stdout,
+            local_image_only=True,
         )
 
         self.agent_version = None
@@ -598,6 +622,7 @@ class WeblogContainer(TestedContainer):
             },
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
+            local_image_only=True,
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
@@ -681,7 +706,7 @@ class WeblogContainer(TestedContainer):
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python"):
+        if self.library in ("nodejs", "python", "golang"):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -715,13 +740,14 @@ class WeblogContainer(TestedContainer):
 
         # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python"):
+        if self.library in ("nodejs", "python", "golang"):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
 
             self._library = LibraryVersion(lib["language"], lib["version"])
-            self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
+            if "libddwaf_version" in lib:
+                self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
 
             if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
                 self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
@@ -992,7 +1018,7 @@ class MountInjectionVolume(TestedContainer):
         )
 
     def _lib_init_image(self, lib_init_image):
-        self.image = ImageInfo(lib_init_image)
+        self.image = ImageInfo(lib_init_image, local_image_only=False)
         # Dotnet compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {

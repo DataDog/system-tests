@@ -162,6 +162,11 @@ jobs:
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TRACING_CONFIG_NONDEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
@@ -194,8 +199,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
       # C++ 1.2.0 freeze when the rules file is missing
-      # ruby freeze when the rules file is missing (APPSEC-54708)
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && inputs.library != 'cpp' && inputs.library != 'ruby'
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && inputs.library != 'cpp'
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -206,7 +210,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
       # C++ 1.2.0 freeze when the rules file is missing
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && inputs.library != 'cpp' && inputs.library != 'ruby'
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && inputs.library != 'cpp'
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
