@@ -160,7 +160,7 @@ class DockerSSIScenario(Scenario):
             if key == "runtime_version" and json_tested_components[key]:
                 self._installed_runtime = json_tested_components[key].lstrip(" ")
             if key.startswith("datadog-apm-inject") and json_tested_components[key]:
-                self._datadog_apm_inject_version = json_tested_components[key].lstrip(" ")
+                self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
             if key.startswith("datadog-apm-library-") and json_tested_components[key]:
                 library_version_number = json_tested_components[key].lstrip(" ")
                 self._libray_version = LibraryVersion(self._library, library_version_number)
