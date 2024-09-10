@@ -39,6 +39,10 @@ app.get('/', (req, res) => {
 })
 
 app.get('/healthcheck', (req, res) => {
+  console.log('healthcheck error')
+  console.trace()
+  process.exit()
+  
   const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
   const maybeRequire = name => { try { return require(name) } catch (e) {} }
 
@@ -54,6 +58,9 @@ app.get('/healthcheck', (req, res) => {
 })
 
 app.all(['/waf', '/waf/*'], (req, res) => {
+  console.log('waf error')
+  console.trace()
+  process.exit()
   res.send('Hello\n')
 })
 
@@ -408,6 +415,10 @@ require('./auth')(app, passport, tracer)
 
 // try to flush as much stuff as possible from the library
 app.get('/flush', (req, res) => {
+  console.log('flush error')
+  console.trace()
+  process.exit()
+
   // doesn't have a callback :(
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
