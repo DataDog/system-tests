@@ -525,6 +525,8 @@ tests/:
   test_config_consistency.py:
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
