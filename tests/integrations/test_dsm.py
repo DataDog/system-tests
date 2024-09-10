@@ -533,7 +533,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 3431105285534025453, "consumer": 17799068196705485,},
+            "nodejs": {"producer": 1168055216783445015, "consumer": 18123432526286354806,},
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
             "java": {

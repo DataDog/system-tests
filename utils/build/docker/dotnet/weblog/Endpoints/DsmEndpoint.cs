@@ -55,7 +55,6 @@ namespace weblog
                 } else {
                     await context.Response.WriteAsync("unknown integration: " + integration);
                 }
-                Task.Delay(5000).Wait();
             });
         }
     }
