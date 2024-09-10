@@ -6,6 +6,7 @@ from utils import scenarios, features
 
 parametrize = pytest.mark.parametrize
 
+
 def enable_tracing_enabled():
     env1 = {}
     env2 = {"DD_TRACE_ENABLED": "true"}
