@@ -718,7 +718,7 @@ public class App {
         @RequestParam(required = true, name = "source") String source,
         @RequestParam(required = true, name = "headers") String headers
     ) throws com.fasterxml.jackson.core.JsonProcessingException {
-        System.out.println("DSM Manual Consume same process consumed headers: " + injectedHeaders);
+        System.out.println("DSM Manual Consume same process consumed headers: " + headers);
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> headersMap = mapper.readValue(headers, new TypeReference<Map<String, Object>>(){});
