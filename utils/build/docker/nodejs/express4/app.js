@@ -408,10 +408,6 @@ require('./auth')(app, passport, tracer)
 
 // try to flush as much stuff as possible from the library
 app.get('/flush', (req, res) => {
-  console.log('flush error')
-  console.trace()
-  process.exit()
-
   // doesn't have a callback :(
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
