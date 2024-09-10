@@ -299,7 +299,7 @@ Expected query params:
 
 ### GET /dsm/manual/produce
 
-This endpoint sets a DSM produce operation manual API checkpoint. A 200 response with a json body containing the DSM 
+This endpoint sets a DSM produce operation manual API checkpoint. A 200 response with a json body containing the DSM
 base64 encoded context: `dd-pathway-ctx-base64` is returned upon success. Otherwise, error messages will be returned.
 
 Expected query params:
@@ -308,8 +308,8 @@ Expected query params:
 
 ### GET /dsm/manual/produce_with_thread
 
-This endpoint sets a DSM produce operation manual API checkpoint, doing so within another thread to ensure DSM context 
-API works cross-thread. A 200 response with a json body containing the DSM base64 encoded context: `dd-pathway-ctx-base64` 
+This endpoint sets a DSM produce operation manual API checkpoint, doing so within another thread to ensure DSM context
+API works cross-thread. A 200 response with a json body containing the DSM base64 encoded context: `dd-pathway-ctx-base64`
 is returned upon success. Otherwise, error messages will be returned.
 
 Expected query params:
@@ -318,8 +318,8 @@ Expected query params:
 
 ### GET /dsm/manual/consume
 
-This endpoint sets a DSM consume operation manual API checkpoint. It takes a json formatted string containing the 
-DSM base64 encoded context `dd-pathway-ctx-base64`. A 200 response with text "ok" is returned upon success. Otherwise, 
+This endpoint sets a DSM consume operation manual API checkpoint. It takes a json formatted string containing the
+DSM base64 encoded context `dd-pathway-ctx-base64`. A 200 response with text "ok" is returned upon success. Otherwise,
 error messages will be returned.
 
 Expected query params:
@@ -328,7 +328,7 @@ Expected query params:
 
 ### GET /dsm/manual/consume_with_thread
 
-This endpoint sets a DSM consume operation manual API checkpoint, doing so within another thread to ensure DSM context 
+This endpoint sets a DSM consume operation manual API checkpoint, doing so within another thread to ensure DSM context
 API works cross-thread. It takes a json formatted string containing the DSM base64 encoded context `dd-pathway-ctx-base64`.
 A 200 response with text "ok" is returned upon success. Otherwise, error messages will be returned.
 
