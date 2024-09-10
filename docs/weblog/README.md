@@ -304,6 +304,93 @@ Expected query params:
   - `routingKey`: Name of message routing key (if using `integration=rabbitmq`)
   - `timeout`: Timeout in seconds
 
+### GET /kafka/produce
+
+This endpoint triggers Kafka producer calls.
+
+Expected query params:
+  - `topic`: Name of the Kafka topic to which the message will be produced.
+
+### GET /kafka/consume
+
+This endpoint triggers Kafka consumer calls.
+
+Expected query params:
+  - `topic`: Name of the Kafka topic from which the message will be consumed.
+  - `timeout`: Timeout in seconds for the consumer operation.
+
+### GET /sqs/produce
+
+This endpoint triggers SQS producer calls.
+
+Expected query params:
+  - `queue`: Name of the SQS queue to which the message will be produced.
+  - `message`: Specific message to be produced to the SQS queue.
+
+### GET /sqs/consume
+
+This endpoint triggers SQS consumer calls.
+
+Expected query params:
+  - `queue`: Name of the SQS queue from which the message will be consumed.
+  - `timeout`: Timeout in seconds for the consumer operation.
+  - `message`: Specific message to be consumed from the SQS queue.
+
+### GET /sns/produce
+
+This endpoint triggers SNS producer calls.
+
+Expected query params:
+  - `queue`: Name of the SQS queue associated with the SNS topic for message production.
+  - `topic`: Name of the SNS topic to which the message will be produced.
+  - `message`: Specific message to be produced to the SNS topic.
+
+### GET /sns/consume
+
+This endpoint triggers SNS consumer calls.
+
+Expected query params:
+  - `queue`: Name of the SQS queue associated with the SNS topic for message consumption.
+  - `timeout`: Timeout in seconds for the consumer operation.
+  - `message`: Specific message to be consumed from the SNS topic.
+
+### GET /kinesis/produce
+
+This endpoint triggers Kinesis producer calls.
+
+Expected query params:
+  - `stream`: Name of the Kinesis stream to which the message will be produced.
+  - `timeout`: Timeout in seconds for the producer operation.
+  - `message`: Specific message to be produced to the Kinesis stream.
+
+### GET /kinesis/consume
+
+This endpoint triggers Kinesis consumer calls.
+
+Expected query params:
+  - `stream`: Name of the Kinesis stream from which the message will be consumed.
+  - `timeout`: Timeout in seconds for the consumer operation.
+  - `message`: Specific message to be consumed from the Kinesis stream.
+
+### GET /rabbitmq/produce
+
+This endpoint triggers RabbitMQ producer calls.
+
+Expected query params:
+  - `queue`: Name of the RabbitMQ queue to which the message will be produced.
+  - `exchange`: Name of the RabbitMQ exchange to which the message will be produced.
+  - `routing_key`: Name of the RabbitMQ routing key for message production.
+
+### GET /rabbitmq/consume
+
+This endpoint triggers RabbitMQ consumer calls.
+
+Expected query params:
+  - `queue`: Name of the RabbitMQ queue from which the message will be consumed.
+  - `exchange`: Name of the RabbitMQ exchange from which the message will be consumed.
+  - `routing_key`: Name of the RabbitMQ routing key for message consumption.
+  - `timeout`: Timeout in seconds for the consumer operation.
+
 ### GET /user_login_success_event
 
 This endpoint calls the appsec event tracking SDK function used for user login success.
