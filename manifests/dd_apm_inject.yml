@@ -1,0 +1,4 @@
+tests/:
+  docker_ssi/:
+    test_docker_ssi.py:
+      TestDockerSSIFeatures: 0.19.1

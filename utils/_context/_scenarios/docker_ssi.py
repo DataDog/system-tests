@@ -185,7 +185,7 @@ class DockerSSIScenario(Scenario):
         return self._weblog_composed_name
 
     @property
-    def datadog_apm_inject_version(self):
+    def dd_apm_inject_version(self):
         return self._datadog_apm_inject_version
 
 

@@ -227,7 +227,7 @@ def released(
             compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
             compute_declaration("ruby", "ruby", ruby, context.library.version),
             compute_declaration("*", "agent", agent, context.agent_version),
-            compute_declaration("*", "dd_apm_inject", agent, context.dd_apm_inject_version),  # TODO
+            compute_declaration("*", "dd_apm_inject", dd_apm_inject, context.dd_apm_inject_version),
         ]
 
         skip_reasons = [reason for reason in skip_reasons if reason is not None]  # remove None
