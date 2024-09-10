@@ -514,8 +514,6 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             f"/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
             timeout=DSM_REQUEST_TIMEOUT,
         )
-        import time
-        time.sleep(20)
         self.consume_threaded = weblog.get(
             f"/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue&headers={self.produce_threaded.text}",
             timeout=DSM_REQUEST_TIMEOUT,
