@@ -184,7 +184,14 @@ tests/:
         test_path.py:
           TestPath:
             '*': v2.9.0.dev
-            fastapi: missing_feature
+            fastapi: v2.13.0.dev
+        test_path_parameter.py:
+          TestPathParameter:
+            '*': v2.9.0.dev
+            fastapi: v2.13.0.dev
+            flask-poc: missing_feature
+            uds-flask: missing_feature
+            uwsgi-poc: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:

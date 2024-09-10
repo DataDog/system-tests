@@ -337,7 +337,11 @@ function initSinkRoutes (app: Express): void {
 
 function initSourceRoutes (app: Express): void {
   app.post('/iast/source/body/test', (req: Request, res: Response): void => {
-    readFileSync(req.body.name)
+    try {
+      readFileSync(req.body.name)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -346,7 +350,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.headers).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -355,7 +363,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.headers).forEach((key: string): void => {
       vulnParam += req.headers[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -364,7 +376,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.query).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -373,7 +389,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.body).forEach((key: string): void => {
       vulnParam += req.body[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -382,7 +402,20 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.query).forEach((key: string): void => {
       vulnParam += req.query[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
+    res.send('OK')
+  })
+
+  app.get('/iast/source/path_parameter/test/:table', (req: Request, res: Response): void => {
+    try {
+      readFileSync(req.params.table)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -391,7 +424,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.cookies).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -400,7 +437,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.cookies).forEach((key: string): void => {
       vulnParam += req.cookies[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 

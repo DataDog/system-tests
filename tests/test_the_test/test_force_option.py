@@ -1,21 +1,12 @@
-import os
-import json
 from utils import bug, irrelevant, scenarios
-from utils.tools import logger
+
+from .utils import run_system_tests
 
 FILENAME = "tests/test_the_test/test_force_option.py"
 
 
 def execute_process(forced_test):
-    stream = os.popen(f"./run.sh MOCK_THE_TEST {FILENAME} -v -F {forced_test}")
-    output = stream.read()
-
-    logger.info(output)
-
-    with open("logs_mock_the_test/feature_parity.json", encoding="utf-8") as f:
-        report = json.load(f)
-
-    return {test["path"]: test for test in report["tests"]}
+    return run_system_tests(test_path=FILENAME, forced_test=forced_test)
 
 
 @scenarios.test_the_test

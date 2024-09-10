@@ -1,6 +1,6 @@
 module main
 
-go 1.18
+go 1.22
 
 require (
 	go.opentelemetry.io/otel v1.20.0
