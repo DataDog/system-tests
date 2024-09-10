@@ -718,7 +718,7 @@ public class App {
         @RequestParam(required = true, name = "source") String source,
         @RequestParam(required = true, name = "headers") String headers
     ) throws com.fasterxml.jackson.core.JsonProcessingException {
-        System.out.println(headers);
+        System.out.println("DSM Manual Consume same process consumed headers: " + injectedHeaders);
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> headersMap = mapper.readValue(headers, new TypeReference<Map<String, Object>>(){});
@@ -735,13 +735,15 @@ public class App {
         @RequestParam(required = true, name = "source") String source,
         @RequestParam(required = true, name = "headers") String headers
     ) throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
-        System.out.println(headers);
+        final String finalHeaders = headers;
 
         class DsmConsume implements Callable<String> {
             @Override
             public String call() throws com.fasterxml.jackson.core.JsonProcessingException {
+                System.out.println("DSM Manual Consume within Thread consumed headers: " + finalHeaders);
+
                 ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> headersMap = mapper.readValue(headers, new TypeReference<Map<String, Object>>(){});
+                Map<String, Object> headersMap = mapper.readValue(finalHeaders, new TypeReference<Map<String, Object>>(){});
                 DSMContextCarrier headersAdapter = new DSMContextCarrier(headersMap);
 
                 DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();

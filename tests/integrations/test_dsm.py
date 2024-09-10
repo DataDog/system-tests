@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
 from utils.tools import logger
 
 import base64
 import json
-import struct
 
 # Kafka specific
 DSM_CONSUMER_GROUP = "testgroup1"
@@ -515,6 +514,8 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             f"/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
             timeout=DSM_REQUEST_TIMEOUT,
         )
+        import time
+        time.sleep(20)
         self.consume_threaded = weblog.get(
             f"/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue&headers={self.produce_threaded.text}",
             timeout=DSM_REQUEST_TIMEOUT,

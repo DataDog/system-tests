@@ -1160,7 +1160,7 @@ tests/:
         spring-boot: v0.1 # real version not known
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
-        spring-boot: v0.1 # real version not known
+        spring-boot: bug (DSM for Java is not threadsafe and sometimes uses local HTTP parent context)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         spring-boot: v0.1 # real version not known
