@@ -3,7 +3,6 @@ import threading
 import time
 import json
 import ddapm_test_agent.client as agent_client
-from utils.tools import logger
 
 
 class TestAgentClientPolling:
@@ -17,7 +16,7 @@ class TestAgentClientPolling:
             try:
                 traces = client.traces(clear=False)
                 if traces:
-                    pathlib.Path(f"{self._log_folder}/{_traces_count}_traces.json").write_text(
+                    pathlib.Path(f"{self._log_folder}/{_traces_count}_traces.json", encoding="utf-8").write_text(
                         json.dumps(traces, indent=2)
                     )
                     _traces_count += 1
@@ -31,7 +30,7 @@ class TestAgentClientPolling:
             try:
                 telemetry_data = client.telemetry(clear=True)
                 if telemetry_data:
-                    pathlib.Path(f"{self._log_folder}/{_telemetry_count}_telemetry.json").write_text(
+                    pathlib.Path(f"{self._log_folder}/{_telemetry_count}_telemetry.json", encoding="utf-8").write_text(
                         json.dumps(telemetry_data, indent=2)
                     )
                     _telemetry_count += 1
@@ -41,7 +40,7 @@ class TestAgentClientPolling:
 
     def start(self, log_folder):
         self._log_folder = log_folder
-        client = agent_client.TestAgentClient(base_url=f"http://localhost:8126")
+        client = agent_client.TestAgentClient(base_url="http://localhost:8126")
 
         thread_traces = threading.Thread(target=self.get_traces, args=(client, 1))
         thread_telemetry = threading.Thread(target=self.get_telemetry, args=(client, 1))

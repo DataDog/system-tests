@@ -1,9 +1,7 @@
-import pathlib
 import threading
-import time
 import json
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.tools import logger, get_rid_from_span, get_rid_from_request
+from utils.tools import logger, get_rid_from_request
 
 
 class _TestAgentInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -65,7 +63,7 @@ class _TestAgentInterfaceValidator(ProxyBasedInterfaceValidator):
         return telemetry_msgs
 
     def get_telemetry_for_autoinject(self):
-        logger.debug(f"Try to find telemetry data related to autoinject")
+        logger.debug("Try to find telemetry data related to autoinject")
         injection_metrics = []
         for telemetry_data in self._data_telemetery_list:
             injection_metrics += [
