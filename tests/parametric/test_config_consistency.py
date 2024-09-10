@@ -2,10 +2,9 @@
 Test configuration consistency for features across supported APM SDKs.
 """
 import pytest
-from utils import scenarios
+from utils import scenarios, features
 
 parametrize = pytest.mark.parametrize
-
 
 def enable_tracing_enabled():
     env1 = {}
@@ -18,9 +17,9 @@ def enable_tracing_disabled():
     return parametrize("library_env", [env])
 
 
-# feature will be added after PR is merged by @zacharycmontaya
 @scenarios.parametric
-class TestTraceEnabled:
+@features.tracing_configuration_consistency
+class Test_Config_TraceEnabled:
     @enable_tracing_enabled()
     def test_tracing_enabled(self, library_env, test_agent, test_library):
         assert library_env.get("DD_TRACE_ENABLED", "true") == "true"

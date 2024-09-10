@@ -306,7 +306,7 @@ tests/:
       Test_DsmSQS: v2.48.0
   parametric/:
     test_config_consistency.py:
-      TestTraceEnabled: missing_feature
+      Test_Config_TraceEnabled: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v3.2.0
     test_dynamic_configuration.py:

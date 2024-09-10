@@ -435,7 +435,7 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_config_consistency.py:
-      TestTraceEnabled: missing_feature
+      Test_Config_TraceEnabled: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.64.0-dev
