@@ -16,8 +16,8 @@ class TestAgentClientPolling:
             try:
                 traces = client.traces(clear=False)
                 if traces:
-                    pathlib.Path(f"{self._log_folder}/{_traces_count}_traces.json", encoding="utf-8").write_text(
-                        json.dumps(traces, indent=2)
+                    pathlib.Path(f"{self._log_folder}/{_traces_count}_traces.json").write_text(
+                        json.dumps(traces, indent=2), encoding="utf-8"
                     )
                     _traces_count += 1
             except ValueError as e:
@@ -30,8 +30,8 @@ class TestAgentClientPolling:
             try:
                 telemetry_data = client.telemetry(clear=True)
                 if telemetry_data:
-                    pathlib.Path(f"{self._log_folder}/{_telemetry_count}_telemetry.json", encoding="utf-8").write_text(
-                        json.dumps(telemetry_data, indent=2)
+                    pathlib.Path(f"{self._log_folder}/{_telemetry_count}_telemetry.json").write_text(
+                        json.dumps(telemetry_data, indent=2), encoding="utf-8"
                     )
                     _telemetry_count += 1
             except ValueError as e:
