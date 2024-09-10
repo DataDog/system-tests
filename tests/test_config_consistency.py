@@ -18,6 +18,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
     def setup_query_string_obfuscation_configured(self):
         self.r = weblog.get("/some-endpoint?ssn=123-45-6789")
 
-    def test_query_string_obfuscation_empty(self):
-        interfaces.library.add_span_tag_validation(self.r, tags={"http.url": r"^.*/some-endpoint\?application_key=<redacted>$"}, value_as_regular_expression=True,)
+    def test_query_string_obfuscation_configured(self):
+        interfaces.library.add_span_tag_validation(self.r, tags={"http.url": r"^.*/some-endpoint\?<redacted>$"}, value_as_regular_expression=True,)
     
