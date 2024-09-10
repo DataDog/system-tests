@@ -681,7 +681,7 @@ class WeblogContainer(TestedContainer):
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python"):
+        if self.library in ("nodejs", "python", "golang"):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -715,13 +715,14 @@ class WeblogContainer(TestedContainer):
 
         # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python"):
+        if self.library in ("nodejs", "python", "golang"):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
 
             self._library = LibraryVersion(lib["language"], lib["version"])
-            self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
+            if "libddwaf_version" in lib:
+                self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
 
             if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
                 self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
