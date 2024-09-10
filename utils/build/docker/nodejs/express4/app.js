@@ -54,9 +54,6 @@ app.get('/healthcheck', (req, res) => {
 })
 
 app.all(['/waf', '/waf/*'], (req, res) => {
-  console.log('waf error')
-  console.trace()
-  process.exit()
   res.send('Hello\n')
 })
 
