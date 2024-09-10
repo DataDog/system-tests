@@ -121,7 +121,7 @@ public class App {
 
     @GetMapping("/some-endpoint")
     String endpoint() {
-        return "Hello World!"
+        return "Hello World!";
     }
 
     @RequestMapping(value = "/tag_value/{value}/{code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
