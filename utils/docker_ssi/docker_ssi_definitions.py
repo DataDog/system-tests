@@ -78,7 +78,10 @@ JAVA_APP_XX = WeblogDescriptor(
 JAVA_APP = WeblogDescriptor(
     "java-app",
     "java",
-    [SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeInstallableVersions.JAVA_11)],
+    [
+        SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeInstallableVersions.JAVA_11),
+        SupportedImages().UBUNTU_22_AMD64.add_allowed_runtime_version(JavaRuntimeInstallableVersions.JAVA_11),
+    ],
 )
 
 TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
