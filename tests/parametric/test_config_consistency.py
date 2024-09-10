@@ -43,3 +43,23 @@ class Test_Config_TraceEnabled:
         assert (
             True
         ), "wait_for_num_traces raises an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec, so we expect to see an exception
+
+
+@scenarios.parametric
+@features.tracing_configuration_consistency
+class Test_Config_TraceLogDirectory:
+    @pytest.mark.parametrize(
+        "library_env", [{"DD_TRACE_ENABLED": "true", "DD_TRACE_LOG_DIRECTORY": "/parametric-tracer-logs"}]
+    )
+    def test_trace_log_directory_configured(self, library_env, test_agent, test_library):
+        with test_library:
+            with test_library.start_span("allowed"):
+                pass
+        test_agent.wait_for_num_traces(num=1, clear=True)
+        assert (
+            True
+        ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
+
+        success, message = test_library.container_exec_run("ls /parametric-tracer-logs")
+        assert success, message
+        assert len(message.splitlines()) > 0, "No tracer logs detected"
