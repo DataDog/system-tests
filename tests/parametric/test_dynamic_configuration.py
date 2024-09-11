@@ -7,9 +7,15 @@ from typing import Any, Dict, List
 import pytest
 from ddapm_test_agent.trace import root_span
 
-from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios
+from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
 from utils.parametric.spec.remoteconfig import Capabilities
-from utils.parametric.spec.trace import Span, assert_trace_has_tags
+from utils.parametric.spec.trace import (
+    Span,
+    assert_trace_has_tags,
+    find_only_span,
+    find_trace,
+    find_first_span_in_trace_payload,
+)
 
 parametrize = pytest.mark.parametrize
 
@@ -29,12 +35,11 @@ DEFAULT_ENVVARS = {
 
 
 def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
-    with test_library.start_span(**span_kwargs):
+    with test_library.start_span(**span_kwargs) as s1:
         pass
     test_library.flush()
-    traces = test_agent.wait_for_num_traces(num=1, clear=True)
-    assert len(traces) == 1
-    return traces[0]
+    traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
+    return find_trace(traces, s1.trace_id)
 
 
 def _default_config(service: str, env: str) -> Dict[str, Any]:
@@ -99,7 +104,8 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
         2) The `_dd.rule_psr` metric is set to the correct value.
     """
     # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
-    assert trace[0]["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
+    span = find_first_span_in_trace_payload(trace)
+    assert span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
 
 
 def is_sampled(trace: List[Dict]):
@@ -113,7 +119,8 @@ def is_sampled(trace: List[Dict]):
     """
 
     # This tag should be set on the first span in a chunk (first span in the list of spans sent to the agent).
-    return trace[0]["metrics"].get("_sampling_priority_v1", 0) > 0
+    span = find_first_span_in_trace_payload(trace)
+    return span["metrics"].get("_sampling_priority_v1", 0) > 0
 
 
 def get_sampled_trace(test_library, test_agent, service, name, tags=None):
@@ -155,9 +162,10 @@ class TestDynamicConfigHeaderTags:
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
-        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+        span = find_only_span(trace)
+        assert span["meta"]["test_header_env"] == "test-value"
+        assert span["meta"]["test_header_env2"] == "test-value-2"
+        assert int(span["meta"]["content_length_env"]) > 0
 
         # Set and test with RC.
         set_and_wait_rc(
@@ -176,14 +184,15 @@ class TestDynamicConfigHeaderTags:
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_rc"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_rc2"] == "test-value-2"
-        assert trace[0][0]["meta"]["http.request.headers.content-length"] == "0"
+        span = find_only_span(trace)
+        assert span["meta"]["test_header_rc"] == "test-value"
+        assert span["meta"]["test_header_rc2"] == "test-value-2"
+        assert span["meta"]["http.request.headers.content-length"] == "0"
         assert (
-            trace[0][0]["meta"]["http.response.headers.content-length"] == "14"
+            span["meta"]["http.response.headers.content-length"] == "14"
         ), "response content-length header tag value matches the header value set by the server"
-        assert "test_header_env" not in trace[0][0]["meta"]
-        assert "test_header_env2" not in trace[0][0]["meta"]
+        assert "test_header_env" not in span["meta"]
+        assert "test_header_env2" not in span["meta"]
 
         # Unset RC.
         set_and_wait_rc(test_agent, config_overrides={})
@@ -193,9 +202,10 @@ class TestDynamicConfigHeaderTags:
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
         )
         trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        assert trace[0][0]["meta"]["test_header_env"] == "test-value"
-        assert trace[0][0]["meta"]["test_header_env2"] == "test-value-2"
-        assert int(trace[0][0]["meta"]["content_length_env"]) > 0
+        span = find_only_span(trace)
+        assert span["meta"]["test_header_env"] == "test-value"
+        assert span["meta"]["test_header_env2"] == "test-value-2"
+        assert int(span["meta"]["content_length_env"]) > 0
 
 
 @scenarios.parametric
@@ -238,6 +248,7 @@ class TestDynamicConfigTracingEnabled:
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
     @irrelevant(library="golang")
+    @bug(library="dotnet", reason="With the v3, DD_TRACE_ENABLED=False seems to be ignored")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
 
@@ -299,6 +310,7 @@ class TestDynamicConfigV1:
         assert cfg_state["product"] == "APM_TRACING"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_default(self, test_agent, test_library):
         """The RC sampling rate should override the default sampling rate.
 
@@ -327,6 +339,7 @@ class TestDynamicConfigV1:
         "library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
     )
     @bug(library="cpp", reason="Trace sampling RC creates another sampler which makes the computation wrong")
+    @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 
@@ -438,6 +451,7 @@ class TestDynamicConfigV1_ServiceTargets:
             ]
         ],
     )
+    @bug(library="nodejs")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
@@ -508,7 +522,7 @@ class TestDynamicConfigV2:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
                     pass
-        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], expected_local_tags)
 
         # Ensure local tags are overridden and RC tags applied.
@@ -517,7 +531,7 @@ class TestDynamicConfigV2:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
                     pass
-        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
 
         # Ensure previous tags are restored.
@@ -526,7 +540,7 @@ class TestDynamicConfigV2:
             with test_library.start_span("test") as span:
                 with test_library.start_span("test2", parent_id=span.span_id):
                     pass
-        traces = test_agent.wait_for_num_traces(num=1, clear=True)
+        traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], expected_local_tags)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -569,6 +583,7 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
+    @bug(library="ruby", reason="To be investigated")
     def test_trace_sampling_rules_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the environment variable and decision maker is set appropriately.
 
@@ -584,7 +599,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service="", name="env_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-3" (i.e., local RULE_RATE)
-        span = trace[0]
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-3"
@@ -613,14 +628,14 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_CUSTOMER)
         # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user rule)
-        span = root_span(trace)
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-11"
 
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_DYNAMIC)
         # Make sure `_dd.p.dm` is set to "-12" (i.e., remote dynamic rule)
-        span = root_span(trace)
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
 
@@ -629,11 +644,12 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is restored to "-3"
-        span = root_span(trace)
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @bug(library="ruby", reason="To be investigated")
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate."""
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8
@@ -659,7 +675,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RULE_RATE_CUSTOMER)
         # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user rule)
-        span = root_span(trace)
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-11"
 
@@ -667,7 +683,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # `_dd.p.dm` is set to "-3" (rule rate, this is the legacy behavior)
-        span = root_span(trace)
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
@@ -689,7 +705,10 @@ class TestDynamicConfigSamplingRules:
         context.library == "cpp",
         reason="JSON tag format in RC differs from the JSON tag format used in DD_TRACE_SAMPLING_RULES",
     )
-    @missing_feature(context.library == "python")
+    @bug(context.library == "ruby", reason="RC_SAMPLING_TAGS_RULE_RATE is not respected")
+    @bug(context.library <= "dotnet@2.53.2", reason="Applies rate from local sampling rule when no remote rules match.")
+    @missing_feature(library="python")
+    @missing_feature(context.library < "nodejs@5.19.0")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
@@ -709,7 +728,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-3" (i.e., local RULE_RATE)
-        span = trace[0]
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-3"
@@ -737,7 +756,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, RC_SAMPLING_TAGS_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user RULE_RATE)
-        span = trace[0]
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         # The "-" is a separating hyphen, not a minus sign.
         assert span["meta"]["_dd.p.dm"] == "-11"
@@ -748,7 +767,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
-        span = trace[0]
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
@@ -758,7 +777,7 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
-        span = trace[0]
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
@@ -766,7 +785,7 @@ class TestDynamicConfigSamplingRules:
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[])
         assert_sampling_rate(trace, RC_SAMPLING_RATE)
         # Make sure `_dd.p.dm` is set to "-3"
-        span = trace[0]
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-3"
 
@@ -799,6 +818,31 @@ class TestDynamicConfigSamplingRules:
         )
         assert_sampling_rate(trace, RC_SAMPLING_ADAPTIVE_RATE)
         # Make sure `_dd.p.dm` is set to "-12" (i.e., remote adaptive/dynamic sampling RULE_RATE)
-        span = trace[0]
+        span = find_first_span_in_trace_payload(trace)
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
+
+    @bug(library="cpp", reason="unknown")
+    @bug(library="ruby", reason="To be investigated")
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
+        """Only the last set of sampling rules should be applied"""
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rules": [{"service": "svc*", "sample_rate": 0.5, "provenance": "customer"}],
+            },
+        )
+
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={
+                "tracing_sampling_rules": [{"service": "foo*", "sample_rate": 0.1, "provenance": "customer"}],
+            },
+        )
+
+        trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
+        assert_sampling_rate(trace, 0.1)
+
+        trace = send_and_wait_trace(test_library, test_agent, name="test2", service="svc")
+        assert_sampling_rate(trace, 1)

@@ -30,7 +30,7 @@ jobs:
           path: 'original'
       - name: Install runner
         uses: ./.github/actions/install_runner
-      - name: Get scenario map 
+      - name: Get scenario map
         run: ./run.sh MOCK_THE_TEST --collect-only --scenario-report
       - name: Get list of modified files
         run:  |

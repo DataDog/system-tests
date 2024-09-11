@@ -71,7 +71,7 @@ public class IastSourceRouteProvider implements Consumer<Router> {
             ctx.response().end(String.format("Request Headers => %s", table));
         });
         router.get("/iast/source/cookiename/test").handler(ctx -> {
-            Cookie cookie = ctx.getCookie("user");
+            Cookie cookie = ctx.getCookie("table");
             String table = cookie.getName();
             sql.insecureSql(table, (statement, query) -> statement.executeQuery(query));
             ctx.response().end(String.format("Request Cookies => %s", cookie));

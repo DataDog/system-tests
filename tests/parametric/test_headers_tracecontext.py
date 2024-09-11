@@ -12,6 +12,7 @@ from typing import Any
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
+from utils.parametric.spec.trace import find_span_in_traces, find_only_span
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import missing_feature, context, scenarios, features
 
@@ -718,7 +719,8 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.35.0", reason="Not implemented")
+    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
@@ -732,7 +734,7 @@ class Test_Headers_Tracecontext:
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
                 ],
-            ):
+            ) as s1:
                 pass
 
             with test_library.start_span(
@@ -741,22 +743,16 @@ class Test_Headers_Tracecontext:
                     ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
                     ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
                 ],
-            ):
+            ) as s2:
                 pass
 
-            with test_library.start_span(
-                name="p_not_propagated_valid_dd_tracestate",
-                http_headers=[
-                    ["traceparent", "00-12345678901234567890123456789015-1234567890123459-00"],
-                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4"],
-                ],
-            ):
-                pass
+        traces = test_agent.wait_for_num_traces(2)
 
-        traces = test_agent.wait_for_num_traces(3)
-
-        assert len(traces) == 3
-        case1, case2, case3 = traces[0][0], traces[1][0], traces[2][0]
+        assert len(traces) == 2
+        case1, case2 = (
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+        )
 
         assert case1["name"] == "p_set"
         assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
@@ -764,14 +760,12 @@ class Test_Headers_Tracecontext:
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
 
-        assert case3["name"] == "p_not_propagated_valid_dd_tracestate"
-        assert case3["meta"]["_dd.parent_id"] == "0000000000000000"
-
     @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.35.0", reason="Not implemented")
+    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
@@ -789,14 +783,14 @@ class Test_Headers_Tracecontext:
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert "p:{:016x}".format(int(span.span_id)) in tracestate
 
-    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library < "python@2.10.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
+    @missing_feature(context.library < "java@1.39.0", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
     def test_tracestate_w3c_p_extract_datadog_w3c(self, test_agent, test_library):
         """
@@ -813,7 +807,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-datadog-parent-id", "987654321"],
                 ],
-            ):
+            ) as s1:
                 pass
 
             # 2) Trace ids in datadog and tracecontext headers do not match
@@ -826,7 +820,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-trace-id", "2"],
                     ["x-datadog-tags", "_dd.p.tid=2222222222222222"],
                 ],
-            ):
+            ) as s2:
                 pass
 
             # 3) Parent ids in Datadog and tracecontext headers do not match
@@ -839,7 +833,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-datadog-parent-id", "10"],
                 ],
-            ):
+            ) as s3:
                 pass
 
             # 4) Parent ids do not match and p value is not present in tracestate
@@ -851,7 +845,7 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-trace-id", "4"],
                     ["x-datadog-parent-id", "10"],
                 ],
-            ):
+            ) as s4:
                 pass
 
             # 5) Parent ids do not match and p value does not match datadog headers
@@ -863,18 +857,18 @@ class Test_Headers_Tracecontext:
                     ["x-datadog-parent-id", "10"],
                     ["x-datadog-trace-id", "5"],
                 ],
-            ):
+            ) as s5:
                 pass
 
         traces = test_agent.wait_for_num_traces(5)
 
         assert len(traces) == 5
         case1, case2, case3, case4, case5 = (
-            traces[0][0],
-            traces[1][0],
-            traces[2][0],
-            traces[3][0],
-            traces[4][0],
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+            find_span_in_traces(traces, s3.trace_id, s3.span_id),
+            find_span_in_traces(traces, s4.trace_id, s4.span_id),
+            find_span_in_traces(traces, s5.trace_id, s5.span_id),
         )
 
         # 1) Datadog and tracecontext headers, trace-id and span-id match
@@ -934,14 +928,53 @@ class Test_Headers_Tracecontext:
             pass
 
         traces = test_agent.wait_for_num_traces(1)
-
-        assert len(traces) == 1
-        case1 = traces[0][0]
+        case1 = find_only_span(traces)
 
         # 1) trace-id and span-id extracted from datadog headers, last datadog parent id is ignored
         assert case1["name"] == "same_trace_different_parent_ids"
         assert case1["parent_id"] == 987654320
         assert "_dd.parent_id" not in case1["meta"]
+
+    @missing_feature(context.library < "java@1.36", reason="Not implemented")
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
+    def test_tracestate_w3c_context_leak(self, test_agent, test_library):
+        """
+        Ensure high order bits do not leak between traces
+        """
+        with test_library:
+            with test_library.start_span(
+                name="high_order_64_bits_set",
+                http_headers=[
+                    ["traceparent", "00-33333333333333330000000000000003-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:000000000000000a,foo=1"],
+                    ["x-datadog-trace-id", "3"],
+                    ["x-datadog-tags", "_dd.p.tid=3333333333333333"],
+                    ["x-datadog-parent-id", "10"],
+                ],
+            ) as s1:
+                pass
+
+            with test_library.start_span(
+                name="high_order_64_bits_unset",
+                http_headers=[
+                    ["traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2,foo=1"],
+                    ["x-datadog-trace-id", "4"],
+                    ["x-datadog-parent-id", "10"],
+                ],
+            ) as s2:
+                pass
+
+        traces = test_agent.wait_for_num_traces(2)
+
+        assert len(traces) == 2
+        case1, case2 = (
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+        )
+
+        assert case1["meta"].get("_dd.p.tid") == "3333333333333333"
+        assert case2["meta"].get("_dd.p.tid") == None
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):

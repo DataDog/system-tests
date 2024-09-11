@@ -17,6 +17,9 @@ APPSEC_SCENARIOS: &appsec_scenarios
   - APPSEC_API_SECURITY
   - APPSEC_API_SECURITY_NO_RESPONSE_BODY
   - APPSEC_AUTO_EVENTS_EXTENDED
+  - APPSEC_AUTO_EVENTS_RC
+  - APPSEC_STANDALONE
+  - APPSEC_RASP
 
 # Scenarios covering Remote Configuration
 REMOTE_CONFIG_SCENARIOS: &remote_config_scenarios
@@ -35,6 +38,10 @@ TELEMETRY_SCENARIOS: &telemetry_scenarios
   - TELEMETRY_METRIC_GENERATION_DISABLED
   - TELEMETRY_METRIC_GENERATION_ENABLED
 
+# Scenarios covering tracing configurations
+TRACING_CONFIG_SCENARIOS: &tracing_config_scenarios
+  - TRACING_CONFIG_NONDEFAULT
+
 # Scenarios to run before a tracer release, basically, all stable scenarios
 TRACER_RELEASE_SCENARIOS:
   - DEFAULT
@@ -45,6 +52,7 @@ TRACER_RELEASE_SCENARIOS:
   - *appsec_scenarios
   - *remote_config_scenarios
   - *telemetry_scenarios
+  - *tracing_config_scenarios
 
 # Scenarios to run on tracers PR.
 # Those scenarios are the one that offer the best probability-to-catch-bug/time-to-run ratio
@@ -54,11 +62,12 @@ TRACER_ESSENTIAL_SCENARIOS:
   - APPSEC_API_SECURITY_RC
   - REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
   - INTEGRATIONS
+  - *tracing_config_scenarios
 
 # Scenarios that rely on backend (and thus, may be a little bit hard to avoid flakyness)
 APM_TRACING_E2E_SCENARIOS:
   - APM_TRACING_E2E_SINGLE_SPAN
-  - APM_TRACING_E2E 
+  - APM_TRACING_E2E
   - APM_TRACING_E2E_OTEL
 
 # ?
@@ -73,3 +82,5 @@ DEBUGGER_SCENARIOS:
   - DEBUGGER_LINE_PROBES_SNAPSHOT
   - DEBUGGER_MIX_LOG_PROBE
   - DEBUGGER_PII_REDACTION
+  - DEBUGGER_EXPRESSION_LANGUAGE
+  - DEBUGGER_EXCEPTION_REPLAY

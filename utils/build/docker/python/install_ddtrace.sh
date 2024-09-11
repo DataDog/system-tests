@@ -2,10 +2,6 @@
 
 set -eu
 
-# Install Rust toolchain
-curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-export PATH="/root/.cargo/bin:$PATH"
-
 cd /binaries
 
 if [ -e "dd-trace-py" ]; then
@@ -28,9 +24,7 @@ fi
 
 cd -
 
-python -c "import ddtrace; print(ddtrace.__version__)" > SYSTEM_TESTS_LIBRARY_VERSION
-python /binaries/get_appsec_rules_version.py > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-touch SYSTEM_TESTS_LIBDDWAF_VERSION
-
-echo "dd-trace version is $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
-echo "appsec rules version is $(cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"
+# python uses the next API to get the library version. See https://github.com/DataDog/system-tests/issues/2799
+echo "0.0.0" > SYSTEM_TESTS_LIBRARY_VERSION
+echo "0.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
+echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION

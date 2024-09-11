@@ -66,7 +66,7 @@ class Test_SamplingRates:
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0",
         reason="_sampling_priority_v1 is missing",
     )
-    @bug(library="nodejs", reason="Unexpected amount of sampled traces")
+    @bug(context.library < "nodejs@5.17.0", reason="Unexpected amount of sampled traces")  # fixed version is not known
     @flaky(context.weblog_variant == "spring-boot-3-native", reason="Needs investigation")
     @flaky(library="golang", reason="Needs investigation")
     @flaky(library="ruby", reason="Needs investigation")
@@ -301,7 +301,6 @@ class Test_SamplingDecisions:
     @bug(library="python", reason="APMRP-259")
     @bug(library="nodejs", reason="APMRP-258")
     @bug(library="php", reason="APMRP-258")
-    @bug(library="cpp", reason="APMRP-258")
     @bug(context.library < "dotnet@2.37.0", reason="APMRP-258")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""

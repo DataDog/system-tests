@@ -257,6 +257,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
     @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
+    @bug(context.library >= "nodejs@4.44.0", reason="http is reported as component, io framework's name")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -321,7 +322,6 @@ class Test_MetaDatadogTags:
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
-    @bug(context.library >= "java@1.3.0", reason="process_id set as tag, not metric")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
         spans = [s for _, s in interfaces.library.get_root_spans()]

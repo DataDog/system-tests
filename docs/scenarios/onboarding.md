@@ -4,7 +4,7 @@ Similarly to Library Injection in Kubernetes environments via the admission cont
 
 The target of this testing feature is to test the distinct injection environments.
 
-> Check Datadog lib injection capabilities [public documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection).   
+> Check Datadog lib injection capabilities [public documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection).
 
 ## Library Injection testing scenarios
 
@@ -12,7 +12,7 @@ The automatic libray injection is tested on two scenarios:
 * Datadog Agent and your application deployed on the same host ([host injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=host)).
 * Datadog Agent and your application installed on containers ([containers injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection/?tab=agentandappinseparatecontainers)).
 
-> For Kubernetes Datadog library injection capabilities check the [kubernetes injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=kubernetes) or take a look at the [kubernetes injection testing scenarios](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).   
+> For Kubernetes Datadog library injection capabilities check the [kubernetes injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=kubernetes) or take a look at the [kubernetes injection testing scenarios](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).
 
 ## Knowledge concepts
 
@@ -23,7 +23,7 @@ We need to know some terms:
   * a list of setup executed on this tested architecture, we called as a virtual machine provision.
   * a list of test
 
-* **Virtual Machine:** A virtual machine (VM) is a replica, in terms of behavior, of a physical computer. There is software capable of emulating these replicas of physical computers running operating systems. In this case, system-tests will be able to handle the integration of the framework itself with the virtual machines, so that we can install our software to be tested on them (provision). 
+* **Virtual Machine:** A virtual machine (VM) is a replica, in terms of behavior, of a physical computer. There is software capable of emulating these replicas of physical computers running operating systems. In this case, system-tests will be able to handle the integration of the framework itself with the virtual machines, so that we can install our software to be tested on them (provision).
 
 * **Provision:** It will be the list of software and configurations to be installed on the virtual machines. The provisions will be specified by using yaml files.
 
@@ -71,7 +71,7 @@ class Ubuntu22amd64(_VirtualMachine):
         )
 ```
 ### Provision
-We call provision to the configurations applied or the software installed on the machines included in the scenario. 
+We call provision to the configurations applied or the software installed on the machines included in the scenario.
 
 Some properties of the provisions in system-tests are as follows:
 
@@ -87,7 +87,7 @@ This is an example of provision file:
 
 ```yaml
 #Optional: Load the environment variables
-init-environment: 
+init-environment:
   #This variables will be populated as env variables in all commands for each provision installation
   - env: dev
     agent_repo_url: datad0g.com
@@ -102,7 +102,7 @@ init-environment:
 
 #Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
 tested_components:
-  install: 
+  install:
     - os_type: linux
       os_distro: rpm
       remote-command: |
@@ -112,11 +112,11 @@ tested_components:
       remote-command: |
           version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 )  && echo "{'agent':'${version_agent//'Version:'/}'}"
 
-#Mandatory: Steps to install provision 
+#Mandatory: Steps to install provision
 provision_steps:
   - init-config #Very first machine action
   - my-cutom-extra-step #secod step
-  - install-agent #Install the agent 
+  - install-agent #Install the agent
 
 init-config:
   cache: true
@@ -211,9 +211,9 @@ In order to securely store and access AWS credentials in an our test environment
 
 ### Vagrant
 
-* Install Vagrant Install Vagrant | Vagrant | HashiCorp Developer 
-* Install QEMU emulator: Download QEMU - QEMU 
-* Install python Vagrant plugin: python-vagrant 
+* Install Vagrant Install Vagrant | Vagrant | HashiCorp Developer
+* Install QEMU emulator: Download QEMU - QEMU
+* Install python Vagrant plugin: python-vagrant
 * Install Vagrant-QEMU provider: https://github.com/ppggff/vagrant-qemu
 
 ### Pulumi
@@ -242,14 +242,14 @@ Before run the onboarding tests you should configure:
 Before execute the "onboarding" tests you must configure some environment variables:
 
 - **ONBOARDING_AWS_INFRA_SUBNET_ID:** AWS subnet id.
-- **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security groups id. 
+- **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security groups id.
 - **DD_API_KEY_ONBOARDING:** Datadog API key.
 - **DD_APP_KEY_ONBOARDING:** Datadog APP key.
 
 To debug purposes you can create and use your own EC2 key-pair. To use it you should configure the following environment variables:
 
 - **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** Set key pair name to ssh connect to the remote machines.
-- **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file). 
+- **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file).
 
 Opcionally you can set extra parameters to filter the type of tests that you will execute:
 
@@ -257,13 +257,15 @@ Opcionally you can set extra parameters to filter the type of tests that you wil
 
 ### Run script
 
-The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios. 
+The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios.
 The currently supported scenarios are the following:
 
 * **HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario
 * **SIMPLE_HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario (minimal test scenario)
+* **SIMPLE_HOST_AUTO_INJECTION_PROFILING:** Onboarding Host Single Step Instrumentation profiling scenario (minimal test scenario)
 * **HOST_AUTO_INJECTION_BLOCK_LIST:** Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists
 * **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto install script
+* **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with enabling profiling
 * **CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario
 * **SIMPLE_CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario (minimal test scenario)
 * **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto install script
@@ -272,7 +274,7 @@ The 'onboarding' tests scenarios requiered three mandatory parameters:
 
 - **--vm-library:** Configure language to test (currently supported languages are: java, python, nodejs, dotnet)
 - **--vm-env:** Configure origin of the software: dev (beta software) or prod (releases)
-- **--vm-weblog:** Configure weblog to tests 
+- **--vm-weblog:** Configure weblog to tests
 - **--vm-provider:** Default "aws"
 
 The following line shows an example of command line to run the tests:

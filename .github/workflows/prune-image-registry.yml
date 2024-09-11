@@ -6,7 +6,7 @@ on:
 
 jobs:
   prune-init-images:
-    if: ${{ false }} #Enable when Github support fix the problem related to the image versions. 
+    if: ${{ false }} #Enable when Github support fix the problem related to the image versions.
     name: Prune dd-lib-java-init docker images
     runs-on: ubuntu-latest
     permissions:
@@ -14,7 +14,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        weblog-variant: 
+        weblog-variant:
           - dd-lib-java-init-test-app
           - sample-app
           - dd-lib-python-init-test-django

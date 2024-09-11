@@ -1,4 +1,7 @@
-"""Key used in the metrics map to indicate tracer sampling priority"""
+from enum import IntEnum
+
+
+# Key used in the metrics map to indicate tracer sampling priority
 SAMPLING_PRIORITY_KEY = "_sampling_priority_v1"
 
 """
@@ -21,3 +24,12 @@ SINGLE_SPAN_SAMPLING_MAX_PER_SEC = "_dd.span_sampling.max_per_second"
 """ Some release identifiers """
 PYTHON_RELEASE_PUBLIC_BETA = "1.4.0rc1.dev"
 PYTHON_RELEASE_GA_1_1 = "1.5.0rc1.dev"
+
+
+class RemoteConfigApplyState(IntEnum):
+    """ https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc """
+
+    UNKNOWN = 0
+    UNACKNOWLEDGED = 1
+    ACKNOWLEDGED = 2
+    ERROR = 3

@@ -2,14 +2,17 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator, List, Optional, Tuple, TypedDict, Union
+from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
 
+from docker.models.containers import Container
 import grpc
+import pytest
 import requests
 
 from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
 from utils.parametric.spec.otel_trace import OtelSpanContext, convert_to_proto
+from utils.tools import logger
 
 
 class StartSpanResponse(TypedDict):
@@ -29,6 +32,9 @@ class Link(TypedDict):
 
 
 class APMLibraryClient:
+    def crash(self) -> None:
+        raise NotImplementedError
+
     def trace_start_span(
         self,
         name: str,
@@ -141,11 +147,15 @@ class APMLibraryClient:
     def http_request(self, method: str, url: str, headers: List[Tuple[str, str]]) -> None:
         raise NotImplementedError
 
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        raise NotImplementedError
+
 
 class APMLibraryClientHTTP(APMLibraryClient):
-    def __init__(self, url: str, timeout: int):
+    def __init__(self, url: str, timeout: int, container: Container):
         self._base_url = url
         self._session = requests.Session()
+        self.container = container
 
         # wait for server to start
         self._wait(timeout)
@@ -158,13 +168,23 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 if resp.status_code == 404:
                     break
             except Exception:
-                pass
+                self.container.reload()
+                if self.container.status != "running":
+                    message = f"Container {self.container.name} status is {self.container.status}"
+                    raise RuntimeError(message)
             time.sleep(delay)
         else:
             raise RuntimeError(f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start")
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
+
+    def crash(self) -> None:
+        try:
+            self._session.get(self._url("/trace/crash"))
+        except:
+            # Expected
+            pass
 
     def trace_start_span(
         self,
@@ -192,8 +212,12 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "span_tags": tags,
             },
         )
+
+        if resp.status_code != 200:
+            raise pytest.fail(f"Failed to start span: {resp.text}", pytrace=False)
+
         resp_json = resp.json()
-        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"],)
+        return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def current_span(self) -> Union[SpanResponse, None]:
         resp_json = self._session.get(self._url("/trace/span/current")).json()
@@ -276,6 +300,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "attributes": attributes or {},
             },
         ).json()
+        # TODO: Some http endpoints return span_id and trace_id as strings (ex: dotnet), some as uint64 (ex: go)
+        # and others with bignum trace_ids and uint64 span_ids (ex: python). We should standardize this.
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
     def otel_current_span(self) -> Union[SpanResponse, None]:
@@ -350,9 +376,27 @@ class APMLibraryClientHTTP(APMLibraryClient):
         ).json()
         return resp
 
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        resp = self._session.get(self._url("/trace/config")).json()
+        config_dict = resp["config"]
+        return {
+            "dd_service": config_dict.get("dd_service", None),
+            "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
+            "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
+            "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_tags": config_dict.get("dd_tags", None),
+            "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
+            "dd_trace_debug": config_dict.get("dd_trace_debug", None),
+            "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
+            "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
+            "dd_env": config_dict.get("dd_env", None),
+            "dd_version": config_dict.get("dd_version", None),
+        }
+
 
 class _TestSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int = 0, parent_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int, parent_id: int = 0):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -389,7 +433,7 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -436,14 +480,31 @@ class _TestOtelSpan:
 
 
 class APMLibraryClientGRPC:
-    def __init__(self, url: str, timeout: int):
+    def __init__(self, url: str, timeout: int, container: Container):
+        self.container = container
+
         channel = grpc.insecure_channel(url)
-        grpc.channel_ready_future(channel).result(timeout=timeout)
+        try:
+            grpc.channel_ready_future(channel).result(timeout=timeout)
+        except grpc.FutureTimeoutError as e:
+            logger.error("gRPC timeout, stopping test.")
+            self._log_container_stdout()
+
+            raise RuntimeError(f"Container {container.name} did not respond to gRPC request") from e
+
         client = apm_test_client_pb2_grpc.APMClientStub(channel)
         self._client = client
 
     def __enter__(self) -> "APMLibrary":
         return self
+
+    def _log_container_stdout(self):
+        try:
+            self.container.reload()
+            logs = self.container.logs().decode("utf-8")
+            logger.error(f"Container {self.container.name} status is: {self.container.status}. Logs:\n{logs}")
+        except:  # noqa
+            logger.error(f"Failed to get logs from container {self.container.name}")
 
     def trace_start_span(
         self,
@@ -478,19 +539,24 @@ class APMLibraryClientGRPC:
 
             pb_links.append(pb_link)
 
-        resp = self._client.StartSpan(
-            pb.StartSpanArgs(
-                name=name,
-                service=service,
-                resource=resource,
-                parent_id=parent_id,
-                type=typestr,
-                origin=origin,
-                http_headers=distributed_message,
-                span_links=pb_links,
-                span_tags=pb_tags,
+        try:
+            resp = self._client.StartSpan(
+                pb.StartSpanArgs(
+                    name=name,
+                    service=service,
+                    resource=resource,
+                    parent_id=parent_id,
+                    type=typestr,
+                    origin=origin,
+                    http_headers=distributed_message,
+                    span_links=pb_links,
+                    span_tags=pb_tags,
+                )
             )
-        )
+        except:
+            self._log_container_stdout()
+            raise
+
         return {
             "span_id": resp.span_id,
             "trace_id": resp.trace_id,
@@ -624,6 +690,24 @@ class APMLibraryClientGRPC:
     def otel_flush(self, timeout: int) -> bool:
         return self._client.OtelFlushSpans(pb.OtelFlushSpansArgs(seconds=timeout)).success
 
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        resp = self._client.GetTraceConfig(pb.GetTraceConfigArgs())
+        config_dict = resp.config
+        return {
+            "dd_service": config_dict.get("dd_service", None),
+            "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
+            "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
+            "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_tags": config_dict.get("dd_tags", None),
+            "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
+            "dd_trace_debug": config_dict.get("dd_trace_debug", None),
+            "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
+            "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
+            "dd_env": config_dict.get("dd_env", None),
+            "dd_version": config_dict.get("dd_version", None),
+        }
+
 
 class APMLibrary:
     def __init__(self, client: APMLibraryClient, lang):
@@ -637,6 +721,9 @@ class APMLibrary:
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
             self.flush()
+
+    def crash(self) -> None:
+        self._client.crash()
 
     @contextlib.contextmanager
     def start_span(
@@ -662,7 +749,7 @@ class APMLibrary:
             links=links if links is not None else [],
             tags=tags if tags is not None else [],
         )
-        span = _TestSpan(self._client, resp["span_id"])
+        span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
         span.finish()
 
@@ -686,7 +773,7 @@ class APMLibrary:
             attributes=attributes,
             http_headers=http_headers if http_headers is not None else [],
         )
-        span = _TestOtelSpan(self._client, resp["span_id"])
+        span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
 
         return {
@@ -726,3 +813,6 @@ class APMLibrary:
 
     def finish_span(self, span_id: int) -> None:
         self._client.finish_span(span_id)
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        return self._client.get_tracer_config()

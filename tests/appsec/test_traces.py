@@ -103,7 +103,8 @@ class Test_AppSecEventSpanTags:
         """Appsec tags are not on span where type is not web, http or rpc"""
         valid_appsec_span_types = ["web", "http", "rpc"]
         spans = [span for _, _, span in interfaces.library.get_spans()]
-        assert spans, "No AppSec events found"
+        assert spans, "No spans to validate"
+        assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
         for span in spans:
             if span.get("type") in valid_appsec_span_types:
                 continue
@@ -322,14 +323,6 @@ class Test_CollectDefaultRequestHeader:
             return True
 
         interfaces.library.validate_spans(self.r, validate_request_headers)
-
-
-@features.security_events_metadata
-class Test_DistributedTraceInfo:
-    """Distributed traces info (Services, URL, trace id)"""
-
-    def test_main(self):
-        assert False, "Test not implemented"
 
 
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")

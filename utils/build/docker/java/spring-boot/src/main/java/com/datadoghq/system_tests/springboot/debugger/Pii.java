@@ -8,7 +8,6 @@ public class Pii  extends PiiBase {
     public String accessToken = VALUE;
     public String AccessToken = VALUE;
     public String ACCESSTOKEN = VALUE;
-    public String address = VALUE;
     public String aiohttpsession = VALUE;
     public String apikey = VALUE;
     public String apisecret = VALUE;
@@ -22,7 +21,6 @@ public class Pii  extends PiiBase {
     public String cipher = VALUE;
     public String clientid = VALUE;
     public String clientsecret = VALUE;
-    public String config = VALUE;
     public String connectionstring = VALUE;
     public String connectsid = VALUE;
     public String cookie = VALUE;

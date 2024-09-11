@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"encoding/json"
 	"weblog/internal/common"
 
 	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/graph-gophers/graphql-go"
@@ -46,6 +47,23 @@ func main() {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+
+		healthCheck, err := common.GetHealtchCheck()
+		if err != nil {
+			http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
+		}
+
+		jsonData, err := json.Marshal(healthCheck)
+		if err != nil {
+			http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
 	})
 
 	common.InitDatadog()

@@ -1,14 +1,14 @@
 weblog:
     name: test-app-nodejs-alpine-libgcc
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64, centos_7_amd64]
     install: 
       - os_type: linux
         copy_files:
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-alpine/test-app-nodejs_docker_compose_run.sh
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-alpine/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
           - name: copy-nodejs-app
             local_path: lib-injection/build/docker/nodejs/sample-app
@@ -17,4 +17,4 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-alpine/Dockerfile.libgcc.template
             remote_path: Dockerfile.template
 
-        remote-command: sh test-app-nodejs_docker_compose_run.sh
+        remote-command: sh create_and_run_app_container.sh

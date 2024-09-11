@@ -20,8 +20,20 @@ class Test_library:
             excluded_points=[
                 ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
                 ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
+                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
+                ("/debugger/v1/input", "$[].dd.span_id"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
+                ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
             ]
         )
+
+    @bug(context.library == "python", reason="DEBUG-2743")
+    def test_library_schema_debugger(self):
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].dd.span_id")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].dd.trace_id")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]")
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.captures")
 
     @bug(context.library >= "nodejs@2.27.1", reason="APPSEC-52805")
     def test_library_schema_telemetry_conf_value(self):
@@ -30,6 +42,12 @@ class Test_library:
     @bug(context.library < "python@v2.9.0.dev", reason="APPSEC-52845")
     def test_library_schema_telemetry_job_object(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
+
+    @bug(library="golang", reason="APMS-12697")
+    def test_library_telenetry_configuration_value(self):
+        interfaces.library.assert_schema_point(
+            "/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"
+        )
 
 
 @scenarios.all_endtoend_scenarios
@@ -46,6 +64,7 @@ class Test_Agent:
                 ("/api/v2/apmtelemetry", "$.payload.configuration[]"),
                 ("/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
                 ("/api/v2/apmtelemetry", "$"),  # the main payload sent by the agent may be an array i/o an object
+                ("/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
             ]
         )
 
@@ -63,3 +82,7 @@ class Test_Agent:
     @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_agent_schema_telemetry_main_payload(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$")
+
+    @bug(library="golang", reason="APMS-12697")
+    def test_library_telenetry_configuration_value(self):
+        interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[].value")

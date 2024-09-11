@@ -1,3 +1,4 @@
+import signal
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -65,6 +66,11 @@ class StartSpanReturn(BaseModel):
     trace_id: int
 
 
+@app.get("/trace/crash")
+def trace_crash() -> None:
+    os.kill(os.getpid(), signal.SIGSEGV.value)
+
+
 @app.post("/trace/span/start")
 def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
     parent: Union[None, Span, Context]
@@ -105,6 +111,30 @@ class SpanFinishArgs(BaseModel):
 
 class SpanFinishReturn(BaseModel):
     pass
+
+
+class TraceConfigReturn(BaseModel):
+    config: dict[str, Optional[str]]
+
+
+@app.get("/trace/config")
+def trace_config() -> TraceConfigReturn:
+    return TraceConfigReturn(
+        config={
+            "dd_service": config.service,
+            "dd_log_level": None,
+            "dd_trace_sample_rate": str(config._trace_sample_rate),
+            "dd_trace_enabled": str(config._tracing_enabled).lower(),
+            "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
+            "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
+            "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
+            "dd_trace_debug": str(config._debug_mode).lower(),
+            "dd_trace_otel_enabled": str(config._otel_enabled).lower(),
+            "dd_trace_sample_ignore_parent": None,
+            "dd_env": config.env,
+            "dd_version": config.version,
+        }
+    )
 
 
 @app.post("/trace/span/finish")

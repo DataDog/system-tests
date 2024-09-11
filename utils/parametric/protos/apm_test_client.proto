@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option java_package = "com.datadoghq.client";
-//option go_package = "./";
+option go_package = "./";
 option csharp_namespace = "ApmTestClient";
 
 // Interface of APM clients to be used for shared testing.
@@ -41,6 +41,15 @@ service APMClient {
   rpc OtelGetLinks(OtelGetLinksArgs) returns (OtelGetLinksReturn) {}
 
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
+
+  rpc GetTraceConfig(GetTraceConfigArgs) returns (GetTraceConfigReturn) {}
+}
+
+message GetTraceConfigArgs {}
+
+message GetTraceConfigReturn {
+  map<string, string> config = 1;
+
 }
 
 message StartSpanArgs {

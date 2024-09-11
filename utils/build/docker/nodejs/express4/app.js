@@ -1,7 +1,8 @@
 'use strict'
 
 const tracer = require('dd-trace').init({
-  debug: true
+  debug: true,
+  flushInterval: 5000
 })
 
 const { promisify } = require('util')
@@ -35,6 +36,21 @@ iast.initMiddlewares(app)
 app.get('/', (req, res) => {
   console.log('Received a request')
   res.send('Hello\n')
+})
+
+app.get('/healthcheck', (req, res) => {
+  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
+  const maybeRequire = name => { try { return require(name) } catch (e) {} }
+
+  res.json({
+    status: 'ok',
+    library: {
+      language: 'nodejs',
+      version: require('dd-trace/package.json').version,
+      libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
+      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
+    }
+  })
 })
 
 app.all(['/waf', '/waf/*'], (req, res) => {
@@ -419,6 +435,29 @@ app.get('/flush', (req, res) => {
     res.status(500).send(err)
   })
 })
+
+app.get('/requestdownstream', async (req, res) => {
+  try {
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return res.json(resFetch.data)
+  } catch (e) {
+    return res.status(500).send(e)
+  }
+})
+
+app.get('/returnheaders', (req, res) => {
+  res.json({ ...req.headers })
+})
+
+app.get('/set_cookie', (req, res) => {
+  const name = req.query.name
+  const value = req.query.value
+
+  res.header('Set-Cookie', `${name}=${value}`)
+  res.send('OK')
+})
+
+require('./rasp')(app)
 
 require('./graphql')(app).then(() => {
   app.listen(7777, '0.0.0.0', () => {

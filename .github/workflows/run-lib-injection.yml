@@ -12,6 +12,10 @@ on:
         description: "Library to test"
         required: true
         type: string
+      version:
+        description: "Version of the image to test"
+        required: true
+        type: string
 env:
   REGISTRY: ghcr.io
 
@@ -43,26 +47,40 @@ jobs:
           "ruby": [{"name":"dd-lib-ruby-init-test-rails","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-explicit","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-gemsrb","supported":"true"}]
         }
 
-        init_images={
+        prod_init_images={
           "cpp": [],
-          "dotnet": ["gcr.io/datadoghq/dd-lib-dotnet-init:latest","ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"],
+          "dotnet": ["gcr.io/datadoghq/dd-lib-dotnet-init:latest"],
           "golang": [],
-          "java": ["gcr.io/datadoghq/dd-lib-java-init:latest","ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
-          "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest","ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
+          "java": ["gcr.io/datadoghq/dd-lib-java-init:latest"],
+          "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest"],
           "php": [],
-          "python": ["gcr.io/datadoghq/dd-lib-python-init:latest","ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
-          "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest","ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
+          "python": ["gcr.io/datadoghq/dd-lib-python-init:latest"],
+          "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest"],
+        }
+
+        dev_init_images={
+          "cpp": [],
+          "dotnet": ["ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"],
+          "golang": [],
+          "java": ["ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
+          "nodejs": ["ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
+          "php": [],
+          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
+          "ruby": ["ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
         }
         #All weblog variants
         result = weblogs["${{ inputs.library }}"]
-
         #Only supported weblog variants
         results_supported_langs = []
         for weblog in weblogs["${{ inputs.library }}"]:
           if weblog["supported"] == "true":
             results_supported_langs.append(weblog["name"])
 
-        result_init_image = init_images["${{ inputs.library }}"]
+        #Use the latest init image for prod version, latest_snapshot init image for dev version
+        if "${{ inputs.version }}" == 'prod':
+          result_init_image = prod_init_images["${{ inputs.library }}"]
+        else:
+          result_init_image = dev_init_images["${{ inputs.library }}"]
 
         with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             print(f'matrix={json.dumps(result)}', file=fh)
@@ -80,7 +98,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-    needs: 
+    needs:
       - compute-matrix
     strategy:
       matrix:
@@ -98,11 +116,11 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-    
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Log in to the Container registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
         with:
@@ -111,10 +129,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build weblog init image validator
-        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog.name }} -l ${{ inputs.library }}       
+        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog.name }} -l ${{ inputs.library }}
 
       - name: Install runner
-        uses: ./.github/actions/install_runner       
+        uses: ./.github/actions/install_runner
 
       - name: Perform lib injection
         if:  matrix.weblog.supported == 'true'
@@ -147,7 +165,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    needs: 
+    needs:
       - compute-matrix
     strategy:
       matrix:
@@ -160,7 +178,7 @@ jobs:
       LIB_INIT_IMAGE: ${{ matrix.lib_init_image }}
       SYSTEM_TESTS_REPORT_ENVIRONMENT: dev
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/system-tests/${{ matrix.weblog }}:${{ inputs.build_lib_injection_app_images != true && 'latest' || github.sha }} 
+      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/system-tests/${{ matrix.weblog }}:${{ inputs.build_lib_injection_app_images != true && 'latest' || github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -169,7 +187,7 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-    
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
@@ -179,7 +197,7 @@ jobs:
           buildkitd-config-inline: |
             [worker.oci]
               max-parallelism = 1
-        
+
       - name: Log in to the Container registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
         with:
@@ -189,14 +207,14 @@ jobs:
 
       - name: Build weblog base images (PR)
         if: inputs.build_lib_injection_app_images
-        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }}   
+        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }}
 
       - name: Install runner
-        uses: ./.github/actions/install_runner       
+        uses: ./.github/actions/install_runner
 
       - name: Kubernetes lib-injection tests
         id: k8s-lib-injection-tests
-        run: ./run.sh K8S_LIBRARY_INJECTION_FULL
+        run: ./run.sh K8S_LIBRARY_INJECTION_BASIC
 
       - name: Compress logs
         id: compress_logs

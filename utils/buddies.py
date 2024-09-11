@@ -1,4 +1,3 @@
-from collections import defaultdict
 from utils._weblog import _Weblog
 
 
@@ -8,10 +7,6 @@ class _Buddy(_Weblog):
 
         self.port = port
         self.domain = domain
-
-        self.responses = defaultdict(list)
-        self.current_nodeid = "not used"
-        self.replay = False
         self.language = language
 
 

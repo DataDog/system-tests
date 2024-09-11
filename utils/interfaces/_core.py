@@ -154,6 +154,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         with self._lock:
             for data in self._data_list:
                 if wait_for_function(data):
+                    logger.info(f"wait for {wait_for_function} finished in success with existing data")
                     return
 
             # then set the lock, and wait for append_data to release it
@@ -200,6 +201,34 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             logger.error(f"* {error.message}")
 
         assert not has_error, f"Schema validation failed for {self.name}"
+
+    def assert_request_header(self, path, header_name_pattern: str, header_value_pattern: str) -> None:
+        """
+            Assert that a header, and its value are present in all requests for a given path
+            header_name_pattern: a regular expression to match the header name (lower case)
+            header_value_pattern: a regular expression to match the header value
+        """
+
+        data_found = False
+
+        for data in self.get_data(path):
+            data_found = True
+
+            found = False
+
+            for header, value in data["request"]["headers"]:
+                if re.fullmatch(header_name_pattern, header.lower()):
+                    if not re.fullmatch(header_value_pattern, value):
+                        logger.error(f"Header {header} found in {data['log_filename']}, but value is {value}")
+                    else:
+                        found = True
+                        continue
+
+            if not found:
+                raise ValueError(f"{header_name_pattern} not found (or incorrect) in {data['log_filename']}")
+
+        if not data_found:
+            raise ValueError(f"No data found for {path}")
 
 
 class ValidationError(Exception):

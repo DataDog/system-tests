@@ -15,7 +15,9 @@ class Test_InsecureAuthProtocol(BaseSinkTest):
     insecure_endpoint = "/iast/insecure-auth-protocol/test"
     secure_endpoint = "/iast/insecure-auth-protocol/test"
     data = {}
-    insecure_headers = {"Authorization": "Basic dGVzd"}
+    insecure_headers = {
+        "Authorization": 'Digest username="WATERFORD", realm="Users", nonce="c5rcvu346qavqf3hnmsrnqj5up", uri="/api/partner/validate", response="57c8d9f11ec7a2f1ab13c5e166b2c505"'
+    }
 
     @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")

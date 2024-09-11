@@ -11,6 +11,7 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
+import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
@@ -84,6 +86,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
@@ -103,7 +108,7 @@ public class App {
     String home(HttpServletResponse response) {
         // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
         // if a java engineer knows how to remove this?
-        // waiting for that, just set a random value 
+        // waiting for that, just set a random value
         response.setHeader("Content-Language", "not-set");
         return "Hello World!";
     }
@@ -164,6 +169,19 @@ public class App {
         h.put("metadata0", "value0");
         h.put("metadata1", "value1");
         return h;
+    }
+
+    @GetMapping("/users")
+    String users(@RequestParam String user) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if ((span instanceof MutableSpan)) {
+            MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+            localRootSpan.setTag("usr.id", user);
+        }
+        Blocking
+                .forUser(user)
+                .blockIfMatch();
+        return "Hello " + user;
     }
 
     @GetMapping("/user_login_success_event")
@@ -645,7 +663,7 @@ public class App {
 
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
-        try { 
+        try {
             Object expr = Ognl.parseExpression("[1]");
             String value = (String) Ognl.getValue(expr, list);
             return "hi OGNL, " + value;
@@ -654,64 +672,6 @@ public class App {
         }
 
         return "hi OGNL";
-    }
-
-    // E.g. curl "http://localhost:8080/sqli?q=%271%27%20union%20select%20%2A%20from%20display_names"
-    @RequestMapping("/rasp/sqli")
-    String raspSQLi(@RequestParam(required = false, name="q") String param) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        // NOTE: see README.md for setting up the docker image to quickly test this
-        String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
-        try (Connection pgConn = DriverManager.getConnection(url)) {
-            String query = "SELECT * FROM display_names WHERE full_name = ";
-            Statement st = pgConn.createStatement();
-            ResultSet rs = st.executeQuery(query + param);
-
-            int i = 0;
-            while (rs.next()) {
-                i++;
-            }
-            System.out.printf("Read %d rows", i);
-            rs.close();
-            st.close();
-        } catch (SQLException e) {
-            e.printStackTrace(System.err);
-            return "pgsql exception :(";
-        }
-
-        return "Done SQL injection with param: " + param;
-    }
-
-    @RequestMapping("/rasp/ssrf")
-    String raspSSRF(@RequestParam(required = false, name="url") String url) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        try {
-            URL server;
-            try {
-                server = new URL(url);
-            } catch (MalformedURLException e) {
-                server = new URL("http://" + url);
-            }
-
-            HttpURLConnection connection = (HttpURLConnection)server.openConnection();
-            connection.connect();
-            System.out.println("Response code:" + connection.getResponseCode());
-            System.out.println("Response message:" + connection.getResponseMessage());
-            InputStream test = connection.getErrorStream();
-            String result = new BufferedReader(new InputStreamReader(test)).lines().collect(Collectors.joining("\n"));
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            return "ssrf exception :(";
-        }
     }
 
     @RequestMapping("/make_distant_call")
@@ -749,6 +709,15 @@ public class App {
         result.response_headers = response_headers;
 
         return result;
+    }
+
+    @RequestMapping("/createextraservice")
+    public String createextraservice(@RequestParam String serviceName) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("service", serviceName);
+        }
+        return "OK";
     }
 
     public static final class DistantCallResponse {
@@ -927,19 +896,35 @@ public class App {
         return "OK";
     }
 
+    @GetMapping(value = "/requestdownstream")
+    public String requestdownstream(HttpServletResponse response) throws IOException {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GetMapping(value = "/returnheaders", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> returnheaders(@RequestHeader Map<String, String> headers) {
+        return ResponseEntity.ok(headers);
+    }
+
+    @GetMapping(value = "/set_cookie")
+    public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
+        return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
+    }
+
     @Bean
     @ConditionalOnProperty(
-        value="spring.native", 
-        havingValue = "false", 
+        value="spring.native",
+        havingValue = "false",
         matchIfMissing = true)
-    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) { 
+    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) {
         return new SynchronousWebLogGrpc(localInterface.getPort());
    }
 
     @Bean
     @ConditionalOnProperty(
-        value="spring.native", 
-        havingValue = "false", 
+        value="spring.native",
+        havingValue = "false",
         matchIfMissing = true)
     WebLogInterface localInterface() throws IOException {
         return new WebLogInterface();

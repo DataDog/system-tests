@@ -1,0 +1,29 @@
+lang_variant:
+    name: PHP
+    cache: true
+    install:
+      - os_type: linux
+        os_distro: deb
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
+        remote-command: sudo sh php_install.sh deb
+
+      - os_type: linux
+        os_distro: rpm
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
+        remote-command: sudo sh php_install.sh rpm
+
+weblog:
+    name: test-shell-script
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    install:
+      - os_type: linux
+        remote-command: |
+          sudo mkdir /var/log/datadog_weblog && sudo chmod -R 777 /var/log/datadog_weblog
+          sudo touch /var/log/datadog_weblog/host_injection.log && sudo chmod 777 /var/log/datadog_weblog/host_injection.log
+          sudo sh -c 'echo "DD_APM_INSTRUMENTATION_DEBUG=TRUE" >> /etc/environment'
+          sudo sh -c 'echo "DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/var/log/datadog_weblog/host_injection.log" >> /etc/environment'
+          source /etc/environment

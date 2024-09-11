@@ -4,6 +4,7 @@
 import json
 import os
 import time
+import types
 
 import pytest
 from pytest_jsonreport.plugin import JSONReport
@@ -15,12 +16,14 @@ from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
 from utils._decorators import released
+from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
 _deselected_items = []
+setup_properties = SetupProperties()
 
 
 def pytest_addoption(parser):
@@ -41,6 +44,17 @@ def pytest_addoption(parser):
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
+
+    # Parametric scenario options
+    parser.addoption(
+        "--library",
+        "-L",
+        type=str,
+        action="store",
+        default="",
+        help="Library to test (e.g. 'python', 'ruby')",
+        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby"],
+    )
 
     # report data to feature parity dashboard
     parser.addoption(
@@ -69,7 +83,7 @@ def pytest_configure(config):
     if context.scenario is None:
         pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
 
-    context.scenario.configure(config)
+    context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
@@ -82,15 +96,14 @@ def pytest_sessionstart(session):
     # get the terminal to allow logging directly in stdout
     setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
 
+    # if only collect tests, do not start the scenario
+    if not session.config.option.collectonly:
+        context.scenario.pytest_sessionstart(session)
+
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
         logger.terminal.write("\n ********************************************************** \n\n")
-
-    if session.config.option.collectonly:
-        return
-
-    context.scenario.session_start()
 
 
 # called when each test item is collected
@@ -190,7 +203,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
             released(**declaration)(obj)
 
 
-def pytest_collection_modifyitems(session, config, items):
+def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
     """unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
@@ -199,6 +212,9 @@ def pytest_collection_modifyitems(session, config, items):
     deselected = []
 
     declared_scenarios = {}
+
+    def iter_markers(self, name=None):
+        return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
     for item in items:
         scenario_markers = list(item.iter_markers("scenario"))
@@ -218,7 +234,11 @@ def pytest_collection_modifyitems(session, config, items):
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
                     logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
-                    item.own_markers = [m for m in item.own_markers if m.name not in ("skip", "skipif")]
+                    # when user specified a test to be forced, we need to run it if it is skipped/xfailed, but also
+                    # if any of it's parent is marked as skipped/xfailed. The trick is to monkey path the
+                    # iter_markers method (this method is used by pytest internally to get all markers of a test item,
+                    # including parent's markers) to exclude the skip, skipif and xfail markers.
+                    item.iter_markers = types.MethodType(iter_markers, item)
 
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
@@ -239,8 +259,7 @@ def _item_is_skipped(item):
     return any(item.iter_markers("skip"))
 
 
-def pytest_collection_finish(session):
-    from utils import weblog
+def pytest_collection_finish(session: pytest.Session):
 
     if session.config.option.collectonly:
         return
@@ -254,6 +273,9 @@ def pytest_collection_finish(session):
             return
         except Exception as e:
             raise e
+
+    if session.config.option.replay:
+        setup_properties.load(context.scenario.host_log_folder)
 
     last_item_file = ""
     for item in session.items:
@@ -281,11 +303,14 @@ def pytest_collection_finish(session):
             last_item_file = item_file
 
         setup_method = getattr(item.instance, setup_method_name)
-        logger.debug(f"Call {setup_method} for {item}")
         try:
-            weblog.current_nodeid = item.nodeid
-            setup_method()
-            weblog.current_nodeid = None
+            if session.config.option.replay:
+                logger.debug(f"Restore properties of {setup_method} for {item}")
+                setup_properties.restore_properties(item)
+            else:
+                logger.debug(f"Call {setup_method} for {item}")
+                setup_method()
+                setup_properties.store_properties(item)
         except Exception:
             logger.exception("Unexpected failure during setup method call")
             logger.terminal.write("x", bold=True, red=True)
@@ -293,24 +318,18 @@ def pytest_collection_finish(session):
             raise
         else:
             logger.terminal.write(".", bold=True, green=True)
-        finally:
-            weblog.current_nodeid = None
 
     logger.terminal.write("\n\n")
+
+    if not session.config.option.replay:
+        setup_properties.dump(context.scenario.host_log_folder)
 
     context.scenario.post_setup()
 
 
 def pytest_runtest_call(item):
-    from utils import weblog
-
-    if item.nodeid in weblog.responses:
-        for response in weblog.responses[item.nodeid]:
-            request = response["request"]
-            if "method" in request:
-                logger.info(f"weblog {request['method']} {request['url']} -> {response['status_code']}")
-            else:
-                logger.info("weblog GRPC request")
+    # add a log line for each request made by the setup, to help debugging
+    setup_properties.log_requests(item)
 
 
 @pytest.hookimpl(optionalhook=True)
@@ -336,13 +355,16 @@ def pytest_json_modifyreport(json_report):
 
 def pytest_sessionfinish(session, exitstatus):
 
-    context.scenario.pytest_sessionfinish(session)
+    logger.info("Executing pytest_sessionfinish")
+
+    context.scenario.close_targets()
+
     if session.config.option.collectonly or session.config.option.replay:
         return
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
     # it will run in the master thread after all other processes have finished testing
-    if not hasattr(session.config, "workerinput"):
+    if context.scenario.is_main_worker:
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
                 {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
@@ -350,11 +372,14 @@ def pytest_sessionfinish(session, exitstatus):
 
         data = session.config._json_report.report  # pylint: disable=protected-access
 
-        junit_modifyreport(
-            data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
-        )
+        try:
+            junit_modifyreport(
+                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
+            )
 
-        export_feature_parity_dashboard(session, data)
+            export_feature_parity_dashboard(session, data)
+        except Exception:
+            logger.exception("Fail to export export reports", exc_info=True)
 
 
 def export_feature_parity_dashboard(session, data):
@@ -365,7 +390,7 @@ def export_feature_parity_dashboard(session, data):
         "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
         "language": context.scenario.library.library,
-        "variant": context.scenario.weblog_variant,
+        "variant": context.weblog_variant,
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
         ],

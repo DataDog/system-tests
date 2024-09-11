@@ -1,8 +1,7 @@
 import pytest
 
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.spec.trace import find_span_in_traces, Span
-from utils.parametric.test_agent import get_span
+from utils.parametric.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
 from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -29,7 +28,7 @@ class Test_128_Bit_Traceids:
                     ["x-datadog-tags", "_dd.p.tid=640cfd8d00000000"],
                 ],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -56,7 +55,7 @@ class Test_128_Bit_Traceids:
                     ["x-datadog-tags", "_dd.p.tid=1234567890abcdef1"],
                 ],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -83,7 +82,7 @@ class Test_128_Bit_Traceids:
                     ["x-datadog-tags", "_dd.p.tid=1234567890abcde"],
                 ],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -110,7 +109,7 @@ class Test_128_Bit_Traceids:
                     ["x-datadog-tags", "_dd.p.tid=1234567890abcdeX"],
                 ],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -139,7 +138,10 @@ class Test_128_Bit_Traceids:
                     ["x-datadog-tags", "_dd.p.tid=XXXX"],
                 ],
             )
-        assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "malformed_tid XXXX"
+        assert (
+            find_only_span(test_agent.wait_for_num_traces(1))["meta"].get("_dd.propagation_error")
+            == "malformed_tid XXXX"
+        )
 
     @pytest.mark.parametrize(
         "library_env",
@@ -152,7 +154,7 @@ class Test_128_Bit_Traceids:
             headers = make_single_request_and_get_inject_headers(
                 test_library, [["x-datadog-trace-id", "1234567890123456789"], ["x-datadog-parent-id", "987654321"],],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -171,7 +173,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -191,7 +193,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -200,7 +202,6 @@ class Test_128_Bit_Traceids:
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
         validate_dd_p_tid(dd_p_tid)
 
-    @missing_feature(context.library == "dotnet", reason="not implemented")
     @missing_feature(context.library == "golang", reason="not implemented")
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="not implemented")
@@ -214,7 +215,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -237,7 +238,7 @@ class Test_128_Bit_Traceids:
             headers = make_single_request_and_get_inject_headers(
                 test_library, [["b3", "640cfd8d00000000abcdefab12345678-000000003ade68b1-1"],],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
         fields = headers["b3"].split("-", 1)
@@ -259,7 +260,7 @@ class Test_128_Bit_Traceids:
             headers = make_single_request_and_get_inject_headers(
                 test_library, [["b3", "abcdefab12345678-000000003ade68b1-1"],],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
         fields = headers["b3"].split("-", 1)
@@ -282,7 +283,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         fields = headers["b3"].split("-", 1)
 
         check_64_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
@@ -299,7 +300,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         fields = headers["b3"].split("-", 1)
 
         check_128_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
@@ -318,7 +319,7 @@ class Test_128_Bit_Traceids:
                 test_library,
                 [["x-b3-traceid", "640cfd8d00000000abcdefab12345678"], ["x-b3-spanid", "000000003ade68b1"],],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -338,7 +339,7 @@ class Test_128_Bit_Traceids:
             headers = make_single_request_and_get_inject_headers(
                 test_library, [["x-b3-traceid", "abcdefab12345678"], ["x-b3-spanid", "000000003ade68b1"],],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -359,7 +360,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         check_64_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
@@ -374,7 +375,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
 
         check_128_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
@@ -391,7 +392,7 @@ class Test_128_Bit_Traceids:
             headers = make_single_request_and_get_inject_headers(
                 test_library, [["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01",],],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
         fields = headers["traceparent"].split("-", 2)
@@ -417,7 +418,7 @@ class Test_128_Bit_Traceids:
                     ["tracestate", "dd=t.tid:640cfd8d00000000"],
                 ],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
         propagation_error = span["meta"].get("_dd.propagation_error")
@@ -428,31 +429,29 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "ruby", reason="not implemented")
     @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "dotnet", reason="not implemented")
     @missing_feature(context.library == "java", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true",}],
     )
-    def test_w3c_128_bit_propagation_tid_in_parent(self, test_agent, test_library):
+    def test_w3c_128_bit_propagation_tid_in_chunk_root(self, test_agent, test_library):
         """Ensure that only root span contains the tid.
         """
         with test_library:
             with test_library.start_span(name="parent", service="service", resource="resource") as parent:
-                with test_library.start_span(name="child", service="service", parent_id=parent.span_id):
+                with test_library.start_span(name="child", service="service", parent_id=parent.span_id) as child:
                     pass
 
-        traces = test_agent.wait_for_num_traces(1, clear=True)
-        parent = find_span_in_traces(traces, Span(name="parent", service="service"))
-        child = find_span_in_traces(traces, Span(name="child", service="service"))
+        traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
+        assert len(trace) == 2
+        first_span = find_first_span_in_trace_payload(trace)
+        spans_with_tid = [span for span in trace if "_dd.p.tid" in span.get("meta", "")]
+        assert len(spans_with_tid) == 1
+        assert first_span == spans_with_tid[0]
 
-        parent_tid = parent["meta"].get("_dd.p.tid")
-        child_tid = (child.get("meta") or {}).get("_dd.p.tid")
-        propagation_error = parent["meta"].get("_dd.propagation_error")
-
-        assert parent_tid is not None
-        assert child_tid is None
-        assert propagation_error is None
+        tid_chunk_root = first_span["meta"].get("_dd.p.tid")
+        assert tid_chunk_root is not None
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
@@ -472,7 +471,7 @@ class Test_128_Bit_Traceids:
                     ["tracestate", "dd=t.tid:640cfd8d0000ffff"],
                 ],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -500,7 +499,10 @@ class Test_128_Bit_Traceids:
                     ["tracestate", "dd=t.tid:640cfd8d0000ffff"],
                 ],
             )
-        assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "inconsistent_tid 640cfd8d0000ffff"
+        assert (
+            find_only_span(test_agent.wait_for_num_traces(1))["meta"].get("_dd.propagation_error")
+            == "inconsistent_tid 640cfd8d0000ffff"
+        )
 
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
@@ -519,7 +521,7 @@ class Test_128_Bit_Traceids:
                     ["tracestate", "dd=t.tid:XXXX"],
                 ],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
 
@@ -547,7 +549,10 @@ class Test_128_Bit_Traceids:
                     ["tracestate", "dd=t.tid:XXXX"],
                 ],
             )
-        assert get_span(test_agent)["meta"].get("_dd.propagation_error") == "malformed_tid XXXX"
+        assert (
+            find_only_span(test_agent.wait_for_num_traces(1))["meta"].get("_dd.propagation_error")
+            == "malformed_tid XXXX"
+        )
 
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -561,7 +566,7 @@ class Test_128_Bit_Traceids:
             headers = make_single_request_and_get_inject_headers(
                 test_library, [["traceparent", "00-0000000000000000abcdefab12345678-000000003ade68b1-01",],],
             )
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
         fields = headers["traceparent"].split("-", 2)
@@ -583,7 +588,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         fields = headers["traceparent"].split("-", 2)
 
         check_64_bit_trace_id(fields[1], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
@@ -599,7 +604,7 @@ class Test_128_Bit_Traceids:
         """
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         fields = headers["traceparent"].split("-", 2)
 
         check_128_bit_trace_id(fields[1], span.get("trace_id"), span["meta"].get("_dd.p.tid"))

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, scenarios
+from utils import features, scenarios, flaky, context
 from ..utils import BaseSourceTest, get_all_iast_events, get_iast_sources
 
 
