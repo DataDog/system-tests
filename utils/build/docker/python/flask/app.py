@@ -746,28 +746,24 @@ def dsm():
 
 @app.route("/dsm/manual/produce")
 def dsm_manual_checkpoint_produce():
+    reset_dsm_context()
     typ = flask_request.args.get("type")
     target = flask_request.args.get("target")
-
-    reset_dsm_context()
-
     headers = {}
 
     def setter(k, v):
         headers[k] = v
 
     set_produce_checkpoint(typ, target, setter)
-
     flush_dsm_checkpoints()
-
     return Response(json.dumps(headers))
 
 
 @app.route("/dsm/manual/produce_with_thread")
 def dsm_manual_checkpoint_produce_with_thread():
-    def worker(typ, target, headers):
-        reset_dsm_context()
+    reset_dsm_context()
 
+    def worker(typ, target, headers):
         def setter(k, v):
             headers[k] = v
 
@@ -788,9 +784,12 @@ def dsm_manual_checkpoint_produce_with_thread():
 
 @app.route("/dsm/manual/consume")
 def dsm_manual_checkpoint_consume():
+    reset_dsm_context()
+
     typ = flask_request.args.get("type")
     source = flask_request.args.get("source")
     carrier = json.loads(flask_request.args.get("headers"))
+    logging.info(f"[DSM Manual Consume] Received Headers: {carrier}")
 
     def getter(k):
         return carrier[k]
@@ -802,8 +801,10 @@ def dsm_manual_checkpoint_consume():
 
 @app.route("/dsm/manual/consume_with_thread")
 def dsm_manual_checkpoint_consume_with_thread():
+    reset_dsm_context()
+
     def worker(typ, target, headers):
-        reset_dsm_context()
+        logging.info(f"[DSM Manual Consume With Thread] Received Headers: {headers}")
 
         def getter(k):
             return headers[k]
