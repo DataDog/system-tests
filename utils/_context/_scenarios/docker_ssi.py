@@ -149,7 +149,10 @@ class DockerSSIScenario(Scenario):
             except:
                 logger.exception(f"Failed to remove container {container}")
         # TODO push images only if all tests pass
-        # self.ssi_image_builder.push_base_image()
+        # TODO At this point, tests are not yet executed. There is not official hook in the Scenario class to do that,
+        # TODO we can add one : pytest_sessionstart, it will contains the test result.
+        # TODO The best way is to push the images from pipeline instead of from test runtime
+        self.ssi_image_builder.push_base_image()
 
     def fill_context(self, json_tested_components):
         """ After extract the components from the weblog, fill the context with the data """
