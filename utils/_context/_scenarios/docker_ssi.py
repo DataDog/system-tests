@@ -97,7 +97,11 @@ class DockerSSIScenario(Scenario):
         self._weblog_composed_name = f"{self._base_weblog}_{self.ssi_image_builder.get_base_docker_tag()}"
         self._test_agent_polling = TestAgentClientPolling()
         for container in self._required_containers:
-            container.configure(self.replay)
+            try:
+                container.configure(self.replay)
+            except Exception as e:
+                logger.error(f"Failed to configure container ", e)
+                logger.stdout(f"ERROR configuring container. check log file for more details")
 
     def get_warmups(self):
         warmups = super().get_warmups()

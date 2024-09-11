@@ -1098,3 +1098,10 @@ class DockerSSIContainer(TestedContainer):
             if env_var.startswith(f"{env_var}="):
                 return env_var.split("=")[1]
         return None
+
+    def start(self) -> Container:
+        try:
+            super().start()
+        except Exception as e:
+            logger.error(f"Error starting container weblog-injection: {e}")
+            return None

@@ -17,7 +17,6 @@ class TestDockerSSIFeatures:
     def _setup_all(self):
         parsed_url = urlparse(context.scenario.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
-        assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
         logger.info(f"Setup Docker SSI installation {self.r}")
         time.sleep(5)  # Wait for 5 seconds to allow the test agent to send traces
 
@@ -31,6 +30,7 @@ class TestDockerSSIFeatures:
     )
     def test_install(self):
         logger.info(f"Testing Docker SSI installation: {context.scenario.library.library}")
+        assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
         supported_lang_runtime = check_if_version_supported(
             context.scenario.library, context.scenario.installed_runtime
         )
