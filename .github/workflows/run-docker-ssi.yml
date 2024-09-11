@@ -26,8 +26,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: 'DataDog/system-tests'
-    - name: check os
-      run: echo ${{ matrix.github_runner }}
     - name: Prepare arm runner
       if: ${{ matrix.github_runner == 'arm-4core-linux' }}
       # The ARM64 Ubuntu has less things installed by default
@@ -53,27 +51,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Install runner
       uses: ./.github/actions/install_runner
-
-      # Reemplace for the actions/install_runner/action.yaml
-    #- uses: actions/setup-python@v5
-    #  with:
-    #    python-version: "3.9"
-    #- name: Check requirements.txt
-    #  shell: bash
-    #  run: cat requirements.txt
-    #- name: Build runner
-    #  shell: bash
-    #  run: ./build.sh -i runner
-    #- name: Print versions
-    #  shell: bash
-    #  run: |
-    #    source venv/bin/activate
-    #    python --version
-    #    pip freeze
-      # End of the actions/install_runner/action.yaml
-   # - name: Check matrix (TODO DELETE)
-   #   if: always()
-   #   run: echo ${{ matrix.supported_features }}
     - name: Run Docker SSI scenario
       if: always()
       run: ./run.sh DOCKER_SSI --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-installable-runtime ${{matrix.installable_runtime}} --ssi-force-build

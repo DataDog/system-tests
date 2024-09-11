@@ -45,4 +45,3 @@ pexpect==4.9.0
 kubernetes==29.0.0
 
 retry==0.9.2
-deepdiff==8.0.1
