@@ -47,7 +47,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-cd ${BASE_DIR} || exit
+cd "${BASE_DIR}" || exit
 matrix_json=$(python utils/docker_ssi/docker_ssi_matrix_builder.py )
 
 extra_args=""
@@ -58,7 +58,7 @@ if [ -n "$PUSH_BASE_IMAGES" ]; then
     extra_args="--ssi-push-base-images"
 fi
 
-while read row
+while read -r row
 do
   weblog=$(echo "$row" | jq -r .weblog)
   base_image=$(echo "$row" | jq -r .base_image)
