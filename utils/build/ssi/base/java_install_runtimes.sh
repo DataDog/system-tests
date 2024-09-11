@@ -13,6 +13,5 @@ for VERSION in $(echo "$RUNTIME_VERSIONS" | tr ',' ' '); do
     sdk install java "$VERSION"
 done
 
-#ln -s "${SDKMAN_DIR}/candidates/java/current" java
 ln -s "${SDKMAN_DIR}/candidates/java/current/bin/java" /usr/bin/java
 ln -s "${SDKMAN_DIR}/candidates/java/current/bin/javac" /usr/bin/javac

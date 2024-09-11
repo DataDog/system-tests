@@ -105,23 +105,6 @@ def get_opentelemetry_weblogs(library):
     return weblogs[library]
 
 
-def get_docker_ssi_weblogs(library):
-
-    weblogs = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": [],
-        "java": ["dd-lib-java-init-test-app"],
-        "nodejs": [],
-        "php": [],
-        "python": [],
-        "ruby": [],
-    }
-    with open(f"utils/build/ssi/java/dd-lib-java-init-test-app.json") as f:
-        d = json.load(f)
-        return d
-
-
 def main():
     scenario_map = get_github_workflow_map(
         os.environ["SCENARIOS"].split(","), os.environ["SCENARIOS_GROUPS"].split(",")

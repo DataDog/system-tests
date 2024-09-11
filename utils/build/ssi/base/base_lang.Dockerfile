@@ -12,5 +12,3 @@ ARG DD_LANG
 ARG RUNTIME_VERSIONS=
 COPY base/${DD_LANG}_install_runtimes.sh ./
 RUN ./${DD_LANG}_install_runtimes.sh ${RUNTIME_VERSIONS}
-RUN echo "******* JAVA VERSION******* $(java -version)"
-#ENV JAVA_HOME=java

@@ -1021,18 +1021,14 @@ class LocalstackContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            # image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.18.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
             environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket"},
             healthcheck={"test": f"curl --fail --silent --show-error http://localhost:8126/info", "retries": 60,},
             ports={"8126": ("127.0.0.1", 8126)},
             allow_old_container=False,
-            volumes={
-                f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}
-                # f"/Users/roberto.montero/Documents/development/guardrails-testing/temp": {"bind": "/var/run/datadog/", "mode": "rw",}
-            },
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
         )
 
 

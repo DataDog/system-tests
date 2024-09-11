@@ -41,8 +41,7 @@ class DockerSSIScenario(Scenario):
     def configure(self, config):
         assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby"
 
-        self._base_weblog = config.option.ssi_weblog  # TODO : rename it to _base_weblog to avoid confusion
-        # TODO : assert ssi_weblog does not contains underscore, as it's used as separator
+        self._base_weblog = config.option.ssi_weblog
         self._library = config.option.ssi_library
         self._base_image = config.option.ssi_base_image
         self._arch = config.option.ssi_arch
@@ -179,7 +178,6 @@ class DockerSSIScenario(Scenario):
     def components(self):
         return self._tested_components
 
-    # TODO : on SSI, a weblog is defined by it base name and its arch
     @property
     def weblog_variant(self):
         return self._weblog_composed_name

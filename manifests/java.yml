@@ -1024,11 +1024,6 @@ tests/:
         vertx3: v1.7.0
     test_versions.py:
       Test_Events: v0.90.0
-  # TODO
-  # auto_inject/:
-  #   test_docker_ssi_service_name.py:
-  #     TestDockerSSIServiceName:
-  #       'tomcat9-app_arm4': v0.1
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:

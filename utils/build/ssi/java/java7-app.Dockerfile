@@ -22,7 +22,5 @@ COPY lib-injection/build/docker/java/jdk7-app/ .
 RUN chmod -R 777 /usr/lib/jvm/java-7-openjdk-arm64
 ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-arm64
 RUN /usr/lib/jvm/java-7-openjdk-arm64/bin/javac *.java
-#ENTRYPOINT ["/usr/lib/jvm/java-7-openjdk-arm64/bin/java", "-cp", ".", "SimpleHttpServer"]
 RUN ln -s /usr/lib/jvm/java-7-openjdk-arm64/bin/java /usr/bin/java
-#RUN echo "/usr/lib/jvm/java-7-openjdk-arm64/bin/java -cp . SimpleHttpServer" > /app/app.sh && chmod +x /app/app.sh
 CMD [ "java", "-cp", ".", "SimpleHttpServer" ]

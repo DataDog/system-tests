@@ -162,7 +162,7 @@ jobs:
   docker-ssi:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.docker_ssi_scenarios != '[]' && inputs.binaries_artifact == '' }}
+    if: ${{ needs.compute_parameters.outputs.docker_ssi_scenarios != '[]' }}
     uses: ./.github/workflows/run-docker-ssi.yml
     secrets: inherit
     with:
