@@ -137,6 +137,8 @@ def main():
                     r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
                     r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
                     r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC.value,
+                    #### Docker SSI case
+                    r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect
@@ -176,11 +178,6 @@ def main():
             if file in scenarios_by_files:
                 scenarios.update(scenarios_by_files[file])
 
-    # print("scenarios=" + ",".join(scenarios))
-    # print("scenarios_groups=" + ",".join(scenarios_groups))
-    # TODO RMM REMOVE THIS
-    scenarios = set(["DOCKER_SSI"])
-    scenarios_groups = set([ScenarioGroup.DOCKER_SSI.value])
     print("scenarios=" + ",".join(scenarios))
     print("scenarios_groups=" + ",".join(scenarios_groups))
 

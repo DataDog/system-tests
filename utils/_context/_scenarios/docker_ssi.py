@@ -251,9 +251,13 @@ class DockerSSIImageBuilder:
         """ Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer (only with the installer, without ssi autoinject )"""
         if self.should_push_base_images:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
-            docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
-            push_logs = self.docker_client.images.push(self._docker_registry_tag)
-            self.print_docker_push_logs(self._docker_registry_tag, push_logs)
+            try:
+                docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
+                push_logs = self.docker_client.images.push(self._docker_registry_tag)
+                self.print_docker_push_logs(self._docker_registry_tag, push_logs)
+            except Exception as e:
+                logger.stdout("ERROR pushing docker image. check log file for more details")
+                logger.exception(f"Failed to push docker image: {e}")
 
     def get_base_docker_tag(self):
         """ Resolves and format the docker tag for the base image """

@@ -7,7 +7,6 @@ WORKDIR /workdir
 COPY ./base/install_script_ssi.sh ./
 
 ARG DD_API_KEY=deadbeef
-ENV DD_API_KEY=${DD_API_KEY}
 
 ARG DD_LANG
 ENV DD_APM_INSTRUMENTATION_LIBRARIES=${DD_LANG}
