@@ -330,7 +330,9 @@ class TestedContainer:
         SEP = "=" * 30
 
         keys = [
-            bytearray(os.environ["DD_API_KEY", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"], "utf-8"),
+            bytearray(os.environ["DD_API_KEY"], "utf-8"),
+            bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"),
+            bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"),
         ]
         if "DD_APP_KEY" in os.environ:
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
