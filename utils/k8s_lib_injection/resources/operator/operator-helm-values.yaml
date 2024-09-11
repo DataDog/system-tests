@@ -29,7 +29,7 @@ clusterAgent:
   image:
    #comment name, tag and repository to test cluster-agent for local Mac M1
     #name: ""
-    #tag: master
+    tag: 7.57.0
     #tag: liliya-belaus-7-52-0-rc2-test
     #repository: datadog/cluster-agent-dev
     pullPolicy: Always
