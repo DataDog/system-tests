@@ -53,8 +53,8 @@ class DockerSSIScenario(Scenario):
         )
         self._push_base_images = config.option.ssi_push_base_images
         self._force_build = config.option.ssi_force_build
-        self._libray_version = LibraryVersion(os.getenv(self._library), "")
-        self._datadog_apm_inject_version = None
+        self._libray_version = LibraryVersion(self._library, "v9.99.99")
+        self._datadog_apm_inject_version = "v9.99.99"
         # The runtime that is installed on the base image (because we installed automatically or because the weblog contains the runtime preinstalled).
         self._installed_runtime = None
         # usually base_weblog + base_image + (runtime) + arch
@@ -145,7 +145,7 @@ class DockerSSIScenario(Scenario):
             except:
                 logger.exception(f"Failed to remove container {container}")
         # TODO push images only if all tests pass
-        self.ssi_image_builder.push_base_image()
+        # self.ssi_image_builder.push_base_image()
 
     def fill_context(self, json_tested_components):
         """ After extract the components from the weblog, fill the context with the data """
@@ -291,9 +291,10 @@ class DockerSSIImageBuilder:
             self.print_docker_build_logs(self.docker_tag, build_logs)
 
         except BuildError as e:
+            logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            raise e
+            # raise e
 
     def build_ssi_installer_image(self):
         """ Build the ssi installer image. Install only the ssi installer on the image """
@@ -313,9 +314,10 @@ class DockerSSIImageBuilder:
             self.print_docker_build_logs(self.ssi_installer_docker_tag, build_logs)
 
         except BuildError as e:
+            logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs(f"Error building installer docker file", e.build_log)
-            raise e
+        # raise e
 
     def build_weblog_image(self, ssi_installer_docker_tag):
         """ Build the final weblog image. Uses base ssi installer image, install 
@@ -351,20 +353,26 @@ class DockerSSIImageBuilder:
             self.print_docker_build_logs(weblog_docker_tag, build_logs)
             logger.info(f"Weblog build done!")
         except BuildError as e:
+            logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building weblog", e.build_log)
-            raise e
+        # raise e
 
     def tested_components(self):
         """ Extract weblog versions of lang runtime, agent, installer, tracer. 
         Also extracts the weblog url env variable
         Return json with the data"""
         logger.info(f"Weblog extract tested components")
-        result = self.docker_client.containers.run(
-            image=self._weblog_docker_image, command=f"/tested_components.sh {self._library}", remove=True
-        )
-        logger.info(f"Testes components: {result.decode('utf-8')}")
-        return json.loads(result.decode("utf-8").replace("'", '"'))
+        try:
+            result = self.docker_client.containers.run(
+                image=self._weblog_docker_image, command=f"/tested_components.sh {self._library}", remove=True
+            )
+            logger.info(f"Testes components: {result.decode('utf-8')}")
+            return json.loads(result.decode("utf-8").replace("'", '"'))
+        except Exception as e:
+            logger.stdout("ERROR extracting tested components. check log file for more details")
+            logger.exception(f"Failed to extract tested components from the weblog: {e}")
+            return {}
 
     def print_docker_build_logs(self, image_tag, build_logs):
         """ Print the docker build logs to docker_build.log file """

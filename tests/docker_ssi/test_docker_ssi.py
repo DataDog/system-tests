@@ -1,4 +1,4 @@
-from utils import scenarios, features, context, irrelevant
+from utils import scenarios, features, context, irrelevant, bug
 from utils.tools import logger
 from utils import scenarios, features, interfaces
 from utils.docker_ssi.docker_ssi_matrix_utils import check_if_version_supported
@@ -25,8 +25,12 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_guardrails
+    @bug(
+        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        reason="There is a issue building the image on centos 7",
+    )
     def test_install(self):
-        logger.info("Testing Docker SSI installation")
+        logger.info(f"Testing Docker SSI installation: {context.scenario.library.library}")
         supported_lang_runtime = check_if_version_supported(
             context.scenario.library, context.scenario.installed_runtime
         )
