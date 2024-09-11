@@ -11,12 +11,13 @@ def resolve_runtime_version(library, runtime):
 
 
 def check_if_version_supported(library, version):
+    """ Check if language version if supported by the ssi"""
     if version is None:
         # If we don't know the version, we can't check if it's supported
         # By default is supported
         # Usually if we don't know the version it's because the build process failed
         return True
-    """ Check if language version if supported by the ssi"""
+
     if library == "java":
         return LibraryVersion("1.8") > LibraryVersion(version)
 
