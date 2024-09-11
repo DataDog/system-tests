@@ -1,11 +1,9 @@
-import threading
-import json
-from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.tools import logger, get_rid_from_request
 import pathlib
 import threading
 import time
 import json
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils.tools import logger, get_rid_from_request
 
 
 class _TestAgentInterfaceValidator(ProxyBasedInterfaceValidator):
