@@ -14,11 +14,17 @@ class TestDockerSSIFeatures:
     We test that the injection is performed and traces and telemetry are generated. 
     If the language version is not supported, we only check that we don't break the app and telemetry is generated."""
 
+    _r = None
+
     def _setup_all(self):
-        parsed_url = urlparse(context.scenario.weblog_url)
-        self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
-        logger.info(f"Setup Docker SSI installation {self.r}")
-        time.sleep(5)  # Wait for 5 seconds to allow the test agent to send traces
+        if TestDockerSSIFeatures._r is None:
+            parsed_url = urlparse(context.scenario.weblog_url)
+            TestDockerSSIFeatures._r = weblog.request(
+                "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
+            )
+            logger.info(f"Setup Docker SSI installation {TestDockerSSIFeatures._r}")
+            time.sleep(5)  # Wait for 5 seconds to allow the test agent to send traces
+        self.r = TestDockerSSIFeatures._r
 
     def setup_install(self):
         self._setup_all()

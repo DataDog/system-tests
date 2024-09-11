@@ -1,6 +1,6 @@
-import os
 import subprocess
 import json
+import time
 import docker
 from docker.errors import DockerException, BuildError
 from functools import lru_cache
@@ -18,7 +18,7 @@ from utils.tools import logger
 from .core import Scenario
 from utils.virtual_machine.vm_logger import vm_logger
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
-from utils.docker_ssi.test_agent_polling import TestAgentClientPolling
+from utils.interfaces._test_agent import TestAgentClientPolling
 
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
@@ -169,6 +169,10 @@ class DockerSSIScenario(Scenario):
                 self._libray_version = LibraryVersion(self._library, library_version_number)
             self._tested_components[key] = json_tested_components[key].lstrip(" ")
             logger.stdout(f"{key}: {self._tested_components[key]}")
+
+    def post_setup(self):
+        logger.debug("Waiting for all traces to be sent to test agent")
+        time.sleep(5)
 
     @property
     def library(self):

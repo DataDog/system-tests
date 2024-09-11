@@ -1091,13 +1091,9 @@ class DockerSSIContainer(TestedContainer):
         )
 
     def get_env(self, env_var):
-        """Get env variables from the container (only works for started containers)"""
-        env_vars = self._container.attrs["Config"]["Env"]
-        logger.info(f"Container weblog has env vars: {env_vars}")
-        for env_var in env_vars:
-            if env_var.startswith(f"{env_var}="):
-                return env_var.split("=")[1]
-        return None
+        """Get env variables from the container """
+        env = self.image.env | self.environment
+        return env.get(env_var)
 
     def start(self) -> Container:
         try:
