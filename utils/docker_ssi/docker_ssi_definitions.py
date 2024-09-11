@@ -52,8 +52,8 @@ class JavaRuntimeInstallableVersions:
 
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
 # Maybe a weblog app contains preinstalled language runtime, in this case we define the weblog without runtime version
-JAVA_APP_XX = WeblogDescriptor(
-    "java-appXX",
+JAVA_APP = WeblogDescriptor(
+    "java-app",
     "java",
     [
         SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
@@ -75,8 +75,8 @@ JAVA_APP_XX = WeblogDescriptor(
 )
 
 
-JAVA_APP = WeblogDescriptor(
-    "java-app",
+JAVA_APP_33 = WeblogDescriptor(
+    "java-app33",
     "java",
     [
         SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeInstallableVersions.JAVA_11),
