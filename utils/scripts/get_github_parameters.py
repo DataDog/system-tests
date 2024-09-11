@@ -43,7 +43,7 @@ def get_graphql_weblogs(library):
         "nodejs": ["express4", "uds-express4", "express4-typescript"],
         "php": [],
         "python": [],
-        "ruby": [],
+        "ruby": ["graphql23"],
     }
 
     return weblogs[library]
