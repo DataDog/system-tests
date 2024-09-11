@@ -203,6 +203,10 @@ tests/:
             nextjs: missing_feature
         test_path.py:
           TestPath: missing_feature
+        test_path_parameter.py:
+          TestPathParameter:
+            '*': *ref_4_4_0
+            nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -519,6 +523,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  test_config_consistency.py:
+    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

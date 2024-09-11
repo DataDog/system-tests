@@ -68,16 +68,13 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     #  on the installer. As we can't only uninstall the injector, we are skipping
     #  the uninstall test today
     @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
-    def test_install(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+    def test_install_uninstall(self, virtual_machine):
+        logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
+        logger.info(f"Check install for : [{virtual_machine.name}]")
         self._test_install(virtual_machine)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
-
-    @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
-    def test_uninstall(self, virtual_machine):
-        logger.info(f"Launching test_uninstall for : [{virtual_machine.name}]...")
+        logger.info(f"Check uninstall for : [{virtual_machine.name}]...")
         self._test_uninstall(virtual_machine)
-        logger.info(f"Done test_uninstall for : [{virtual_machine.name}]...")
+        logger.info(f"Done test_install_uninstall for : [{virtual_machine.name}]...")
 
 
 @features.installer_auto_instrumentation

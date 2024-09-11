@@ -32,7 +32,7 @@ env:
 
 jobs:
   graphql:
-    if: inputs.library == 'golang' || inputs.library == 'nodejs'
+    if: inputs.library == 'golang' || inputs.library == 'nodejs' || inputs.library == 'ruby'
     runs-on:
       group: "APM Larger Runners"
     strategy:
@@ -79,7 +79,7 @@ jobs:
 
       - name: Compress logs
         id: compress_logs
-        if: always()
+        if: always() && steps.build.outcome == 'success'
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
       - name: Upload artifact
         if: always() && steps.compress_logs.outcome == 'success'

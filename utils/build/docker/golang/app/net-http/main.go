@@ -49,6 +49,23 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+
+		healthCheck, err := common.GetHealtchCheck()
+        if err != nil {
+            http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
+        }
+
+        jsonData, err := json.Marshal(healthCheck)
+        if err != nil {
+            http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+            return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(jsonData)
+	})
+
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
 		body, err := common.ParseBody(r)
 		if err == nil {

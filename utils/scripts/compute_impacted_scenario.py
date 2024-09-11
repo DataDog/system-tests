@@ -123,6 +123,7 @@ def main():
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY.value,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
+                    r"utils/scripts/get-nightly-logs\.py": None,
                     #### Onboarding cases
                     r"utils/onboarding.*": None,
                     r"utils/virtual_machine.*": None,

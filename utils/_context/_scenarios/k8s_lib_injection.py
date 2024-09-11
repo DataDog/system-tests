@@ -24,8 +24,6 @@ class KubernetesScenario(Scenario):
         self.app_key = app_key
 
     def configure(self, config):
-        super().configure(config)
-
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
         assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
         assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE is not set. The init image to be tested is not set"
@@ -68,7 +66,7 @@ class WeblogInjectionScenario(Scenario):
         )
         self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
 
-        self._required_containers: list(TestedContainer) = []
+        self._required_containers: list[TestedContainer] = []
         self._required_containers.append(self._mount_injection_volume)
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
@@ -83,13 +81,11 @@ class WeblogInjectionScenario(Scenario):
         self._mount_injection_volume._lib_init_image(self._lib_init_image)
         self._weblog_injection.set_environment_for_library(self.library)
 
-        super().configure(config)
-
         for container in self._required_containers:
             container.configure(self.replay)
 
-    def _get_warmups(self):
-        warmups = super()._get_warmups()
+    def get_warmups(self):
+        warmups = super().get_warmups()
 
         warmups.append(create_network)
         warmups.append(create_inject_volume)
@@ -97,9 +93,6 @@ class WeblogInjectionScenario(Scenario):
             warmups.append(container.start)
 
         return warmups
-
-    def pytest_sessionfinish(self, session):
-        self.close_targets()
 
     def close_targets(self):
         for container in reversed(self._required_containers):

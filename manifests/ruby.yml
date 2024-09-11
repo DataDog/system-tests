@@ -106,6 +106,8 @@ tests/:
           TestParameterValue: missing_feature
         test_path.py:
           TestPath: missing_feature
+        test_path_parameter.py:
+          TestPathParameter: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -370,6 +372,9 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+  test_config_consistency.py:
+    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

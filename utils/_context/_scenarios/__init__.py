@@ -6,7 +6,8 @@ import pytest
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.tools import update_environ_with_local_env
 
-from .core import Scenario, ScenarioGroup, DockerScenario, EndToEndScenario
+from .core import Scenario, ScenarioGroup
+from .endtoend import DockerScenario, EndToEndScenario
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
@@ -467,6 +468,10 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
         additional_trace_header_tags=(INVALID_CONFIGS),
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
+    )
+
+    tracing_config_nondefault = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT", weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"}, doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
