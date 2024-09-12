@@ -440,7 +440,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         self.produce = weblog.get(
             f"/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
         )
-        headers = json.dumps(json.loads((self.produce.text if self.produce.text else {})))
+        headers = json.dumps(json.loads((self.produce.text if self.produce.text else '{}')))
         self.consume = weblog.get(
             f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue&headers={headers}",
             timeout=DSM_REQUEST_TIMEOUT,
@@ -515,7 +515,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             f"/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
             timeout=DSM_REQUEST_TIMEOUT,
         )
-        headers = json.dumps(json.loads((self.produce_threaded.text if self.produce_threaded.text else {})))
+        headers = json.dumps(json.loads((self.produce_threaded.text if self.produce_threaded.text else '{}')))
         self.consume_threaded = weblog.get(
             f"/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue&headers={headers}",
             timeout=DSM_REQUEST_TIMEOUT,
