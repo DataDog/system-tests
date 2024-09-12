@@ -5,7 +5,7 @@ import docker
 from docker.errors import DockerException, BuildError
 from functools import lru_cache
 
-from utils._context.library_version import LibraryVersion
+from utils._context.library_version import LibraryVersion, Version
 from utils import context
 from utils._context.containers import (
     create_network,
@@ -56,7 +56,8 @@ class DockerSSIScenario(Scenario):
         self._libray_version = LibraryVersion(self._library, "v9.99.99")
         self._datadog_apm_inject_version = "v9.99.99"
         # The runtime that is installed on the base image (because we installed automatically or because the weblog contains the runtime preinstalled).
-        self._installed_runtime = None
+        # the language is the language used by the tested datadog library
+        self._installed_language_runtime = None
         # usually base_weblog + base_image + (runtime) + arch
         self._weblog_composed_name = None
 
@@ -164,7 +165,7 @@ class DockerSSIScenario(Scenario):
                 self.weblog_url = json_tested_components[key].lstrip(" ")
                 continue
             if key == "runtime_version" and json_tested_components[key]:
-                self._installed_runtime = json_tested_components[key].lstrip(" ")
+                self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
             if key.startswith("datadog-apm-inject") and json_tested_components[key]:
                 self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
             if key.startswith("datadog-apm-library-") and json_tested_components[key]:
@@ -182,8 +183,8 @@ class DockerSSIScenario(Scenario):
         return self._libray_version
 
     @property
-    def installed_runtime(self):
-        return self._installed_runtime
+    def installed_language_runtime(self):
+        return self._installed_language_runtime
 
     @property
     def components(self):

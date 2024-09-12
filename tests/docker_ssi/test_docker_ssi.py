@@ -1,10 +1,8 @@
-from utils import scenarios, features, context, irrelevant, bug
-from utils.tools import logger
-from utils import scenarios, features, interfaces
-from utils.docker_ssi.docker_ssi_matrix_utils import check_if_version_supported
 import time
-from utils import weblog
 from urllib.parse import urlparse
+
+from utils import scenarios, features, context, irrelevant, bug, interfaces
+from utils import weblog
 from utils.tools import logger, get_rid_from_request
 
 
@@ -26,7 +24,7 @@ class TestDockerSSIFeatures:
             time.sleep(5)  # Wait for 5 seconds to allow the test agent to send traces
         self.r = TestDockerSSIFeatures._r
 
-    def setup_install(self):
+    def setup_install_supported_runtime(self):
         self._setup_all()
 
     @features.ssi_guardrails
@@ -34,21 +32,31 @@ class TestDockerSSIFeatures:
         condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
         reason="There is a issue building the image on centos 7",
     )
-    def test_install(self):
+    @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8")
+    def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation: {context.scenario.library.library}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
-        supported_lang_runtime = check_if_version_supported(
-            context.scenario.library, context.scenario.installed_runtime
-        )
-        if supported_lang_runtime:
-            # If the language version is supported there are traces related with the request
-            traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-            assert traces_for_request, f"No traces found for request {get_rid_from_request(self.r)}"
-            assert "runtime-id" in traces_for_request["meta"], "No runtime-id found in traces"
 
-            # There is telemetry data related with the runtime-id
-            telemetry_data = interfaces.test_agent.get_telemetry_for_runtime(traces_for_request["meta"]["runtime-id"])
-            assert telemetry_data, "No telemetry data found"
+        # If the language version is supported there are traces related with the request
+        traces_for_request = interfaces.test_agent.get_traces(request=self.r)
+        assert traces_for_request, f"No traces found for request {get_rid_from_request(self.r)}"
+        assert "runtime-id" in traces_for_request["meta"], "No runtime-id found in traces"
+
+        # There is telemetry data related with the runtime-id
+        telemetry_data = interfaces.test_agent.get_telemetry_for_runtime(traces_for_request["meta"]["runtime-id"])
+        assert telemetry_data, "No telemetry data found"
+
+    def setup_install_weblog_running(self):
+        self._setup_all()
+
+    @features.ssi_guardrails
+    @bug(
+        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        reason="There is a issue building the image on centos 7",
+    )
+    def test_install_weblog_running(self):
+        logger.info(f"Testing Docker SSI installation: {context.scenario.library.library}")
+        assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
         # There is telemetry data about the auto instrumentation. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()

@@ -71,6 +71,10 @@ class _Context:
         return self._get_scenario_property("dd_apm_inject_version", "")
 
     @property
+    def installed_language_runtime(self):
+        return self._get_scenario_property("installed_language_runtime", "")
+
+    @property
     def components(self):
         return self.scenario.components
 
