@@ -31,6 +31,7 @@ class KubernetesScenario(Scenario):
             "LIBRARY_INJECTION_TEST_APP_IMAGE" in os.environ
         ), "LIBRARY_INJECTION_TEST_APP_IMAGE is not set. The test app image to be tested is not set"
 
+        self._cluster_agent_version = os.getenv("CLUSTER_AGENT_VERSION", "7.56.2")
         self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
         self._weblog_variant = os.getenv("WEBLOG_VARIANT")
         self._weblog_variant_image = os.getenv("LIBRARY_INJECTION_TEST_APP_IMAGE")
