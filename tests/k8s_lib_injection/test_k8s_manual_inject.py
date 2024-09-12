@@ -12,6 +12,9 @@ from utils import scenarios, features
 
 
 class _TestAdmisionController:
+    ssi_features = {"datadog.apm.instrumentation.enabled": "true"}
+    weblog_env = {"DD_APM_INSTRUMENTATION_DEBUG": "true"}
+
     def _get_dev_agent_traces(self, agent_port, retry=10):
         for _ in range(retry):
             logger.info(f"[Check traces] Checking traces:")
@@ -28,56 +31,44 @@ class _TestAdmisionController:
             f"Launching test _test_inject_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
         test_k8s_instance.deploy_test_agent()
-        test_k8s_instance.deploy_datadog_cluster_agent()
-        test_k8s_instance.deploy_weblog_as_pod(env={"DD_APM_INSTRUMENTATION_DEBUG": "true"})
+        test_k8s_instance.deploy_datadog_cluster_agent(features=_TestAdmisionController.ssi_features)
+        test_k8s_instance.deploy_weblog_as_pod(env=_TestAdmisionController.weblog_env)
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_admission_controller finished")
 
-    def _test_inject_uds_admission_controller(self, test_k8s_instance):
+    def test_inject_uds_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test test_inject_uds_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
         test_k8s_instance.deploy_test_agent()
-        test_k8s_instance.deploy_datadog_cluster_agent(use_uds=True)
-        test_k8s_instance.deploy_weblog_as_pod()
+        test_k8s_instance.deploy_datadog_cluster_agent(use_uds=True, features=_TestAdmisionController.ssi_features)
+        test_k8s_instance.deploy_weblog_as_pod(env=_TestAdmisionController.weblog_env)
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_inject_uds_admission_controller finished")
 
-    def _test_inject_without_admission_controller(self, test_k8s_instance):
+    def test_inject_without_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test _test_inject_without_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
         test_k8s_instance.deploy_test_agent()
-        test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False)
+        test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False, env=_TestAdmisionController.weblog_env)
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_without_admission_controller finished")
 
-    def _test_inject_uds_without_admission_controller(self, test_k8s_instance):
+    def test_inject_uds_without_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test test_inject_uds_without_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
         test_k8s_instance.deploy_test_agent()
-        test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False, use_uds=True)
+        test_k8s_instance.deploy_weblog_as_pod(
+            with_admission_controller=False, use_uds=True, env=_TestAdmisionController.weblog_env
+        )
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_inject_uds_without_admission_controller finished")
-
-    def _test_inject_admission_controller_v2(self, test_k8s_instance):
-        logger.info(
-            f"Launching test test_inject_admission_controller_v2: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
-        )
-        # Enable ssi features
-        ssi_features = {"datadog.apm.instrumentation.enabled": "true"}
-
-        test_k8s_instance.deploy_test_agent()
-        test_k8s_instance.deploy_datadog_cluster_agent(ssi_features)
-        test_k8s_instance.deploy_weblog_as_pod(env={"DD_APM_INSTRUMENTATION_DEBUG": "true"})
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster.agent_port)
-        assert len(traces_json) > 0, "No traces found"
-        logger.info(f"Test test_inject_admission_controller_v2 finished")
 
 
 @features.k8s_admission_controller
