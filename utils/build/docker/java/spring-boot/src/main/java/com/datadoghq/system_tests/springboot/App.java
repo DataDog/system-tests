@@ -119,11 +119,6 @@ public class App {
         return "012345678901234567890123456789012345678901";
     }
 
-    @GetMapping("/some-endpoint")
-    String endpoint() {
-        return "Hello World!";
-    }
-
     @RequestMapping(value = "/tag_value/{value}/{code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
     ResponseEntity<String> tagValue(@PathVariable final String value, @PathVariable final int code) {
         setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);

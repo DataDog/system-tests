@@ -479,8 +479,8 @@ class scenarios:
         doc="",
     )
 
-    tracing_config_empty = EndToEndScenario(
-        "TRACING_CONFIG_EMPTY", weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": ""}, doc="",
+    tracing_config_nondefault_2 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_2", weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": ""}, doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
