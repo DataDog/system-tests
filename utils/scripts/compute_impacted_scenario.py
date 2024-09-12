@@ -139,6 +139,7 @@ def main():
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect
+                    r"\.github/CODEOWNERS": None,
                     r"\.dockerignore": None,
                     r"\.gitattributes": None,
                     r"\.gitignore": None,
