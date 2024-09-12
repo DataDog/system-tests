@@ -77,7 +77,7 @@ class WeblogInjectionScenario(Scenario):
 
         assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
         self._lib_init_image = os.getenv("LIB_INIT_IMAGE")
-        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
+        self._weblog_variant = os.getenv("WEBLOG_VARIANT", "")
         self._mount_injection_volume._lib_init_image(self._lib_init_image)
         self._weblog_injection.set_environment_for_library(self.library)
 
