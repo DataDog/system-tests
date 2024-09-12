@@ -154,7 +154,8 @@ function initRoutes (app, tracer) {
       type, target, headers
     )
 
-    res.status(200).send(JSON.stringify(headers))
+    res.set(headers)
+    res.status(200).send('ok')
   })
 
   app.get('/dsm/manual/produce_with_thread', (req, res) => {
@@ -183,7 +184,8 @@ function initRoutes (app, tracer) {
     worker.on('message', (resultHeaders) => {
       if (!responseSent) {
         responseSent = true
-        res.status(200).send(JSON.stringify(resultHeaders))
+        res.set(resultHeaders)
+        res.status(200).send('ok')
       }
     })
 
@@ -205,7 +207,7 @@ function initRoutes (app, tracer) {
   app.get('/dsm/manual/consume', (req, res) => {
     const type = req.query.type
     const target = req.query.source
-    const headers = JSON.parse(req.query.headers)
+    const headers = JSON.parse(req.headers._datadog)
 
     tracer.dataStreamsCheckpointer.setConsumeCheckpoint(
       type, target, headers
@@ -217,7 +219,7 @@ function initRoutes (app, tracer) {
   app.get('/dsm/manual/consume_with_thread', (req, res) => {
     const type = req.query.type
     const source = req.query.source
-    const headers = JSON.parse(req.query.headers)
+    const headers = JSON.parse(req.headers._datadog)
     let responseSent = false // Flag to ensure only one response is sent
 
     // Create a new worker thread to handle the setProduceCheckpoint function

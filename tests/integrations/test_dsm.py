@@ -440,19 +440,20 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         self.produce = weblog.get(
             f"/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT,
         )
-        headers = json.dumps(json.loads((self.produce.text if self.produce.text else "{}")))
+        headers = {}
+        headers["_datadog"] = json.dumps(
+            {"dd-pathway-ctx-base64": self.produce.headers.get("dd-pathway-ctx-base64", "")}
+        )
         self.consume = weblog.get(
-            f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue&headers={headers}",
+            f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue",
+            headers=headers,
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
     def test_dsm_manual_checkpoint_intra_process(self):
-        assert self.produce.text not in ["", None]
-
-        self.produce.text = json.loads(self.produce.text)
-
         assert self.produce.status_code == 200
-        assert "dd-pathway-ctx-base64" in self.produce.text
+        assert self.produce.text == "ok"
+        assert "dd-pathway-ctx-base64" in self.produce.headers
 
         assert self.consume.status_code == 200
         assert self.consume.text == "ok"
@@ -515,19 +516,20 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             f"/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
             timeout=DSM_REQUEST_TIMEOUT,
         )
-        headers = json.dumps(json.loads((self.produce_threaded.text if self.produce_threaded.text else "{}")))
+        headers = {}
+        headers["_datadog"] = json.dumps(
+            {"dd-pathway-ctx-base64": self.produce_threaded.headers.get("dd-pathway-ctx-base64", "")}
+        )
         self.consume_threaded = weblog.get(
-            f"/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue&headers={headers}",
+            f"/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue",
+            headers=headers,
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
     def test_dsm_manual_checkpoint_inter_process(self):
-        assert self.produce_threaded.text not in ["", None]
-
-        self.produce_threaded.text = json.loads(self.produce_threaded.text)
-
         assert self.produce_threaded.status_code == 200
-        assert "dd-pathway-ctx-base64" in self.produce_threaded.text
+        assert self.produce_threaded.text == "ok"
+        assert "dd-pathway-ctx-base64" in self.produce_threaded.headers
 
         assert self.consume_threaded.status_code == 200
         assert self.consume_threaded.text == "ok"

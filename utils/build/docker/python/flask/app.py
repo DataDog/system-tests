@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import urllib.request
+from urllib.parse import quote
 
 import mock
 import urllib3
@@ -756,7 +757,12 @@ def dsm_manual_checkpoint_produce():
 
     set_produce_checkpoint(typ, target, setter)
     flush_dsm_checkpoints()
-    return Response(json.dumps(headers))
+
+    # headers = quote(headers)
+
+    logging.info(f"[DSM Manual Produced with Thread] Injected Headers: {headers}")
+
+    return Response("ok", headers=headers)
 
 
 @app.route("/dsm/manual/produce_with_thread")
@@ -779,7 +785,11 @@ def dsm_manual_checkpoint_produce_with_thread():
     thread.join()  # Wait for the thread to complete for this example
     flush_dsm_checkpoints()
 
-    return Response(json.dumps(headers))
+    # headers = quote(headers)
+
+    logging.info(f"[DSM Manual Produce with Thread] Injected Headers: {headers}")
+
+    return Response("ok", headers=headers)
 
 
 @app.route("/dsm/manual/consume")
@@ -788,7 +798,7 @@ def dsm_manual_checkpoint_consume():
 
     typ = flask_request.args.get("type")
     source = flask_request.args.get("source")
-    carrier = json.loads(flask_request.args.get("headers"))
+    carrier = json.loads(flask_request.headers.get("_datadog"))
     logging.info(f"[DSM Manual Consume] Received Headers: {carrier}")
 
     def getter(k):
@@ -813,7 +823,7 @@ def dsm_manual_checkpoint_consume_with_thread():
 
     typ = flask_request.args.get("type")
     source = flask_request.args.get("source")
-    carrier = json.loads(flask_request.args.get("headers"))
+    carrier = json.loads(flask_request.headers.get("_datadog"))
 
     # Start a new thread to run the worker function
     thread = threading.Thread(target=worker, args=(typ, source, carrier))
