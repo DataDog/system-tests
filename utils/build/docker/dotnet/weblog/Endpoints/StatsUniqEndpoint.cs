@@ -10,7 +10,6 @@ namespace weblog
         {
             routeBuilder.MapGet("/stats-unique", async context =>
             {
-                // TODO: Something is wrong here
                 var stringStatus = context.Request.Query["code"];
                 var status = 200;
                 if (!StringValues.IsNullOrEmpty(stringStatus)) {
