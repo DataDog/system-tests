@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import base64
 import copy
 import json
 import threading
@@ -16,6 +17,7 @@ from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
 )
+from utils.parametric.spec.remoteconfig import Capabilities
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
@@ -395,6 +397,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                     found = True
 
         assert found, f"Nothing has been found for {config_id}/{product}"
+
+    def assert_rc_capability(self, capability: Capabilities):
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            capabilities = data["request"]["content"]["client"]["capabilities"]
+            decoded_capabilities = base64.b64decode(capabilities)
+            int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+            if (int_capabilities >> capability & 1) == 1:
+                found = True
+        assert found, f"Capability {capability.name} not found"
 
     def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
         """
