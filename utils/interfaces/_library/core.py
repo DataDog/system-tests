@@ -402,7 +402,11 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         found = False
         for data in self.get_data(path_filters="/v0.7/config"):
             capabilities = data["request"]["content"]["client"]["capabilities"]
-            decoded_capabilities = base64.b64decode(capabilities)
+            if isinstance(capabilities, list):
+                decoded_capabilities = bytes(capabilities)
+            # base64-encoded string:
+            else:
+                decoded_capabilities = base64.b64decode(capabilities)
             int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
             if (int_capabilities >> capability & 1) == 1:
                 found = True
