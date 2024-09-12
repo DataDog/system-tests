@@ -87,6 +87,15 @@ class Test_Config_UnifiedServiceTagging_CustomService:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         assert spans[0]["service"] == "service_test"
 
+    def setup_specified_env_name(self):
+        self.r = weblog.get("/")
+
+    def test_specified_env_name(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        assert spans[0]["meta"]["env"] == "dev"
+
 
 @scenarios.default
 @features.tracing_configuration_consistency

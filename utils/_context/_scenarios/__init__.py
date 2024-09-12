@@ -472,7 +472,11 @@ class scenarios:
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
-        weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202", "DD_SERVICE": "service_test"},
+        weblog_env={
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
+            "DD_SERVICE": "service_test",
+            "DD_ENV": "dev",
+        },
         doc="",
     )
 
