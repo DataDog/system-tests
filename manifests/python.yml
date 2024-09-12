@@ -189,9 +189,9 @@ tests/:
           TestPathParameter:
             '*': v2.9.0.dev
             fastapi: v2.13.0.dev
-            flask-poc: missing_feature
-            uds-flask: missing_feature
-            uwsgi-poc: missing_feature
+            flask-poc: v2.13.0.dev
+            uds-flask: v2.13.0.dev
+            uwsgi-poc: v2.13.0.dev
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -659,6 +659,8 @@ tests/:
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
+    test_config_consistency.py:
+      Test_Config_TraceEnabled: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:

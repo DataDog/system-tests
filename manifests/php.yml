@@ -255,6 +255,8 @@ tests/:
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
+    test_config_consistency.py:
+      Test_Config_TraceEnabled: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
