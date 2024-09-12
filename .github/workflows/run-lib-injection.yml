@@ -236,5 +236,5 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_k8s-lib-injection_${{ inputs.library}}_${{matrix.weblog}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'dev' || 'prod'}}
+          name: logs_k8s-lib-injection_${{ inputs.library}}_${{matrix.weblog}}_${{matrix.weblog_platform}}_${{matrix.cluster_agent_version}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'dev' || 'prod'}}
           path: artifact.tar.gz
