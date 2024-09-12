@@ -29,7 +29,7 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.library == "java",
         reason="There is a issue building the image on centos 7",
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8")
@@ -68,7 +68,7 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_service_naming
-    @irrelevant(condition=not context.scenario.weblog_variant.startswith("tomcat-app"))
+    @irrelevant(condition=not context.weblog_variant.startswith("tomcat-app"))
     def test_service_name(self):
         logger.info("Testing Docker SSI service name")
         # There are traces related with the request and the service name is payment-service

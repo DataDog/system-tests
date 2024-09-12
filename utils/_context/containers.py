@@ -1094,10 +1094,3 @@ class DockerSSIContainer(TestedContainer):
         """Get env variables from the container """
         env = self.image.env | self.environment
         return env.get(env_var)
-
-    def start(self) -> Container:
-        try:
-            super().start()
-        except Exception as e:
-            logger.error(f"Error starting container weblog-injection: {e}")
-            return None

@@ -12,6 +12,7 @@ from utils._context.containers import (
     DockerSSIContainer,
     APMTestAgentContainer,
     TestedContainer,
+    _get_client as get_docker_client,
 )
 from utils.tools import logger
 
@@ -212,7 +213,7 @@ class DockerSSIImageBuilder:
         self._installable_runtime = installable_runtime
         self._push_base_images = push_base_images
         self._force_build = force_build
-        self.docker_client = self._get_docker_client()
+        get_docker_client() = self._get_docker_client()
         # When do we need to push the base images to the docker registry?
         # Option 1: When we added the run parameter --push-base-images
         # Option 2: When the base image is not found on the registry
@@ -241,10 +242,10 @@ class DockerSSIImageBuilder:
     def exist_base_image(self):
         """ Check if the base image is available in the docker registry """
         try:
-            self.docker_client.images.pull(self._docker_registry_tag)
+            get_docker_client().images.pull(self._docker_registry_tag)
             logger.info("Base image found on the registry")
             return True
-        except Exception as e:
+        except Exception:
             logger.info(f"Base image not found on the registry: ssi_{self.docker_tag}")
             return False
 
@@ -254,7 +255,7 @@ class DockerSSIImageBuilder:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             try:
                 docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
-                push_logs = self.docker_client.images.push(self._docker_registry_tag)
+                push_logs = get_docker_client().images.push(self._docker_registry_tag)
                 self.print_docker_push_logs(self._docker_registry_tag, push_logs)
             except Exception as e:
                 logger.stdout("ERROR pushing docker image. check log file for more details")
@@ -291,7 +292,7 @@ class DockerSSIImageBuilder:
                     f"[tag: {self.docker_tag}] Installing common dependencies on base image [{self._base_image}]. No language runtime installation required."
                 )
 
-            _, build_logs = self.docker_client.images.build(
+            _, build_logs = get_docker_client().images.build(
                 path="utils/build/ssi/",
                 dockerfile=dockerfile_template,
                 tag=self.docker_tag,
@@ -310,7 +311,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            # raise e
+            raise e
 
     def build_ssi_installer_image(self):
         """ Build the ssi installer image. Install only the ssi installer on the image """
@@ -319,7 +320,7 @@ class DockerSSIImageBuilder:
                 f"[tag:{self.ssi_installer_docker_tag}]Installing DD installer on base image [{self.docker_tag}]."
             )
 
-            _, build_logs = self.docker_client.images.build(
+            _, build_logs = get_docker_client().images.build(
                 path="utils/build/ssi/",
                 dockerfile="base/base_ssi_installer.Dockerfile",
                 nocache=self._force_build or self.should_push_base_images,
@@ -332,8 +333,8 @@ class DockerSSIImageBuilder:
         except BuildError as e:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
-            self.print_docker_build_logs(f"Error building installer docker file", e.build_log)
-        # raise e
+            self.print_docker_build_logs("Error building installer docker file", e.build_log)
+            raise e
 
     def build_weblog_image(self, ssi_installer_docker_tag):
         """ Build the final weblog image. Uses base ssi installer image, install 
@@ -347,9 +348,9 @@ class DockerSSIImageBuilder:
         )
         try:
             # Install the ssi to run the auto instrumentation
-            _, build_logs = self.docker_client.images.build(
+            _, build_logs = get_docker_client().images.build(
                 path="utils/build/ssi/",
-                dockerfile=f"base/base_ssi.Dockerfile",
+                dockerfile="base/base_ssi.Dockerfile",
                 platform=self._arch,
                 nocache=self._force_build or self.should_push_base_images,
                 tag=self.ssi_all_docker_tag,
@@ -358,7 +359,7 @@ class DockerSSIImageBuilder:
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
             logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
             # Build the weblog image
-            self._weblog_docker_image, build_logs = self.docker_client.images.build(
+            self._weblog_docker_image, build_logs = get_docker_client().images.build(
                 path=".",
                 dockerfile=f"utils/build/ssi/{self._library}/{self._base_weblog}.Dockerfile",
                 platform=self._arch,
@@ -372,23 +373,18 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building weblog", e.build_log)
-        # raise e
+            raise e
 
     def tested_components(self):
         """ Extract weblog versions of lang runtime, agent, installer, tracer. 
         Also extracts the weblog url env variable
         Return json with the data"""
-        logger.info(f"Weblog extract tested components")
-        try:
-            result = self.docker_client.containers.run(
-                image=self._weblog_docker_image, command=f"/tested_components.sh {self._library}", remove=True
-            )
-            logger.info(f"Testes components: {result.decode('utf-8')}")
-            return json.loads(result.decode("utf-8").replace("'", '"'))
-        except Exception as e:
-            logger.stdout("ERROR extracting tested components. check log file for more details")
-            logger.exception(f"Failed to extract tested components from the weblog: {e}")
-            return {}
+        logger.info("Weblog extract tested components")
+        result = get_docker_client().containers.run(
+            image=self._weblog_docker_image, command=f"/tested_components.sh {self._library}", remove=True
+        )
+        logger.info(f"Testes components: {result.decode('utf-8')}")
+        return json.loads(result.decode("utf-8").replace("'", '"'))
 
     def print_docker_build_logs(self, image_tag, build_logs):
         """ Print the docker build logs to docker_build.log file """
@@ -409,27 +405,3 @@ class DockerSSIImageBuilder:
         vm_logger(scenario_name, "docker_push").info(f"    Push docker image with tag: {image_tag}   ")
         vm_logger(scenario_name, "docker_push").info("***************************************************************")
         vm_logger(scenario_name, "docker_push").info(push_logs)
-
-    @lru_cache
-    def _get_docker_client(self):
-        """ Get the docker client and print exceptions if it fails """
-        try:
-            return docker.DockerClient.from_env()
-        except DockerException as e:
-            # Failed to start the default Docker client... Let's see if we have
-            # better luck with docker contexts...
-            try:
-                ctx_name = subprocess.run(
-                    ["docker", "context", "show"], capture_output=True, check=True, text=True
-                ).stdout.strip()
-                endpoint = subprocess.run(
-                    ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
-                    capture_output=True,
-                    check=True,
-                    text=True,
-                ).stdout.strip()
-                return docker.DockerClient(base_url=endpoint)
-            except:
-                pass
-
-            raise e
