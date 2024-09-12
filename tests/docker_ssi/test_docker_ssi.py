@@ -21,7 +21,7 @@ class TestDockerSSIFeatures:
                 "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
             )
             logger.info(f"Setup Docker SSI installation {TestDockerSSIFeatures._r}")
-            time.sleep(5)  # Wait for 5 seconds to allow the test agent to send traces
+
         self.r = TestDockerSSIFeatures._r
 
     def setup_install_supported_runtime(self):
