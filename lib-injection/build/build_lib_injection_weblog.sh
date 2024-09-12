@@ -70,7 +70,6 @@ CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
 
 if [ -n "${PUSH_TAG+set}" ]; then
-  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
   docker buildx build ${DOCKER_PLATFORM} -t ${PUSH_TAG} . --push
 else
     docker build ${DOCKER_PLATFORM} -t weblog-injection:latest .
