@@ -69,7 +69,7 @@ class _TestAdmisionController:
         logger.info(
             f"Launching test test_inject_admission_controller_v2: Weblog: [{test_k8s_instance.k8s_kind_cluster.weblog_port}] Agent: [{test_k8s_instance.k8s_kind_cluster.agent_port}]"
         )
-
+        # Enable ssi features
         ssi_features = {"datadog.apm.instrumentation.enabled": "true"}
 
         test_k8s_instance.deploy_test_agent()
