@@ -2,7 +2,7 @@
 set -e
 
 export DOCKER_IMAGE_WEBLOG_TAG=latest
-export BUILDX_PLATFORMS=linux/arm64/v8,linux/amd64
+export BUILDX_PLATFORMS=linux/arm64,linux/amd64
 declare -A variants
 variants=(["dd-lib-dotnet-init-test-app"]="dotnet"
           ["sample-app"]="nodejs"
@@ -22,6 +22,6 @@ for variant in "${!variants[@]}"; do
     language="${variants[$variant]}"
     echo "Building $variant - $language";
     echo "$(pwd)"
-    ./lib-injection/build/build_lib_injection_weblog.sh -w $variant -l $language --push-tag ghcr.io/datadog/system-tests/$variant:$DOCKER_IMAGE_WEBLOG_TAG
+    ./lib-injection/build/build_lib_injection_weblog.sh -w $variant -l $language --push-tag ghcr.io/datadog/system-tests/$variant:$DOCKER_IMAGE_WEBLOG_TAG --docker-platform $BUILDX_PLATFORMS
 
 done
