@@ -7,7 +7,7 @@ RUN python --version && curl --version
 RUN pip install pylons
 COPY utils/build/docker/python/pylons/app /app
 
-COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
+COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'

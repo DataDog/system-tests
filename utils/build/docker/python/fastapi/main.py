@@ -27,6 +27,7 @@ import requests
 import urllib3
 import xmltodict
 
+import ddtrace
 from ddtrace import Pin
 from ddtrace import patch_all
 from ddtrace import tracer
@@ -62,6 +63,34 @@ async def custom_404_handler(request: Request, _):
 @app.options("/", response_class=PlainTextResponse)
 async def root():
     return "Hello, World!"
+
+
+@app.get("/healthcheck")
+async def healthcheck():
+    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "metadata" not in data:
+        appsec_event_rules_version = "1.2.5"
+    else:
+        appsec_event_rules_version = data["metadata"]["rules_version"]
+
+    return {
+        "status": "ok",
+        "library": {
+            "language": "python",
+            "version": ddtrace.__version__,
+            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
+            "appsec_event_rules_version": appsec_event_rules_version,
+        },
+    }
+
+
+@app.get("/set_cookie", response_class=PlainTextResponse)
+async def set_cookie(request: Request):
+    return PlainTextResponse(
+        "OK", headers={"Set-Cookie": f"{request.query_params['name']}={request.query_params['value']}"}
+    )
 
 
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
@@ -206,6 +235,36 @@ async def rasp_sqli(request: Request):
         return PlainTextResponse(f"DB request failure: {e!r}", status_code=201)
 
 
+@app.get("/rasp/shi")
+@app.post("/rasp/shi")
+async def rasp_shi(request: Request):
+    list_dir = None
+    if request.method == "GET":
+        list_dir = request.query_params.get("list_dir")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            list_dir = ((await request.form()) or json.loads(body) or {}).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if list_dir is None:
+                list_dir = xmltodict.parse(body).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if list_dir is None:
+        return PlainTextResponse("missing list_dir parameter", status_code=400)
+    try:
+        command = f"ls {list_dir}"
+        res = os.system(command)
+        return PlainTextResponse(f"Shell command [{command}] with result: {res}")
+    except Exception as e:
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
+
+
 ### END EXPLOIT PREVENTION
 
 
@@ -343,6 +402,14 @@ def _sink_point(table="user", id="1"):  # noqa: A002
     cursor.execute(sql)
 
 
+def _sink_point_path_traversal(tainted_str="user"):
+    try:
+        m = open(tainted_str)
+        _ = m.read()
+    except Exception:
+        pass
+
+
 class Body_for_iast(BaseModel):
     table: str
     user: str
@@ -358,20 +425,20 @@ async def view_iast_source_body(body: Body_for_iast):
 async def view_iast_source_cookie_name(request: Request):
     param = [key for key in request.cookies if key == "table"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(tainted_str=param[0])
         return "OK"
     return "KO"
 
 
 @app.get("/iast/source/cookievalue/test", response_class=PlainTextResponse)
 async def view_iast_source_cookie_value(table: typing.Annotated[str, Cookie()] = "undefined"):
-    _sink_point(table=table)
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
 @app.get("/iast/source/header/test", response_class=PlainTextResponse)
 async def view_iast_source_header_value(table: typing.Annotated[str, Header()] = "undefined"):
-    _sink_point(table=table)
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
@@ -407,6 +474,18 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
 async def view_iast_path_traversal_insecure(path: typing.Annotated[str, Form()]):
     os.mkdir(path)
+    return "OK"
+
+
+@app.get("/iast/source/path/test", response_class=PlainTextResponse)
+async def view_iast_source_path(request: Request):
+    _sink_point_path_traversal(tainted_str=request.url.path)
+    return "OK"
+
+
+@app.get("/iast/source/path_parameter/test/{table}", response_class=PlainTextResponse)
+async def view_iast_source_path(table):
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 

@@ -1120,6 +1120,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_sink_code_injection(test_object):
+        """
+        IAST Sink: Code Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=315
+        """
+        pytest.mark.features(feature_id=315)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_command_injection(test_object):
         """
         IAST Sink: Command Injection
@@ -2268,6 +2278,36 @@ class features:
         return test_object
 
     @staticmethod
+    def suspicious_attacker_blocking(test_object):
+        """
+        Threats: request blocking on suspicious attacker
+
+        https://feature-parity.us1.prod.dog/#/?feature=311
+        """
+        pytest.mark.features(feature_id=311)(test_object)
+        return test_object
+
+    @staticmethod
+    def user_id_collection_modes(test_object):
+        """
+        Threats: User ID collection modes
+
+        https://feature-parity.us1.prod.dog/#/?feature=312
+        """
+        pytest.mark.features(feature_id=312)(test_object)
+        return test_object
+
+    @staticmethod
+    def fingerprinting(test_object):
+        """
+        Threats: Requests Fingerprinting
+
+        https://feature-parity.us1.prod.dog/#/?feature=313
+        """
+        pytest.mark.features(feature_id=313)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_untrusted_deserialization(test_object):
         """
         IAST Sink: Untrusted Deserialization
@@ -2275,4 +2315,54 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=316
         """
         pytest.mark.features(feature_id=316)(test_object)
+        return test_object
+
+    @staticmethod
+    def crashtracking(test_object):
+        """
+        Crashtracking
+
+        https://feature-parity.us1.prod.dog/#/?feature=317
+        """
+        pytest.mark.features(feature_id=317)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_shell_injection(test_object):
+        """
+        Appsec RASP rule : shell injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=318
+        """
+        pytest.mark.features(feature_id=318)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_exception_replay(test_object):
+        """
+        Exception replay
+
+        https://feature-parity.us1.prod.dog/#/?feature=321
+        """
+        pytest.mark.features(feature_id=321)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_source_path_parameter(test_object):
+        """
+        IAST Source: URI
+
+        https://feature-parity.us1.prod.dog/#/?feature=324
+        """
+        pytest.mark.features(feature_id=324)(test_object)
+        return test_object
+
+    @staticmethod
+    def tracing_configuration_consistency(test_object):
+        """
+        Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=325
+        """
+        pytest.mark.features(feature_id=325)(test_object)
         return test_object

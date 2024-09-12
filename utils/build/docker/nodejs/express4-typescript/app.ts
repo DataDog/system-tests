@@ -31,12 +31,16 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.get('/healthcheck', (req: Request, res: Response) => {
+  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
+  const maybeRequire = (name: string) => { try { return require(name) } catch (e) {} }
+
   res.json({
     status: 'ok',
     library: {
       language: 'nodejs',
       version: require('dd-trace/package.json').version,
-      libddwaf_version: require('@datadog/native-appsec/package.json').libddwaf_version
+      libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
+      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
     }
   });
 })
@@ -282,6 +286,14 @@ app.get('/requestdownstream', async (req: Request, res: Response) => {
 
 app.get('/returnheaders', (req: Request, res: Response) => {
   res.json({ ...req.headers })
+})
+
+app.get('/set_cookie', (req: Request, res: Response) => {
+  const name = req.query['name']
+  const value = req.query['value']
+
+  res.header('Set-Cookie', `${name}=${value}`)
+  res.send('OK')
 })
 
 require('./rasp')(app)

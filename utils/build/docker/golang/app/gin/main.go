@@ -37,6 +37,17 @@ func main() {
 		}
 		ctx.Writer.WriteHeader(http.StatusOK)
 	})
+
+	r.GET("/healthcheck", func(ctx *gin.Context) {
+		healthCheck, err := common.GetHealtchCheck()
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, err)
+		}
+
+		ctx.JSON(http.StatusOK, healthCheck)
+	})
+
 	r.Any("/waf", func(ctx *gin.Context) {
 		body, err := common.ParseBody(ctx.Request)
 		if err == nil {

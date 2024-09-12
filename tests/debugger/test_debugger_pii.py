@@ -122,27 +122,18 @@ def filter(keys_to_filter):
 @scenarios.debugger_pii_redaction
 class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     def _setup(self):
-        self.expected_probe_ids = [
-            "log170aa-acda-4453-9111-1478a6method",
-        ]
-
-        self.rc_state = rc.send_debugger_command(probes=base.read_probes("pii"), version=1)
+        probes = base.read_probes("pii")
+        self.expected_probe_ids = base.extract_probe_ids(probes)
+        self.rc_state = rc.send_debugger_command(probes, version=1)
 
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
+
         self.weblog_responses = [weblog.get("/debugger/pii")]
 
     def _test(self, redacted_keys, redacted_types):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
-
-        base.validate_probes(
-            {"log170aa-acda-4453-9111-1478a6method": "INSTALLED",}
-        )
-
-        base.validate_snapshots(
-            ["log170aa-acda-4453-9111-1478a6method",]
-        )
 
         self._validate_pii_keyword_redaction(redacted_keys)
         self._validate_pii_type_redaction(redacted_types)
@@ -194,13 +185,13 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
 
-            if content is not None:
-                for content in content:
-                    debugger = content["debugger"]
+            if content:
+                for item in content:
+                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
 
-                    if "snapshot" in debugger:
+                    if snapshot:
                         for field_name in should_redact_field_names:
-                            fields = debugger["snapshot"]["captures"]["return"]["locals"]["pii"]["fields"]
+                            fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
 
                             if field_name in fields:
                                 not_found.remove(field_name)
@@ -226,13 +217,13 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
 
-            if content is not None:
-                for content in content:
-                    debugger = content["debugger"]
+            if content:
+                for item in content:
+                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
 
-                    if "snapshot" in debugger:
+                    if snapshot:
                         for type_name in should_redact_types:
-                            type_info = debugger["snapshot"]["captures"]["return"]["locals"][type_name]
+                            type_info = snapshot["captures"]["return"]["locals"][type_name]
 
                             if "fields" in type_info:
                                 not_redacted.append(type_name)

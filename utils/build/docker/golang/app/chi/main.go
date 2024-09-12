@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -44,6 +45,23 @@ func main() {
 			appsec.MonitorParsedHTTPBody(r.Context(), body)
 		}
 		w.Write([]byte("Hello, WAF!\n"))
+	})
+
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+
+		healthCheck, err := common.GetHealtchCheck()
+        if err != nil {
+            http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
+        }
+
+        jsonData, err := json.Marshal(healthCheck)
+        if err != nil {
+            http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+            return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(jsonData)
 	})
 
 	mux.HandleFunc("/waf/*", func(w http.ResponseWriter, r *http.Request) {

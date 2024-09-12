@@ -68,6 +68,7 @@ from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
+from debugger_controller import debugger_blueprint
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -95,6 +96,7 @@ MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 app = Flask(__name__)
 app.secret_key = "SECRET_FOR_TEST"
 app.config["SESSION_TYPE"] = "memcached"
+app.register_blueprint(debugger_blueprint)
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
@@ -163,6 +165,28 @@ def reset_dsm_context():
 @app.route("/")
 def hello_world():
     return "Hello, World!\\n"
+
+
+@app.route("/healthcheck")
+def healthcheck():
+    path = ddtrace.appsec.__path__[0] + "/rules.json"
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "metadata" not in data:
+        appsec_event_rules_version = "1.2.5"
+    else:
+        appsec_event_rules_version = data["metadata"]["rules_version"]
+
+    return {
+        "status": "ok",
+        "library": {
+            "language": "python",
+            "version": ddtrace.__version__,
+            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
+            "appsec_event_rules_version": appsec_event_rules_version,
+        },
+    }
 
 
 @app.route("/sample_rate_route/<i>")
@@ -277,6 +301,34 @@ def rasp_sqli(*args, **kwargs):
     except Exception as e:
         print(f"DB request failure: {e!r}", file=sys.stderr)
         return f"DB request failure: {e!r}", 201
+
+
+@app.route("/rasp/shi", methods=["GET", "POST"])
+def rasp_shi(*args, **kwargs):
+    list_dir = None
+    if request.method == "GET":
+        list_dir = flask_request.args.get("list_dir")
+    elif request.method == "POST":
+        try:
+            list_dir = (request.form or request.json or {}).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if list_dir is None:
+                list_dir = xmltodict.parse(flask_request.data).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if list_dir is None:
+        return "missing user_id parameter", 400
+    try:
+        command = f"ls {list_dir}"
+        res = os.system(command)
+        return f"Shell command [{command}] with result: {res}", 200
+    except Exception as e:
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return f"Shell command failure: {e!r}", 201
 
 
 ### END EXPLOIT PREVENTION
@@ -775,8 +827,7 @@ def _sink_point_path_traversal(tainted_str="user"):
 @app.route("/iast/source/body/test", methods=["POST"])
 def view_iast_source_body():
     table = flask_request.json.get("name")
-    user = flask_request.json.get("value")
-    _sink_point_sqli(table=table, id=user)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
@@ -828,6 +879,19 @@ def view_iast_source_parameter():
         table = flask_request.args.get("table")
     else:
         table = flask_request.json.get("table")
+    _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/path/test", methods=["GET", "POST"])
+def view_iast_source_path():
+    table = flask_request.path
+    _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/path_parameter/test/<string:table>", methods=["GET", "POST"])
+def view_iast_source_path_parameter(table):
     _sink_point_sqli(table=table)
     return Response("OK")
 
@@ -993,6 +1057,15 @@ def view_sqli_insecure():
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     return Response("OK")
+
+
+@app.route("/set_cookie", methods=["GET"])
+def set_cookie():
+    name = flask_request.args.get("name")
+    value = flask_request.args.get("value")
+    resp = Response("OK")
+    resp.headers["Set-Cookie"] = f"{name}={value}"
+    return resp
 
 
 @app.route("/iast/insecure-cookie/test_insecure")

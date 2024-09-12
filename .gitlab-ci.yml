@@ -29,14 +29,18 @@ variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
+    KUBERNETES_CPU_REQUEST: "6"
+    KUBERNETES_CPU_LIMIT: "6"
 
 onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
@@ -71,15 +75,17 @@ onboarding_java:
   stage: java_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
   variables:
     TEST_LIBRARY: "java"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT, HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
@@ -87,8 +93,14 @@ onboarding_java:
           ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc,test-app-java-buildpack]
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc]
+          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc,test-app-java-buildpack]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc]
+          SCENARIO: [SIMPLE_AUTO_INJECTION_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java-alpine,test-app-java-alpine-jdk15,test-app-java-alpine-jdk21]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
@@ -107,8 +119,10 @@ onboarding_python:
   stage: python_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
   variables:
     TEST_LIBRARY: "python"
   parallel:
@@ -143,8 +157,10 @@ onboarding_dotnet:
   stage: dotnet_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
   variables:
     TEST_LIBRARY: "dotnet"
   parallel:
@@ -176,8 +192,10 @@ onboarding_ruby:
   stage: ruby_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
   variables:
     TEST_LIBRARY: "ruby"
   parallel:
@@ -209,15 +227,32 @@ onboarding_php:
   stage: php_tracer
   allow_failure: true
   dependencies: []
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
   variables:
     TEST_LIBRARY: "php"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-container-alpine]
+          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83,test-app-php-container-alpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          SCENARIO: [INSTALLER_AUTO_INJECTION_LD_PRELOAD]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws

@@ -33,6 +33,9 @@ refs:
   - &ref_5_16_0 '>=5.16.0 || ^4.40.0'
   - &ref_5_17_0 '>=5.17.0 || ^4.41.0'
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
+  - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
+  - &ref_5_22_0 '>=5.22.0 || ^4.46.0'
+  - &ref_5_23_0 '>=5.23.0 || ^4.47.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -66,6 +69,10 @@ tests/:
         Test_Schema_Response_Headers: *ref_4_21_0
     iast/:
       sink/:
+        test_code_injection.py:
+          TestCodeInjection:
+            '*': *ref_5_20_0
+            nextjs: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0
@@ -197,16 +204,53 @@ tests/:
             nextjs: missing_feature
         test_path.py:
           TestPath: missing_feature
+        test_path_parameter.py:
+          TestPathParameter:
+            '*': *ref_4_4_0
+            nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
-      test_span_tags.py:
-        Test_Mandatory_SpanTags: *ref_5_18_0
-        Test_Optional_SpanTags: *ref_5_18_0
-      test_sqli.py: missing_feature
-      test_ssrf.py: missing_feature
-      test_stack_traces.py: missing_feature
+      test_shi.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_BodyUrlEncoded:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_BodyXml: missing_feature
+        Test_Sqli_Mandatory_SpanTags: *ref_5_23_0
+        Test_Sqli_Optional_SpanTags: *ref_5_23_0
+        Test_Sqli_StackTrace:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_Telemetry:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_UrlQuery:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+      test_ssrf.py:
+        Test_Ssrf_BodyJson:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyUrlEncoded:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_BodyXml: missing_feature # xml body not supported
+        Test_Ssrf_Mandatory_SpanTags: *ref_5_18_0
+        Test_Ssrf_Optional_SpanTags: *ref_5_18_0
+        Test_Ssrf_StackTrace:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
+        Test_Ssrf_Telemetry:
+          '*': *ref_5_22_0
+          nextjs: missing_feature
+        Test_Ssrf_UrlQuery:
+          '*': *ref_5_20_0
+          nextjs: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -314,7 +358,6 @@ tests/:
       Test_StandardTagsClientIp: *ref_3_6_0
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
-      Test_RuleSet_1_3_1: v2.5.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
       Test_MissingRules: v2.0.0
@@ -329,6 +372,9 @@ tests/:
       Test_UserLoginSuccessEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Header_And_Network: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
@@ -340,6 +386,7 @@ tests/:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
+      Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
     test_reports.py:
       Test_ExtraTagsFromRule: *ref_4_1_0
       Test_Info: v2.0.0
@@ -354,6 +401,8 @@ tests/:
       Test_RuntimeDeactivation: *ref_3_9_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
+    test_suspicious_attacker_blocking.py:
+      Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator: v2.6.0
@@ -368,6 +417,8 @@ tests/:
     test_versions.py:
       Test_Events: v2.0.0
   debugger/:
+    test_debugger_exception_replay.py:
+      Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
@@ -451,6 +502,8 @@ tests/:
         '*': irrelevant
         express4: *ref_5_2_0
   parametric/:
+    test_config_consistency.py:
+      Test_Config_TraceEnabled: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
@@ -495,6 +548,9 @@ tests/:
       Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
+  test_config_consistency.py:
+    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

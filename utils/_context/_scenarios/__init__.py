@@ -2,221 +2,20 @@ import os
 import json
 
 import pytest
-from utils._context.library_version import LibraryVersion
 
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils.tools import update_environ_with_local_env
 
-from utils._context.containers import (
-    create_network,
-    # SqlDbTestedContainer,
-    APMTestAgentContainer,
-    WeblogInjectionInitContainer,
-    MountInjectionVolume,
-    create_inject_volume,
-    TestedContainer,
-)
-from utils.tools import logger, update_environ_with_local_env
-
-from .core import Scenario, ScenarioGroup, DockerScenario, EndToEndScenario
+from .core import Scenario, ScenarioGroup
+from .endtoend import DockerScenario, EndToEndScenario
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
+from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 
 update_environ_with_local_env()
-
-
-class _KubernetesScenario(Scenario):
-    """ DEPRECATED: Replaced by Kubernetes Scenario. 
-        Scenario that tests kubernetes lib injection"""
-
-    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
-
-    def configure(self, config):
-        super().configure(config)
-
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
-        assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
-        assert (
-            "DOCKER_IMAGE_TAG" in os.environ
-        ), "DOCKER_IMAGE_TAG is not set. Select tag for the lang inject init image: latest, local, latest_snapshot or a specific version"
-        assert (
-            "DOCKER_REGISTRY_IMAGES_PATH" in os.environ
-        ), "DOCKER_REGISTRY_IMAGES_PATH is not set. IE: ghcr.io/datadog"
-
-        prefix_library_injection_init_image, library_injection_init_image = self._get_library_injection_init_image()
-        library_injection_test_app_image = self._get_library_injection_test_app_image()
-
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
-        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
-        self._weblog_variant_image = library_injection_test_app_image
-        self._prefix_library_init_image = prefix_library_injection_init_image
-        self._library_init_image = library_injection_init_image
-        self._library_init_image_tag = os.getenv("DOCKER_IMAGE_TAG")
-
-        logger.stdout("K8s Lib Injection environment:")
-        logger.stdout(f"Library: {self._library}")
-        logger.stdout(f"Weblog variant: {self._weblog_variant}")
-        logger.stdout(f"Weblog variant image: {self._weblog_variant_image}")
-        logger.stdout(f"Library init image: {self._library_init_image}")
-        logger.stdout(f"Library init image tag: {self._library_init_image_tag}")
-
-    def _get_library_injection_test_app_image(self):
-        docker_registry_images_path = os.getenv("DOCKER_REGISTRY_IMAGES_PATH")
-        library_injection_test_app_image = os.environ.get("LIBRARY_INJECTION_TEST_APP_IMAGE", None)
-        if not library_injection_test_app_image:
-            app_docker_image_repo = f"{docker_registry_images_path}/system-tests/{os.getenv('WEBLOG_VARIANT')}"
-            if "DOCKER_IMAGE_WEBLOG_TAG" in os.environ:
-                library_injection_test_app_image = (
-                    f"{app_docker_image_repo}:{os.environ.get('DOCKER_IMAGE_WEBLOG_TAG')}"
-                )
-            else:
-                library_injection_test_app_image = f"{app_docker_image_repo}:latest"
-        return library_injection_test_app_image
-
-    def _get_library_injection_init_image(self):
-        test_library = os.getenv("TEST_LIBRARY")
-        init_image_repo_alias = test_library
-        init_image_alias = test_library
-        if test_library == "nodejs":
-            init_image_repo_alias = "js"
-            init_image_alias = "js"
-        elif test_library == "python":
-            init_image_repo_alias = "py"
-        elif test_library == "ruby":
-            init_image_repo_alias = "rb"
-
-        docker_image_tag = os.getenv("DOCKER_IMAGE_TAG")
-        docker_registry_images_path = os.getenv("DOCKER_REGISTRY_IMAGES_PATH")
-
-        init_docker_image_repo = ""
-        prefix_init_docker_image_repo = ""
-        if docker_image_tag == "latest":
-            # Release version are published in docker.io
-            init_docker_image_repo = f"docker.io/datadog/dd-lib-{init_image_alias}-init"
-            prefix_init_docker_image_repo = f"docker.io/datadog"
-        elif docker_image_tag == "local":
-            # Docker hub doesn't allow multi level repo paths
-            # TODO review this
-            init_docker_image_repo = f"{docker_registry_images_path}/dd-lib-{init_image_alias}-init"
-            prefix_init_docker_image_repo = f"{docker_registry_images_path}"
-        else:
-            init_docker_image_repo = (
-                f"{docker_registry_images_path}/dd-trace-{init_image_repo_alias}/dd-lib-{init_image_alias}-init"
-            )
-            prefix_init_docker_image_repo = f"{docker_registry_images_path}/dd-trace-{init_image_repo_alias}"
-
-        library_injection_init_image = f"{init_docker_image_repo}:{docker_image_tag}"
-        return prefix_init_docker_image_repo, library_injection_init_image
-
-    @property
-    def library(self):
-        return self._library
-
-    @property
-    def weblog_variant(self):
-        return self._weblog_variant
-
-
-class KubernetesScenario(Scenario):
-    """ Scenario that tests kubernetes lib injection """
-
-    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
-
-    def configure(self, config):
-        super().configure(config)
-
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
-        assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
-        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE is not set. The init image to be tested is not set"
-        assert (
-            "LIBRARY_INJECTION_TEST_APP_IMAGE" in os.environ
-        ), "LIBRARY_INJECTION_TEST_APP_IMAGE is not set. The test app image to be tested is not set"
-
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
-        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
-        self._weblog_variant_image = os.getenv("LIBRARY_INJECTION_TEST_APP_IMAGE")
-        self._library_init_image = os.getenv("LIB_INIT_IMAGE")
-
-        logger.stdout("K8s Lib Injection environment:")
-        logger.stdout(f"Library: {self._library}")
-        logger.stdout(f"Weblog variant: {self._weblog_variant}")
-        logger.stdout(f"Weblog variant image: {self._weblog_variant_image}")
-        logger.stdout(f"Library init image: {self._library_init_image}")
-
-        logger.info("K8s Lib Injection environment configured")
-
-    @property
-    def library(self):
-        return self._library
-
-    @property
-    def weblog_variant(self):
-        return self._weblog_variant
-
-
-class WeblogInjectionScenario(Scenario):
-    """Scenario that runs APM test agent """
-
-    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
-
-        self._mount_injection_volume = MountInjectionVolume(
-            host_log_folder=self.host_log_folder, name="volume-injector"
-        )
-        self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
-
-        self._required_containers: list(TestedContainer) = []
-        self._required_containers.append(self._mount_injection_volume)
-        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
-        self._required_containers.append(self._weblog_injection)
-
-    def configure(self, config):
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
-
-        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
-        self._lib_init_image = os.getenv("LIB_INIT_IMAGE")
-
-        self._mount_injection_volume._lib_init_image(self._lib_init_image)
-        self._weblog_injection.set_environment_for_library(self.library)
-
-        super().configure(config)
-
-        for container in self._required_containers:
-            container.configure(self.replay)
-
-    def _get_warmups(self):
-        warmups = super()._get_warmups()
-
-        warmups.append(create_network)
-        warmups.append(create_inject_volume)
-        for container in self._required_containers:
-            warmups.append(container.start)
-
-        return warmups
-
-    def pytest_sessionfinish(self, session):
-        self.close_targets()
-
-    def close_targets(self):
-        for container in reversed(self._required_containers):
-            try:
-                container.remove()
-                logger.info(f"Removing container {container}")
-            except:
-                logger.exception(f"Failed to remove container {container}")
-
-    @property
-    def library(self):
-        return self._library
-
-    @property
-    def lib_init_image(self):
-        return self._lib_init_image
 
 
 class scenarios:
@@ -570,22 +369,20 @@ class scenarios:
 
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true"},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "false",
+        },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-
-    # Remote config scenarios
-    # library timeout is set to 100 seconds
-    # default polling interval for tracers is very low (5 seconds)
-    # TODO configure the polling interval to a lower value instead of increasing the timeout
 
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
-        library_interface_timeout=100,
+        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -599,15 +396,13 @@ class scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
         },
-        library_interface_timeout=100,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        library_interface_timeout=100,
+        weblog_env={"DD_APPSEC_RULES": None,},
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
@@ -623,7 +418,6 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
-        library_interface_timeout=100,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -636,14 +430,12 @@ class scenarios:
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
         },
-        library_interface_timeout=100,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         rc_api_enabled=True,
-        library_interface_timeout=100,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -679,6 +471,10 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
+    tracing_config_nondefault = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT", weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"}, doc="",
+    )
+
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
     debugger_probes_status = EndToEndScenario(
@@ -690,7 +486,6 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=100,
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
@@ -728,7 +523,7 @@ class scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
         },
         library_interface_timeout=5,
@@ -742,6 +537,20 @@ class scenarios:
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
         doc="Check expression language",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    debugger_exception_replay = EndToEndScenario(
+        "DEBUGGER_EXCEPTION_REPLAY",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_EXCEPTION_REPLAY_ENABLED": "true",
+            "DD_EXCEPTION_DEBUGGING_ENABLED": "true",
+        },
+        library_interface_timeout=5,
+        doc="Check exception replay",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
@@ -895,23 +704,21 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
-    # K8s LIB INJECTION SCENARIOS
-    k8s_lib_injection_basic = _KubernetesScenario(
-        "K8S_LIB_INJECTION_BASIC",
-        doc=" Kubernetes Instrumentation basic scenario. DEPRECATED",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-    k8s_library_injection_full = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_FULL",
-        doc=" Kubernetes Instrumentation complete scenario.",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
     k8s_library_injection_basic = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
     )
-
+    k8s_library_injection_asm = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_ASM",
+        doc=" Kubernetes auto instrumentation, asm activation",
+        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
+        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
+    )
+    k8s_library_injection_profiling = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_PROFILING",
+        doc=" Kubernetes auto instrumentation, profiling activation",
+        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
+        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
+    )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",

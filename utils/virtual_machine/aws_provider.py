@@ -29,6 +29,14 @@ class AWSPulumiProvider(VmProvider):
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_onboarding"
 
+    def configure(self, required_vms):
+        super().configure(required_vms)
+        # Configure the ssh connection for the VMs
+        self.pulumi_ssh = PulumiSSH()
+        self.pulumi_ssh.load(required_vms)
+        for vm in required_vms:
+            vm.ssh_config.username = vm.aws_config.user
+
     def stack_up(self):
         logger.info(f"Starting AWS VMs: {self.vms}")
 
@@ -102,21 +110,26 @@ class AWSPulumiProvider(VmProvider):
         self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
 
     def stack_destroy(self):
-        logger.info(f"Destroying VMs: {self.vms}")
-        try:
-            self.stack.destroy(on_output=logger.info, debug=True)
-            self.datadog_event_sender.sendEventToDatadog(
-                f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
-                "",
-                ["operation:destroy", "result:ok", f"stack:{self.stack_name}"],
-            )
-        except Exception as pulumi_exception:
-            logger.error("Exception destroying aws provision infraestructure")
-            logger.exception(pulumi_exception)
-            self.datadog_event_sender.sendEventToDatadog(
-                f"[E2E] Stack {self.stack_name}  : error on Pulumi stack destroy",
-                repr(pulumi_exception),
-                ["operation:destroy", "result:fail", f"stack:{self.stack_name}"],
+        if os.getenv("ONBOARDING_KEEP_VMS") is None:
+            logger.info(f"Destroying VMs: {self.vms}")
+            try:
+                self.stack.destroy(on_output=logger.info, debug=True)
+                self.datadog_event_sender.sendEventToDatadog(
+                    f"[E2E] Stack {self.stack_name}  : success on Pulumi stack destroy",
+                    "",
+                    ["operation:destroy", "result:ok", f"stack:{self.stack_name}"],
+                )
+            except Exception as pulumi_exception:
+                logger.error("Exception destroying aws provision infraestructure")
+                logger.exception(pulumi_exception)
+                self.datadog_event_sender.sendEventToDatadog(
+                    f"[E2E] Stack {self.stack_name}  : error on Pulumi stack destroy",
+                    repr(pulumi_exception),
+                    ["operation:destroy", "result:fail", f"stack:{self.stack_name}"],
+                )
+        else:
+            logger.info(
+                f"Did not destroy VMs as ONBOARDING_KEEP_VMS is set. To destroy them, re-run the test without this env var."
             )
 
     def _get_cached_ami(self, vm):
@@ -258,7 +271,7 @@ class AWSCommander(Commander):
         else:
             # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
             # same remote machine in the same log file
-            header = "*****************************************************************"
+            header = "\n *****************************************************************"
             Output.all(vm.name, installation_id, remote_command, cmd_exec_install.stdout).apply(
                 lambda args: vm_logger(context.scenario.name, args[0]).info(
                     f"{header} \n  - COMMAND: {args[1]} \n {header} \n {args[2]} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {args[3]}"

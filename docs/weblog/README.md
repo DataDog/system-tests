@@ -387,7 +387,7 @@ Additionally both methods support the following query parameters to use the sdk 
 - `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
 
 ### GET /debugger
-These endpoints are used for the Live Debugger tests. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
+These endpoints are used for the Dynamic Instrumentation tests.
 
 #### GET /debugger/log
 This endpoint will be used to validate the log probe.
@@ -401,16 +401,14 @@ This endpoint will be used to validate the span probe.
 #### GET /debugger/span-decoration
 This endpoint will be used to validate the span decoration probe.
 
-The following query parameters are required for each endpoint:
-- `arg`: This is a parameter that can take any string as an argument.
-- `intArg`: This is a parameter that can take any integer as an argument.
-
 #### GET /debugger/pii
-This endpoint will be used to validate debugger pii redaction feature.
+This endpoint will be used to validate Dynamic Instrumentation pii redaction feature.
 
-#### GET /expression
-#### GET /expression/exception
-These endpoints will be used to validate debugger expression language feature.
+#### GET /expression/*
+These endpoints will be used to validate Dynamic Instrumentation expression language feature.
+
+#### GET /exceptionreplay/*
+These endpoints will be used to validate Dynamic Instrumentation exception replay feature.
 
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
@@ -520,7 +518,33 @@ Returns a JSON dict, with those values :
     "library": {
       "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
       "version": "1.2.3",  // version of the library
-      "libddwaf_version": "4.5.6"  // version of libddwaf
+      "libddwaf_version": "4.5.6"  // version of libddwaf,
+      "appsec_event_rules_version": "7.8.9"  // version of appsec event rules
     }
   }
 ```
+
+### \[GET,POST\] /rasp/shi
+
+This endpoint is used to test for shell injection attacks, consequently it must call a shell command by using a function or method which results in an actual shell being launched (e.g. /bin/sh). The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `list_dir`: containing the string to inject on the shell command.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+system("ls $list_dir");
+```
+
+Examples:
+- `GET`: `/rasp/shi?list_dir=$(cat /etc/passwd 1>&2 ; echo .)
+- `POST`: `{"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}`
+
+### \[GET\] /set_cookie
+
+This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response

@@ -12,6 +12,10 @@ on:
         description: "Library to test"
         required: true
         type: string
+      version:
+        description: "Version of the image to test"
+        required: true
+        type: string
 env:
   REGISTRY: ghcr.io
 
@@ -43,26 +47,40 @@ jobs:
           "ruby": [{"name":"dd-lib-ruby-init-test-rails","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-explicit","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-gemsrb","supported":"true"}]
         }
 
-        init_images={
+        prod_init_images={
           "cpp": [],
-          "dotnet": ["gcr.io/datadoghq/dd-lib-dotnet-init:latest","ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"],
+          "dotnet": ["gcr.io/datadoghq/dd-lib-dotnet-init:latest"],
           "golang": [],
-          "java": ["gcr.io/datadoghq/dd-lib-java-init:latest","ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
-          "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest","ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
+          "java": ["gcr.io/datadoghq/dd-lib-java-init:latest"],
+          "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest"],
           "php": [],
-          "python": ["gcr.io/datadoghq/dd-lib-python-init:latest","ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
-          "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest","ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
+          "python": ["gcr.io/datadoghq/dd-lib-python-init:latest"],
+          "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest"],
+        }
+
+        dev_init_images={
+          "cpp": [],
+          "dotnet": ["ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"],
+          "golang": [],
+          "java": ["ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
+          "nodejs": ["ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
+          "php": [],
+          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
+          "ruby": ["ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
         }
         #All weblog variants
         result = weblogs["${{ inputs.library }}"]
-
         #Only supported weblog variants
         results_supported_langs = []
         for weblog in weblogs["${{ inputs.library }}"]:
           if weblog["supported"] == "true":
             results_supported_langs.append(weblog["name"])
 
-        result_init_image = init_images["${{ inputs.library }}"]
+        #Use the latest init image for prod version, latest_snapshot init image for dev version
+        if "${{ inputs.version }}" == 'prod':
+          result_init_image = prod_init_images["${{ inputs.library }}"]
+        else:
+          result_init_image = dev_init_images["${{ inputs.library }}"]
 
         with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
             print(f'matrix={json.dumps(result)}', file=fh)
@@ -196,7 +214,7 @@ jobs:
 
       - name: Kubernetes lib-injection tests
         id: k8s-lib-injection-tests
-        run: ./run.sh K8S_LIBRARY_INJECTION_FULL
+        run: ./run.sh K8S_LIBRARY_INJECTION_BASIC
 
       - name: Compress logs
         id: compress_logs
@@ -207,5 +225,5 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_k8s-lib-injection_${{ inputs.library}}_${{matrix.weblog}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
+          name: logs_k8s-lib-injection_${{ inputs.library}}_${{matrix.weblog}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'dev' || 'prod'}}
           path: artifact.tar.gz

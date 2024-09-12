@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.test_agent import get_span
+from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, context, scenarios, features, bug
 
 parametrize = pytest.mark.parametrize
@@ -52,7 +52,7 @@ class Test_Headers_None:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 123456789
         assert span.get("parent_id") != 987654321
         assert span["meta"].get(ORIGIN) is None
@@ -77,7 +77,7 @@ class Test_Headers_None:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
         assert span["meta"].get(ORIGIN) == "synthetics"
@@ -108,7 +108,7 @@ class Test_Headers_None:
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [])
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
         assert int(headers["x-datadog-parent-id"]) == span.get("span_id")
         assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
@@ -130,7 +130,7 @@ class Test_Headers_None:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 123456789
         assert span.get("parent_id") != 987654321
         assert span["meta"].get(ORIGIN) is None
@@ -165,7 +165,7 @@ class Test_Headers_None:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 123456789
         assert span.get("parent_id") != 987654321
         assert span["meta"].get(ORIGIN) is None

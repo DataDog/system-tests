@@ -30,6 +30,16 @@ func main() {
 		return c.NoContent(http.StatusOK)
 	})
 
+	r.GET("/healthcheck", func(c echo.Context) error {
+		healthCheck, err := common.GetHealtchCheck()
+
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+		
+		return c.JSON(http.StatusOK, healthCheck)
+	})
+
 	r.Any("/*", func(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	})

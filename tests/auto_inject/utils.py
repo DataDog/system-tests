@@ -7,6 +7,7 @@ from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
 from utils import context
+from threading import Timer
 
 
 class AutoInjectBaseTest:
@@ -14,7 +15,7 @@ class AutoInjectBaseTest:
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
         request_uuid = None
@@ -34,6 +35,13 @@ class AutoInjectBaseTest:
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
+    def close_channel(self, channel):
+        try:
+            if not channel.eof_received:
+                channel.close()
+        except Exception as e:
+            logger.error(f"Error closing the channel: {e}")
+
     def execute_command(self, virtual_machine, command):
         # Env for the command
         prefix_env = ""
@@ -43,12 +51,14 @@ class AutoInjectBaseTest:
         command_with_env = f"{prefix_env} {command}"
 
         with virtual_machine.ssh_config.get_ssh_connection() as ssh:
-            try:
-                _, stdout, stderr = ssh.exec_command(command_with_env, timeout=120)
-                stdout.channel.set_combine_stderr(True)
-            except paramiko.buffered_pipe.PipeTimeout:
-                if not stdout.channel.eof_received:
-                    stdout.channel.close()
+            timeout = 120
+
+            _, stdout, _ = ssh.exec_command(command_with_env, timeout=timeout + 5)
+            stdout.channel.set_combine_stderr(True)
+
+            # Enforce that even if we reach the 2min mark we can still have a partial output of the command
+            # and thus see where it is stuck.
+            Timer(timeout, self.close_channel, (stdout.channel,)).start()
 
             # Read the output line by line
             command_output = ""
@@ -69,16 +79,22 @@ class AutoInjectBaseTest:
         and reporting traces to the backend."""
         logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
 
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         weblog_url = f"http://{vm_ip}:{vm_port}/"
 
         # Kill the app before the uninstallation
+        logger.info(f"[Uninstall {virtual_machine.name}] Stop app")
         self.execute_command(virtual_machine, stop_weblog_command)
+        logger.info(f"[Uninstall {virtual_machine.name}] Stop app done")
         # Uninstall the auto inject
+        logger.info(f"[Uninstall {virtual_machine.name}] Uninstall command")
         self.execute_command(virtual_machine, uninstall_command)
+        logger.info(f"[Uninstall {virtual_machine.name}] Uninstall command done")
         # Start the app again
+        logger.info(f"[Uninstall {virtual_machine.name}] Start app")
         self.execute_command(virtual_machine, start_weblog_command)
+        logger.info(f"[Uninstall {virtual_machine.name}] Start app done")
 
         wait_for_port(vm_port, vm_ip, 40.0)
         warmup_weblog(weblog_url)
@@ -91,27 +107,34 @@ class AutoInjectBaseTest:
             # OK there are no traces, the weblog app is not instrumented
             pass
         # Kill the app before restore the installation
+        logger.info(f"[Uninstall {virtual_machine.name}] Stop app before restore")
         self.execute_command(virtual_machine, stop_weblog_command)
+        logger.info(f"[Uninstall {virtual_machine.name}] Stop app before restore done")
         # reinstall the auto inject
+        logger.info(f"[Uninstall {virtual_machine.name}] Reinstall dd ssi")
         self.execute_command(virtual_machine, install_command)
+        logger.info(f"[Uninstall {virtual_machine.name}] Reinstall dd ssi done")
         # Start the app again
+        logger.info(f"[Uninstall {virtual_machine.name}] Start app after reinstall dd ssi")
         self.execute_command(virtual_machine, start_weblog_command)
+        logger.info(f"[Uninstall {virtual_machine.name}] Start app after reinstall dd ssi done")
         # The app should be instrumented and reporting traces to the backend
         self._test_install(virtual_machine)
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
 
     def _test_uninstall(self, virtual_machine):
 
-        if context.scenario.weblog_variant == "test-app-{}".format(context.scenario.library.library):
-            # Host
+        if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
+
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
             if context.scenario.library.library in ["ruby", "python", "dotnet"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
-        else:
-            # Container
+        else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
-            start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
+            #   On older Docker versions, the network recreation can hang. The solution is to restart Docker.
+            #   https://github.com/docker-archive/classicswarm/issues/1931
+            start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up"
 
         install_command = "sudo datadog-installer apm instrument"
         uninstall_command = "sudo datadog-installer apm uninstrument"

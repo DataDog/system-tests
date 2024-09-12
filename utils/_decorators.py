@@ -9,8 +9,6 @@ from utils._context.core import context
 # 1. SimpleSpec : not a good fit because it does not allows OR clause
 # 2. NpmSpec : not a good fit because it disallow prerelease version by default (6.0.0-pre is not in ">=5.0.0")
 # So we use a custom one, based on NPM spec, allowing pre-release versions
-
-
 class CustomParser(semver.NpmSpec.Parser):
     @classmethod
     def range(cls, operator, target):
