@@ -69,14 +69,14 @@ function initRaspEndpoints (app: Express) {
           result = JSON.stringify(statSync(req.query.file))
         } catch (e: any) {
           result = e.toString()
-    
+
           if (e.name === 'DatadogRaspAbortError') {
             throw e
           }
         }
         res.send(result)
       })
-    
+
       app.post('/rasp/lfi', (req: Request, res: Response) => {
         let result
         try {
