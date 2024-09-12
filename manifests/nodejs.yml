@@ -35,6 +35,7 @@ refs:
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
   - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
   - &ref_5_22_0 '>=5.22.0 || ^4.46.0'
+  - &ref_5_23_0 '>=5.23.0 || ^4.47.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -212,7 +213,25 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_BodyUrlEncoded:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_BodyXml: missing_feature
+        Test_Sqli_Mandatory_SpanTags: *ref_5_23_0
+        Test_Sqli_Optional_SpanTags: *ref_5_23_0
+        Test_Sqli_StackTrace:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_Telemetry:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_UrlQuery:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': *ref_5_20_0
@@ -485,6 +504,8 @@ tests/:
         '*': irrelevant
         express4: *ref_5_2_0
   parametric/:
+    test_config_consistency.py:
+      Test_Config_TraceEnabled: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
