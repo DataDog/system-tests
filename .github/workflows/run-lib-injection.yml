@@ -171,6 +171,8 @@ jobs:
       matrix:
         weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix_supported_langs) }}
         lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
+        weblog_platform: ['','arm64', 'amd64']
+        cluster_agent_version: ['7.56.2', '7.57.0']
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
@@ -178,7 +180,8 @@ jobs:
       LIB_INIT_IMAGE: ${{ matrix.lib_init_image }}
       SYSTEM_TESTS_REPORT_ENVIRONMENT: dev
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/system-tests/${{ matrix.weblog }}:${{ inputs.build_lib_injection_app_images != true && 'latest' || github.sha }}
+      LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/system-tests/${{ matrix.weblog }}:${{ inputs.build_lib_injection_app_images != true && 'latest' || github.sha }}${{ matrix.weblog_platform == '' && '' || format('_{0}', matrix.weblog_platform) }}
+      CLUSTER_AGENT_VERSION: ${{ matrix.cluster_agent_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -205,9 +208,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build weblog base images (PR)
-        if: inputs.build_lib_injection_app_images
-        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }}
+      - name: Build weblog base images all platforms (PR)
+        if: inputs.build_lib_injection_app_images && matrix.weblog_platform == ''
+        run: |
+          #Build multiplatform
+          lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }} --docker-platform linux/arm64,linux/amd64
+
+      - name: Build weblog base images specific platform (PR)
+        if: inputs.build_lib_injection_app_images && matrix.weblog_platform != ''
+        run: |
+          #Build multiplatform
+          lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }} --docker-platform linux/${{ matrix.weblog_platform }}
 
       - name: Install runner
         uses: ./.github/actions/install_runner
