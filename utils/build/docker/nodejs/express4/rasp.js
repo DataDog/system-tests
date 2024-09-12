@@ -67,6 +67,10 @@ function initRaspEndpoints (app) {
       result = JSON.stringify(statSync(req.query.file))
     } catch (e) {
       result = e.toString()
+
+      if (e.name === 'DatadogRaspAbortError') {
+        throw e
+      }
     }
     res.send(result)
   })
@@ -77,6 +81,10 @@ function initRaspEndpoints (app) {
       result = JSON.stringify(statSync(req.body.file))
     } catch (e) {
       result = e.toString()
+
+      if (e.name === 'DatadogRaspAbortError') {
+        throw e
+      }
     }
     res.send(result)
   })

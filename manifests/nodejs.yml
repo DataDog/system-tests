@@ -36,6 +36,7 @@ refs:
   - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
   - &ref_5_22_0 '>=5.22.0 || ^4.46.0'
   - &ref_5_23_0 '>=5.23.0 || ^4.47.0'
+  - &ref_5_24_0 '>=5.24.0 || ^4.48.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -211,7 +212,25 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
-      test_lfi.py: missing_feature
+      test_lfi.py:
+        Test_Lfi_BodyJson:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_BodyUrlEncoded:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_BodyXml: missing_feature
+        Test_Lfi_Mandatory_SpanTags: *ref_5_24_0
+        Test_Lfi_Optional_SpanTags: *ref_5_24_0
+        Test_Lfi_StackTrace:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_Telemetry:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_UrlQuery:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
       test_shi.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson:
