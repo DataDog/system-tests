@@ -590,12 +590,8 @@ class Test_BlockingGraphqlResolvers:
                 or parameters["address"] == "graphql.server.resolver"
             )
             assert rule_triggered["rule"]["id"] == "block-resolvers"
-            # In Ruby, we can get the resolvers of all the queries before any is executed
-            # So we use the name of the query as the first string in the key_path (or a default name like query1)
             assert parameters["key_path"] == (
-                ["getUserByName", "0", "name"]
-                if context.library == "ruby"
-                else ["userByName", "name"]
+                ["userByName", "name"]
                 if parameters["address"] == "graphql.server.resolver"
                 else ["userByName", "0", "name"]
             )
