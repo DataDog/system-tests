@@ -470,8 +470,16 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
+    tracing_config_empty =EndToEndScenario(
+        "TRACING_CONFIG_EMPTY", weblog_env={}, doc="",
+    )
+
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT", weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"}, doc="",
+    )
+
+    tracing_config_nondefault_client_tag_query = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_CLIENT_TAG_QUERY", weblog_env={"DD_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")

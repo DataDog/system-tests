@@ -71,3 +71,32 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert spans[0]["type"] == "web"
         assert spans[0]["meta"]["http.status_code"] == "202"
         assert spans[0]["error"] == 1
+
+
+@scenarios.tracing_config_empty
+@features.tracing_configuration_consistency
+class Test_Config_ClientTagQueryString_Empty:
+    """ Verify behavior when set to empty string """
+
+    def setup_query_string_redaction_unset(self):
+        self.r = weblog.get("/make_distant_call?hi=monkey")
+
+    def test_query_string_redaction_unset(self):
+        interfaces.library.add_span_tag_validation(
+            self.r, tags={"http.url": r"^.*/make_distant_call\?hi=monkey$"}, value_as_regular_expression=True,
+        )
+
+
+@scenarios.tracing_config_nondefault_client_tag_query
+@features.tracing_configuration_consistency
+class Test_Config_ClientTagQueryString_Configured:
+    def setup_query_string_redaction(self):
+        self.r = weblog.get("/make_distant_call?hi=monkey")
+
+    def test_query_string_redaction(self):
+        interfaces.library.add_span_tag_validation(
+            self.r, tags={"component": "flask"},
+        )
+        interfaces.library.add_span_tag_validation(
+            self.r, tags={"http.url": r"^.*/make_distant_call$"}, value_as_regular_expression=True,
+        )
