@@ -137,4 +137,4 @@ class Test_Config_UnifiedServiceTagging_Default:
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        assert not spans[0]["service"] == "service_test"
+        assert spans[0]["service"] != "service_test"
