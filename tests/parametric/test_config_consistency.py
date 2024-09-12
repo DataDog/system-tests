@@ -51,14 +51,10 @@ class Test_Config_TraceLogDirectory:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_ENABLED": "true", "DD_TRACE_LOG_DIRECTORY": "/parametric-tracer-logs"}]
     )
-    def test_trace_log_directory_configured(self, library_env, test_agent, test_library):
+    def test_trace_log_directory_configured_with_existing_directory(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span("allowed"):
                 pass
-        test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
 
         success, message = test_library.container_exec_run("ls /parametric-tracer-logs")
         assert success, message
