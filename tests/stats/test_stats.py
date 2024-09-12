@@ -1,4 +1,4 @@
-from utils import interfaces, weblog, features, scenarios, bug
+from utils import interfaces, weblog, features, scenarios
 from utils.tools import logger
 
 """
@@ -27,12 +27,10 @@ class Test_Client_Stats:
         for _ in range(3):
             weblog.get("/stats-unique?code=204")
 
-    # TODO: mark that this is only good for golang net-http for now?
-    # TODO: why are hits and top-level hits separated in python? (and not go)
-    @bug(library="python", reason="hits and toplevel hits are being split for some reason")
     def test_client_stats(self):
         stats_count = 0
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+            print(s)
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
