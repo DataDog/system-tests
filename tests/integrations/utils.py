@@ -154,7 +154,7 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
 
-def delete_resource(
+def delete_aws_resource(
     delete_callable: Callable,
     resource_identifier: str,
     resource_type: str,
@@ -168,6 +168,8 @@ def delete_resource(
     :param resource_identifier: The identifier of the resource (e.g., QueueUrl, TopicArn, StreamName).
     :param resource_type: The type of the resource (e.g., SQS, SNS, Kinesis).
     :param error_name: The name of the error to handle (e.g., 'QueueDoesNotExist').
+    :param get_callable: An optional get callable to get the AWS resource, used to trigger an exception
+    confirming the resource is deleted (in cases where the delete resource returns void).
     """
     timeout = 20
     end = time.time() + timeout
@@ -197,7 +199,7 @@ def delete_sqs_queue(queue_name):
     sqs_client = boto3.client("sqs")
     delete_callable = lambda url: sqs_client.delete_queue(QueueUrl=url)
     get_callable = lambda url: sqs_client.get_queue_attributes(QueueUrl=url)
-    delete_resource(
+    delete_aws_resource(
         delete_callable, queue_url, "SQS Queue", "AWS.SimpleQueueService.NonExistentQueue", get_callable=get_callable
     )
 
@@ -207,13 +209,13 @@ def delete_sns_topic(topic_name):
     sns_client = boto3.client("sns")
     get_callable = lambda arn: sns_client.get_topic_attributes(TopicArn=arn)
     delete_callable = lambda arn: sns_client.delete_topic(TopicArn=arn)
-    delete_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
+    delete_aws_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
 
 
 def delete_kinesis_stream(stream_name):
     kinesis_client = boto3.client("kinesis")
     delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
-    delete_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
+    delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
 
 
 def fnv(data, hval_init, fnv_prime, fnv_size):
