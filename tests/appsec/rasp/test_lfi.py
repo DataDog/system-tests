@@ -188,7 +188,7 @@ class Test_Lfi_RC_CustomAction:
         self.r2 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
         self.config_state_3 = rc.rc_state.set_config(*RC_CONSTANTS.BLOCK_REDIRECT).apply()
-        self.r3 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
+        self.r3 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"}, allow_redirects=False)
 
         self.config_state_4 = rc.rc_state.del_config(RC_CONSTANTS.BLOCK_REDIRECT[0]).apply()
         self.r4 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
@@ -221,7 +221,7 @@ class Test_Lfi_RC_CustomAction:
         )
 
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.r3.status_code == 301
+        assert self.r3.status_code == 302
         assert self.r3.headers["Location"] == "http://google.com"
 
         interfaces.library.assert_rasp_attack(
