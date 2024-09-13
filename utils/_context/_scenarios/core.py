@@ -5,7 +5,6 @@ from pathlib import Path
 import shutil
 
 import pytest
-
 from utils.tools import logger, get_log_formatter
 
 

@@ -585,9 +585,13 @@ tests/:
       Test_Dbm_Comment_Batch_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Batch_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Batch_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
@@ -611,9 +615,13 @@ tests/:
       Test_Dbm_Comment_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0

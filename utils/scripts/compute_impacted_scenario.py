@@ -138,6 +138,8 @@ def main():
                     r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
                     r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
                     r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC.value,
+                    #### Integrations case
+                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS.value,
                     #### Docker SSI case
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### else, run all

@@ -2,11 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2023 Datadog, Inc.
 
+import base64
+import json
+
+from tests.integrations.utils import (
+    compute_dsm_hash,
+    delete_sqs_queue,
+    delete_kinesis_stream,
+    delete_sns_topic,
+)
+
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
 from utils.tools import logger
 
-import base64
-import json
 
 # Kafka specific
 DSM_CONSUMER_GROUP = "testgroup1"
@@ -20,10 +28,17 @@ DSM_STREAM = "dsm-system-tests-stream"
 
 # Generic
 DSM_QUEUE = "dsm-system-tests-queue"
+
+DSM_QUEUE_SQS = "dsm-system-tests-queue"
+DSM_QUEUE_SNS = "dsm-system-tests-sns-queue"
 DSM_TOPIC = "dsm-system-tests-topic"
 
 # Queue requests can take a while, so give time for them to complete
 DSM_REQUEST_TIMEOUT = 61
+
+
+def get_message(test, system):
+    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.library} DSM test: {scenarios.crossed_tracing_libraries.unique_id}"
 
 
 @features.datastreams_monitoring_support_for_kafka
@@ -250,26 +265,56 @@ class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
 
     def setup_dsm_sqs(self):
-        self.r = weblog.get(f"/dsm?integration=sqs&timeout=60&queue={DSM_QUEUE}", timeout=DSM_REQUEST_TIMEOUT)
+        try:
+            message = get_message("Test_DsmSQS", "sqs")
+
+            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+            # which changes for each run with the time stamp added
+            if context.library.library != "nodejs":
+                self.queue = (
+                    f"{DSM_QUEUE}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
+                )
+            else:
+                self.queue = f"{DSM_QUEUE}_{context.library.library}"
+
+            self.r = weblog.get(
+                f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
+            )
+        finally:
+            if context.library.library != "nodejs":
+                delete_sqs_queue(self.queue)
 
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
-        language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 18206246330825886989, "consumer": 5236533131035234664, "topic": DSM_QUEUE,},
-            "default": {"producer": 7228682205928812513, "consumer": 3767823103515000703, "topic": DSM_QUEUE,},
+        hash_inputs = {
+            "default": {
+                "tags_out": ("direction:out", f"topic:{self.queue}", "type:sqs"),
+                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
+            },
+            "nodejs": {
+                "producer": 8993664068648876726,
+                "consumer": 8544812442360155699,
+                "tags_out": ("direction:out", f"topic:{self.queue}", "type:sqs"),
+                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
+            },
         }
 
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        topic = language_hashes.get(context.library.library, language_hashes.get("default"))["topic"]
+        tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
+        tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
+
+        if context.library.library != "nodejs":
+            producer_hash = compute_dsm_hash(0, tags_out)
+            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        else:
+            producer_hash = hash_inputs["nodejs"]["producer"]
+            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sqs"),
+            hash_=producer_hash, parent_hash=0, tags=tags_out,
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{topic}", "type:sqs"),
+            hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in,
         )
 
 
@@ -279,29 +324,62 @@ class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
     def setup_dsm_sns(self):
-        self.r = weblog.get(
-            f"/dsm?integration=sns&timeout=60&queue={DSM_QUEUE}&topic={DSM_TOPIC}", timeout=DSM_REQUEST_TIMEOUT,
-        )
+        try:
+            message = get_message("Test_DsmSNS", "sns")
 
-    @missing_feature(library="java", reason="DSM is not implemented for Java AWS SNS.")
+            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+            # which changes for each run with the time stamp added
+            if context.library.library != "nodejs":
+                self.topic = (
+                    f"{DSM_TOPIC}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
+                )
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
+            else:
+                self.topic = f"{DSM_TOPIC}_{context.library.library}"
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}"
+
+            self.r = weblog.get(
+                f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
+                timeout=DSM_REQUEST_TIMEOUT,
+            )
+        finally:
+            if context.library.library != "nodejs":
+                delete_sns_topic(self.topic)
+                delete_sqs_queue(self.queue)
+
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
-        language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 15583577557400562150, "consumer": 16616233855586708550,},
-            "default": {"producer": 5674710414915297150, "consumer": 13847866872847822852,},
+        topic = self.topic if context.library.library == "java" else f"arn:aws:sns:us-east-1:601427279990:{self.topic}"
+
+        hash_inputs = {
+            "default": {
+                "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
+                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
+            },
+            "nodejs": {
+                "producer": 5574101569053455889,
+                "consumer": 3220237713045744553,
+                "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
+                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
+            },
         }
 
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        topic = f"arn:aws:sns:us-east-1:000000000000:{DSM_TOPIC}"
+        tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
+        tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
+
+        if context.library.library != "nodejs":
+            producer_hash = compute_dsm_hash(0, tags_out)
+            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        else:
+            producer_hash = hash_inputs["nodejs"]["producer"]
+            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{topic}", "type:sns"),
+            hash_=producer_hash, parent_hash=0, tags=tags_out,
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=("direction:in", f"topic:{DSM_QUEUE}", "type:sqs"),
+            hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in,
         )
 
 
@@ -311,41 +389,57 @@ class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
 
     def setup_dsm_kinesis(self):
-        self.r = weblog.get(f"/dsm?integration=kinesis&timeout=60&stream={DSM_STREAM}", timeout=DSM_REQUEST_TIMEOUT,)
+        try:
+            message = get_message("Test_DsmKinesis", "kinesis")
+
+            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+            # which changes for each run with the time stamp added
+            if context.library.library != "nodejs":
+                self.stream = f"{DSM_STREAM}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
+            else:
+                self.stream = f"{DSM_STREAM}_{context.library.library}"
+
+            self.r = weblog.get(
+                f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
+                timeout=DSM_REQUEST_TIMEOUT,
+            )
+        finally:
+            if context.library.library != "nodejs":
+                delete_kinesis_stream(self.stream)
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
-        stream_arn = f"arn:aws:kinesis:us-east-1:000000000000:stream/{DSM_STREAM}"
-        stream = DSM_STREAM
+        stream_arn = f"arn:aws:kinesis:us-east-1:601427279990:stream/{self.stream}"
 
-        language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {
-                "producer": 6740568728215232522,
-                "consumer": 13484979344558289202,
-                "edge_tags_out": ("direction:out", f"topic:{stream}", "type:kinesis"),
-                "edge_tags_in": ("direction:in", f"topic:{stream}", "type:kinesis"),
-            },
+        hash_inputs = {
             "default": {
-                "producer": 12766628368524791023,
-                "consumer": 10129046175894237233,
-                "edge_tags_out": ("direction:out", f"topic:{stream_arn}", "type:kinesis"),
-                "edge_tags_in": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),
+                "tags_out": ("direction:out", f"topic:{stream_arn}", "type:kinesis"),
+                "tags_in": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),
+            },
+            "nodejs": {
+                "producer": 2387568642918822206,
+                "consumer": 10101425062685840509,
+                "tags_out": ("direction:out", f"topic:{self.stream}", "type:kinesis"),
+                "tags_in": ("direction:in", f"topic:{self.stream}", "type:kinesis"),
             },
         }
+        tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
+        tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
 
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_out"]
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        if context.library.library != "nodejs":
+            producer_hash = compute_dsm_hash(0, tags_out)
+            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
+        else:
+            producer_hash = hash_inputs["nodejs"]["producer"]
+            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
+            hash_=producer_hash, parent_hash=0, tags=tags_out,
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
+            hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in,
         )
 
 

@@ -358,10 +358,13 @@ public class App {
     }
 
     @RequestMapping("/sqs/produce")
-    ResponseEntity<String> sqsProduce(@RequestParam(required = true) String queue) {
+    ResponseEntity<String> sqsProduce(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String message
+    ) {
         SqsConnector sqs = new SqsConnector(queue);
         try {
-            sqs.produceMessageWithoutNewThread("DistributedTracing SQS from Java");
+            sqs.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -371,12 +374,16 @@ public class App {
     }
 
     @RequestMapping("/sqs/consume")
-    ResponseEntity<String> sqsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> sqsConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
         SqsConnector sqs = new SqsConnector(queue);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread("SQS");
+            consumed = sqs.consumeMessageWithoutNewThread("SQS", message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start consuming message...");
@@ -386,11 +393,15 @@ public class App {
     }
 
     @RequestMapping("/sns/produce")
-    ResponseEntity<String> snsProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String topic) {
+    ResponseEntity<String> snsProduce(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String topic,
+        @RequestParam(required = true) String message
+    ) {
         SnsConnector sns = new SnsConnector(topic);
-        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        SqsConnector sqs = new SqsConnector(queue);
         try {
-            sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS from Java", sqs);
+            sns.produceMessageWithoutNewThread(message, sqs);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -400,12 +411,16 @@ public class App {
     }
 
     @RequestMapping("/sns/consume")
-    ResponseEntity<String> snsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
-        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+    ResponseEntity<String> snsConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
+        SqsConnector sqs = new SqsConnector(queue);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS");
+            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS", message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start consuming message...");
@@ -415,11 +430,13 @@ public class App {
     }
 
     @RequestMapping("/kinesis/produce")
-    ResponseEntity<String> kinesisProduce(@RequestParam(required = true) String stream) {
+    ResponseEntity<String> kinesisProduce(
+        @RequestParam(required = true) String stream,
+        @RequestParam(required = true) String message
+    ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         try {
-            String jsonString = "{\"message\":\"DistributedTracing Kinesis from Java\"}";
-            kinesis.produceMessageWithoutNewThread(jsonString);
+            kinesis.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start producing message...");
             e.printStackTrace();
@@ -429,12 +446,16 @@ public class App {
     }
 
     @RequestMapping("/kinesis/consume")
-    ResponseEntity<String> kinesisConsume(@RequestParam(required = true) String stream, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> kinesisConsume(
+        @RequestParam(required = true) String stream,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = kinesis.consumeMessageWithoutNewThread(timeout);
+            consumed = kinesis.consumeMessageWithoutNewThread(timeout, message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start consuming message...");
@@ -484,7 +505,8 @@ public class App {
         @RequestParam(required = false, name = "stream") String stream,
         @RequestParam(required = false, name = "routing_key") String routing_key,
         @RequestParam(required = false, name = "exchange") String exchange,
-        @RequestParam(required = false, name = "group") String group
+        @RequestParam(required = false, name = "group") String group,
+        @RequestParam(required = false, name = "message") String message
     ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);
@@ -561,7 +583,7 @@ public class App {
         } else if ("sqs".equals(integration)) {
             SqsConnector sqs = new SqsConnector(queue);
             try {
-                Thread produceThread = sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                Thread produceThread = sqs.startProducingMessage(message);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start producing message...");
@@ -569,7 +591,7 @@ public class App {
                 return "[SQS] failed to start producing message";
             }
             try {
-                Thread consumeThread = sqs.startConsumingMessages("SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SQS", message);
                 consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
@@ -578,9 +600,9 @@ public class App {
             }
         } else if ("sns".equals(integration)) {
             SnsConnector sns = new SnsConnector(topic);
-            SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+            SqsConnector sqs = new SqsConnector(queue);
             try {
-                Thread produceThread = sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+                Thread produceThread = sns.startProducingMessage(message, sqs);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start producing message...");
@@ -588,7 +610,7 @@ public class App {
                 return "[SNS->SQS] failed to start producing message";
             }
             try {
-                Thread consumeThread = sqs.startConsumingMessages("SNS->SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SNS->SQS", message);
                 consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start consuming message...");
@@ -598,15 +620,14 @@ public class App {
         } else if ("kinesis".equals(integration)) {
             KinesisConnector kinesis = new KinesisConnector(stream);
             try {
-                String jsonString = "{\"message\":\"DSM Test Kinesis from Java\"}";
-                kinesis.produceMessageWithoutNewThread(jsonString);
+                kinesis.produceMessageWithoutNewThread(message);
             } catch (Exception e) {
                 System.out.println("[Kinesis] Failed to start producing message...");
                 e.printStackTrace();
                 return "[Kinesis] failed to start producing message";
             }
             try {
-                kinesis.consumeMessageWithoutNewThread(60);
+                kinesis.consumeMessageWithoutNewThread(60, message);
             } catch (Exception e) {
                 System.out.println("[Kinesis] Failed to start consuming message...");
                 e.printStackTrace();

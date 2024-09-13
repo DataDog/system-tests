@@ -334,6 +334,10 @@ class TestedContainer:
         ]
         if "DD_APP_KEY" in os.environ:
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
+        if "AWS_ACCESS_KEY_ID" in os.environ:
+            keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
+        if "AWS_SECRET_ACCESS_KEY" in os.environ:
+            keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
 
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
@@ -571,6 +575,10 @@ class BuddyContainer(TestedContainer):
         )
 
         self.interface = None
+        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
+        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
+        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
+        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
 
 
 class WeblogContainer(TestedContainer):
@@ -683,6 +691,7 @@ class WeblogContainer(TestedContainer):
 
     def configure(self, replay):
         super().configure(replay)
+
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
         if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
@@ -690,6 +699,11 @@ class WeblogContainer(TestedContainer):
 
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
+
+        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
+        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
+        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
+        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
 
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
@@ -983,39 +997,6 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         if prev_mode != new_mode:
             os.chmod(self._otel_config_host_path, new_mode)
         return super().start()
-
-
-class ElasticMQContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="softwaremill/elasticmq-native:latest",
-            name="elasticmq",
-            host_log_folder=host_log_folder,
-            environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
-            ports={9324: 9324},
-            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
-            allow_old_container=True,
-        )
-
-
-class LocalstackContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="localstack/localstack:3.1.0",
-            name="localstack-main",
-            environment={
-                "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
-                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",
-                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid",
-                "AWS_DEFAULT_REGION": "us-east-1",
-                "FORCE_NONINTERACTIVE": "true",
-                "START_WEB": "0",
-                "DOCKER_HOST": "unix:///var/run/docker.sock",
-            },
-            host_log_folder=host_log_folder,
-            ports={"4566": ("127.0.0.1", 4566)},
-            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
-        )
 
 
 class APMTestAgentContainer(TestedContainer):
