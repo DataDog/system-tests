@@ -68,13 +68,12 @@ JETTY_APP = WeblogDescriptor(
         SupportedImages().UBUNTU_16_ARM64.with_allowed_runtime_versions(
             JavaRuntimeInstallableVersions.get_all_versions()
         ),
-        SupportedImages().CENTOS_7_AMD64.with_allowed_runtime_versions(
-            JavaRuntimeInstallableVersions.get_all_versions()
-        ),
+        # Commented due to APMON-1491
+        # SupportedImages().CENTOS_7_AMD64.with_allowed_runtime_versions(
+        #    JavaRuntimeInstallableVersions.get_all_versions()
+        # ),
     ],
 )
-
-
 TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
 
