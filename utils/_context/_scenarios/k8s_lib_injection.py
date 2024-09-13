@@ -24,6 +24,7 @@ class KubernetesScenario(Scenario):
         self.app_key = app_key
 
     def configure(self, config):
+        # TODO get variables from config like --k8s-lib-init-image (Warning! impacts on the tracers pipelines!)
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
         assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
         assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE is not set. The init image to be tested is not set"
@@ -54,6 +55,10 @@ class KubernetesScenario(Scenario):
     @property
     def weblog_variant(self):
         return self._weblog_variant
+
+    @property
+    def k8s_cluster_agent_version(self):
+        return self._cluster_agent_version
 
 
 class WeblogInjectionScenario(Scenario):
