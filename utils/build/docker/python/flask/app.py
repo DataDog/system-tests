@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import urllib.request
+from urllib.parse import quote
 
 import mock
 import urllib3
@@ -67,6 +68,8 @@ from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
+from ddtrace.data_streams import set_consume_checkpoint
+from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 
@@ -160,6 +163,12 @@ def reset_dsm_context():
         del data_streams_processor()._current_context.value
     except AttributeError:
         pass
+
+
+def flush_dsm_checkpoints():
+    # force flush stats to ensure they're available to agent after test setup is complete
+    tracer.data_streams_processor.periodic()
+    data_streams_processor().periodic()
 
 
 @app.route("/")
@@ -741,6 +750,95 @@ def dsm():
     tracer.data_streams_processor.periodic()
     data_streams_processor().periodic()
     return response
+
+
+@app.route("/dsm/manual/produce")
+def dsm_manual_checkpoint_produce():
+    reset_dsm_context()
+    typ = flask_request.args.get("type")
+    target = flask_request.args.get("target")
+    headers = {}
+
+    def setter(k, v):
+        headers[k] = v
+
+    set_produce_checkpoint(typ, target, setter)
+    flush_dsm_checkpoints()
+
+    # headers = quote(headers)
+
+    logging.info(f"[DSM Manual Produced with Thread] Injected Headers: {headers}")
+
+    return Response("ok", headers=headers)
+
+
+@app.route("/dsm/manual/produce_with_thread")
+def dsm_manual_checkpoint_produce_with_thread():
+    reset_dsm_context()
+
+    def worker(typ, target, headers):
+        def setter(k, v):
+            headers[k] = v
+
+        set_produce_checkpoint(typ, target, setter)
+
+    typ = flask_request.args.get("type")
+    target = flask_request.args.get("target")
+    headers = {}
+
+    # Start a new thread to run the worker function
+    thread = threading.Thread(target=worker, args=(typ, target, headers))
+    thread.start()
+    thread.join()  # Wait for the thread to complete for this example
+    flush_dsm_checkpoints()
+
+    # headers = quote(headers)
+
+    logging.info(f"[DSM Manual Produce with Thread] Injected Headers: {headers}")
+
+    return Response("ok", headers=headers)
+
+
+@app.route("/dsm/manual/consume")
+def dsm_manual_checkpoint_consume():
+    reset_dsm_context()
+
+    typ = flask_request.args.get("type")
+    source = flask_request.args.get("source")
+    carrier = json.loads(flask_request.headers.get("_datadog"))
+    logging.info(f"[DSM Manual Consume] Received Headers: {carrier}")
+
+    def getter(k):
+        return carrier[k]
+
+    set_consume_checkpoint(typ, source, getter)
+    flush_dsm_checkpoints()
+    return Response("ok")
+
+
+@app.route("/dsm/manual/consume_with_thread")
+def dsm_manual_checkpoint_consume_with_thread():
+    reset_dsm_context()
+
+    def worker(typ, target, headers):
+        logging.info(f"[DSM Manual Consume With Thread] Received Headers: {headers}")
+
+        def getter(k):
+            return headers[k]
+
+        set_consume_checkpoint(typ, target, getter)
+
+    typ = flask_request.args.get("type")
+    source = flask_request.args.get("source")
+    carrier = json.loads(flask_request.headers.get("_datadog"))
+
+    # Start a new thread to run the worker function
+    thread = threading.Thread(target=worker, args=(typ, source, carrier))
+    thread.start()
+    thread.join()  # Wait for the thread to complete for this example
+    flush_dsm_checkpoints()
+
+    return Response("ok")
 
 
 @app.route("/dsm/inject")
