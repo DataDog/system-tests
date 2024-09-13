@@ -12,6 +12,12 @@ namespace weblog
     [Route("waf")]
     public class WafController : Controller
     {
+        [HttpGet]
+        public IActionResult Index()
+        {
+            return Content($"Hello get world");
+        }
+    
         [HttpPost]
         [Consumes("application/json", "application/xml")]
         public IActionResult Index([FromBody] object obj)
