@@ -79,24 +79,30 @@ class Test_Config_ClientTagQueryString_Empty:
     """ Verify behavior when set to empty string """
 
     def setup_query_string_redaction_unset(self):
-        self.r = weblog.get("/make_distant_call?hi=monkey")
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777?hi=monkey"})
 
     def test_query_string_redaction_unset(self):
-        interfaces.library.add_span_tag_validation(
-            self.r, tags={"http.url": r"^.*/make_distant_call\?hi=monkey$"}, value_as_regular_expression=True,
-        )
+        client_request_span = _get_client_span(self.r, "/")
+        assert client_request_span
+        assert client_request_span["meta"].get("http.url") == "http://weblog:7777?hi=monkey"
 
 
-@scenarios.tracing_config_nondefault_client_tag_query
+@scenarios.tracing_config_nondefault_3
 @features.tracing_configuration_consistency
 class Test_Config_ClientTagQueryString_Configured:
     def setup_query_string_redaction(self):
-        self.r = weblog.get("/make_distant_call?hi=monkey")
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777?hi=monkey"})
 
     def test_query_string_redaction(self):
-        interfaces.library.add_span_tag_validation(
-            self.r, tags={"component": "flask"},
-        )
-        interfaces.library.add_span_tag_validation(
-            self.r, tags={"http.url": r"^.*/make_distant_call$"}, value_as_regular_expression=True,
-        )
+        client_request_span = _get_client_span(self.r, "/")
+        assert client_request_span
+        assert client_request_span["meta"].get("http.url") == "http://weblog:7777/"
+
+
+def _get_client_span(r, endpoint):
+    for _, _, span in interfaces.library.get_spans(r, full_trace=True):
+        # Avoids retrieving the client span by the operation name, this value varies between languages
+        # Using span kind and resource is a better bet
+        if span["meta"].get("span.kind") == "client" and span["resource"] == f"GET {endpoint}":
+            return span
+    return None
