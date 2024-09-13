@@ -13,7 +13,7 @@ from docker.models.containers import Container
 import requests
 import pytest
 
-from utils import remoteconfig
+from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats

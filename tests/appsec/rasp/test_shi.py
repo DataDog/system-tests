@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, interfaces, scenarios, rfc
-from utils.remoteconfig import Capabilities
+from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
     validate_stack_traces,
