@@ -237,7 +237,7 @@ class Test_Telemetry:
             ), "app-started is not the first message by seq_id"
 
     @bug(
-        weblog_variant="spring-boot-openliberty", reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        weblog_variant="spring-boot-openliberty", reason="APPSEC-6583",
     )
     @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
     @bug(context.agent_version > "7.53.0", reason="Jira missing")

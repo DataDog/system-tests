@@ -176,7 +176,7 @@ class Test_SamplingDecisions:
                 headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"]),},
             )
 
-    @bug(library="python", reason="Sampling decisions are not taken by the tracer APMRP-259")
+    @bug(library="python", reason="APMRP-259")
     @bug(
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0",
         reason="_sampling_priority_v1 is missing",
