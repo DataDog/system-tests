@@ -342,7 +342,6 @@ class Test_DsmSNS:
                 timeout=DSM_REQUEST_TIMEOUT,
             )
         finally:
-            breakpoint()
             if context.library.library != "nodejs":
                 delete_sns_topic(self.topic)
                 delete_sqs_queue(self.queue)
@@ -404,7 +403,6 @@ class Test_DsmKinesis:
                 timeout=DSM_REQUEST_TIMEOUT,
             )
         finally:
-            breakpoint()
             if context.library.library != "nodejs":
                 delete_kinesis_stream(self.stream)
 
