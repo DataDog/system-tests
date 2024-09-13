@@ -23,7 +23,4 @@ for variant in "${!variants[@]}"; do
     echo "Building $variant - $language";
     echo "$(pwd)"
     ./lib-injection/build/build_lib_injection_weblog.sh -w $variant -l $language --push-tag ghcr.io/datadog/system-tests/$variant:$DOCKER_IMAGE_WEBLOG_TAG --docker-platform $BUILDX_PLATFORMS
-    #Let's generate the same weblog variant but labeled with the architecture
-    ./lib-injection/build/build_lib_injection_weblog.sh -w $variant -l $language --push-tag ghcr.io/datadog/system-tests/$variant:latest_amd64 --docker-platform linux/amd64
-    ./lib-injection/build/build_lib_injection_weblog.sh -w $variant -l $language --push-tag ghcr.io/datadog/system-tests/$variant:latest_arm64 --docker-platform linux/arm64
 done
