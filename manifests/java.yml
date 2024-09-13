@@ -1163,7 +1163,7 @@ tests/:
         spring-boot: bug (AIDM-325)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
-        spring-boot: bug (DSM for Java flips between using local empty DSM context and extracted context)
+        spring-boot: bug (AIDM-325)
     test_mongo.py:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:
