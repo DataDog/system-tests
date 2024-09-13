@@ -185,13 +185,16 @@ tests/:
           TestPath:
             '*': v2.9.0.dev
             fastapi: v2.13.0.dev
+            flask-poc: v2.13.0.dev
+            uds-flask: v2.13.0.dev
+            uwsgi-poc: v2.13.0.dev
         test_path_parameter.py:
           TestPathParameter:
             '*': v2.9.0.dev
             fastapi: v2.13.0.dev
-            flask-poc: missing_feature
-            uds-flask: missing_feature
-            uwsgi-poc: missing_feature
+            flask-poc: v2.13.0.dev
+            uds-flask: v2.13.0.dev
+            uwsgi-poc: v2.13.0.dev
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -586,9 +589,13 @@ tests/:
       Test_Dbm_Comment_Batch_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Batch_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Batch_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
@@ -612,9 +619,13 @@ tests/:
       Test_Dbm_Comment_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
@@ -654,6 +665,12 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        flask-poc: v2.8.0
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
+        '*': irrelevant
+        flask-poc: v2.8.0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0

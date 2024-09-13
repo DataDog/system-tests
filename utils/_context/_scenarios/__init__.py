@@ -8,12 +8,14 @@ from utils.tools import update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup
 from .endtoend import DockerScenario, EndToEndScenario
+from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
+from .docker_ssi import DockerSSIScenario
 
 update_environ_with_local_env()
 
@@ -52,42 +54,9 @@ class scenarios:
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
 
-    integrations = EndToEndScenario(
-        "INTEGRATIONS",
-        weblog_env={
-            "DD_DBM_PROPAGATION_MODE": "full",
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-            "AWS_ACCESS_KEY_ID": "my-access-key",
-            "AWS_SECRET_ACCESS_KEY": "my-access-key",
-        },
-        include_postgres_db=True,
-        include_cassandra_db=True,
-        include_mongo_db=True,
-        include_kafka=True,
-        include_rabbitmq=True,
-        include_mysql_db=True,
-        include_sqlserver=True,
-        include_elasticmq=True,
-        include_localstack=True,
-        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC],
-    )
+    integrations = IntegrationsScenario()
 
-    crossed_tracing_libraries = EndToEndScenario(
-        "CROSSED_TRACING_LIBRARIES",
-        weblog_env={
-            "DD_TRACE_API_VERSION": "v0.4",
-            "AWS_ACCESS_KEY_ID": "my-access-key",
-            "AWS_SECRET_ACCESS_KEY": "my-access-key",
-        },
-        include_kafka=True,
-        include_buddies=True,
-        include_elasticmq=True,
-        include_localstack=True,
-        include_rabbitmq=True,
-        doc="Spawns a buddy for each supported language of APM",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS],
-    )
+    crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
         "OTEL_INTEGRATIONS",
@@ -730,6 +699,12 @@ class scenarios:
         doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    docker_ssi = DockerSSIScenario(
+        "DOCKER_SSI",
+        doc="Validates the installer and the ssi on a docker environment",
+        scenario_groups=[ScenarioGroup.DOCKER_SSI],
     )
 
     appsec_rasp = EndToEndScenario(
