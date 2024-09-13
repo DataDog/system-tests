@@ -17,7 +17,7 @@ from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
 )
-from utils.parametric.spec.remoteconfig import Capabilities
+from utils.remoteconfig import Capabilities
 
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
