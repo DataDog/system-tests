@@ -3,6 +3,7 @@ Test configuration consistency for features across supported APM SDKs.
 """
 import pytest
 from utils import scenarios, features
+from utils.parametric.spec.trace import find_span_in_traces
 
 parametrize = pytest.mark.parametrize
 
@@ -68,23 +69,34 @@ def set_service_version_tags():
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_UnifiedServiceTagging:
-    @set_service_version_tags()
-    def test_version_tag(self, library_env, test_agent, test_library):
-        assert library_env.get("DD_SERVICE", "test_service") == "test_service"
-        assert library_env.get("DD_VERSION", "5.2.0") == "5.2.0"
-
+    @parametrize("library_env", [{}])
+    def test_default_version(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.start_span(name="s1"):
+            with test_library.start_span(name="s1") as s1:
                 pass
-            with test_library.start_span(name="s2", service="no dd_service"):
+
+        traces = test_agent.wait_for_num_traces(1)
+        assert len(traces) == 1
+
+        span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+        assert span["service"] != "version_test"
+        assert "version" not in span["meta"]
+
+    @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
+    def test_specific_version(self, library_env, test_agent, test_library):
+        with test_library:
+            with test_library.start_span(name="s1") as s1:
+                pass
+            with test_library.start_span(name="s2", service="no dd_service") as s2:
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
         assert len(traces) == 2
 
-        for trace in traces:
-            for span in trace:
-                if span["service"] == "test_service":
-                    assert span["meta"]["version"] == "5.2.0"
-                else:
-                    assert "version" not in span['meta']
+        span1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+        assert span1["service"] == "version_test"
+        assert span1['meta']["version"] == "5.2.0"
+
+        span2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
+        assert span2["service"] != "version_test"
+        assert "version" not in span2["meta"]
