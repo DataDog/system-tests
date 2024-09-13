@@ -17,7 +17,7 @@ namespace weblog
         {
             return Content($"Hello get world");
         }
-    
+
         [HttpPost]
         [Consumes("application/json", "application/xml")]
         public IActionResult Index([FromBody] object obj)
