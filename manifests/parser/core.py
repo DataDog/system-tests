@@ -66,6 +66,7 @@ def load(base_dir="manifests/"):
         "python",
         "python_otel",
         "ruby",
+        "dd_apm_inject",
     ):
         data = _load_file(f"{base_dir}{component}.yml")
 
