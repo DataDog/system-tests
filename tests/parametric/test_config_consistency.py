@@ -82,6 +82,7 @@ class Test_Config_UnifiedServiceTagging:
         assert span["service"] != "version_test"
         assert "version" not in span["meta"]
 
+    # Assert that if a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
     def test_specific_version(self, library_env, test_agent, test_library):
         with test_library:
@@ -98,5 +99,5 @@ class Test_Config_UnifiedServiceTagging:
         assert span1["meta"]["version"] == "5.2.0"
 
         span2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
-        assert span2["service"] != "version_test"
+        assert span2["service"] == "no dd_service"
         assert "version" not in span2["meta"]
