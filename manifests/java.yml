@@ -1296,3 +1296,4 @@ tests/:
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0
+
