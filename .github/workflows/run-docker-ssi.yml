@@ -27,7 +27,7 @@ jobs:
       with:
         repository: 'DataDog/system-tests'
     - name: Prepare arm runner
-      if: ${{ matrix.github_runner == 'arm-4core-linux' }}
+      if: ${{ matrix.github_runner == 'arm-4core-linux-ubuntu24.04' }}
       # The ARM64 Ubuntu has less things installed by default
       # We need docker, and acl allows us to use docker in the same session
       run: |

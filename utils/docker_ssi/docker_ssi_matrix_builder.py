@@ -33,7 +33,7 @@ def _configure_github_runner(weblog_matrix):
         if weblog["arch"] == "linux/amd64":
             weblog["github_runner"] = "ubuntu-latest"
         else:
-            weblog["github_runner"] = "arm-4core-linux"
+            weblog["github_runner"] = "arm-4core-linux-ubuntu24.04"
 
 
 def main():
