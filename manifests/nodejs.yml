@@ -501,6 +501,12 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        express4: *ref_5_20_0
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
+        '*': irrelevant
+        express4: *ref_5_20_0
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
