@@ -75,6 +75,10 @@ class _Context:
         return self._get_scenario_property("installed_language_runtime", "")
 
     @property
+    def k8s_cluster_agent_version(self):
+        return self._get_scenario_property("k8s_cluster_agent_version", "")
+
+    @property
     def components(self):
         return self.scenario.components
 
