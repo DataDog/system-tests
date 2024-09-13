@@ -178,6 +178,11 @@ def main():
             if file in scenarios_by_files:
                 scenarios.update(scenarios_by_files[file])
 
+    # print("scenarios=" + ",".join(scenarios))
+    # print("scenarios_groups=" + ",".join(scenarios_groups))
+    # TODO RMM REMOVE THIS
+    scenarios = set(["DOCKER_SSI"])
+    scenarios_groups = set([ScenarioGroup.DOCKER_SSI.value])
     print("scenarios=" + ",".join(scenarios))
     print("scenarios_groups=" + ",".join(scenarios_groups))
 

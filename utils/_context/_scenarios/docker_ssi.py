@@ -19,10 +19,10 @@ from utils.tools import logger
 from .core import Scenario
 from utils.virtual_machine.vm_logger import vm_logger
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
-from utils.interfaces._test_agent import TestAgentClientPolling
 
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
+from utils import interfaces
 
 
 class DockerSSIScenario(Scenario):
@@ -97,7 +97,6 @@ class DockerSSIScenario(Scenario):
         self.fill_context(json_tested_component)
 
         self._weblog_composed_name = f"{self._base_weblog}_{self.ssi_image_builder.get_base_docker_tag()}"
-        self._test_agent_polling = TestAgentClientPolling()
         for container in self._required_containers:
             try:
                 container.configure(self.replay)
@@ -112,38 +111,9 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             warmups.append(container.start)
-        warmups.append(self._start_interface_watchdog)
         return warmups
 
-    def _start_interface_watchdog(self):
-        from utils import interfaces
-
-        # Start the test agent polling for messages
-        self._test_agent_polling.start(f"{self.host_log_folder}/interfaces/test_agent")
-
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def _ingest(self, event):
-                logger.info(f"Event {event.event_type} on {event.src_path}")
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
-            on_modified = _ingest
-            on_created = _ingest
-
-        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
-        # limits on Linux) -> using the good old bare polling system
-        observer = PollingObserver()
-        observer.schedule(Event(interfaces.test_agent), path=f"{self.host_log_folder}/interfaces/test_agent")
-        observer.start()
-
     def close_targets(self):
-        self._test_agent_polling.stop()
         for container in reversed(self._required_containers):
             try:
                 container.remove()
@@ -177,7 +147,8 @@ class DockerSSIScenario(Scenario):
 
     def post_setup(self):
         logger.debug("Waiting for all traces to be sent to test agent")
-        time.sleep(5)
+        time.sleep(5)  # wait for the traces to be sent to the test agent
+        interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent")
 
     @property
     def library(self):
@@ -213,7 +184,6 @@ class DockerSSIImageBuilder:
         self._installable_runtime = installable_runtime
         self._push_base_images = push_base_images
         self._force_build = force_build
-        get_docker_client() = self._get_docker_client()
         # When do we need to push the base images to the docker registry?
         # Option 1: When we added the run parameter --push-base-images
         # Option 2: When the base image is not found on the registry
