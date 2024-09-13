@@ -207,7 +207,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build weblog base images all platforms (PR)
+      - name: Build weblog base images (PR)
         if: inputs.build_lib_injection_app_images
         run: |
           #Build multiplatform
