@@ -1,11 +1,13 @@
-from datetime import datetime
 import hashlib
 import struct
+import time
+from typing import Callable
+
+import boto3
+import botocore.exceptions
 
 from utils import weblog, interfaces
 from utils.tools import logger
-
-import boto3
 
 
 class BaseDbIntegrationsTestClass:
@@ -152,30 +154,66 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
 
+def delete_resource(
+    delete_callable: Callable,
+    resource_identifier: str,
+    resource_type: str,
+    error_name: str,
+    get_callable: Callable = None,
+):
+    """
+    Generalized function to delete AWS resources.
+    
+    :param delete_callable: A callable to delete the AWS resource.
+    :param resource_identifier: The identifier of the resource (e.g., QueueUrl, TopicArn, StreamName).
+    :param resource_type: The type of the resource (e.g., SQS, SNS, Kinesis).
+    :param error_name: The name of the error to handle (e.g., 'QueueDoesNotExist').
+    """
+    timeout = 20
+    end = time.time() + timeout
+    while time.time() < end:
+        try:
+            # Call the delete function
+            _ = delete_callable(resource_identifier)
+
+            if get_callable:
+                # if the resource is not found via the getter, it will throw an error with the error name
+                _ = get_callable(resource_identifier)
+
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == error_name:
+                logger.info(f"{resource_type} {resource_identifier} already deleted.")
+                return
+            else:
+                logger.error(f"Unexpected error while deleting {resource_type}: {e}")
+                raise
+        except Exception as e:
+            logger.error(f"Unexpected error while deleting {resource_type}: {e}")
+            raise
+
+
 def delete_sqs_queue(queue_name):
     queue_url = f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue_name}"
     sqs_client = boto3.client("sqs")
-    try:
-        sqs_client.delete_queue(QueueUrl=queue_url)
-    except Exception:
-        pass
+    delete_callable = lambda url: sqs_client.delete_queue(QueueUrl=url)
+    get_callable = lambda url: sqs_client.get_queue_attributes(QueueUrl=url)
+    delete_resource(
+        delete_callable, queue_url, "SQS Queue", "AWS.SimpleQueueService.NonExistentQueue", get_callable=get_callable
+    )
 
 
 def delete_sns_topic(topic_name):
     topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
     sns_client = boto3.client("sns")
-    try:
-        sns_client.delete_topic(TopicArn=topic_arn)
-    except Exception:
-        pass
+    get_callable = lambda arn: sns_client.get_topic_attributes(TopicArn=arn)
+    delete_callable = lambda arn: sns_client.delete_topic(TopicArn=arn)
+    delete_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
 
 
 def delete_kinesis_stream(stream_name):
     kinesis_client = boto3.client("kinesis")
-    try:
-        kinesis_client.delete_stream(StreamName=stream_name, EnforceConsumerDeletion=True)
-    except Exception:
-        pass
+    delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
+    delete_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
 
 
 def fnv(data, hval_init, fnv_prime, fnv_size):
