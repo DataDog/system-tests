@@ -14,7 +14,7 @@ from utils import bug, context, features, irrelevant, missing_feature, rfc, scen
 class Test_Crashtracking:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Release in 2.3.0, test to be implemented with HTTP protocol instead of gRPC, see: https://datadoghq.atlassian.net/browse/APMON-1489")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
@@ -24,7 +24,7 @@ class Test_Crashtracking:
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Release in 2.3.0, test to be implemented with HTTP protocol instead of gRPC, see: https://datadoghq.atlassian.net/browse/APMON-1489")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
