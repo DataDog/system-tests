@@ -52,8 +52,8 @@ class JavaRuntimeInstallableVersions:
 
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
 # Maybe a weblog app contains preinstalled language runtime, in this case we define the weblog without runtime version
-JAVA_APP = WeblogDescriptor(
-    "java-app",
+JETTY_APP = WeblogDescriptor(
+    "jetty-app",
     "java",
     [
         SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
@@ -75,17 +75,8 @@ JAVA_APP = WeblogDescriptor(
 )
 
 
-JAVA_APP_33 = WeblogDescriptor(
-    "java-app33",
-    "java",
-    [
-        SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(JavaRuntimeInstallableVersions.JAVA_11),
-        #  SupportedImages().UBUNTU_22_AMD64.add_allowed_runtime_version(JavaRuntimeInstallableVersions.JAVA_11),
-    ],
-)
-
 TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JAVA_APP, TOMCAT_APP, JAVA7_APP]
+ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP]
