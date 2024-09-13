@@ -16,11 +16,8 @@ from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
 class K8sDatadog:
-    def __init__(
-        self, prefix_library_init_image, output_folder, test_name, api_key=None, app_key=None, real_agent_image=None
-    ):
+    def __init__(self, output_folder, test_name, api_key=None, app_key=None, real_agent_image=None):
         self.k8s_kind_cluster = None
-        self.prefix_library_init_image = prefix_library_init_image
         self.output_folder = output_folder
         self.test_name = test_name
         self.logger = None
@@ -143,7 +140,7 @@ class K8sDatadog:
         self.wait_for_test_agent()
         self.logger.info("[Test agent] Daemonset created")
 
-    def deploy_datadog_cluster_agent(self, use_uds=False, features={}):
+    def deploy_datadog_cluster_agent(self, use_uds=False, features={}, cluster_agent_tag=None):
         """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
             It returns when the Cluster Agent pod is ready."""
 
@@ -163,7 +160,8 @@ class K8sDatadog:
             features = features | datadog_keys
         else:
             features = datadog_keys
-
+        # Add the cluster agent tag version
+        features["clusterAgent.image.tag"] = cluster_agent_tag
         helm_install_chart(
             self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
         )
