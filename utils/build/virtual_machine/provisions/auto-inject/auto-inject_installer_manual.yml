@@ -22,9 +22,9 @@
     export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
 
     if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
-      export DD_INSTALLER_REGISTRY_AUTH_APM_LIBRARY_$(echo $DD_LANG | tr a-z A-Z)_PACKAGE='ecr'
-      export DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo $DD_LANG | tr a-z A-Z)_PACKAGE='669783387624.dkr.ecr.us-east-1.amazonaws.com'
-      export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo $DD_LANG | tr a-z A-Z)="${DD_INSTALLER_LIBRARY_VERSION}"
+       export "DD_INSTALLER_REGISTRY_AUTH_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='ecr'
+       export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='669783387624.dkr.ecr.us-east-1.amazonaws.com'
+       export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}"
     fi
 
     if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
@@ -55,11 +55,7 @@
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
     
-    echo "installer stdout"
-    sudo cat /tmp/datadog-installer-stderr.log
-
-    echo "installer stderr"
-    sudo cat /tmp/datadog-installer-stderr.log
+    sudo cp /tmp/datadog-installer-*.log /var/log/datadog
 
     sudo mkdir -p /etc/datadog-agent/inject
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
