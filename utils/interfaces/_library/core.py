@@ -8,7 +8,7 @@ import json
 import threading
 
 from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
-from utils.dd_constants import (RemoteConfigApplyState, Capabilities)
+from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader

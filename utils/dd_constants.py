@@ -57,4 +57,3 @@ class Capabilities(IntEnum):
     ASM_RASP_SSRF = 23
     ASM_RASP_SHI = 24
     APM_TRACING_SAMPLE_RULES = 29
-
