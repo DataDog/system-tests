@@ -272,15 +272,14 @@ def released(
                     _ensure_jira_ticket_as_reason(test_class, reason[7:-1])
                     return _get_skipped_item(test_class, reason)
 
-                elif reason.startswith("irrelevant"):
+                if reason.startswith("irrelevant"):
                     return _get_skipped_item(test_class, reason)
 
-                else:
-                    # Otherwise, it's either bug, or missing_feature. Take the first one
-                    if reason.startswith("bug"):
-                        _ensure_jira_ticket_as_reason(test_class, reason[5:-1])
+                # Otherwise, it's either bug, or missing_feature. Take the first one
+                if reason.startswith("bug"):
+                    _ensure_jira_ticket_as_reason(test_class, reason[5:-1])
 
-                    return _get_expected_failure_item(test_class, reason)
+                return _get_expected_failure_item(test_class, reason)
 
         return test_class
 
