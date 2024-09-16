@@ -1064,7 +1064,7 @@ class DockerSSIContainer(TestedContainer):
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
             host_log_folder=host_log_folder,
-            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080)},
+            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
             allow_old_container=False,
             environment={"DD_DEBUG": "true", "DD_TRACE_SAMPLE_RATE": 1, "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5"},

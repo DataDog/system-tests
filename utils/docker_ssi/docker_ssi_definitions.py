@@ -23,6 +23,7 @@ class SupportedImages:
         # DockerImage("alpine:3", LINUX_ARM64, short_name="alpine_3"),
         self.TOMCAT_9_AMD64 = DockerImage("tomcat:9", LINUX_AMD64)
         self.TOMCAT_9_ARM64 = DockerImage("tomcat:9", LINUX_ARM64)
+        self.WEBSPHERE_AMD64 = DockerImage("icr.io/appcafe/websphere-traditional", LINUX_AMD64)
 
 
 class JavaRuntimeInstallableVersions:
@@ -76,6 +77,7 @@ JETTY_APP = WeblogDescriptor(
 )
 TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
+WEBSPHERE_APP = WeblogDescriptor("websphere-app", "java", [SupportedImages().WEBSPHERE_AMD64])
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP]
+ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP]

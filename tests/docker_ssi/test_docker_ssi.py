@@ -70,6 +70,7 @@ class TestDockerSSIFeatures:
 
     @features.ssi_service_naming
     @irrelevant(condition=not context.weblog_variant.startswith("tomcat-app"))
+    @irrelevant(condition=not context.weblog_variant.startswith("websphere-app"))
     def test_service_name(self):
         logger.info("Testing Docker SSI service name")
         # There are traces related with the request and the service name is payment-service

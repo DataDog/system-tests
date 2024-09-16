@@ -2,7 +2,9 @@
 
 declare -r ARCH="$1"
 
-if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
+if [[ "$(cat /etc/redhat-release || true)" == "Red Hat Enterprise Linux release 8."* ]]; then
+    OS="RedHat_8"
+elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
     OS="Debian"
 elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIBUTION" = "CentOS" ] || [ "$DISTRIBUTION" = "Amazon" ] || [ "$DISTRIBUTION" = "Rocky" ] || [ "$DISTRIBUTION" = "AlmaLinux" ]; then
     OS="RedHat"
@@ -19,7 +21,9 @@ elif [ -f /etc/alpine-release ]; then
     OS="Alpine"
 fi
 
-if [ "$OS" = "RedHat" ]; then
+if [ "$OS" = "RedHat_8" ]; then
+    yum install -y which zip unzip wget
+elif [ "$OS" = "RedHat" ]; then
     # Update the repo URLs, since July 2024 we need to use vault for CentOS 7
     if [ "${ARCH}" != "amd64" ]; then
         repo_version="altarch/7.9.2009"
