@@ -60,6 +60,8 @@ class Test_Config_TraceLogDirectory:
         success, message = test_library.container_exec_run("ls /parametric-tracer-logs")
         assert success, message
         assert len(message.splitlines()) > 0, "No tracer logs detected"
+
+
 def set_service_version_tags():
     env1 = {}
     env2 = {"DD_SERVICE": "test_service", "DD_VERSION": "5.2.0"}
