@@ -90,7 +90,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_name(spans, "http.request")
+        client_span = _get_span(spans, resource_name="GET /status", tags={"span.kind": "client"})
 
         assert client_span.get("meta").get("http.status_code") == "400"
         assert client_span.get("error") == 1
@@ -106,7 +106,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_name(spans, "http.request")
+        client_span = _get_span(spans, resource_name="GET /status", tags={"span.kind": "client"})
 
         assert client_span.get("meta").get("http.status_code") == "500"
         assert client_span.get("error") == None or client_span.get("error") == 0
@@ -128,7 +128,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_name(spans, "http.request")
+        client_span = _get_span(spans, resource_name="GET /status", tags={"span.kind": "client"})
 
         assert client_span.get("meta").get("http.status_code") == "200"
         assert client_span.get("error") == 1
@@ -144,14 +144,25 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_name(spans, "http.request")
+        client_span = _get_span(spans, resource_name="GET /status", tags={"span.kind": "client"})
 
         assert client_span.get("meta").get("http.status_code") == "202"
         assert client_span.get("error") == 1
 
 
-def _get_span_by_name(spans, span_name):
+def _get_span(spans, resource_name, tags):
     for s in spans:
-        if s["name"] == span_name:
+        match = True
+        if s["resource"] != resource_name:
+            continue
+
+        for tagKey in tags:
+            if tagKey in s["meta"]:
+                expectValue = tags[tagKey]
+                actualValue = s["meta"][tagKey]
+                if expectValue != actualValue:
+                    continue
+
+        if match:
             return s
     return {}
