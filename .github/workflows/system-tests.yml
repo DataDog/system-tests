@@ -84,12 +84,9 @@ jobs:
       id: main
       run: |
         source venv/bin/activate
-        python utils/scripts/get-github-parameters.py >> $GITHUB_OUTPUT
+        python utils/scripts/get-github-parameters.py ${{ inputs.library }} -s "${{ inputs.scenarios }}" -g "${{ inputs.scenarios_groups }}" >> $GITHUB_OUTPUT
       env:
         PYTHONPATH: "."
-        SCENARIOS: ${{ inputs.scenarios }}
-        SCENARIOS_GROUPS: ${{ inputs.scenarios_groups }}
-        LIBRARY: ${{ inputs.library }}
         _EXPERIMENTAL_PARAMETRIC_JOB_COUNT: ${{ inputs._experimental_parametric_job_count }}
 
   parametric:
