@@ -15,15 +15,11 @@ class K8sWrapper:
 
     @retry(delay=1, tries=5)
     def core_v1_api(self):
-        new_client = config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
-        new_client.configuration.debug = True
-        return client.CoreV1Api(api_client=new_client)
+        return client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
     @retry(delay=1, tries=5)
     def apps_api(self):
-        new_client = config.new_client_from_config(context=self.k8s_kind_cluster.context_name)
-        new_client.configuration.debug = True
-        return client.AppsV1Api(api_client=new_client)
+        return client.AppsV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
 
     @retry(delay=1, tries=5)
     def create_namespaced_daemon_set(self, namespace="default", body=None):
