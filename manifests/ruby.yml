@@ -352,6 +352,7 @@ tests/:
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature

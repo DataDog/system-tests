@@ -529,6 +529,7 @@ tests/:
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: *ref_5_6_0
       Test_Environment: *ref_5_6_0
       Test_TelemetryInstallSignature: *ref_4_23_0
