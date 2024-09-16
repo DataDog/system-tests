@@ -326,7 +326,6 @@ tests/:
         rails70: missing_feature (Endpoint not implemented)
   parametric/:
     test_config_consistency.py:
-      Test_Config_ClientTagQueryString_Configured: missing_feature
       Test_Config_TraceEnabled: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: bug (To be confirmed, theorical version is v2.0.0)
