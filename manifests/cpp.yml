@@ -167,7 +167,7 @@ tests/:
       Test_Miscs: missing_feature
   test_config_consistency.py:
     Test_Config_ClientTagQueryString_Configured: missing_feature
-    Test_Config_ClientTagQueryString_Empty: v0.2.2
+    Test_Config_ClientTagQueryString_Empty: missing_feature (test can not capture span with the expected http.url tag)
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
   test_distributed.py:
