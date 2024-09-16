@@ -359,8 +359,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
-    Test_Config_ClientTagQueryString_Configured: v2.36.0
-    Test_Config_ClientTagQueryString_Empty: v2.36.0
+    Test_Config_ClientTagQueryString_Configured: missing_feature (configuration DNE)
+    Test_Config_ClientTagQueryString_Empty: v2.48.0
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
   test_data_integrity.py:

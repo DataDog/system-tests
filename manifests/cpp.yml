@@ -166,7 +166,7 @@ tests/:
     test_miscs.py:
       Test_Miscs: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientTagQueryString_Configured: v0.2.2
+    Test_Config_ClientTagQueryString_Configured: missing_feature
     Test_Config_ClientTagQueryString_Empty: v0.2.2
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature

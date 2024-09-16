@@ -554,7 +554,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
-    Test_Config_ClientTagQueryString_Configured: *ref_5_15_0
+    Test_Config_ClientTagQueryString_Configured: missing_feature (removing query string is not supported)
     Test_Config_ClientTagQueryString_Empty: *ref_5_15_0
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
