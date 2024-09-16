@@ -204,6 +204,7 @@ allow_no_jira_ticket_for_bugs = [
     "tests/test_semantic_conventions.py::Test_MetaDatadogTags",
     "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled",
     "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1",
+    "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2"
 ]
 
 [tool.pylint]
