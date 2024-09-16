@@ -204,6 +204,7 @@ tests/:
         Test_Lfi_BodyXml: v2.10.0.dev
         Test_Lfi_Mandatory_SpanTags: v2.10.0.dev
         Test_Lfi_Optional_SpanTags: v2.10.0.dev
+        Test_Lfi_RC_CustomAction: v2.14.0.dev
         Test_Lfi_StackTrace: v2.10.0.dev
         Test_Lfi_Telemetry: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
@@ -585,9 +586,13 @@ tests/:
       Test_Dbm_Comment_Batch_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Batch_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Batch_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
@@ -611,9 +616,13 @@ tests/:
       Test_Dbm_Comment_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
@@ -653,6 +662,12 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        flask-poc: v2.8.0
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
+        '*': irrelevant
+        flask-poc: v2.8.0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0

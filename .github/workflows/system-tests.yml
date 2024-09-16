@@ -71,6 +71,8 @@ jobs:
       opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
       _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
+      dockerssi_scenarios: ${{ steps.main.outputs.dockerssi_scenarios }}
+      dockerssi_weblogs: ${{ steps.main.outputs.dockerssi_weblogs }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -156,3 +158,13 @@ jobs:
       library: ${{ inputs.library }}
       weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
+
+  docker-ssi:
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.dockerssi_scenarios != '[]' && inputs.binaries_artifact == ''}} #Execute only for latest releases of the ssi
+    uses: ./.github/workflows/run-docker-ssi.yml
+    secrets: inherit
+    with:
+      library: ${{ inputs.library }}
+      weblogs: ${{ needs.compute_parameters.outputs.dockerssi_weblogs }}

@@ -3,11 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, interfaces, scenarios, rfc
+from utils import remote_config as rc
 from tests.appsec.rasp.utils import (
     validate_span_tags,
     validate_stack_traces,
     find_series,
     validate_metric,
+    RC_CONSTANTS,
 )
 
 
@@ -169,3 +171,80 @@ class Test_Lfi_Telemetry:
         assert any(validate_metric("rasp.rule.match", "lfi", s) for s in series_match), [
             s.get("tags") for s in series_match
         ]
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3nydvvu7sn93")
+@features.rasp_local_file_inclusion
+@scenarios.appsec_runtime_activation
+class Test_Lfi_RC_CustomAction:
+    """Local file inclusion through query parameters"""
+
+    def setup_lfi_get(self):
+        self.config_state_1 = rc.rc_state.reset().set_config(*RC_CONSTANTS.CONFIG_ENABLED).apply()
+        self.config_state_1b = rc.rc_state.set_config(*RC_CONSTANTS.RULES).apply()
+        self.r1 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
+
+        self.config_state_2 = rc.rc_state.set_config(*RC_CONSTANTS.BLOCK_505).apply()
+        self.r2 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
+
+        self.config_state_3 = rc.rc_state.set_config(*RC_CONSTANTS.BLOCK_REDIRECT).apply()
+        self.r3 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"}, allow_redirects=False)
+
+        self.config_state_4 = rc.rc_state.del_config(RC_CONSTANTS.BLOCK_REDIRECT[0]).apply()
+        self.r4 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
+
+        self.config_state_5 = rc.rc_state.reset().apply()
+        self.r5 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
+
+    def test_lfi_get(self):
+        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1b[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r1.status_code == 403
+        interfaces.library.assert_rasp_attack(
+            self.r1,
+            "rasp-930-100",
+            {
+                "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
+                "params": {"address": "server.request.query", "value": "../etc/passwd"},
+            },
+        )
+
+        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r2.status_code == 505
+        interfaces.library.assert_rasp_attack(
+            self.r2,
+            "rasp-930-100",
+            {
+                "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
+                "params": {"address": "server.request.query", "value": "../etc/passwd"},
+            },
+        )
+
+        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r3.status_code == 302
+        assert self.r3.headers["Location"] == "http://google.com"
+
+        interfaces.library.assert_rasp_attack(
+            self.r3,
+            "rasp-930-100",
+            {
+                "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
+                "params": {"address": "server.request.query", "value": "../etc/passwd"},
+            },
+        )
+
+        assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r4.status_code == 403
+        interfaces.library.assert_rasp_attack(
+            self.r4,
+            "rasp-930-100",
+            {
+                "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
+                "params": {"address": "server.request.query", "value": "../etc/passwd"},
+            },
+        )
+
+        assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r5.status_code == 200
+
+        interfaces.library.assert_no_appsec_event(self.r5)
