@@ -35,7 +35,7 @@ class CustomSpec(semver.NpmSpec):
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
-def _ensure_jira_ticket_as_reason(item, reason: str | None):
+def _ensure_jira_ticket_as_reason(item, reason: str):
 
     if reason is None or not _jira_ticket_pattern.fullmatch(reason):
         path = inspect.getfile(item)

@@ -195,6 +195,13 @@ allow_no_jira_ticket_for_bugs = [
     "tests/test_telemetry.py::Test_Telemetry.test_telemetry_proxy_enrichment",
     "tests/test_telemetry.py::Test_TelemetryV2.test_telemetry_v2_required_headers",
     "tests/test_the_test/",
+
+    "tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction",
+    "tests/test_profiling.py::Test_Profile",
+    "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing",
+    "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigHeaderTags",
+    "tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language",
+    "tests/test_semantic_conventions.py::Test_MetaDatadogTags",
 ]
 
 [tool.pylint]
