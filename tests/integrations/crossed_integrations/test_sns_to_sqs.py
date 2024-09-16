@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
 from utils.tools import logger
 
 from tests.integrations.utils import delete_sns_topic, delete_sqs_queue
@@ -257,6 +257,7 @@ class _Test_SNS:
 
 
 @scenarios.crossed_tracing_libraries
+@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
