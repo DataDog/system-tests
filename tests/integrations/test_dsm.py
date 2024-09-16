@@ -261,6 +261,7 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 @features.datastreams_monitoring_support_for_sqs
 @scenarios.integrations
+@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
 
@@ -320,6 +321,7 @@ class Test_DsmSQS:
 
 @features.datastreams_monitoring_support_for_sns
 @scenarios.integrations
+@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
@@ -385,6 +387,7 @@ class Test_DsmSNS:
 
 @features.datastreams_monitoring_support_for_kinesis
 @scenarios.integrations
+@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
 
