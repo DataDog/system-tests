@@ -443,7 +443,7 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_config_consistency.py:
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceEnabled: v1.67.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.64.0-dev
@@ -482,8 +482,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpServerErrorStatuses_Default: v1.67.0
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.67.0
   test_data_integrity.py:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:
