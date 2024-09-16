@@ -44,10 +44,9 @@ class Test_Client_Stats:
             assert "web" == s["Type"], "expect 'web' type"
         assert stats_count == 2, "expect 2 stats"
 
-
     @missing_feature(
-	        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
-	        reason="Tracers have not implemented this feature yet."
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
     )
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
@@ -56,7 +55,6 @@ class Test_Client_Stats:
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
             assert 1 == s["IsTraceRoot"]
             assert "server" == s["SpanKind"]
-
 
     @scenarios.appsec_disabled
     def test_disable(self):
