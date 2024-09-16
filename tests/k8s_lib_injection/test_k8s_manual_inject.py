@@ -2,9 +2,8 @@ import os
 import time
 
 import requests
-from utils import scenarios, features
+from utils import scenarios, features, bug, context
 from utils.tools import logger
-from utils import scenarios, features
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -128,6 +127,7 @@ class TestAdmisionControllerProfiling:
         profiling_request_found = self._check_profiling_request_sent(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert not profiling_request_found, "Profiling should be disabled by default, but a profiling request was found"
 
+    @bug(context.library > "python@2.12.2", reason="APMON-1496")
     def test_profiling_admission_controller(self, test_k8s_instance):
         logger.info(f"Launching test test_profiling_admission_controller")
         logger.info(
@@ -141,6 +141,7 @@ class TestAdmisionControllerProfiling:
         profiling_request_found = self._check_profiling_request_sent(test_k8s_instance.k8s_kind_cluster.agent_port)
         assert profiling_request_found, "No profiling request found"
 
+    @bug(context.library > "python@2.12.2", reason="APMON-1496")
     def test_profiling_override_cluster_env(self, test_k8s_instance):
         logger.info(f"Launching test test_profiling_override_cluster_env")
         logger.info(
