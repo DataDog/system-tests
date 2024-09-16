@@ -1,4 +1,4 @@
-import subprocess, datetime, os, time, signal
+import subprocess, datetime, os, time, signal, shlex
 from utils.tools import logger
 from utils import context
 from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
@@ -19,7 +19,7 @@ def execute_command(command, timeout=None, logfile=None):
     output = ""
     try:
         start = datetime.datetime.now()
-        process = subprocess.Popen(command.split(), stdout=command_out_redirect, stderr=command_out_redirect)
+        process = subprocess.Popen(shlex.split(command), stdout=command_out_redirect, stderr=command_out_redirect)
 
         while process.poll() is None:
             time.sleep(0.1)
@@ -70,7 +70,6 @@ def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
 
 @retry(delay=1, tries=5)
 def helm_add_repo(name, url, k8s_kind_cluster, update=False):
-
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
         execute_command(f"helm repo add {name} {url}")
