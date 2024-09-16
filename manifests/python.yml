@@ -669,7 +669,7 @@ tests/:
         flask-poc: v2.8.0
   k8s_lib_injection/:
     test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: missing_feature
+      TestAdmisionControllerProfiling: v2.12.2
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
