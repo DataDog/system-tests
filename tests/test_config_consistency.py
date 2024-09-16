@@ -104,7 +104,7 @@ class Test_Config_ClientTagQueryString_Configured:
 def _get_client_span(r, endpoint):
     for _, _, span in interfaces.library.get_spans(r, full_trace=True):
         # Avoids retrieving the client span by the operation name, this value varies between languages
-        # Using span kind and resource is a better bet
-        if span["meta"].get("span.kind") == "client" and span["resource"] == f"GET {endpoint}":
+        # Using span resource is a better bet
+        if span["resource"] == f"GET {endpoint}":
             return span
     return None
