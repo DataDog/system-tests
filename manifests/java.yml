@@ -1231,7 +1231,7 @@ tests/:
   test_config_consistency.py:
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_ClientTagQueryString_Empty: incorrect default value (by default removes query string from http.url)
+    Test_Config_ClientTagQueryString_Empty: missing_feature (incorrect default value)
   test_data_integrity.py:
     Test_LibraryHeaders: v1.29.0
   test_distributed.py:
