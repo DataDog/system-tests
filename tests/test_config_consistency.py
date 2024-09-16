@@ -76,7 +76,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 @scenarios.tracing_config_empty
 @features.tracing_configuration_consistency
 class Test_Config_ClientTagQueryString_Empty:
-    """ Verify behavior when set to empty string """
+    """Verify behavior when DD_HTTP_CLIENT_TAG_QUERY_STRING set to empty string"""
 
     def setup_query_string_redaction_unset(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777?hi=monkey"})
@@ -90,6 +90,8 @@ class Test_Config_ClientTagQueryString_Empty:
 @scenarios.tracing_config_nondefault_3
 @features.tracing_configuration_consistency
 class Test_Config_ClientTagQueryString_Configured:
+    """Verify behavior when DD_HTTP_CLIENT_TAG_QUERY_STRING set to false"""
+
     def setup_query_string_redaction(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777?hi=monkey"})
 
