@@ -4,6 +4,7 @@
 
 from utils import features, weblog, interfaces, scenarios, rfc
 from utils import remote_config as rc
+from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
     validate_stack_traces,
@@ -248,3 +249,13 @@ class Test_Lfi_RC_CustomAction:
         assert self.r5.status_code == 200
 
         interfaces.library.assert_no_appsec_event(self.r5)
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
+@features.rasp_sql_injection
+@scenarios.remote_config_mocked_backend_asm_dd
+class Test_Lfi_Capability:
+    """Validate that ASM_RASP_LFI (22) capability is sent"""
+
+    def test_sqli_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_LFI)
