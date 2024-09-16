@@ -73,7 +73,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert spans[0]["error"] == 1
 
 
-@scenarios.tracing_config_empty
+@scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_ClientTagQueryString_Empty:
     """Verify behavior when DD_HTTP_CLIENT_TAG_QUERY_STRING set to empty string"""
