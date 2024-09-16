@@ -35,6 +35,7 @@ refs:
   - &ref_5_18_0 '>=5.18.0 || ^4.42.0'
   - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
   - &ref_5_22_0 '>=5.22.0 || ^4.46.0'
+  - &ref_5_23_0 '>=5.23.0 || ^4.47.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -212,7 +213,26 @@ tests/:
     rasp/:
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_BodyUrlEncoded:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_BodyXml: missing_feature
+        Test_Sqli_Capability: *ref_5_23_0
+        Test_Sqli_Mandatory_SpanTags: *ref_5_23_0
+        Test_Sqli_Optional_SpanTags: *ref_5_23_0
+        Test_Sqli_StackTrace:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_Telemetry:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
+        Test_Sqli_UrlQuery:
+          '*': *ref_5_23_0
+          nextjs: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': *ref_5_20_0
@@ -221,6 +241,7 @@ tests/:
           '*': *ref_5_20_0
           nextjs: missing_feature
         Test_Ssrf_BodyXml: missing_feature # xml body not supported
+        Test_Ssrf_Capability: *ref_5_23_0
         Test_Ssrf_Mandatory_SpanTags: *ref_5_18_0
         Test_Ssrf_Optional_SpanTags: *ref_5_18_0
         Test_Ssrf_StackTrace:
@@ -427,7 +448,7 @@ tests/:
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           '*': irrelevant
-          express4: v0.1 # real version not known
+          express4: *ref_5_20_0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
@@ -450,9 +471,11 @@ tests/:
       Test_Dbm_Comment_NodeJS_mysql2:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
+        uds-express4: *ref_5_13_0
       Test_Dbm_Comment_NodeJS_pg:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
+        uds-express4: *ref_5_13_0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
@@ -478,11 +501,19 @@ tests/:
         express4: missing_feature
       Test_DsmSNS:
         '*': irrelevant
-        express4: *ref_5_2_0
+        express4: *ref_5_20_0
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        express4: *ref_5_20_0
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
+        '*': irrelevant
+        express4: *ref_5_20_0
   parametric/:
+    test_config_consistency.py:
+      Test_Config_TraceEnabled: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
