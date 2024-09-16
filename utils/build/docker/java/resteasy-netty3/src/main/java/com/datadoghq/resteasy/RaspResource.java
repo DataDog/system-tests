@@ -46,20 +46,20 @@ public class RaspResource {
 
     @GET
     @Path("/lfi")
-    public String sqliGet(@QueryParam("user_id") final String userId) throws Exception {
+    public String lfiGet(@QueryParam("user_id") final String userId) throws Exception {
         return executeSql(userId);
     }
 
     @POST
     @Path("/lfi")
-    public String sqliPost(@FormParam("user_id") final String userId) throws Exception {
+    public String lfiPost(@FormParam("user_id") final String userId) throws Exception {
         return executeSql(userId);
     }
 
     @POST
     @Path("/lfi")
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
-    public String sqliBody(final UserDTO user) throws Exception {
+    public String lfiBody(final UserDTO user) throws Exception {
         return executeSql(user.getUserId());
     }
 
