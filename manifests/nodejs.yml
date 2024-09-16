@@ -514,6 +514,7 @@ tests/:
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
