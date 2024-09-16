@@ -84,7 +84,7 @@ jobs:
       id: main
       run: |
         source venv/bin/activate
-        python utils/scripts/get_github_parameters.py >> $GITHUB_OUTPUT
+        python utils/scripts/get-github-parameters.py >> $GITHUB_OUTPUT
       env:
         PYTHONPATH: "."
         SCENARIOS: ${{ inputs.scenarios }}
