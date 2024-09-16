@@ -348,6 +348,7 @@ RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
 COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false"
 """,
         container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
@@ -393,6 +394,7 @@ RUN npm install
 
 COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+RUN mkdir /parametric-tracer-logs
 
 """,
         container_cmd=["./app.sh"],
@@ -424,6 +426,7 @@ COPY {golang_reldir}/. /app
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 COPY utils/build/docker/golang/parametric/system_tests_library_version.sh system_tests_library_version.sh
 RUN /binaries/install_ddtrace.sh
+RUN mkdir /parametric-tracer-logs
 
 RUN go install
 """,
@@ -488,6 +491,7 @@ ENV DD_TRACE_RATE_LIMIT=10000000
 COPY --from=build /app/out /app
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /opt/datadog /opt/datadog
+RUN mkdir /parametric-tracer-logs
 
 CMD ["./ApmTestApi"]
 """,
@@ -522,6 +526,7 @@ COPY {java_reldir}/pom.xml .
 COPY binaries /binaries
 RUN bash install_ddtrace.sh
 COPY {java_reldir}/run.sh .
+RUN mkdir /parametric-tracer-logs
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,
@@ -550,6 +555,7 @@ COPY binaries /binaries
 RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
 ADD {php_reldir}/server.php .
+# RUN mkdir /parametric-tracer-logs
 """,
         container_cmd=[
             "bash",
@@ -588,6 +594,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
             COPY {ruby_reldir}/generate_proto.sh /app/
             RUN bash generate_proto.sh
             COPY {ruby_reldir}/server.rb /app/
+            RUN mkdir /parametric-tracer-logs
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_absolute_appdir,
@@ -615,6 +622,7 @@ RUN cd /binaries/dd-trace-cpp \
 FROM ubuntu:22.04
 COPY --from=build /usr/app/bin/parametric-http-server /usr/local/bin/parametric-http-server
 COPY --from=build /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VERSION
+RUN mkdir /parametric-tracer-logs
 """
 
     return APMLibraryTestServer(

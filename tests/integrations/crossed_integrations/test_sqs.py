@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
 from utils.tools import logger
 
 from tests.integrations.utils import delete_sqs_queue
@@ -235,6 +235,7 @@ class _Test_SQS:
 
 
 @scenarios.crossed_tracing_libraries
+@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy_interface = interfaces.python_buddy
@@ -247,6 +248,7 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 
 
 @scenarios.crossed_tracing_libraries
+@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy_interface = interfaces.java_buddy

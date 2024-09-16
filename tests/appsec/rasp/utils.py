@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import json
+
 from utils import interfaces
 
 
@@ -88,4 +90,43 @@ def validate_metric(name, type, metric):
         and metric.get("type") == "count"
         and f"rule_type:{type}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+    )
+
+
+def _load_file(file_path):
+    with open(file_path, "r") as f:
+        return json.load(f)
+
+
+class RC_CONSTANTS:
+    CONFIG_ENABLED = (
+        "datadog/2/ASM_FEATURES/asm_features_activation/config",
+        {"asm": {"enabled": True}},
+    )
+    BLOCK_405 = (
+        "datadog/2/ASM/actions/config",
+        {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request",}]},
+    )
+
+    BLOCK_505 = (
+        "datadog/2/ASM/actions/config",
+        {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request",}]},
+    )
+
+    BLOCK_REDIRECT = (
+        "datadog/2/ASM/actions/config",
+        {
+            "actions": [
+                {
+                    "id": "block",
+                    "parameters": {"location": "http://google.com", "status_code": 302},
+                    "type": "redirect_request",
+                }
+            ]
+        },
+    )
+
+    RULES = (
+        "datadog/2/ASM/rules/config",
+        _load_file("./tests/appsec/rasp/rasp_ruleset.json"),
     )

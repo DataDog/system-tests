@@ -94,10 +94,12 @@ def get_probes_map(data_set):
             if "content" in content:
                 d_contents = json.loads(content["content"])
                 for d_content in d_contents:
-                    _process_debugger(d_content["debugger"])
+                    if isinstance(d_content, dict):
+                        _process_debugger(d_content["debugger"])
             else:
                 if "debugger" in content:
-                    _process_debugger(content["debugger"])
+                    if isinstance(content, dict):
+                        _process_debugger(content["debugger"])
 
     return probe_hash
 
