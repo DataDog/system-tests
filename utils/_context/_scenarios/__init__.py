@@ -46,6 +46,7 @@ class scenarios:
             "DD_TRACE_FEATURES": "discovery",
         },
         include_postgres_db=True,
+        scenario_groups=[ScenarioGroup.ESSENTIALS],
         doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
     )
 
@@ -167,7 +168,7 @@ class scenarios:
         "APPSEC_BLOCKING",
         appsec_rules="/appsec_blocking_rule.json",
         doc="Misc tests for appsec blocking",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
@@ -278,7 +279,7 @@ class scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -352,7 +353,7 @@ class scenarios:
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -440,7 +441,10 @@ class scenarios:
     )
 
     tracing_config_nondefault = EndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT", weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"}, doc="",
+        "TRACING_CONFIG_NONDEFAULT",
+        weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"},
+        doc="",
+        scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
