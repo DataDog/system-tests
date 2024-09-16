@@ -8,8 +8,8 @@ RUN mvn clean package
 
 FROM ${BASE_IMAGE}
 COPY --from=build app/ee-app-ear/target/ee-app.ear /tmp/
-COPY scripts/netstat.sh /tmp/
-COPY scripts/ws_deploy.jacl /tmp/
+COPY utils/build/ssi/java/resources/websphere-app/netstat.sh /tmp/
+COPY utils/build/ssi/java/resources/websphere-app/ws_deploy.jacl /tmp/
 RUN /bin/bash -c '/work/start_server.sh &' && \
 /bin/bash -c 'while ! /tmp/netstat.sh | grep ":9043"; do sleep 1; done' && \
 /bin/bash -c 'yes | /opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -f /tmp/ws_deploy.jacl -user wsadmin -password $(cat /tmp/PASSWORD) -lang jacl' && \
