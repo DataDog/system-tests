@@ -220,13 +220,13 @@ tests/:
 =======
       test_cmdi.py: missing_feature
       test_lfi.py:
-        Test_Lfi_BodyJson: v1.3.0
-        Test_Lfi_BodyUrlEncoded: v1.3.0
-        Test_Lfi_BodyXml: v1.3.0
-        Test_Lfi_Mandatory_SpanTags: v1.3.0
-        Test_Lfi_Optional_SpanTags: v1.3.0
-        Test_Lfi_StackTrace: v1.3.0
-        Test_Lfi_Telemetry: v1.3.0
+        Test_Lfi_BodyJson: v1.3.1
+        Test_Lfi_BodyUrlEncoded: v1.3.1
+        Test_Lfi_BodyXml: v1.3.1
+        Test_Lfi_Mandatory_SpanTags: v1.3.1
+        Test_Lfi_Optional_SpanTags: v1.3.1
+        Test_Lfi_StackTrace: v1.3.1
+        Test_Lfi_Telemetry: missing_feature
         Test_Lfi_UrlQuery: v1.3.0
       test_shi.py: missing_feature
       test_sqli.py: missing_feature
