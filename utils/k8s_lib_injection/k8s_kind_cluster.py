@@ -1,4 +1,3 @@
-import json
 import time
 import os
 import socket
@@ -66,30 +65,20 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
     # 2) Kube config needs to be altered to use the correct IP of the control plane server
     # 3) The internal port needs to be used: handled in get_agent_port() and get_weblog_port()
     execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{json .}}}}'")
+
     control_plane_ip = execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{.NetworkSettings.Networks.bridge.IPAddress}}}}'")
+    if not control_plane_ip:
+        raise Exception("Unable to find control plane IP")
+    logger.debug(f"[setup_kind_in_gitlab] control_plane_ip: {control_plane_ip}")
 
-    container_info = execute_command("docker container ls --format '{{json .}}'")
-    control_plane_server = ""
-
-    # for item in container_info.decode().split("\n"):
-    for item in container_info.split("\n"):
-        if not item:
-            continue
-        container = json.loads(item)
-        if container["Names"] == f"{k8s_kind_cluster.cluster_name}-control-plane":
-            # Ports is of the form: "127.0.0.1:44371->6443/tcp",
-            all_ports = container["Ports"].split(",")
-            for port in all_ports:
-                if "->6443/tcp" in port:
-                    control_plane_server = port.replace("->6443/tcp", "").strip()
-            logger.debug(f"[setup_kind_in_gitlab] control_plane_server: {control_plane_server}")
-
+    control_plane_server = execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{index .NetworkSettings.Ports \"6443/tcp\" 0 \"HostIp\"}}}}:{{{{index .NetworkSettings.Ports \"6443/tcp\" 0 \"HostPort\"}}}}'")
     if not control_plane_server:
         raise Exception("Unable to find control plane server")
+    logger.debug(f"[setup_kind_in_gitlab] control_plane_server: {control_plane_server}")
 
     # Replace server config with dns name + internal port
     execute_command_sync(
-        f"sed -i -e \"s/{control_plane_server}/{control_plane_ip}:6443/g\" {os.environ['HOME']}/.kube/config",
+        f"sed -i -e 's/{control_plane_server}/{control_plane_ip}:6443/g' {os.environ['HOME']}/.kube/config",
         k8s_kind_cluster,
     )
 
