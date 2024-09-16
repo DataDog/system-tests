@@ -1,4 +1,4 @@
-from utils import interfaces, weblog, features, scenarios
+from utils import interfaces, weblog, features, scenarios, missing_feature, context
 from utils.tools import logger
 
 """
@@ -30,7 +30,6 @@ class Test_Client_Stats:
     def test_client_stats(self):
         stats_count = 0
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
-            print(s)
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
@@ -43,9 +42,21 @@ class Test_Client_Stats:
                 assert False, "Unexpected status code " + str(s["HTTPStatusCode"])
             assert "weblog" == s["Service"], "expect weblog as service"
             assert "web" == s["Type"], "expect 'web' type"
-            # assert 1 == s["IsTraceRoot"]     # This breaks with client stats as IsTraceRoot doesn't exist yet
-            # assert "server" == s["SpanKind"] # This breaks with client stats as IsTraceRoot doesn't exist yet
         assert stats_count == 2, "expect 2 stats"
+
+
+    @missing_feature(
+	        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+	        reason="Tracers have not implemented this feature yet."
+    )
+    def test_is_trace_root(self):
+        """Test IsTraceRoot presence in stats.
+        Note: Once all tracers have implmented it and the test xpasses for all of them, we can move these
+        assertions to `test_client_stats` method."""
+        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+            assert 1 == s["IsTraceRoot"]
+            assert "server" == s["SpanKind"]
+
 
     @scenarios.appsec_disabled
     def test_disable(self):
