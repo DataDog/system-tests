@@ -446,7 +446,7 @@ class scenarios:
     )
 
     tracing_config_nondefault_3 = EndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
+        "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
