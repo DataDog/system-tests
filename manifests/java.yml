@@ -412,24 +412,24 @@ tests/:
     rasp/:
       test_lfi.py:
         Test_Lfi_BodyJson:
-          '*': v1.39.0
+          '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Lfi_BodyUrlEncoded:
-          '*': v1.39.0
+          '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
         Test_Lfi_BodyXml:
-            '*': v1.39.0
+            '*': v1.40.0
             akka-http: missing_feature (Requires parsed body instrumentation)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             spring-boot-payara: bug (produces 500 errors)
             vertx3: missing_feature (Requires parsed body instrumentation)
             vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Lfi_UrlQuery:
-          '*': v1.39.0
+          '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (produces 500 errors)
       test_shi.py: missing_feature
