@@ -554,6 +554,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
+    Test_Config_ClientTagQueryString_Configured: missing_feature (fix test, nodejs does not set span.kind on client spans)
+    Test_Config_ClientTagQueryString_Empty: missing_feature (fix test, nodejs does not set span.kind on client spans)
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
   test_distributed.py:
