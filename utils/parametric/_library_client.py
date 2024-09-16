@@ -35,6 +35,9 @@ class APMLibraryClient:
     def crash(self) -> None:
         raise NotImplementedError
 
+    def container_exec_run(self, command: str) -> tuple[bool, str]:
+        raise NotImplementedError
+
     def trace_start_span(
         self,
         name: str,
@@ -185,6 +188,23 @@ class APMLibraryClientHTTP(APMLibraryClient):
         except:
             # Expected
             pass
+
+    def container_exec_run(self, command: str) -> tuple[bool, str]:
+        try:
+            code, (stdout, _) = self.container.exec_run(command, demux=True)
+            if code is None:
+                success = False
+                message = "Exit code from command in the parametric app container is None"
+            elif stdout is None:
+                success = False
+                message = "Stdout from command in the parametric app container is None"
+            else:
+                success = True
+                message = stdout.decode()
+        except BaseException:
+            return False, "Encountered an issue running command in the parametric app container"
+
+        return success, message
 
     def trace_start_span(
         self,
@@ -724,6 +744,9 @@ class APMLibrary:
 
     def crash(self) -> None:
         self._client.crash()
+
+    def container_exec_run(self, command: str) -> tuple[bool, str]:
+        return self._client.container_exec_run(command)
 
     @contextlib.contextmanager
     def start_span(

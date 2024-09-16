@@ -7,6 +7,7 @@ from ._backend import _BackendInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
 from ._logs import _LibraryStdout, _LibraryDotnetManaged, _AgentStdout, _PostgresStdout
 from ._open_telemetry import OpenTelemetryInterfaceValidator
+from ._test_agent import _TestAgentInterfaceValidator
 
 # singletons
 agent = AgentInterfaceValidator()
@@ -17,6 +18,7 @@ library_dotnet_managed = _LibraryDotnetManaged()
 backend = _BackendInterfaceValidator(library_interface=library)
 open_telemetry = OpenTelemetryInterfaceValidator()
 postgres = _PostgresStdout()
+test_agent = _TestAgentInterfaceValidator()
 
 python_buddy = LibraryInterfaceValidator("python_buddy")
 nodejs_buddy = LibraryInterfaceValidator("nodejs_buddy")

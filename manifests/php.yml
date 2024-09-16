@@ -250,9 +250,15 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
+      Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
+      Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
+    test_config_consistency.py:
+      Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
@@ -282,6 +288,7 @@ tests/:
         See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature

@@ -27,6 +27,7 @@ ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
+RUN chmod +x app.sh
 RUN printf 'node app.js' >> app.sh
 CMD ./app.sh
 
