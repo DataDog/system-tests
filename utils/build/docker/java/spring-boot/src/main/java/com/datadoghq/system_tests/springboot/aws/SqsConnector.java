@@ -16,13 +16,12 @@ import java.util.List;
 import java.net.URI;
 
 public class SqsConnector {
-    public static String DEFAULT_ENDPOINT = "http://elasticmq:9324";
     public final String queue;
     public final String endpoint;
 
     public SqsConnector(String queue){
         this.queue = queue;
-        this.endpoint = DEFAULT_ENDPOINT;
+        this.endpoint = null;
     }
 
     public SqsConnector(String queue, String endpoint){
@@ -31,13 +30,21 @@ public class SqsConnector {
     }
 
     public SqsClient createSqsClient() {
-        SqsClient sqsClient = SqsClient.builder()
-            .region(Region.US_EAST_1)
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .applyMutation(builder -> {
-                builder.endpointOverride(URI.create(this.endpoint));
-            })
-            .build();
+        SqsClient sqsClient;
+        if (this.endpoint != null) {
+            sqsClient = SqsClient.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .applyMutation(builder -> {
+                    builder.endpointOverride(URI.create(this.endpoint));
+                })
+                .build();
+        } else {
+            sqsClient = SqsClient.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .build();
+        }
         return sqsClient;
     }
 
@@ -74,13 +81,13 @@ public class SqsConnector {
         return thread;
     }
 
-    public Thread startConsumingMessages(String service) throws Exception {
+    public Thread startConsumingMessages(String service, String message) throws Exception {
         Thread thread = new Thread(service + "Consume") {
             public void run() {
                 boolean recordFound = false;
                 while (!recordFound) {
                     try {
-                        recordFound = consumeMessageWithoutNewThread(service);
+                        recordFound = consumeMessageWithoutNewThread(service, message);
                     } catch (Exception e) {
                         System.err.println("[" + service.toUpperCase() + "] Failed to consume message in thread...");
                         System.err.println("[" + service.toUpperCase() + "] Error consuming: " + e);
@@ -105,7 +112,7 @@ public class SqsConnector {
     }
 
     // For APM testing, a consume message without starting a new thread
-    public boolean consumeMessageWithoutNewThread(String service) throws Exception {
+    public boolean consumeMessageWithoutNewThread(String service, String expectedMessage) throws Exception {
         SqsClient sqsClient = this.createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, false);
 
@@ -118,11 +125,12 @@ public class SqsConnector {
         while (true) {
             ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
             List<Message> messages = response.messages();
-            for (Message message : messages) {
-                System.out.println("[" + service.toUpperCase() + "] got message! " + message.body() + " from " + queue);
-                recordFound = true;
+            for (Message actualMessage : messages) {
+                if (actualMessage.body().equals(expectedMessage)) {
+                    System.out.println("[" + service.toUpperCase() + "] got message! " + actualMessage.body() + " from " + queue);
+                    return true;
+                }
             }
-            return recordFound;
         }
     }
 }

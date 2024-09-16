@@ -54,12 +54,15 @@ if [[ $TEST_LIBRARY == "ruby" ]]; then
     cp $WEBLOG_FOLDER/../.dockerignore $WEBLOG_FOLDER/
 fi
 
-ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+if [[ -z "${DOCKER_PLATFORM:-}" ]]; then
 
-case $ARCH in
-    arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
-    *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
-esac
+    ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+
+    case $ARCH in
+        arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
+        *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
+    esac
+fi
 
 
 echo "Building docker weblog image using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}]"
@@ -67,7 +70,6 @@ CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
 
 if [ -n "${PUSH_TAG+set}" ]; then
-  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
   docker buildx build ${DOCKER_PLATFORM} -t ${PUSH_TAG} . --push
 else
     docker build ${DOCKER_PLATFORM} -t weblog-injection:latest .

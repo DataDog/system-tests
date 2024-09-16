@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cat SYSTEM_TESTS_LIBRARY_VERSION

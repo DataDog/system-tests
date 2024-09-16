@@ -29,6 +29,8 @@ def handle_labels(labels: list[str], scenarios_groups: set[str]):
             scenarios_groups.add(ScenarioGroup.GRAPHQL.value)
         if "run-libinjection-scenarios" in labels:
             scenarios_groups.add(ScenarioGroup.LIB_INJECTION.value)
+        if "run-docker-ssi-scenarios" in labels:
+            scenarios_groups.add(ScenarioGroup.DOCKER_SSI.value)
 
 
 def main():
@@ -118,6 +120,7 @@ def main():
                     r"\.vscode/.*": None,  # nothing to do
                     ## .github folder
                     r"\.github/workflows/run-parametric\.yml": ScenarioGroup.PARAMETRIC.value,
+                    r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION.value,
                     r"\.github/.*": None,  # nothing to do??
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
@@ -135,9 +138,14 @@ def main():
                     r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
                     r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
                     r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC.value,
+                    #### Integrations case
+                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS.value,
+                    #### Docker SSI case
+                    r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect
+                    r"\.github/CODEOWNERS": None,
                     r"\.dockerignore": None,
                     r"\.gitattributes": None,
                     r"\.gitignore": None,

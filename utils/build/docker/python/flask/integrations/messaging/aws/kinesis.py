@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 
@@ -10,13 +11,16 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
     """
 
     # Create an SQS client
-    kinesis = boto3.client("kinesis", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
+    kinesis = boto3.client("kinesis", region_name="us-east-1")
+
+    # we only allow injection into JSON messages encoded as a string
+    message = json.dumps({"message": message})
 
     try:
         kinesis.create_stream(StreamName=stream, ShardCount=1)
-        logging.info(f"Created Kinesis Stream with name: {stream}")
+        logging.info(f"[Kinesis] Created Kinesis Stream with name: {stream}")
     except Exception as e:
-        logging.info(f"Error during Python Kinesis create stream: {str(e)}")
+        logging.info(f"[Kinesis] Error during Python Kinesis create stream: {str(e)}")
 
     message_sent = False
     exc = None
@@ -45,19 +49,19 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
         time.sleep(1)
 
     if message_sent:
-        logging.info("Python Kinesis message sent successfully")
+        logging.info("[Kinesis] Python Kinesis message sent successfully")
         return "Kinesis Produce ok"
     elif exc:
-        logging.info(f"Error during Python Kinesis put record: {str(exc)}")
+        logging.info(f"[Kinesis] Error during Python Kinesis put record: {str(exc)}")
         return {"error": f"Error during Python Kinesis put record: {str(exc)}"}
 
 
-def kinesis_consume(stream, timeout=60):
+def kinesis_consume(stream, expectedMessage, timeout=60):
     """
     The goal of this function is to trigger kinesis consumer calls
     """
     # Create a Kinesis client
-    kinesis = boto3.client("kinesis", endpoint_url="http://localstack-main:4566", region_name="us-east-1")
+    kinesis = boto3.client("kinesis", region_name="us-east-1")
 
     consumed_message = None
     shard_iterator = None
@@ -78,19 +82,36 @@ def kinesis_consume(stream, timeout=60):
                         StreamName=stream, ShardId=shard_id, ShardIteratorType="TRIM_HORIZON"
                     )
                     shard_iterator = response["ShardIterator"]
-                    logging.info(f"Found Kinesis Shard Iterator: {shard_iterator} for stream: {stream}")
+                    logging.info(f"[Kinesis] Found Kinesis Shard Iterator: {shard_iterator} for stream: {stream}")
                 else:
                     time.sleep(1)
                     continue
             except Exception as e:
-                logging.warning(f"Error during Python Kinesis get stream shard iterator: {str(e)}")
+                logging.warning(f"[Kinesis] Error during Python Kinesis get stream shard iterator: {str(e)}")
 
         try:
             records_response = kinesis.get_records(ShardIterator=shard_iterator, StreamARN=stream_arn)
             if records_response and "Records" in records_response:
                 for message in records_response["Records"]:
-                    consumed_message = message["Data"]
-                    logging.info("Consumed the following: " + str(consumed_message))
+                    print("[Kinesis] Received: ")
+                    print(message)
+                    print("[Kinesis] Received body: ")
+                    print(message.get("Data", ""))
+
+                    # parse message since injected DD context will mean we can't compare full json string
+                    message_json = json.loads(message["Data"].decode())
+                    print("[Kinesis] Decoded json: ")
+                    print(message_json)
+
+                    message_str = message_json.get("message", "")
+                    print("[Kinesis] Decoded body string: ")
+                    print(message_str)
+
+                    print("[Kinesis] Does it match expected: " + str(message_str == expectedMessage))
+                    if message_str == expectedMessage:
+                        consumed_message = message_str
+                        print("[Kinesis] Success. Consumed the following: " + consumed_message)
+                        logging.info("[Kinesis] Success. Consumed the following: " + consumed_message)
             shard_iterator = records_response["NextShardIterator"]
         except Exception as e:
             logging.warning(e)

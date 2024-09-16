@@ -79,9 +79,7 @@ def helm_add_repo(name, url, k8s_kind_cluster, update=False):
 
 
 @retry(delay=1, tries=5)
-def helm_install_chart(
-    k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None, upgrade=False
-):
+def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, upgrade=False):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -89,8 +87,6 @@ def helm_install_chart(
             value_data = file.read()
 
         value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_kind_cluster.cluster_name))
-        if prefix_library_init_image:
-            value_data = value_data.replace("$$PREFIX_INIT_IMAGE$$", prefix_library_init_image)
 
         custom_value_file = f"{context.scenario.host_log_folder}/{k8s_kind_cluster.cluster_name}_help_values.yaml"
 
