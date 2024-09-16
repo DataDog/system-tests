@@ -433,6 +433,7 @@ tests/:
           spring-boot-payara: bug (produces 500 errors)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_Capability: missing_feature
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -471,6 +472,7 @@ tests/:
         Test_Ssrf_BodyXml:
           '*': missing_feature (missing endpoint)
           spring-boot: 'v1.39.0'
+        Test_Ssrf_Capability: missing_feature
         Test_Ssrf_Mandatory_SpanTags:
           '*': missing_feature (missing endpoint)
           spring-boot: 'v1.39.0'
@@ -1171,6 +1173,7 @@ tests/:
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:

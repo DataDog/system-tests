@@ -221,6 +221,7 @@ tests/:
           '*': *ref_5_23_0
           nextjs: missing_feature
         Test_Sqli_BodyXml: missing_feature
+        Test_Sqli_Capability: *ref_5_23_0
         Test_Sqli_Mandatory_SpanTags: *ref_5_23_0
         Test_Sqli_Optional_SpanTags: *ref_5_23_0
         Test_Sqli_StackTrace:
@@ -240,6 +241,7 @@ tests/:
           '*': *ref_5_20_0
           nextjs: missing_feature
         Test_Ssrf_BodyXml: missing_feature # xml body not supported
+        Test_Ssrf_Capability: *ref_5_23_0
         Test_Ssrf_Mandatory_SpanTags: *ref_5_18_0
         Test_Ssrf_Optional_SpanTags: *ref_5_18_0
         Test_Ssrf_StackTrace:
@@ -512,6 +514,7 @@ tests/:
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
