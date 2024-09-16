@@ -74,6 +74,7 @@ def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
 
 @retry(delay=1, tries=5)
 def helm_add_repo(name, url, k8s_kind_cluster, update=False):
+
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
         execute_command(f"helm repo add {name} {url}")

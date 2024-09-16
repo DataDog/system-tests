@@ -92,7 +92,6 @@ class K8sWeblog:
         container1 = client.V1Container(
             name="my-app",
             image=self.app_image,
-            image_pull_policy="Always",
             env=default_pod_env,
             readiness_probe=client.V1Probe(
                 timeout_seconds=5,

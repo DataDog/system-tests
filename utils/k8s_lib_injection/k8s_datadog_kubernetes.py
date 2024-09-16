@@ -165,6 +165,7 @@ class K8sDatadog:
         helm_install_chart(
             self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
         )
+
         self.logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_operator_ready()
 
