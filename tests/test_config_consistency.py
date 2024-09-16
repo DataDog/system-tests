@@ -79,12 +79,12 @@ class Test_Config_ClientTagQueryString_Empty:
     """Verify behavior when DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING set to empty string"""
 
     def setup_query_string_redaction_unset(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777?hi=monkey"})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
     def test_query_string_redaction_unset(self):
         client_request_span = _get_client_span(self.r, "/")
         assert client_request_span
-        assert client_request_span["meta"].get("http.url") == "http://weblog:7777?hi=monkey"
+        assert client_request_span["meta"].get("http.url") == "http://weblog:7777/?hi=monkey"
 
 
 @scenarios.tracing_config_nondefault_3
@@ -93,7 +93,7 @@ class Test_Config_ClientTagQueryString_Configured:
     """Verify behavior when DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING set to false"""
 
     def setup_query_string_redaction(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777?hi=monkey"})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
     def test_query_string_redaction(self):
         client_request_span = _get_client_span(self.r, "/")
@@ -102,9 +102,11 @@ class Test_Config_ClientTagQueryString_Configured:
 
 
 def _get_client_span(r, endpoint):
+    trace = []
     for _, _, span in interfaces.library.get_spans(r, full_trace=True):
         # Avoids retrieving the client span by the operation name, this value varies between languages
         # Using span resource is a better bet
         if span["resource"] == f"GET {endpoint}":
             return span
-    return None
+        trace.append(span)
+    assert False, f"Client span not found {trace}"
