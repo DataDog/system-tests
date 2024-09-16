@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 # Remove gem reference from Gemfile
 sed -i -e '/gem .ddtrace./d' Gemfile
