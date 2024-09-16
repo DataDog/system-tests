@@ -65,7 +65,7 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
     # 1) The kind container needs to be in the bridge network to communicate with the internet: one in _ensure_cluster()
     # 2) Kube config needs to be altered to use the correct IP of the control plane server
     # 3) The internal port needs to be used: handled in get_agent_port() and get_weblog_port()
-
+    execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{json .}}}}'")
     control_plane_ip = execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{.NetworkSettings.Networks.bridge.IPAddress}}}}'")
 
     container_info = execute_command("docker container ls --format '{{json .}}'")
@@ -89,7 +89,7 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
 
     # Replace server config with dns name + internal port
     execute_command_sync(
-        f"sed -i -e \"s@{control_plane_server}@{control_plane_ip}:6443@g\" {os.environ['HOME']}/.kube/config",
+        f"sed -i -e \"s/{control_plane_server}/{control_plane_ip}:6443/g\" {os.environ['HOME']}/.kube/config",
         k8s_kind_cluster,
     )
 
