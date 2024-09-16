@@ -109,8 +109,8 @@ def main():
     scenario_map = get_github_workflow_map(
         os.environ["SCENARIOS"].split(","), os.environ["SCENARIOS_GROUPS"].split(",")
     )
-    for github_workflow, scnearios in scenario_map.items():
-        print(f"{github_workflow}_scenarios={json.dumps(scnearios)}")
+    for github_workflow, scenarios in scenario_map.items():
+        print(f"{github_workflow}_scenarios={json.dumps(scenarios)}")
 
     endtoend_weblogs = get_endtoend_weblogs(os.environ["LIBRARY"])
     print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
@@ -124,8 +124,8 @@ def main():
     _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
     print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
 
-    docker_ssi_weblogs = get_github_matrix(os.environ["LIBRARY"])
-    print(f"docker_ssi_weblogs={json.dumps(docker_ssi_weblogs)}")
+    dockerssi_weblogs = get_github_matrix(os.environ["LIBRARY"])
+    print(f"dockerssi_weblogs={json.dumps(dockerssi_weblogs)}")
 
 
 if __name__ == "__main__":

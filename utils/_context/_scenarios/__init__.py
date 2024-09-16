@@ -710,7 +710,7 @@ class scenarios:
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
         doc="Validates the installer and the ssi on a docker environment",
-        scenario_groups=[ScenarioGroup.DOCKER_SSI],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.DOCKER_SSI],
     )
 
     appsec_rasp = EndToEndScenario(
