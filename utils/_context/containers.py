@@ -244,7 +244,7 @@ class TestedContainer:
         self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000
     ) -> tuple[int, str]:
         """
-            Execute a command inside a container. Usefull for healthcheck and warmups.
+            Execute a command inside a container. Useful for healthcheck and warmups.
             test is a command to be executed, interval, timeout and start_period are in us (microseconds)
             This function does not raise any exception, it returns a tuple with the exit code and the output
             The exit code is 0 (success) or any other integer (failure)
@@ -312,37 +312,56 @@ class TestedContainer:
         self.kwargs["volumes"] = result
 
     def stop(self):
-        if self._container:
-            self._container.stop()
         self._starting_thread = None
 
+        if self._container:
+            self._container.reload()
+            if self._container.status != "running":
+                self.healthy = False
+                pytest.exit(f"Container {self.name} is not running, please check logs", 1)
+
+            self._container.stop()
+
+            if not self.healthy:
+                pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
+
     def collect_logs(self):
-        stdout = self._container.logs(stdout=True, stderr=False)
-        stderr = self._container.logs(stdout=False, stderr=True)
+        TAIL_LIMIT = 50
+        SEP = "=" * 30
 
         keys = [
             bytearray(os.environ["DD_API_KEY"], "utf-8"),
         ]
         if "DD_APP_KEY" in os.environ:
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
+        if "AWS_ACCESS_KEY_ID" in os.environ:
+            keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
+        if "AWS_SECRET_ACCESS_KEY" in os.environ:
+            keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
 
-        for key in keys:
-            stdout = stdout.replace(key, b"***")
-            stderr = stderr.replace(key, b"***")
+        data = (
+            ("stdout", self._container.logs(stdout=True, stderr=False)),
+            ("stderr", self._container.logs(stdout=False, stderr=True)),
+        )
 
-        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(stdout)
+        for output_name, output in data:
+            filename = f"{self.log_folder_path}/{output_name}.log"
 
-        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(stderr)
+            for key in keys:
+                output = output.replace(key, b"***")
 
-        if not self.healthy:
-            sep = "=" * 30
-            logger.stdout(f"\n{sep} {self.name} STDERR {sep}")
-            logger.stdout(stderr.decode("utf-8"))
-            logger.stdout(f"\n{sep} {self.name} STDOUT {sep}")
-            logger.stdout(stdout.decode("utf-8"))
-            logger.stdout("")
+            with open(filename, "wb") as f:
+                f.write(output)
+
+            if not self.healthy:
+                decoded_output = output.decode("utf-8")
+
+                logger.stdout(f"\n{SEP} {self.name} {output_name.upper()} last {TAIL_LIMIT} lines {SEP}")
+                logger.stdout(f"-> See {filename} for full logs")
+                logger.stdout("")
+                # print last <tail> lines in stdout
+                logger.stdout("\n".join(decoded_output.splitlines()[-TAIL_LIMIT:]))
+                logger.stdout("")
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")
@@ -352,7 +371,7 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except:
+            except Exception:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
@@ -556,6 +575,10 @@ class BuddyContainer(TestedContainer):
         )
 
         self.interface = None
+        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
+        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
+        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
+        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
 
 
 class WeblogContainer(TestedContainer):
@@ -668,6 +691,7 @@ class WeblogContainer(TestedContainer):
 
     def configure(self, replay):
         super().configure(replay)
+
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
         if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
@@ -676,12 +700,17 @@ class WeblogContainer(TestedContainer):
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
 
+        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
+        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
+        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
+        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
+
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python"):
+        if self.library in ("nodejs", "python", "golang"):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -715,13 +744,14 @@ class WeblogContainer(TestedContainer):
 
         # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python"):
+        if self.library in ("nodejs", "python", "golang"):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
 
             self._library = LibraryVersion(lib["language"], lib["version"])
-            self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
+            if "libddwaf_version" in lib:
+                self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
 
             if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
                 self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
@@ -969,48 +999,17 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         return super().start()
 
 
-class ElasticMQContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="softwaremill/elasticmq-native:latest",
-            name="elasticmq",
-            host_log_folder=host_log_folder,
-            environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
-            ports={9324: 9324},
-            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
-            allow_old_container=True,
-        )
-
-
-class LocalstackContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="localstack/localstack:3.1.0",
-            name="localstack-main",
-            environment={
-                "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
-                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",
-                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid",
-                "AWS_DEFAULT_REGION": "us-east-1",
-                "FORCE_NONINTERACTIVE": "true",
-                "START_WEB": "0",
-                "DOCKER_HOST": "unix:///var/run/docker.sock",
-            },
-            host_log_folder=host_log_folder,
-            ports={"4566": ("127.0.0.1", 4566)},
-            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
-        )
-
-
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.18.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
-            environment={"SNAPSHOT_CI": "0",},
+            environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket"},
+            healthcheck={"test": f"curl --fail --silent --show-error http://localhost:8126/info", "retries": 60,},
             ports={"8126": ("127.0.0.1", 8126)},
-            allow_old_container=True,
+            allow_old_container=False,
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
         )
 
 
@@ -1056,3 +1055,23 @@ class WeblogInjectionInitContainer(TestedContainer):
         lib_inject_props["DD_AGENT_HOST"] = "ddapm-test-agent"
         lib_inject_props["DD_TRACE_DEBUG"] = "true"
         self.environment = lib_inject_props
+
+
+class DockerSSIContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+
+        super().__init__(
+            image_name="docker.io/library/weblog-injection:latest",
+            name="weblog-injection",
+            host_log_folder=host_log_folder,
+            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080)},
+            healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
+            allow_old_container=False,
+            environment={"DD_DEBUG": "true", "DD_TRACE_SAMPLE_RATE": 1, "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5"},
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
+        )
+
+    def get_env(self, env_var):
+        """Get env variables from the container """
+        env = self.image.env | self.environment
+        return env.get(env_var)

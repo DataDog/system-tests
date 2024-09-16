@@ -8,12 +8,14 @@ from utils.tools import update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup
 from .endtoend import DockerScenario, EndToEndScenario
+from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
+from .docker_ssi import DockerSSIScenario
 
 update_environ_with_local_env()
 
@@ -44,6 +46,7 @@ class scenarios:
             "DD_TRACE_FEATURES": "discovery",
         },
         include_postgres_db=True,
+        scenario_groups=[ScenarioGroup.ESSENTIALS],
         doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
     )
 
@@ -52,42 +55,9 @@ class scenarios:
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
 
-    integrations = EndToEndScenario(
-        "INTEGRATIONS",
-        weblog_env={
-            "DD_DBM_PROPAGATION_MODE": "full",
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-            "AWS_ACCESS_KEY_ID": "my-access-key",
-            "AWS_SECRET_ACCESS_KEY": "my-access-key",
-        },
-        include_postgres_db=True,
-        include_cassandra_db=True,
-        include_mongo_db=True,
-        include_kafka=True,
-        include_rabbitmq=True,
-        include_mysql_db=True,
-        include_sqlserver=True,
-        include_elasticmq=True,
-        include_localstack=True,
-        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC],
-    )
+    integrations = IntegrationsScenario()
 
-    crossed_tracing_libraries = EndToEndScenario(
-        "CROSSED_TRACING_LIBRARIES",
-        weblog_env={
-            "DD_TRACE_API_VERSION": "v0.4",
-            "AWS_ACCESS_KEY_ID": "my-access-key",
-            "AWS_SECRET_ACCESS_KEY": "my-access-key",
-        },
-        include_kafka=True,
-        include_buddies=True,
-        include_elasticmq=True,
-        include_localstack=True,
-        include_rabbitmq=True,
-        doc="Spawns a buddy for each supported language of APM",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS],
-    )
+    crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
         "OTEL_INTEGRATIONS",
@@ -198,7 +168,7 @@ class scenarios:
         "APPSEC_BLOCKING",
         appsec_rules="/appsec_blocking_rule.json",
         doc="Misc tests for appsec blocking",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
@@ -309,7 +279,7 @@ class scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -383,7 +353,7 @@ class scenarios:
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -468,6 +438,13 @@ class scenarios:
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
         additional_trace_header_tags=(INVALID_CONFIGS),
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
+    )
+
+    tracing_config_nondefault = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT",
+        weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"},
+        doc="",
+        scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -726,6 +703,12 @@ class scenarios:
         doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    docker_ssi = DockerSSIScenario(
+        "DOCKER_SSI",
+        doc="Validates the installer and the ssi on a docker environment",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.DOCKER_SSI],
     )
 
     appsec_rasp = EndToEndScenario(

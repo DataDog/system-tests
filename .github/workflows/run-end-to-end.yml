@@ -113,6 +113,10 @@ jobs:
       run: ./run.sh CROSSED_TRACING_LIBRARIES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: ./run.sh PROFILING
@@ -128,6 +132,10 @@ jobs:
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
@@ -143,6 +151,11 @@ jobs:
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TRACING_CONFIG_NONDEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario

@@ -1,5 +1,9 @@
 package com.datadoghq.system_tests.springboot.aws;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
+
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.KinesisClient;
@@ -21,7 +25,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 public class KinesisConnector {
-    public static final String ENDPOINT = "http://localstack-main:4566";
     public static String DEFAULT_REGION = "us-east-1";
     public final String stream;
     public final Region region;
@@ -35,7 +38,6 @@ public class KinesisConnector {
         KinesisClient kinesisClient = KinesisClient.builder()
             .region(this.region)
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .endpointOverride(URI.create(ENDPOINT))
             .build();
         return kinesisClient;
     }
@@ -79,13 +81,13 @@ public class KinesisConnector {
         return thread;
     }
 
-    public Thread startConsumingMessages(int timeout) throws Exception {
+    public Thread startConsumingMessages(int timeout, String message) throws Exception {
         Thread thread = new Thread("KinesisConsume") {
             public void run() {
                 boolean recordFound = false;
                 while (!recordFound) {
                     try {
-                        recordFound = consumeMessageWithoutNewThread(timeout);
+                        recordFound = consumeMessageWithoutNewThread(timeout, message);
                     } catch (Exception e) {
                         System.err.println("[Kinesis] Failed to consume message in thread...");
                         System.err.println("[Kinesis] Error consuming: " + e);
@@ -101,7 +103,14 @@ public class KinesisConnector {
     public void produceMessageWithoutNewThread(String message) throws Exception {
         KinesisClient kinesisClient = this.createKinesisClient();
         createKinesisStream(kinesisClient, this.stream, true);
-        System.out.printf("[Kinesis] Publishing message: %s%n", message);
+
+        // convert to JSON string since we only inject json
+        Map<String, String> map = new HashMap<>();
+        map.put("message", message);
+        ObjectMapper mapper = new ObjectMapper();
+        String json_message = mapper.writeValueAsString(map);
+
+        System.out.printf("[Kinesis] Publishing message: %s%n", json_message);
 
         long startTime = System.currentTimeMillis();
         long endTime = startTime + 60000;
@@ -111,7 +120,7 @@ public class KinesisConnector {
                 PutRecordRequest putRecordRequest = PutRecordRequest.builder()
                     .streamName(this.stream)
                     .partitionKey("1")
-                    .data(SdkBytes.fromByteBuffer(ByteBuffer.wrap(message.getBytes())))
+                    .data(SdkBytes.fromByteBuffer(ByteBuffer.wrap(json_message.getBytes())))
                     .build();
                 PutRecordResponse putRecordResponse = kinesisClient.putRecord(putRecordRequest);
                 System.out.println("[Kinesis] Kinesis record sequence number: " + putRecordResponse.sequenceNumber());
@@ -123,12 +132,13 @@ public class KinesisConnector {
         }
     }
 
-    public boolean consumeMessageWithoutNewThread(int timeout) throws Exception {
+    public boolean consumeMessageWithoutNewThread(int timeout, String message) throws Exception {
         KinesisClient kinesisClient = this.createKinesisClient();
 
         long startTime = System.currentTimeMillis();
         long endTime = startTime + timeout * 1000; // Convert timeout to milliseconds
 
+        boolean recordFound = false;
         while (System.currentTimeMillis() < endTime) {
             try {
                 DescribeStreamRequest describeStreamRequest = DescribeStreamRequest.builder()
@@ -154,10 +164,20 @@ public class KinesisConnector {
                 List<Record> records = getRecordsResponse.records();
 
                 for (Record record : records) {
-                    System.out.println("[Kinesis] got message! " + new String(record.data().asByteArray()));
+                    String recordJson = new String(record.data().asByteArray());
+                    System.out.println("[Kinesis] Consumed: " + recordJson);
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, String> map = mapper.readValue(recordJson, HashMap.class);
+                    String messageFromJson = map.get("message");
+
+                    if (messageFromJson != null && messageFromJson.equals(message)) {
+                        recordFound = true;
+                        System.out.println("[Kinesis] Success! Got message: " + messageFromJson);
+                    }
                 }
 
-                if (!records.isEmpty()) {
+                if (recordFound) {
                     return true;
                 }
 
