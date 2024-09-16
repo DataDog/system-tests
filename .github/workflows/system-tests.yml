@@ -60,34 +60,12 @@ on:
 jobs:
   compute_parameters:
     name: Get parameters
-    runs-on: ubuntu-latest
-    outputs:
-      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
-      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
-      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
-      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
-      libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
-      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
-      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
-      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
-      _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
-      dockerssi_scenarios: ${{ steps.main.outputs.dockerssi_scenarios }}
-      dockerssi_weblogs: ${{ steps.main.outputs.dockerssi_weblogs }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Install runner
-      uses: ./.github/actions/install_runner
-    - name: main
-      id: main
-      run: |
-        source venv/bin/activate
-        python utils/scripts/get-github-parameters.py ${{ inputs.library }} -s "${{ inputs.scenarios }}" -g "${{ inputs.scenarios_groups }}" >> $GITHUB_OUTPUT
-      env:
-        PYTHONPATH: "."
-        _EXPERIMENTAL_PARAMETRIC_JOB_COUNT: ${{ inputs._experimental_parametric_job_count }}
+    uses: ./.github/workflows/compute-workflow-parameters.yml
+    with:
+      library: ${{ inputs.library }}
+      scenarios: ${{ inputs.scenarios }}
+      scenarios_groups: ${{ inputs.scenarios_groups }}
+      _experimental_parametric_job_count: ${{ inputs._experimental_parametric_job_count }}
 
   parametric:
     needs:
