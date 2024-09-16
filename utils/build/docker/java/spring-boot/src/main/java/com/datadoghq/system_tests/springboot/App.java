@@ -4,6 +4,7 @@ import com.datadoghq.system_tests.springboot.aws.KinesisConnector;
 import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 import com.datadoghq.system_tests.springboot.Carrier;
+import com.datadoghq.system_tests.springboot.data_streams.DSMContextCarrier;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
@@ -79,6 +80,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
@@ -352,10 +358,13 @@ public class App {
     }
 
     @RequestMapping("/sqs/produce")
-    ResponseEntity<String> sqsProduce(@RequestParam(required = true) String queue) {
+    ResponseEntity<String> sqsProduce(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String message
+    ) {
         SqsConnector sqs = new SqsConnector(queue);
         try {
-            sqs.produceMessageWithoutNewThread("DistributedTracing SQS from Java");
+            sqs.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -365,12 +374,16 @@ public class App {
     }
 
     @RequestMapping("/sqs/consume")
-    ResponseEntity<String> sqsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> sqsConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
         SqsConnector sqs = new SqsConnector(queue);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread("SQS");
+            consumed = sqs.consumeMessageWithoutNewThread("SQS", message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start consuming message...");
@@ -380,11 +393,15 @@ public class App {
     }
 
     @RequestMapping("/sns/produce")
-    ResponseEntity<String> snsProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String topic) {
+    ResponseEntity<String> snsProduce(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String topic,
+        @RequestParam(required = true) String message
+    ) {
         SnsConnector sns = new SnsConnector(topic);
-        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        SqsConnector sqs = new SqsConnector(queue);
         try {
-            sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS from Java", sqs);
+            sns.produceMessageWithoutNewThread(message, sqs);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -394,12 +411,16 @@ public class App {
     }
 
     @RequestMapping("/sns/consume")
-    ResponseEntity<String> snsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
-        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+    ResponseEntity<String> snsConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
+        SqsConnector sqs = new SqsConnector(queue);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS");
+            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS", message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start consuming message...");
@@ -409,11 +430,13 @@ public class App {
     }
 
     @RequestMapping("/kinesis/produce")
-    ResponseEntity<String> kinesisProduce(@RequestParam(required = true) String stream) {
+    ResponseEntity<String> kinesisProduce(
+        @RequestParam(required = true) String stream,
+        @RequestParam(required = true) String message
+    ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         try {
-            String jsonString = "{\"message\":\"DistributedTracing Kinesis from Java\"}";
-            kinesis.produceMessageWithoutNewThread(jsonString);
+            kinesis.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start producing message...");
             e.printStackTrace();
@@ -423,12 +446,16 @@ public class App {
     }
 
     @RequestMapping("/kinesis/consume")
-    ResponseEntity<String> kinesisConsume(@RequestParam(required = true) String stream, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> kinesisConsume(
+        @RequestParam(required = true) String stream,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = kinesis.consumeMessageWithoutNewThread(timeout);
+            consumed = kinesis.consumeMessageWithoutNewThread(timeout, message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start consuming message...");
@@ -478,7 +505,8 @@ public class App {
         @RequestParam(required = false, name = "stream") String stream,
         @RequestParam(required = false, name = "routing_key") String routing_key,
         @RequestParam(required = false, name = "exchange") String exchange,
-        @RequestParam(required = false, name = "group") String group
+        @RequestParam(required = false, name = "group") String group,
+        @RequestParam(required = false, name = "message") String message
     ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);
@@ -555,7 +583,7 @@ public class App {
         } else if ("sqs".equals(integration)) {
             SqsConnector sqs = new SqsConnector(queue);
             try {
-                Thread produceThread = sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                Thread produceThread = sqs.startProducingMessage(message);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start producing message...");
@@ -563,7 +591,7 @@ public class App {
                 return "[SQS] failed to start producing message";
             }
             try {
-                Thread consumeThread = sqs.startConsumingMessages("SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SQS", message);
                 consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
@@ -572,9 +600,9 @@ public class App {
             }
         } else if ("sns".equals(integration)) {
             SnsConnector sns = new SnsConnector(topic);
-            SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+            SqsConnector sqs = new SqsConnector(queue);
             try {
-                Thread produceThread = sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+                Thread produceThread = sns.startProducingMessage(message, sqs);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start producing message...");
@@ -582,7 +610,7 @@ public class App {
                 return "[SNS->SQS] failed to start producing message";
             }
             try {
-                Thread consumeThread = sqs.startConsumingMessages("SNS->SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SNS->SQS", message);
                 consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start consuming message...");
@@ -592,15 +620,14 @@ public class App {
         } else if ("kinesis".equals(integration)) {
             KinesisConnector kinesis = new KinesisConnector(stream);
             try {
-                String jsonString = "{\"message\":\"DSM Test Kinesis from Java\"}";
-                kinesis.produceMessageWithoutNewThread(jsonString);
+                kinesis.produceMessageWithoutNewThread(message);
             } catch (Exception e) {
                 System.out.println("[Kinesis] Failed to start producing message...");
                 e.printStackTrace();
                 return "[Kinesis] failed to start producing message";
             }
             try {
-                kinesis.consumeMessageWithoutNewThread(60);
+                kinesis.consumeMessageWithoutNewThread(60, message);
             } catch (Exception e) {
                 System.out.println("[Kinesis] Failed to start consuming message...");
                 e.printStackTrace();
@@ -652,6 +679,111 @@ public class App {
         span.finish();
 
         return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/produce")
+    String dsmManualCheckpointProduce(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "target") String target,
+        HttpServletResponse response
+    ) {
+        DSMContextCarrier headers = new DSMContextCarrier();
+
+        DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+
+        dsmCheckpointer.setProduceCheckpoint(type, target, headers);
+
+        System.out.println("[DSM Manual Produce] After completion: " + headers.getData());
+
+        // Add headers that include DSM pathway context to response headers
+        for (Map.Entry<String, Object> entry : headers.entries()) {
+            response.addHeader(entry.getKey(), entry.getValue().toString());
+        }
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/produce_with_thread")
+    String dsmManualCheckpointProduceWithThread(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "target") String target,
+        HttpServletResponse response
+    ) throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
+        class DsmProduce implements Callable<Map<String, Object>> {
+            @Override
+            public Map<String, Object> call() {
+                DSMContextCarrier headers = new DSMContextCarrier();
+                DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+
+                System.out.println("[DSM Manual Produce with Thread] Before setProduceCheckpoint: " + headers.getData());
+
+                dsmCheckpointer.setProduceCheckpoint(type, target, headers);
+
+                System.out.println("[DSM Manual Produce with Thread] After setProduceCheckpoint: " + headers.getData());
+
+                return headers.getData();
+            }
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Future<Map<String, Object>> dsmProduceFuture = executor.submit(new DsmProduce());
+        Map<String, Object> injectedHeaders = dsmProduceFuture.get();
+
+        System.out.println("[DSM Manual Produce with Thread] After thread completion: " + injectedHeaders);
+
+        // Add headers that include DSM pathway context to response headers
+        for (Map.Entry<String, Object> entry : injectedHeaders.entrySet()) {
+            response.addHeader(entry.getKey(), entry.getValue().toString());
+        }
+
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/consume")
+    String dsmManualCheckpointConsume(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "source") String source,
+        @RequestHeader(name = "_datadog", required = true) String datadogHeader
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        System.out.println("[DSM Manual Consume] consumed headers: " + datadogHeader);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> headersMap = mapper.readValue(datadogHeader, new TypeReference<Map<String, Object>>(){});
+        DSMContextCarrier headersAdapter = new DSMContextCarrier(headersMap);
+
+        DataStreamsCheckpointer.get().setConsumeCheckpoint(type, source, headersAdapter);
+
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/consume_with_thread")
+    String dsmManualCheckpointConsumeWithThread(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "source") String source,
+        @RequestHeader(name = "_datadog", required = true) String datadogHeader
+    ) throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
+        final String finalHeaders = datadogHeader;
+
+        class DsmConsume implements Callable<String> {
+            @Override
+            public String call() throws com.fasterxml.jackson.core.JsonProcessingException {
+                System.out.println("[DSM Manual Consume within Thread] consumed headers: " + finalHeaders);
+
+                ObjectMapper mapper = new ObjectMapper();
+                Map<String, Object> headersMap = mapper.readValue(finalHeaders, new TypeReference<Map<String, Object>>(){});
+                DSMContextCarrier headersAdapter = new DSMContextCarrier(headersMap);
+
+                DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+                dsmCheckpointer.setConsumeCheckpoint(type, source, headersAdapter);
+
+                return "ok";
+            }
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Future<String> dsmConsumeFuture = executor.submit(new DsmConsume());
+        String status = dsmConsumeFuture.get();
+
+        return status;
     }
 
     @RequestMapping("/trace/ognl")
