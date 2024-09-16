@@ -433,6 +433,7 @@ tests/:
           spring-boot-payara: bug (produces 500 errors)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_Capability: missing_feature
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -471,6 +472,7 @@ tests/:
         Test_Ssrf_BodyXml:
           '*': missing_feature (missing endpoint)
           spring-boot: 'v1.39.0'
+        Test_Ssrf_Capability: missing_feature
         Test_Ssrf_Mandatory_SpanTags:
           '*': missing_feature (missing endpoint)
           spring-boot: 'v1.39.0'
@@ -1105,7 +1107,7 @@ tests/:
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": irrelevant
-          spring-boot: v0.1 # real version not known
+          spring-boot: v1.38.0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
@@ -1154,10 +1156,16 @@ tests/:
         spring-boot: v1.13.0
       Test_DsmSNS:
         "*": irrelevant
-        spring-boot: v0.1 # real version not known
+        spring-boot: v1.38.0
       Test_DsmSQS:
         "*": irrelevant
         spring-boot: v0.1 # real version not known
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        "*": irrelevant
+        spring-boot: bug (AIDM-325)
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
+        "*": irrelevant
+        spring-boot: bug (AIDM-325)
     test_mongo.py:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:
@@ -1296,3 +1304,4 @@ tests/:
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0
+

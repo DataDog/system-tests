@@ -5,6 +5,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -18,10 +19,10 @@ import software.amazon.awssdk.regions.Region;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 
 import java.net.URI;
-
+import java.util.HashMap;
+import java.util.Map;
 
 public class SnsConnector {
-    public static final String ENDPOINT = "http://localstack-main:4566";
     public final String topic;
 
     public SnsConnector(String topic){
@@ -32,7 +33,6 @@ public class SnsConnector {
         SnsClient snsClient = SnsClient.builder()
             .region(Region.US_EAST_1)
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .endpointOverride(URI.create(ENDPOINT))
             .build();
         return snsClient;
     }
@@ -54,12 +54,48 @@ public class SnsConnector {
         }
     }
 
-    public void subscribeQueueToTopic(SnsClient snsClient, String topicArn, String queueArn) throws Exception {
+    public void subscribeQueueToTopic(SnsClient snsClient, SqsClient sqsClient, String topicArn, String queueArn, String queueUrl) throws Exception {
         try {
+            // Define the policy
+            String policy = "{\n" +
+                "  \"Version\": \"2012-10-17\",\n" +
+                "  \"Id\": \"" + queueArn + "/SQSDefaultPolicy\",\n" +
+                "  \"Statement\": [\n" +
+                "    {\n" +
+                "      \"Sid\": \"Allow-SNS-SendMessage\",\n" +
+                "      \"Effect\": \"Allow\",\n" +
+                "      \"Principal\": {\n" +
+                "        \"Service\": \"sns.amazonaws.com\"\n" +
+                "      },\n" +
+                "      \"Action\": \"sqs:SendMessage\",\n" +
+                "      \"Resource\": \"" + queueArn + "\",\n" +
+                "      \"Condition\": {\n" +
+                "        \"ArnEquals\": {\n" +
+                "          \"aws:SourceArn\": \"" + topicArn + "\"\n" +
+                "        }\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+            Map<QueueAttributeName, String> attributes = new HashMap<>();
+            attributes.put(QueueAttributeName.POLICY, policy);
+
+            Map<String, String> subscribeAttributes = new HashMap<>();
+            subscribeAttributes.put("RawMessageDelivery", "true");
+
+            SetQueueAttributesRequest setAttrsRequest = SetQueueAttributesRequest.builder()
+                .queueUrl(queueUrl)
+                .attributes(attributes)
+                .build();
+
+            sqsClient.setQueueAttributes(setAttrsRequest);
+
             SubscribeRequest subscribeRequest = SubscribeRequest.builder()
                 .topicArn(topicArn)
                 .protocol("sqs")
                 .endpoint(queueArn)
+                .attributes(subscribeAttributes)
                 .build();
             SubscribeResponse subscribeResponse = snsClient.subscribe(subscribeRequest);
         } catch (SnsException e) {
@@ -88,6 +124,7 @@ public class SnsConnector {
     public void produceMessageWithoutNewThread(String message, SqsConnector sqs) throws Exception {
         SnsClient snsClient = createSnsClient();
         SqsClient sqsClient = sqs.createSqsClient();
+        System.out.printf("[SNS->SQS] Publishing message: %s%n", message);
         String topicArn = createSnsTopic(snsClient, topic, true);
 
         // Create queue and get queue ARN
@@ -97,7 +134,7 @@ public class SnsConnector {
             .queueUrl(queueUrl)
             .build());
         String queueArn = queueAttributes.attributes().get(QueueAttributeName.QUEUE_ARN);
-        subscribeQueueToTopic(snsClient, topicArn, queueArn);
+        subscribeQueueToTopic(snsClient, sqsClient, topicArn, queueArn, queueUrl);
 
         PublishRequest publishRequest = PublishRequest.builder()
             .topicArn(topicArn)
