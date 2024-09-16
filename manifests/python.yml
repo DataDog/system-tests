@@ -667,6 +667,9 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         flask-poc: v2.8.0
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0

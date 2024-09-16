@@ -509,6 +509,9 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_20_0
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: *ref_5_22_0
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature

@@ -1168,6 +1168,9 @@ tests/:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:
       Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
