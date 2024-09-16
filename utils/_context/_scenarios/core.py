@@ -32,7 +32,7 @@ VALID_GITHUB_WORKFLOWS = {
     "opentelemetry",
     "parametric",
     "testthetest",
-    "docker-ssi",
+    "dockerssi",
 }
 
 

@@ -1,12 +1,11 @@
-import subprocess
 import json
 import time
-import docker
-from docker.errors import DockerException, BuildError
-from functools import lru_cache
 
+import docker
+from docker.errors import BuildError
+
+from utils import context, interfaces
 from utils._context.library_version import LibraryVersion, Version
-from utils import context
 from utils._context.containers import (
     create_network,
     DockerSSIContainer,
@@ -14,22 +13,18 @@ from utils._context.containers import (
     TestedContainer,
     _get_client as get_docker_client,
 )
+from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils.tools import logger
+from utils.virtual_machine.vm_logger import vm_logger
 
 from .core import Scenario
-from utils.virtual_machine.vm_logger import vm_logger
-from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
-
-from watchdog.observers.polling import PollingObserver
-from watchdog.events import FileSystemEventHandler
-from utils import interfaces
 
 
 class DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent """
 
-    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+    def __init__(self, name, doc, scenario_groups=None) -> None:
+        super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
