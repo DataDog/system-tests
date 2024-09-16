@@ -727,6 +727,7 @@ tests/:
     test_span_sampling.py:
       Test_Span_Sampling: v2.8.0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.9.0.dev
       Test_Environment: v2.8.0
       Test_TelemetryInstallSignature: v2.5.0

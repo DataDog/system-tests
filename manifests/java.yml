@@ -1190,6 +1190,7 @@ tests/:
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v1.31.0
       Test_Environment: v1.31.0
       Test_TelemetryInstallSignature: v1.27.0
