@@ -24,6 +24,9 @@ class SupportedImages:
         self.TOMCAT_9_AMD64 = DockerImage("tomcat:9", LINUX_AMD64)
         self.TOMCAT_9_ARM64 = DockerImage("tomcat:9", LINUX_ARM64)
         self.WEBSPHERE_AMD64 = DockerImage("icr.io/appcafe/websphere-traditional", LINUX_AMD64)
+        # self.JBOSS_ARM64 = DockerImage("quay.io/wildfly/wildfly:33.0.1.Final-jdk21", LINUX_ARM64)
+        # self.JBOSS_ARM64 = DockerImage("quay.io/wildfly/wildfly:27.0.0.Final-jdk17", LINUX_ARM64)
+        self.JBOSS_AMD64 = DockerImage("quay.io/wildfly/wildfly:26.1.2.Final", LINUX_AMD64)
 
 
 class JavaRuntimeInstallableVersions:
@@ -78,6 +81,7 @@ JETTY_APP = WeblogDescriptor(
 TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
 WEBSPHERE_APP = WeblogDescriptor("websphere-app", "java", [SupportedImages().WEBSPHERE_AMD64])
+JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_ARM64])
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP]
+ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP]

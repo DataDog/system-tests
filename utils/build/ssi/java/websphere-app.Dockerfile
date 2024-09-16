@@ -7,8 +7,9 @@ RUN mvn clean package
 
 
 FROM ${BASE_IMAGE}
+RUN ln -s /opt/IBM/WebSphere/AppServer/java/8.0/bin/java /usr/bin/java
 COPY --from=build app/ee-app-ear/target/ee-app.ear /tmp/
-COPY utils/build/ssi/java/resources/websphere-app/netstat.sh /tmp/
+COPY utils/build/ssi/java/resources/common/netstat.sh /tmp/
 COPY utils/build/ssi/java/resources/websphere-app/ws_deploy.jacl /tmp/
 RUN /bin/bash -c '/work/start_server.sh &' && \
 /bin/bash -c 'while ! /tmp/netstat.sh | grep ":9043"; do sleep 1; done' && \
