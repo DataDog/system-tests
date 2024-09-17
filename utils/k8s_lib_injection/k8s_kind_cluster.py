@@ -66,15 +66,17 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
     # 3) The internal port needs to be used: handled in get_agent_port() and get_weblog_port()
     execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{json .}}}}'")
 
-    control_plane_ip = execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{.NetworkSettings.Networks.bridge.IPAddress}}}}'")
+    control_plane_ip = execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{.NetworkSettings.Networks.bridge.IPAddress}}}}'").strip()
     if not control_plane_ip:
         raise Exception("Unable to find control plane IP")
     logger.debug(f"[setup_kind_in_gitlab] control_plane_ip: {control_plane_ip}")
 
-    control_plane_server = execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{index .NetworkSettings.Ports \"6443/tcp\" 0 \"HostIp\"}}}}:{{{{index .NetworkSettings.Ports \"6443/tcp\" 0 \"HostPort\"}}}}'")
+    control_plane_server = execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{index .NetworkSettings.Ports \"6443/tcp\" 0 \"HostIp\"}}}}:{{{{index .NetworkSettings.Ports \"6443/tcp\" 0 \"HostPort\"}}}}'").strip()
     if not control_plane_server:
         raise Exception("Unable to find control plane server")
     logger.debug(f"[setup_kind_in_gitlab] control_plane_server: {control_plane_server}")
+
+    logger.debug(f"[setup_kind_in_gitlab] COMMAND: sed -i -e 's/{control_plane_server}/{control_plane_ip}:6443/g' {os.environ['HOME']}/.kube/config")
 
     # Replace server config with dns name + internal port
     execute_command_sync(
