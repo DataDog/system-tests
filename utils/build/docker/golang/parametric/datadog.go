@@ -123,6 +123,9 @@ type Config struct {
 	DdVersion              string            `json:"dd_version"`
 }
 
+// Log is a custom logger that extracts & parses the JSON configuration from the log message
+// This is done to allow for the testing of tracer configuration using the startup logs as it seems
+// to be the most simple way to do so
 func (l *CustomLogger) Log(logMessage string) {
 	re := regexp.MustCompile(`DATADOG TRACER CONFIGURATION (\{.*\})`)
 	matches := re.FindStringSubmatch(logMessage)
@@ -139,14 +142,20 @@ func (l *CustomLogger) Log(logMessage string) {
 	}
 
 	stringConfig := make(map[string]string)
-	val := reflect.ValueOf(config)
-	for i := 0; i < val.Type().NumField(); i++ {
-		field := val.Type().Field(i)
-		valueField := val.Field(i)
 
-		// Convert field value to string and then to lowercase
-		stringValue := fmt.Sprintf("%v", valueField.Interface())
-		stringConfig[field.Name] = strings.ToLower(stringValue)
+	// Convert the config struct to a map of strings
+	v := reflect.ValueOf(config)
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		value := v.Field(i)
+		// Convert value to a lowercase string
+		str, ok := value.Interface().(string)
+		if ok {
+			stringConfig[field.Name] = strings.ToLower(str)
+		} else {
+			log.Print("Field from log message extraction is not a string")
+		}
 	}
 	l.globalConfig = stringConfig
 }
@@ -154,7 +163,7 @@ func (l *CustomLogger) Log(logMessage string) {
 func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string {
 	config := make(map[string]string)
 	config["dd_service"] = l.globalConfig["Service"]
-	// config["dd_log_level"] = nil // golang doesn't support DD_LOG_LEVEL, only thing it supports is passing in DEBUG or DD_TRACE_DEBUG to set debug to true
+	// config["dd_log_level"] = nil // dd-trace-go does not support DD_LOG_LEVEL (use DD_TRACE_DEBUG instead)
 	config["dd_trace_sample_rate"] = l.globalConfig["SampleRate"]
 	config["dd_trace_enabled"] = tracerEnabled
 	config["dd_runtime_metrics_enabled"] = l.globalConfig["RuntimeMetricsEnabled"]
