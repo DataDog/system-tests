@@ -324,6 +324,9 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
@@ -353,6 +356,7 @@ tests/:
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
@@ -366,7 +370,7 @@ tests/:
       Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
-      Test_TracerSCITagging: missing_feature
+      Test_TracerSCITagging: v1.21.0
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
   remote_config/:

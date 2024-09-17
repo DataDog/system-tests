@@ -149,6 +149,7 @@ tests/:
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature
     test_tracer.py:

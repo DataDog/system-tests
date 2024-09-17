@@ -555,7 +555,7 @@ COPY binaries /binaries
 RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
 ADD {php_reldir}/server.php .
-RUN mkdir /parametric-tracer-logs
+# RUN mkdir /parametric-tracer-logs
 """,
         container_cmd=[
             "bash",
