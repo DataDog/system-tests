@@ -183,8 +183,8 @@ class scenarios:
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_disabled = EndToEndScenario(
-        "APPSEC_DISABLED",
+    everything_disabled = EndToEndScenario(
+        "EVERYTHING_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
         appsec_enabled=False,
         include_postgres_db=True,
