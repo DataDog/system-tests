@@ -183,8 +183,8 @@ class scenarios:
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_disabled = EndToEndScenario(
-        "APPSEC_DISABLED",
+    everything_disabled = EndToEndScenario(
+        "EVERYTHING_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
         appsec_enabled=False,
         include_postgres_db=True,
@@ -677,19 +677,17 @@ class scenarios:
     )
 
     k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+        "K8S_LIBRARY_INJECTION_BASIC",
+        doc=" Kubernetes Instrumentation basic scenario",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
-    k8s_library_injection_asm = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_ASM",
-        doc=" Kubernetes auto instrumentation, asm activation",
-        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
-        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
-    )
+
     k8s_library_injection_profiling = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_PROFILING",
         doc=" Kubernetes auto instrumentation, profiling activation",
-        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
-        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",

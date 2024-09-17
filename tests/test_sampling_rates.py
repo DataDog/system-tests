@@ -23,7 +23,7 @@ def priority_should_be_kept(sampling_priority):
 
 def trace_should_be_kept(sampling_rate, trace_id):
     """Given a trace_id and a sampling rate, returns if a trace should be kept.
-    
+
     Reference algorithm described in the priority sampling RFC
     https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md
     """
@@ -230,7 +230,6 @@ class Test_SamplingDecisions:
     @bug(library="python", reason="APMRP-259")
     @bug(library="nodejs", reason="APMRP-258")
     @bug(library="ruby", reason="APMRP-258")
-    @bug(library="php", reason="APMRP-258")
     @flaky(library="cpp")
     @flaky(library="golang")
     def test_sampling_determinism(self):

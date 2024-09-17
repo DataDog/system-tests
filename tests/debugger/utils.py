@@ -98,7 +98,7 @@ def get_probes_map(data_set):
                         _process_debugger(d_content["debugger"])
             else:
                 if "debugger" in content:
-                    if isinstance(d_content, dict):
+                    if isinstance(content, dict):
                         _process_debugger(content["debugger"])
 
     return probe_hash

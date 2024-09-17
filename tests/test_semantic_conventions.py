@@ -285,7 +285,6 @@ class Test_Meta:
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
