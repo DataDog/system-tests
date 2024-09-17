@@ -444,7 +444,12 @@ class scenarios:
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
-        weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"},
+        weblog_env={
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_APPSEC_ENABLED": "false",
+        },
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
