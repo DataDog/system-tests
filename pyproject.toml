@@ -204,7 +204,17 @@ allow_no_jira_ticket_for_bugs = [
     "tests/test_semantic_conventions.py::Test_MetaDatadogTags",
     "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled",
     "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1",
-    "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2"
+    "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2",
+    "tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking",
+    "tests/appsec/iast/source/test_cookie_value.py::TestCookieValue",
+    "tests/appsec/iast/source/test_header_value.py::TestHeaderValue",
+    "tests/appsec/iast/source/test_parameter_value.py::TestParameterValue",
+    "tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking",
+    "tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing",
+    "tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol",
+    "tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart",
+    "tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id",
+    "tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery",
 ]
 
 [tool.pylint]
