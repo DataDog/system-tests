@@ -67,6 +67,5 @@
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
-    sudo yum clean expire-cache
-    #sudo yum -y update
+    sudo yum clean expire-cache || sudo zypper clean --all
     sudo systemctl restart sshd.service

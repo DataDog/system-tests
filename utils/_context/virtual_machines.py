@@ -331,3 +331,20 @@ class Centos7amd64(_VirtualMachine):
             os_cpu="amd64",
             **kwargs,
         )
+
+
+# openSUSE-Leap-15.6-HVM-x86_64
+class OpenSuse156amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OpenSuse_15_6_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0572a9ca79fa8e8ee", ami_instance_type="t2.medium", user="ec2-user"),
+            # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="opensuse",
+            os_cpu="amd64",
+            **kwargs,
+        )

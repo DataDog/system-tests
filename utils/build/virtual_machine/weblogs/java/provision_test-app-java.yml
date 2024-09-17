@@ -8,7 +8,13 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
-        remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
+        remote-command: |
+          sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel || sudo zypper --non-interactive install -y java-11-openjdk-devel
+          if [ $? -eq 106 ]
+          then
+            echo "Software installation outcome is 106, which means the package is already installed"
+            exit 0
+          fi
 
 weblog:
     name: test-app-java
