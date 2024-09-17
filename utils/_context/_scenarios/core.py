@@ -22,6 +22,7 @@ class ScenarioGroup(Enum):
     SAMPLING = "sampling"
     ONBOARDING = "onboarding"
     DOCKER_SSI = "docker-ssi"
+    ESSENTIALS = "essentials"
 
 
 VALID_GITHUB_WORKFLOWS = {
