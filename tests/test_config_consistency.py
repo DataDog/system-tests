@@ -108,7 +108,7 @@ class Test_Config_ClientIPHeader_Configured:
     and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header"""
 
     IP_HEADERS = {
-        "custom-ip-header": "0.0.0.1",
+        "custom-ip-header": "5.6.7.8",
         "x-forwarded-for": "98.73.45.0",
         "x-real-ip": "98.73.145.1",
         "true-client-ip": "98.73.45.2",
@@ -118,29 +118,16 @@ class Test_Config_ClientIPHeader_Configured:
         "x-cluster-client-ip": "98.73.45.6",
         "fastly-client-ip": "98.73.45.7",
         "cf-connecting-ip": "98.73.45.8",
-        "cf-connecting-ipv6": "98.73.45.9",
+        "cf-connecting-ipv6": "2001:db8:3333:4444:5555:6666:7777:8888",
     }
 
-    def setup_ip_headers_sent_in_seperate_client_requests(self):
-        for header, ip in self.IP_HEADERS.items():
-            self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers={header: ip})
-
-    def test_ip_headers_sent_in_seperate_client_requests(self):
-        # Ensures client libraries support each of the headers in Test_Config_ClientIPHeader_Configured.IP_HEADERS
-        spans = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
-        ip_headers_found = {span["meta"]["http.client_ip"] for span in spans if "http.client_ip" in span["meta"]}
-        ip_headers = {ip for _, ip in self.IP_HEADERS}
-        assert ip_headers.issubset(
-            ip_headers_found
-        ), f"Expected {ip_headers} but found {ip_headers_found} in spans {spans}"
-
     def setup_ip_headers_sent_in_one_client_requests(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=self.IP_HEADERS)
+        self.req2 = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=self.IP_HEADERS)
 
-    def test_ip_headers_sent_in_seperate_client_requests(self):
+    def test_ip_headers_sent_in_one_client_requests(self):
         # Ensures the header set in DD_TRACE_CLIENT_IP_HEADER takes precedence over all supported ip headers
-        trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
-        expected_tags = {"http.client_ip": "0.0.0.1"}
+        trace = [span for _, _, span in interfaces.library.get_spans(self.req2, full_trace=True)]
+        expected_tags = {"http.client_ip": "5.6.7.8"}
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
