@@ -1235,6 +1235,8 @@ tests/:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientTagQueryString_Configured: missing_feature (endpoints return 404, but in theory should work)
+    Test_Config_ClientTagQueryString_Empty: missing_feature (incorrect default value)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
