@@ -204,6 +204,7 @@ def released(
     ruby=None,
     agent=None,
     dd_apm_inject=None,
+    k8s_cluster_agent=None,
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
 
@@ -263,6 +264,7 @@ def released(
             compute_declaration("ruby", "ruby", ruby, context.library.version),
             compute_declaration("*", "agent", agent, context.agent_version),
             compute_declaration("*", "dd_apm_inject", dd_apm_inject, context.dd_apm_inject_version),
+            compute_declaration("*", "k8s_cluster_agent", k8s_cluster_agent, context.k8s_cluster_agent_version),
         ]
 
         skip_reasons = [reason for reason in skip_reasons if reason is not None]  # remove None
