@@ -439,7 +439,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
-        Test_Lfi_RC_CustomAction: missing_feature
+        Test_Lfi_RC_CustomAction: missing_feature (APPSEC-54930)
         Test_Lfi_StackTrace:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
