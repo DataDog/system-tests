@@ -216,6 +216,8 @@ allow_no_jira_ticket_for_bugs = [
     "tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id",
     "tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery",
     "tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory",
+    "tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body",
+    "tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded",
 ]
 
 [tool.pylint]
