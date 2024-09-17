@@ -311,10 +311,14 @@ tests/:
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v3.2.0
     test_dynamic_configuration.py:
@@ -334,6 +338,7 @@ tests/:
       Test_Otel_Tracer: v2.8.0
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
       Test_TelemetryInstallSignature: v2.45.0
