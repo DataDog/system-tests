@@ -122,7 +122,7 @@ Clone the repo:
 git clone git@github.com:DataDog/dd-trace-java.git
 cd dd-trace-java
 ```
-By default you will be on the `master` branch, but if you'd like to run system-tests on the changes you made to your local branch, `gitc checkout` to that branch.
+By default you will be on the `master` branch, but if you'd like to run system-tests on the changes you made to your local branch, `git checkout` to that branch before proceeding.
 
 2. Build Java Tracer artifacts
 ```
