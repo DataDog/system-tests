@@ -12,6 +12,7 @@ if [[ -f "./.env" ]]; then
 fi
 
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK:-}}
+AGENT_BASE_IMAGE=
 
 readonly DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 readonly ALIAS_CACHE_FROM="R" #read cache
@@ -62,6 +63,7 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
+    echo -e "  ${CYAN}--agent-base-image${NC}         Optional. Base image of docker agent to use, default: datadog/agent"
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -178,10 +180,12 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == agent ]]; then
-            if [ -f ./binaries/agent-image ]; then
-                AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
-            else
-                AGENT_BASE_IMAGE="datadog/agent"
+            if test -z "$AGENT_BASE_IMAGE"; then
+                if [ -f ./binaries/agent-image ]; then
+                    AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
+                else
+                    AGENT_BASE_IMAGE="datadog/agent"
+                fi
             fi
 
             echo "using $AGENT_BASE_IMAGE image for datadog agent"
@@ -297,6 +301,7 @@ while [[ "$#" -gt 0 ]]; do
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
         -h|--help) print_usage; exit 0 ;;
+        --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
     shift

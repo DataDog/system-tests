@@ -97,7 +97,7 @@ class Test_Dbm:
     setup_trace_payload_disabled = weblog_trace_payload
 
     # Test Methods
-    @scenarios.appsec_disabled
+    @scenarios.everything_disabled
     def test_trace_payload_disabled(self):
         assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()

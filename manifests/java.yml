@@ -1170,10 +1170,14 @@ tests/:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:
       Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
@@ -1189,6 +1193,7 @@ tests/:
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v1.31.0
       Test_Environment: v1.31.0
       Test_TelemetryInstallSignature: v1.27.0
@@ -1230,6 +1235,8 @@ tests/:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientTagQueryString_Configured: missing_feature (endpoints return 404, but in theory should work)
+    Test_Config_ClientTagQueryString_Empty: missing_feature (incorrect default value)
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
