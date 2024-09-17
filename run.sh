@@ -385,6 +385,11 @@ function main() {
                 scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
                 unset "scenarios[${i}]"
                 ;;
+
+            APPSEC_DISABLED)
+                scenarios+=(EVERYTHING_DISABLED)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 
