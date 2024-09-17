@@ -202,6 +202,7 @@ tests/:
         Test_Lfi_BodyJson: v2.10.0.dev
         Test_Lfi_BodyUrlEncoded: v2.10.0.dev
         Test_Lfi_BodyXml: v2.10.0.dev
+        Test_Lfi_Capability: v2.11.0
         Test_Lfi_Mandatory_SpanTags: v2.10.0.dev
         Test_Lfi_Optional_SpanTags: v2.10.0.dev
         Test_Lfi_RC_CustomAction: v2.14.0.dev
@@ -212,6 +213,7 @@ tests/:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
         Test_Shi_BodyXml: v2.11.0-rc2
+        Test_Shi_Capability: v2.11.0
         Test_Shi_Mandatory_SpanTags: v2.11.0-rc2
         Test_Shi_Optional_SpanTags: v2.11.0-rc2
         Test_Shi_StackTrace: v2.11.0-rc2
@@ -221,6 +223,7 @@ tests/:
         Test_Sqli_BodyJson: v2.10.0.dev
         Test_Sqli_BodyUrlEncoded: v2.10.0.dev
         Test_Sqli_BodyXml: v2.10.0.dev
+        Test_Sqli_Capability: v2.11.0
         Test_Sqli_Mandatory_SpanTags: v2.10.0.dev
         Test_Sqli_Optional_SpanTags: v2.10.0.dev
         Test_Sqli_StackTrace: v2.10.0.dev
@@ -230,6 +233,7 @@ tests/:
         Test_Ssrf_BodyJson: v2.10.0.dev
         Test_Ssrf_BodyUrlEncoded: v2.10.0.dev
         Test_Ssrf_BodyXml: v2.10.0.dev
+        Test_Ssrf_Capability: v2.11.0
         Test_Ssrf_Mandatory_SpanTags: v2.10.0.dev
         Test_Ssrf_Optional_SpanTags: v2.10.0.dev
         Test_Ssrf_StackTrace: v2.10.0.dev
@@ -668,11 +672,16 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         flask-poc: v2.8.0
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: v2.12.2
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -721,6 +730,7 @@ tests/:
     test_span_sampling.py:
       Test_Span_Sampling: v2.8.0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.9.0.dev
       Test_Environment: v2.8.0
       Test_TelemetryInstallSignature: v2.5.0

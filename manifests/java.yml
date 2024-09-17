@@ -433,6 +433,7 @@ tests/:
           spring-boot-payara: bug (produces 500 errors)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Sqli_Capability: missing_feature
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -471,6 +472,7 @@ tests/:
         Test_Ssrf_BodyXml:
           '*': missing_feature (missing endpoint)
           spring-boot: 'v1.39.0'
+        Test_Ssrf_Capability: missing_feature
         Test_Ssrf_Mandatory_SpanTags:
           '*': missing_feature (missing endpoint)
           spring-boot: 'v1.39.0'
@@ -1168,9 +1170,14 @@ tests/:
       Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
     test_sql.py:
       Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
@@ -1186,6 +1193,7 @@ tests/:
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v1.31.0
       Test_Environment: v1.31.0
       Test_TelemetryInstallSignature: v1.27.0

@@ -41,7 +41,7 @@ class IntegrationsScenario(EndToEndScenario):
             include_mysql_db=True,
             include_sqlserver=True,
             doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
-            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC],
+            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
         )
 
     def configure(self, config):
