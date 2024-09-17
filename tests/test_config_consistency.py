@@ -110,6 +110,8 @@ def _get_span_by_tags(trace, tags):
                 break
         else:
             return span
+
+
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_UnifiedServiceTagging_CustomService:
