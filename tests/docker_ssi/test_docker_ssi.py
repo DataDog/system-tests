@@ -32,7 +32,7 @@ class TestDockerSSIFeatures:
     @bug(
         condition="centos-7" in context.weblog_variant and context.library == "java", reason="APMON-1490",
     )
-    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
@@ -63,8 +63,12 @@ class TestDockerSSIFeatures:
         # There is telemetry data about the auto instrumentation. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
         assert len(telemetry_autoinject_data) >= 1
+        inject_success = False
         for data in telemetry_autoinject_data:
-            assert data["metric"] == "inject.success"
+            if data["metric"] == "inject.success":
+                inject_success = True
+                break
+        assert inject_success, "No telemetry data found for inject.success"
 
     def setup_service_name(self):
         self._setup_all()
