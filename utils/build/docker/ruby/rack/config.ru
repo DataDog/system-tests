@@ -193,6 +193,40 @@ class CustomEvent
   end
 end
 
+# /requestdownstream
+class RequestDownstream
+  def self.run(env)
+    uri = URI('http://localhost:7777/returnheaders')
+    request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new(uri)
+
+      response = http.request(request)
+    end
+
+    # Ruby tracer does not follow the "METHOD /path" convention, so we need to set the resource manually
+    request_span = env[Datadog::Tracing::Contrib::Rack::Ext::RACK_ENV_REQUEST_SPAN]
+    request_span.resource = 'GET /requestdownstream'
+
+    [200, { 'Content-Type' => 'application/json' }, [response.body]]
+  end
+end
+
+# /returnheaders
+class ReturnHeaders
+  def self.run(env, request)
+    headers = request.each_header.to_h
+
+    # Ruby tracer does not follow the "METHOD /path" convention, so we need to set the resource manually
+    request_span = env[Datadog::Tracing::Contrib::Rack::Ext::RACK_ENV_REQUEST_SPAN]
+    request_span.resource = 'GET /returnheaders'
+
+    [200, { 'Content-Type' => 'application/json' }, [headers.to_json]]
+  end
+end
+
 # contains tag_value
 class TagValue
   def self.run(request)
@@ -253,6 +287,10 @@ app = proc do |env|
     UserLoginFailureEvent.run
   elsif request.path == '/custom_event'
     CustomEvent.run
+  elsif request.path == '/requestdownstream'
+    RequestDownstream.run(env)
+  elsif request.path == '/returnheaders'
+    ReturnHeaders.run(env, request)
   elsif request.path.include?('tag_value')
     TagValue.run(request)
   elsif request.path.include?('/users')
