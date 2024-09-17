@@ -137,4 +137,6 @@ class Test_Config_UnifiedServiceTagging_Default:
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        assert spans[0]["service"] != "service_test" #in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario
+        assert (
+            spans[0]["service"] != "service_test"
+        )  # in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario
