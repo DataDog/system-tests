@@ -331,6 +331,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: bug (To be confirmed, theorical version is v2.0.0)
       TestDynamicConfigSamplingRules: v2.0.0
