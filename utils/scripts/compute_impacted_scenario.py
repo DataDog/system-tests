@@ -121,6 +121,7 @@ def main():
                     ## .github folder
                     r"\.github/workflows/run-parametric\.yml": ScenarioGroup.PARAMETRIC.value,
                     r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION.value,
+                    r"\.github/workflows/run-docker-ssi\.yml": ScenarioGroup.DOCKER_SSI.value,
                     r"\.github/.*": None,  # nothing to do??
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
