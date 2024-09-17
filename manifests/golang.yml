@@ -491,6 +491,8 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
+    Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:
