@@ -76,8 +76,6 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
         raise Exception("Unable to find control plane server")
     logger.debug(f"[setup_kind_in_gitlab] control_plane_server: {control_plane_server}")
 
-    logger.debug(f"[setup_kind_in_gitlab] COMMAND: sed -i -e 's/{control_plane_server}/{control_plane_ip}:6443/g' {os.environ['HOME']}/.kube/config")
-
     # Replace server config with dns name + internal port
     execute_command_sync(
         f"sed -i -e 's/{control_plane_server}/{control_plane_ip}:6443/g' {os.environ['HOME']}/.kube/config",
