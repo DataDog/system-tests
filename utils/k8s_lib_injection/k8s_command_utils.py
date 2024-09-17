@@ -23,7 +23,9 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
     output = ""
     try:
         start = datetime.datetime.now()
-        process = subprocess.Popen(shlex.split(command), stdout=command_out_redirect, stderr=command_out_redirect, env=subprocess_env)
+        process = subprocess.Popen(
+            shlex.split(command), stdout=command_out_redirect, stderr=command_out_redirect, env=subprocess_env
+        )
 
         while process.poll() is None:
             time.sleep(0.1)

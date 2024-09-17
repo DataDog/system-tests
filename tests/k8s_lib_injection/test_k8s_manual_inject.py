@@ -110,7 +110,9 @@ class TestAdmisionControllerProfiling:
         The profiling post data can take between 12 and 90 seconds (12 if the library supports both env vars, 90 if it supports neither. """
         mustend = time.time() + timeout
         while time.time() < mustend:
-            response = requests.get(f"http://{k8s_kind_cluster.cluster_host_name}:{k8s_kind_cluster.get_agent_port()}/test/session/requests")
+            response = requests.get(
+                f"http://{k8s_kind_cluster.cluster_host_name}:{k8s_kind_cluster.get_agent_port()}/test/session/requests"
+            )
             for request in response.json():
                 if request["url"].endswith("/profiling/v1/input"):
                     return True
