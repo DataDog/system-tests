@@ -677,7 +677,10 @@ class scenarios:
     )
 
     k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+        "K8S_LIBRARY_INJECTION_BASIC",
+        doc=" Kubernetes Instrumentation basic scenario",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
     k8s_library_injection_asm = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_ASM",
@@ -688,8 +691,8 @@ class scenarios:
     k8s_library_injection_profiling = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_PROFILING",
         doc=" Kubernetes auto instrumentation, profiling activation",
-        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
-        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
