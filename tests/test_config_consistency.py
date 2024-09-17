@@ -140,3 +140,35 @@ def _get_span_by_tags(trace, tags):
                 break
         else:
             return span
+
+
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_UnifiedServiceTagging_CustomService:
+    """ Verify behavior of http clients and distributed traces """
+
+    def setup_specified_service_name(self):
+        self.r = weblog.get("/")
+
+    def test_specified_service_name(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        assert spans[0]["service"] == "service_test"
+
+
+@scenarios.default
+@features.tracing_configuration_consistency
+class Test_Config_UnifiedServiceTagging_Default:
+    """ Verify behavior of http clients and distributed traces """
+
+    def setup_default_service_name(self):
+        self.r = weblog.get("/")
+
+    def test_default_service_name(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        assert (
+            spans[0]["service"] != "service_test"
+        )  # in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario

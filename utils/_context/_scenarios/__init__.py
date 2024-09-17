@@ -448,7 +448,9 @@ class scenarios:
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            # disable ASM to test non asm client ip tagging
             "DD_APPSEC_ENABLED": "false",
+            "DD_SERVICE": "service_test",
         },
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
