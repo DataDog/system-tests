@@ -944,7 +944,7 @@ class Test_V2_Login_Events_Anon:
         "Accept-Language": "en-GB, *;q=0.5",
         "Content-Language": "en-GB",
         "Content-Length": "0",
-        "Content-Type": "text/html; charset=utf-8",
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
         "Content-Encoding": "deflate, gzip",
         "Host": "127.0.0.1:1234",
         "User-Agent": "Benign User Agent 1.0",
