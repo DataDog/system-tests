@@ -74,7 +74,6 @@ def set_service_version_tags():
 class Test_Config_UnifiedServiceTagging:
     @parametrize("library_env", [{}])
     def test_default_config(self, library_env, test_agent, test_library):
-        assert library_env.get("DD_ENV") == None
         with test_library:
             with test_library.start_span(name="s1") as s1:
                 pass
