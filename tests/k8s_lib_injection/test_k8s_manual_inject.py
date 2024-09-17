@@ -65,9 +65,10 @@ class _TestAdmisionController:
         return []
 
 
-@features.k8s_admission_controller
-@scenarios.k8s_library_injection_asm
-class TestAdmisionControllerAsm:
+# TODO delete or update this scenario to use test agent
+# @features.k8s_admission_controller
+# @scenarios.k8s_library_injection_asm
+class _TestAdmisionControllerAsm:
     """Test ASM features activation with admission controller."""
 
     def test_inject_asm_admission_controller(self, test_k8s_instance):

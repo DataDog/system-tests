@@ -682,12 +682,7 @@ class scenarios:
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
-    k8s_library_injection_asm = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_ASM",
-        doc=" Kubernetes auto instrumentation, asm activation",
-        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
-        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
-    )
+
     k8s_library_injection_profiling = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_PROFILING",
         doc=" Kubernetes auto instrumentation, profiling activation",
