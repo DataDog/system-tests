@@ -511,9 +511,14 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_20_0
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: *ref_5_22_0
   parametric/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
@@ -528,6 +533,7 @@ tests/:
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: *ref_5_6_0
       Test_Environment: *ref_5_6_0
       Test_TelemetryInstallSignature: *ref_4_23_0

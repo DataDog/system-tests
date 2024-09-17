@@ -256,7 +256,9 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
@@ -286,6 +288,7 @@ tests/:
         See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
@@ -315,7 +318,7 @@ tests/:
   test_config_consistency.py:
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
     Test_Config_ClientTagQueryString_Empty: v1.2.0
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_Default: v1.3.0 # Unknown initial version
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
