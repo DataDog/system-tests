@@ -9,7 +9,7 @@ class Test_Miscs:
             "/v0.6/stats", r"content-type", r"application/msgpack(, application/msgpack)?"
         )
 
-    @scenarios.appsec_disabled
+    @scenarios.everything_disabled
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Stats should be disabled by default"

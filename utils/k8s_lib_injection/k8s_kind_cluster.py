@@ -119,7 +119,6 @@ class K8sKindCluster:
         self.internal_agent_port = 8126
         self.internal_weblog_port = 18080
 
-
     def get_agent_port(self):
         if self.docker_in_docker:
             return self.internal_agent_port

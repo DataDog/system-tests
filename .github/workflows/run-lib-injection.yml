@@ -220,6 +220,10 @@ jobs:
         id: k8s-lib-injection-tests
         run: ./run.sh K8S_LIBRARY_INJECTION_BASIC
 
+      - name: Kubernetes lib-injection profiling tests
+        id: k8s-lib-injection-tests-profiling
+        run: ./run.sh K8S_LIBRARY_INJECTION_PROFILING
+
       - name: Compress logs
         id: compress_logs
         if: always()

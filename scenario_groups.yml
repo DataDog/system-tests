@@ -6,7 +6,7 @@ APPSEC_SCENARIOS: &appsec_scenarios
   - APPSEC_BLOCKING
   - GRAPHQL_APPSEC
   - APPSEC_RULES_MONITORING_WITH_ERRORS
-  - APPSEC_DISABLED
+  - EVERYTHING_DISABLED
   - APPSEC_LOW_WAF_TIMEOUT
   - APPSEC_CUSTOM_OBFUSCATION
   - APPSEC_RATE_LIMITER
@@ -41,6 +41,7 @@ TELEMETRY_SCENARIOS: &telemetry_scenarios
 # Scenarios covering tracing configurations
 TRACING_CONFIG_SCENARIOS: &tracing_config_scenarios
   - TRACING_CONFIG_NONDEFAULT
+  - TRACING_CONFIG_NONDEFAULT_3
 
 # Scenarios to run before a tracer release, basically, all stable scenarios
 TRACER_RELEASE_SCENARIOS:
