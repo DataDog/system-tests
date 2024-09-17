@@ -17,6 +17,7 @@ class TestDockerSSIFeatures:
     def _setup_all(self):
         if TestDockerSSIFeatures._r is None:
             parsed_url = urlparse(context.scenario.weblog_url)
+            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {context.scenario.weblog_url}")
             TestDockerSSIFeatures._r = weblog.request(
                 "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
             )
