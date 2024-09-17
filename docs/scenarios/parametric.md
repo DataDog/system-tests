@@ -290,6 +290,39 @@ docker image rm <library>-test-library
 The Python implementation of the interface `app/python`, when run, provides a specification of the API when run.
 See the steps below in the HTTP section to run the Python server and view the specification.
 
+## Updating protos
+
+In order to update the `parametric/protos`, these steps must be followed. 
+
+1. 
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate
+```
+
+2. 
+```bash
+pip install -r requirements.txt
+```
+
+3. 
+```bash
+pip install grpcio-tools==1.60.1
+```
+Ensure grpcaio is the same version. 
+
+4. 
+```console
+cd utils/parametric
+```
+
+5. Run this file https://github.com/DataDog/system-tests/blob/main/utils/parametric/generate_protos.sh 
+```bash
+./generate_protos.sh
+```
+
+Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
+
+
 ## Implementation
 
 ### Shared Interface
