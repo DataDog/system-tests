@@ -13,7 +13,7 @@ namespace weblog
         {
             routeBuilder.MapGet("/integration_enabled_config", async context =>
             {
-                var client = new MongoClient("mongodb://mongodb:27017"); // Adjust the MongoDB connection string as needed
+                var client = new MongoClient("mongodb://mongodb:27017");
                 var command = new BsonDocument { { "buildInfo", 1 } };
                 var result = client.GetDatabase("admin").RunCommand<BsonDocument>(command);
                 var version = result["version"].AsString;

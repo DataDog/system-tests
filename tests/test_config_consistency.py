@@ -72,24 +72,6 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert spans[0]["meta"]["http.status_code"] == "202"
         assert spans[0]["error"] == 1
 
-@scenarios.tracing_config_nondefault_2
-@features.tracing_configuration_consistency
-class Test_Config_IntegrationEnabled_True:
-    """ Verify behavior of integrations automatic spans """
-    
-    def setup_mongodb_integration_enabled_true(self):
-        self.r = weblog.get("/integration_enabled_config")
-
-    def test_mongodb_integration_enabled_true(self):
-        assert self.r.status_code == 200
-
-        mongodbSpans = []
-        # We do not use get_spans: the span we look for is not directly the span that carry the request information
-        for data, trace in interfaces.library.get_traces(request=self.r):
-            mongodbSpans += [(data, span) for span in trace if span.get("name") == "mongodb.query"]
-            
-        assert len(mongodbSpans) >= 1
-
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_IntegrationEnabled_False:
@@ -107,3 +89,21 @@ class Test_Config_IntegrationEnabled_False:
             mongodbSpans += [(data, span) for span in trace if span.get("name") == "mongodb.query"]
             
         assert len(mongodbSpans) == 0
+
+@scenarios.tracing_config_nondefault_2
+@features.tracing_configuration_consistency
+class Test_Config_IntegrationEnabled_True:
+    """ Verify behavior of integrations automatic spans """
+    
+    def setup_mongodb_integration_enabled_true(self):
+        self.r = weblog.get("/integration_enabled_config")
+
+    def test_mongodb_integration_enabled_true(self):
+        assert self.r.status_code == 200
+
+        mongodbSpans = []
+        # We do not use get_spans: the span we look for is not directly the span that carry the request information
+        for data, trace in interfaces.library.get_traces(request=self.r):
+            mongodbSpans += [(data, span) for span in trace if span.get("name") == "mongodb.query"]
+            
+        assert len(mongodbSpans) >= 1
