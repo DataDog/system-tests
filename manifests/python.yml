@@ -672,12 +672,16 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         flask-poc: v2.8.0
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: v2.12.2
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -726,6 +730,7 @@ tests/:
     test_span_sampling.py:
       Test_Span_Sampling: v2.8.0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.9.0.dev
       Test_Environment: v2.8.0
       Test_TelemetryInstallSignature: v2.5.0
