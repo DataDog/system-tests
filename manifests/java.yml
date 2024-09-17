@@ -1233,6 +1233,8 @@ tests/:
   test_config_consistency.py:
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_IntegrationEnabled_False: missing_feature
+    Test_Config_IntegrationEnabled_True: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v1.29.0
   test_distributed.py:
