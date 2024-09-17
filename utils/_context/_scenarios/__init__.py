@@ -447,6 +447,7 @@ class scenarios:
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "ssn=\d{3}-\d{2}-\d{4}",
+            "DD_SERVICE": "service_test",
         },
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
