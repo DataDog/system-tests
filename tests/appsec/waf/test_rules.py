@@ -222,7 +222,7 @@ class Test_SQLI:
         self.r_3 = weblog.get("/waf/", params={"value": "alter d char set f"})
         self.r_4 = weblog.get("/waf/", params={"value": "merge using("})
 
-    @flaky(context.library <= "php@0.68.2")
+    @flaky(context.library <= "php@0.68.2", reason="APMRP-360")
     def test_sqli2(self):
         """Other SQLI patterns"""
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.sql_injection.crs_942_240)
@@ -231,7 +231,7 @@ class Test_SQLI:
     def setup_sqli3(self):
         self.r_5 = weblog.get("/waf/", cookies={"value": "%3Bshutdown--"})
 
-    @bug(context.library < "dotnet@2.1.0")
+    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     @bug(library="java", reason="under Valentin's investigations")
     @missing_feature(library="golang", reason="cookies are not url-decoded and this attack works with a ;")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")

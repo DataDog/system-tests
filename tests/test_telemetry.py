@@ -194,7 +194,7 @@ class Test_Telemetry:
                     )
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
+    @flaky(context.library <= "python@1.20.2", reason="APMRP-360")
     @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
@@ -338,8 +338,8 @@ class Test_Telemetry:
         return delays_by_runtime
 
     @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library <= "java@1.38.1", reason="Telemetry second heartbeat was sent too fast")
-    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
+    @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
+    @flaky(context.library <= "php@0.90", reason="APMRP-360")
     @flaky(library="ruby", reason="APMAPI-226")
     @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
     @features.telemetry_heart_beat_collected

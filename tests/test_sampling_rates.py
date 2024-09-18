@@ -44,8 +44,8 @@ def _spans_with_parent(traces, parent_ids):
                     yield span
 
 
-@bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2")
-@bug(context.agent_version < "7.33.0", reason="Before this version, tracerPayloads was named traces")
+@bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2", reason="APMRP-360")
+@bug(context.agent_version < "7.33.0", reason="APMRP-360")
 @scenarios.sampling
 @features.twl_customer_controls_ingestion_dd_trace_sampling_rules
 @features.ensure_that_sampling_is_consistent_across_languages
@@ -66,7 +66,7 @@ class Test_SamplingRates:
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0",
         reason="_sampling_priority_v1 is missing",
     )
-    @bug(context.library < "nodejs@5.17.0", reason="Unexpected amount of sampled traces")  # fixed version is not known
+    @bug(context.library < "nodejs@5.17.0", reason="APMRP-360")  # fixed version is not known
     @flaky(context.weblog_variant == "spring-boot-3-native", reason="Needs investigation")
     @flaky(library="golang", reason="Needs investigation")
     @flaky(library="ruby", reason="Needs investigation")
