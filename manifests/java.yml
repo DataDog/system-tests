@@ -914,7 +914,7 @@ tests/:
       Test_Fingerprinting_Header_Capability: missing_feature
       Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session: missing_feature
-      Test_Fingerprinting_Session_Capability: missing_feature  
+      Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
