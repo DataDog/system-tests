@@ -759,6 +759,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v2.12.0
+    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_HTPP_CLIENT_TAGS_QUERY_STRING instead)
     Test_Config_ClientTagQueryString_Empty: v2.12.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature

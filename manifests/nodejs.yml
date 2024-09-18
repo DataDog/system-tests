@@ -561,6 +561,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: *ref_5_15_0
+    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
     Test_Config_ClientTagQueryString_Configured: missing_feature (adding query string to http.url is not supported)
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query strings by default)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature

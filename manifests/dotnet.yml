@@ -366,6 +366,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v2.48.0
+    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
     Test_Config_ClientTagQueryString_Configured: missing_feature (configuration DNE)
     Test_Config_ClientTagQueryString_Empty: v2.53.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature

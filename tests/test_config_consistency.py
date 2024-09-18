@@ -180,28 +180,58 @@ class Test_Config_ClientIPHeader_Configured:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
     and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header"""
 
-    IP_HEADERS = {
-        "custom-ip-header": "5.6.7.8",
-        "x-forwarded-for": "98.73.45.0",
-        "x-real-ip": "98.73.145.1",
-        "true-client-ip": "98.73.45.2",
-        "x-client-ip": "98.73.45.3",
-        "x-forwarded": "98.73.45.4",
-        "forwarded-for": "98.73.45.5",
-        "x-cluster-client-ip": "98.73.45.6",
-        "fastly-client-ip": "98.73.45.7",
-        "cf-connecting-ip": "98.73.45.8",
-        "cf-connecting-ipv6": "2001:db8:3333:4444:5555:6666:7777:8888",
-    }
+    def setup_ip_headers_sent_in_one_request(self):
+        self.req = weblog.get(
+            "/make_distant_call", params={"url": "http://weblog:7777"}, headers={"custom-ip-header": "5.6.7.9"}
+        )
 
-    def setup_ip_headers_sent_in_one_client_requests(self):
-        self.req2 = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=self.IP_HEADERS)
-
-    def test_ip_headers_sent_in_one_client_requests(self):
+    def test_ip_headers_sent_in_one_request(self):
         # Ensures the header set in DD_TRACE_CLIENT_IP_HEADER takes precedence over all supported ip headers
-        trace = [span for _, _, span in interfaces.library.get_spans(self.req2, full_trace=True)]
-        expected_tags = {"http.client_ip": "5.6.7.8"}
+        trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
+        expected_tags = {"http.client_ip": "5.6.7.9"}
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
+
+
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_ClientIPHeader_Precedence:
+    """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true 
+    and headers are used to set http.client_ip in order of precedence"""
+
+    # Supported ip headers in order of precedence
+    IP_HEADERS = (
+        ("x-forwarded-for", "5.6.7.0"),
+        ("x-real-ip", "8.7.6.5"),
+        ("true-client-ip", "5.6.7.2"),
+        ("x-client-ip", "5.6.7.3"),
+        ("x-forwarded", "5.6.7.4"),
+        ("forwarded-for", "5.6.7.5"),
+        ("x-cluster-client-ip", "5.6.7.6"),
+        ("fastly-client-ip", "5.6.7.7"),
+        ("cf-connecting-ip", "5.6.7.8"),
+        ("cf-connecting-ipv6", "0:2:3:4:5:6:7:8"),
+    )
+
+    def setup_ip_headers_precedence(self):
+        # Sends requests with supported ip headers, in each iteration the header with next higest precedence is not sent.
+        # In the last request, only the header with the lowest precedence is sent.
+        self.requests = []
+        for i in range(len(self.IP_HEADERS)):
+            headers = {k: v for k, v in self.IP_HEADERS[i:]}
+            self.requests.append(
+                weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=headers)
+            )
+
+    def test_ip_headers_precedence(self):
+        # Ensures that at least one span stores each ip header in the http.client_ip tag
+        # Note - system tests may obfuscate the actual ip address, we may need to update the test to take this into account
+        assert len(self.requests) == len(self.IP_HEADERS), "Number of requests and ip headers do not match, check setup"
+        for i in range(len(self.IP_HEADERS)):
+            req = self.requests[i]
+            ip = self.IP_HEADERS[i][1]
+            trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
+            expected_tags = {"http.client_ip": ip}
+            assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
 def _get_span_by_tags(spans, tags):
