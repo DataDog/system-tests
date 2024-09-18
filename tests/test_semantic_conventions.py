@@ -232,7 +232,7 @@ class Test_Meta:
 
     @bug(library="php", reason="language tag not implemented")
     # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
-    @bug(context.library < "java@1.1.0", reason="language tag implemented but not for all spans")
+    @bug(context.library < "java@1.1.0", reason="APMRP-360")
     @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):

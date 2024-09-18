@@ -52,10 +52,10 @@ class Test_Blocking:
     def setup_no_accept(self):
         self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
-    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
-    @bug(context.library < "python@1.16.1", reason="Bug, minify and remove new line characters")
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="APMRP-360")
+    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="APMRP-360")
+    @bug(context.library < "python@1.16.1", reason="APMRP-360")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
