@@ -289,7 +289,11 @@ public class OpenTelemetryController {
     LOGGER.info("Adding OTel span event: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null) {
-      span.addEvent(args.name(), parseAttributes(args.attributes()), args.timestamp(), MICROSECONDS);
+      if (args.timestamp() == 0L) {
+        span.addEvent(args.name(), parseAttributes(args.attributes()));
+      } else {
+        span.addEvent(args.name(), parseAttributes(args.attributes()), args.timestamp(), MICROSECONDS);
+      }
     }
   }
 

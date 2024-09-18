@@ -50,15 +50,16 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Install runner
+      id: install_runner
       uses: ./.github/actions/install_runner
     - name: Run Docker SSI scenario
-      if: always()
+      if: always() && steps.install_runner.outcome == 'success'
       run: ./run.sh DOCKER_SSI --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-push-base-images --ssi-installable-runtime ${{matrix.installable_runtime}}
     - name: Compress logs
-      if: always()
+      if: always() && steps.install_runner.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
-      if: always()
+      if: always() && steps.install_runner.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: logs_docker_ssi_${{ inputs.library }}_${{ matrix.unique_name }}

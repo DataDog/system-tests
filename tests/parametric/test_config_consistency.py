@@ -73,7 +73,7 @@ def set_service_version_tags():
 @features.tracing_configuration_consistency
 class Test_Config_UnifiedServiceTagging:
     @parametrize("library_env", [{}])
-    def test_default_version(self, library_env, test_agent, test_library):
+    def test_default_config(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="s1") as s1:
                 pass
@@ -84,6 +84,7 @@ class Test_Config_UnifiedServiceTagging:
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         assert span["service"] != "version_test"
         assert "version" not in span["meta"]
+        assert "env" not in span["meta"]
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
@@ -104,3 +105,16 @@ class Test_Config_UnifiedServiceTagging:
         span2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
         assert span2["service"] == "no dd_service"
         assert "version" not in span2["meta"]
+
+    @parametrize("library_env", [{"DD_ENV": "dev"}])
+    def test_specific_env(self, library_env, test_agent, test_library):
+        assert library_env.get("DD_ENV") == "dev"
+        with test_library:
+            with test_library.start_span(name="s1") as s1:
+                pass
+
+        traces = test_agent.wait_for_num_traces(1)
+        assert len(traces) == 1
+
+        span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+        assert span["meta"]["env"] == "dev"
