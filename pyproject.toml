@@ -150,6 +150,7 @@ allow_no_jira_ticket_for_bugs = [
     "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_globs_different_casing",
     "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_existence",
     "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_matching",
+    "tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures.test_tracer_update_sequence",
     "tests/stats/test_miscs.py::Test_Miscs.test_request_headers",
     "tests/test_data_integrity.py::Test_TraceHeaders.test_trace_header_container_tags",
     "tests/test_data_integrity.py::Test_TraceHeaders.test_traces_header_present",
