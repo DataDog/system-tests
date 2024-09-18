@@ -54,7 +54,7 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Run Docker SSI scenario
       if: always() && steps.install_runner.outcome == 'success'
-      run: ./run.sh DOCKER_SSI --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-push-base-images --ssi-installable-runtime ${{matrix.installable_runtime}}
+      run: ./run.sh DOCKER_SSI --ssi-weblog ${{matrix.weblog}} --ssi-library ${{ inputs.library }} --ssi-base-image ${{matrix.base_image}} --ssi-arch ${{matrix.arch}} --ssi-installable-runtime ${{matrix.installable_runtime}}
     - name: Compress logs
       if: always() && steps.install_runner.outcome == 'success'
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
