@@ -90,6 +90,92 @@ class Test_Defaults:
 
 
 @scenarios.parametric
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o")
+@features.tracing_configuration_consistency
+# To pass this test, ensure the lang you are testing has the necessary mapping in its config_rules.json file: https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static
+# And replace the `missing_feature` marker under the lang's manifest file, for Test_Consistent_Configs
+class Test_Consistent_Configs:
+    """Clients should report modifications to features."""
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                # Decrease the heartbeat/poll intervals to speed up the tests
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                # Multiple integrations disabled to capture compatibility across tracers
+                "DD_TRACE_GRPC_ENABLED": "false",  # applies to python, java, dotnet, ruby, node
+                "DD_TRACE_PHPREDIS_ENABLED": "false",  # applies to php only
+                "DD_TRACE_RATE_LIMIT": "100",
+                "DD_TRACE_HEADER_TAGS": "header:tag",
+                "DD_TRACE_ENABLED": "true",
+                "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "^[a-zA-Z]$",
+                "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory",
+                "DD_VERSION": "123",
+                "DD_HTTP_CLIENT_ERROR_STATUSES": "400",
+                "DD_HTTP_SERVER_ERROR_STATUSES": "500",
+                "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "true",
+                "DD_TRACE_CLIENT_IP_HEADER": "X-Forwarded-For",
+                # "DD_TRACE_AGENT_URL": "some-host:some-port", # Don't want to configure this, since we need tracer <> agent connection to run these tests!
+            }
+        ],
+    )
+
+    def test_library_settings(self, library_env, test_agent, test_library):
+        with test_library.start_span("test"):
+            pass
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        configuration = event["payload"]["configuration"]
+
+        configuration_by_name = {item["name"]: item for item in configuration}
+        for apm_telemetry_name, value in [
+            ("trace_rate_limit", ("100", 100)),
+            ("trace_header_tags", "header:tag"),
+            ("trace_enabled", ("true", True)),
+            # ("trace_obfuscation_query_string_regexp", "^[a-zA-Z]$"),
+            # ("trace_log_directory", "/some/temporary/directory"),
+            ("version", "123"),
+            # ("trace_http_client_error_statuses", "400"),
+            # ("trace_http_server_error_statuses", "500"),
+            # ("trace_http_client_tag_query_string", ("true", True)),
+            # (
+            #     "trace_client_ip_header",
+            #     "X-Forwarded-For",
+            # ),  # Unclear if correct key, see: https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit?disco=AAABVcOUNfU
+        ]:
+            if context.library == "cpp" and apm_telemetry_name in ("trace_header_tags"):
+                continue
+            apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
+            cfg_item = configuration_by_name.get(apm_telemetry_name)
+            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            if isinstance(value, tuple):
+                assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
+            else:
+                assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
+            # assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
+
+        # Golang and CPP do not support DD_TRACE_<INTEGRATION>_ENABLED, so don't test them for this config.
+        apm_telemetry_name = _mapped_telemetry_name(context, "trace_disabled_integrations")
+        cfg_item = configuration_by_name.get(apm_telemetry_name)
+        if (
+            context.library == "java"
+            or context.library == "dotnet"
+            or context.library == "node"
+            or context.library == "python"
+            or context.library == "ruby"
+        ):
+            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            assert cfg_item.get("value") is "grpc"
+        if context.library == "php":
+            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            assert cfg_item.get("value") is "phpredis"
+        # The trace_agent_url is a container address -- don't know the value, but we can assert its not empty (i.e, that it reports)
+        apm_telemetry_name = _mapped_telemetry_name(context, "trace_agent_url")
+        cfg_item = configuration_by_name.get(apm_telemetry_name)
+        assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+
+
+@scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
 @features.telemetry_app_started_event
 class Test_Environment:
