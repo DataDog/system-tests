@@ -28,7 +28,7 @@ class Test_Client_Stats:
             weblog.get("/stats-unique?code=204")
 
     @bug(
-        library="python", weblog_variant="django-poc", reason="APMSP-1375",
+        library="python", weblog_variant in ("django-poc", "python3.12"), reason="APMSP-1375",
     )
     def test_client_stats(self):
         stats_count = 0
