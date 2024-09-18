@@ -9,7 +9,7 @@ from .utils import BaseFullDenyListTest
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
-@bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="bugged on that version range")
+@bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="APMRP-360")
 @scenarios.appsec_blocking_full_denylist
 @features.appsec_client_ip_blocking
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
@@ -25,8 +25,7 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
 
     @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
     @bug(
-        context.library >= "java@1.22.0" and context.library < "java@1.35.0",
-        reason="Failed on large expiration values, which are used in this test",
+        context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360",
     )
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
