@@ -101,7 +101,7 @@ class Test_Consistent_Configs:
         "library_env",
         [
             {
-                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1", # Decrease the heartbeat/poll intervals to speed up the tests
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
                 "DD_ENV": "dev",
                 "DD_SERVICE": "service_test",
                 "DD_VERSION": "5.2.0",
@@ -131,14 +131,19 @@ class Test_Consistent_Configs:
         assert configuration_by_name.get("DD_SERVICE").get("value") == "service_test"
         assert configuration_by_name.get("DD_VERSION").get("value") == "5.2.0"
         assert configuration_by_name.get("DD_TRACE_RATE_LIMIT").get("value") == 10
-        assert configuration_by_name.get("DD_TRACE_HEADER_TAGS").get("value") == "User-Agent:my-user-agent,Content-Type."
+        assert (
+            configuration_by_name.get("DD_TRACE_HEADER_TAGS").get("value") == "User-Agent:my-user-agent,Content-Type."
+        )
         assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == False
         assert configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == "\d{3}-\d{2}-\d{4}"
         assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
         assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER").get("value") == "random-header-name"
         assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES").get("value") == "200-250"
         assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES").get("value") == "250-200"
-        assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING").get("value") == False # No telemetry received, tested with Python and Java(also tried: DD_HTTP_CLIENT_TAG_QUERY_STRING)
+        assert (
+            configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING").get("value") == False
+        )  # No telemetry received, tested with Python and Java(also tried: DD_HTTP_CLIENT_TAG_QUERY_STRING)
+
 
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
