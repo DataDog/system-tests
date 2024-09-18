@@ -181,7 +181,7 @@ class Test_Cookies:
 
     @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
     @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
-    @bug(context.library < "java@0.96.0")
+    @bug(context.library < "java@0.96.0", reason="APMRP-360")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
     def test_cookies_with_special_chars2(self):
         """Other cookies patterns"""
@@ -225,7 +225,7 @@ class Test_Cookies:
 
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
-    @bug(context.library < "java@0.96.0")
+    @bug(context.library < "java@0.96.0", reason="APMRP-360")
     @scenarios.appsec_custom_rules
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""

@@ -134,8 +134,8 @@ class Test_SamplingDecisions:
 
     @irrelevant(context.library in ("nodejs", "php", "dotnet"), reason="AIT-374")
     @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
-    @bug(context.library < "java@0.92.0")
-    @flaky(context.library < "python@0.57.0")
+    @bug(context.library < "java@0.92.0", reason="APMRP-360")
+    @flaky(context.library < "python@0.57.0", reason="APMRP-360")
     @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
     @flaky(
         context.library == "ruby" and context.weblog_variant in ("sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
