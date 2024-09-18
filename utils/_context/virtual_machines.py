@@ -331,3 +331,22 @@ class Centos7amd64(_VirtualMachine):
             os_cpu="amd64",
             **kwargs,
         )
+
+
+# Oracle Linux 9.2. Owner oracle, id: 131827586825
+class OracleLinux92amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_9_2_amd64",
+            aws_config=_AWSConfig(ami_id="ami-01453ca80e53609e3", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux_9_2_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+# TODO ARM64 ami-0d1bcd0124ba74024

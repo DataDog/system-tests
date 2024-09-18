@@ -2,12 +2,13 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
-  - ruby_tracer
-  - nodejs_tracer
-  - java_tracer
-  - python_tracer
-  - dotnet_tracer
-  - php_tracer
+  - oraclelinux_tracer
+ # - ruby_tracer
+ # - nodejs_tracer
+ # - java_tracer
+ # - python_tracer
+ # - dotnet_tracer
+ # - php_tracer
   - parse_results
   - before_tests
 
@@ -32,7 +33,47 @@ variables:
     KUBERNETES_CPU_REQUEST: "6"
     KUBERNETES_CPU_LIMIT: "6"
 
-onboarding_nodejs:
+onboarding_OracleLinux_host:
+  extends: .base_job_onboarding_system_tests
+  stage: oraclelinux_tracer
+  allow_failure: true
+  dependencies: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+  variables:
+    SCENARIO: "SIMPLE_INSTALLER_AUTO_INJECTION"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          TEST_LIBRARY: [nodejs, python, java, ruby, dotnet, php]
+
+  script:
+      - ./build.sh -i runner
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog test-app-${TEST_LIBRARY} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-only-branch oracle_linux_9_2_amd64
+
+onboarding_OracleLinux_container:
+  extends: .base_job_onboarding_system_tests
+  stage: oraclelinux_tracer
+  allow_failure: true
+  dependencies: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+  variables:
+    SCENARIO: "SIMPLE_INSTALLER_AUTO_INJECTION"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          TEST_LIBRARY: [nodejs, python, java, ruby, dotnet, php]
+
+  script:
+      - ./build.sh -i runner
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog test-app-${TEST_LIBRARY}-container --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-only-branch oracle_linux_9_2_amd64
+
+.onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -70,7 +111,7 @@ onboarding_nodejs:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_java:
+.onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -114,7 +155,7 @@ onboarding_java:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_python:
+.onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -152,7 +193,7 @@ onboarding_python:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_dotnet:
+.onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
@@ -187,7 +228,7 @@ onboarding_dotnet:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_ruby:
+.onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
@@ -222,7 +263,7 @@ onboarding_ruby:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-onboarding_php:
+.onboarding_php:
   extends: .base_job_onboarding_system_tests
   stage: php_tracer
   allow_failure: true
