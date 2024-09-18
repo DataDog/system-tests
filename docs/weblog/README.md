@@ -695,3 +695,10 @@ Query parameters required in the `GET` method:
 
 Examples:
 - `GET`: `/session/user?sdk_user=sdkUser`
+
+### \[GET\] /mongodb/getdatabase
+
+This endpoint is used to test if automatic instrumentation creates or not MongoDB spans depending of the configuration passed to the service.
+
+Examples:
+- `GET`: `/mongodb/getdatabase`

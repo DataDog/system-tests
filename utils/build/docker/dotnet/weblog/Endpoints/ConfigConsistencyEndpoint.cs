@@ -11,7 +11,7 @@ namespace weblog
     {
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
         {
-            routeBuilder.MapGet("/integration_enabled_config", async context =>
+            routeBuilder.MapGet("/mongodb/getdatabase", async context =>
             {
                 var client = new MongoClient("mongodb://mongodb:27017");
                 var command = new BsonDocument { { "buildInfo", 1 } };

@@ -245,7 +245,7 @@ class Test_Config_IntegrationEnabled_False:
     """ Verify behavior of integrations automatic spans """
 
     def setup_mongodb_integration_enabled_false(self):
-        self.r = weblog.get("/integration_enabled_config")
+        self.r = weblog.get("/mongodb/getdatabase")
 
     def test_mongodb_integration_enabled_false(self):
         assert self.r.status_code == 200
@@ -254,16 +254,17 @@ class Test_Config_IntegrationEnabled_False:
         # We do not use get_spans: the span we look for is not directly the span that carry the request information
         for data, trace in interfaces.library.get_traces(request=self.r):
             mongodbSpans += [(data, span) for span in trace if span.get("name") == "mongodb.query"]
-            
+
         assert len(mongodbSpans) == 0
 
-@scenarios.tracing_config_nondefault_2
+
+@scenarios.tracing_config_nondefault_3
 @features.tracing_configuration_consistency
 class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
-    
+
     def setup_mongodb_integration_enabled_true(self):
-        self.r = weblog.get("/integration_enabled_config")
+        self.r = weblog.get("/mongodb/getdatabase")
 
     def test_mongodb_integration_enabled_true(self):
         assert self.r.status_code == 200
@@ -272,5 +273,5 @@ class Test_Config_IntegrationEnabled_True:
         # We do not use get_spans: the span we look for is not directly the span that carry the request information
         for data, trace in interfaces.library.get_traces(request=self.r):
             mongodbSpans += [(data, span) for span in trace if span.get("name") == "mongodb.query"]
-            
+
         assert len(mongodbSpans) >= 1
