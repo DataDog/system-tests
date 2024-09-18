@@ -904,6 +904,9 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_fingerprinting.py:
+      Test_Fingerprinting_Capabilities:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)

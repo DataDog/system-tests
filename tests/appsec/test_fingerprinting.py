@@ -1,7 +1,10 @@
 from utils import features
 from utils import interfaces
+from utils import missing_feature
 from utils import rfc
+from utils import scenarios
 from utils import weblog
+from utils.dd_constants import Capabilities
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
@@ -77,3 +80,22 @@ class Test_Fingerprinting_Session:
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200
         assert all("_dd.appsec.fp.session" in m for m in get_span_meta(self.r_user))
+
+
+@rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
+@features.fingerprinting
+@scenarios.remote_config_mocked_backend_asm_dd
+class Test_Fingerprinting_Capabilities:
+    def test_endpoint_fingerprint_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_ENDPOINT_FINGERPRINT)
+
+    def test_network_fingerprint_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_NETWORK_FINGERPRINT)
+
+    def test_header_fingerprint_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_HEADER_FINGERPRINT)
+
+    @missing_feature(library="python")
+    @missing_feature(library="java")
+    def test_session_fingerprint_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_SESSION_FINGERPRINT)

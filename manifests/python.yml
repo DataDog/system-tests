@@ -462,6 +462,7 @@ tests/:
       Test_UserLoginSuccessEvent:
         '*': v2.10.0.dev
     test_fingerprinting.py:
+      Test_Fingerprinting_Capabilities: v2.11.0.dev
       Test_Fingerprinting_Endpoint: v2.11.0.dev
       Test_Fingerprinting_Header_And_Network: v2.11.0.dev
       Test_Fingerprinting_Session: missing_feature (missing endpoint)

@@ -211,6 +211,7 @@ tests/:
       Test_UserLoginFailureEvent: v1.9.0
       Test_UserLoginSuccessEvent: v1.9.0
     test_fingerprinting.py:
+      Test_Fingerprinting_Capabilities: missing_feature
       Test_Fingerprinting_Endpoint: missing_feature
       Test_Fingerprinting_Header_And_Network: missing_feature
       Test_Fingerprinting_Session: missing_feature
