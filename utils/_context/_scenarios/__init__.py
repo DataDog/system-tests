@@ -184,8 +184,8 @@ class scenarios:
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_disabled = EndToEndScenario(
-        "APPSEC_DISABLED",
+    everything_disabled = EndToEndScenario(
+        "EVERYTHING_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
         appsec_enabled=False,
         include_postgres_db=True,
@@ -441,11 +441,21 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
+    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="",)
+
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
-        weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"},
+        weblog_env={
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
+            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
+            "DD_SERVICE": "service_test",
+        },
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
+    )
+
+    tracing_config_nondefault_3 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
