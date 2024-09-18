@@ -87,14 +87,14 @@ func main() {
 		ctx.Writer.WriteHeader(status)
 		ctx.Writer.Write([]byte("Value tagged"))
 		switch {
-		case ctx.Request.ParseForm() == nil:
-			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), ctx.Request.PostForm)
 		case ctx.Request.Header.Get("Content-Type") == "application/json":
 			body, _ := io.ReadAll(ctx.Request.Body)
 			var bodyMap map[string]any
 			if err := json.Unmarshal(body, &bodyMap); err == nil {
 				appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
 			}
+		case ctx.Request.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), ctx.Request.PostForm)
 		}
 	})
 

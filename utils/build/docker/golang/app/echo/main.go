@@ -98,14 +98,14 @@ func main() {
 		}
 
 		switch {
-		case c.Request().ParseForm() == nil:
-			appsec.MonitorParsedHTTPBody(c.Request().Context(), c.Request().PostForm)
 		case c.Request().Header.Get("Content-Type") == "application/json":
 			body, _ := io.ReadAll(c.Request().Body)
 			var bodyMap map[string]any
 			if err := json.Unmarshal(body, &bodyMap); err == nil {
 				appsec.MonitorParsedHTTPBody(c.Request().Context(), bodyMap)
 			}
+		case c.Request().ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(c.Request().Context(), c.Request().PostForm)
 		}
 		return c.String(status, "Value tagged")
 	})

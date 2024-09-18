@@ -122,14 +122,14 @@ func main() {
 		w.Write([]byte("Value tagged"))
 
 		switch {
-		case r.ParseForm() == nil:
-			appsec.MonitorParsedHTTPBody(r.Context(), r.PostForm)
 		case r.Header.Get("Content-Type") == "application/json":
 			body, _ := io.ReadAll(r.Body)
 			var bodyMap map[string]any
 			if err := json.Unmarshal(body, &bodyMap); err == nil {
 				appsec.MonitorParsedHTTPBody(r.Context(), bodyMap)
 			}
+		case r.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(r.Context(), r.PostForm)
 		}
 	})
 
