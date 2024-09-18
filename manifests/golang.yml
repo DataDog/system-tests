@@ -27,16 +27,16 @@ tests/:
         Test_Schema_Request_Headers:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
-        Test_Schema_Request_Json_Body: missing_feature
+        Test_Schema_Request_Json_Body: v1.69.0-dev
         Test_Schema_Request_Path_Parameters:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
         Test_Schema_Request_Query_Parameters:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
-        Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Body_env_var: missing_feature
-        Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_Body: v1.69.0-dev
+        Test_Schema_Response_Body_env_var: v1.69.0-dev
+        Test_Schema_Response_Headers: v1.69.0-dev
     iast/:
       sink/:
         test_code_injection.py:
@@ -125,7 +125,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
-      test_shi.py: missing_feature
+      test_shi.py: irrelevant (there is no equivalent to system(3) in go)
       test_sqli.py:
         Test_Sqli_BodyJson: v1.66.0
         Test_Sqli_BodyUrlEncoded: v1.66.0
