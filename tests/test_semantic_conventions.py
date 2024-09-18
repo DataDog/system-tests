@@ -158,7 +158,7 @@ class Test_Meta:
 
     @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
     @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
-    @bug(context.library < "php@0.68.2")
+    @bug(context.library < "php@0.68.2", reason="APMRP-360")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
@@ -232,7 +232,7 @@ class Test_Meta:
 
     @bug(library="php", reason="language tag not implemented")
     # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
-    @bug(context.library < "java@1.1.0", reason="language tag implemented but not for all spans")
+    @bug(context.library < "java@1.1.0", reason="APMRP-360")
     @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
@@ -285,7 +285,6 @@ class Test_Meta:
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 

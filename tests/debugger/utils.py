@@ -92,7 +92,7 @@ def get_probes_map(data_set):
         contents = data["request"].get("content", []) or []  # Ensures contents is a list
         for content in contents:
             if "content" in content:
-                d_contents = json.loads(content["content"])
+                d_contents = content["content"]
                 for d_content in d_contents:
                     if isinstance(d_content, dict):
                         _process_debugger(d_content["debugger"])
