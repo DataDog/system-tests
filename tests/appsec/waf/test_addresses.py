@@ -263,9 +263,7 @@ class Test_BodyUrlEncoded:
         self.r_value = weblog.post("/waf", data={"value": '<vmlframe src="xss">'})
 
     @bug(
-        context.library < "java@1.2.0",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583",
     )
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
@@ -348,9 +346,7 @@ class Test_ResponseStatus:
         self.r = weblog.get("/mysql")
 
     @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583",
     )
     def test_basic(self):
         """AppSec reports 404 responses"""

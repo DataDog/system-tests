@@ -1,8 +1,21 @@
 import inspect
+import os
+import re
+
 import pytest
 import semantic_version as semver
 
 from utils._context.core import context
+
+# bug: APPSEC-51509
+
+_jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
+
+_allow_no_jira_ticket_for_bugs: list[str] = []
+
+
+def configure(config: pytest.Config):
+    _allow_no_jira_ticket_for_bugs.extend(config.inicfg["allow_no_jira_ticket_for_bugs"])
 
 
 # semver module offers two spec engine :
@@ -20,6 +33,24 @@ class CustomSpec(semver.NpmSpec):
 
 
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
+
+
+def _ensure_jira_ticket_as_reason(item, reason: str):
+
+    if reason is None or not _jira_ticket_pattern.fullmatch(reason):
+        path = inspect.getfile(item)
+        rel_path = os.path.relpath(path)
+
+        if inspect.isclass(item):
+            nodeid = f"{rel_path}::{item.__name__}"
+        else:
+            nodeid = f"{rel_path}::{item.__qualname__}"
+
+        for allowed_nodeid in _allow_no_jira_ticket_for_bugs:
+            if nodeid.startswith(allowed_nodeid):
+                return
+
+        pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
 
 
 def _get_skipped_item(item, skip_reason):
@@ -76,7 +107,7 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def missing_feature(condition=None, library=None, weblog_variant=None, reason=None):
+def missing_feature(condition: bool = None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as missing"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
@@ -89,7 +120,7 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
         if not skip:
             return function_or_class
 
-        full_reason = "missing_feature" if reason is None else f"missing_feature: {reason}"
+        full_reason = "missing_feature" if reason is None else f"missing_feature ({reason})"
 
         return _get_expected_failure_item(function_or_class, full_reason)
 
@@ -109,7 +140,7 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
         if not skip:
             return function_or_class
 
-        full_reason = "irrelevant" if reason is None else f"irrelevant: {reason}"
+        full_reason = "irrelevant" if reason is None else f"irrelevant ({reason})"
         return _get_skipped_item(function_or_class, full_reason)
 
     return decorator
@@ -128,10 +159,12 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
         if inspect.isclass(function_or_class):
             assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
+        _ensure_jira_ticket_as_reason(function_or_class, reason)
+
         if not expected_to_fail:
             return function_or_class
 
-        full_reason = "bug" if reason is None else f"bug: {reason}"
+        full_reason = "bug" if reason is None else f"bug ({reason})"
         return _get_expected_failure_item(function_or_class, full_reason)
 
     return decorator
@@ -147,10 +180,12 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
         if inspect.isclass(function_or_class):
             assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
+        _ensure_jira_ticket_as_reason(function_or_class, reason)
+
         if not skip:
             return function_or_class
 
-        full_reason = "flaky" if reason is None else f"flaky: {reason}"
+        full_reason = "flaky" if reason is None else f"flaky ({reason})"
         return _get_skipped_item(function_or_class, full_reason)
 
     return decorator
@@ -237,10 +272,17 @@ def released(
         if len(skip_reasons) != 0:
             # look for any flaky or irrelevant, meaning we don't execute the test at all
             for reason in skip_reasons:
-                if reason.startswith("flaky") or reason.startswith("irrelevant"):
-                    return _get_skipped_item(test_class, reason)  # use the first skip reason found
+                if reason.startswith("flaky"):
+                    _ensure_jira_ticket_as_reason(test_class, reason[7:-1])
+                    return _get_skipped_item(test_class, reason)
+
+                if reason.startswith("irrelevant"):
+                    return _get_skipped_item(test_class, reason)
 
                 # Otherwise, it's either bug, or missing_feature. Take the first one
+                if reason.startswith("bug"):
+                    _ensure_jira_ticket_as_reason(test_class, reason[5:-1])
+
                 return _get_expected_failure_item(test_class, reason)
 
         return test_class
