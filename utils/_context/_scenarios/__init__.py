@@ -450,6 +450,7 @@ class scenarios:
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             # disable ASM to test non asm client ip tagging
             "DD_APPSEC_ENABLED": "false",
+            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
         },
         doc="",

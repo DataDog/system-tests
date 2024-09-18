@@ -1238,6 +1238,8 @@ tests/:
     Test_Config_ClientIPHeader_Configured: v1.38.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (endpoints return 404, but in theory should work)
     Test_Config_ClientTagQueryString_Empty: missing_feature (incorrect default value)
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
