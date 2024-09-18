@@ -217,7 +217,7 @@ def _get_span_by_tags(spans, tags):
                 break
         else:
             return span
-        return {}
+    return {}
 
 
 @scenarios.tracing_config_nondefault
