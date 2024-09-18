@@ -1,4 +1,5 @@
 tests/:
+
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span:
@@ -20,23 +21,17 @@ tests/:
           net-http: irrelevant (net-http doesn't handle path params)
       test_schemas.py:
         Test_Scanners: missing_feature
-        Test_Schema_Request_Cookies:
-          '*': v1.60.0-dev
-          net-http: irrelevant (net-http doesn't handle path params)
-        Test_Schema_Request_FormUrlEncoded_Body: missing_feature
-        Test_Schema_Request_Headers:
-          '*': v1.60.0-dev
-          net-http: irrelevant (net-http doesn't handle path params)
-        Test_Schema_Request_Json_Body: v1.69.0-dev
+        Test_Schema_Request_Cookies: v1.60.0
+        Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
+        Test_Schema_Request_Headers: v1.60.0
+        Test_Schema_Request_Json_Body: v1.60.0
         Test_Schema_Request_Path_Parameters:
           '*': v1.60.0-dev
           net-http: irrelevant (net-http doesn't handle path params)
-        Test_Schema_Request_Query_Parameters:
-          '*': v1.60.0-dev
-          net-http: irrelevant (net-http doesn't handle path params)
-        Test_Schema_Response_Body: v1.69.0-dev
-        Test_Schema_Response_Body_env_var: v1.69.0-dev
-        Test_Schema_Response_Headers: v1.69.0-dev
+        Test_Schema_Request_Query_Parameters: v1.60.0
+        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body_env_var: missing_feature
+        Test_Schema_Response_Headers: v1.60.0
     iast/:
       sink/:
         test_code_injection.py:

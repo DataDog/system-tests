@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -77,8 +79,23 @@ func main() {
 		status, _ := strconv.Atoi(ctx.Param("status_code"))
 		span, _ := tracer.SpanFromContext(ctx.Request.Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range ctx.Request.URL.Query() {
+			for _, value := range values {
+				ctx.Writer.Header().Add(key, value)
+			}
+		}
 		ctx.Writer.WriteHeader(status)
 		ctx.Writer.Write([]byte("Value tagged"))
+		switch {
+		case ctx.Request.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), ctx.Request.PostForm)
+		case ctx.Request.Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(ctx.Request.Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
+			}
+		}
 	})
 
 	r.Any("/status", func(ctx *gin.Context) {
