@@ -61,34 +61,30 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
     #    - Docker commands are forwarded to the host.
     #    - The kind container is a sibling to the build container
     # Three things need to happen
-    # 1) The kind container needs to be in the bridge network to communicate with the internet: one in _ensure_cluster()
+    # 1) The kind container needs to be in the bridge network to communicate with the internet: done in _ensure_cluster()
     # 2) Kube config needs to be altered to use the correct IP of the control plane server
-    # 3) The internal port needs to be used: handled in get_agent_port() and get_weblog_port()
-    execute_command(f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{json .}}}}'")
-
-    control_plane_ip = execute_command(
+    # 3) The internal ports needs to be used rather than external ports: handled in get_agent_port() and get_weblog_port()
+    correct_control_plane_ip = execute_command(
         f"docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format '{{{{.NetworkSettings.Networks.bridge.IPAddress}}}}'"
     ).strip()
-    if not control_plane_ip:
-        raise Exception("Unable to find control plane IP")
-    logger.debug(f"[setup_kind_in_gitlab] control_plane_ip: {control_plane_ip}")
+    if not correct_control_plane_ip:
+        raise Exception("Unable to find correct control plane IP")
+    logger.debug(f"[setup_kind_in_gitlab] correct_control_plane_ip: {correct_control_plane_ip}")
 
-    control_plane_server = execute_command(
+    control_plane_address_in_config = execute_command(
         f'docker container inspect {k8s_kind_cluster.cluster_name}-control-plane --format \'{{{{index .NetworkSettings.Ports "6443/tcp" 0 "HostIp"}}}}:{{{{index .NetworkSettings.Ports "6443/tcp" 0 "HostPort"}}}}\''
     ).strip()
-    if not control_plane_server:
-        raise Exception("Unable to find control plane server")
-    logger.debug(f"[setup_kind_in_gitlab] control_plane_server: {control_plane_server}")
+    if not control_plane_address_in_config:
+        raise Exception("Unable to find control plane address from config")
+    logger.debug(f"[setup_kind_in_gitlab] control_plane_address_in_config: {control_plane_address_in_config}")
 
     # Replace server config with dns name + internal port
     execute_command_sync(
-        f"sed -i -e 's/{control_plane_server}/{control_plane_ip}:6443/g' {os.environ['HOME']}/.kube/config",
+        f"sed -i -e 's/{control_plane_address_in_config}/{correct_control_plane_ip}:6443/g' {os.environ['HOME']}/.kube/config",
         k8s_kind_cluster,
     )
 
-    execute_command_sync(f"cat {os.environ['HOME']}/.kube/config", k8s_kind_cluster)
-
-    k8s_kind_cluster.cluster_host_name = control_plane_ip
+    k8s_kind_cluster.cluster_host_name = correct_control_plane_ip
 
 
 def get_free_port():
