@@ -341,6 +341,7 @@ class Test_Telemetry:
     @flaky(context.library <= "java@1.38.1", reason="Telemetry second heartbeat was sent too fast")
     @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
     @flaky(library="ruby", reason="APMAPI-226")
+    @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """
