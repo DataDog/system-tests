@@ -27,7 +27,11 @@ class Test_Client_Stats:
         for _ in range(3):
             weblog.get("/stats-unique?code=204")
 
-    @bug(library="python", weblog_variant="django-poc", reason="Django integration doesn't honor the expected resource name.")
+    @bug(
+        library="python",
+        weblog_variant="django-poc",
+        reason="Django integration doesn't honor the expected resource name.",
+    )
     def test_client_stats(self):
         stats_count = 0
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
