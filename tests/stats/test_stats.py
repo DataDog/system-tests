@@ -30,7 +30,7 @@ class Test_Client_Stats:
     @bug(
         library="python",
         weblog_variant="django-poc",
-        reason="Django integration doesn't honor the expected resource name.",
+        reason="APMSP-1375",
     )
     def test_client_stats(self):
         stats_count = 0
