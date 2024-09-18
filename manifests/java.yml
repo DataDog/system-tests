@@ -910,6 +910,7 @@ tests/:
       Test_Fingerprinting_Header_And_Network:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Session: missing_feature
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
@@ -1237,6 +1238,8 @@ tests/:
   test_config_consistency.py:
     Test_Config_ClientTagQueryString_Configured: missing_feature (endpoints return 404, but in theory should work)
     Test_Config_ClientTagQueryString_Empty: missing_feature (incorrect default value)
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
