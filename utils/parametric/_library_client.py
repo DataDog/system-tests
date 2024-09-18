@@ -526,6 +526,9 @@ class APMLibraryClientGRPC:
         except:  # noqa
             logger.error(f"Failed to get logs from container {self.container.name}")
 
+    def crash(self) -> None:
+        self._client.Crash(pb.CrashArgs())
+
     def trace_start_span(
         self,
         name: str,
