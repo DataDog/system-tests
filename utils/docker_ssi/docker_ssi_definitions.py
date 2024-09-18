@@ -24,8 +24,6 @@ class SupportedImages:
         self.TOMCAT_9_AMD64 = DockerImage("tomcat:9", LINUX_AMD64)
         self.TOMCAT_9_ARM64 = DockerImage("tomcat:9", LINUX_ARM64)
         self.WEBSPHERE_AMD64 = DockerImage("icr.io/appcafe/websphere-traditional", LINUX_AMD64)
-        # self.JBOSS_ARM64 = DockerImage("quay.io/wildfly/wildfly:33.0.1.Final-jdk21", LINUX_ARM64)
-        # self.JBOSS_ARM64 = DockerImage("quay.io/wildfly/wildfly:27.0.0.Final-jdk17", LINUX_ARM64)
         self.JBOSS_AMD64 = DockerImage("quay.io/wildfly/wildfly:26.1.2.Final", LINUX_AMD64)
 
 
