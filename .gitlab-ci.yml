@@ -69,11 +69,32 @@ onboarding_OracleLinux_container:
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          TEST_LIBRARY: [nodejs, python, java, ruby, dotnet, php]
+          TEST_LIBRARY: [nodejs, python, java, ruby, dotnet]
 
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog test-app-${TEST_LIBRARY}-container --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
+
+onboarding_OracleLinux_PHP_container:
+  extends: .base_job_onboarding_system_tests
+  stage: oraclelinux_tracer
+  allow_failure: true
+  dependencies: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+  variables:
+    SCENARIO: "SIMPLE_INSTALLER_AUTO_INJECTION"
+    AMI_UPDATE: "true"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          TEST_LIBRARY: [php]
+
+  script:
+      - ./build.sh -i runner
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog test-app-${TEST_LIBRARY}-container-83 --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
 
 .onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
