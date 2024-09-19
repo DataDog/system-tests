@@ -332,11 +332,12 @@ class TestedContainer:
         keys = [
             bytearray(os.environ["DD_API_KEY"], "utf-8"),
         ]
-        if "DD_APP_KEY" in os.environ:
+
+        if os.environ.get("DD_APP_KEY"):
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
-        if "AWS_ACCESS_KEY_ID" in os.environ:
+        if os.environ.get("AWS_ACCESS_KEY_ID"):
             keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
-        if "AWS_SECRET_ACCESS_KEY" in os.environ:
+        if os.environ.get("AWS_SECRET_ACCESS_KEY"):
             keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
 
         data = (
@@ -348,7 +349,7 @@ class TestedContainer:
             filename = f"{self.log_folder_path}/{output_name}.log"
 
             for key in keys:
-                output = output.replace(key, b"***")
+                output = output.replace(key, b"<redacted>")
 
             with open(filename, "wb") as f:
                 f.write(output)

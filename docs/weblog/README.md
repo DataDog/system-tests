@@ -6,7 +6,7 @@ A weblog is a web app that system uses to test the library. It mimics what would
 
 ## Disclaimer
 
-This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contains mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
+This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contain mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
 
 **You are strongly encouraged to help others by submitting corrections when you notice issues with this document.**
 
@@ -637,6 +637,11 @@ distributed tracing propagation headers.
 
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
+
+### \[GET\] /stats-unique
+The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message, default to 200 OK.
+This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
+stats generating tests.
 
 ### GET /healthcheck
 

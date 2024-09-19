@@ -158,7 +158,7 @@ class Test_Meta:
 
     @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
     @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
-    @bug(context.library < "php@0.68.2")
+    @bug(context.library < "php@0.68.2", reason="APMRP-360")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
