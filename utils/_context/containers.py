@@ -932,7 +932,7 @@ class SqlServerContainer(SqlDbTestedContainer):
             }
 
         super().__init__(
-            image_name="mcr.microsoft.com/azure-sql-edge:latest",
+            image_name="mcr.microsoft.com/azure-sql-edge:1.0.7",
             name="mssql",
             cap_add=["SYS_PTRACE"],
             user="root",
