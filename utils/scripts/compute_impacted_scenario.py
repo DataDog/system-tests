@@ -176,6 +176,7 @@ def main():
                     r"pyproject\.toml": None,
                     r"scenario_groups\.yml": None,
                     r"shell\.nix": None,
+                    r"static-analysis\.datadog\.yml": None,
                     ## few files with lot of effect
                     r"requirements\.txt": ScenarioGroup.ALL.value,
                     r"run\.sh": ScenarioGroup.ALL.value,
