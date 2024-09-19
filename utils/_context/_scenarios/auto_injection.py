@@ -13,6 +13,7 @@ from utils._context.virtual_machines import (
     AmazonLinux2DotNet6,
     AmazonLinux2amd64,
     Centos7amd64,
+    Fedora39amd64,
 )
 
 from .core import Scenario
@@ -35,6 +36,7 @@ class _VirtualMachineScenario(Scenario):
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
         include_centos_7_amd64=False,
+        include_fedora_39_amd64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -67,6 +69,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AmazonLinux2023arm64())
         if include_centos_7_amd64:
             self.required_vms.append(Centos7amd64())
+        if include_fedora_39_amd64:
+            self.required_vms.append(Fedora39amd64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -189,5 +193,6 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
             include_centos_7_amd64=True,
+            include_fedora_39_amd64=True,
             scenario_groups=scenario_groups,
         )

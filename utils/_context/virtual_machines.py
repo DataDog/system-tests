@@ -3,7 +3,6 @@ import json
 import hashlib
 
 from utils.tools import logger
-from utils._context.library_version import Version
 from utils import context
 from utils.onboarding.debug_vm import extract_logs_to_file
 
@@ -328,6 +327,21 @@ class Centos7amd64(_VirtualMachine):
             os_type="linux",
             os_distro="rpm",
             os_branch="centos_7_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class Fedora39amd64(_VirtualMachine):
+    def __init__(sef, **kwargs) -> None:
+        super().__init__(
+            "Fedora_39_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0ba8f2988373d0735", ami_instance_type="t2.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
             os_cpu="amd64",
             **kwargs,
         )
