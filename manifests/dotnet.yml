@@ -372,10 +372,10 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
-    Test_Config_UnifiedServiceTagging_Default: missing_feature
     Test_Config_IntegrationEnabled_False: v3.3.0
     Test_Config_IntegrationEnabled_True: v3.3.0
+    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
+    Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v2.46.0
   test_distributed.py:
