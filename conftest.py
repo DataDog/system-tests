@@ -44,6 +44,13 @@ def pytest_addoption(parser):
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
+    parser.addoption(
+        "--vm-default-vms",
+        type=str,
+        action="store",
+        help="True launch vms marked as default, False launch only no default vm. All launch all vms",
+        default="True",
+    )
 
     # Docker ssi scenarios
     parser.addoption("--ssi-weblog", type=str, action="store", help="Set docker ssi weblog")

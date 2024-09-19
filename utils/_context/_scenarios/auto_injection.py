@@ -14,6 +14,10 @@ from utils._context.virtual_machines import (
     AmazonLinux2amd64,
     Centos7amd64,
     OracleLinux92amd64,
+    OracleLinux92arm64,
+    OracleLinux88amd64,
+    OracleLinux88arm64,
+    OracleLinux79amd64,
 )
 
 from .core import Scenario
@@ -37,6 +41,10 @@ class _VirtualMachineScenario(Scenario):
         include_amazon_linux_2023_arm64=False,
         include_centos_7_amd64=False,
         include_oraclelinux_9_2_amd64=False,
+        include_oraclelinux_9_2_arm64=False,
+        include_oraclelinux_8_8_amd64=False,
+        include_oraclelinux_8_8_arm64=False,
+        include_oraclelinux_7_9_amd64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -69,8 +77,17 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AmazonLinux2023arm64())
         if include_centos_7_amd64:
             self.required_vms.append(Centos7amd64())
+        # Include Oracle Linux (not default vms)
         if include_oraclelinux_9_2_amd64:
             self.required_vms.append(OracleLinux92amd64())
+        if include_oraclelinux_9_2_arm64:
+            self.required_vms.append(OracleLinux92arm64())
+        if include_oraclelinux_8_8_amd64:
+            self.required_vms.append(OracleLinux88amd64())
+        if include_oraclelinux_8_8_arm64:
+            self.required_vms.append(OracleLinux88arm64())
+        if include_oraclelinux_7_9_amd64:
+            self.required_vms.append(OracleLinux79amd64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -88,6 +105,10 @@ class _VirtualMachineScenario(Scenario):
         self._weblog = config.option.vm_weblog
         self._check_test_environment()
         self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
+        only_default_vms = config.option.vm_default_vms
+        logger.info(f"Default vms policy: {only_default_vms}")
+        if only_default_vms not in ["All", "True", "False"]:
+            raise ValueError(f"Invalid value for --vm-default-vms: {only_default_vms}. Use 'All', 'True' or 'False'")
 
         provisioner.remove_unsupported_machines(
             self._library.library,
@@ -96,6 +117,7 @@ class _VirtualMachineScenario(Scenario):
             self.vm_provider_id,
             config.option.vm_only_branch,
             config.option.vm_skip_branches,
+            only_default_vms,
         )
         for vm in self.required_vms:
             logger.info(f"Adding provision for {vm.name}")
@@ -194,5 +216,9 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_amazon_linux_2023_arm64=True,
             include_centos_7_amd64=True,
             include_oraclelinux_9_2_amd64=True,
+            include_oraclelinux_9_2_arm64=True,
+            include_oraclelinux_8_8_amd64=True,
+            include_oraclelinux_8_8_arm64=True,
+            include_oraclelinux_7_9_amd64=True,
             scenario_groups=scenario_groups,
         )

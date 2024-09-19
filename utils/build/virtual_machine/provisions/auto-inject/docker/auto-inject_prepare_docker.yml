@@ -28,9 +28,38 @@
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
+      os_branch: oracle_linux
       remote-command: |
-        #Workaround to allow us to install ssi
-        sudo mkdir -p /etc/docker
+        if ! command -v dnf &> /dev/null
+        then
+            sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            sudo yum-config-manager --enable ol7_addons
+            sudo yum install -y wget
+
+            #Some repositories are broken from OL7, so we need to download the packages manually!
+            wget https://www.rpmfind.net/linux/almalinux/8.10/AppStream/x86_64/os/Packages/slirp4netns-0.4.2-3.git21fdece.module_el8.5.0+2635+e4386a39.x86_64.rpm
+            sudo rpm -Uvh slirp4netns-0.4.2-3.git21fdece.module_el8.5.0+2635+e4386a39.x86_64.rpm
+
+            wget http://yum.gunet.gr/repo/OracleLinux/OL7/developer/x86_64/fuse3-libs-3.6.1-4.el7.x86_64.rpm
+            sudo rpm -Uvh fuse3-libs-3.6.1-4.el7.x86_64.rpm
+
+            wget ftp://ftp.icm.edu.pl/vol/rzm7/linux-centos-vault/7.9.2009/extras/x86_64/Packages/fuse-overlayfs-0.7.2-6.el7_8.x86_64.rpm
+            sudo rpm -Uvh fuse-overlayfs-0.7.2-6.el7_8.x86_64.rpm
+
+            #We should have all dependencies installed, now install docker
+            sudo yum install -y docker-ce docker-ce-cli containerd.io
+        else
+            sudo dnf remove -y podman buildah
+            sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+            sudo dnf install -y docker-ce
+        fi
+
+        sudo systemctl enable docker.service
+        sudo systemctl start docker.service
+        sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+    - os_type: linux
+      os_distro: rpm
+      remote-command: |
         sudo yum -y install docker
         sudo systemctl start docker.service
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version

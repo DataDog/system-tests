@@ -8,7 +8,7 @@ class VirtualMachineProvisioner:
     """ Manages the provision parser for the virtual machines."""
 
     def remove_unsupported_machines(
-        self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch, vm_skip_branches
+        self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch, vm_skip_branches, only_default_vms
     ):
         """ Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch  """
 
@@ -78,6 +78,14 @@ class VirtualMachineProvisioner:
             if allowed == False:
                 logger.stdout(f"WARNING: Weblog doesn't support VM [{vm.name}]. Removed!")
                 vms_to_remove.append(vm)
+
+            if not vm_only_branch and only_default_vms != "All":
+                if only_default_vms == "True" and not vm.default_vm:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a default VM")
+                    vms_to_remove.append(vm)
+                if only_default_vms == "False" and vm.default_vm:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's a default VM")
+                    vms_to_remove.append(vm)
         # Ok remove the vms
         for vm in vms_to_remove:
             required_vms.remove(vm)

@@ -83,7 +83,17 @@ class _SSHConfig:
 
 class _VirtualMachine:
     def __init__(
-        self, name, aws_config, vagrant_config, krunvm_config, os_type, os_distro, os_branch, os_cpu, **kwargs,
+        self,
+        name,
+        aws_config,
+        vagrant_config,
+        krunvm_config,
+        os_type,
+        os_distro,
+        os_branch,
+        os_cpu,
+        default_vm=True,
+        **kwargs,
     ) -> None:
         self.name = name
         self.datadog_config = DataDogConfig()
@@ -100,6 +110,7 @@ class _VirtualMachine:
         self.deffault_open_port = 5985
         self.agent_env = None
         self.app_env = None
+        self.default_vm = default_vm
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
@@ -343,10 +354,74 @@ class OracleLinux92amd64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="oracle_linux_9_2_amd64",
+            os_branch="oracle_linux",
             os_cpu="amd64",
+            default_vm=False,
             **kwargs,
         )
 
 
-# TODO ARM64 ami-0d1bcd0124ba74024
+class OracleLinux92arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_9_2_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0d1bcd0124ba74024", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 8.8. Owner oracle, id: 131827586825
+class OracleLinux88amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_8_8_amd64",
+            aws_config=_AWSConfig(ami_id="ami-02a7419f257858fad", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class OracleLinux88arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_8_8_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0463a0d7ecd42cc89", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 7.9. Owner oracle, id: 131827586825
+class OracleLinux79amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_7_9_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0fb08d5eb039a9ebd", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
