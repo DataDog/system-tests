@@ -448,17 +448,17 @@ class scenarios:
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
-            "DD_TRACE_MongoDb_ENABLED": "false",
+            "DD_TRACE_Kafka_ENABLED": "false",
         },
-        include_mongo_db=True,
+        include_kafka=True,
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
 
     tracing_config_nondefault_3 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_3",
-        weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false", "DD_TRACE_MongoDb_ENABLED": "true"},
-        include_mongo_db=True,
+        weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false", "DD_TRACE_Kafka_ENABLED": "true"},
+        include_kafka=True,
         doc="",
     )
 

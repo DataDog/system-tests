@@ -244,18 +244,21 @@ class Test_Config_UnifiedServiceTagging_Default:
 class Test_Config_IntegrationEnabled_False:
     """ Verify behavior of integrations automatic spans """
 
-    def setup_mongodb_integration_enabled_false(self):
-        self.r = weblog.get("/mongodb/getdatabase")
+    def setup_kafka_integration_enabled_false(self):
+        self.r = weblog.get("/kafka/produce")
 
-    def test_mongodb_integration_enabled_false(self):
+    def test_kafka_integration_enabled_false(self):
         assert self.r.status_code == 200
 
-        mongodbSpans = []
+        nonKafkaSpans = []
+        kafkaSpans = []
         # We do not use get_spans: the span we look for is not directly the span that carry the request information
         for data, trace in interfaces.library.get_traces(request=self.r):
-            mongodbSpans += [(data, span) for span in trace if span.get("name") == "mongodb.query"]
+            nonKafkaSpans += [(data, span) for span in trace if span.get("name") != "kafka.produce"]
+            kafkaSpans += [(data, span) for span in trace if span.get("name") == "kafka.produce"]
 
-        assert len(mongodbSpans) == 0
+        assert len(nonKafkaSpans) > 0
+        assert len(kafkaSpans) == 0
 
 
 @scenarios.tracing_config_nondefault_3
@@ -263,15 +266,18 @@ class Test_Config_IntegrationEnabled_False:
 class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
 
-    def setup_mongodb_integration_enabled_true(self):
-        self.r = weblog.get("/mongodb/getdatabase")
+    def setup_kafka_integration_enabled_true(self):
+        self.r = weblog.get("/kafka/produce")
 
-    def test_mongodb_integration_enabled_true(self):
+    def test_kafka_integration_enabled_true(self):
         assert self.r.status_code == 200
 
-        mongodbSpans = []
+        nonKafkaSpans = []
+        kafkaSpans = []
         # We do not use get_spans: the span we look for is not directly the span that carry the request information
         for data, trace in interfaces.library.get_traces(request=self.r):
-            mongodbSpans += [(data, span) for span in trace if span.get("name") == "mongodb.query"]
+            nonKafkaSpans += [(data, span) for span in trace if span.get("name") != "kafka.produce"]
+            kafkaSpans += [(data, span) for span in trace if span.get("name") == "kafka.produce"]
 
-        assert len(mongodbSpans) >= 1
+        assert len(nonKafkaSpans) > 0
+        assert len(kafkaSpans) > 0
