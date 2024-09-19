@@ -174,15 +174,8 @@ allow_no_jira_ticket_for_bugs = [
     "tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing",
     "tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol",
     "tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart",
-    "tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id",
-    "tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery",
     "tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory",
     "tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body",
-    "tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded",
-    "tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml",
-    "tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson",
-    "tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace",
-    "tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry",
 ]
 
 [tool.pylint]
