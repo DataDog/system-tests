@@ -417,20 +417,20 @@ tests/:
         Test_Sqli_BodyJson:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Sqli_BodyUrlEncoded:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_BodyXml:
           '*': v1.39.0
           akka-http: missing_feature (Requires parsed body instrumentation)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Sqli_Capability: missing_feature
@@ -447,19 +447,19 @@ tests/:
         Test_Sqli_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_Telemetry:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
       test_ssrf.py:
@@ -854,7 +854,7 @@ tests/:
         resteasy-netty3: v1.7.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-openliberty: v0.115.0
-        spring-boot-payara: bug (user block results in 500 response)
+        spring-boot-payara: bug (APPSEC-54966)
         vertx3: v1.7.0
         vertx4: v1.7.0
       Test_Suspicious_Request_Blocking:
@@ -1190,7 +1190,7 @@ tests/:
       TestDynamicConfigV2: v1.31.0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
-      Test_Otel_Env_Vars: missing_feature
+      Test_Otel_Env_Vars: v1.35.2
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -1231,11 +1231,15 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeader_Configured: v1.38.0
+    Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
     Test_Config_ClientTagQueryString_Configured: missing_feature (endpoints return 404, but in theory should work)
     Test_Config_ClientTagQueryString_Empty: missing_feature (incorrect default value)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature

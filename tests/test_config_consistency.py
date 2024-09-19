@@ -91,10 +91,10 @@ class Test_Config_HttpClientErrorStatuses_Default:
         # assert content["status_code"] == 400
         
         interfaces.library.assert_trace_exists(self.r)
-        trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
-        client_span = _get_span_by_tags(trace, {"http.url": self.url, "span.kind": "client"})
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        assert client_span.get("meta").get("http.status_code") == "400"
+        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "400"})
+        assert client_span, spans
         assert client_span.get("error") == 1
 
     def setup_status_code_500(self):
@@ -108,10 +108,10 @@ class Test_Config_HttpClientErrorStatuses_Default:
         # assert content["status_code"] == 500
 
         interfaces.library.assert_trace_exists(self.r)
-        trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
-        client_span = _get_span_by_tags(trace, {"http.url": self.url, "span.kind": "client"})
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        assert client_span.get("meta").get("http.status_code") == "500"
+        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "500"})
+        assert client_span, spans
         assert client_span.get("error") == None or client_span.get("error") == 0
 
 
@@ -130,10 +130,10 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
         # assert content["status_code"] == 200
 
         interfaces.library.assert_trace_exists(self.r)
-        trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
-        client_span = _get_span_by_tags(trace, {"http.url": self.url, "span.kind": "client"})
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        assert client_span.get("meta").get("http.status_code") == "200"
+        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "200"})
+        assert client_span, spans
         assert client_span.get("error") == 1
 
     def setup_status_code_202(self):
@@ -146,10 +146,10 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
         # assert content["status_code"] == 202
 
         interfaces.library.assert_trace_exists(self.r)
-        trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
-        client_span = _get_span_by_tags(trace, {"http.url": self.url, "span.kind": "client"})
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        assert client_span.get("meta").get("http.status_code") == "202"
+        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "202"})
+        assert client_span, spans
         assert client_span.get("error") == 1
 
 
@@ -181,25 +181,68 @@ class Test_Config_ClientTagQueryString_Configured:
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
-def _get_span(spans, resource_name, tags):
-    for s in spans:
-        match = True
-        if s["resource"] != resource_name:
-            continue
-        for tagKey in tags:
-            if tagKey in s["meta"]:
-                expectValue = tags[tagKey]
-                actualValue = s["meta"][tagKey]
-                if expectValue != actualValue:
-                    continue
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_ClientIPHeader_Configured:
+    """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
+    and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header"""
 
-        if match:
-            return s
-    return {}
+    def setup_ip_headers_sent_in_one_request(self):
+        self.req = weblog.get(
+            "/make_distant_call", params={"url": "http://weblog:7777"}, headers={"custom-ip-header": "5.6.7.9"}
+        )
+
+    def test_ip_headers_sent_in_one_request(self):
+        # Ensures the header set in DD_TRACE_CLIENT_IP_HEADER takes precedence over all supported ip headers
+        trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
+        expected_tags = {"http.client_ip": "5.6.7.9"}
+        assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
-def _get_span_by_tags(trace, tags):
-    for span in trace:
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_ClientIPHeader_Precedence:
+    """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true 
+    and headers are used to set http.client_ip in order of precedence"""
+
+    # Supported ip headers in order of precedence
+    IP_HEADERS = (
+        ("x-forwarded-for", "5.6.7.0"),
+        ("x-real-ip", "8.7.6.5"),
+        ("true-client-ip", "5.6.7.2"),
+        ("x-client-ip", "5.6.7.3"),
+        ("x-forwarded", "5.6.7.4"),
+        ("forwarded-for", "5.6.7.5"),
+        ("x-cluster-client-ip", "5.6.7.6"),
+        ("fastly-client-ip", "5.6.7.7"),
+        ("cf-connecting-ip", "5.6.7.8"),
+        ("cf-connecting-ipv6", "0:2:3:4:5:6:7:8"),
+    )
+
+    def setup_ip_headers_precedence(self):
+        # Sends requests with supported ip headers, in each iteration the header with next higest precedence is not sent.
+        # In the last request, only the header with the lowest precedence is sent.
+        self.requests = []
+        for i in range(len(self.IP_HEADERS)):
+            headers = {k: v for k, v in self.IP_HEADERS[i:]}
+            self.requests.append(
+                weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=headers)
+            )
+
+    def test_ip_headers_precedence(self):
+        # Ensures that at least one span stores each ip header in the http.client_ip tag
+        # Note - system tests may obfuscate the actual ip address, we may need to update the test to take this into account
+        assert len(self.requests) == len(self.IP_HEADERS), "Number of requests and ip headers do not match, check setup"
+        for i in range(len(self.IP_HEADERS)):
+            req = self.requests[i]
+            ip = self.IP_HEADERS[i][1]
+            trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
+            expected_tags = {"http.client_ip": ip}
+            assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
+
+
+def _get_span_by_tags(spans, tags):
+    for span in spans:
         # Avoids retrieving the client span by the operation/resource name, this value varies between languages
         # Use the expected tags to identify the span
         for k, v in tags.items():
@@ -207,6 +250,7 @@ def _get_span_by_tags(trace, tags):
                 break
         else:
             return span
+    return {}
 
 
 @scenarios.tracing_config_nondefault
