@@ -414,18 +414,18 @@ tests/:
         Test_Lfi_BodyJson:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Lfi_BodyUrlEncoded:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
         Test_Lfi_BodyXml:
             '*': v1.40.0
             akka-http: missing_feature (Requires parsed body instrumentation)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-            spring-boot-payara: bug (produces 500 errors)
+            spring-boot-payara: bug (APPSEC-54966)
             vertx3: missing_feature (Requires parsed body instrumentation)
             vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Lfi_Capability:
@@ -445,19 +445,19 @@ tests/:
         Test_Lfi_StackTrace:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Lfi_Telemetry:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Lfi_UrlQuery:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (produces 500 errors)
+          spring-boot-payara: bug (APPSEC-54966)
       test_shi.py: missing_feature
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
