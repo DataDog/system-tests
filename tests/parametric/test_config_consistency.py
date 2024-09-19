@@ -134,7 +134,7 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    def test_dd_trace_agent_unix_url(self, library_env, test_agent, test_library):
+    def test_dd_trace_agent_unix_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
         assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
