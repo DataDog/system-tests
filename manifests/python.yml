@@ -770,7 +770,7 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: v2.0.0 (feature should be supported in all recent versions)
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v2.7.0
