@@ -2396,3 +2396,13 @@ class features:
         """
         pytest.mark.features(feature_id=326)(test_object)
         return test_object
+
+    @staticmethod
+    def serverless_span_pointers(test_object):
+        """
+        Serverless : span_links is correctly reported
+
+        https://feature-parity.us1.prod.dog/#/?feature=328
+        """
+        pytest.mark.features(feature_id=328)(test_object)
+        return test_object
