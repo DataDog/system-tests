@@ -1,3 +1,5 @@
+require 'json'
+
 require 'datadog/kit/appsec/events'
 
 class SystemTestController < ApplicationController
@@ -174,5 +176,23 @@ class SystemTestController < ApplicationController
 
 
     render plain: 'Hello, world!'
+  end
+
+  def request_downstream
+    uri = URI('http://localhost:7777/returnheaders')
+    ext_request = nil
+    ext_response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      ext_request = Net::HTTP::Get.new(uri)
+
+      ext_response = http.request(ext_request)
+    end
+
+    render json: ext_response.body, content_type: 'application/json'
+  end
+
+  def return_headers
+    render json: JSON.generate(request.headers.each.to_h), content_type: 'application/json'
   end
 end
