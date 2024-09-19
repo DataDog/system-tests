@@ -122,7 +122,7 @@ Clone the repo:
 git clone git@github.com:DataDog/dd-trace-java.git
 cd dd-trace-java
 ```
-By default you will be on the `master` branch, but if you'd like to run system-tests on the changes you made to your local branch, `gitc checkout` to that branch.
+By default you will be on the `master` branch, but if you'd like to run system-tests on the changes you made to your local branch, `git checkout` to that branch before proceeding.
 
 2. Build Java Tracer artifacts
 ```
@@ -295,6 +295,37 @@ docker image rm <library>-test-library
 
 The Python implementation of the interface `app/python`, when run, provides a specification of the API when run.
 See the steps below in the HTTP section to run the Python server and view the specification.
+
+## Updating protos
+
+In order to update the `parametric/protos`, these steps must be followed.
+
+1. Create a virtual environment and activate it:
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate
+```
+
+2. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Install `grpcio-tools` (make sure grpcaio is the same version):
+```bash
+pip install grpcio-tools==1.60.1
+```
+
+4. Change directory to `utils/parametric`:
+```console
+cd utils/parametric
+```
+
+5. Run the script to generate the proto files:
+```bash
+./generate_protos.sh
+```
+
+Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
 
 ## Implementation
 

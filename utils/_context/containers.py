@@ -515,7 +515,7 @@ class AgentContainer(TestedContainer):
             local_image_only=True,
         )
 
-        self.agent_version = None
+        self.agent_version = ""
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         try:
@@ -933,6 +933,8 @@ class SqlServerContainer(SqlDbTestedContainer):
         super().__init__(
             image_name="mcr.microsoft.com/azure-sql-edge:latest",
             name="mssql",
+            cap_add=["SYS_PTRACE"],
+            user="root",
             environment={"ACCEPT_EULA": "1", "MSSQL_SA_PASSWORD": "yourStrong(!)Password"},
             allow_old_container=True,
             host_log_folder=host_log_folder,

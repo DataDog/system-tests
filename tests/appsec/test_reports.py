@@ -17,9 +17,7 @@ class Test_StatusCode:
         self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
     @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583",
     )
     def test_basic(self):
         assert self.r.status_code == 404
@@ -94,7 +92,7 @@ class Test_RequestHeaders:
             },
         )
 
-    @bug(context.library < "dotnet@2.1.0")
+    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     def test_http_request_headers(self):
         """AppSec reports the HTTP headers used for actor IP detection."""
 
