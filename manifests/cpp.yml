@@ -168,6 +168,8 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats: missing_feature
   test_config_consistency.py:
     Test_Config_ClientTagQueryString_Configured: missing_feature
     Test_Config_ClientTagQueryString_Empty: missing_feature (test can not capture span with the expected http.url tag)

@@ -560,6 +560,11 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats: missing_feature
   test_config_consistency.py:
     Test_Config_ClientTagQueryString_Configured: missing_feature (adding query string to http.url is not supported)
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query strings by default)

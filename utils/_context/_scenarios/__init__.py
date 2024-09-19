@@ -44,6 +44,7 @@ class scenarios:
             "DD_DBM_PROPAGATION_MODE": "service",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
             "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_COMPUTE_STATS": "true",
         },
         include_postgres_db=True,
         scenario_groups=[ScenarioGroup.ESSENTIALS],

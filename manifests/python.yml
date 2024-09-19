@@ -758,6 +758,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_config_consistency.py:
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_HTPP_CLIENT_TAGS_QUERY_STRING instead)
     Test_Config_ClientTagQueryString_Empty: v2.12.0

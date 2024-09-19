@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
+
 	"weblog/internal/rasp"
 
 	"weblog/internal/common"
@@ -27,6 +28,16 @@ func main() {
 	defer tracer.Stop()
 
 	mux := chi.NewRouter().With(chitrace.Middleware())
+
+	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
+		if c := r.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				w.WriteHeader(code)
+				return
+			}
+		}
+		w.WriteHeader(http.StatusOK)
+	})
 
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
 		body, err := common.ParseBody(r)
