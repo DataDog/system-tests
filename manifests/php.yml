@@ -261,10 +261,10 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
+      Test_Config_DDTraceAgentURL: missing_feature
       Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: missing_feature
-      Test_Config_DDTraceAgentURL: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
