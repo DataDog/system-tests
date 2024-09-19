@@ -490,8 +490,8 @@ tests/:
     Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_TRACE_HTTP_URL_QUERY_STRING_DISABLED)
     Test_Config_ClientTagQueryString_Empty: v1.60.0
-    Test_Config_HttpClientErrorStatuses_Default: v1.67.0
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.67.0
+    Test_Config_HttpClientErrorStatuses_Default: v1.69.0
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.67.0
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
