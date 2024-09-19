@@ -98,7 +98,7 @@ class Test_AppSecEventSpanTags:
             missing_response_headers = set(required_response_headers) - set(span.get("meta", {}).keys())
             assert not missing_response_headers, f"Missing response headers: {missing_response_headers}"
 
-    @bug(context.library < "java@0.93.0")
+    @bug(context.library < "java@0.93.0", reason="APMRP-360")
     def test_root_span_coherence(self):
         """Appsec tags are not on span where type is not web, http or rpc"""
         valid_appsec_span_types = ["web", "http", "rpc"]

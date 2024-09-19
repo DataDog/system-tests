@@ -120,7 +120,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="ruby", reason="ruby does not set dm tag on first span")
     @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
     @bug(library="cpp", reason="unknown")
-    @bug(context.library < "nodejs@5.17.0", reason="nodejs sets dm tag -0")  # actual fixed version is not known
+    @bug(context.library < "nodejs@5.17.0", reason="APMRP-360")  # actual fixed version is not known
     def test_tags_defaults_sst002(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(

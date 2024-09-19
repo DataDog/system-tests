@@ -678,3 +678,20 @@ Examples:
 ### \[GET\] /set_cookie
 
 This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response
+
+### \[GET\] /session/new
+
+This endpoint is the initial endpoint used to test session fingerprints, consequently it must initialize a new session and the web client should be able to deal with the persistence mechanism (e.g. cookies).
+
+Examples:
+- `GET`: `/session/new`
+
+### \[GET\] /session/user
+
+Once a session has been established, a new call to `/session/user` must be made in order to generate a session fingerprint with the session id provided by the web client (e.g. cookie) and the user id provided as a parameter.
+
+Query parameters required in the `GET` method:
+- `sdk_user`: user id used in the WAF login event triggered during the execution of the request.
+
+Examples:
+- `GET`: `/session/user?sdk_user=sdkUser`

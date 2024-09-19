@@ -52,10 +52,10 @@ class Test_Blocking:
     def setup_no_accept(self):
         self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
-    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
-    @bug(context.library < "python@1.16.1", reason="Bug, minify and remove new line characters")
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="APMRP-360")
+    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="APMRP-360")
+    @bug(context.library < "python@1.16.1", reason="APMRP-360")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
@@ -91,7 +91,7 @@ class Test_Blocking:
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
@@ -104,7 +104,7 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
         )
 
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
@@ -137,7 +137,7 @@ class Test_Blocking:
             },
         )
 
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403

@@ -180,6 +180,7 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: missing_feature
       Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Session: missing_feature
     test_identify.py:
       Test_Basic: v0.85.0
     test_logs.py:
@@ -318,6 +319,8 @@ tests/:
   test_config_consistency.py:
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
     Test_Config_ClientTagQueryString_Empty: v1.2.0
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: v1.3.0 # Unknown initial version
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature

@@ -23,7 +23,7 @@ class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
     @missing_feature(library="cpp")
-    @bug(context.library <= "golang@1.37.0")
+    @bug(context.library <= "golang@1.37.0", reason="APMRP-360")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 

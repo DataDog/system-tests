@@ -464,6 +464,7 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0.dev
       Test_Fingerprinting_Header_And_Network: v2.11.0.dev
+      Test_Fingerprinting_Session: missing_feature (missing endpoint)
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
@@ -760,6 +761,8 @@ tests/:
   test_config_consistency.py:
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_HTPP_CLIENT_TAGS_QUERY_STRING instead)
     Test_Config_ClientTagQueryString_Empty: v2.12.0
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
