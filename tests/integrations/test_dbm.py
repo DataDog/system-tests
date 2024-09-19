@@ -186,6 +186,10 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_Test_Dbm_Comment):
     dddbs = "system_tests_dbname"  # db name
     ddh = "postgres"  # container name
 
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
+
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
@@ -284,6 +288,10 @@ class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
     dddb = "mysql_dbname"  # db name
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
+
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
