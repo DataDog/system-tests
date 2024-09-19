@@ -119,6 +119,7 @@ class Test_Config_UnifiedServiceTagging:
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         assert span["meta"]["env"] == "dev"
 
+
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_DDTraceAgentURL:
