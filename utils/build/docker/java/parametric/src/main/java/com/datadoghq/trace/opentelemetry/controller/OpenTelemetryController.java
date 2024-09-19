@@ -323,7 +323,10 @@ public class OpenTelemetryController {
   public FlushResult flush(@RequestBody FlushArgs args) {
     LOGGER.info("Flushing OTel spans: {}", args);
     try {
-      ((InternalTracer) GlobalTracer.get()).flush();
+      // Only flush spans when tracing was enabled
+      if (GlobalTracer.get() instanceof InternalTracer) {
+          ((InternalTracer) GlobalTracer.get()).flush();
+      }
       this.spans.clear();
       return new FlushResult(true);
     } catch (Exception e) {
