@@ -385,7 +385,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
-  serverless:
+  serverless/:
     test_span_pointers.py:
       Test_SpanPointers: missing_feature
   stats/:
