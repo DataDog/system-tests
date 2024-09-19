@@ -44,6 +44,7 @@ class scenarios:
             "DD_DBM_PROPAGATION_MODE": "service",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
             "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_COMPUTE_STATS": "true",
         },
         include_postgres_db=True,
         scenario_groups=[ScenarioGroup.ESSENTIALS],
@@ -446,6 +447,10 @@ class scenarios:
         "TRACING_CONFIG_NONDEFAULT",
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            # disable ASM to test non asm client ip tagging
+            "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
             "DD_TRACE_Kafka_ENABLED": "false",
