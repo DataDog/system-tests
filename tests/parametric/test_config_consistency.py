@@ -149,7 +149,7 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [{"DD_TRACE_AGENT_URL": "http://random-host:9999/", "DD_AGENT_HOST": "localhost", "DD_AGENT_PORT": "8126"}],
     )
-    def test_dd_trace_agent_http_url(self, library_env, test_agent, test_library):
+    def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
         assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
