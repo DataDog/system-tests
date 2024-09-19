@@ -171,6 +171,8 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeader_Configured: missing_feature (DD_TRACE_CLIENT_IP_HEADER not implemented)
+    Test_Config_ClientIPHeader_Precedence: missing_feature (http.client_ip is not supported)
     Test_Config_ClientTagQueryString_Configured: missing_feature
     Test_Config_ClientTagQueryString_Empty: missing_feature (test can not capture span with the expected http.url tag)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
