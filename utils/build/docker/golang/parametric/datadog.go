@@ -144,18 +144,14 @@ func (l *CustomLogger) Log(logMessage string) {
 	stringConfig := make(map[string]string)
 
 	// Convert the config struct to a map of strings
-	v := reflect.ValueOf(config)
-	t := v.Type()
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		value := v.Field(i)
-		// Convert value to a lowercase string
-		str, ok := value.Interface().(string)
-		if ok {
-			stringConfig[field.Name] = strings.ToLower(str)
-		} else {
-			log.Print("Field from log message extraction is not a string")
-		}
+	val := reflect.ValueOf(config)
+	for i := 0; i < val.Type().NumField(); i++ {
+		field := val.Type().Field(i)
+		valueField := val.Field(i)
+
+		// Convert field value to string and then to lowercase
+		stringValue := fmt.Sprintf("%v", valueField.Interface())
+		stringConfig[field.Name] = strings.ToLower(stringValue)
 	}
 	l.globalConfig = stringConfig
 }
