@@ -683,7 +683,7 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
-      Test_Config_DDTraceAgentURL: missing_feature
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: missing_feature

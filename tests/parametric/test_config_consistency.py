@@ -140,9 +140,6 @@ class Test_Config_TraceAgentURL:
         assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "wait_for_num_traces raises an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec, so we expect to see an exception
 
     # The DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
     @parametrize(
@@ -155,6 +152,3 @@ class Test_Config_TraceAgentURL:
         assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "wait_for_num_traces raises an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec, so we expect to see an exception
