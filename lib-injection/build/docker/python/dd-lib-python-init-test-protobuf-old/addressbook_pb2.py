@@ -175,12 +175,8 @@ _PERSON = _descriptor.Descriptor(
         ),
     ],
     extensions=[],
-    nested_types=[
-        _PERSON_PHONENUMBER,
-    ],
-    enum_types=[
-        _PERSON_PHONETYPE,
-    ],
+    nested_types=[_PERSON_PHONENUMBER,],
+    enum_types=[_PERSON_PHONETYPE,],
     options=None,
     is_extendable=False,
     extension_ranges=[],
