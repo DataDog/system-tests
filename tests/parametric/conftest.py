@@ -13,10 +13,10 @@ from docker.models.containers import Container
 import requests
 import pytest
 
+from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
-from utils.parametric.spec import remoteconfig
 from utils.parametric._library_client import APMLibraryClientGRPC
 from utils.parametric._library_client import APMLibraryClientHTTP
 from utils.parametric._library_client import APMLibrary

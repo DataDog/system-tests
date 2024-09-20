@@ -15,6 +15,12 @@ Rails.application.routes.draw do
   get '/kafka/produce' => 'system_test#kafka_produce'
   get '/kafka/consume' => 'system_test#kafka_consume'
 
+  get '/sqs/produce' => 'system_test#sqs_produce'
+  get '/sqs/consume' => 'system_test#sqs_consume'
+
+  get '/sns/produce' => 'system_test#sns_produce'
+  get '/sns/consume' => 'system_test#sns_consume'
+
   get '/params/:value' => 'system_test#handle_path_params'
   get '/spans' => 'system_test#generate_spans'
   get '/status' => 'system_test#status'

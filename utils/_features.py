@@ -2278,6 +2278,16 @@ class features:
         return test_object
 
     @staticmethod
+    def datastreams_monitoring_support_for_manual_checkpoints(test_object):
+        """
+        Ensure DSM Manual Checkpointing API is satisfied
+
+        https://feature-parity.us1.prod.dog/#/?feature=327
+        """
+        pytest.mark.features(feature_id=327)(test_object)
+        return test_object
+
+    @staticmethod
     def suspicious_attacker_blocking(test_object):
         """
         Threats: request blocking on suspicious attacker
@@ -2365,4 +2375,24 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=325
         """
         pytest.mark.features(feature_id=325)(test_object)
+        return test_object
+
+    @staticmethod
+    def ssi_guardrails(test_object):
+        """
+        Docker ssi guardrails
+
+        https://feature-parity.us1.prod.dog/#/?feature=322
+        """
+        pytest.mark.features(feature_id=322)(test_object)
+        return test_object
+
+    @staticmethod
+    def ssi_service_naming(test_object):
+        """
+        Docker ssi service naming feature
+
+        https://feature-parity.us1.prod.dog/#/?feature=326
+        """
+        pytest.mark.features(feature_id=326)(test_object)
         return test_object

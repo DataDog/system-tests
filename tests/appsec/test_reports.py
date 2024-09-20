@@ -1,14 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
-import socket
-
-
 from utils import weblog, context, interfaces, bug, missing_feature, rfc, features
 
 
-@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_StatusCode:
     """Appsec reports good status code"""
@@ -17,9 +13,7 @@ class Test_StatusCode:
         self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
     @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583",
     )
     def test_basic(self):
         assert self.r.status_code == 404
@@ -40,7 +34,7 @@ class Test_StatusCode:
         interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_Info:
     """Environment (production, staging) from DD_ENV variable"""
@@ -72,7 +66,7 @@ class Test_Info:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
@@ -94,7 +88,7 @@ class Test_RequestHeaders:
             },
         )
 
-    @bug(context.library < "dotnet@2.1.0")
+    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     def test_http_request_headers(self):
         """AppSec reports the HTTP headers used for actor IP detection."""
 

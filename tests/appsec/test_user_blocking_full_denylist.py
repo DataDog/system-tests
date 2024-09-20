@@ -31,10 +31,9 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             weblog.get("/users", params={"user": self.NUM_OF_BLOCKED_USERS - 1}),
         ]
 
-    @bug(context.library < "ruby@1.12.1", reason="not setting the tags on the service entry span")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     @bug(
-        context.library >= "java@1.22.0" and context.library < "java@1.35.0",
-        reason="Failed on large expiration values, which are used in this test",
+        context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360",
     )
     @bug(library="java", reason="Request blocked but appsec.blocked tag not set")
     def test_blocking_test(self):

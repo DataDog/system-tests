@@ -84,6 +84,9 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         parent_id = parent.span_id if parent else None
         parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=args.origin)
 
+    if args.service == "":
+        args.service = None
+
     if len(args.http_headers) > 0:
         headers = {k: v for k, v in args.http_headers}
         parent = HTTPPropagator.extract(headers)

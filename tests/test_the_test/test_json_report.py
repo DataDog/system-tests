@@ -38,14 +38,14 @@ class Test_Json_Report:
         test = self.get_test_fp("Test_Mock::test_missing_feature")
 
         assert test["outcome"] == "xfailed"
-        assert test["details"] == "missing_feature: not yet done", test
+        assert test["details"] == "missing_feature (not yet done)", test
 
     def test_irrelevant_legacy(self):
         """Report is generated with correct outcome and skip reason nodes for irrelevant decorators"""
         test = self.get_test_fp("Test_Mock::test_irrelevant")
 
         assert test["outcome"] == "skipped"
-        assert test["details"] == "irrelevant: irrelevant", test
+        assert test["details"] == "irrelevant (irrelevant)", test
 
     def test_pass(self):
         """Report is generated with correct test data when a test is passed"""
@@ -84,7 +84,7 @@ class Test_Json_Report:
         """the skip reason must be the closest to the test method"""
         test = self.get_test_fp("Test_Mock2::test_skipped")
         assert test["testDeclaration"] == "bug"
-        assert test["details"] == "bug: local reason"
+        assert test["details"] == "bug (local reason)"
 
     def test_xpassed(self):
         test = self.get_test_fp("Test_BugClass::test_xpassed_method")

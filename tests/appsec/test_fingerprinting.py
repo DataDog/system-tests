@@ -63,3 +63,17 @@ class Test_Fingerprinting_Endpoint:
         assert self.n.status_code == 200
         assert all("_dd.appsec.fp.http.endpoint" in m for m in get_span_meta(self.r))
         assert all("_dd.appsec.fp.http.endpoint" not in m for m in get_span_meta(self.n))
+
+
+@rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
+@features.fingerprinting
+class Test_Fingerprinting_Session:
+    def setup_session(self):
+        self.r_create_session = weblog.get("session/new")
+        self.cookies = self.r_create_session.cookies
+        self.r_user = weblog.get("session/user?sdk_user=sdkUser", cookies=self.cookies,)
+
+    def test_session(self):
+        assert self.r_create_session.status_code == 200
+        assert self.r_user.status_code == 200
+        assert all("_dd.appsec.fp.session" in m for m in get_span_meta(self.r_user))

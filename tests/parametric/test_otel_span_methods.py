@@ -410,7 +410,7 @@ class Test_Otel_Span_Methods:
         assert span.get("name") == "internal"
         assert span.get("resource") == "ok_span"
 
-    @bug(context.library < "ruby@2.2.0", reason="Older versions do not generate datadog spans with the correct ids")
+    @bug(context.library < "ruby@2.2.0", reason="APMRP-360")
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -868,7 +868,7 @@ class Test_Otel_Span_Methods:
         context.library != "golang@1.66.0-dev" and context.library < "golang@1.67.0", reason="Implemented in v1.67.0"
     )
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -922,7 +922,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -943,7 +943,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -992,7 +992,7 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -1040,7 +1040,7 @@ class Test_Otel_Span_Methods:
         context.library == "php", reason="Not supported: DD only sets error.stack to not break tracer semantics"
     )
     @missing_feature(context.library == "dotnet")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")

@@ -2,12 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import base64
 import copy
 import json
 import threading
 
 from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
-from utils.dd_constants import RemoteConfigApplyState
+from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
@@ -395,6 +396,20 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                     found = True
 
         assert found, f"Nothing has been found for {config_id}/{product}"
+
+    def assert_rc_capability(self, capability: Capabilities):
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            capabilities = data["request"]["content"]["client"]["capabilities"]
+            if isinstance(capabilities, list):
+                decoded_capabilities = bytes(capabilities)
+            # base64-encoded string:
+            else:
+                decoded_capabilities = base64.b64decode(capabilities)
+            int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+            if (int_capabilities >> capability & 1) == 1:
+                found = True
+        assert found, f"Capability {capability.name} not found"
 
     def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
         """

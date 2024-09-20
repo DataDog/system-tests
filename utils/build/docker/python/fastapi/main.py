@@ -286,6 +286,11 @@ async def status_code(code: int = 200):
     return PlainTextResponse("OK, probably", status_code=code)
 
 
+@app.get("/stats-unique")
+async def stats_unique(code: int = 200):
+    return PlainTextResponse("OK, probably", status_code=code)
+
+
 @app.get("/make_distant_call")
 def make_distant_call(url: str):
     response = requests.get(url)

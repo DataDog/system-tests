@@ -30,8 +30,8 @@ class Test_HttpProtocol:
     def setup_http_protocol(self):
         self.r_1 = weblog.get("/waf/", params={"key": ".cookie;domain="})
 
-    @bug(context.library < "dotnet@2.1.0")
-    @bug(context.library < "java@0.98.1")
+    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
+    @bug(context.library < "java@0.98.1", reason="APMRP-360")
     def test_http_protocol(self):
         """ AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         interfaces.library.assert_waf_attack(self.r_1, waf_rules.http_protocol_violation.crs_943_100)
@@ -74,7 +74,7 @@ class Test_LFI:
     def setup_lfi_in_path(self):
         self.r_5 = weblog.get("/waf/..")
 
-    @bug(context.library < "java@0.92.0")
+    @bug(context.library < "java@0.92.0", reason="APMRP-360")
     @irrelevant(library="python", weblog_variant="django-poc")
     @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
     @irrelevant(
@@ -222,7 +222,7 @@ class Test_SQLI:
         self.r_3 = weblog.get("/waf/", params={"value": "alter d char set f"})
         self.r_4 = weblog.get("/waf/", params={"value": "merge using("})
 
-    @flaky(context.library <= "php@0.68.2")
+    @flaky(context.library <= "php@0.68.2", reason="APMRP-360")
     def test_sqli2(self):
         """Other SQLI patterns"""
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.sql_injection.crs_942_240)
@@ -231,7 +231,7 @@ class Test_SQLI:
     def setup_sqli3(self):
         self.r_5 = weblog.get("/waf/", cookies={"value": "%3Bshutdown--"})
 
-    @bug(context.library < "dotnet@2.1.0")
+    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     @bug(library="java", reason="under Valentin's investigations")
     @missing_feature(library="golang", reason="cookies are not url-decoded and this attack works with a ;")
     @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
@@ -322,7 +322,7 @@ class Test_DiscoveryScan:
         self.r10 = weblog.get("/administrator/components/component.php")
         self.r11 = weblog.get("/login.pwd")
 
-    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow")
+    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow", reason="APMRP-360")
     @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_security_scan(self):
         """AppSec WAF catches Discovery scan"""

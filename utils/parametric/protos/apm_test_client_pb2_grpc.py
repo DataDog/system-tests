@@ -15,6 +15,11 @@ class APMClientStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.Crash = channel.unary_unary(
+                '/APMClient/Crash',
+                request_serializer=protos_dot_apm__test__client__pb2.CrashArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.CrashReturn.FromString,
+                )
         self.StartSpan = channel.unary_unary(
                 '/APMClient/StartSpan',
                 request_serializer=protos_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
@@ -190,6 +195,12 @@ class APMClientStub(object):
 class APMClientServicer(object):
     """Interface of APM clients to be used for shared testing.
     """
+
+    def Crash(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def StartSpan(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -398,6 +409,11 @@ class APMClientServicer(object):
 
 def add_APMClientServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'Crash': grpc.unary_unary_rpc_method_handler(
+                    servicer.Crash,
+                    request_deserializer=protos_dot_apm__test__client__pb2.CrashArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.CrashReturn.SerializeToString,
+            ),
             'StartSpan': grpc.unary_unary_rpc_method_handler(
                     servicer.StartSpan,
                     request_deserializer=protos_dot_apm__test__client__pb2.StartSpanArgs.FromString,
@@ -578,6 +594,23 @@ def add_APMClientServicer_to_server(servicer, server):
 class APMClient(object):
     """Interface of APM clients to be used for shared testing.
     """
+
+    @staticmethod
+    def Crash(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/Crash',
+            protos_dot_apm__test__client__pb2.CrashArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.CrashReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def StartSpan(request,

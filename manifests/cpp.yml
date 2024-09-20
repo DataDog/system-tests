@@ -133,7 +133,13 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
+      Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
+      Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
   parametric/:
+    test_config_consistency.py:
+      Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
@@ -143,6 +149,7 @@ tests/:
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature
     test_tracer.py:
@@ -161,9 +168,19 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeader_Configured: missing_feature (DD_TRACE_CLIENT_IP_HEADER not implemented)
+    Test_Config_ClientIPHeader_Precedence: missing_feature (http.client_ip is not supported)
+    Test_Config_ClientTagQueryString_Configured: missing_feature
+    Test_Config_ClientTagQueryString_Empty: missing_feature (test can not capture span with the expected http.url tag)
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
+    Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py: irrelevant

@@ -1,5 +1,7 @@
 require 'datadog/kit/appsec/events'
 require 'rdkafka'
+require 'aws-sdk-sqs'
+require 'aws-sdk-sns'
 
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -233,4 +235,96 @@ class SystemTestController < ApplicationController
     render plain: "Done"
   end
 
+  AWS_FAKE_ENDPOINT = 'http://localstack-main:4566'
+  AWS_SQS_FAKE_ENDPOINT = "http://elasticmq:9324"
+  AWS_REGION = 'us-east-1'
+
+  def sqs_consume
+    client = Aws::SQS::Client.new(endpoint: AWS_SQS_FAKE_ENDPOINT, region: AWS_REGION)
+
+    queue_url = client.create_queue(queue_name: request.params["queue"]).queue_url
+    response = client.receive_message(queue_url: queue_url, wait_time_seconds: request.params["timeout"].to_i)
+
+    if response.messages.empty?
+      render plain: 'No messages', status: 400
+      return
+    end
+
+    message = response.messages[0]
+    body = message.body
+    Rails.logger.info("Consumed the SQS message: #{body}")
+
+    render({ message: body }, 200)
+  end
+
+  def sqs_produce
+    client = Aws::SQS::Client.new(endpoint: AWS_SQS_FAKE_ENDPOINT, region: AWS_REGION)
+
+    queue_url = client.create_queue(queue_name: request.params["queue"]).queue_url
+    client.send_message(queue_url: queue_url, message_body: "Hello, world!")
+
+    render plain: "Done"
+  end
+
+
+  def sns_produce
+    sqs = Aws::SQS::Client.new(endpoint: AWS_FAKE_ENDPOINT, region: AWS_REGION)
+    sns = Aws::SNS::Client.new(endpoint: AWS_FAKE_ENDPOINT, region: AWS_REGION)
+
+    queue_name = request.params["queue"]
+    topic_name = request.params["topic"]
+
+    topic_arn = sns.create_topic(name: topic_name).topic_arn
+    sqs_url = sqs.create_queue(queue_name: queue_name).queue_url
+
+    url_parts = sqs_url.split("/")
+    sqs_arn = "arn:aws:sqs:#{AWS_REGION}:#{url_parts[-2]}:#{url_parts[-1]}"
+
+    sns.subscribe(topic_arn: topic_arn,
+                  protocol: "sqs",
+                  endpoint: sqs_arn)
+
+    Rails.logger.info("[SNS->SQS] Created SNS Topic: #{topic_arn} and SQS Queue: #{sqs_url}")
+
+    sns.publish(topic_arn: topic_arn, message: 'Hello from Ruby SNS -> SQS')
+
+    Rails.logger.info("[SNS->SQS] Ruby SNS messaged published successfully")
+
+    render plain: "SNS Produce ok"
+  end
+
+  def sns_consume
+    region = "us-east-1"
+    sqs = Aws::SQS::Client.new(endpoint: AWS_FAKE_ENDPOINT, region: region)
+
+    queue_name = request.params["queue"]
+    queue_url = sqs.get_queue_url(queue_name: queue_name).queue_url
+
+    consumed_message = nil
+    start_time = Time.now
+
+    timeout = request.params["timeout"].to_i
+    while Time.now - start_time < timeout
+      begin
+        response = sqs.receive_message(queue_url: queue_url)
+        if response.messages.any?
+          message = response.messages[0]
+          consumed_message = message.body
+          Rails.logger.info("[SNS->SQS] Consumed the following: " + consumed_message)
+
+          break if consumed_message
+        end
+      rescue StandardError => e
+        Rails.logger.warning("[SNS->SQS] " + e.to_s)
+      end
+      sleep(0.1)
+    end
+
+    if consumed_message.nil?
+      render plain: 'No messages', status: 400
+      return
+    end
+
+    render({ message: consumed_message }, 200)
+  end
 end

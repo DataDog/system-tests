@@ -5,7 +5,7 @@
 from utils import weblog, interfaces, scenarios, features
 
 
-@scenarios.appsec_disabled
+@scenarios.everything_disabled
 @features.appsec_standard_tags_client_ip
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

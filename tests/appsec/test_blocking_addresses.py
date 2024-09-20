@@ -149,7 +149,7 @@ class Test_Blocking_request_uri:
     def setup_blocking_uri_raw(self):
         self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
 
-    @bug(context.library < "dotnet@2.50.0", reason="dotnet may include scheme, domain and port in uri.raw")
+    @bug(context.library < "dotnet@2.50.0", reason="APMRP-360")
     def test_blocking_uri_raw(self):
         interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
         assert self.rm_req_uri_raw.status_code == 403
@@ -590,12 +590,8 @@ class Test_BlockingGraphqlResolvers:
                 or parameters["address"] == "graphql.server.resolver"
             )
             assert rule_triggered["rule"]["id"] == "block-resolvers"
-            # In Ruby, we can get the resolvers of all the queries before any is executed
-            # So we use the name of the query as the first string in the key_path (or a default name like query1)
             assert parameters["key_path"] == (
-                ["getUserByName", "0", "name"]
-                if context.library == "ruby"
-                else ["userByName", "name"]
+                ["userByName", "name"]
                 if parameters["address"] == "graphql.server.resolver"
                 else ["userByName", "0", "name"]
             )

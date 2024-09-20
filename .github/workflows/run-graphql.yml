@@ -32,7 +32,7 @@ env:
 
 jobs:
   graphql:
-    if: inputs.library == 'golang' || inputs.library == 'nodejs'
+    if: inputs.library == 'golang' || inputs.library == 'nodejs' || inputs.library == 'ruby'
     runs-on:
       group: "APM Larger Runners"
     strategy:

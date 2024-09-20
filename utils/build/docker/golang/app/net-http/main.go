@@ -11,11 +11,13 @@ import (
 	"os"
 	"strconv"
 	"time"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
 
 	"github.com/Shopify/sarama"
+
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
 
@@ -49,21 +51,31 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
+		if c := r.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				w.WriteHeader(code)
+				return
+			}
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 
 		healthCheck, err := common.GetHealtchCheck()
-        if err != nil {
-            http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
-        }
+		if err != nil {
+			http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
+		}
 
-        jsonData, err := json.Marshal(healthCheck)
-        if err != nil {
-            http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
-            return
-        }
+		jsonData, err := json.Marshal(healthCheck)
+		if err != nil {
+			http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+			return
+		}
 
-        w.Header().Set("Content-Type", "application/json")
-        w.Write(jsonData)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
 	})
 
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {

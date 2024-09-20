@@ -129,7 +129,7 @@ public abstract class ApmTestApi
         using var scope = Tracer.Instance.StartActive(operationName: name!.ToString()!, creationSettings);
         var span = scope.Span;
 
-        if (parsedDictionary.TryGetValue("service", out var service))
+        if (parsedDictionary.TryGetValue("service", out var service) && !String.IsNullOrEmpty(service.ToString()))
         {
             span.ServiceName = service.ToString();
         }

@@ -244,11 +244,11 @@ class Test_MySql(_BaseDatadogDbIntegrationTestClass):
     db_service = "mysql"
 
     @irrelevant(library="java", reason="Java is using the correct span: db.instance")
-    @bug(library="python", reason="the value of this span should be 'world' instead of  'b'world'' ")
+    @bug(context.library < "python@2.12.2", reason="APMRP-360")
     def test_db_name(self):
         super().test_db_name()
 
-    @bug(library="python", reason="the value of this span should be 'mysqldb' instead of  'b'mysqldb'' ")
+    @bug(context.library < "python@2.12.2", reason="APMRP-360")
     def test_db_user(self, excluded_operations=()):
         super().test_db_user()
 

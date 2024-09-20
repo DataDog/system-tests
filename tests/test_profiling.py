@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
-import json
 import re
 from utils import weblog, interfaces, scenarios, features
 
@@ -56,7 +55,7 @@ class Test_Profile:
         requests = [r for r in requests if 'name="event"' in r["headers"].get("Content-Disposition", "")]
         assert len(requests) > 0, "No profiling event requests"
         for req in requests:
-            content = json.loads(req["content"])
+            content = req["content"]
             assert "start" in content, "No start field"
             assert "end" in content, "No end field"
             assert re.fullmatch(TIMESTAMP_PATTERN, content["start"])

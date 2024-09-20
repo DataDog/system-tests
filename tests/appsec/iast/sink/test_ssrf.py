@@ -21,7 +21,7 @@ class TestSSRF(BaseSinkTest):
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
-    @bug(context.library < "java@1.14.0", reason="https://github.com/DataDog/dd-trace-java/pull/5172")
+    @bug(context.library < "java@1.14.0", reason="APMRP-360")
     def test_insecure(self):
         super().test_insecure()
 

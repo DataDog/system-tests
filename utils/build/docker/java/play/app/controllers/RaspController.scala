@@ -3,6 +3,8 @@ package controllers
 import play.api.mvc._
 import resources.Resources
 
+import java.io.File
+
 import javax.inject.{Inject, Singleton}
 import scala.util.Using
 
@@ -23,6 +25,20 @@ class RaspController @Inject()(cc: MessagesControllerComponents, res: Resources)
     Results.Ok(executeSql(userId))
   }
 
+  def lfi = Action { request =>
+    val file = request.body match {
+      case AnyContentAsFormUrlEncoded(data) =>
+        data("file").head
+      case AnyContentAsJson(data) =>
+        (data \ "file").as[String]
+      case AnyContentAsXml(data) =>
+        data.text
+      case _ =>
+        request.queryString("file").head
+    }
+    Results.Ok(executeLfi(file))
+  }
+
   private def executeSql(userId: String): String = {
     Using(res.dataSource.getConnection()) { conn =>
       val stmt = conn.createStatement()
@@ -33,6 +49,11 @@ class RaspController @Inject()(cc: MessagesControllerComponents, res: Resources)
         "User not found"
       }
     }.get
+  }
+
+  private def executeLfi(file: String): String = {
+    new File(file)
+    "OK"
   }
 
 }

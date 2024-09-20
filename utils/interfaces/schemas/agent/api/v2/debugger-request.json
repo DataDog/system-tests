@@ -1,3 +1,13 @@
 {
-  "$id": "/agent/api/v2/debugger-request.json"
+  "$id": "/agent/api/v2/debugger-request.json",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties":{
+      "content": {
+        "type": "array"
+      }
+    },
+    "required": ["content"]
+  }
 }

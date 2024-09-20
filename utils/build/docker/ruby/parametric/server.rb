@@ -48,6 +48,17 @@ STDOUT.sync = true
 puts 'Loading server classes...'
 
 class ServerImpl < APMClient::Service
+
+  def crash(crash_args, _call)
+    STDOUT.puts "Crashing server..."
+    fork do
+      Process.kill('SEGV', Process.pid)
+    end
+
+    Process.wait2
+    CrashReturn.new
+  end
+
   def start_span(start_span_args, _call)
     if start_span_args.http_headers.http_headers.size != 0 && (!start_span_args.origin.empty? || start_span_args.parent_id != 0)
       raise "cannot provide both http_headers and origin+parent_id for propagation: #{start_span_args.inspect}"

@@ -1,9 +1,11 @@
-FROM ghcr.io/datadog/dd-trace-rb/ruby:3.1.1-dd
+FROM ghcr.io/datadog/dd-trace-rb/ruby:3.1.2-dd
 
 RUN apt-get update && apt-get install -y nodejs npm
 
 RUN mkdir -p /app
 WORKDIR /app
+
+RUN gem install datadog
 
 COPY utils/build/docker/ruby/rails70/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/

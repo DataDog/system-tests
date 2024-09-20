@@ -185,13 +185,16 @@ tests/:
           TestPath:
             '*': v2.9.0.dev
             fastapi: v2.13.0.dev
+            flask-poc: v2.13.0.dev
+            uds-flask: v2.13.0.dev
+            uwsgi-poc: v2.13.0.dev
         test_path_parameter.py:
           TestPathParameter:
             '*': v2.9.0.dev
             fastapi: v2.13.0.dev
-            flask-poc: missing_feature
-            uds-flask: missing_feature
-            uwsgi-poc: missing_feature
+            flask-poc: v2.13.0.dev
+            uds-flask: v2.13.0.dev
+            uwsgi-poc: v2.13.0.dev
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -199,8 +202,10 @@ tests/:
         Test_Lfi_BodyJson: v2.10.0.dev
         Test_Lfi_BodyUrlEncoded: v2.10.0.dev
         Test_Lfi_BodyXml: v2.10.0.dev
+        Test_Lfi_Capability: v2.11.0
         Test_Lfi_Mandatory_SpanTags: v2.10.0.dev
         Test_Lfi_Optional_SpanTags: v2.10.0.dev
+        Test_Lfi_RC_CustomAction: v2.14.0.dev
         Test_Lfi_StackTrace: v2.10.0.dev
         Test_Lfi_Telemetry: v2.10.0.dev
         Test_Lfi_UrlQuery: v2.10.0.dev
@@ -208,6 +213,7 @@ tests/:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
         Test_Shi_BodyXml: v2.11.0-rc2
+        Test_Shi_Capability: v2.11.0
         Test_Shi_Mandatory_SpanTags: v2.11.0-rc2
         Test_Shi_Optional_SpanTags: v2.11.0-rc2
         Test_Shi_StackTrace: v2.11.0-rc2
@@ -217,6 +223,7 @@ tests/:
         Test_Sqli_BodyJson: v2.10.0.dev
         Test_Sqli_BodyUrlEncoded: v2.10.0.dev
         Test_Sqli_BodyXml: v2.10.0.dev
+        Test_Sqli_Capability: v2.11.0
         Test_Sqli_Mandatory_SpanTags: v2.10.0.dev
         Test_Sqli_Optional_SpanTags: v2.10.0.dev
         Test_Sqli_StackTrace: v2.10.0.dev
@@ -226,6 +233,7 @@ tests/:
         Test_Ssrf_BodyJson: v2.10.0.dev
         Test_Ssrf_BodyUrlEncoded: v2.10.0.dev
         Test_Ssrf_BodyXml: v2.10.0.dev
+        Test_Ssrf_Capability: v2.11.0
         Test_Ssrf_Mandatory_SpanTags: v2.10.0.dev
         Test_Ssrf_Optional_SpanTags: v2.10.0.dev
         Test_Ssrf_StackTrace: v2.10.0.dev
@@ -368,8 +376,7 @@ tests/:
         '*': v1.1.0rc2.dev
         fastapi: v2.4.0.dev1
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation:
-        '*': v2.10.0rc1
+      Test_AppSecStandalone_UpstreamPropagation: v2.12.3  # flaky before that version, possibly flaky also after
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0.dev but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0.dev but will be replaced by V2)
@@ -457,6 +464,7 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0.dev
       Test_Fingerprinting_Header_And_Network: v2.11.0.dev
+      Test_Fingerprinting_Session: missing_feature (missing endpoint)
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
@@ -582,9 +590,13 @@ tests/:
       Test_Dbm_Comment_Batch_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Batch_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Batch_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
@@ -608,9 +620,13 @@ tests/:
       Test_Dbm_Comment_Python_MysqlConnector:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Python_Mysqldb:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.9.0
+        uds-flask: v2.9.0
+        uwsgi-poc: v2.9.0
       Test_Dbm_Comment_Python_Psycopg:
         '*': missing_feature (Missing on weblog)
         flask-poc: v2.8.0
@@ -650,9 +666,22 @@ tests/:
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        flask-poc: v2.8.0
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
+        '*': irrelevant
+        flask-poc: v2.8.0
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: v2.12.2
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
+    test_config_consistency.py:
+      Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -701,6 +730,7 @@ tests/:
     test_span_sampling.py:
       Test_Span_Sampling: v2.8.0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.9.0.dev
       Test_Environment: v2.8.0
       Test_TelemetryInstallSignature: v2.5.0
@@ -728,9 +758,20 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeader_Configured: v2.12.0
+    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
+    Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_HTPP_CLIENT_TAGS_QUERY_STRING instead)
+    Test_Config_ClientTagQueryString_Empty: v2.12.0
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
+    Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_data_integrity.py:
     Test_LibraryHeaders: v2.7.0
   test_distributed.py:

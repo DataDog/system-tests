@@ -22,6 +22,8 @@ import ratpack.parse.Parse;
 import ratpack.parse.ParserSupport;
 import ratpack.registry.Registry;
 
+import java.io.File;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -47,6 +49,23 @@ public class RaspHandlers {
                 }
             }
         });
+        chain.path("rasp/lfi", new Handler() {
+            @Override
+            public void handle(final Context ctx) throws Exception {
+                MediaType contentType = ctx.getRequest().getContentType();
+                if (ctx.getRequest().getMethod() == HttpMethod.GET) {
+                    ctx.insert(QueryLfiHandler.INSTANCE);
+                } else if (contentType.isForm()) {
+                    ctx.insert(FormLfiHandler.INSTANCE);
+                } else if (contentType.isJson()) {
+                    ctx.insert(JsonLfiHandler.INSTANCE);
+                } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
+                    ctx.insert(Registry.single(XmlParser.INSTANCE), XmlLfiHandler.INSTANCE);
+                } else {
+                    ctx.getResponse().status(Status.BAD_REQUEST);
+                }
+            }
+        });
     }
 
     enum FormHandler implements Handler {
@@ -59,6 +78,16 @@ public class RaspHandlers {
         }
     }
 
+    enum FormLfiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var form = ctx.parse(Form.class);
+            form.then(f -> executeLfi(ctx, f.get("file")));
+        }
+    }
+
     enum JsonHandler implements Handler {
         INSTANCE;
 
@@ -66,6 +95,16 @@ public class RaspHandlers {
         public void handle(Context ctx) throws Exception {
             var obj = ctx.parse(fromJson(UserDTO.class));
             obj.then(user -> executeSql(ctx, user.getUserId()));
+        }
+    }
+
+    enum JsonLfiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var obj = ctx.parse(fromJson(FileDTO.class));
+            obj.then(file -> executeLfi(ctx, file.getFile()));
         }
     }
 
@@ -94,6 +133,16 @@ public class RaspHandlers {
         }
     }
 
+    enum XmlLfiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var xml = ctx.parse(Parse.of(FileDTO.class));
+            xml.then(file -> executeLfi(ctx, file.getFile()));
+        }
+    }
+
     enum QueryHandler implements Handler {
         INSTANCE;
 
@@ -101,6 +150,16 @@ public class RaspHandlers {
         public void handle(Context ctx) throws Exception {
             var userId = ctx.getRequest().getQueryParams().get("user_id");
             executeSql(ctx, userId);
+        }
+    }
+
+    enum QueryLfiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var file = ctx.getRequest().getQueryParams().get("file");
+            executeLfi(ctx, file);
         }
     }
 
@@ -117,6 +176,11 @@ public class RaspHandlers {
         }
     }
 
+    private static void executeLfi(final Context ctx, final String file) {
+        new File(file);
+        ctx.getResponse().send("text/plain", "OK");
+    }
+
 
     @JacksonXmlRootElement(localName = "user_id")
     public static class UserDTO {
@@ -130,6 +194,21 @@ public class RaspHandlers {
 
         public void setUserId(String userId) {
             this.userId = userId;
+        }
+    }
+
+    @JacksonXmlRootElement(localName = "file")
+    public static class FileDTO {
+        @JsonProperty("file")
+        @JacksonXmlText
+        private String file;
+
+        public String getFile() {
+            return file;
+        }
+
+        public void setFile(String file) {
+            this.file = file;
         }
     }
 }

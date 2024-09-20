@@ -254,6 +254,10 @@ def status_code(request, *args, **kwargs):
     return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
 
 
+def stats_unique(request, *args, **kwargs):
+    return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
+
+
 def identify(request):
     set_user(
         tracer,
@@ -725,6 +729,7 @@ urlpatterns = [
     path("createextraservice", create_extra_service),
     path("headers", headers),
     path("status", status_code),
+    path("stats-unique", stats_unique),
     path("identify", identify),
     path("users", users),
     path("identify-propagate", identify_propagate),

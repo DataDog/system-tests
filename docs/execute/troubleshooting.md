@@ -59,8 +59,9 @@ When executing `run.sh`, postgres can fail to start and log:
 ```
 /usr/local/bin/docker-entrypoint.sh: line 177: /docker-entrypoint-initdb.d/init_db.sh: Permission denied
 ```
-Try running:
+This may happen if your `umask` prohibits "other" access to files
+(for example, it is `027` on Datadog Linux laptops). To fix it, try running:
 ```bash
-chmod 777 ./utils/build/docker/postgres-init-db.sh
+chmod 755 ./utils/build/docker/postgres-init-db.sh
 ```
 then rebuild and rerun.

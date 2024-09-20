@@ -35,7 +35,7 @@ class Test_ConfigurationVariables:
         context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21", "uds-sinatra"],
         reason="Conf is done in weblog instead of library",
     )
-    @scenarios.appsec_disabled
+    @scenarios.everything_disabled
     def test_disabled(self):
         """ test DD_APPSEC_ENABLED = false """
         interfaces.library.assert_no_appsec_event(self.r_disabled)

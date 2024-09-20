@@ -85,7 +85,7 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
         errors = []
         probe_map = base.get_probes_map(base.read_diagnostic_data())
 
-        assert probe_map, "Probes were not receieved"
+        assert probe_map, "Probes were not received"
 
         for expected_id, expected_status in expected_probes.items():
             error_message = _check_probe_status(expected_id, expected_status, probe_map)

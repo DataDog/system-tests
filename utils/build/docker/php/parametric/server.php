@@ -154,10 +154,19 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
     $span->links = $links;
-    $spans[$span->id] = $span;
+
+    if (\dd_trace_env_config("DD_TRACE_ENABLED")) {
+        $spanId = $span->id;
+    } else {
+        // Workaround for error "Typed property DDTrace\SpanData::$id must not be accessed before initialization"
+        // when tracing is disabled. In this case, the tracer creates only a "dummy" span without an "id".
+        $spanId = 42;
+    }
+
+    $spans[$spanId] = $span;
     $activeSpan = $span;
     return jsonResponse([
-        "span_id" => $span->id,
+        "span_id" => $spanId,
         "trace_id" => \DDTrace\trace_id(),
     ]);
 }));
