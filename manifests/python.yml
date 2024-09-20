@@ -140,7 +140,7 @@ tests/:
         test_body.py:
           TestRequestBody:
             django-poc: v1.20.0
-            fastapi: missing_feature
+            fastapi: v2.14.0dev
             flask-poc: v2.13.0dev
             python3.12: v1.20.0
             uds-flask: v1.20.0
