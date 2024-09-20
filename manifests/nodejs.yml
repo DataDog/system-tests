@@ -574,7 +574,8 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_UnifiedServiceTagging_CustomService: *ref_3_0_0 (feature should be supported in all recent versions)
+    # DD_SERVICE should be supported in all recent versions
+    Test_Config_UnifiedServiceTagging_CustomService: *ref_3_0_0
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
