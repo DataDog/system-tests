@@ -918,7 +918,7 @@ class MySqlContainer(SqlDbTestedContainer):
         )
 
 
-class SqlServerContainer(SqlDbTestedContainer):
+class MsSqlServerContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.data_mssql = f"./{host_log_folder}/data-mssql"
         healthcheck = {}
@@ -926,13 +926,14 @@ class SqlServerContainer(SqlDbTestedContainer):
             # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
             # see https://hub.docker.com/_/microsoft-azure-sql-edge
             # XXX: Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
+            # -C : trust self signed certificates
             healthcheck = {
-                "test": '/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
+                "test": '/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -C',
                 "retries": 20,
             }
 
         super().__init__(
-            image_name="mcr.microsoft.com/azure-sql-edge:latest",
+            image_name="mcr.microsoft.com/mssql/server:2022-latest",
             name="mssql",
             cap_add=["SYS_PTRACE"],
             user="root",
