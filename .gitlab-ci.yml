@@ -3,12 +3,12 @@ include:
 
 stages:
   - extravms_tracer
- # - ruby_tracer
- # - nodejs_tracer
- # - java_tracer
- # - python_tracer
- # - dotnet_tracer
- # - php_tracer
+  - ruby_tracer
+  - nodejs_tracer
+  - java_tracer
+  - python_tracer
+  - dotnet_tracer
+  - php_tracer
   - parse_results
   - before_tests
 
@@ -56,10 +56,8 @@ onboarding_install_extra_vms:
         - ONBOARDING_FILTER_ENV: [prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
           TEST_LIBRARY: "dotnet"
-       # TODO enable ruby. Failures on the installation process for test-app-ruby
         - ONBOARDING_FILTER_ENV: [prod]
-          #ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
+          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
           TEST_LIBRARY: "ruby"
         - ONBOARDING_FILTER_ENV: [prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83,test-app-php-container-alpine]
@@ -68,7 +66,7 @@ onboarding_install_extra_vms:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
 
-.onboarding_nodejs:
+onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -106,7 +104,7 @@ onboarding_install_extra_vms:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -150,7 +148,7 @@ onboarding_install_extra_vms:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -188,7 +186,7 @@ onboarding_install_extra_vms:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_dotnet:
+onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
@@ -223,7 +221,7 @@ onboarding_install_extra_vms:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_ruby:
+onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
@@ -258,7 +256,7 @@ onboarding_install_extra_vms:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_php:
+onboarding_php:
   extends: .base_job_onboarding_system_tests
   stage: php_tracer
   allow_failure: true
