@@ -100,6 +100,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
             self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True,
         )
 
+
 @scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_HttpClientErrorStatuses_Default:
