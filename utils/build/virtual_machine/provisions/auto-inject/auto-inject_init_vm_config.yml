@@ -63,16 +63,6 @@
 
 - os_type: linux
   os_distro: rpm
-  os_branch: fedora
-  remote-command: |
-    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
-    sudo id -u datadog &>/dev/null || sudo useradd -m datadog
-    sudo yum clean expire-cache
-    #sudo yum -y update
-    sudo systemctl restart sshd.service
-
-- os_type: linux
-  os_distro: rpm
   remote-command: |
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
