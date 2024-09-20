@@ -26,11 +26,10 @@ class Test_Config_TraceEnabled:
     def test_tracing_enabled(self, library_env, test_agent, test_library):
         assert library_env.get("DD_TRACE_ENABLED", "true") == "true"
         with test_library:
-            with test_library.start_span("allowed"):
+            with test_library.start_span("allowed") as s:
                 pass
-        test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
+        assert test_agent.wait_for_num_traces(
+            num=1, clear=True
         ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
 
     @enable_tracing_disabled()
@@ -39,11 +38,9 @@ class Test_Config_TraceEnabled:
         with test_library:
             with test_library.start_span("allowed"):
                 pass
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as e:
             test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "wait_for_num_traces raises an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec, so we expect to see an exception
+        assert e.match(".*traces not available from test agent, got 0.*")
 
 
 @scenarios.parametric
@@ -88,6 +85,7 @@ class Test_Config_UnifiedServiceTagging:
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
+    @bug(context.library == "ruby", reason="APMAPI-460")
     def test_specific_version(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="s1") as s1:
@@ -99,12 +97,12 @@ class Test_Config_UnifiedServiceTagging:
         assert len(traces) == 2
 
         span1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
-        assert span1["service"] == "version_test"
-        assert span1["meta"]["version"] == "5.2.0"
+        assert span1["service"] == "version_test", f"{span1}"
+        assert span1["meta"]["version"] == "5.2.0", f"{span1}"
 
         span2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
-        assert span2["service"] == "no dd_service"
-        assert "version" not in span2["meta"]
+        assert span2["service"] == "no dd_service", f"{span2}"
+        assert "version" not in span2["meta"], f"{span2}"
 
     @parametrize("library_env", [{"DD_ENV": "dev"}])
     def test_specific_env(self, library_env, test_agent, test_library):

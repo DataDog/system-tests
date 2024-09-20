@@ -679,9 +679,9 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: v2.12.2
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -764,11 +764,11 @@ tests/:
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v2.12.0
     Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
-    Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_HTPP_CLIENT_TAGS_QUERY_STRING instead)
+    Test_Config_ClientTagQueryString_Configured: v2.14.0.dev
     Test_Config_ClientTagQueryString_Empty: v2.12.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_Default: v2.12.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
