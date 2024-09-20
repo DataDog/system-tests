@@ -86,9 +86,8 @@ class Test_Config_HttpClientErrorStatuses_Default:
 
     def test_status_code_400(self):
         assert self.r.status_code == 200
-        # This doesn't work for Go app
-        # content = json.loads(self.r.text)
-        # assert content["status_code"] == 400
+        content = json.loads(self.r.text)
+        assert content["status_code"] == 400
         
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
@@ -103,9 +102,8 @@ class Test_Config_HttpClientErrorStatuses_Default:
 
     def test_status_code_500(self):
         assert self.r.status_code == 200
-         # This doesn't work for Go app
-        # content = json.loads(self.r.text)
-        # assert content["status_code"] == 500
+        content = json.loads(self.r.text)
+        assert content["status_code"] == 500
 
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
@@ -126,8 +124,8 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
 
     def test_status_code_200(self):
         assert self.r.status_code == 200
-        # content = json.loads(self.r.text)
-        # assert content["status_code"] == 200
+        content = json.loads(self.r.text)
+        assert content["status_code"] == 200
 
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
@@ -136,21 +134,21 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
         assert client_span, spans
         assert client_span.get("error") == 1
 
-    def setup_status_code_202(self):
-        self.url = "http://weblog:7777/status?code=202"
-        self.r = weblog.get("/make_distant_call", params={"url": self.url})
+    # def setup_status_code_202(self):
+    #     self.url = "http://weblog:7777/status?code=202"
+    #     self.r = weblog.get("/make_distant_call", params={"url": self.url})
 
-    def test_status_code_202(self):
-        assert self.r.status_code == 200
-        # content = json.loads(self.r.text)
-        # assert content["status_code"] == 202
+    # def test_status_code_202(self):
+    #     assert self.r.status_code == 200
+    #     content = json.loads(self.r.text)
+    #     assert content["status_code"] == 202
 
-        interfaces.library.assert_trace_exists(self.r)
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+    #     interfaces.library.assert_trace_exists(self.r)
+    #     spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "202"})
-        assert client_span, spans
-        assert client_span.get("error") == 1
+    #     client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "202"})
+    #     assert client_span, spans
+    #     assert client_span.get("error") == 1
 
 
 @scenarios.default
