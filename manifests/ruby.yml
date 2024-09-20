@@ -400,7 +400,7 @@ tests/:
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
-    Test_Config_UnifiedServiceTagging_Default: missing_feature
+    Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
