@@ -108,7 +108,7 @@ tests/:
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-            spring-boot-openliberty: bug (not working as expected)
+            spring-boot-openliberty: bug (APPSEC-54981)
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.18.0
@@ -253,7 +253,7 @@ tests/:
             ratpack: missing_feature
             resteasy-netty3: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-            spring-boot-openliberty: bug (not working as expected)
+            spring-boot-openliberty: bug (APPSEC-54981)
             vertx3: missing_feature
             vertx4: missing_feature
         test_xpath_injection.py:
@@ -299,7 +299,7 @@ tests/:
           TestCookieValue:
             '*': v1.10.0
             akka-http: v1.12.0
-            jersey-grizzly2: bug (name field of source not set)
+            jersey-grizzly2: bug (APPSEC-54982)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -323,7 +323,7 @@ tests/:
           TestHeaderValue:
             '*': v1.3.0
             akka-http: v1.12.0
-            jersey-grizzly2: bug (name field of source not set)
+            jersey-grizzly2: bug (APPSEC-54982)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -377,7 +377,7 @@ tests/:
           TestParameterValue:
             '*': v1.1.0
             akka-http: v1.12.0
-            jersey-grizzly2: bug (name field of source not set)
+            jersey-grizzly2: bug (APPSEC-54982)
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -544,8 +544,7 @@ tests/:
           ratpack: v0.99.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v0.99.0
-          vertx4: bug (Capability to read body content is incomplete after vert.x
-            4.0.0)
+          vertx4: bug (APPSEC-54983)
         Test_BodyRaw:
           '*': missing_feature
           akka-http: v1.22.0
@@ -566,8 +565,7 @@ tests/:
           ratpack: v0.99.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: missing_feature
-          vertx4: bug (Capability to read body content is incomplete after vert.x
-            4.0.0)
+          vertx4: bug (APPSEC-54983)
         Test_Cookies:
           akka-http: v1.22.0
           play: v1.22.0
@@ -779,7 +777,7 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-payara: bug (blocking not working)
+        spring-boot-payara: bug (APPSEC-54985)
       Test_Blocking_request_body_multipart:
         '*': v1.15.0
         akka-http: v1.22.0
@@ -788,8 +786,8 @@ tests/:
         ratpack: missing_feature
         resteasy-netty3: missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-openliberty: bug
-        spring-boot-payara: bug (blocking not working)
+        spring-boot-openliberty: bug (APPSEC-54985)
+        spring-boot-payara: bug (APPSEC-54985)
       Test_Blocking_request_cookies:
         '*': missing_feature
         akka-http: v1.22.0
@@ -906,9 +904,9 @@ tests/:
         vertx4: v1.7.0
       Test_Suspicious_Request_Blocking:
         '*': v1.6.0
-        akka-http: bug
+        akka-http: bug (APPSEC-54985)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-payara: bug
+        spring-boot-payara: bug (APPSEC-54985)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
@@ -1035,7 +1033,7 @@ tests/:
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking:
         '*': v1.39.0
-        play: bug (endpoint returns 404)
+        play: bug (APPSEC-54986)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_traces.py:
       Test_AppSecEventSpanTags:
@@ -1164,7 +1162,7 @@ tests/:
           "*": irrelevant
           spring-boot: v0.1 # real version not known
     test_cassandra.py:
-      Test_Cassandra: bug (Endpoint is probably improperly implemented on weblog)
+      Test_Cassandra: bug (APMAPI-729)
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
@@ -1215,9 +1213,9 @@ tests/:
         "*": irrelevant
         spring-boot: bug (AIDM-325)
     test_mongo.py:
-      Test_Mongo: bug (Endpoint is probably improperly implemented on weblog)
+      Test_Mongo: bug (APMAPI-729)
     test_sql.py:
-      Test_Sql: bug (Endpoint is probably improperly implemented on weblog)
+      Test_Sql: bug (APMAPI-729)
   k8s_lib_injection/:
     test_k8s_manual_inject.py:
       TestAdmisionControllerProfiling: v1.39.0
