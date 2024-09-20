@@ -67,7 +67,7 @@
                 <artifactId>native-maven-plugin</artifactId>
                 <configuration>
                      <buildArgs>
-                        <buildArg>-J-javaagent:${agent.path}</buildArg>
+                        -J-javaagent:${agent.path} -J-Ddd.profiling.enabled=true --enable-monitoring=jfr
                      </buildArgs>
                 </configuration>
             </plugin>

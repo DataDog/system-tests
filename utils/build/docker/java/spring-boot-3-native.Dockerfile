@@ -37,6 +37,7 @@ COPY --from=build /app/target/myproject .
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
+ENV DD_PROFILING_START_FORCE_FIRST=true
 
 RUN echo "#!/bin/bash\nexec /app/myproject --server.port=7777" > app.sh
 RUN chmod +x app.sh
