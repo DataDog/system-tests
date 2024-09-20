@@ -42,6 +42,8 @@ onboarding_install_extra_vms:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
     - when: manual
+  variables:
+    SCENARIO: "SIMPLE_INSTALLER_AUTO_INJECTION"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [prod]
@@ -64,7 +66,7 @@ onboarding_install_extra_vms:
           TEST_LIBRARY: "php"
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
 
 onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
