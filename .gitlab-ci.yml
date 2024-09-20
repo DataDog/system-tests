@@ -52,7 +52,7 @@ onboarding_fedora_host:
 
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog test-app-${TEST_LIBRARY} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog test-app-${TEST_LIBRARY} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
 .onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
