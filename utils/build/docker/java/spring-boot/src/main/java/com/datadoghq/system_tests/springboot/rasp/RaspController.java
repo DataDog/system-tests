@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.File;
+
 import javax.sql.DataSource;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -59,6 +61,17 @@ public class RaspController {
         return ResponseEntity.ok(result);
     }
 
+    @RequestMapping(value = "/lfi", method = {GET, POST})
+    public ResponseEntity<String> lfi(@RequestParam("file") final String file) {
+        return execFli(file);
+    }
+
+    @PostMapping(value = "/lfi", consumes = {APPLICATION_XML_VALUE, APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> lfi(@RequestBody final FileDTO body) throws SQLException {
+        return execFli(body.getFile());
+    }
+
+
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private ResponseEntity<String> execSql(final String userId) throws SQLException {
         try (final Connection conn = dataSource.getConnection()) {
@@ -89,6 +102,11 @@ public class RaspController {
         }
     }
 
+    private ResponseEntity<String> execFli(final String file)  {
+        new File(file);
+        return ResponseEntity.ok("OK");
+    }
+
     @JacksonXmlRootElement(localName = "user_id")
     public static class UserDTO {
         @JsonProperty("user_id")
@@ -116,6 +134,21 @@ public class RaspController {
 
         public void setDomain(String domain) {
             this.domain = domain;
+        }
+    }
+
+    @JacksonXmlRootElement(localName = "file")
+    public static class FileDTO {
+        @JsonProperty("file")
+        @JacksonXmlText
+        private String file;
+
+        public String getFile() {
+            return file;
+        }
+
+        public void setFile(String file) {
+            this.file = file;
         }
     }
 }

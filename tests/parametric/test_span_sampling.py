@@ -334,7 +334,6 @@ class Test_Span_Sampling:
     @missing_feature(
         context.library == "golang", reason="The Go tracer does not have a way to modulate trace sampling once started"
     )
-    @missing_feature(context.library == "php", reason="manual.drop and manual.keep span tags are not implemented.")
     @missing_feature(context.library == "ruby", reason="Issue: does not respect manual.drop or manual.keep span tags")
     @pytest.mark.parametrize(
         "library_env",

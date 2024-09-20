@@ -1,10 +1,11 @@
 from __future__ import annotations
-
 import json
 
 from utils.buddies import python_buddy, java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
 from utils.tools import logger
+
+from tests.integrations.utils import delete_sqs_queue
 
 
 class _Test_SQS:
@@ -14,6 +15,7 @@ class _Test_SQS:
     WEBLOG_TO_BUDDY_QUEUE = None
     buddy = None
     buddy_interface = None
+    unique_id = None
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, operation):
@@ -89,11 +91,22 @@ class _Test_SQS:
         send request A to weblog : this request will produce a sqs message
         send request B to library buddy, this request will consume sqs message
         """
+        try:
+            message = (
+                "[crossed_integrations/sqs.py][SQS] Hello from SQS "
+                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
+            )
 
-        self.production_response = weblog.get("/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE}, timeout=60)
-        self.consume_response = self.buddy.get(
-            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60}, timeout=61
-        )
+            self.production_response = weblog.get(
+                "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
+            )
+            self.consume_response = self.buddy.get(
+                "/sqs/consume",
+                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
+                timeout=61,
+            )
+        finally:
+            delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
 
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
@@ -110,7 +123,8 @@ class _Test_SQS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(
-        library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
+        library="java",
+        reason="Expected to fail, Dotnet does not propagate context via msg attrs or uses xray which also doesn't work",
     )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
@@ -127,6 +141,9 @@ class _Test_SQS:
             operation="receiveMessage",
         )
 
+        assert producer_span is not None, "Producer span not found"
+        assert consumer_span is not None, "Consumer span not found"
+
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
@@ -140,13 +157,22 @@ class _Test_SQS:
         request A: GET /library_buddy/produce_sqs_message
         request B: GET /weblog/consume_sqs_message
         """
+        try:
+            message = (
+                "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
+                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume: {self.unique_id}"
+            )
 
-        self.production_response = self.buddy.get(
-            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE}, timeout=60
-        )
-        self.consume_response = weblog.get(
-            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60}, timeout=61
-        )
+            self.production_response = self.buddy.get(
+                "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
+            )
+            self.consume_response = weblog.get(
+                "/sqs/consume",
+                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
+                timeout=61,
+            )
+        finally:
+            delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -162,11 +188,7 @@ class _Test_SQS:
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(
-        library="dotnet",
-        reason="Expected to fail, dotnet currently does not extract context on receive."
-        " TODO: enable after https://github.com/DataDog/dd-trace-dotnet/pull/5159",
-    )
+    @missing_feature(library="dotnet", reason="Expected to fail, Dotnet does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -211,21 +233,29 @@ class _Test_SQS:
 
 
 @scenarios.crossed_tracing_libraries
+# @irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_message_attributes_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_message_attributes_buddy_to_weblog"
+
+    unique_id = scenarios.crossed_tracing_libraries.unique_id
+
+    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_msg_attributes_weblog_to_buddy_{unique_id}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_msg_attributes_buddy_to_weblog_{unique_id}"
 
 
 @scenarios.crossed_tracing_libraries
+# @irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
-    WEBLOG_TO_BUDDY_QUEUE = "Test_SQS_propagation_via_aws_xray_header_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = "Test_SQS_propagation_via_aws_xray_header_buddy_to_weblog"
+
+    unique_id = scenarios.crossed_tracing_libraries.unique_id
+
+    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_headers_weblog_to_buddy_{unique_id}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_headers_buddy_to_weblog_{unique_id}"
 
     @missing_feature(
         library="nodejs",
