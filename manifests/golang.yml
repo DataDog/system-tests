@@ -446,7 +446,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_TraceEnabled: v1.67.0
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: v1.67.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.64.0-dev
@@ -487,15 +487,15 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v1.60.0
-    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
+    Test_Config_ClientIPHeader_Precedence: missing_feature # failing due to network.client.ip taking precedence somehow...
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_TRACE_HTTP_URL_QUERY_STRING_DISABLED)
     Test_Config_ClientTagQueryString_Empty: v1.60.0
     Test_Config_HttpClientErrorStatuses_Default: v1.67.0
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.67.0
-    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
-    Test_Config_UnifiedServiceTagging_Default: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
+    Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:
