@@ -109,7 +109,6 @@ class _Test_SQS:
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
         library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
     )
@@ -163,7 +162,6 @@ class _Test_SQS:
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
         library="dotnet",
         reason="Expected to fail, dotnet currently does not extract context on receive."
@@ -238,12 +236,10 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
         super().test_consume()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
     @missing_feature(library="dotnet", reason="Expected to fail, Dotnet will not extract from XRay headers")

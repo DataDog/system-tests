@@ -128,7 +128,6 @@ class _Test_SNS:
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
         library="java",
         reason="Expected to fail. Java will produce a message with propagation via AWSTraceHeader and node \
@@ -189,7 +188,6 @@ class _Test_SNS:
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
         library="java", reason="Not expected to fail, Java should be able to extract Binary trace context but is not."
     )
