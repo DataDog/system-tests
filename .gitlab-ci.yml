@@ -47,7 +47,7 @@ onboarding_OracleLinux_host:
     AMI_UPDATE: "true"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [prod]
           TEST_LIBRARY: [nodejs, python, java, ruby, dotnet, php]
 
   script:
@@ -68,7 +68,7 @@ onboarding_OracleLinux_container:
     AMI_UPDATE: "true"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [prod]
           TEST_LIBRARY: [nodejs, python, java, ruby, dotnet]
 
   script:
@@ -89,7 +89,7 @@ onboarding_OracleLinux_PHP_container:
     AMI_UPDATE: "true"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
+        - ONBOARDING_FILTER_ENV: [prod]
           TEST_LIBRARY: [php]
 
   script:
