@@ -29,7 +29,6 @@ class TestNoSamesiteCookie(BaseSinkTest):
         self.assert_no_iast_event(self.request_empty_cookie)
 
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
-    @missing_feature(library="python", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
