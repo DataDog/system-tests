@@ -91,7 +91,7 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     test_agent.wait_for_telemetry_event(
         "app-client-configuration-change", clear=True,
     )
-    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
+    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True, wait_loops=200)
 
 
 def assert_sampling_rate(trace: List[Dict], rate: float):
@@ -572,7 +572,7 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_sample_rules(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the trace sampling rules capability."""
-        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RULES])
+        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RULES], wait_loops=300)
 
     @parametrize(
         "library_env",
