@@ -321,7 +321,7 @@ tests/:
       TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
-      Test_Config_DDTraceAgentURL: missing_feature
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
       Test_Config_UnifiedServiceTagging: v3.3.0
