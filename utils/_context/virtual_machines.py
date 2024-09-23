@@ -372,7 +372,7 @@ class OracleLinux92arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="arm64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
 
@@ -389,7 +389,7 @@ class OracleLinux88amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="amd64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
 
@@ -405,7 +405,7 @@ class OracleLinux88arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="arm64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
 
@@ -422,6 +422,6 @@ class OracleLinux79amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="amd64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
