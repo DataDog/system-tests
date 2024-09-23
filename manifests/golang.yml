@@ -448,12 +448,8 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_config_consistency.py:
-<<<<<<< HEAD
-      Test_Config_TraceEnabled: v1.67.0
-=======
       Test_Config_TraceAgentURL: missing_feature
-      Test_Config_TraceEnabled: missing_feature
->>>>>>> main
+      Test_Config_TraceEnabled: v1.67.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.67.0
     test_dynamic_configuration.py:
