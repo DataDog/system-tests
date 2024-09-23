@@ -385,6 +385,8 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:
