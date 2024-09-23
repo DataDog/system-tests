@@ -52,6 +52,7 @@ class HttpRequest:
         self.headers = CaseInsensitiveDict(data.get("headers", {}))
         self.method = data["method"]
         self.url = data["url"]
+        self.params = data["params"]
 
     def __repr__(self) -> str:
         return f"HttpRequest(method:{self.method}, url:{self.url}, headers:{self.headers})"
