@@ -3,7 +3,6 @@ import json
 import hashlib
 
 from utils.tools import logger
-from utils._context.library_version import Version
 from utils import context
 from utils.onboarding.debug_vm import extract_logs_to_file
 
@@ -246,6 +245,36 @@ class Ubuntu22arm64(_VirtualMachine):
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu22_arm64",
+            os_cpu="arm64",
+            **kwargs,
+        )
+
+
+class Ubuntu20amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_20_amd64",
+            aws_config=_AWSConfig(ami_id="ami-044892ba8cea504e1", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=_VagrantConfig(box_name="bento/ubuntu-20.04"),
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu20_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class Ubuntu20arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_20_arm64",
+            aws_config=_AWSConfig(ami_id="ami-097017c9a1aeae218", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2004-arm64",),
+            krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/ubuntu_datadog:20"),
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu20_arm64",
             os_cpu="arm64",
             **kwargs,
         )

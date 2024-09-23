@@ -7,6 +7,8 @@ from utils.tools import logger
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
     Ubuntu22arm64,
+    Ubuntu20amd64,
+    Ubuntu20arm64,
     Ubuntu18amd64,
     AmazonLinux2023arm64,
     AmazonLinux2023amd64,
@@ -34,6 +36,8 @@ class _VirtualMachineScenario(Scenario):
         vm_provision=None,
         include_ubuntu_22_amd64=False,
         include_ubuntu_22_arm64=False,
+        include_ubuntu_20_amd64=False,
+        include_ubuntu_20_arm64=False,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=False,
         include_amazon_linux_2_dotnet_6=False,
@@ -65,6 +69,10 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Ubuntu22amd64())
         if include_ubuntu_22_arm64:
             self.required_vms.append(Ubuntu22arm64())
+        if include_ubuntu_20_amd64:
+            self.required_vms.append(Ubuntu20amd64())
+        if include_ubuntu_20_arm64:
+            self.required_vms.append(Ubuntu20arm64())
         if include_ubuntu_18_amd64:
             self.required_vms.append(Ubuntu18amd64())
         if include_amazon_linux_2_amd64:
@@ -209,6 +217,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             github_workflow=None,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
+            include_ubuntu_20_amd64=True,
+            include_ubuntu_20_arm64=True,
             include_ubuntu_18_amd64=True,
             include_amazon_linux_2_amd64=True,
             include_amazon_linux_2_dotnet_6=True,
