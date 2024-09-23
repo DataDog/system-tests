@@ -143,10 +143,22 @@ class SpanSetMetaArgs(BaseModel):
     key: str
     value: str
 
-
 class SpanSetMetaReturn(BaseModel):
     pass
 
+class SpanSetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+    value: str
+
+class SpanSetBaggageReturn(BaseModel):
+    pass
+
+class SpanGetAllBaggageArgs(BaseModel):
+    span_id: int
+
+class SpanGetAllBaggageReturn(BaseModel):
+    baggage: dict[str, str]
 
 @app.post("/trace/span/set_meta")
 def trace_span_set_meta(args: SpanSetMetaArgs) -> SpanSetMetaReturn:
@@ -154,6 +166,21 @@ def trace_span_set_meta(args: SpanSetMetaArgs) -> SpanSetMetaReturn:
     span.set_tag(args.key, args.value)
     return SpanSetMetaReturn()
 
+@app.post("/trace/span/set_baggage")
+def trace_set_baggage(args: SpanSetBaggageArgs) -> SpanSetBaggageReturn:
+    span = spans[args.span_id]
+    span.context._set_baggage_item(args.key, args.value)
+    return SpanSetBaggageReturn()
+
+@app.get("/trace/span/get_all_baggage")
+def trace_get_all_baggage(args: SpanGetAllBaggageArgs) -> SpanGetAllBaggageReturn:
+    span = spans[args.span_id]
+    return SpanGetAllBaggageReturn(baggage=span.context._get_all_baggage_items())
+
+@app.get("/trace/span/get_baggage")
+def trace_get_baggage(args: SpanGetBaggageArgs) -> SpanGetBaggageReturn:
+    span = spans[args.span_id]
+    return SpanGetBaggageReturn(baggage=span.context._get_all_baggage_items())
 
 class SpanSetMetricArgs(BaseModel):
     span_id: int

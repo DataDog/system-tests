@@ -114,6 +114,12 @@ class APMLibraryClient:
     def span_set_meta(self, span_id: int, key: str, value) -> None:
         raise NotImplementedError
 
+    def span_set_baggage(self, span_id: int, key: str, value: str) -> None:
+        raise NotImplementedError
+    
+    def span_get_all_baggage(self, span_id: int) -> dict[str, str]:
+        raise NotImplementedError
+
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
         raise NotImplementedError
 
@@ -233,6 +239,9 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
     def span_set_meta(self, span_id: int, key: str, value) -> None:
         self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,})
+    
+    def span_set_baggage(self, span_id: int, key: str, value: str) -> None:
+        self._session.post(self._url("/trace/span/set_baggage"), json={"span_id": span_id, "key": key, "value": value,})
 
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value,})
@@ -263,6 +272,11 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def span_get_metric(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,})
         return resp.json()["value"]
+
+    def span_get_all_baggage(self, span_id: int):
+        resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
+        resp = resp.json()
+        return resp["baggage"]
 
     def span_get_resource(self, span_id: int):
         resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,})
@@ -409,6 +423,12 @@ class _TestSpan:
 
     def set_metric(self, key: str, val: float):
         self._client.span_set_metric(self.span_id, key, val)
+    
+    def set_baggage(self, key:str, val:str):
+        self._client.span_set_baggage(self.span_id, key, val)
+    
+    def get_all_baggage(self):
+        return self._client.span_get_all_baggage(self.span_id)
 
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
@@ -617,6 +637,12 @@ class APMLibraryClientGRPC:
 
     def span_set_meta(self, span_id: int, key: str, val: str):
         self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=span_id, key=key, value=val,))
+
+    def span_set_baggage(self, span_id: int, key: str, val: str):
+        self._client.SpanSetBaggage(pb.SpanSetBaggageArgs(span_id=span_id, key=key, value=val,))
+    
+    def span_get_all_baggage(self, span_id: int):
+        return self._client.SpanGetAllBaggage(pb.SpanGetAllBaggageArgs(span_id=span_id)).value
 
     def span_set_metric(self, span_id: int, key: str, val: float):
         self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=span_id, key=key, value=val,))
