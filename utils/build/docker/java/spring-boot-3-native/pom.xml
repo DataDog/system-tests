@@ -56,22 +56,49 @@
         </dependency>
     </dependencies>
     
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.graalvm.buildtools</groupId>
-                <artifactId>native-maven-plugin</artifactId>
-                <configuration>
-                     <buildArgs>
-                        -J-javaagent:${agent.path} -J-Ddd.profiling.enabled=true --enable-monitoring=jfr
-                     </buildArgs>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <profiles>
+        <profile>
+            <id>with-profiling</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                             <buildArgs>
+                                -J-javaagent:${agent.path} -J-Ddd.profiling.enabled=true --enable-monitoring=jfr
+                             </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+                <directory>with-profiling</directory>
+            </build>
+        </profile>
+        <profile>
+            <id>without-profiling</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                             <buildArgs>
+                                -J-javaagent:${agent.path}
+                             </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+                <directory>without-profiling</directory>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
