@@ -22,7 +22,6 @@ lang_variant:
           fi
           sudo sh python_install.sh rpm 3.8.15
 
-
 weblog:
     name: test-app-python
     excluded_os_branches: [amazon_linux2_dotnet6]

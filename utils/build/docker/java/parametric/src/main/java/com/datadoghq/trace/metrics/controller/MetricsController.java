@@ -15,7 +15,10 @@ public class MetricsController {
   public void flush() {
     LOGGER.info("Flushing metrics");
     try {
-      ((InternalTracer) GlobalTracer.get()).flushMetrics();
+      // Only flush trace stats when tracing was enabled
+      if (GlobalTracer.get() instanceof InternalTracer) {
+          ((InternalTracer) GlobalTracer.get()).flushMetrics();
+      }
     } catch (Exception e) {
       LOGGER.warn("Failed to flush metrics", e);
     }

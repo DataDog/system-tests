@@ -421,8 +421,14 @@ class Body_for_iast(BaseModel):
 
 
 @app.post("/iast/source/body/test", response_class=PlainTextResponse)
-async def view_iast_source_body(body: Body_for_iast):
-    _sink_point(table=body.table, id=body.user)
+async def view_iast_source_body(request: Request):
+    body = await request.receive()
+
+    result = body["body"]
+
+    json_body = json.loads(result)
+
+    _sink_point_path_traversal(json_body["value"])
     return "OK"
 
 

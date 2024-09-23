@@ -25,6 +25,7 @@ class Test_Crashtracking:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
+    @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-727")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent, test_library):
         test_library.crash()
@@ -35,9 +36,14 @@ class Test_Crashtracking:
             event = json.loads(base64.b64decode(req["body"]))
 
             if event["request_type"] == "logs":
-                assert self.is_crash_report(test_library, event) == False
+                assert self.is_crash_report(test_library, event) is False
 
     def is_crash_report(self, test_library, event) -> bool:
+        assert isinstance(event["payload"], list)
+        assert len(event["payload"]) > 0
+        assert isinstance(event["payload"][0], dict)
+        assert "tags" in event["payload"][0]
+
         tags = event["payload"][0]["tags"]
         print("tags: ", tags)
         tags_dict = dict(item.split(":") for item in tags.split(","))

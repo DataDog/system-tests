@@ -140,7 +140,7 @@ tests/:
         test_body.py:
           TestRequestBody:
             django-poc: v1.20.0
-            fastapi: missing_feature
+            fastapi: v2.14.0dev
             flask-poc: v2.13.0dev
             python3.12: v1.20.0
             uds-flask: v1.20.0
@@ -463,8 +463,12 @@ tests/:
         '*': v2.10.0.dev
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0.dev
+      Test_Fingerprinting_Endpoint_Capability: missing_feature
       Test_Fingerprinting_Header_And_Network: v2.11.0.dev
+      Test_Fingerprinting_Header_Capability: missing_feature
+      Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session: missing_feature (missing endpoint)
+      Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
       Test_Basic: v1.5.0rc1.dev
     test_ip_blocking_full_denylist.py:
@@ -512,7 +516,7 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: bug (fails on instrumentation)
+      Test_Debugger_Expression_Language: bug (DEBUG-2898)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -685,12 +689,12 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: flaky (failure 2.8.0/2.9.0.dev)
+      TestDynamicConfigHeaderTags: flaky (APMAPI-734)
       TestDynamicConfigSamplingRules: v2.9.0dev
-      TestDynamicConfigTracingEnabled: flaky (failure 2.8.0/2.9.0.dev)
+      TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
-      TestDynamicConfigV2: flaky (failure 2.8.0/2.9.0.dev)
+      TestDynamicConfigV2: flaky (APMAPI-734)
     test_headers_b3.py:
       Test_Headers_B3: v2.8.0
     test_headers_b3multi.py:
@@ -720,7 +724,7 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_partial_flushing.py:
-      Test_Partial_Flushing: flaky (failure 2.8.0/2.9.0.dev)
+      Test_Partial_Flushing: flaky (APMAPI-734)
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
@@ -758,6 +762,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  serverless/:
+    test_span_pointers.py:
+      Test_SpanPointers: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
@@ -803,7 +810,7 @@ tests/:
     Test_UrlQuery: v1.6.0rc1.dev
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
-    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
+    Test_MetaDatadogTags: bug (APMAPI-735)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0.dev
     Test_StandardTagsMethod: v1.2.1
