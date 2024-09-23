@@ -778,7 +778,7 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: v2.12.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature
