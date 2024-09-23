@@ -118,7 +118,7 @@ tests/:
         Test_Lfi_Capability: missing_feature
         Test_Lfi_Mandatory_SpanTags: v2.52.0
         Test_Lfi_Optional_SpanTags: v2.52.0
-        Test_Lfi_RC_CustomAction: bug
+        Test_Lfi_RC_CustomAction: v3.3.0
         Test_Lfi_StackTrace: v2.51.0
         Test_Lfi_Telemetry: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
