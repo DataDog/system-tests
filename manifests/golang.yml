@@ -304,8 +304,12 @@ tests/:
       Test_UserLoginSuccessEvent: v1.47.0
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: missing_feature
       Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Header_Capability: missing_feature
+      Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
       Test_Basic: v1.37.0
     test_ip_blocking_full_denylist.py:
@@ -444,6 +448,7 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_config_consistency.py:
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: missing_feature
@@ -485,6 +490,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  serverless/:
+    test_span_pointers.py:
+      Test_SpanPointers: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)

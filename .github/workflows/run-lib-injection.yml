@@ -207,14 +207,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+
       - name: Build weblog base images (PR)
+        id: build
         if: inputs.build_lib_injection_app_images
         run: |
           #Build multiplatform
           lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }} --docker-platform linux/arm64,linux/amd64
-
-      - name: Install runner
-        uses: ./.github/actions/install_runner
 
       - name: Kubernetes lib-injection tests
         id: k8s-lib-injection-tests
@@ -226,7 +227,7 @@ jobs:
 
       - name: Compress logs
         id: compress_logs
-        if: always()
+        if: always() && steps.build.outcome == 'success'
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
 
       - name: Upload artifact

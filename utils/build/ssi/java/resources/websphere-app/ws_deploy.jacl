@@ -1,0 +1,5 @@
+$AdminApp install "/tmp/ee-app.ear" {-usedefaultbindings}
+set appManager [$AdminControl queryNames type=ApplicationManager,process=server1,*]
+$AdminConfig save
+$AdminControl invoke $appManager startApplication ee-app-ear
+$AdminConfig save

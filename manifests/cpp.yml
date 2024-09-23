@@ -137,6 +137,7 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
   parametric/:
     test_config_consistency.py:
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: missing_feature
@@ -165,6 +166,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  serverless/:
+    test_span_pointers.py:
+      Test_SpanPointers: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

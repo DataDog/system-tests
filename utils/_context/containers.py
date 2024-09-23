@@ -329,28 +329,23 @@ class TestedContainer:
         TAIL_LIMIT = 50
         SEP = "=" * 30
 
-        keys = [
-            bytearray(os.environ["DD_API_KEY"], "utf-8"),
-        ]
-
+        keys = []
+        if os.environ.get("DD_API_KEY"):
+            keys.append(bytearray(os.environ["DD_API_KEY"], "utf-8"))
         if os.environ.get("DD_APP_KEY"):
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
         if os.environ.get("AWS_ACCESS_KEY_ID"):
             keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
         if os.environ.get("AWS_SECRET_ACCESS_KEY"):
             keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
-
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
         )
-
         for output_name, output in data:
             filename = f"{self.log_folder_path}/{output_name}.log"
-
             for key in keys:
                 output = output.replace(key, b"<redacted>")
-
             with open(filename, "wb") as f:
                 f.write(output)
 
@@ -372,7 +367,7 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except Exception:
+            except Exception as e:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
@@ -1068,7 +1063,7 @@ class DockerSSIContainer(TestedContainer):
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
             host_log_folder=host_log_folder,
-            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080)},
+            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
             allow_old_container=False,
             environment={"DD_DEBUG": "true", "DD_TRACE_SAMPLE_RATE": 1, "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5"},

@@ -229,8 +229,12 @@ tests/:
       Test_UserLoginSuccessEvent: v2.27.0
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: missing_feature
       Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Header_Capability: missing_feature
+      Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
       Test_Basic: v2.7.0
     test_ip_blocking_full_denylist.py:
@@ -317,6 +321,7 @@ tests/:
       TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
       Test_Config_UnifiedServiceTagging: v3.3.0
@@ -365,6 +370,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  serverless/:
+    test_span_pointers.py:
+      Test_SpanPointers: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

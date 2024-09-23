@@ -15,6 +15,7 @@ lang_variant:
       - os_type: linux
         os_distro: rpm
         remote-command: |
+          sudo yum remove rubygem-bundler || true
           sudo yum install -y gcc libyaml-devel
           sudo amazon-linux-extras install -y ruby3.0
           sudo yum install -y ruby-devel
@@ -25,7 +26,7 @@ lang_variant:
 weblog:
     name: test-app-ruby
     # centos_7_amd64 is excluded because it does not provides the right Ruby versions
-    excluded_os_branches: [amazon_linux2_dotnet6, ubuntu18_amd64, amazon_linux2_amd64, centos_7_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6, ubuntu18_amd64, amazon_linux2_amd64, centos_7_amd64, oracle_linux]
     install:
       - os_type: linux
 
