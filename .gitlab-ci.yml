@@ -79,7 +79,6 @@ onboarding_nodejs:
     - when: manual
   variables:
     TEST_LIBRARY: "nodejs"
-    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -118,7 +117,6 @@ onboarding_java:
     - when: manual
   variables:
     TEST_LIBRARY: "java"
-    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -163,7 +161,6 @@ onboarding_python:
     - when: manual
   variables:
     TEST_LIBRARY: "python"
-    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -202,7 +199,6 @@ onboarding_dotnet:
     - when: manual
   variables:
     TEST_LIBRARY: "dotnet"
-    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -238,7 +234,6 @@ onboarding_ruby:
     - when: manual
   variables:
     TEST_LIBRARY: "ruby"
-    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -274,7 +269,6 @@ onboarding_php:
     - when: manual
   variables:
     TEST_LIBRARY: "php"
-    AMI_UPDATE: "True"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
