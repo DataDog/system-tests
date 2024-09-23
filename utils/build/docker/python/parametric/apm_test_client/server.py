@@ -83,7 +83,12 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         parent = HTTPPropagator.extract(headers)
 
     span = ddtrace.tracer.start_span(
-        args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
+        args.name,
+        service=args.service,
+        span_type=args.type,
+        resource=args.resource,
+        child_of=parent,
+        activate=True,
     )
     for link in args.links:
         link_parent_id = link.get("parent_id", 0)
@@ -96,7 +101,10 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
             span.link_span(context, link.get("attributes"))
 
     spans[span.span_id] = span
-    return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
+    return StartSpanReturn(
+        span_id=span.span_id,
+        trace_id=span.trace_id,
+    )
 
 
 class SpanFinishArgs(BaseModel):
@@ -143,22 +151,54 @@ class SpanSetMetaArgs(BaseModel):
     key: str
     value: str
 
+
 class SpanSetMetaReturn(BaseModel):
     pass
+
 
 class SpanSetBaggageArgs(BaseModel):
     span_id: int
     key: str
     value: str
 
+
 class SpanSetBaggageReturn(BaseModel):
     pass
+
+
+class SpanGetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+
+
+class SpanGetBaggageReturn(BaseModel):
+    baggage: str
+
 
 class SpanGetAllBaggageArgs(BaseModel):
     span_id: int
 
+
 class SpanGetAllBaggageReturn(BaseModel):
     baggage: dict[str, str]
+
+
+class SpanRemoveBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+
+
+class SpanRemoveBaggageReturn(BaseModel):
+    pass
+
+
+class SpanRemoveAllBaggageArgs(BaseModel):
+    span_id: int
+
+
+class SpanRemoveAllBaggageReturn(BaseModel):
+    pass
+
 
 @app.post("/trace/span/set_meta")
 def trace_span_set_meta(args: SpanSetMetaArgs) -> SpanSetMetaReturn:
@@ -166,21 +206,39 @@ def trace_span_set_meta(args: SpanSetMetaArgs) -> SpanSetMetaReturn:
     span.set_tag(args.key, args.value)
     return SpanSetMetaReturn()
 
+
 @app.post("/trace/span/set_baggage")
 def trace_set_baggage(args: SpanSetBaggageArgs) -> SpanSetBaggageReturn:
     span = spans[args.span_id]
     span.context._set_baggage_item(args.key, args.value)
     return SpanSetBaggageReturn()
 
+
+@app.get("/trace/span/get_baggage")
+def trace_get_baggage(args: SpanGetBaggageArgs) -> SpanGetBaggageReturn:
+    span = spans[args.span_id]
+    return SpanGetBaggageReturn(baggage=span.context._get_baggage_item(args.key))
+
+
 @app.get("/trace/span/get_all_baggage")
 def trace_get_all_baggage(args: SpanGetAllBaggageArgs) -> SpanGetAllBaggageReturn:
     span = spans[args.span_id]
     return SpanGetAllBaggageReturn(baggage=span.context._get_all_baggage_items())
 
-@app.get("/trace/span/get_baggage")
-def trace_get_baggage(args: SpanGetBaggageArgs) -> SpanGetBaggageReturn:
+
+@app.post("/trace/span/remove_baggage")
+def trace_remove_baggage(args: SpanRemoveBaggageArgs) -> SpanRemoveBaggageReturn:
     span = spans[args.span_id]
-    return SpanGetBaggageReturn(baggage=span.context._get_all_baggage_items())
+    span.context._remove_baggage_item(args.key)
+    return SpanRemoveBaggageReturn()
+
+
+@app.post("/trace/span/remove_all_baggage")
+def trace_remove_all_baggage(args: SpanRemoveAllBaggageArgs) -> SpanRemoveAllBaggageReturn:
+    span = spans[args.span_id]
+    span.context._remove_all_baggage_items()
+    return SpanRemoveBaggageReturn()
+
 
 class SpanSetMetricArgs(BaseModel):
     span_id: int
@@ -355,9 +413,11 @@ def otel_start_span(args: OtelStartSpanArgs):
                 ddcontext.trace_id,
                 ddcontext.span_id,
                 True,
-                TraceFlags.SAMPLED
-                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                else TraceFlags.DEFAULT,
+                (
+                    TraceFlags.SAMPLED
+                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
+                    else TraceFlags.DEFAULT
+                ),
                 TraceState.from_header([ddcontext._tracestate]),
             )
         )
@@ -376,9 +436,11 @@ def otel_start_span(args: OtelStartSpanArgs):
                 ddcontext.trace_id,
                 ddcontext.span_id,
                 True,
-                TraceFlags.SAMPLED
-                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                else TraceFlags.DEFAULT,
+                (
+                    TraceFlags.SAMPLED
+                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
+                    else TraceFlags.DEFAULT
+                ),
                 TraceState.from_header([ddcontext._tracestate]),
             )
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))

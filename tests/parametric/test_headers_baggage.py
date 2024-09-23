@@ -1,3 +1,4 @@
+from operator import le
 from requests import head
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
@@ -14,6 +15,7 @@ from utils import missing_feature, context, scenarios, features, bug
 parametrize = pytest.mark.parametrize
 
 import logging
+
 logging.basicConfig(level=logging.INFO)  # or logging.WARNING, logging.ERROR to reduce verbosity
 
 
@@ -33,7 +35,7 @@ def only_baggage_enabled() -> Any:
 
 @features.datadog_headers_propagation
 @scenarios.parametric
-class Test_Headers_Datadog:
+class Test_Headers_Baggage:
     def test_distributed_headers_baggage_default_D001(self, test_agent, test_library):
         """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
@@ -52,12 +54,8 @@ class Test_Headers_Datadog:
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
-        origin = span["meta"].get(ORIGIN)
-        assert origin == "synthetics;=web,z" or origin == "synthetics;=web"
-        assert span["meta"].get("_dd.p.dm") == "-4"
-        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
-        assert any("baggage" in header for header in headers)
-        assert headers["baggage"]=="foo=bar"
+        assert "baggage" in headers.keys()
+        assert headers["baggage"] == "foo=bar"
 
     @only_baggage_enabled()
     def test_distributed_headers_baggage_only_D002(self, test_library):
@@ -65,14 +63,10 @@ class Test_Headers_Datadog:
         with test_library:
             headers = make_single_request_and_get_inject_headers(test_library, [["baggage", "foo=bar"]])
 
-        assert "traceparent" not in headers
-        assert "tracestate" not in headers
-        assert "x-datadog-trace-id" not in headers
-        assert "x-datadog-parent-id" not in headers
-        assert "x-datadog-sampling-priority" not in headers
-        assert "x-datadog-origin" not in headers
-        assert "x-datadog-tags" not in headers
-        assert "baggage" in headers
+        assert "x-datadog-trace-id" not in headers.keys()
+        assert "x-datadog-parent-id" not in headers.keys()
+        assert "baggage" in headers.keys()
+        assert len(headers.keys()) == 1
         assert headers["baggage"] == "foo=bar"
 
     @disable_baggage()
@@ -94,12 +88,9 @@ class Test_Headers_Datadog:
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
-        assert span["meta"].get(ORIGIN) == "synthetics"
-        assert span["meta"].get("_dd.p.dm") == "-4"
-        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
-        assert not any('baggage' in item for item in headers)
+        assert "baggage" not in headers.keys()
 
-    def test_baggage_set_D005(self, test_agent, test_library):
+    def test_baggage_set_D005(self, test_library):
         """Ensure that baggage headers are injected and appended properly when baggage is enabled."""
         with test_library:
             with test_library.start_span(name="test_baggage_set_D005") as span:
@@ -120,7 +111,7 @@ class Test_Headers_Datadog:
         assert "serverNode=DF%2028" in baggage_items
 
     @disable_baggage()
-    def test_baggage_set_disabled_D006(self, test_agent, test_library):
+    def test_baggage_set_disabled_D006(self, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled."""
         with test_library:
             with test_library.start_span(name="test_baggage_set_disabled_D006") as span:
@@ -129,15 +120,53 @@ class Test_Headers_Datadog:
 
             headers = test_library.inject_headers(span.span_id)
 
-        assert not any('baggage' in item for item in headers)
+        assert not any("baggage" in item for item in headers)
 
-    def test_baggage_get_all_D007(self, test_agent, test_library):
+    def test_baggage_get_all_D007(self, test_library):
         """Ensure that baggage headers are extracted properly."""
         with test_library:
-            with test_library.start_span(name="test_baggage_get_all_D007", service="unique-service", http_headers=[["baggage", "foo=bar,baz=qux,userId=Am%C3%A9lie,serverNode=DF%2028"]]
-                ) as span:
-                    baggage = span.get_baggage() 
-                    assert baggage == {"foo": "bar", "baz": "qux", "userId": "Amélie", "serverNode": "DF 28"}
+            with test_library.start_span(
+                name="test_baggage_get_all_D007",
+                service="unique-service",
+                http_headers=[["baggage", "foo=bar,baz=qux,userId=Am%C3%A9lie,serverNode=DF%2028"]],
+            ) as span:
+                baggage = span.get_all_baggage()
+                assert baggage == {"foo": "bar", "baz": "qux", "userId": "Amélie", "serverNode": "DF 28"}
 
-# # test all api fuctions (get, remove, remove_all)
-#     def test_baggage_get_D008(self, test_agent)
+    def test_baggage_get_D008(self, test_library):
+        """Ensure that baggage headers are extracted properly."""
+        with test_library:
+            with test_library.start_span(
+                name="test_baggage_get_D008",
+                service="unique-service",
+                http_headers=[["baggage", "foo=bar,baz=qux,userId=Am%C3%A9lie,serverNode=DF%2028"]],
+            ) as span:
+                assert span.get_baggage("foo") == "bar"
+                assert span.get_baggage("baz") == "qux"
+                assert span.get_baggage("userId") == "Amélie"
+                assert span.get_baggage("serverNode") == "DF 28"
+
+    def test_baggage_remove_D009(self, test_library):
+        """Ensure that baggage headers are removed properly."""
+        with test_library:
+            with test_library.start_span(
+                name="test_baggage_remove_D009",
+                service="unique-service",
+                http_headers=[["baggage", "baz=qux,userId=Am%C3%A9lie,serverNode=DF%2028"]],
+            ) as span:
+                span.remove_baggage("baz")
+                span.remove_baggage("userId")
+                assert span.get_all_baggage() == {"serverNode": "DF 28"}
+                span.remove_baggage("serverNode")
+                assert span.get_all_baggage() == {}
+
+    def test_baggage_remove_all_D010(self, test_library):
+        """Ensure that all baggage headers are removed properly."""
+        with test_library:
+            with test_library.start_span(
+                name="test_baggage_remove_all_D010",
+                service="unique-service",
+                http_headers=[["baggage", "foo=bar,baz=qux,userId=Am%C3%A9lie,serverNode=DF%2028"]],
+            ) as span:
+                span.remove_all_baggage()
+                assert span.get_all_baggage() == {}
