@@ -10,7 +10,7 @@ from utils.tools import nested_lookup
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
-@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""

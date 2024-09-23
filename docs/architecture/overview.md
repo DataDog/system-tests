@@ -111,11 +111,11 @@ flowchart TD
 
 The `./run.sh` script starts the containers in the background.
 
-Often, knowing how a container fails to start is as simple as running `docker-compose up {container}` and observing the output.
+Often, knowing how a container fails to start is as simple as adding `--sleep` to your `run` command and observing the output.
 
 If there are more in depth problems within a container you may need to adjust the Dockerfile.
  - re-run `./build.sh`
- - start the container via `docker-compose up`
+ - start the container via `./run.sh <SCENARIO-NAME> --sleep`
  - `docker exec -it {container-id} bash` to diagnose from within the container
 
 ## What is the structure of the code base?

@@ -7,7 +7,7 @@ System tests is a test workbench that allows any kind of functional testing over
 
 ## How to run them locally?
 
-You will only need `docker-compose`. It's basically cloning this repo, create a `.env` file with `DD_API_KEY=<a_valid_staging_api_key>` and run two commands. Please have a look at the [execution documentation](./execute).
+You will only need `python3.12`. It's basically cloning this repo, create a `.env` file with `DD_API_KEY=<a_valid_staging_api_key>` and run two commands. Please have a look at the [execution documentation](./execute).
 
 ## How to add them to a CI?
 

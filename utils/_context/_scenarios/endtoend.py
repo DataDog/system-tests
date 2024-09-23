@@ -14,7 +14,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
-    SqlServerContainer,
+    MsSqlServerContainer,
     create_network,
     BuddyContainer,
     TestedContainer,
@@ -85,7 +85,7 @@ class DockerScenario(Scenario):
             self._supporting_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
         if include_sqlserver:
-            self._supporting_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
 
         self._required_containers.extend(self._supporting_containers)
 
