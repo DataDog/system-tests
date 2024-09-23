@@ -97,7 +97,7 @@ namespace weblog
 
         [HttpGet("expression/collections")]
         [Consumes("application/json", "application/xml")]
-        public async Task<IActionResult> StringOperations()
+        public async Task<IActionResult> CollectionOperations()
         {
             var a0 = await CollectionFactory.GetCollection(0, "array");
             var l0 = await CollectionFactory.GetCollection(0, "list");
