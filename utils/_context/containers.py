@@ -378,7 +378,8 @@ class TestedContainer:
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
                 logger.debug(f"Exception removing containerrrrr")
-                logger.error(e)
+                logger.exception("this is an exception", exc_info=e)
+
                 pass
 
         if self.stdout_interface is not None:
