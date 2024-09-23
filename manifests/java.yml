@@ -952,10 +952,14 @@ tests/:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Endpoint_Capability: missing_feature
       Test_Fingerprinting_Header_And_Network:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Header_Capability: missing_feature
+      Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
