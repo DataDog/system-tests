@@ -26,7 +26,7 @@ class Test_Config_TraceEnabled:
     def test_tracing_enabled(self, library_env, test_agent, test_library):
         assert library_env.get("DD_TRACE_ENABLED", "true") == "true"
         with test_library:
-            with test_library.start_span("allowed") as s:
+            with test_library.start_span("allowed"):
                 pass
         assert test_agent.wait_for_num_traces(
             num=1, clear=True
