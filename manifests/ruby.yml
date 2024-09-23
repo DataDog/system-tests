@@ -433,7 +433,7 @@ tests/:
     Test_UrlQuery: v1.0.0
   test_semantic_conventions.py:
     Test_Meta: v1.7.0
-    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
+    Test_MetaDatadogTags: bug (APMAPI-735)
     Test_MetricsStandardTags: v1.7.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
