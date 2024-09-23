@@ -1,5 +1,6 @@
 import os
-
+import re
+import json
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
@@ -101,6 +102,7 @@ class _VirtualMachineScenario(Scenario):
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
         self._library = LibraryVersion(config.option.vm_library, "0.0")
+        self._datadog_apm_inject_version = "v9.99.99"
         self._env = config.option.vm_env
         self._weblog = config.option.vm_weblog
         self._check_test_environment()
@@ -172,6 +174,10 @@ class _VirtualMachineScenario(Scenario):
         for vm in self.required_vms:
             for key in vm.tested_components:
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ")
+                if key.startswith("datadog-apm-inject") and self._tested_components[key]:
+                    self._datadog_apm_inject_version = f"v{self._tested_components[key].lstrip(' ')}"
+                if key.startswith("datadog-apm-library-") and self._tested_components[key]:
+                    self._library.version = self._tested_components[key].lstrip(" ")
 
     def close_targets(self):
         if self.is_main_worker:
@@ -190,10 +196,30 @@ class _VirtualMachineScenario(Scenario):
     def components(self):
         return self._tested_components
 
+    @property
+    def dd_apm_inject_version(self):
+        return self._datadog_apm_inject_version
+
     def customize_feature_parity_dashboard(self, result):
+        # Customize the general report
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2
             test["description"] = test["path"][last_index:]
+
+        # We are going to split the FPD report in multiple reports, one per VM
+        for vm in self.required_vms:
+            vm_name_clean = vm.name.replace("_amd64", "").replace("_arm64", "")
+            new_result = result.copy()
+            new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
+            new_result["tests"] = []
+            for test in result["tests"]:
+                if vm.name in test["description"]:
+                    new_test = test.copy()
+                    new_test["description"] = re.sub("[\[].*?[\]]", "", new_test["description"])
+                    new_test["path"] = re.sub("[\[].*?[\]]", "", new_test["path"])
+                    new_result["tests"].append(new_test)
+            with open(f"{self.host_log_folder}/{vm.name}_feature_parity.json", "w", encoding="utf-8") as f:
+                json.dump(new_result, f, indent=2)
 
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):

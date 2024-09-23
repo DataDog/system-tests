@@ -417,6 +417,7 @@ def export_feature_parity_dashboard(session, data):
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
         ],
+        "configuration": context.configuration,
         "scenario": context.scenario.name,
         "tests": [convert_test_to_feature_parity_model(test) for test in data["tests"]],
     }
