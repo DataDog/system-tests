@@ -158,6 +158,11 @@ jobs:
       run: ./run.sh TRACING_CONFIG_NONDEFAULT
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TRACING_CONFIG_NONDEFAULT_2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_2"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT_2
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACING_CONFIG_NONDEFAULT_3 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_3"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT_3
