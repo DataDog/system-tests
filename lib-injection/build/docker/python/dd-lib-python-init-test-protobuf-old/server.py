@@ -4,6 +4,7 @@ import sys
 
 import addressbook_pb2
 
+
 def handle_sigterm(signo, sf):
     print("Received SIGTERM")
     sys.exit(0)
