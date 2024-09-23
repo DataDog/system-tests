@@ -81,6 +81,7 @@ onboarding_java:
     - when: manual
   variables:
     TEST_LIBRARY: "java"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
