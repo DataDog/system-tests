@@ -148,6 +148,7 @@ allow_no_jira_ticket_for_bugs = [
     "tests/test_profiling.py::Test_Profile",
     "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1",
     "tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory",
+    "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigHeaderTags",
 ]
 
 [tool.pylint]
