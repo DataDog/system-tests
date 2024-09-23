@@ -304,8 +304,12 @@ tests/:
       Test_UserLoginSuccessEvent: v1.47.0
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: missing_feature
       Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Header_Capability: missing_feature
+      Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
       Test_Basic: v1.37.0
     test_ip_blocking_full_denylist.py:
@@ -444,7 +448,12 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_config_consistency.py:
+<<<<<<< HEAD
       Test_Config_TraceEnabled: v1.67.0
+=======
+      Test_Config_TraceAgentURL: missing_feature
+      Test_Config_TraceEnabled: missing_feature
+>>>>>>> main
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.67.0
     test_dynamic_configuration.py:
@@ -456,7 +465,7 @@ tests/:
       TestDynamicConfigV2: v1.59.0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
-      Test_Otel_Env_Vars: missing_feature
+      Test_Otel_Env_Vars: v1.66.0
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -485,6 +494,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  serverless/:
+    test_span_pointers.py:
+      Test_SpanPointers: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: missing_feature # failing due to network.client.ip taking precedence somehow...
@@ -496,6 +508,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.67.0
     Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
     Test_Config_UnifiedServiceTagging_Default: v1.67.0
+    Test_Config_ObfuscationQueryStringRegexp_Configured: v1.68.0
+    Test_Config_ObfuscationQueryStringRegexp_Empty: v1.68.0
   test_data_integrity.py:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:

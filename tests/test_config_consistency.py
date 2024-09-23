@@ -75,6 +75,33 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert spans[0]["error"] == 1
 
 
+# Tests for verifying default query string obfuscation behavior can be found in the Test_StandardTagsUrl test class
+@scenarios.tracing_config_nondefault_2
+@features.tracing_configuration_consistency
+class Test_Config_ObfuscationQueryStringRegexp_Empty:
+    """ Verify behavior when set to empty string """
+
+    def setup_query_string_obfuscation_empty(self):
+        self.r = weblog.get("/?application_key=123")
+
+    def test_query_string_obfuscation_empty(self):
+        interfaces.library.add_span_tag_validation(
+            self.r, tags={"http.url": r"^.*/\?application_key=123$"}, value_as_regular_expression=True,
+        )
+
+
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_ObfuscationQueryStringRegexp_Configured:
+    def setup_query_string_obfuscation_configured(self):
+        self.r = weblog.get("/?ssn=123-45-6789")
+
+    def test_query_string_obfuscation_configured(self):
+        interfaces.library.add_span_tag_validation(
+            self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True,
+        )
+
+
 @scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_HttpClientErrorStatuses_Default:

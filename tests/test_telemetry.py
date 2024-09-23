@@ -215,6 +215,7 @@ class Test_Telemetry:
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @flaky(library="python", reason="app-started not sent first")
+    @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""

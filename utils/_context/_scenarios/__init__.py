@@ -447,6 +447,7 @@ class scenarios:
         "TRACING_CONFIG_NONDEFAULT",
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "ssn=\d{3}-\d{2}-\d{4}",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             # disable ASM to test non asm client ip tagging
@@ -458,6 +459,11 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
 
+    tracing_config_nondefault_2 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_2",
+        weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": ""},
+        doc="Test tracer configuration when a collection of non-default settings are applied",
+    )
     tracing_config_nondefault_3 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
     )
