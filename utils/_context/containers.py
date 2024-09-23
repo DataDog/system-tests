@@ -373,11 +373,12 @@ class TestedContainer:
                 logger.debug(f"Removing container 000000000 {self.name}")
                 self.collect_logs()
                 self._container.remove(force=True)
-            except Exception:
+            except Exception as e:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
                 logger.debug(f"Exception removing containerrrrr")
+                logger.error(e)
                 pass
 
         if self.stdout_interface is not None:
