@@ -344,13 +344,13 @@ class TestedContainer:
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
         )
-
+        logger.info(f"Collecting logs for {self.name}")
         for output_name, output in data:
             filename = f"{self.log_folder_path}/{output_name}.log"
-
+            logger.info(f"Collecting logs to file {filename}")
             for key in keys:
                 output = output.replace(key, b"<redacted>")
-
+            logger.info(f"LOGs write {output}")
             with open(filename, "wb") as f:
                 f.write(output)
 
