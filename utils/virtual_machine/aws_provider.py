@@ -76,7 +76,6 @@ class AWSPulumiProvider(VmProvider):
         # Check for cached ami, before starting a new one
         ami_id = self._get_cached_ami(vm)
         logger.info(f"Cache AMI: {vm.get_cache_name()}")
-
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
             vm.name,
