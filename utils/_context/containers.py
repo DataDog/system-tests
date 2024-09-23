@@ -339,7 +339,7 @@ class TestedContainer:
             keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
         if os.environ.get("AWS_SECRET_ACCESS_KEY"):
             keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
-
+        logger.info(f"00 Collecting logs for {self.name}")
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
@@ -370,13 +370,14 @@ class TestedContainer:
         if self._container:
             try:
                 # collect logs before removing
+                logger.debug(f"Removing container 000000000 {self.name}")
                 self.collect_logs()
                 self._container.remove(force=True)
             except Exception:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
-
+                logger.debug(f"Exception removing containerrrrr")
                 pass
 
         if self.stdout_interface is not None:
