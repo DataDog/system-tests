@@ -564,6 +564,9 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
+  serverless/:
+    test_span_pointers.py:
+      Test_SpanPointers: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
