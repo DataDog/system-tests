@@ -6,6 +6,7 @@ option csharp_namespace = "ApmTestClient";
 
 // Interface of APM clients to be used for shared testing.
 service APMClient {
+  rpc Crash(CrashArgs) returns (CrashReturn) {}
   rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}
   rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
   rpc SpanGetCurrent(SpanGetCurrentArgs) returns (SpanGetCurrentReturn) {}
@@ -14,8 +15,6 @@ service APMClient {
   rpc SpanGetMeta(SpanGetMetaArgs) returns (SpanGetMetaReturn) {}
   rpc SpanGetMetric(SpanGetMetricArgs) returns (SpanGetMetricReturn) {}
   rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
-  rpc SpanSetBaggage(SpanSetBaggageArgs) returns (SpanSetBaggageReturn) {}
-  rpc SpanGetAllBaggage(SpanGetAllBaggageArgs) returns (SpanGetAllBaggageReturn) {}
   rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
   rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
   rpc SpanSetResource(SpanSetResourceArgs) returns (SpanSetResourceReturn) {}
@@ -46,6 +45,9 @@ service APMClient {
 
   rpc GetTraceConfig(GetTraceConfigArgs) returns (GetTraceConfigReturn) {}
 }
+
+message CrashArgs {}
+message CrashReturn {}
 
 message GetTraceConfigArgs {}
 
@@ -144,19 +146,6 @@ message SpanSetMetaArgs {
 }
 message SpanSetMetaReturn {}
 
-message SpanSetBaggageArgs {
-  uint64 span_id = 1;
-  string key = 2;
-  string value = 3;
-}
-message SpanSetBaggageReturn {}
-
-message SpanGetAllBaggageArgs {
-  uint64 span_id = 1;
-}
-message SpanGetAllBaggageReturn {
-  map<string, string> baggage = 1;
-}
 
 message SpanSetMetricArgs {
   uint64 span_id = 1;

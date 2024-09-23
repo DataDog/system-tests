@@ -15,6 +15,11 @@ class APMClientStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.Crash = channel.unary_unary(
+                '/APMClient/Crash',
+                request_serializer=protos_dot_apm__test__client__pb2.CrashArgs.SerializeToString,
+                response_deserializer=protos_dot_apm__test__client__pb2.CrashReturn.FromString,
+                )
         self.StartSpan = channel.unary_unary(
                 '/APMClient/StartSpan',
                 request_serializer=protos_dot_apm__test__client__pb2.StartSpanArgs.SerializeToString,
@@ -54,16 +59,6 @@ class APMClientStub(object):
                 '/APMClient/SpanSetMeta',
                 request_serializer=protos_dot_apm__test__client__pb2.SpanSetMetaArgs.SerializeToString,
                 response_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetaReturn.FromString,
-                )
-        self.SpanSetBaggage = channel.unary_unary(
-                '/APMClient/SpanSetBaggage',
-                request_serializer=protos_dot_apm__test__client__pb2.SpanSetBaggageArgs.SerializeToString,
-                response_deserializer=protos_dot_apm__test__client__pb2.SpanSetBaggageReturn.FromString,
-                )
-        self.SpanGetAllBaggage = channel.unary_unary(
-                '/APMClient/SpanGetAllBaggage',
-                request_serializer=protos_dot_apm__test__client__pb2.SpanGetAllBaggageArgs.SerializeToString,
-                response_deserializer=protos_dot_apm__test__client__pb2.SpanGetAllBaggageReturn.FromString,
                 )
         self.SpanSetMetric = channel.unary_unary(
                 '/APMClient/SpanSetMetric',
@@ -201,6 +196,12 @@ class APMClientServicer(object):
     """Interface of APM clients to be used for shared testing.
     """
 
+    def Crash(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def StartSpan(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -244,18 +245,6 @@ class APMClientServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def SpanSetMeta(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SpanSetBaggage(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SpanGetAllBaggage(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -420,6 +409,11 @@ class APMClientServicer(object):
 
 def add_APMClientServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'Crash': grpc.unary_unary_rpc_method_handler(
+                    servicer.Crash,
+                    request_deserializer=protos_dot_apm__test__client__pb2.CrashArgs.FromString,
+                    response_serializer=protos_dot_apm__test__client__pb2.CrashReturn.SerializeToString,
+            ),
             'StartSpan': grpc.unary_unary_rpc_method_handler(
                     servicer.StartSpan,
                     request_deserializer=protos_dot_apm__test__client__pb2.StartSpanArgs.FromString,
@@ -459,16 +453,6 @@ def add_APMClientServicer_to_server(servicer, server):
                     servicer.SpanSetMeta,
                     request_deserializer=protos_dot_apm__test__client__pb2.SpanSetMetaArgs.FromString,
                     response_serializer=protos_dot_apm__test__client__pb2.SpanSetMetaReturn.SerializeToString,
-            ),
-            'SpanSetBaggage': grpc.unary_unary_rpc_method_handler(
-                    servicer.SpanSetBaggage,
-                    request_deserializer=protos_dot_apm__test__client__pb2.SpanSetBaggageArgs.FromString,
-                    response_serializer=protos_dot_apm__test__client__pb2.SpanSetBaggageReturn.SerializeToString,
-            ),
-            'SpanGetAllBaggage': grpc.unary_unary_rpc_method_handler(
-                    servicer.SpanGetAllBaggage,
-                    request_deserializer=protos_dot_apm__test__client__pb2.SpanGetAllBaggageArgs.FromString,
-                    response_serializer=protos_dot_apm__test__client__pb2.SpanGetAllBaggageReturn.SerializeToString,
             ),
             'SpanSetMetric': grpc.unary_unary_rpc_method_handler(
                     servicer.SpanSetMetric,
@@ -612,6 +596,23 @@ class APMClient(object):
     """
 
     @staticmethod
+    def Crash(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/APMClient/Crash',
+            protos_dot_apm__test__client__pb2.CrashArgs.SerializeToString,
+            protos_dot_apm__test__client__pb2.CrashReturn.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
     def StartSpan(request,
             target,
             options=(),
@@ -744,40 +745,6 @@ class APMClient(object):
         return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetMeta',
             protos_dot_apm__test__client__pb2.SpanSetMetaArgs.SerializeToString,
             protos_dot_apm__test__client__pb2.SpanSetMetaReturn.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SpanSetBaggage(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/APMClient/SpanSetBaggage',
-            protos_dot_apm__test__client__pb2.SpanSetBaggageArgs.SerializeToString,
-            protos_dot_apm__test__client__pb2.SpanSetBaggageReturn.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SpanGetAllBaggage(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/APMClient/SpanGetAllBaggage',
-            protos_dot_apm__test__client__pb2.SpanGetAllBaggageArgs.SerializeToString,
-            protos_dot_apm__test__client__pb2.SpanGetAllBaggageReturn.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
