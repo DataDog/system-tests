@@ -17,7 +17,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
     data = {}
     location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
-    @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
+    @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):
         super().test_secure()
 

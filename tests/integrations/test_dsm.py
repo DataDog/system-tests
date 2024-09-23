@@ -12,7 +12,7 @@ from tests.integrations.utils import (
     delete_sns_topic,
 )
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
 from utils.tools import logger
 
 
@@ -124,6 +124,7 @@ class Test_DsmRabbitmq:
         library="dotnet",
         reason="Dotnet calculates 3168906112866048140 as producer hash by using 'routing_key:True' in edge tags, with 'True' capitalized, resulting in different hash.",
     )
+    @flaky(library="python", reason="APMAPI-724")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 

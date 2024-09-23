@@ -332,11 +332,12 @@ class TestedContainer:
         keys = [
             bytearray(os.environ["DD_API_KEY"], "utf-8"),
         ]
-        if "DD_APP_KEY" in os.environ:
+
+        if os.environ.get("DD_APP_KEY"):
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
-        if "AWS_ACCESS_KEY_ID" in os.environ:
+        if os.environ.get("AWS_ACCESS_KEY_ID"):
             keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
-        if "AWS_SECRET_ACCESS_KEY" in os.environ:
+        if os.environ.get("AWS_SECRET_ACCESS_KEY"):
             keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
 
         data = (
@@ -348,7 +349,7 @@ class TestedContainer:
             filename = f"{self.log_folder_path}/{output_name}.log"
 
             for key in keys:
-                output = output.replace(key, b"***")
+                output = output.replace(key, b"<redacted>")
 
             with open(filename, "wb") as f:
                 f.write(output)
@@ -515,7 +516,7 @@ class AgentContainer(TestedContainer):
             local_image_only=True,
         )
 
-        self.agent_version = None
+        self.agent_version = ""
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         try:
@@ -917,7 +918,7 @@ class MySqlContainer(SqlDbTestedContainer):
         )
 
 
-class SqlServerContainer(SqlDbTestedContainer):
+class MsSqlServerContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.data_mssql = f"./{host_log_folder}/data-mssql"
         healthcheck = {}
@@ -925,14 +926,17 @@ class SqlServerContainer(SqlDbTestedContainer):
             # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
             # see https://hub.docker.com/_/microsoft-azure-sql-edge
             # XXX: Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
+            # -C : trust self signed certificates
             healthcheck = {
-                "test": '/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
+                "test": '/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -C',
                 "retries": 20,
             }
 
         super().__init__(
-            image_name="mcr.microsoft.com/azure-sql-edge:latest",
+            image_name="mcr.microsoft.com/mssql/server:2022-latest",
             name="mssql",
+            cap_add=["SYS_PTRACE"],
+            user="root",
             environment={"ACCEPT_EULA": "1", "MSSQL_SA_PASSWORD": "yourStrong(!)Password"},
             allow_old_container=True,
             host_log_folder=host_log_folder,

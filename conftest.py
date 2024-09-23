@@ -15,7 +15,7 @@ from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-from utils._decorators import released
+from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -95,13 +95,15 @@ def pytest_configure(config):
             break
 
     if context.scenario is None:
-        pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
+        pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
 
     context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
+
+    configure_decorators(config)
 
 
 # Called at the very begening
@@ -300,7 +302,7 @@ def pytest_collection_finish(session: pytest.Session):
         if not item.instance:  # item is a method bounded to a class
             continue
 
-        # the test metohd name is like test_xxxx
+        # the test method name is like test_xxxx
         # we replace the test_ by setup_, and call it if it exists
 
         setup_method_name = f"setup_{item.name[5:]}"

@@ -1,11 +1,11 @@
-import subprocess, datetime, os, time, signal
+import subprocess, datetime, os, time, signal, shlex
 from utils.tools import logger
 from utils import context
 from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
 from retry import retry
 
 
-def execute_command(command, timeout=None, logfile=None):
+def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
     """call shell-command and either return its output or kill it
   if it doesn't normally exit within timeout seconds and return None"""
     applied_timeout = 90
@@ -16,10 +16,16 @@ def execute_command(command, timeout=None, logfile=None):
     command_out_redirect = subprocess.PIPE
     if logfile:
         command_out_redirect = open(logfile, "w")
+
+    if not subprocess_env:
+        subprocess_env = os.environ.copy()
+
     output = ""
     try:
         start = datetime.datetime.now()
-        process = subprocess.Popen(command.split(), stdout=command_out_redirect, stderr=command_out_redirect)
+        process = subprocess.Popen(
+            shlex.split(command), stdout=command_out_redirect, stderr=command_out_redirect, env=subprocess_env
+        )
 
         while process.poll() is None:
             time.sleep(0.1)
