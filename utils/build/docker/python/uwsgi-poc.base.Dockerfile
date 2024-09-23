@@ -6,14 +6,14 @@ RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
 # print versions
 RUN python --version && curl --version
 
-# install python deps
-# Tracer does not support flask 2.3.0 or higher, pin the flask version for now
-RUN pip install 'flask[async]'==2.2.4 flask-login uwsgi gevent requests pycryptodome psycopg2-binary confluent-kafka==2.1.1
-
 # this is necessary for the mysqlclient install
 RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config
 
-RUN pip install boto3 kombu mock asyncpg aiomysql mysql-connector-python pymysql mysqlclient urllib3
+# install python deps
+# Tracer does not support flask 2.3.0 or higher, pin the flask version for now
+RUN pip install 'flask[async]'==2.2.4 flask-login==0.6.3 uWSGI==2.0.26 gevent==24.2.1 requests==2.32.3 pycryptodome==3.20.0 psycopg2-binary==2.9.9 confluent-kafka==2.1.1
+RUN pip install 'moto[ec2,s3,all]'==5.0.14
+RUN pip install boto3==1.34.141 kombu==5.3.7 mock==5.1.0 asyncpg==0.29.0 aiomysql==0.2.0 mysql-connector-python==9.0.0 mysqlclient==2.2.4 urllib3==1.26.19 PyMySQL==1.1.1
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y

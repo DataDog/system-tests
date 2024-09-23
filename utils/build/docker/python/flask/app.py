@@ -10,6 +10,8 @@ import threading
 import urllib.request
 from urllib.parse import quote
 
+import boto3
+from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
@@ -1315,3 +1317,22 @@ def return_headers(*args, **kwargs):
     for key, value in flask_request.headers.items():
         headers[key] = value
     return jsonify(headers)
+
+
+@app.route("/mock_s3/put_object", methods=["GET", "POST", "OPTIONS"])
+def s3_put_object():
+
+    bucket = flask_request.args.get("bucket")
+    key = flask_request.args.get("key")
+    body: str = flask_request.args.get("key")
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=bucket)
+        response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+
+    return jsonify(result)
