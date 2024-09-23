@@ -1225,6 +1225,7 @@ tests/:
       TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
+      Test_Config_RateLimit: missing_feature
       Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
