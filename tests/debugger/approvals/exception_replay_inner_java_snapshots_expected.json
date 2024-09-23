@@ -220,8 +220,442 @@
                 "isNull": true
               },
               "cause": {
-                "type": "java.lang.Throwable",
-                "isNull": true
+                "type": "org.springframework.web.server.ResponseStatusException",
+                "fields": {
+                  "status": {
+                    "type": "int",
+                    "value": "500"
+                  },
+                  "reason": {
+                    "type": "java.lang.String",
+                    "value": "Inner exception"
+                  },
+                  "backtrace": {
+                    "type": "java.lang.Object[]",
+                    "elements": [
+                      {
+                        "type": "short[]",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "int[]",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.Object[]",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "long[]",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.Object[]",
+                        "notCapturedReason": "depth"
+                      }
+                    ],
+                    "size": "5"
+                  },
+                  "detailMessage": {
+                    "type": "java.lang.String",
+                    "isNull": true
+                  },
+                  "cause": {
+                    "type": "java.lang.Throwable",
+                    "isNull": true
+                  },
+                  "stackTrace": {
+                    "type": "java.lang.StackTraceElement[]",
+                    "elements": [
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      },
+                      {
+                        "type": "java.lang.StackTraceElement",
+                        "notCapturedReason": "depth"
+                      }
+                    ],
+                    "size": "94"
+                  },
+                  "depth": {
+                    "type": "int",
+                    "value": "94"
+                  },
+                  "suppressedExceptions": {
+                    "type": "java.lang.Throwable[]",
+                    "elements": [],
+                    "size": "0"
+                  }
+                }
               },
               "stackTrace": {
                 "type": "java.lang.StackTraceElement[]",
@@ -4097,7 +4531,7 @@
         },
         "staticFields": {},
         "throwable": {
-          "message": "500 INTERNAL_SERVER_ERROR \"Outer exception\"",
+          "message": "500 INTERNAL_SERVER_ERROR \"Outer exception\"; nested exception is org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"Inner exception\"",
           "stacktrace": [
             {
               "fileName": "DebuggerController.java",

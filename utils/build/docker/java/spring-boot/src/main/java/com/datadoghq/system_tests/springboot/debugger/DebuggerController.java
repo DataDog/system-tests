@@ -149,8 +149,8 @@ public class DebuggerController {
     public Void exceptionReplayInner() {
         try {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Inner exception");
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Outer exception");
+        } catch (ResponseStatusException ex) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Outer exception", ex);
         }
     }
 }
