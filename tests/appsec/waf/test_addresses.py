@@ -245,7 +245,7 @@ class Test_BodyRaw:
         interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
 
 
-@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
 @features.appsec_request_blocking
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
