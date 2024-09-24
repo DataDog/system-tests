@@ -1178,7 +1178,7 @@ def set_cookie():
 @app.route("/iast/insecure-cookie/test_insecure")
 def test_insecure_cookie():
     resp = Response("OK")
-    resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="None")
+    resp.set_cookie("insecure", "cookie", secure=False, httponly=True, samesite="Strict")
     return resp
 
 
@@ -1190,9 +1190,9 @@ def test_secure_cookie():
 
 
 @app.route("/iast/insecure-cookie/test_empty_cookie")
-def test_empty_cookie():
+def test_insecure_cookie_empty_cookie():
     resp = Response("OK")
-    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    resp.set_cookie("insecure", "", secure=False, httponly=True, samesite="Strict")
     return resp
 
 
@@ -1213,7 +1213,7 @@ def test_nohttponly_secure_cookie():
 @app.route("/iast/no-httponly-cookie/test_empty_cookie")
 def test_nohttponly_empty_cookie():
     resp = Response("OK")
-    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=False, samesite="Strict")
     return resp
 
 
@@ -1228,6 +1228,13 @@ def test_nosamesite_insecure_cookie():
 def test_nosamesite_secure_cookie():
     resp = Response("OK")
     resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_empty_cookie")
+def test_no_samesite_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "", secure=True, httponly=True, samesite="None")
     return resp
 
 
