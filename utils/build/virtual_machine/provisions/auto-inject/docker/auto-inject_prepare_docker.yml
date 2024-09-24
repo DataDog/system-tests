@@ -34,8 +34,7 @@
       os_distro: rpm
       os_branch: fedora
       remote-command: |
-        sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-        sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        sudo dnf install -y docker
         sudo systemctl start docker
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
 
