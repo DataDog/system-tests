@@ -139,7 +139,7 @@ class Test_Config_TraceAgentURL:
         with test_library as t:
             resp = t.get_tracer_config()
         if context.library == "golang":
-            match = re.match(r"^http://uds__var_run_datadog_apm.socket/.*",resp["dd_trace_agent_url"])
+            match = re.match(r"^http://uds__var_run_datadog_apm.socket/.*", resp["dd_trace_agent_url"])
             assert match is not None, "trace_agent_url does not match expected pattern"
         else:
             assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
@@ -156,8 +156,8 @@ class Test_Config_TraceAgentURL:
             resp = t.get_tracer_config()
         # Go tracer reports `<url>/<protocol>/traces` as agent_url in startup log, so use a regex to match the expected suffix
         if context.library == "golang":
-                match = re.match(r"^http://random-host:9999/.*",resp["dd_trace_agent_url"])
-                assert match is not None, "trace_agent_url does not match expected pattern"
+            match = re.match(r"^http://random-host:9999/.*", resp["dd_trace_agent_url"])
+            assert match is not None, "trace_agent_url does not match expected pattern"
         else:
             assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
         with pytest.raises(ValueError):
