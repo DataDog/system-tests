@@ -90,6 +90,8 @@ jobs:
         library: ${{ inputs.library }}
         weblog: ${{ matrix.weblog }}
         scenarios: ${{ inputs.scenarios }}
+        dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Log in to the Container registry
       if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
