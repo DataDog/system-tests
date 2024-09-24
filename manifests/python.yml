@@ -123,7 +123,7 @@ tests/:
         test_weak_cipher.py:
           TestWeakCipher:
             '*': v1.18.0
-            fastapi: v2.13.0.dev
+            fastapi: v2.15.0.dev
         test_weak_hash.py:
           TestWeakHash:
             '*': v1.18.0
