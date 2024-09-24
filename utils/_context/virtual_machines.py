@@ -339,6 +339,7 @@ class Centos7amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="centos_7_amd64",
             os_cpu="amd64",
+            default_vm=False,
             **kwargs,
         )
 

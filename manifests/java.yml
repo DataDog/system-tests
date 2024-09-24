@@ -1225,6 +1225,7 @@ tests/:
       TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: missing_feature
@@ -1298,6 +1299,8 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
+    Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_data_integrity.py:
