@@ -61,7 +61,6 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-
     @bug(
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360",
     )
@@ -132,7 +131,6 @@ class Test_SamplingDecisions:
             weblog.get(f"/sample_rate_route/{self.next_request_id()}")
 
     @irrelevant(context.library in ("nodejs", "php", "dotnet"), reason="AIT-374")
-    # @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(context.library < "java@0.92.0", reason="APMRP-360")
     @flaky(context.library < "python@0.57.0", reason="APMRP-360")
     @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
