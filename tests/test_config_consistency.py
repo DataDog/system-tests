@@ -289,12 +289,11 @@ class Test_Config_IntegrationEnabled_False:
     def test_kafka_integration_enabled_false(self):
         assert self.r.status_code == 200
 
-        nonKafkaSpans = []
-        kafkaSpans = []
-        # We do not use get_spans: the span we look for is not directly the span that carry the request information
-        for data, trace in interfaces.library.get_traces(request=self.r):
-            nonKafkaSpans += [(data, span) for span in trace if span.get("name") != "kafka.produce"]
-            kafkaSpans += [(data, span) for span in trace if span.get("name") == "kafka.produce"]
+        interfaces.library.assert_trace_exists(self.r)
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+
+        nonKafkaSpans = _get_span_by_tags(spans, tags={"span.kind": "server"})
+        kafkaSpans = _get_span_by_tags(spans, tags={"span.kind": "producer", "component": "kafka"})
 
         assert len(nonKafkaSpans) > 0
         assert len(kafkaSpans) == 0
@@ -311,12 +310,11 @@ class Test_Config_IntegrationEnabled_True:
     def test_kafka_integration_enabled_true(self):
         assert self.r.status_code == 200
 
-        nonKafkaSpans = []
-        kafkaSpans = []
-        # We do not use get_spans: the span we look for is not directly the span that carry the request information
-        for data, trace in interfaces.library.get_traces(request=self.r):
-            nonKafkaSpans += [(data, span) for span in trace if span.get("name") != "kafka.produce"]
-            kafkaSpans += [(data, span) for span in trace if span.get("name") == "kafka.produce"]
+        interfaces.library.assert_trace_exists(self.r)
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+
+        nonKafkaSpans = _get_span_by_tags(spans, tags={"span.kind": "server"})
+        kafkaSpans = _get_span_by_tags(spans, tags={"span.kind": "producer", "component": "kafka"})
 
         assert len(nonKafkaSpans) > 0
         assert len(kafkaSpans) > 0
