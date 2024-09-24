@@ -1,7 +1,6 @@
 FROM python:3.8
 
 ENV PYTHONUNBUFFERED 1
-ENV DD_PROFILING_ENABLED true # profiling will crash the service on load if it does not pickup autoinjection correctly
 ENV DJANGO_SETTINGS_MODULE django_app
 WORKDIR /src
 ADD . /src
