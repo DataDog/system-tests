@@ -118,3 +118,37 @@ class Test_Config_UnifiedServiceTagging:
 
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         assert span["meta"]["env"] == "dev"
+
+
+@scenarios.parametric
+@features.tracing_configuration_consistency
+class Test_Config_TraceAgentURL:
+    # DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
+                "DD_AGENT_HOST": "localhost",
+                "DD_AGENT_PORT": "8126",
+            }
+        ],
+    )
+    def test_dd_trace_agent_unix_url_nonexistent(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.get_tracer_config()
+        assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1, clear=True)
+
+    # The DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_AGENT_URL": "http://random-host:9999/", "DD_AGENT_HOST": "localhost", "DD_AGENT_PORT": "8126"}],
+    )
+    def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.get_tracer_config()
+        assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1, clear=True)

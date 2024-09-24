@@ -18,6 +18,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     tracer = None
     snapshots = None
     method = None
+    last_read = 0
 
     def _setup(self, request_path, method):
         self.snapshots = []
@@ -38,31 +39,36 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     def _wait_for_snapshot_received(self, data):
         if data["path"] == base._LOGS_PATH:
 
-            contents = data["request"].get("content", []) or []
-            for content in contents:
-                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+            log_number = int(re.search(r"/(\d+)__", data["log_filename"]).group(1))
+            if log_number > Test_Debugger_Exception_Replay.last_read:
+                Test_Debugger_Exception_Replay.last_read = log_number
 
-                if not snapshot:
-                    continue
+                logger.debug("Reading " + data["log_filename"])
+                contents = data["request"].get("content", []) or []
+                for content in contents:
+                    snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
-                if (
-                    "probe" not in snapshot
-                    or "location" not in snapshot["probe"]
-                    or "method" not in snapshot["probe"]["location"]
-                ):
-                    continue
+                    if not snapshot:
+                        continue
 
-                method = snapshot["probe"]["location"]["method"]
+                    if (
+                        "probe" not in snapshot
+                        or "location" not in snapshot["probe"]
+                        or "method" not in snapshot["probe"]["location"]
+                    ):
+                        continue
 
-                if not isinstance(method, str):
-                    continue
+                    method = snapshot["probe"]["location"]["method"]
 
-                method = method.lower().replace("_", "")
+                    if not isinstance(method, str):
+                        continue
 
-                logger.debug(f"method is {method}; self method is {self.method}")
-                if method == self.method:
-                    self.snapshots.append(snapshot)
-                    logger.debug("Snapshot found")
+                    method = method.lower().replace("_", "")
+
+                    logger.debug(f"method is {method}; self method is {self.method}")
+                    if method == self.method:
+                        self.snapshots.append(snapshot)
+                        logger.debug("Snapshot found")
 
         return bool(self.snapshots)
 
@@ -101,6 +107,17 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
         self._validate_exception_replay_snapshots(test_name="exception_replay_recursion_20")
         self._validate_tags(test_name="exception_replay_recursion_20", number_of_frames=20)
 
+    ############ Inner ############
+    def setup_exception_replay_inner(self):
+        self._setup("/debugger/exceptionreplay/inner", "exceptionreplayinner")
+
+    @bug(library="java", reason="DEBUG-2787")
+    @bug(library="dotnet", reason="DEBUG-2799")
+    def test_exception_replay_inner(self):
+        self.assert_all_weblog_responses_ok(expected_code=500)
+        self._validate_exception_replay_snapshots(test_name="exception_replay_inner")
+        self._validate_tags(test_name="exception_replay_inner", number_of_frames=2)
+
     def __get_path(self, test_name, suffix):
         if self.tracer is None:
             self.tracer = base.get_tracer()
@@ -126,7 +143,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
                         if key in ["timestamp", "id", "exceptionId", "duration"]:
                             scrubbed_data[key] = "<scrubbed>"
                         # java
-                        elif key == "elements" and data.get("type") in ["long[]", "short[]"]:
+                        elif key == "elements" and data.get("type") in ["long[]", "short[]", "int[]"]:
                             scrubbed_data[key] = "<scrubbed>"
                         # dotnet
                         elif key == "function" and "lambda_" in value:
@@ -175,9 +192,11 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
                             for chunk in payload["chunks"]:
                                 for span in chunk["spans"]:
                                     meta = span.get("meta", {})
+
                                     if any(
-                                        meta.get(f"_dd.debug.error.{i}.snapshot_id") in snapshot_ids
-                                        for i in range(len(snapshot_ids))
+                                        meta.get(key) in snapshot_ids
+                                        for key in meta.keys()
+                                        if re.search(r"_dd\.debug\.error\.\d+\.snapshot_id", key)
                                     ):
                                         logger.debug(f"Tags were found in %s", trace["log_filename"])
 

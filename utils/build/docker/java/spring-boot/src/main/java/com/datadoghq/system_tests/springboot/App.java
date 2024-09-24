@@ -1061,6 +1061,7 @@ public class App {
         return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
     }
 
+
     @Bean
     @ConditionalOnProperty(
         value="spring.native",
