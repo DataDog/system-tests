@@ -328,7 +328,7 @@ onboarding_parse_results:
     - export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key-dev --with-decryption --query "Parameter.Value" --out text)
   script:
       - |
-        for folder in logs*/ ; do
+        for folder in reports/logs*/ ; do
           echo "Checking folder: ${folder}"
           for filename in ./${folder}*_feature_parity.json; do
             if [ -e ${filename} ]
