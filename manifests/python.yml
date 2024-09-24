@@ -806,6 +806,9 @@ tests/:
     Test_Profile:
       '*': v0.1 # actual version unknown
       python3.12: v2.1.0.dev
+  test_sampling_rates.py:
+    Test_SamplingRates: v2.8.0
+    Test_SamplingDecisions: v2.8.0
   test_scrubbing.py:
     Test_UrlField:
       '*': v1.7.1
