@@ -103,7 +103,7 @@ tests/:
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.18.0
-            fastapi: v2.13.0.dev
+            fastapi: v2.15.0.dev
             flask-poc: v1.18.0
             pylons: missing_feature
             python3.12: v1.18.0
