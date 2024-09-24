@@ -23,7 +23,7 @@ COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
 COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
-RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,with-profiling native:compile && /opt/apache-maven-3.8.6/bin/mvn -Pnative,without-profiling native:compile
+RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,with-profiling native:compile & /opt/apache-maven-3.8.6/bin/mvn -Pnative,without-profiling native:compile & wait
 
 FROM ubuntu
 
