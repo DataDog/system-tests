@@ -593,22 +593,49 @@ def track_custom_event():
 
 
 @app.post("/iast/sqli/test_secure", response_class=PlainTextResponse)
-def view_sqli_secure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+async def view_sqli_secure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
+    sql = "SELECT * FROM users WHERE username=? AND password=?"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql, username, password)
+    cursor.execute(sql, (username, password))
     return "OK"
 
 
 @app.post("/iast/sqli/test_insecure", response_class=PlainTextResponse)
-def view_sqli_insecure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "'"
+async def view_sqli_insecure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
+    sql = "SELECT * FROM users WHERE username='" + username + "' AND password='" + password + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     return "OK"
 
+
+@app.post("/iast/ssrf/test_insecure", response_class=PlainTextResponse)
+async def view_iast_ssrf_insecure(url: typing.Annotated[str, Form()]):
+    try:
+        result = requests.get(str(url))
+    except Exception:
+        pass
+
+    return "OK"
+
+
+@app.post("/iast/ssrf/test_secure", response_class=PlainTextResponse)
+async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
+    from urllib.parse import urlparse
+
+    # Validate the URL and enforce whitelist
+    allowed_domains = ["example.com", "api.example.com"]
+    parsed_url = urlparse(str(url))
+
+    if parsed_url.hostname not in allowed_domains:
+        return "Forbidden", 403
+    try:
+        result = requests.get(parsed_url.geturl())
+    except Exception:
+        pass
+
+    return "OK"
 
 @app.get("/iast/insecure-cookie/test_insecure")
 def test_insecure_cookie():
@@ -680,8 +707,9 @@ def test_weak_randomness_secure():
 
 
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
-def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
+async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
+
     subp = subprocess.Popen(args=[cmd, "-la", filename])
     subp.communicate()
     subp.wait()
@@ -689,7 +717,7 @@ def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
 
 
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
-def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
+async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
     command = " ".join([cmd, "-la", filename])  # noqa F841
     # TODO: add secure command
