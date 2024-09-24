@@ -448,7 +448,7 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_config_consistency.py:
-      Test_Config_TraceAgentURL: missing_feature
+      Test_Config_TraceAgentURL: v1.68.0
       Test_Config_TraceEnabled: v1.67.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.67.0
@@ -502,10 +502,10 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.68.0 # TODO: Change to v1.69.0
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.67.0
-    Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
-    Test_Config_UnifiedServiceTagging_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.68.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.68.0
+    Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
+    Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:

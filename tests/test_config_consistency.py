@@ -4,8 +4,6 @@
 
 import json
 from utils import weblog, interfaces, scenarios, features
-stdout = interfaces.library_stdout
-
 
 @scenarios.default
 @features.tracing_configuration_consistency
@@ -108,8 +106,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
     """ Verify behavior of http clients """
 
     def setup_status_code_400(self):
-        self.url = "http://weblog:7777/status?code=400"
-        self.r = weblog.get("/make_distant_call", params={"url": self.url})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=400"})
 
     def test_status_code_400(self):
         assert self.r.status_code == 200
@@ -124,8 +121,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
         assert client_span.get("error") == 1
 
     def setup_status_code_500(self):
-        self.url = "http://weblog:7777/status?code=500"
-        self.r = weblog.get("/make_distant_call", params={"url": self.url})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=500"})
 
     def test_status_code_500(self):
         assert self.r.status_code == 200
@@ -146,8 +142,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     """ Verify behavior of http clients """
 
     def setup_status_code_200(self):
-        self.url = "http://weblog:7777/status?code=200"
-        self.r = weblog.get("/make_distant_call", params={"url": self.url})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=200"})
 
     def test_status_code_200(self):
         assert self.r.status_code == 200
@@ -162,8 +157,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
         assert client_span.get("error") == 1
 
     def setup_status_code_202(self):
-        self.url = "http://weblog:7777/status?code=202"
-        self.r = weblog.get("/make_distant_call", params={"url": self.url})
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=202"})
 
     def test_status_code_202(self):
         assert self.r.status_code == 200
