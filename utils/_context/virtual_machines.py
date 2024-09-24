@@ -426,3 +426,34 @@ class OracleLinux79amd64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+#8.10.20240820
+#https://wiki.almalinux.org/cloud/AWS.html#community-amis
+class AlmaLinux8amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_8_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0825c833650fed842", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+class AlmaLinux8arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_8_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0f1d97cfa7cf5ad5d", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
