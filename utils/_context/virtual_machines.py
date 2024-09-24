@@ -426,3 +426,33 @@ class OracleLinux79amd64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+
+class Debian12amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_12_amd64",
+            aws_config=_AWSConfig(ami_id="ami-064519b8c76274859", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian12_amd64",
+            os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class Debian12arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_12_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0789039e34e739d67", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian12_arm64",
+            os_cpu="arm64",
+            **kwargs,
+        )
