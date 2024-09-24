@@ -119,7 +119,6 @@ class Test_Consistent_Configs:
             }
         ],
     )
-
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass

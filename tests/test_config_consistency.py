@@ -5,6 +5,7 @@
 import json
 from utils import weblog, interfaces, scenarios, features
 
+
 @scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_HttpServerErrorStatuses_Default:
@@ -112,7 +113,6 @@ class Test_Config_HttpClientErrorStatuses_Default:
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
         assert content["status_code"] == 400
-        
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
