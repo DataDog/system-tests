@@ -3,7 +3,6 @@ import json
 import hashlib
 
 from utils.tools import logger
-from utils._context.library_version import Version
 from utils import context
 from utils.onboarding.debug_vm import extract_logs_to_file
 
@@ -263,6 +262,22 @@ class Ubuntu18amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu18_amd64",
             os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class Ubuntu18arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_18_arm64",
+            aws_config=_AWSConfig(ami_id="ami-024f0a2b420719458", ami_instance_type="t2.medium", user="ubuntu"),
+            # vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu18_arm64",
+            os_cpu="arm64",
             **kwargs,
         )
 

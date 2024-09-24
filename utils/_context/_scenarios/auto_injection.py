@@ -8,6 +8,7 @@ from utils._context.virtual_machines import (
     Ubuntu22amd64,
     Ubuntu22arm64,
     Ubuntu18amd64,
+    Ubuntu18arm64,
     AmazonLinux2023arm64,
     AmazonLinux2023amd64,
     AmazonLinux2DotNet6,
@@ -35,6 +36,7 @@ class _VirtualMachineScenario(Scenario):
         include_ubuntu_22_amd64=False,
         include_ubuntu_22_arm64=False,
         include_ubuntu_18_amd64=False,
+        include_ubuntu_18_arm64=False,
         include_amazon_linux_2_amd64=False,
         include_amazon_linux_2_dotnet_6=False,
         include_amazon_linux_2023_amd64=False,
@@ -67,6 +69,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Ubuntu22arm64())
         if include_ubuntu_18_amd64:
             self.required_vms.append(Ubuntu18amd64())
+        if include_ubuntu_18_arm64:
+            self.required_vms.append(Ubuntu18arm64())
         if include_amazon_linux_2_amd64:
             self.required_vms.append(AmazonLinux2amd64())
         if include_amazon_linux_2_dotnet_6:
@@ -210,6 +214,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
             include_ubuntu_18_amd64=True,
+            include_ubuntu_18_arm64=True,
             include_amazon_linux_2_amd64=True,
             include_amazon_linux_2_dotnet_6=True,
             include_amazon_linux_2023_amd64=True,
