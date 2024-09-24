@@ -97,7 +97,7 @@ tests/:
         test_path_traversal.py:
           TestPathTraversal:
             '*': v2.10.0dev
-            fastapi: v2.13.0.dev
+            fastapi: v2.15.0.dev
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
         test_sql_injection.py:
