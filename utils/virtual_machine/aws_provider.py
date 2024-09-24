@@ -164,7 +164,7 @@ class AWSPulumiProvider(VmProvider):
                 ami_name = None
 
             # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
-            if os.getenv("AMI_UPDATE") is not None:
+            if os.getenv("AMI_UPDATE") is not None and os.getenv("AMI_UPDATE").casefold() == "true":
                 # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
                 # aws.ec2.Ami( ami_existing.name,
                 #    name=ami_existing.name,
