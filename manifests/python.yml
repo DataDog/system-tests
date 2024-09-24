@@ -110,7 +110,7 @@ tests/:
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0dev
-            fastapi: v2.13.0.dev
+            fastapi: v2.15.0.dev
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_untrusted_deserialization.py:
