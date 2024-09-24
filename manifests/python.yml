@@ -64,7 +64,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0.dev
-            fastapi: v2.13.0.dev
+            fastapi: v2.15.0.dev
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
