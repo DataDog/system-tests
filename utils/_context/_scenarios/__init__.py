@@ -456,7 +456,7 @@ class scenarios:
             "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
-            "DD_TRACE_Kafka_ENABLED": "false", # Using Kafka as is the most common endpoint and integration.
+            "DD_TRACE_Kafka_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration.
         },
         include_kafka=True,
         doc="",
