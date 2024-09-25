@@ -62,6 +62,16 @@
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
+      os_branch: alma_linux
+      remote-command: |
+            sudo dnf remove -y podman buildah || true
+            sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+            sudo dnf install -y docker-ce
+            sudo systemctl enable docker.service
+            sudo systemctl start docker.service
+            sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+    - os_type: linux
+      os_distro: rpm
       remote-command: |
         sudo yum -y install docker
         sudo systemctl start docker.service

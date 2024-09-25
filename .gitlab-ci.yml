@@ -32,6 +32,8 @@ variables:
     TEST: 1
     KUBERNETES_CPU_REQUEST: "6"
     KUBERNETES_CPU_LIMIT: "6"
+    AMI_UPDATE:
+      description: "Set to true to force the update the AMIs used in the system-tests"
 
 onboarding_install_extra_vms:
   extends: .base_job_onboarding_system_tests
