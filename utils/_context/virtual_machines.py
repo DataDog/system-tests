@@ -270,7 +270,7 @@ class Ubuntu18arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_18_arm64",
-            aws_config=_AWSConfig(ami_id="ami-024f0a2b420719458", ami_instance_type="t2.medium", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-024f0a2b420719458", ami_instance_type="t4g.small", user="ubuntu"),
             # vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
             vagrant_config=None,
             krunvm_config=None,
@@ -278,6 +278,7 @@ class Ubuntu18arm64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu18_arm64",
             os_cpu="arm64",
+            default_vm=False,
             **kwargs,
         )
 
