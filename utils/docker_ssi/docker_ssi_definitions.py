@@ -22,6 +22,11 @@ class SupportedImages:
         self.ORACLELINUX_8_ARM64 = DockerImage("oraclelinux:8.10", LINUX_ARM64)
         self.ORACLELINUX_8_AMD64 = DockerImage("oraclelinux:8.10", LINUX_AMD64)
 
+        self.ALMALINUX_9_ARM64 = DockerImage("almalinux:9.4", LINUX_ARM64)
+        self.ALMALINUX_9_AMD64 = DockerImage("almalinux:9.4", LINUX_AMD64)
+        self.ALMALINUX_8_ARM64 = DockerImage("almalinux:8.10", LINUX_ARM64)
+        self.ALMALINUX_8_AMD64 = DockerImage("almalinux:8.10", LINUX_AMD64)
+
         # Currently bugged
         # DockerImage("centos:7", LINUX_ARM64, short_name="centos_7")
         # DockerImage("alpine:3", LINUX_AMD64, short_name="alpine_3"),
@@ -87,12 +92,25 @@ JETTY_APP = WeblogDescriptor(
         SupportedImages().ORACLELINUX_8_ARM64.with_allowed_runtime_versions(
             JavaRuntimeInstallableVersions.get_all_versions()
         ),
+        SupportedImages().ALMALINUX_9_AMD64.with_allowed_runtime_versions(
+            JavaRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_9_ARM64.with_allowed_runtime_versions(
+            JavaRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_8_AMD64.with_allowed_runtime_versions(
+            JavaRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_8_ARM64.with_allowed_runtime_versions(
+            JavaRuntimeInstallableVersions.get_all_versions()
+        ),
         # Commented due to APMON-1491
         # SupportedImages().CENTOS_7_AMD64.with_allowed_runtime_versions(
         #    JavaRuntimeInstallableVersions.get_all_versions()
         # ),
     ],
 )
+
 
 TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
