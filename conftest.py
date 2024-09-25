@@ -15,7 +15,7 @@ from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-from utils._decorators import released
+from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -44,6 +44,27 @@ def pytest_addoption(parser):
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
+    parser.addoption(
+        "--vm-default-vms",
+        type=str,
+        action="store",
+        help="True launch vms marked as default, False launch only no default vm. All launch all vms",
+        default="True",
+    )
+
+    # Docker ssi scenarios
+    parser.addoption("--ssi-weblog", type=str, action="store", help="Set docker ssi weblog")
+    parser.addoption("--ssi-library", type=str, action="store", help="Set docker ssi library to test")
+    parser.addoption("--ssi-base-image", type=str, action="store", help="Set docker ssi base image to build")
+    parser.addoption("--ssi-arch", type=str, action="store", help="Set docker ssi archictecture of the base image")
+    parser.addoption(
+        "--ssi-installable-runtime",
+        type=str,
+        action="store",
+        help="Set the language runtime to install on the docker base image.Empty if we don't want to install any runtime",
+    )
+    parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Push docker ssi base images")
+    parser.addoption("--ssi-force-build", "-B", action="store_true", help="Force build ssi base images")
 
     # Parametric scenario options
     parser.addoption(
@@ -81,13 +102,15 @@ def pytest_configure(config):
             break
 
     if context.scenario is None:
-        pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
+        pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
 
     context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
+
+    configure_decorators(config)
 
 
 # Called at the very begening
@@ -286,7 +309,7 @@ def pytest_collection_finish(session: pytest.Session):
         if not item.instance:  # item is a method bounded to a class
             continue
 
-        # the test metohd name is like test_xxxx
+        # the test method name is like test_xxxx
         # we replace the test_ by setup_, and call it if it exists
 
         setup_method_name = f"setup_{item.name[5:]}"

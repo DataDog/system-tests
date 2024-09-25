@@ -8,7 +8,7 @@ import pytest
 from ddapm_test_agent.trace import root_span
 
 from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
-from utils.parametric.spec.remoteconfig import Capabilities
+from utils.dd_constants import Capabilities
 from utils.parametric.spec.trace import (
     Span,
     assert_trace_has_tags,
@@ -706,7 +706,7 @@ class TestDynamicConfigSamplingRules:
         reason="JSON tag format in RC differs from the JSON tag format used in DD_TRACE_SAMPLING_RULES",
     )
     @bug(context.library == "ruby", reason="RC_SAMPLING_TAGS_RULE_RATE is not respected")
-    @bug(context.library <= "dotnet@2.53.2", reason="Applies rate from local sampling rule when no remote rules match.")
+    @bug(context.library <= "dotnet@2.53.2", reason="APMRP-360")
     @missing_feature(library="python")
     @missing_feature(context.library < "nodejs@5.19.0")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):

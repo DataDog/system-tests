@@ -12,7 +12,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-public class sunhttpd {
+public class SimpleHttpServer {
     public static void main(String[] args) throws IOException {
         InetSocketAddress addr = new InetSocketAddress(18080);
         HttpServer server = HttpServer.create(addr, 0);

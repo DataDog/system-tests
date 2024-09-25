@@ -97,7 +97,7 @@ class Test_Dbm:
     setup_trace_payload_disabled = weblog_trace_payload
 
     # Test Methods
-    @scenarios.appsec_disabled
+    @scenarios.everything_disabled
     def test_trace_payload_disabled(self):
         assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()
@@ -182,6 +182,10 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_Test_Dbm_Comment):
     dddbs = "system_tests_dbname"  # db name
     ddh = "postgres"  # container name
 
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
+
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
@@ -257,6 +261,10 @@ class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
 
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
+
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
@@ -268,6 +276,10 @@ class Test_Dbm_Comment_Batch_Python_Mysqldb(_Test_Dbm_Comment):
     dddb = "mysql_dbname"  # db name
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
+
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
@@ -281,6 +293,10 @@ class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
 
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
+
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
@@ -292,6 +308,10 @@ class Test_Dbm_Comment_Batch_Python_Pymysql(_Test_Dbm_Comment):
     dddb = "mysql_dbname"  # db name
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
+
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
 
 
 @irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")

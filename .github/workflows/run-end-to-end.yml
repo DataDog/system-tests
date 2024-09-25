@@ -90,6 +90,8 @@ jobs:
         library: ${{ inputs.library }}
         weblog: ${{ matrix.weblog }}
         scenarios: ${{ inputs.scenarios }}
+        dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Log in to the Container registry
       if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
@@ -113,6 +115,10 @@ jobs:
       run: ./run.sh CROSSED_TRACING_LIBRARIES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: ./run.sh PROFILING
@@ -128,6 +134,10 @@ jobs:
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
@@ -143,6 +153,21 @@ jobs:
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TRACING_CONFIG_NONDEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TRACING_CONFIG_NONDEFAULT_2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_2"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT_2
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TRACING_CONFIG_NONDEFAULT_3 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_3"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT_3
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
@@ -177,8 +202,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_MISSING_RULES scenario
       # C++ 1.2.0 freeze when the rules file is missing
-      # ruby freeze when the rules file is missing (APPSEC-54708)
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && inputs.library != 'cpp' && inputs.library != 'ruby'
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && inputs.library != 'cpp'
       run: ./run.sh APPSEC_MISSING_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -189,7 +213,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_CORRUPTED_RULES scenario
       # C++ 1.2.0 freeze when the rules file is missing
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && inputs.library != 'cpp' && inputs.library != 'ruby'
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && inputs.library != 'cpp'
       run: ./run.sh APPSEC_CORRUPTED_RULES
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
@@ -203,9 +227,9 @@ jobs:
       run: ./run.sh APPSEC_BLOCKING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
-    - name: Run APPSEC_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_DISABLED"')
-      run: ./run.sh APPSEC_DISABLED
+    - name: Run EVERYTHING_DISABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EVERYTHING_DISABLED"')
+      run: ./run.sh EVERYTHING_DISABLED
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APPSEC_LOW_WAF_TIMEOUT scenario

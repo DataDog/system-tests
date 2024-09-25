@@ -55,6 +55,26 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Run TRACING_CONFIG_NONDEFAULT scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "TRACING_CONFIG_NONDEFAULT", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Run TRACING_CONFIG_NONDEFAULT_2 scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "TRACING_CONFIG_NONDEFAULT_2", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Run PROFILING scenario",
             "type": "python",
             "request": "launch",

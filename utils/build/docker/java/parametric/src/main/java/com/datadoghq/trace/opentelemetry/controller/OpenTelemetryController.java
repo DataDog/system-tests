@@ -289,7 +289,11 @@ public class OpenTelemetryController {
     LOGGER.info("Adding OTel span event: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null) {
-      span.addEvent(args.name(), parseAttributes(args.attributes()), args.timestamp(), MICROSECONDS);
+      if (args.timestamp() == 0L) {
+        span.addEvent(args.name(), parseAttributes(args.attributes()));
+      } else {
+        span.addEvent(args.name(), parseAttributes(args.attributes()), args.timestamp(), MICROSECONDS);
+      }
     }
   }
 
@@ -319,7 +323,10 @@ public class OpenTelemetryController {
   public FlushResult flush(@RequestBody FlushArgs args) {
     LOGGER.info("Flushing OTel spans: {}", args);
     try {
-      ((InternalTracer) GlobalTracer.get()).flush();
+      // Only flush spans when tracing was enabled
+      if (GlobalTracer.get() instanceof InternalTracer) {
+          ((InternalTracer) GlobalTracer.get()).flush();
+      }
       this.spans.clear();
       return new FlushResult(true);
     } catch (Exception e) {

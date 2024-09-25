@@ -81,13 +81,14 @@ class K8sWeblog:
                 ),
             ),
             client.V1EnvVar(name="DD_TRACE_DEBUG", value="1"),
+            client.V1EnvVar(name="DD_APM_INSTRUMENTATION_DEBUG", value="true"),
         ]
         # Add custom env vars if provided
         if env:
             for k, v in env.items():
                 default_pod_env.append(client.V1EnvVar(name=k, value=v))
 
-        self.logger.info(f"RMM Default pod env: {default_pod_env}")
+        self.logger.info(f"Weblog pod env: {default_pod_env}")
         container1 = client.V1Container(
             name="my-app",
             image=self.app_image,
