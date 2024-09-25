@@ -92,7 +92,7 @@ jobs:
         print(json.dumps(results_supported_langs, indent=2))
 
   lib-injection-init-image-validator:
-    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
+    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs' || inputs.library == 'php'
     runs-on:
       group: "APM Larger Runners"
     permissions:
@@ -159,7 +159,7 @@ jobs:
           path: artifact.tar.gz
 
   k8s-lib-injection-tests:
-    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
+    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs' || inputs.library == 'php'
     runs-on:
       group: "APM Larger Runners"
     permissions:
