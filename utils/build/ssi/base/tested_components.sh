@@ -79,7 +79,7 @@ elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIB
       installer_version="${installer_path##*/}"
       installer_version="${installer_version%-1}"
 
-      echo "{'runtime_version':'$(echo $runtime_version)','agent':'$(echo $agent_version)','datadog-apm-inject':'$(echo $inject_version)','datadog-apm-library-$DD_LANG': '$(echo $tracer_version)','docker':'$(docker -v || true)','datadog-installer':'$(echo $installer_version)'}"
+      echo "{'weblog_url':'$(echo $WEBLOG_URL)','runtime_version':'$(echo $runtime_version)','agent':'$(echo $agent_version)','datadog-apm-inject':'$(echo $inject_version)','datadog-apm-library-$DD_LANG': '$(echo $tracer_version)','docker':'$(docker -v || true)','datadog-installer':'$(echo $installer_version)'}"
 else
    echo "NO_SUPPORTED"
 fi

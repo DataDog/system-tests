@@ -185,15 +185,10 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
             except UnicodeDecodeError:
                 item["content"] = part.content
 
-            decoded.append(item)
+            if headers.get("Content-Type", "").lower().startswith("application/json"):
+                item["content"] = json.loads(item["content"])
 
-        if path == "/debugger/v1/diagnostics":
-            for item in decoded:
-                if "content" in item:
-                    try:
-                        item["content"] = json.loads(item["content"])
-                    except:
-                        pass
+            decoded.append(item)
 
         return decoded
 

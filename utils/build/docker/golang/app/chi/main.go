@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"encoding/json"
 	"strconv"
 	"time"
+
 	"weblog/internal/rasp"
 
 	"weblog/internal/common"
@@ -28,6 +30,16 @@ func main() {
 
 	mux := chi.NewRouter().With(chitrace.Middleware())
 
+	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
+		if c := r.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				w.WriteHeader(code)
+				return
+			}
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
 		body, err := common.ParseBody(r)
 		if err == nil {
@@ -39,18 +51,18 @@ func main() {
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 
 		healthCheck, err := common.GetHealtchCheck()
-        if err != nil {
-            http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
-        }
+		if err != nil {
+			http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
+		}
 
-        jsonData, err := json.Marshal(healthCheck)
-        if err != nil {
-            http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
-            return
-        }
+		jsonData, err := json.Marshal(healthCheck)
+		if err != nil {
+			http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+			return
+		}
 
-        w.Header().Set("Content-Type", "application/json")
-        w.Write(jsonData)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
 	})
 
 	mux.HandleFunc("/waf/*", func(w http.ResponseWriter, r *http.Request) {
@@ -81,11 +93,25 @@ func main() {
 		ctx := chi.RouteContext(r.Context())
 		tag := ctx.URLParam("tag_value")
 		status, _ := strconv.Atoi(ctx.URLParam("status_code"))
-
 		span, _ := tracer.SpanFromContext(r.Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range r.URL.Query() {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
+		}
 		w.WriteHeader(status)
 		w.Write([]byte("Value tagged"))
+		switch {
+		case r.Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(r.Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(r.Context(), bodyMap)
+			}
+		case r.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(r.Context(), r.PostForm)
+		}
 	})
 
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {

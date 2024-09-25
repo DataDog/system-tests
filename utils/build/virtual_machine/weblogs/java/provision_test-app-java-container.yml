@@ -13,6 +13,8 @@ lang_variant:
 weblog:
     name: test-app-java-container
     excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64]
+    #Alma Linux 8 ARM64 is not stable. It fails when we execute 'gradle build' in the Dockerfile
+    excluded_os_names: [AlmaLinux_8_arm64]
     install:
       - os_type: linux
         copy_files:

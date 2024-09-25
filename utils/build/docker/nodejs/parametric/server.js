@@ -303,7 +303,8 @@ app.get('/trace/config', (req, res) => {
       'dd_trace_sample_ignore_parent': 'null', // not implemented in node
       'dd_trace_otel_enabled': 'null', // not exposed in config object in node
       'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
-      'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null'
+      'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null',
+      'dd_trace_agent_url': config?.url !== undefined ? `${config.url.href}` : 'null',
     }
   });
 });

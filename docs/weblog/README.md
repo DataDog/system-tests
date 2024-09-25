@@ -6,7 +6,7 @@ A weblog is a web app that system uses to test the library. It mimics what would
 
 ## Disclaimer
 
-This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contains mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
+This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contain mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
 
 **You are strongly encouraged to help others by submitting corrections when you notice issues with this document.**
 
@@ -638,6 +638,11 @@ distributed tracing propagation headers.
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
 
+### \[GET\] /stats-unique
+The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message, default to 200 OK.
+This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
+stats generating tests.
+
 ### GET /healthcheck
 
 Returns a JSON dict, with those values :
@@ -678,3 +683,20 @@ Examples:
 ### \[GET\] /set_cookie
 
 This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response
+
+### \[GET\] /session/new
+
+This endpoint is the initial endpoint used to test session fingerprints, consequently it must initialize a new session and the web client should be able to deal with the persistence mechanism (e.g. cookies).
+
+Examples:
+- `GET`: `/session/new`
+
+### \[GET\] /session/user
+
+Once a session has been established, a new call to `/session/user` must be made in order to generate a session fingerprint with the session id provided by the web client (e.g. cookie) and the user id provided as a parameter.
+
+Query parameters required in the `GET` method:
+- `sdk_user`: user id used in the WAF login event triggered during the execution of the request.
+
+Examples:
+- `GET`: `/session/user?sdk_user=sdkUser`
