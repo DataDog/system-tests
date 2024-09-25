@@ -46,7 +46,6 @@ onboarding_install_extra_vms:
     - when: manual
   variables:
     SCENARIO: "SIMPLE_INSTALLER_AUTO_INJECTION"
-    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [prod]
