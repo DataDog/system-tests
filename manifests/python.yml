@@ -64,7 +64,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0.dev
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
@@ -97,20 +97,20 @@ tests/:
         test_path_traversal.py:
           TestPathTraversal:
             '*': v2.10.0dev
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.18.0
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
             flask-poc: v1.18.0
             pylons: missing_feature
             python3.12: v1.18.0
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0dev
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_untrusted_deserialization.py:
@@ -123,7 +123,7 @@ tests/:
         test_weak_cipher.py:
           TestWeakCipher:
             '*': v1.18.0
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
         test_weak_hash.py:
           TestWeakHash:
             '*': v1.18.0
@@ -806,6 +806,9 @@ tests/:
     Test_Profile:
       '*': v0.1 # actual version unknown
       python3.12: v2.1.0.dev
+  test_sampling_rates.py:
+    Test_SamplingDecisions: v2.8.0
+    Test_SamplingRates: v2.8.0
   test_scrubbing.py:
     Test_UrlField:
       '*': v1.7.1

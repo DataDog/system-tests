@@ -8,7 +8,6 @@ import subprocess
 import sys
 import threading
 import urllib.request
-from urllib.parse import quote
 
 import boto3
 from moto import mock_aws

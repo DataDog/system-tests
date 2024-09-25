@@ -442,7 +442,7 @@ class Debian12amd64(_VirtualMachine):
             **kwargs,
         )
 
-
+        
 class Debian12arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
@@ -453,6 +453,74 @@ class Debian12arm64(_VirtualMachine):
             os_type="linux",
             os_distro="deb",
             os_branch="debian12_arm64",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+        
+# 8.10.20240820
+# https://wiki.almalinux.org/cloud/AWS.html#community-amis
+class AlmaLinux8amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_8_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0825c833650fed842", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+class AlmaLinux8arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_8_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0f1d97cfa7cf5ad5d", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# 9.4.20240805
+class AlmaLinux9amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_9_amd64",
+            aws_config=_AWSConfig(
+                ami_id="ami-0c2163c916f8dd3c8", ami_instance_type="t2.medium", user="ec2-user"
+            ),  # 9.4
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+        
+class AlmaLinux9arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_9_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0ba8fa4bea636d73f", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
             os_cpu="arm64",
             default_vm=False,
             **kwargs,
