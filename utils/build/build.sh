@@ -205,7 +205,7 @@ build() {
             if ! [[ -z "$BINARY_PATH" ]]; then
                 cd binaries
                 clean-binaries
-                cp -r $BINARY_PATH/* ./
+                cp -rL $BINARY_PATH ./dd-trace-rb
                 cd ..
             fi
 
