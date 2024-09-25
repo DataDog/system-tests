@@ -154,5 +154,19 @@ namespace weblog
                 throw new System.Exception("Recursion exception");
             }
         }
+
+        [HttpGet("exceptionreplay/inner")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayInner()
+        {
+            try
+            {
+                throw new System.Exception("Inner exception");
+            }
+            catch (System.Exception ex)
+            {
+                throw new System.Exception("Outer exception", ex);
+            }
+        }
     }
 }

@@ -44,6 +44,7 @@ class scenarios:
             "DD_DBM_PROPAGATION_MODE": "service",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
             "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_COMPUTE_STATS": "true",
         },
         include_postgres_db=True,
         scenario_groups=[ScenarioGroup.ESSENTIALS],
@@ -87,6 +88,8 @@ class scenarios:
             "DD_PROFILING_ENABLED": "true",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_PROFILING_START_DELAY": "1",
+            # Used within Spring Boot native tests to test profiling without affecting tracing scenarios
+            "USE_NATIVE_PROFILING": "presence",
             # Reduce noise
             "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
         },
@@ -183,8 +186,8 @@ class scenarios:
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_disabled = EndToEndScenario(
-        "APPSEC_DISABLED",
+    everything_disabled = EndToEndScenario(
+        "EVERYTHING_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
         appsec_enabled=False,
         include_postgres_db=True,
@@ -440,11 +443,31 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
+    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="",)
+
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
-        weblog_env={"DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202"},
+        weblog_env={
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "ssn=\d{3}-\d{2}-\d{4}",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            # disable ASM to test non asm client ip tagging
+            "DD_APPSEC_ENABLED": "false",
+            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
+            "DD_SERVICE": "service_test",
+        },
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
+    )
+
+    tracing_config_nondefault_2 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_2",
+        weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": ""},
+        doc="Test tracer configuration when a collection of non-default settings are applied",
+    )
+    tracing_config_nondefault_3 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -677,19 +700,17 @@ class scenarios:
     )
 
     k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+        "K8S_LIBRARY_INJECTION_BASIC",
+        doc=" Kubernetes Instrumentation basic scenario",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
-    k8s_library_injection_asm = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_ASM",
-        doc=" Kubernetes auto instrumentation, asm activation",
-        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
-        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
-    )
+
     k8s_library_injection_profiling = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_PROFILING",
         doc=" Kubernetes auto instrumentation, profiling activation",
-        api_key=os.getenv("DD_API_KEY_ONBOARDING"),
-        app_key=os.getenv("DD_APP_KEY_ONBOARDING"),
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",

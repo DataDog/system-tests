@@ -252,10 +252,10 @@ class Test_Lfi_RC_CustomAction:
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
-@features.rasp_sql_injection
+@features.rasp_local_file_inclusion
 @scenarios.remote_config_mocked_backend_asm_dd
 class Test_Lfi_Capability:
     """Validate that ASM_RASP_LFI (22) capability is sent"""
 
-    def test_sqli_capability(self):
+    def test_lfi_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_LFI)

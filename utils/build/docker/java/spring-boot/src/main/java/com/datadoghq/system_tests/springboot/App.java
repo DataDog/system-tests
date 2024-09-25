@@ -21,6 +21,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.trace.api.EventTracker;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
@@ -57,7 +58,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,6 +68,7 @@ import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Scanner;
 import java.util.LinkedHashMap;
 
@@ -162,6 +166,19 @@ public class App {
     @PostMapping(value = "/waf", consumes = MediaType.APPLICATION_XML_VALUE)
     String postWafXml(@RequestBody XmlObject object) {
         return object.toString();
+    }
+
+    @GetMapping(value = "/session/new")
+    ResponseEntity<String> newSession(final HttpServletRequest request) {
+        final HttpSession session = request.getSession(true);
+        return ResponseEntity.ok(session.getId());
+    }
+
+    @GetMapping(value = "/session/user")
+    ResponseEntity<String> userSession(@RequestParam("sdk_user") final String sdkUser, final HttpServletRequest request) {
+        EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
+        tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+        return ResponseEntity.ok(request.getRequestedSessionId());
     }
 
     @RequestMapping("/status")
@@ -1043,6 +1060,7 @@ public class App {
     public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
         return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
     }
+
 
     @Bean
     @ConditionalOnProperty(

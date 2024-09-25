@@ -20,6 +20,7 @@ class TestWeakCipher(BaseSinkTest):
     }
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 
+    @flaky(context.library == "dotnet@3.3.1", reason="APMRP-360")
     def test_secure(self):
         super().test_secure()
 

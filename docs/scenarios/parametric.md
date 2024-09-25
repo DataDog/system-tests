@@ -116,20 +116,26 @@ Add a file datadog-dotnet-apm-<VERSION>.tar.gz in binaries/. <VERSION> must be a
 
 ##### Run Parametric tests with a custom Java Tracer version
 
-1. Build Java Tracer artifacts
+1. Clone the repo and checkout to the branch you'd like to test
+Clone the repo:
 ```bash
 git clone git@github.com:DataDog/dd-trace-java.git
 cd dd-trace-java
+```
+By default you will be on the `master` branch, but if you'd like to run system-tests on the changes you made to your local branch, `git checkout` to that branch before proceeding.
+
+2. Build Java Tracer artifacts
+```
 ./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar
 ```
 
-2. Copy both artifacts into the `system-tests/binaries/` folder:
+3. Copy both artifacts into the `system-tests/binaries/` folder:
   * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
   * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
 
 Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
 
-3. Run Parametric tests from the `system-tests/parametric` folder:
+4. Run Parametric tests from the `system-tests/parametric` folder:
 
 ```bash
 TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
@@ -289,6 +295,37 @@ docker image rm <library>-test-library
 
 The Python implementation of the interface `app/python`, when run, provides a specification of the API when run.
 See the steps below in the HTTP section to run the Python server and view the specification.
+
+## Updating protos
+
+In order to update the `parametric/protos`, these steps must be followed.
+
+1. Create a virtual environment and activate it:
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate
+```
+
+2. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Install `grpcio-tools` (make sure grpcaio is the same version):
+```bash
+pip install grpcio-tools==1.60.1
+```
+
+4. Change directory to `utils/parametric`:
+```console
+cd utils/parametric
+```
+
+5. Run the script to generate the proto files:
+```bash
+./generate_protos.sh
+```
+
+Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
 
 ## Implementation
 

@@ -20,6 +20,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.io.File;
 
 @Path("/rasp")
 @Produces(MediaType.TEXT_PLAIN)
@@ -44,6 +45,25 @@ public class RaspResource {
         return executeSql(user.getUserId());
     }
 
+    @GET
+    @Path("/lfi")
+    public String lfiGet(@QueryParam("file") final String file) throws Exception {
+        return executeLfi(file);
+    }
+
+    @POST
+    @Path("/lfi")
+    public String lfiPost(@FormParam("file") final String file) throws Exception {
+        return executeLfi(file);
+    }
+
+    @POST
+    @Path("/lfi")
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
+    public String lfiBody(final FileDTO file) throws Exception {
+        return executeLfi(file.getFile());
+    }
+
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private String executeSql(final String userId) throws Exception {
         try (final Connection conn = DATA_SOURCE.getConnection()) {
@@ -55,6 +75,11 @@ public class RaspResource {
                 return "User not found";
             }
         }
+    }
+
+    private String executeLfi(final String file) throws Exception {
+        new File(file);
+        return "OK";
     }
 
     @XmlRootElement(name = "user_id")
@@ -70,6 +95,22 @@ public class RaspResource {
 
         public void setUserId(String userId) {
             this.userId = userId;
+        }
+    }
+
+    @XmlRootElement(name = "file")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class FileDTO {
+        @JsonProperty("file")
+        @XmlValue
+        private String file;
+
+        public String getFile() {
+            return file;
+        }
+
+        public void setFile(String file) {
+            this.file = file;
         }
     }
 }

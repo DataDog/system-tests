@@ -67,6 +67,7 @@ def load(base_dir="manifests/"):
         "python_otel",
         "ruby",
         "dd_apm_inject",
+        "k8s_cluster_agent",
     ):
         data = _load_file(f"{base_dir}{component}.yml")
 

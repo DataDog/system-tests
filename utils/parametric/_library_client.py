@@ -412,6 +412,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
             "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
             "dd_env": config_dict.get("dd_env", None),
             "dd_version": config_dict.get("dd_version", None),
+            "dd_trace_agent_url": config_dict.get("dd_trace_agent_url", None),
         }
 
 
@@ -525,6 +526,9 @@ class APMLibraryClientGRPC:
             logger.error(f"Container {self.container.name} status is: {self.container.status}. Logs:\n{logs}")
         except:  # noqa
             logger.error(f"Failed to get logs from container {self.container.name}")
+
+    def crash(self) -> None:
+        self._client.Crash(pb.CrashArgs())
 
     def trace_start_span(
         self,
@@ -726,6 +730,7 @@ class APMLibraryClientGRPC:
             "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
             "dd_env": config_dict.get("dd_env", None),
             "dd_version": config_dict.get("dd_version", None),
+            "dd_trace_agent_url": config_dict.get("dd_trace_agent_url", None),
         }
 
 
