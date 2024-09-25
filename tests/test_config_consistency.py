@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, features, rfc
 
 
 @scenarios.default
@@ -305,6 +305,7 @@ class Test_Config_UnifiedServiceTagging_Default:
         )  # in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario
 
 
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_IntegrationEnabled_False:
@@ -316,17 +317,20 @@ class Test_Config_IntegrationEnabled_False:
     def test_kafka_integration_enabled_false(self):
         assert self.r.status_code == 200
 
-        interfaces.library.assert_trace_exists(self.r)
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-
-        nonKafkaSpans = _get_span_by_tags(spans, tags={"span.kind": "server"})
-        kafkaSpans = _get_span_by_tags(spans, tags={"span.kind": "producer", "component": "kafka"})
+        nonKafkaSpans = []
+        kafkaSpans = []
+        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
+            if span.get("name") != "kafka.produce":
+                nonKafkaSpans.append(span)
+            else:
+                kafkaSpans.append(span)
 
         assert len(nonKafkaSpans) > 0
         assert len(kafkaSpans) == 0
 
 
-@scenarios.tracing_config_nondefault_3
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault_2
 @features.tracing_configuration_consistency
 class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
@@ -337,11 +341,13 @@ class Test_Config_IntegrationEnabled_True:
     def test_kafka_integration_enabled_true(self):
         assert self.r.status_code == 200
 
-        interfaces.library.assert_trace_exists(self.r)
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-
-        nonKafkaSpans = _get_span_by_tags(spans, tags={"span.kind": "server"})
-        kafkaSpans = _get_span_by_tags(spans, tags={"span.kind": "producer", "component": "kafka"})
+        nonKafkaSpans = []
+        kafkaSpans = []
+        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
+            if span.get("name") != "kafka.produce":
+                nonKafkaSpans.append(span)
+            else:
+                kafkaSpans.append(span)
 
         assert len(nonKafkaSpans) > 0
         assert len(kafkaSpans) > 0

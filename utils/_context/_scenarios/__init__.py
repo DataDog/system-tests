@@ -456,7 +456,7 @@ class scenarios:
             "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
-            "DD_TRACE_Kafka_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration.
+            "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
         },
         include_kafka=True,
         doc="",
@@ -465,14 +465,12 @@ class scenarios:
 
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
-        weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": ""},
+        weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "", "DD_TRACE_KAFKA_ENABLED": "true"},
+        include_kafka=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
     )
     tracing_config_nondefault_3 = EndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT_3",
-        weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false", "DD_TRACE_Kafka_ENABLED": "true"},
-        include_kafka=True,
-        doc="",
+        "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
