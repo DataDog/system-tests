@@ -15,6 +15,8 @@ variants=(["dd-lib-dotnet-init-test-app"]="dotnet"
           ["dd-lib-ruby-init-test-rails-explicit"]="ruby"
           ["dd-lib-ruby-init-test-rails-gemsrb"]="ruby"
           ["dd-lib-java-init-test-app"]="java"
+          ["dd-lib-php-init-test-83"]="php"
+          ["dd-lib-php-init-test-alpine"]="php"
           )
 docker buildx create --name multiarch --driver docker-container --use
 

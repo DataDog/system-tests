@@ -42,7 +42,7 @@ jobs:
           "golang": [],
           "java": [{"name":"dd-lib-java-init-test-app","supported":"true"},{"name":"jdk7-app","supported":"false"}],
           "nodejs": [{"name":"sample-app","supported":"true"},{"name":"sample-app-node13","supported":"false"}],
-          "php": [],
+          "php": [{"name":"dd-lib-php-init-test-83","supported":"true"},{"name":"dd-lib-php-init-test-alpine","supported":"true"}],
           "python": [{"name":"dd-lib-python-init-test-django","supported":"true"}, {"name":"dd-lib-python-init-test-django-gunicorn", "supported":"true"}, {"name":"dd-lib-python-init-test-django-uvicorn","supported":"true"}],
           "ruby": [{"name":"dd-lib-ruby-init-test-rails","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-explicit","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-gemsrb","supported":"true"}]
         }
@@ -53,7 +53,7 @@ jobs:
           "golang": [],
           "java": ["gcr.io/datadoghq/dd-lib-java-init:latest"],
           "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest"],
-          "php": [],
+          "php": ["gcr.io/datadoghq/dd-lib-php-init:latest"],
           "python": ["gcr.io/datadoghq/dd-lib-python-init:latest"],
           "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest"],
         }
@@ -64,7 +64,7 @@ jobs:
           "golang": [],
           "java": ["ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
           "nodejs": ["ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
-          "php": [],
+          "php": ["ghcr.io/datadog/dd-trace-php/dd-lib-php-init:latest_snapshot"],
           "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
           "ruby": ["ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
         }
