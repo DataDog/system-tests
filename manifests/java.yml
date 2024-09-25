@@ -1324,7 +1324,7 @@ tests/:
   test_profiling.py:
     Test_Profile:
       akka-http: v1.22.0
-      spring-boot-3-native: missing_feature (Tracing-only)
+      spring-boot-3-native: v1.39.0
       vertx3: missing_feature (Endpoint not implemented)
       vertx4: missing_feature (Endpoint not implemented)
   test_sampling_rates.py:
