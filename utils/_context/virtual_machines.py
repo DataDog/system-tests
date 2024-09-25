@@ -442,7 +442,7 @@ class Debian12amd64(_VirtualMachine):
             **kwargs,
         )
 
-        
+
 class Debian12arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
@@ -458,7 +458,7 @@ class Debian12arm64(_VirtualMachine):
             **kwargs,
         )
 
-        
+
 # 8.10.20240820
 # https://wiki.almalinux.org/cloud/AWS.html#community-amis
 class AlmaLinux8amd64(_VirtualMachine):
@@ -475,6 +475,7 @@ class AlmaLinux8amd64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
 
 class AlmaLinux8arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
@@ -510,7 +511,7 @@ class AlmaLinux9amd64(_VirtualMachine):
             **kwargs,
         )
 
-        
+
 class AlmaLinux9arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
