@@ -48,7 +48,7 @@ class Test_library:
     def test_library_schema_telemetry_job_object(self):
         interfaces.library.assert_schema_point("/telemetry/proxy/api/v2/apmtelemetry", "$.payload")
 
-    @bug(library="golang", reason="APMS-12697")
+    @bug(context.library < "golang@1.68.0", reason="APMS-12697")
     def test_library_telenetry_configuration_value(self):
         interfaces.library.assert_schema_point(
             "/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"
@@ -93,6 +93,6 @@ class Test_Agent:
     def test_agent_schema_telemetry_main_payload(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$")
 
-    @bug(library="golang", reason="APMS-12697")
+    @bug(context.library < "golang@1.68.0", reason="APMS-12697")
     def test_library_telenetry_configuration_value(self):
         interfaces.agent.assert_schema_point("/api/v2/apmtelemetry", "$.payload.configuration[].value")

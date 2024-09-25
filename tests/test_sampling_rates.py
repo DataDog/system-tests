@@ -139,7 +139,7 @@ class Test_SamplingDecisions:
         reason="APMAPI-736",
     )
     @bug(context.library >= "python@1.11.0rc2.dev8", reason="APMAPI-736")
-    @bug(library="golang", reason="APMAPI-736")
+    @bug(context.library < "golang@1.68.0", reason="APMAPI-736")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
