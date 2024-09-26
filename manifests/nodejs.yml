@@ -10,7 +10,6 @@ refs:
   - &ref_3_15_0 '>=3.15.0 || ^2.28.0'
   - &ref_3_19_0 '>=3.19.0 || ^2.32.0'
   - &ref_3_21_0 '>=3.21.0 || ^2.34.0'
-  - &ref_4_0_0 '>=4.0.0 || ^3.22.0 || ^2.35.0'
   - &ref_4_1_0 '>=4.1.0 || ^3.22.0 || ^2.35.0'
   - &ref_4_3_0 '>=4.3.0 || ^3.24.0 || ^2.37.0'
   - &ref_4_4_0 '>=4.4.0 || ^3.25.0 || ^2.38.0'
@@ -575,7 +574,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientIPHeader_Configured: *ref_4_0_0
+    Test_Config_ClientIPHeader_Configured: *ref_3_13_0
     Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
     Test_Config_ClientTagQueryString_Configured: missing_feature (adding query string to http.url is not supported)
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query strings by default)
