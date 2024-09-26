@@ -4,10 +4,11 @@
 
 """Test format specifications"""
 
-from utils import weblog, interfaces, bug, irrelevant, context, scenarios
+from utils import weblog, interfaces, bug, irrelevant, context, scenarios, features
 
 
 @scenarios.all_endtoend_scenarios
+@features.not_reported
 class Test_library:
     """Libraries's payload are valid regarding schemas"""
 
@@ -56,6 +57,7 @@ class Test_library:
 
 
 @scenarios.all_endtoend_scenarios
+@features.not_reported
 class Test_Agent:
     """Agents's payload are valid regarding schemas"""
 
