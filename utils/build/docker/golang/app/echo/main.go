@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -36,7 +38,7 @@ func main() {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err)
 		}
-		
+
 		return c.JSON(http.StatusOK, healthCheck)
 	})
 
@@ -89,6 +91,22 @@ func main() {
 		status, _ := strconv.Atoi(c.Param("status_code"))
 		span, _ := tracer.SpanFromContext(c.Request().Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range c.QueryParams() {
+			for _, value := range values {
+				c.Response().Header().Add(key, value)
+			}
+		}
+
+		switch {
+		case c.Request().Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(c.Request().Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(c.Request().Context(), bodyMap)
+			}
+		case c.Request().ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(c.Request().Context(), c.Request().PostForm)
+		}
 		return c.String(status, "Value tagged")
 	})
 
