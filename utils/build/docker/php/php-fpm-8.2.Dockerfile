@@ -10,6 +10,10 @@ ENV DD_TRACE_GENERATE_ROOT_SPAN=1
 ENV DD_TRACE_AGENT_FLUSH_AFTER_N_REQUESTS=0
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
+# Fix 'Error: retrieving gpg key timed out'
+RUN apt update && apt install -y gpg
+RUN gpg --keyserver hkp://keyserver.ubuntu.com:80 --refresh-keys
+
 RUN chmod +x /tmp/php/php-fpm/build.sh
 RUN /tmp/php/php-fpm/build.sh $PHP_VERSION
 RUN rm -rf /tmp/php/
