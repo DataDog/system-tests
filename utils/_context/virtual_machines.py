@@ -431,7 +431,7 @@ class Debian12amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Debian_12_amd64",
-            aws_config=_AWSConfig(ami_id="ami-064519b8c76274859", ami_instance_type="t2.medium", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-064519b8c76274859", ami_instance_type="t2.medium", user="admin"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -447,7 +447,7 @@ class Debian12arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Debian_12_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0789039e34e739d67", ami_instance_type="t4g.small", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-0789039e34e739d67", ami_instance_type="t4g.small", user="admin"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
