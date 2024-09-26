@@ -27,6 +27,7 @@ jobs:
     outputs:
       matrix: ${{ steps.compute-matrix.outputs.matrix }}
       matrix_supported_langs: ${{ steps.compute-matrix.outputs.matrix_supported_langs }}
+      matrix_profiling_supported: ${{ steps.compute-matrix.outputs.matrix_profiling_supported }}
       init_image: ${{ steps.compute-matrix.outputs.init_image }}
     steps:
     - name: Compute matrix
@@ -43,7 +44,13 @@ jobs:
           "java": [{"name":"dd-lib-java-init-test-app","supported":"true"},{"name":"jdk7-app","supported":"false"}],
           "nodejs": [{"name":"sample-app","supported":"true"},{"name":"sample-app-node13","supported":"false"}],
           "php": [{"name":"dd-lib-php-init-test-83","supported":"true"},{"name":"dd-lib-php-init-test-alpine","supported":"true"}],
-          "python": [{"name":"dd-lib-python-init-test-django","supported":"true"}, {"name":"dd-lib-python-init-test-django-gunicorn", "supported":"true"}, {"name":"dd-lib-python-init-test-django-uvicorn","supported":"true"}],
+          "python": [{"name":"dd-lib-python-init-test-django","supported":"true"},
+                     {"name":"dd-lib-python-init-test-django-gunicorn", "supported":"true"},
+                     {"name":"dd-lib-python-init-test-django-gunicorn-alpine","supported":"true"},
+                     {"name":"dd-lib-python-init-test-django-preinstalled","supported":"true","skip-profiling":"true"},
+                     {"name":"dd-lib-python-init-test-django-unsupported-package-force","supported":"true"},
+                     {"name":"dd-lib-python-init-test-django-uvicorn","supported":"true"},
+                     {"name":"dd-lib-python-init-test-protobuf-old","supported":"true"}],
           "ruby": [{"name":"dd-lib-ruby-init-test-rails","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-explicit","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-gemsrb","supported":"true"}]
         }
 
@@ -72,9 +79,12 @@ jobs:
         result = weblogs["${{ inputs.library }}"]
         #Only supported weblog variants
         results_supported_langs = []
+        results_profiling_supported = []
         for weblog in weblogs["${{ inputs.library }}"]:
           if weblog["supported"] == "true":
             results_supported_langs.append(weblog["name"])
+          if "skip-profiling" not in weblog or weblog["skip-profiling"] != "true":
+            results_profiling_supported.append(weblog["name"])
 
         #Use the latest init image for prod version, latest_snapshot init image for dev version
         if "${{ inputs.version }}" == 'prod':
@@ -86,10 +96,12 @@ jobs:
             print(f'matrix={json.dumps(result)}', file=fh)
             print(f'init_image={json.dumps(result_init_image)}', file=fh)
             print(f'matrix_supported_langs={json.dumps(results_supported_langs)}', file=fh)
+            print(f'matrix_profiling_supported={json.dumps(results_profiling_supported)}', file=fh)
 
         print(json.dumps(result, indent=2))
         print(json.dumps(result_init_image, indent=2))
         print(json.dumps(results_supported_langs, indent=2))
+        print(json.dumps(results_profiling_supported, indent=2))
 
   lib-injection-init-image-validator:
     if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs' || inputs.library == 'php'
@@ -223,6 +235,7 @@ jobs:
 
       - name: Kubernetes lib-injection profiling tests
         id: k8s-lib-injection-tests-profiling
+        if: ${{ contains(fromJson(needs.compute-matrix.outputs.matrix_profiling_supported), matrix.weblog) }}
         run: ./run.sh K8S_LIBRARY_INJECTION_PROFILING
 
       - name: Compress logs
