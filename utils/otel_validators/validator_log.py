@@ -1,5 +1,3 @@
-import pprint
-
 # Util functions to validate JSON logs from OTel system tests
 
 
