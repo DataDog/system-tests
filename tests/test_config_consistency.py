@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, features, rfc
 
 
 @scenarios.default
@@ -303,3 +303,51 @@ class Test_Config_UnifiedServiceTagging_Default:
         assert (
             spans[0]["service"] != "service_test"
         )  # in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_IntegrationEnabled_False:
+    """ Verify behavior of integrations automatic spans """
+
+    def setup_kafka_integration_enabled_false(self):
+        self.r = weblog.get("/kafka/produce")
+
+    def test_kafka_integration_enabled_false(self):
+        assert self.r.status_code == 200
+
+        nonKafkaSpans = []
+        kafkaSpans = []
+        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
+            if span.get("name") != "kafka.produce":
+                nonKafkaSpans.append(span)
+            else:
+                kafkaSpans.append(span)
+
+        assert len(nonKafkaSpans) > 0
+        assert len(kafkaSpans) == 0
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault_2
+@features.tracing_configuration_consistency
+class Test_Config_IntegrationEnabled_True:
+    """ Verify behavior of integrations automatic spans """
+
+    def setup_kafka_integration_enabled_true(self):
+        self.r = weblog.get("/kafka/produce")
+
+    def test_kafka_integration_enabled_true(self):
+        assert self.r.status_code == 200
+
+        nonKafkaSpans = []
+        kafkaSpans = []
+        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
+            if span.get("name") != "kafka.produce":
+                nonKafkaSpans.append(span)
+            else:
+                kafkaSpans.append(span)
+
+        assert len(nonKafkaSpans) > 0
+        assert len(kafkaSpans) > 0
