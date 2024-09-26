@@ -15,6 +15,14 @@ class features:
     """
 
     @staticmethod
+    def not_reported(test_object):
+        """
+        Use this fake feature to not report a test to feature parity dashboard
+        """
+        pytest.mark.features(feature_id=-1)(test_object)
+        return test_object
+
+    @staticmethod
     def add_metadata_globally_to_all_spans_dd_tags(test_object):
         """
         Add Metadata globally to all spans (DD_TAGS)

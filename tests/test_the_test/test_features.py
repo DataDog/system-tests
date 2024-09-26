@@ -1,5 +1,27 @@
-from utils import scenarios
+from utils import scenarios, features
 from utils.tools import logger
+
+from .utils import run_system_tests
+
+
+FILENAME = "tests/test_the_test/test_features.py"
+
+
+def execute_process(forced_test):
+    return run_system_tests(test_path=FILENAME, forced_test=forced_test)
+
+
+@scenarios.mock_the_test
+@features.not_reported
+def test_schemas():
+    pass
+
+
+@scenarios.test_the_test
+def test_not_reported():
+    result = run_system_tests(test_path=FILENAME)
+
+    assert len(result) == 0
 
 
 @scenarios.test_the_test
