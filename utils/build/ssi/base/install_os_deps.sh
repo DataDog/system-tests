@@ -6,7 +6,8 @@ if [[ "$(cat /etc/redhat-release || true)" == "Red Hat Enterprise Linux release 
     OS="RedHat_8"
 elif [[ "$(cat /etc/redhat-release || true)" == "Red Hat Enterprise Linux release 9."* ]]; then
     OS="RedHat_9"
-#elif [[ "$(cat /etc/redhat-release || true)" == "CentOS Linux release 7.9.2009 (AltArch)" ]]; then
+elif [[ "$(cat /etc/redhat-release || true)" == "AlmaLinux release"* ]]; then
+    OS="RedHat_9"
 elif [[ "$(cat /etc/redhat-release || true)" == "CentOS Linux release 7.8.2003 (Core)" ]]; then
     OS="RedHat_Centos_7_8"
 elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
@@ -25,6 +26,7 @@ elif [ -f /etc/SuSE-release ] || [ "$DISTRIBUTION" = "SUSE" ] || [ "$DISTRIBUTIO
 elif [ -f /etc/alpine-release ]; then
     OS="Alpine"
 fi
+echo "SELECTED OS: $OS"
 if [ "$OS" = "RedHat_8" ] || [ "$OS" = "RedHat_9" ]; then
     if ! command -v yum &> /dev/null
     then
