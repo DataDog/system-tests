@@ -121,6 +121,7 @@ type Config struct {
 	Debug                  bool              `json:"debug"`
 	Env                    string            `json:"env"`
 	DdVersion              string            `json:"dd_version"`
+	AgentUrl               string            `json:"agent_url"`
 }
 
 // Log is a custom logger that extracts & parses the JSON configuration from the log message
@@ -170,6 +171,7 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	// config["dd_trace_sample_ignore_parent"] = nil // golang doesn't support DD_TRACE_SAMPLE_IGNORE_PARENT
 	config["dd_env"] = l.globalConfig["Env"]
 	config["dd_version"] = l.globalConfig["DdVersion"]
+	config["dd_trace_agent_url"] = l.globalConfig["AgentUrl"]
 	log.Print("Parsed config: ", config)
 	return config
 }

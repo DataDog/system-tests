@@ -4,6 +4,7 @@ Test configuration consistency for features across supported APM SDKs.
 import pytest
 from utils import scenarios, features, context, bug
 from utils.parametric.spec.trace import find_span_in_traces
+import re
 
 parametrize = pytest.mark.parametrize
 
@@ -137,7 +138,10 @@ class Test_Config_TraceAgentURL:
     def test_dd_trace_agent_unix_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
-        assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
+        if context.library == "golang":
+            assert re.match(r"^http://uds__var_run_datadog_apm.socket/", resp["dd_trace_agent_url"])
+        else:
+            assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
 
@@ -149,6 +153,10 @@ class Test_Config_TraceAgentURL:
     def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
-        assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
+        if context.library == "golang":
+            assert re.match(r"^http://random-host:9999/", resp["dd_trace_agent_url"])
+        else:
+            print(resp)
+            assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
