@@ -445,7 +445,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_TraceAgentURL: v1.68.0
       Test_Config_TraceEnabled: v1.67.0
-      Test_Config_RateLimit: v1.68.0
+      Test_Config_RateLimit: v1.67.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.67.0
     test_dynamic_configuration.py:
