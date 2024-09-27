@@ -276,7 +276,7 @@ class AmazonLinux2amd64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="amazon_linux2_amd64",
+            os_branch="amazon_linux2",
             os_cpu="amd64",
             **kwargs,
         )
@@ -291,7 +291,7 @@ class AmazonLinux2arm64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="amazon_linux2_arm64",
+            os_branch="amazon_linux2",
             os_cpu="arm64",
             default_vm=False,
             **kwargs,
