@@ -18,7 +18,8 @@ lang_variant:
 
 weblog:
     name: test-app-php
-    excluded_os_branches: [amazon_linux2_amd64, amazon_linux2_dotnet6, centos_7_amd64]
+    #Amazon Linux 2 is installing an old verison of PHP and it's not supported by SSI
+    excluded_os_branches: [amazon_linux2_amd64, amazon_linux2_dotnet6, centos_7_amd64, amazon_linux2_arm64]
     excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux
