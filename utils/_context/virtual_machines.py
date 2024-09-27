@@ -225,7 +225,7 @@ class Ubuntu22amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_22_amd64",
-            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t3a.medium", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="c5ad.large", user="ubuntu"),
             vagrant_config=_VagrantConfig(box_name="bento/ubuntu-22.04"),
             krunvm_config=None,
             os_type="linux",
@@ -255,7 +255,7 @@ class Ubuntu18amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_18_amd64",
-            aws_config=_AWSConfig(ami_id="ami-0263e4deb427da90e", ami_instance_type="t3a.medium", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-0263e4deb427da90e", ami_instance_type="c5ad.large", user="ubuntu"),
             # vagrant_config=_VagrantConfig(box_name="generic/ubuntu1804"),
             vagrant_config=None,
             krunvm_config=None,
@@ -271,7 +271,7 @@ class AmazonLinux2amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2_amd64",
-            aws_config=_AWSConfig(ami_id="ami-0dfcb1ef8550277af", ami_instance_type="t3a.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0dfcb1ef8550277af", ami_instance_type="c5ad.large", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="generic/centos7"),
             krunvm_config=None,
             os_type="linux",
@@ -286,7 +286,7 @@ class AmazonLinux2DotNet6(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2_DotNet6",
-            aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t3a.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="c5ad.large", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -301,7 +301,7 @@ class AmazonLinux2023amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2023_amd64",
-            aws_config=_AWSConfig(ami_id="ami-064ed2d3fc01d3ec1", ami_instance_type="t3a.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-064ed2d3fc01d3ec1", ami_instance_type="c5ad.large", user="ec2-user"),
             vagrant_config=_VagrantConfig(box_name="generic/centos9s"),
             krunvm_config=None,
             os_type="linux",
@@ -332,7 +332,7 @@ class Centos7amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "CentOS_7_amd64",
-            aws_config=_AWSConfig(ami_id="ami-002070d43b0a4f171", ami_instance_type="t3a.medium", user="centos"),
+            aws_config=_AWSConfig(ami_id="ami-002070d43b0a4f171", ami_instance_type="c5ad.large", user="centos"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
             krunvm_config=None,
@@ -350,7 +350,7 @@ class OracleLinux92amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "OracleLinux_9_2_amd64",
-            aws_config=_AWSConfig(ami_id="ami-01453ca80e53609e3", ami_instance_type="t3a.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-01453ca80e53609e3", ami_instance_type="c5ad.large", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -383,7 +383,7 @@ class OracleLinux88amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "OracleLinux_8_8_amd64",
-            aws_config=_AWSConfig(ami_id="ami-02a7419f257858fad", ami_instance_type="t3a.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-02a7419f257858fad", ami_instance_type="c5ad.large", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -416,7 +416,7 @@ class OracleLinux79amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "OracleLinux_7_9_amd64",
-            aws_config=_AWSConfig(ami_id="ami-0fb08d5eb039a9ebd", ami_instance_type="t3a.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0fb08d5eb039a9ebd", ami_instance_type="c5ad.large", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -434,7 +434,7 @@ class AlmaLinux8amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "AlmaLinux_8_amd64",
-            aws_config=_AWSConfig(ami_id="ami-0825c833650fed842", ami_instance_type="t3a.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0825c833650fed842", ami_instance_type="c5ad.large", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -468,7 +468,7 @@ class AlmaLinux9amd64(_VirtualMachine):
         super().__init__(
             "AlmaLinux_9_amd64",
             aws_config=_AWSConfig(
-                ami_id="ami-0c2163c916f8dd3c8", ami_instance_type="t3a.medium", user="ec2-user"
+                ami_id="ami-0c2163c916f8dd3c8", ami_instance_type="c5ad.large", user="ec2-user"
             ),  # 9.4
             vagrant_config=None,
             krunvm_config=None,
