@@ -448,6 +448,7 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
   parametric/:
     test_config_consistency.py:
+      Test_Config_RateLimit: missing_feature
       Test_Config_TraceAgentURL: v1.67.0
       Test_Config_TraceEnabled: v1.67.0
       Test_Config_TraceLogDirectory: missing_feature
