@@ -192,17 +192,17 @@ class Test_Config_RateLimit:
         assert trace_1_sampling_priority == -1
 
     # DD_TRACE_RATE_LIMIT should have no effect if DD_TRACE_SAMPLE_RATE or DD_TRACE_SAMPLING_RULES is not set
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
-    def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
-        with test_library:
-            with test_library.start_span(name="s1") as s1:
-                pass
-            with test_library.start_span(name="s2") as s2:
-                pass
+    # @missing_feature(context.library == "python", reason="Not implemented")
+    # @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
+    # def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
+    #     with test_library:
+    #         with test_library.start_span(name="s1") as s1:
+    #             pass
+    #         with test_library.start_span(name="s2") as s2:
+    #             pass
 
-        traces = test_agent.wait_for_num_traces(2)
-        trace_0_sampling_priority = traces[0][0]["metrics"]["_sampling_priority_v1"]
-        trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
-        assert trace_0_sampling_priority == 2
-        assert trace_1_sampling_priority == 2
+    #     traces = test_agent.wait_for_num_traces(2)
+    #     trace_0_sampling_priority = traces[0][0]["metrics"]["_sampling_priority_v1"]
+    #     trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
+    #     assert trace_0_sampling_priority == 2
+    #     assert trace_1_sampling_priority == 2

@@ -122,6 +122,7 @@ type Config struct {
 	Env                    string            `json:"env"`
 	DdVersion              string            `json:"dd_version"`
 	TraceAgentURL          string            `json:"agent_url"`
+	RateLimit              string            `json:"sample_rate_limit"`
 }
 
 // Log is a custom logger that extracts & parses the JSON configuration from the log message
@@ -172,6 +173,7 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	config["dd_env"] = l.globalConfig["Env"]
 	config["dd_version"] = l.globalConfig["DdVersion"]
 	config["dd_trace_agent_url"] = l.globalConfig["TraceAgentURL"]
+	config["dd_trace_rate_limit"] = l.globalConfig["RateLimit"]
 	log.Print("Parsed config: ", config)
 	return config
 }
