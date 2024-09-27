@@ -23,7 +23,7 @@ class Test_Crashtracking:
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="APMSP-1370")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-727")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
