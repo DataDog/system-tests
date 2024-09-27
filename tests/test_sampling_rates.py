@@ -61,15 +61,13 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-    @bug(library="python", reason="When stats are activated, all traces are emitted")
     @bug(
-        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0",
-        reason="_sampling_priority_v1 is missing",
+        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360",
     )
     @bug(context.library < "nodejs@5.17.0", reason="APMRP-360")  # fixed version is not known
-    @flaky(context.weblog_variant == "spring-boot-3-native", reason="Needs investigation")
-    @flaky(library="golang", reason="Needs investigation")
-    @flaky(library="ruby", reason="Needs investigation")
+    @flaky(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-736")
+    @flaky(library="golang", reason="APMAPI-736")
+    @flaky(library="ruby", reason="APMAPI-736")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
@@ -133,16 +131,15 @@ class Test_SamplingDecisions:
             weblog.get(f"/sample_rate_route/{self.next_request_id()}")
 
     @irrelevant(context.library in ("nodejs", "php", "dotnet"), reason="AIT-374")
-    @missing_feature(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/173")
     @bug(context.library < "java@0.92.0", reason="APMRP-360")
     @flaky(context.library < "python@0.57.0", reason="APMRP-360")
     @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
     @flaky(
         context.library == "ruby" and context.weblog_variant in ("sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
-        reason="fails randomly for Sinatra on JSON body that dutifully keeps",
+        reason="APMAPI-736",
     )
-    @bug(context.library >= "python@1.11.0rc2.dev8", reason="Under investigation")
-    @bug(library="golang", reason="Need investigation")
+    @bug(context.library >= "python@1.11.0rc2.dev8", reason="APMAPI-736")
+    @bug(library="golang", reason="APMAPI-736")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
@@ -176,10 +173,8 @@ class Test_SamplingDecisions:
                 headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"]),},
             )
 
-    @bug(library="python", reason="APMRP-259")
     @bug(
-        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0",
-        reason="_sampling_priority_v1 is missing",
+        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360",
     )
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
@@ -227,11 +222,10 @@ class Test_SamplingDecisions:
                     },
                 )
 
-    @bug(library="python", reason="APMRP-259")
     @bug(library="nodejs", reason="APMRP-258")
     @bug(library="ruby", reason="APMRP-258")
-    @flaky(library="cpp")
-    @flaky(library="golang")
+    @flaky(library="cpp", reason="APMAPI-736")
+    @flaky(library="golang", reason="APMAPI-736")
     def test_sampling_determinism(self):
         """Verify that the way traces are sampled are at least deterministic on trace and span id"""
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -105,6 +106,31 @@ func main() {
 	mux.HandleFunc("/sample_rate_route/", func(w http.ResponseWriter, r *http.Request) {
 		// net/http mux doesn't support advanced patterns, but the given prefix will match any /sample_rate_route/{i}
 		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/tag_value/{tag_value}/{status_code}", func(w http.ResponseWriter, r *http.Request) {
+		tag := r.PathValue("tag_value")
+		status, _ := strconv.Atoi(r.PathValue("status_code"))
+		span, _ := tracer.SpanFromContext(r.Context())
+		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range r.URL.Query() {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
+		}
+		w.WriteHeader(status)
+		w.Write([]byte("Value tagged"))
+
+		switch {
+		case r.Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(r.Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(r.Context(), bodyMap)
+			}
+		case r.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(r.Context(), r.PostForm)
+		}
 	})
 
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
