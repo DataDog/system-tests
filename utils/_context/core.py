@@ -86,6 +86,10 @@ class _Context:
     def parametrized_tests_metadata(self):
         return self.scenario.parametrized_tests_metadata
 
+    @property
+    def configuration(self):
+        return self._get_scenario_property("configuration", {})
+
     def serialize(self):
         result = {
             "agent": str(self.agent_version),
