@@ -2,7 +2,6 @@
     {
         "type": "LOG_PROBE",
         "language": "",
-        "type": "",
         "id": "log170aa-acda-4453-9111-1478a6method",
         "where": {
             "typeName": "ACTUAL_TYPE_NAME",
@@ -26,7 +25,6 @@
     {
         "type": "SPAN_DECORATION_PROBE",
         "language": "",
-        "type": "",
         "id": "decor0aa-acda-4453-9111-1478a6method",
         "targetSpan": "ACTIVE",
         "decorations": [

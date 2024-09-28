@@ -69,12 +69,12 @@ def expression():
     return f"Great success number {local_value}"
 
 
-@debugger_blueprint.route("/expression/exception", methods=["GET"])
+@debugger_blueprint.route("/expression_exception", methods=["GET"])
 def expression_exception():
     abort(500, description="Hello from exception")
 
 
-@debugger_blueprint.route("/expression/operators", methods=["GET"])
+@debugger_blueprint.route("/expression_operators", methods=["GET"])
 def expression_operators():
     int_value = request.args.get("intValue", type=int)
     float_value = request.args.get("floatValue", type=float)
@@ -83,8 +83,8 @@ def expression_operators():
     return f"Int value {int_value}. Float value {float_value}. String value is {str_value}."
 
 
-@debugger_blueprint.route("/expression/strings", methods=["GET"])
-def string_operations():
+@debugger_blueprint.route("/expression_strings", methods=["GET"])
+def expression_strings():
     str_value = request.args.get("strValue", type=str)
     empty_string = request.args.get("emptyString", default="")
     null_string = request.args.get("nullString")
@@ -92,8 +92,8 @@ def string_operations():
     return f"strValue {str_value}. emptyString {empty_string}. {null_string}."
 
 
-@debugger_blueprint.route("/expression/collections", methods=["GET"])
-def collections_operations():
+@debugger_blueprint.route("/expression_collection_operations", methods=["GET"])
+def expression_collections_operations():
     factory = CollectionFactory()
 
     a0 = factory.get_collection(0, "array")
@@ -119,8 +119,8 @@ def collections_operations():
     return f"{a0_count},{a1_count},{a5_count},{l0_count},{l1_count},{l5_count},{h0_count},{h1_count},{h5_count}."
 
 
-@debugger_blueprint.route("/expression/null", methods=["GET"])
-def nulls():
+@debugger_blueprint.route("/expression_nulls", methods=["GET"])
+def expression_nulls():
     int_value = request.args.get("intValue", type=int)
     str_value = request.args.get("strValue")
     pii = None

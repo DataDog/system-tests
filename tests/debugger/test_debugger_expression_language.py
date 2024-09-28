@@ -273,7 +273,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     def setup_expression_language_collection_operations(self):
         message_map, probes = self._create_expression_probes(
-            methodName="StringOperations",
+            methodName="ExpressionCollectionOperations",
             expressions=[
                 ### at the app there are 3 types of collections are created - array, list and hash.
                 ### the number at the end of variable means the length of the collection
@@ -362,7 +362,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/collections")
+        self._setup(probes, "/debugger/expression_collection_operations")
 
     @bug(library="dotnet", reason="DEBUG-2602")
     @bug(library="java", reason="DEBUG-2603")
@@ -371,7 +371,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     def setup_expression_language_nulls_true(self):
         message_map, probes = self._create_expression_probes(
-            methodName="Nulls",
+            methodName="ExpressionNulls",
             expressions=[
                 ["intValue eq null", True, Dsl("eq", [Dsl("ref", "intValue"), None])],
                 ["strValue eq null", True, Dsl("eq", [Dsl("ref", "strValue"), None])],
@@ -380,7 +380,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/null")
+        self._setup(probes, "/debugger/expression_nulls")
 
     @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_true(self):
@@ -398,7 +398,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+        self._setup(probes, "/debugger/expression_operators?intValue=5&floatValue=3.14&strValue=haha")
 
     @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_false(self):
