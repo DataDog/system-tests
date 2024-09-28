@@ -214,15 +214,15 @@ tests/:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
     test_debugger_exception_replay.py:
-      Test_Debugger_Exception_Replay: irrelevant
+      Test_Debugger_Exception_Replay: v1.4.0
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: v1.3.0
+      Test_Debugger_Expression_Language: v1.4.0
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: v1.3.0
+      Test_Debugger_PII_Redaction: v1.4.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: v1.3.0
-      Test_Debugger_Method_Probe_Snaphots: v1.3.0
-      Test_Debugger_Mix_Log_Probe: v1.3.0
+      Test_Debugger_Line_Probe_Snaphots: v1.4.0
+      Test_Debugger_Method_Probe_Snaphots: v1.4.0
+      Test_Debugger_Mix_Log_Probe: v1.4.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
@@ -324,8 +324,8 @@ tests/:
       Test_RemoteConfigurationExtraServices: missing_feature
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.4.0
+      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
     span_pointers/:
       aws/:

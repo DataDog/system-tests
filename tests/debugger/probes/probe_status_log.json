@@ -2,7 +2,6 @@
   {
     "type": "LOG_PROBE",
     "language": "",
-    "type": "",
     "id": "loga0cf2-meth-45cf-9f39-591received",
     "where": {
       "typeName": "NotReallyExists",
@@ -15,7 +14,6 @@
   {
     "type": "LOG_PROBE",
     "language": "",
-    "type": "",
     "id": "loga0cf2-meth-45cf-9f39-59installed",
     "where": {
       "typeName": "ACTUAL_TYPE_NAME",
@@ -28,7 +26,6 @@
   {
     "type": "LOG_PROBE",
     "language": "",
-    "type": "",
     "id": "loga0cf2-line-45cf-9f39-59installed",
     "where": {
       "typeName": null,

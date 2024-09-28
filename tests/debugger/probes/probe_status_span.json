@@ -2,7 +2,6 @@
   {
     "type": "SPAN_PROBE",
     "language": "",
-    "type": "",
     "id": "span0cf2-meth-45cf-9f39-591received",
     "where": {
       "typeName": "NotReallyExists",
@@ -14,7 +13,6 @@
   {
     "type": "SPAN_PROBE",
     "language": "",
-    "type": "",
     "id": "span0cf2-meth-45cf-9f39-59installed",
     "where": {
       "typeName": "ACTUAL_TYPE_NAME",

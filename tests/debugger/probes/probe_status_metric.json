@@ -2,7 +2,6 @@
   {
     "type": "METRIC_PROBE",
     "language": "",
-    "type": "",
     "id": "metricf2-meth-45cf-9f39-591received",
     "metricName": "MetricCountInt",
     "kind": "COUNT",
@@ -22,7 +21,6 @@
   {
     "type": "METRIC_PROBE",
     "language": "",
-    "type": "",
     "id": "metricf2-meth-45cf-9f39-59installed",
     "metricName": "MetricCountInt",
     "kind": "COUNT",
@@ -42,7 +40,6 @@
   {
     "type": "METRIC_PROBE",
     "language": "",
-    "type": "",
     "id": "metricf2-line-45cf-9f39-59installed",
     "kind": "COUNT",
     "metricName": "MetricCountInt",

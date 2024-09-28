@@ -50,6 +50,48 @@ class DebuggerController {
     function expressionStrings(string $strValue, string $emptyString = "", $nullString = null) {
         return "strValue $strValue. emptyString $emptyString. nullString $nullString";
     }
+
+    function expressionCollectionOperations() {
+        $a0 = [];
+        $l0 = [];
+        $h0 = [];
+        $a1 = range(0, 0);
+        $l1 = range(0, 0);
+        $h1 = range(0, 0);
+        $a5 = range(0, 4);
+        $l5 = range(0, 4);
+        $h5 = range(0, 4);
+
+        return count($a0) . ", " . count($a1) . "," . count($a5) . "," . count($l0) . "," . count($l1) . "," . count($l5) . "," . count($h0) . "," . count($h1) . "," . count($h5) . ".";
+    }
+
+    function expressionNulls(int $intValue = null, string $strValue = null) {
+        $pii = null;
+
+        return "Pii is null " . ($pii === null) .
+                ". intValue is null " . ($intValue === null) .
+                ". strValue is null " . ($strValue === null) . ".";
+    }
+
+    function exceptionReplaySimple() {
+        throw new \Exception("Simple exception");
+    }
+
+    function exceptionReplayRecursion5($depth = 5) {
+        if ($depth > 0) {
+            return $this->exceptionReplayRecursion5($depth - 1);
+        } else {
+            throw new \Exception("Recursion exception");
+        }
+    }
+
+    function exceptionReplayRecursion20($depth = 20) {
+        if ($depth > 0) {
+            return $this->exceptionReplayRecursion20($depth - 1);
+        } else {
+            throw new \Exception("Recursion exception");
+        }
+    }
 }
 
 if (empty($skipExecution)) {
@@ -64,9 +106,7 @@ if (empty($skipExecution)) {
             $args[] = $_GET[$param->name];
         }
     }
-    try {
-        echo $c->$method(...$args);
-    } catch (\Exception $e) {}
+    echo $c->$method(...$args);
 }
 
 class ExpressionTestStruct {
@@ -78,7 +118,6 @@ class ExpressionTestStruct {
     public $Collection = ["one", "two", "three"];
     public $Dictionary = ["one" => 1, "two" => 2, "three" => 3, "four" => 4];
 }
-
 
 abstract class PiiBase {
     const Value = "SHOULD_BE_REDACTED";
