@@ -144,6 +144,18 @@ public class App {
                             .addHeader("dd-otlp-path", "agent")
                             .build());
         }
+        if (isIntakeEnabled()) {
+            logRecordExporters.add(
+                    OtlpHttpLogRecordExporter.builder()
+                            .setEndpoint("http://proxy:8126/api/v2/logs")
+                            .addHeader("dd-protocol", "otlp")
+                            .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
+                            .addHeader("dd-otlp-path", "intake-logs")
+                            .build());
+            logRecordExporters.add(
+                    OtlpJsonLoggingLogRecordExporter.create()
+            );
+        }
         if (isCollectorEnabled()) {
             logRecordExporters.add(
                     OtlpHttpLogRecordExporter.builder()

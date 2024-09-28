@@ -272,18 +272,18 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
                 "db.mssql.instance_name"
             ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
 
-    @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
+    @bug(library="python", reason="APMAPI-741")
     @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         super().test_db_name()
 
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
-    @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
+    @bug(library="python", reason="APMAPI-741")
     def test_db_system(self):
         super().test_db_system()
 
-    @bug(library="python", reason="https://github.com/DataDog/dd-trace-py/issues/7104")
+    @bug(library="python", reason="APMAPI-741")
     def test_db_user(self):
         super().test_db_user()
 
