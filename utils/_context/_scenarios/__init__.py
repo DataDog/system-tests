@@ -564,7 +564,10 @@ class scenarios:
     )
 
     installer_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario", scenario_groups=[ScenarioGroup.ONBOARDING],github_workflow="libinjection",
+        "INSTALLER_AUTO_INJECTION",
+        doc="Installer auto injection scenario",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
