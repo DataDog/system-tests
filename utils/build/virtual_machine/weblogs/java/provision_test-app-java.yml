@@ -27,6 +27,7 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java/test-app-java_run.sh
 
           - name: copy-java-app
-            local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
+            local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app/*
+            remote_path: .
 
         remote-command: sh test-app-java_run.sh

@@ -239,13 +239,15 @@ class VirtualMachineProvisioner:
         installation.remote_command = (
             installation_raw_data["remote-command"] if "remote-command" in installation_raw_data else None
         )
+        ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
         if "copy_files" in installation_raw_data:
             for copy_file in installation_raw_data["copy_files"]:
                 installation.copy_files.append(
                     CopyFile(
                         copy_file["name"],
                         copy_file["remote_path"] if "remote_path" in copy_file else None,
-                        copy_file["local_path"],
+                        copy_file["local_path"] if "local_path" in copy_file and ci_commit_branch is None else None,
+                        copy_file["git_path"] if "local_path" in copy_file and ci_commit_branch is not None else None,
                     )
                 )
 
@@ -278,9 +280,10 @@ class Intallation:
 
 
 class CopyFile:
-    def __init__(self, name, remote_path, local_path):
+    def __init__(self, name, remote_path, local_path, git_path):
         self.remote_path = remote_path
         self.local_path = local_path
+        self.git_path = git_path
         self.name = name
 
 

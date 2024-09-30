@@ -293,13 +293,13 @@ class AWSCommander(Commander):
             # construct full file path
             source = source_folder + "/" + file_name
             destination = destination_folder + "/" + file_name
-            logger.debug(f"remote_copy_folders: source:[{source}] and remote destination: [{destination}] ")
+            # logger.debug(f"remote_copy_folders: source:[{source}] and remote destination: [{destination}] ")
 
             if os.path.isfile(source):
                 if not relative_path:
                     destination = os.path.basename(destination)
 
-                logger.debug(f"Copy single file: source:[{source}] and remote destination: [{destination}] ")
+                # logger.debug(f"Copy single file: source:[{source}] and remote destination: [{destination}] ")
                 # Launch copy file command
                 quee_depends_on.insert(
                     0,
@@ -316,7 +316,7 @@ class AWSCommander(Commander):
                 if not relative_path:
                     p = pathlib.Path("/" + destination)
                     destination = str(p.relative_to(*p.parts[:2]))
-                logger.debug(f"Creating remote folder: {destination}")
+                # logger.debug(f"Creating remote folder: {destination}")
 
                 quee_depends_on.insert(
                     0,

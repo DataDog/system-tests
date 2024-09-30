@@ -45,6 +45,10 @@
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo systemctl restart sshd.service || sudo systemctl restart ssh.service || true
+
+    #Install git and clone system tests repository
+    sudo apt-get -y install git 
+    git clone https://github.com/DataDog/system-tests.git
     echo "DONE"
 - os_type: linux
   os_distro: rpm

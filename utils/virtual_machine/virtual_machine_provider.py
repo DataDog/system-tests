@@ -130,16 +130,31 @@ class VmProvider:
                 # If we don't use remote_path, the remote_path will be a default remote user home
                 if file_to_copy.remote_path:
                     remote_path = file_to_copy.remote_path
+                elif file_to_copy.git_path:
+                    remote_path = os.path.basename(file_to_copy.git_path)
                 else:
                     remote_path = os.path.basename(file_to_copy.local_path)
 
-                if not os.path.isdir(file_to_copy.local_path):
+                if file_to_copy.git_path:
+                    # system-tests is cloned into home folder
+                    last_task = self.commander.remote_command(
+                        vm,
+                        file_to_copy.name + f"-{vm.name}-{installation.id}",
+                        "cp -r system-tests/" + file_to_copy.git_path + " " + remote_path,
+                        command_environment,
+                        server_connection,
+                        last_task,
+                        logger_name=logger_name,
+                        output_callback=output_callback,
+                        populate_env=installation.populate_env,
+                    )
+                elif not os.path.isdir(file_to_copy.local_path):
                     # If the local path contains a variable, we need to replace it
                     for key, value in command_environment.items():
                         file_to_copy.local_path = file_to_copy.local_path.replace(f"${key}", value)
                         remote_path = remote_path.replace(f"${key}", value)
 
-                    logger.debug(f"Copy file from {file_to_copy.local_path} to {remote_path}")
+                    # logger.debug(f"Copy file from {file_to_copy.local_path} to {remote_path}")
                     # Launch copy file command
                     last_task = self.commander.copy_file(
                         file_to_copy.name + f"-{vm.name}-{installation.id}",
