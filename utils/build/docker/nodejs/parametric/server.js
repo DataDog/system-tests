@@ -89,7 +89,7 @@ app.post('/trace/span/start', (req, res) => {
     childOf: parent,
     tags
   })
-
+  
   for (const link of request.links || []) {
     const linkParentId = link.parent_id;
     if (linkParentId) {
@@ -305,6 +305,7 @@ app.get('/trace/config', (req, res) => {
       'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
       'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null',
       'dd_trace_agent_url': config?.url !== undefined ? `${config.url.href}` : 'null',
+      'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` :'null'
     }
   });
 });
