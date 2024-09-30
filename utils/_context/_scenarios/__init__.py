@@ -560,28 +560,32 @@ class scenarios:
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     installer_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario", scenario_groups=[ScenarioGroup.ONBOARDING]
+        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario", scenario_groups=[ScenarioGroup.ONBOARDING],github_workflow="libinjection",
     )
 
     installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
         "INSTALLER_HOST_AUTO_INJECTION_CHAOS",
         doc="Installer auto injection scenario with chaos (deleting installation folders, files)",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     installer_auto_injection_block_list = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION_BLOCK_LIST",
         "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     installer_auto_injection_ld_preload = InstallerAutoInjectionScenario(
@@ -589,6 +593,7 @@ class scenarios:
         "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(
@@ -600,6 +605,7 @@ class scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
@@ -608,6 +614,7 @@ class scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -617,6 +624,7 @@ class scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -624,6 +632,7 @@ class scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     container_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -631,6 +640,7 @@ class scenarios:
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     local_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -638,6 +648,7 @@ class scenarios:
         "Tobe executed locally with krunvm. Installs all the software fron agent installation script, and the replace the apm-library with the uploaded tar file from binaries",
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     ##DEPRECATED SCENARIOS: Delete after migration of tracer pipelines + auto_inject pipelines
@@ -647,11 +658,13 @@ class scenarios:
         "SIMPLE_HOST_AUTO_INJECTION",
         "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
     simple_container_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_CONTAINER_AUTO_INJECTION",
         "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     # Replaced by SIMPLE_AUTO_INJECTION_PROFILING
@@ -663,6 +676,7 @@ class scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
+        github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ONBOARDING],
     )
     simple_container_auto_injection_profiling = InstallerAutoInjectionScenario(
@@ -673,6 +687,7 @@ class scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
+        github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
@@ -680,11 +695,13 @@ class scenarios:
     host_auto_injection = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION",
         doc="DEPRECATED: Installer auto injection scenario",
+        github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ONBOARDING],
     )
     container_auto_injection = InstallerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION",
         doc="DEPRECATED: Installer auto injection scenario",
+        github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
@@ -692,6 +709,7 @@ class scenarios:
     host_auto_injection_block_list = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_BLOCK_LIST",
         "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
+        github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
@@ -699,6 +717,7 @@ class scenarios:
     container_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
+        github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ONBOARDING],
     )
 
