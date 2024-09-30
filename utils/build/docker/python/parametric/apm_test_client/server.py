@@ -136,6 +136,7 @@ def trace_config() -> TraceConfigReturn:
             "dd_trace_sample_ignore_parent": None,
             "dd_env": config.env,
             "dd_version": config.version,
+            "dd_trace_rate_limit": str(config._trace_rate_limit),
         }
     )
 

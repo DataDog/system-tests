@@ -511,3 +511,35 @@ class AlmaLinux9arm64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+
+class Ubuntu24amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_24_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0e86e20dae9224db8", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu24",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Ubuntu24arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_24_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0e879a1b306fffb22", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu24",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )

@@ -31,6 +31,7 @@ class Test_Client_Stats:
         context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375",
     )
     @flaky(library="golang", reason="APMAPI-738")
+    @flaky(library="dotnet", reason="APMAPI-738")
     def test_client_stats(self):
         stats_count = 0
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
