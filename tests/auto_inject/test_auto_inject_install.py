@@ -86,7 +86,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         and "os" in context.configuration
         and context.configuration["os"] == "AlmaLinux_8"
         and context.configuration["arch"] == "arm64",
-        reason="APM-1111",
+        reason="APMON-1576",
     )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
