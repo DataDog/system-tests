@@ -247,7 +247,7 @@ class VirtualMachineProvisioner:
                         copy_file["name"],
                         copy_file["remote_path"] if "remote_path" in copy_file else None,
                         copy_file["local_path"] if "local_path" in copy_file and ci_commit_branch is None else None,
-                        copy_file["git_path"] if "local_path" in copy_file and ci_commit_branch is not None else None,
+                        copy_file["local_path"] if "local_path" in copy_file and ci_commit_branch is not None else None,
                     )
                 )
 

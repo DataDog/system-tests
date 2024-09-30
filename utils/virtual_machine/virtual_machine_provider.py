@@ -131,11 +131,16 @@ class VmProvider:
                 if file_to_copy.remote_path:
                     remote_path = file_to_copy.remote_path
                 elif file_to_copy.git_path:
-                    remote_path = os.path.basename(file_to_copy.git_path)
+                    remote_path = "."
                 else:
                     remote_path = os.path.basename(file_to_copy.local_path)
 
                 if file_to_copy.git_path:
+                    logger.debug("Copy file from git path")
+
+                    if os.path.isdir(file_to_copy.git_path):
+                        file_to_copy.git_path = file_to_copy.git_path + "/*"
+
                     # system-tests is cloned into home folder
                     last_task = self.commander.remote_command(
                         vm,
