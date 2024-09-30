@@ -67,7 +67,7 @@ class VmProvider:
                 logger.stdout(f"[{vm.name}] Provisioning lang variant {provision.lang_variant_installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
 
-            if not skip_ami_cache:
+            if create_cache:
                 last_task = self.commander.create_cache(vm, server, last_task)
 
         # Then install non cacheable installations
