@@ -245,7 +245,14 @@ class _VirtualMachineScenario(Scenario):
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
     def __init__(
-        self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None, scenario_groups=None
+        self,
+        name,
+        doc,
+        vm_provision="installer-auto-inject",
+        agent_env=None,
+        app_env=None,
+        scenario_groups=None,
+        github_workflow=None,
     ) -> None:
         super().__init__(
             name,
@@ -253,7 +260,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             agent_env=agent_env,
             app_env=app_env,
             doc=doc,
-            github_workflow=None,
+            github_workflow=github_workflow,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
             include_ubuntu_24_amd64=True,
