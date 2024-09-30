@@ -7,6 +7,7 @@ import subprocess
 import sys
 import typing
 
+import boto3
 import fastapi
 from fastapi import Cookie
 from fastapi import FastAPI
@@ -21,6 +22,7 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
+from moto import mock_aws
 import psycopg2
 from pydantic import BaseModel
 import requests
@@ -774,3 +776,21 @@ def return_headers(request: Request):
     for key, value in request.headers.items():
         headers[key] = value
     return JSONResponse(headers)
+
+
+@app.get("/mock_s3/put_object", methods=JSONResponse)
+@app.post("/mock_s3/put_object", methods=JSONResponse)
+@app.options("/mock_s3/put_object", methods=JSONResponse)
+def s3_put_object(bucket: str, key: str):
+    body = key
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=bucket)
+        response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+
+    return JSONResponse(result)
