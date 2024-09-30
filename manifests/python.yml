@@ -770,7 +770,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
     test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+      Test_SpanPointers: v2.14.0
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
