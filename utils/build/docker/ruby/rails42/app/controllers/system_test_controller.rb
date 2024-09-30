@@ -193,6 +193,12 @@ class SystemTestController < ApplicationController
   end
 
   def return_headers
-    render json: JSON.generate(request.headers.each.to_h), content_type: 'application/json'
+    request_headers = request.headers.each.to_h.select do |k, _v|
+      k.start_with?('HTTP_') || k == 'CONTENT_TYPE' || k == 'CONTENT_LENGTH'
+    end
+    request_headers = request_headers.transform_keys do |k|
+      k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+    end
+    render json: JSON.generate(request_headers), content_type: 'application/json'
   end
 end

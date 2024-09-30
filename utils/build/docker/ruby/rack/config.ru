@@ -213,9 +213,14 @@ end
 # /returnheaders
 class ReturnHeaders
   def self.run(request)
-    headers = request.each_header.to_h
+    request_headers = request.each_header.to_h.select do |k, _v|
+      k.start_with?('HTTP_') || k == 'CONTENT_TYPE' || k == 'CONTENT_LENGTH'
+    end
+    request_headers = request_headers.transform_keys do |k|
+      k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+    end
 
-    [200, { 'Content-Type' => 'application/json' }, [headers.to_json]]
+    [200, { 'Content-Type' => 'application/json' }, [request_headers.to_json]]
   end
 end
 
