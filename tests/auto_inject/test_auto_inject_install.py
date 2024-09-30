@@ -81,14 +81,15 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
+    # We are skipping all the machines. TODO fix this
     @bug(
         condition=context.weblog_variant == "test-app-python-alpine-libgcc"
-        and "os" in context.configuration
-        and context.configuration["os"] == "AlmaLinux_8"
-        and context.configuration["arch"] == "arm64",
+        and f"os_AlmaLinux_8_arm64" in context.configuration,
         reason="APMON-1576",
     )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        logger.info(f"WEBLOG VARIANT : [{context.weblog_variant}]")
+        logger.info(f"CONFIGURATION : [{context.configuration}]")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")

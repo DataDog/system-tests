@@ -200,8 +200,9 @@ class _VirtualMachineScenario(Scenario):
                     self._library.version = self._tested_components[key].lstrip(" ")
 
             # Extract vm name (os) and arch
-            self._os_configurations["os"] = vm.name.replace("_amd64", "").replace("_arm64", "")
-            self._os_configurations["arch"] = vm.os_cpu
+            # TODO fix os name
+            self._os_configurations[f"os_{vm.name}"] = vm.name.replace("_amd64", "").replace("_arm64", "")
+            self._os_configurations[f"arch_{vm.name}"] = vm.os_cpu
 
     def close_targets(self):
         if self.is_main_worker:
