@@ -81,6 +81,13 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
+    @bug(
+        condition=context.weblog_variant == "test-app-python-alpine-libgcc"
+        and "os" in context.configuration
+        and context.configuration["os"] == "AlmaLinux_8"
+        and context.configuration["arch"] == "arm64",
+        reason="APM-1111",
+    )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)

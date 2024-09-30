@@ -121,6 +121,8 @@ class _VirtualMachineScenario(Scenario):
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
         self._library = LibraryVersion(config.option.vm_library, "0.0")
+        self._datadog_apm_inject_version = "v0.00.00"
+        self._os_configurations = {}
         self._env = config.option.vm_env
         self._weblog = config.option.vm_weblog
         self._check_test_environment()
@@ -192,6 +194,14 @@ class _VirtualMachineScenario(Scenario):
         for vm in self.required_vms:
             for key in vm.tested_components:
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ")
+                if key.startswith("datadog-apm-inject") and self._tested_components[key]:
+                    self._datadog_apm_inject_version = f"v{self._tested_components[key].lstrip(' ')}"
+                if key.startswith("datadog-apm-library-") and self._tested_components[key]:
+                    self._library.version = self._tested_components[key].lstrip(" ")
+
+            # Extract vm name (os) and arch
+            self._os_configurations["os"] = vm.name.replace("_amd64", "").replace("_arm64", "")
+            self._os_configurations["arch"] = vm.os_cpu
 
     def close_targets(self):
         if self.is_main_worker:
@@ -209,6 +219,14 @@ class _VirtualMachineScenario(Scenario):
     @property
     def components(self):
         return self._tested_components
+
+    @property
+    def dd_apm_inject_version(self):
+        return self._datadog_apm_inject_version
+
+    @property
+    def configuration(self):
+        return self._os_configurations
 
     def customize_feature_parity_dashboard(self, result):
         for test in result["tests"]:
