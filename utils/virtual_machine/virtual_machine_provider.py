@@ -86,6 +86,19 @@ class VmProvider:
             logger_name="tested_components",
             output_callback=output_callback,
         )
+        # Before install weblog, if we set the env variable: CI_COMMIT_BRANCH, we need to checkout this branch
+        # (we are going to copy weblog sources from git instead from local machine)
+        ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
+        if ci_commit_branch:
+            logger.stdout(f"[{vm.name}] Checkout branch {ci_commit_branch}")
+            last_task = self.commander.remote_command(
+                vm,
+                "checkout_branch",
+                f"cd system-tests && git pull && git checkout {ci_commit_branch}",
+                vm.get_command_environment(),
+                server_connection,
+                last_task,
+            )
 
         # Finally install weblog
         logger.stdout(f"[{vm.name}] Installing {provision.weblog_installation.id}")
