@@ -6,45 +6,63 @@ from manifests.parser.core import load as load_manifests
 from utils._context._scenarios import ScenarioGroup
 
 
-def handle_labels(labels: list[str], scenarios_groups: set[str]):
+class Result:
+    def __init__(self) -> None:
+        self.scenarios = set(["DEFAULT"])  # always run the default scenario
+        self.scenarios_groups = set()
 
-    if "run-all-scenarios" in labels:
-        scenarios_groups.add(ScenarioGroup.ALL.value)
-    else:
-        if "run-integration-scenarios" in labels:
-            scenarios_groups.add(ScenarioGroup.INTEGRATIONS.value)
-        if "run-sampling-scenario" in labels:
-            scenarios_groups.add(ScenarioGroup.SAMPLING.value)
-        if "run-profiling-scenario" in labels:
-            scenarios_groups.add(ScenarioGroup.PROFILING.value)
-        if "run-debugger-scenarios" in labels:
-            scenarios_groups.add(ScenarioGroup.DEBUGGER.value)
-        if "run-appsec-scenarios" in labels:
-            scenarios_groups.add(ScenarioGroup.APPSEC.value)
-        if "run-open-telemetry-scenarios" in labels:
-            scenarios_groups.add(ScenarioGroup.OPEN_TELEMETRY.value)
-        if "run-parametric-scenario" in labels:
-            scenarios_groups.add(ScenarioGroup.PARAMETRIC.value)
-        if "run-graphql-scenarios" in labels:
-            scenarios_groups.add(ScenarioGroup.GRAPHQL.value)
-        if "run-libinjection-scenarios" in labels:
-            scenarios_groups.add(ScenarioGroup.LIB_INJECTION.value)
+    def add_scenario(self, scenario: str):
+        if scenario == "EndToEndScenario":
+            self.add_scenario_group(ScenarioGroup.END_TO_END.value)
+        else:
+            self.scenarios.add(scenario)
+
+    def add_scenario_group(self, scenario_group: str):
+        self.scenarios_groups.add(scenario_group)
+
+    def add_scenarios(self, scenarios: set[str]):
+        for scenario in scenarios:
+            self.add_scenario(scenario)
+
+    def handle_labels(self, labels: list[str]):
+        if "run-all-scenarios" in labels:
+            self.add_scenario_group(ScenarioGroup.ALL.value)
+        else:
+            if "run-integration-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.INTEGRATIONS.value)
+            if "run-sampling-scenario" in labels:
+                self.add_scenario_group(ScenarioGroup.SAMPLING.value)
+            if "run-profiling-scenario" in labels:
+                self.add_scenario_group(ScenarioGroup.PROFILING.value)
+            if "run-debugger-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.DEBUGGER.value)
+            if "run-appsec-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.APPSEC.value)
+            if "run-open-telemetry-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.OPEN_TELEMETRY.value)
+            if "run-parametric-scenario" in labels:
+                self.add_scenario_group(ScenarioGroup.PARAMETRIC.value)
+            if "run-graphql-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.GRAPHQL.value)
+            if "run-libinjection-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.LIB_INJECTION.value)
+            if "run-docker-ssi-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.DOCKER_SSI.value)
 
 
 def main():
-    scenarios = set(["DEFAULT"])  # always run the default scenario
-    scenarios_groups = set()
+    result = Result()
 
     event_name = os.environ["GITHUB_EVENT_NAME"]
     ref = os.environ["GITHUB_REF"]
 
     if event_name == "schedule" or ref == "refs/heads/main":
-        scenarios_groups.add(ScenarioGroup.ALL.value)
+        result.add_scenario_group(ScenarioGroup.ALL.value)
 
     elif event_name == "pull_request":
         labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
         label_names = [label["name"] for label in labels]
-        handle_labels(label_names, scenarios_groups)
+        result.handle_labels(label_names)
 
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
@@ -71,7 +89,7 @@ def main():
 
             for modified_nodeid in modified_nodeids:
                 if nodeid.startswith(modified_nodeid):
-                    scenarios.add(scenario_map[nodeid])
+                    result.add_scenario(scenario_map[nodeid])
                     break
 
         # this file is generated with
@@ -84,10 +102,7 @@ def main():
         for file in modified_files:
 
             if file.startswith("tests/"):
-                if file == "tests/test_schemas.py":
-                    # this file is tested in all end-to-end scenarios
-                    scenarios_groups.add(ScenarioGroup.END_TO_END.value)
-                elif file.startswith("tests/auto_inject"):
+                if file.startswith("tests/auto_inject"):
                     # Nothing to do, onboarding test run on gitlab nightly or manually
                     pass
                 elif file.endswith("/utils.py") or file.endswith("/conftest.py"):
@@ -98,7 +113,7 @@ def main():
 
                     for sub_file in scenarios_by_files:
                         if sub_file.startswith(folder):
-                            scenarios.update(scenarios_by_files[sub_file])
+                            result.add_scenarios(scenarios_by_files[sub_file])
 
             else:
                 # Map of file patterns -> scenario group:
@@ -119,6 +134,9 @@ def main():
                     ## .github folder
                     r"\.github/workflows/run-parametric\.yml": ScenarioGroup.PARAMETRIC.value,
                     r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION.value,
+                    r"\.github/workflows/run-docker-ssi\.yml": ScenarioGroup.DOCKER_SSI.value,
+                    r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL.value,
+                    r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY.value,
                     r"\.github/.*": None,  # nothing to do??
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
@@ -136,9 +154,14 @@ def main():
                     r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
                     r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
                     r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC.value,
+                    #### Integrations case
+                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS.value,
+                    #### Docker SSI case
+                    r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect
+                    r"\.github/CODEOWNERS": None,
                     r"\.dockerignore": None,
                     r"\.gitattributes": None,
                     r"\.gitignore": None,
@@ -164,7 +187,7 @@ def main():
                 for pattern, scenario_group in files_map.items():
                     if re.fullmatch(pattern, file):
                         if scenario_group is not None:
-                            scenarios_groups.add(scenario_group)
+                            result.add_scenario_group(scenario_group)
                         break
                 else:
                     raise ValueError(
@@ -173,10 +196,10 @@ def main():
 
             # now get known scenarios executed in this file
             if file in scenarios_by_files:
-                scenarios.update(scenarios_by_files[file])
+                result.add_scenarios(scenarios_by_files[file])
 
-    print("scenarios=" + ",".join(scenarios))
-    print("scenarios_groups=" + ",".join(scenarios_groups))
+    print("scenarios=" + ",".join(result.scenarios))
+    print("scenarios_groups=" + ",".join(result.scenarios_groups))
 
 
 if __name__ == "__main__":

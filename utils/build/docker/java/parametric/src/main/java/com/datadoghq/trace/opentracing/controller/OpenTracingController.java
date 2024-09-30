@@ -175,7 +175,10 @@ public class OpenTracingController implements Closeable {
   public void flushSpans() {
     LOGGER.info("Flushing OT spans");
     try {
-      ((InternalTracer) datadog.trace.api.GlobalTracer.get()).flush();
+      // Only flush spans when tracing was enabled
+      if (datadog.trace.api.GlobalTracer.get() instanceof InternalTracer) {
+          ((InternalTracer) datadog.trace.api.GlobalTracer.get()).flush();
+      }
       this.spans.clear();
     } catch (Throwable t) {
       LOGGER.error("Uncaught throwable", t);

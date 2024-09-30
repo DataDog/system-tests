@@ -1,11 +1,11 @@
-import subprocess, datetime, os, time, signal
+import subprocess, datetime, os, time, signal, shlex
 from utils.tools import logger
 from utils import context
 from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
 from retry import retry
 
 
-def execute_command(command, timeout=None, logfile=None):
+def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
     """call shell-command and either return its output or kill it
   if it doesn't normally exit within timeout seconds and return None"""
     applied_timeout = 90
@@ -16,10 +16,16 @@ def execute_command(command, timeout=None, logfile=None):
     command_out_redirect = subprocess.PIPE
     if logfile:
         command_out_redirect = open(logfile, "w")
+
+    if not subprocess_env:
+        subprocess_env = os.environ.copy()
+
     output = ""
     try:
         start = datetime.datetime.now()
-        process = subprocess.Popen(command.split(), stdout=command_out_redirect, stderr=command_out_redirect)
+        process = subprocess.Popen(
+            shlex.split(command), stdout=command_out_redirect, stderr=command_out_redirect, env=subprocess_env
+        )
 
         while process.poll() is None:
             time.sleep(0.1)
@@ -79,9 +85,7 @@ def helm_add_repo(name, url, k8s_kind_cluster, update=False):
 
 
 @retry(delay=1, tries=5)
-def helm_install_chart(
-    k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None, upgrade=False
-):
+def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, upgrade=False):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -89,8 +93,6 @@ def helm_install_chart(
             value_data = file.read()
 
         value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_kind_cluster.cluster_name))
-        if prefix_library_init_image:
-            value_data = value_data.replace("$$PREFIX_INIT_IMAGE$$", prefix_library_init_image)
 
         custom_value_file = f"{context.scenario.host_log_folder}/{k8s_kind_cluster.cluster_name}_help_values.yaml"
 

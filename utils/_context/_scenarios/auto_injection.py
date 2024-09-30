@@ -7,12 +7,23 @@ from utils.tools import logger
 from utils._context.virtual_machines import (
     Ubuntu22amd64,
     Ubuntu22arm64,
+    Ubuntu24amd64,
+    Ubuntu24arm64,
     Ubuntu18amd64,
     AmazonLinux2023arm64,
     AmazonLinux2023amd64,
     AmazonLinux2DotNet6,
     AmazonLinux2amd64,
     Centos7amd64,
+    OracleLinux92amd64,
+    OracleLinux92arm64,
+    OracleLinux88amd64,
+    OracleLinux88arm64,
+    OracleLinux79amd64,
+    AlmaLinux8amd64,
+    AlmaLinux8arm64,
+    AlmaLinux9amd64,
+    AlmaLinux9arm64,
 )
 
 from .core import Scenario
@@ -29,12 +40,23 @@ class _VirtualMachineScenario(Scenario):
         vm_provision=None,
         include_ubuntu_22_amd64=False,
         include_ubuntu_22_arm64=False,
+        include_ubuntu_24_amd64=False,
+        include_ubuntu_24_arm64=False,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=False,
         include_amazon_linux_2_dotnet_6=False,
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
         include_centos_7_amd64=False,
+        include_oraclelinux_9_2_amd64=False,
+        include_oraclelinux_9_2_arm64=False,
+        include_oraclelinux_8_8_amd64=False,
+        include_oraclelinux_8_8_arm64=False,
+        include_oraclelinux_7_9_amd64=False,
+        include_almalinux_8_amd64=False,
+        include_almalinux_8_arm64=False,
+        include_almalinux_9_amd64=False,
+        include_almalinux_9_arm64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -55,6 +77,10 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Ubuntu22amd64())
         if include_ubuntu_22_arm64:
             self.required_vms.append(Ubuntu22arm64())
+        if include_ubuntu_24_amd64:
+            self.required_vms.append(Ubuntu24amd64())
+        if include_ubuntu_24_arm64:
+            self.required_vms.append(Ubuntu24arm64())
         if include_ubuntu_18_amd64:
             self.required_vms.append(Ubuntu18amd64())
         if include_amazon_linux_2_amd64:
@@ -67,6 +93,25 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AmazonLinux2023arm64())
         if include_centos_7_amd64:
             self.required_vms.append(Centos7amd64())
+        # Include Oracle Linux (not default vms)
+        if include_oraclelinux_9_2_amd64:
+            self.required_vms.append(OracleLinux92amd64())
+        if include_oraclelinux_9_2_arm64:
+            self.required_vms.append(OracleLinux92arm64())
+        if include_oraclelinux_8_8_amd64:
+            self.required_vms.append(OracleLinux88amd64())
+        if include_oraclelinux_8_8_arm64:
+            self.required_vms.append(OracleLinux88arm64())
+        if include_oraclelinux_7_9_amd64:
+            self.required_vms.append(OracleLinux79amd64())
+        if include_almalinux_8_amd64:
+            self.required_vms.append(AlmaLinux8amd64())
+        if include_almalinux_8_arm64:
+            self.required_vms.append(AlmaLinux8arm64())
+        if include_almalinux_9_amd64:
+            self.required_vms.append(AlmaLinux9amd64())
+        if include_almalinux_9_arm64:
+            self.required_vms.append(AlmaLinux9arm64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -84,6 +129,10 @@ class _VirtualMachineScenario(Scenario):
         self._weblog = config.option.vm_weblog
         self._check_test_environment()
         self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
+        only_default_vms = config.option.vm_default_vms
+        logger.info(f"Default vms policy: {only_default_vms}")
+        if only_default_vms not in ["All", "True", "False"]:
+            raise ValueError(f"Invalid value for --vm-default-vms: {only_default_vms}. Use 'All', 'True' or 'False'")
 
         provisioner.remove_unsupported_machines(
             self._library.library,
@@ -92,6 +141,7 @@ class _VirtualMachineScenario(Scenario):
             self.vm_provider_id,
             config.option.vm_only_branch,
             config.option.vm_skip_branches,
+            only_default_vms,
         )
         for vm in self.required_vms:
             logger.info(f"Adding provision for {vm.name}")
@@ -183,11 +233,22 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             github_workflow=None,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
+            include_ubuntu_24_amd64=True,
+            include_ubuntu_24_arm64=True,
             include_ubuntu_18_amd64=True,
             include_amazon_linux_2_amd64=True,
             include_amazon_linux_2_dotnet_6=True,
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
             include_centos_7_amd64=True,
+            include_oraclelinux_9_2_amd64=True,
+            include_oraclelinux_9_2_arm64=True,
+            include_oraclelinux_8_8_amd64=True,
+            include_oraclelinux_8_8_arm64=True,
+            include_oraclelinux_7_9_amd64=True,
+            include_almalinux_8_amd64=True,
+            include_almalinux_8_arm64=True,
+            include_almalinux_9_amd64=True,
+            include_almalinux_9_arm64=True,
             scenario_groups=scenario_groups,
         )

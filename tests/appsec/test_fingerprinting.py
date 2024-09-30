@@ -1,3 +1,4 @@
+from utils.dd_constants import Capabilities
 from utils import features
 from utils import interfaces
 from utils import rfc
@@ -63,3 +64,53 @@ class Test_Fingerprinting_Endpoint:
         assert self.n.status_code == 200
         assert all("_dd.appsec.fp.http.endpoint" in m for m in get_span_meta(self.r))
         assert all("_dd.appsec.fp.http.endpoint" not in m for m in get_span_meta(self.n))
+
+
+@rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
+@features.fingerprinting
+class Test_Fingerprinting_Session:
+    def setup_session(self):
+        self.r_create_session = weblog.get("session/new")
+        self.cookies = self.r_create_session.cookies
+        self.r_user = weblog.get("session/user?sdk_user=sdkUser", cookies=self.cookies,)
+
+    def test_session(self):
+        assert self.r_create_session.status_code == 200
+        assert self.r_user.status_code == 200
+        assert all("_dd.appsec.fp.session" in m for m in get_span_meta(self.r_user))
+
+
+@rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
+@features.fingerprinting
+class Test_Fingerprinting_Endpoint_Capability:
+    """Validate that ASM_ENDPOINT_FINGERPRINT (32) capability is sent"""
+
+    def test_fingerprinting_endpoint_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_ENDPOINT_FINGERPRINT)
+
+
+@rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
+@features.fingerprinting
+class Test_Fingerprinting_Session_Capability:
+    """Validate that ASM_SESSION_FINGERPRINT (33) capability is sent"""
+
+    def test_fingerprinting_endpoint_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_SESSION_FINGERPRINT)
+
+
+@rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
+@features.fingerprinting
+class Test_Fingerprinting_Network_Capability:
+    """Validate that ASM_NETWORK_FINGERPRINT (34) capability is sent"""
+
+    def test_fingerprinting_endpoint_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_NETWORK_FINGERPRINT)
+
+
+@rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
+@features.fingerprinting
+class Test_Fingerprinting_Header_Capability:
+    """Validate that ASM_HEADER_FINGERPRINT (35) capability is sent"""
+
+    def test_fingerprinting_endpoint_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_HEADER_FINGERPRINT)

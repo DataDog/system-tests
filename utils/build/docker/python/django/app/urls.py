@@ -254,6 +254,10 @@ def status_code(request, *args, **kwargs):
     return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
 
 
+def stats_unique(request, *args, **kwargs):
+    return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
+
+
 def identify(request):
     set_user(
         tracer,
@@ -327,7 +331,7 @@ def view_weak_cipher_secure(request):
 
 def view_insecure_cookies_insecure(request):
     res = HttpResponse("OK")
-    res.set_cookie("insecure", "cookie", secure=False)
+    res.set_cookie("insecure", "cookie", secure=False, httponly=True, samesite="Strict")
     return res
 
 
@@ -339,7 +343,7 @@ def view_insecure_cookies_secure(request):
 
 def view_insecure_cookies_empty(request):
     res = HttpResponse("OK")
-    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    res.set_cookie("insecure", "", secure=False, httponly=True, samesite="Strict")
     return res
 
 
@@ -375,7 +379,7 @@ def view_nosamesite_cookies_secure(request):
 
 def view_nosamesite_cookies_empty(request):
     res = HttpResponse("OK")
-    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    res.set_cookie("insecure", "", secure=True, httponly=True, samesite="None")
     return res
 
 
@@ -725,6 +729,7 @@ urlpatterns = [
     path("createextraservice", create_extra_service),
     path("headers", headers),
     path("status", status_code),
+    path("stats-unique", stats_unique),
     path("identify", identify),
     path("users", users),
     path("identify-propagate", identify_propagate),

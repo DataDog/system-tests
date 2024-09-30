@@ -179,7 +179,12 @@ tests/:
       Test_StandardTagsClientIp: v0.81.0
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: missing_feature
       Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Header_Capability: missing_feature
+      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
       Test_Basic: v0.85.0
     test_logs.py:
@@ -250,11 +255,17 @@ tests/:
       Test_DsmRabbitmq_TopicExchange: missing_feature
       Test_DsmSNS: missing_feature
       Test_DsmSQS: missing_feature
+      Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
+      Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_RateLimit: missing_feature
+      Test_Config_TraceAgentURL: missing_feature
+      Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
@@ -284,6 +295,7 @@ tests/:
         See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
     test_span_links.py: missing_feature
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
@@ -307,12 +319,29 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  serverless/:
+    test_span_pointers.py:
+      Test_SpanPointers: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats: missing_feature
   test_config_consistency.py:
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_ClientIPHeader_Configured: v1.3.0
+    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
+    Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
+    Test_Config_ClientTagQueryString_Empty: v1.2.0
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpServerErrorStatuses_Default: v1.3.0 # Unknown initial version
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_IntegrationEnabled_False: missing_feature
+    Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
+    Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:

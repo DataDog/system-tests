@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
@@ -35,12 +38,32 @@ func main() {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err)
 		}
-		
+
 		return c.JSON(http.StatusOK, healthCheck)
 	})
 
 	r.Any("/*", func(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
+	})
+
+	r.Any("/status", func(c echo.Context) error {
+		rCode := 200
+		if codeStr := c.Request().URL.Query().Get("code"); codeStr != "" {
+			if code, err := strconv.Atoi(codeStr); err == nil {
+				rCode = code
+			}
+		}
+		return c.NoContent(rCode)
+	})
+
+	r.Any("/stats-unique", func(c echo.Context) error {
+		rCode := 200
+		if codeStr := c.Request().URL.Query().Get("code"); codeStr != "" {
+			if code, err := strconv.Atoi(codeStr); err == nil {
+				rCode = code
+			}
+		}
+		return c.NoContent(rCode)
 	})
 
 	r.Any("/waf", waf)
@@ -68,6 +91,22 @@ func main() {
 		status, _ := strconv.Atoi(c.Param("status_code"))
 		span, _ := tracer.SpanFromContext(c.Request().Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range c.QueryParams() {
+			for _, value := range values {
+				c.Response().Header().Add(key, value)
+			}
+		}
+
+		switch {
+		case c.Request().Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(c.Request().Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(c.Request().Context(), bodyMap)
+			}
+		case c.Request().ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(c.Request().Context(), c.Request().PostForm)
+		}
 		return c.String(status, "Value tagged")
 	})
 

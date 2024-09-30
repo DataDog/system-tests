@@ -1,13 +1,15 @@
+import argparse
 import json
 import os
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
+from utils.docker_ssi.docker_ssi_matrix_builder import get_github_matrix
 
 
 def get_github_workflow_map(scenarios, scenarios_groups):
     result = {}
 
     scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
-    scenarios = [scenario.strip() for scenario in scenarios if scenario.strip()]
+    scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
 
     for group in scenarios_groups:
         try:
@@ -24,11 +26,16 @@ def get_github_workflow_map(scenarios, scenarios_groups):
 
         if scenario.name in scenarios:
             result[scenario.github_workflow].append(scenario.name)
+            scenarios[scenario.name] = True
 
         for group in scenarios_groups:
             if ScenarioGroup(group) in scenario.scenario_groups:
                 result[scenario.github_workflow].append(scenario.name)
                 break
+
+    for scenario, found in scenarios.items():
+        if not found:
+            raise ValueError(f"Scenario {scenario} does not exists")
 
     return result
 
@@ -104,25 +111,40 @@ def get_opentelemetry_weblogs(library):
     return weblogs[library]
 
 
-def main():
-    scenario_map = get_github_workflow_map(
-        os.environ["SCENARIOS"].split(","), os.environ["SCENARIOS_GROUPS"].split(",")
-    )
-    for github_workflow, scnearios in scenario_map.items():
-        print(f"{github_workflow}_scenarios={json.dumps(scnearios)}")
+def main(language: str, scenarios: str, groups: str):
+    scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
-    endtoend_weblogs = get_endtoend_weblogs(os.environ["LIBRARY"])
+    for github_workflow, scenarios in scenario_map.items():
+        print(f"{github_workflow}_scenarios={json.dumps(scenarios)}")
+
+    endtoend_weblogs = get_endtoend_weblogs(language)
     print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
 
-    graphql_weblogs = get_graphql_weblogs(os.environ["LIBRARY"])
+    graphql_weblogs = get_graphql_weblogs(language)
     print(f"graphql_weblogs={json.dumps(graphql_weblogs)}")
 
-    opentelemetry_weblogs = get_opentelemetry_weblogs(os.environ["LIBRARY"])
+    opentelemetry_weblogs = get_opentelemetry_weblogs(language)
     print(f"opentelemetry_weblogs={json.dumps(opentelemetry_weblogs)}")
 
     _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
     print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
 
+    dockerssi_weblogs = get_github_matrix(language)
+    print(f"dockerssi_weblogs={json.dumps(dockerssi_weblogs)}")
+
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run",)
+    parser.add_argument(
+        "language",
+        type=str,
+        help="One of the supported Datadog languages",
+        choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
+    )
+
+    parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
+    parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
+
+    args = parser.parse_args()
+
+    main(language=args.language, scenarios=args.scenarios, groups=args.groups)

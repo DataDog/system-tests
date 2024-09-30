@@ -150,6 +150,10 @@ class _RequestLogger:
                     flow.request.host = "api." + os.environ.get("DD_SITE", "datad0g.com")
                     flow.request.port = 443
                     flow.request.scheme = "https"
+                elif otlp_path == "intake-logs":
+                    flow.request.host = "http-intake.logs." + os.environ.get("DD_SITE", "datad0g.com")
+                    flow.request.port = 443
+                    flow.request.scheme = "https"
                 else:
                     raise Exception(f"Unknown OTLP ingestion path {otlp_path}")
             else:

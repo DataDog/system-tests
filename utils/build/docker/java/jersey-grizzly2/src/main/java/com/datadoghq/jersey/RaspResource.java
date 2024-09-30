@@ -17,6 +17,8 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlValue;
 
+import java.io.File;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -46,6 +48,26 @@ public class RaspResource {
         return executeSql(user.getUserId());
     }
 
+    @GET
+    @Path("/lfi")
+    public String lfiGet(@QueryParam("file") final String file) throws Exception {
+        return executeFli(file);
+    }
+
+    @POST
+    @Path("/lfi")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String lfiPost(@FormParam("file") final String file) throws Exception {
+        return executeFli(file);
+    }
+
+    @POST
+    @Path("/lfi")
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
+    public String lfiBody(final FileDTO file) throws Exception {
+        return executeFli(file.getFile());
+    }
+
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private String executeSql(final String userId) throws Exception {
         try (final Connection conn = DATA_SOURCE.getConnection()) {
@@ -72,6 +94,27 @@ public class RaspResource {
 
         public void setUserId(String userId) {
             this.userId = userId;
+        }
+    }
+
+    private String executeFli(final String file) throws Exception {
+        new File(file);
+        return "OK";
+    }
+
+    @XmlRootElement(name = "file")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class FileDTO {
+        @JsonbProperty("file")
+        @XmlValue
+        private String file;
+
+        public String getFile() {
+            return file;
+        }
+
+        public void setFile(String file) {
+            this.file = file;
         }
     }
 }
