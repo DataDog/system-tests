@@ -6,6 +6,7 @@ from utils._context.header_tag_vars import *
 from utils.tools import get_rid_from_request, get_rid_from_span
 from requests.structures import CaseInsensitiveDict
 
+
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
