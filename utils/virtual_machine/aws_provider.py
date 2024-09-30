@@ -106,7 +106,13 @@ class AWSPulumiProvider(VmProvider):
             dial_error_limit=-1,
         )
         # Install provision on the started server
-        self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
+        self.install_provision(
+            vm,
+            ec2_server,
+            server_connection,
+            create_cache=ami_id is None,
+            skip_ami_cache=os.getenv("SKIP_AMI_CACHE", "False").lower() == "true",
+        )
 
     def stack_destroy(self):
         if os.getenv("ONBOARDING_KEEP_VMS") is None:

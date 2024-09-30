@@ -46,7 +46,7 @@ class VmProvider:
         """ Stop and destroy machines"""
         raise NotImplementedError
 
-    def install_provision(self, vm, server, server_connection, create_cache=True):
+    def install_provision(self, vm, server, server_connection, create_cache=True, skip_ami_cache=False):
         """ 
         This method orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
@@ -55,7 +55,7 @@ class VmProvider:
         logger.stdout(f"Provisioning [{vm.name}]")
         provision = vm.get_provision()
         last_task = server
-        if create_cache:
+        if create_cache or skip_ami_cache:
             # First install cacheable installations
             for installation in provision.installations:
                 if installation.cache:
@@ -66,7 +66,9 @@ class VmProvider:
             if provision.lang_variant_installation:
                 logger.stdout(f"[{vm.name}] Provisioning lang variant {provision.lang_variant_installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
-            last_task = self.commander.create_cache(vm, server, last_task)
+
+            if not skip_ami_cache:
+                last_task = self.commander.create_cache(vm, server, last_task)
 
         # Then install non cacheable installations
         for installation in provision.installations:
