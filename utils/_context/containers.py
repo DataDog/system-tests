@@ -574,7 +574,7 @@ class BuddyContainer(TestedContainer):
         self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
         self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", "")
         self.environment["AWS_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
-        self.environment["AWS_DEFAULT_REGION"] = self.environ["AWS_REGION"]
+        self.environment["AWS_DEFAULT_REGION"] = self.environment["AWS_REGION"]
 
 
 class WeblogContainer(TestedContainer):
@@ -699,7 +699,7 @@ class WeblogContainer(TestedContainer):
         self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
         self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", "")
         self.environment["AWS_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
-        self.environment["AWS_DEFAULT_REGION"] = self.environ["AWS_REGION"]
+        self.environment["AWS_DEFAULT_REGION"] = self.environment["AWS_REGION"]
 
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
