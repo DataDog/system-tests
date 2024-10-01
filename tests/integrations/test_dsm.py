@@ -37,8 +37,11 @@ DSM_TOPIC = "dsm-system-tests-topic"
 DSM_REQUEST_TIMEOUT = 61
 
 
+WEBLOG_VARIANT_SANITIZED = context.weblog_variant.replace(".", "_").replace(" ", "_").replace("/", "_")
+
+
 def get_message(test, system):
-    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.library} DSM test: {scenarios.crossed_tracing_libraries.unique_id}"
+    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.library} DSM test: {scenarios.integrations.unique_id}"
 
 
 @features.datastreams_monitoring_support_for_kafka
@@ -262,7 +265,6 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 @features.datastreams_monitoring_support_for_sqs
 @scenarios.integrations
-@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
 
@@ -273,9 +275,7 @@ class Test_DsmSQS:
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
             # which changes for each run with the time stamp added
             if context.library.library != "nodejs":
-                self.queue = (
-                    f"{DSM_QUEUE}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
-                )
+                self.queue = f"{DSM_QUEUE}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
             else:
                 self.queue = f"{DSM_QUEUE}_{context.library.library}"
 
@@ -322,7 +322,6 @@ class Test_DsmSQS:
 
 @features.datastreams_monitoring_support_for_sns
 @scenarios.integrations
-@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
 
@@ -333,10 +332,8 @@ class Test_DsmSNS:
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
             # which changes for each run with the time stamp added
             if context.library.library != "nodejs":
-                self.topic = (
-                    f"{DSM_TOPIC}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
-                )
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
+                self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
             else:
                 self.topic = f"{DSM_TOPIC}_{context.library.library}"
                 self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}"
@@ -388,7 +385,6 @@ class Test_DsmSNS:
 
 @features.datastreams_monitoring_support_for_kinesis
 @scenarios.integrations
-@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
 
@@ -399,7 +395,7 @@ class Test_DsmKinesis:
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
             # which changes for each run with the time stamp added
             if context.library.library != "nodejs":
-                self.stream = f"{DSM_STREAM}_{context.library.library}_{context.weblog_variant}_{scenarios.integrations.unique_id}"
+                self.stream = f"{DSM_STREAM}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
             else:
                 self.stream = f"{DSM_STREAM}_{context.library.library}"
 
