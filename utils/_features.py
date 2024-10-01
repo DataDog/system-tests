@@ -84,6 +84,8 @@ class features:
 
         if "uds" in context.weblog_variant:
             pytest.mark.features(feature_id=6)(test_object)
+        else:
+            pytest.mark.features(feature_id=-1)(test_object)
 
         return test_object
 
