@@ -79,8 +79,9 @@ class VmProvider:
         # Extract tested/installed components
         logger.stdout(f"[{vm.name}] Extracting {provision.tested_components_installation.id}")
 
+        # We don't get the last_task. This task can be executed in parallel with the next one
         output_callback = lambda args: args[0].set_tested_components(args[1])
-        last_task = self._remote_install(
+        self._remote_install(
             server_connection,
             vm,
             last_task,

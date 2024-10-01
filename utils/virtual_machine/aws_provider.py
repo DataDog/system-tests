@@ -141,7 +141,7 @@ class AWSPulumiProvider(VmProvider):
         """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
         ami_id = None
         # Configure name
-        ami_name = vm.get_cache_name() + "__" + context.scenario.name
+        ami_name = vm.get_cache_name()
 
         # Check for existing ami
         ami_existing = aws.ec2.get_ami_ids(
@@ -212,7 +212,7 @@ class AWSPulumiProvider(VmProvider):
 class AWSCommander(Commander):
     def create_cache(self, vm, server, last_task):
         """ Create a cache : Create an AMI from the server current status."""
-        ami_name = vm.get_cache_name() + "__" + context.scenario.name
+        ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.info(f"Creating AMI with name [{ami_name}] from instance ")
         # Expiration date for the ami

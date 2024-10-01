@@ -101,7 +101,7 @@ class VirtualMachineProvisioner:
         """ Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
 
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
-        provision = Provision()
+        provision = Provision(vm_provision_name)
         provision_file = f"utils/build/virtual_machine/provisions/{vm_provision_name}/provision.yml"
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
 
@@ -269,7 +269,8 @@ class VirtualMachineProvisioner:
 class Provision:
     """ Contains all the information about the provision that it will be launched on the vm 1"""
 
-    def __init__(self):
+    def __init__(self, provision_name):
+        self.provision_name = provision_name
         self.env = {}
         self.installations = []
         self.lang_variant_installation = None
