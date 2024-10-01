@@ -1,0 +1,37 @@
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.31-latest
+    container_name: envoy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+    depends_on:
+      - webserver
+      - extproc
+    networks:
+      - app-network
+
+  webserver:
+    build:
+      context: ./webserver
+    container_name: webserver
+    ports:
+      - "7777:7777"
+    networks:
+      - app-network
+
+  extproc:
+    image: ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest
+    container_name: extproc
+    ports:
+      - "443:443"
+      - "80:80"
+    networks:
+      - app-network
+    environment:
+      - DD_APPSEC_ENABLED=true
+
+networks:
+  app-network:
+    driver: bridge
