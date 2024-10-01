@@ -80,7 +80,7 @@
     #sudo yum -y update
     sudo systemctl restart sshd.service
     #Install git and clone system tests repository
-    sudo yum -y install git
+    sudo yum -y install git wget
     git clone https://github.com/DataDog/system-tests.git
     #We need to access from outside the VM
     sudo systemctl stop firewalld
