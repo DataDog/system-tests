@@ -153,7 +153,7 @@ class BaseDbIntegrationsTestClass:
                 return span_child
 
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
-    
+
 
 # set AWS credentials for runner
 os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
