@@ -1,4 +1,5 @@
 import hashlib
+import os
 import struct
 import time
 from typing import Callable
@@ -152,6 +153,12 @@ class BaseDbIntegrationsTestClass:
                 return span_child
 
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
+    
+
+# set AWS credentials for runner
+os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
+os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", "")
+os.environ["AWS_DEFAULT_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
 
 
 def delete_aws_resource(
