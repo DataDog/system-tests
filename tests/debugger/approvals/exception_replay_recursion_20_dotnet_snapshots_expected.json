@@ -113,10 +113,6 @@
               "lineNumber": 0
             },
             {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
-              "lineNumber": 0
-            },
-            {
               "function": "System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification",
               "lineNumber": 0
             },
@@ -142,10 +138,6 @@
             },
             {
               "function": "System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw",
-              "lineNumber": 0
-            },
-            {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
               "lineNumber": 0
             },
             {
@@ -177,10 +169,6 @@
               "lineNumber": 0
             },
             {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
-              "lineNumber": 0
-            },
-            {
               "function": "System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification",
               "lineNumber": 0
             },
@@ -198,10 +186,6 @@
             },
             {
               "function": "System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw",
-              "lineNumber": 0
-            },
-            {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
               "lineNumber": 0
             },
             {
@@ -217,10 +201,6 @@
               "lineNumber": 0
             },
             {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
-              "lineNumber": 0
-            },
-            {
               "function": "System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification",
               "lineNumber": 0
             },
@@ -230,10 +210,6 @@
             },
             {
               "function": "System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw",
-              "lineNumber": 0
-            },
-            {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
               "lineNumber": 0
             },
             {
@@ -249,10 +225,6 @@
               "lineNumber": 0
             },
             {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
-              "lineNumber": 0
-            },
-            {
               "function": "System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification",
               "lineNumber": 0
             },
@@ -270,10 +242,6 @@
             },
             {
               "function": "System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw",
-              "lineNumber": 0
-            },
-            {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
               "lineNumber": 0
             },
             {
@@ -286,10 +254,6 @@
             },
             {
               "function": "System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw",
-              "lineNumber": 0
-            },
-            {
-              "function": "System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess",
               "lineNumber": 0
             },
             {

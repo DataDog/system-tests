@@ -16,7 +16,7 @@ from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
 _CONFIG_PATH = "/v0.7/config"
 _DEBUGER_PATH = "/api/v2/debugger"
-_LOGS_PATH = "/api/v2/logs"
+_LOGS_PATH = "/debugger/v1/input"
 _TRACES_PATH = "/api/v0.2/traces"
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
