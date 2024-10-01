@@ -211,7 +211,7 @@ class scenarios:
     )
     appsec_rate_limiter = EndToEndScenario(
         "APPSEC_RATE_LIMITER",
-        weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1"},
+        weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1", "RAILS_MAX_THREADS": "1"},
         doc="Tests with a low rate trace limit for Appsec",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
