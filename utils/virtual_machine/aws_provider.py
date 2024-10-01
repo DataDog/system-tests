@@ -74,7 +74,8 @@ class AWSPulumiProvider(VmProvider):
 
     def _start_vm(self, vm):
         # Check for cached ami, before starting a new one
-        ami_id = self._get_cached_ami(vm)
+        should_skip_ami_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
+        ami_id = self._get_cached_ami(vm) if not should_skip_ami_cache else None
         logger.info(f"Cache AMI: {vm.get_cache_name()}")
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
@@ -107,11 +108,7 @@ class AWSPulumiProvider(VmProvider):
         )
         # Install provision on the started server
         self.install_provision(
-            vm,
-            ec2_server,
-            server_connection,
-            create_cache=ami_id is None,
-            skip_ami_cache=os.getenv("SKIP_AMI_CACHE", "False").lower() == "true",
+            vm, ec2_server, server_connection, create_cache=ami_id is None, skip_ami_cache=should_skip_ami_cache,
         )
 
     def stack_destroy(self):
