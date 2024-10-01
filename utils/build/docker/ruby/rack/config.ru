@@ -191,8 +191,8 @@ end
 
 # contains /users
 class Users
-  def self.run(env)
-    user_id = env['user_id']
+  def self.run(request)
+    user_id = request.params['user']
 
     Datadog::Kit::Identity.set_user(id: user_id)
 
@@ -235,7 +235,7 @@ app = proc do |env|
   elsif request.path.include?('tag_value')
     TagValue.run(request)
   elsif request.path.include?('/users')
-    Users.run(env)
+    Users.run(request)
   else
     NotFound.run
   end
