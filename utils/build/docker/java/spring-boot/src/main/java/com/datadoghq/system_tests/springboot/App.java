@@ -413,12 +413,13 @@ public class App {
     ResponseEntity<String> snsProduce(
         @RequestParam(required = true) String queue,
         @RequestParam(required = true) String topic,
-        @RequestParam(required = true) String message
+        @RequestParam(required = true) String message,
+        @RequestParam(required = true) Boolean raw_message_delivery_enabled,
     ) {
         SnsConnector sns = new SnsConnector(topic);
         SqsConnector sqs = new SqsConnector(queue);
         try {
-            sns.produceMessageWithoutNewThread(message, sqs);
+            sns.produceMessageWithoutNewThread(message, sqs, raw_message_delivery_enabled);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start producing message...");
             e.printStackTrace();

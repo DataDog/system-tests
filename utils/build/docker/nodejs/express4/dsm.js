@@ -60,7 +60,7 @@ function initRoutes (app, tracer) {
       message = message ?? 'hello from SNS DSM JS'
       const timeout = req.query.timeout ?? 5
 
-      snsPublish(queue, topic, message)
+      snsPublish(queue, topic, message, false)
         .then(() => {
           snsConsume(queue, timeout * 1000, message)
             .then(() => {

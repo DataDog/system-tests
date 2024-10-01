@@ -18,6 +18,7 @@ class _Test_SNS:
     buddy = None
     buddy_interface = None
     unique_id = None
+    raw_message_delivery_enabled = False
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, topic, operation):
@@ -114,7 +115,12 @@ class _Test_SNS:
 
             self.production_response = weblog.get(
                 "/sns/produce",
-                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC, "message": message},
+                params={
+                    "queue": self.WEBLOG_TO_BUDDY_QUEUE,
+                    "topic": self.WEBLOG_TO_BUDDY_TOPIC,
+                    "message": message,
+                    "raw_message_delivery_enabled": self.raw_message_delivery_enabled,
+                },
                 timeout=60,
             )
             self.consume_response = self.buddy.get(
@@ -179,7 +185,12 @@ class _Test_SNS:
 
             self.production_response = self.buddy.get(
                 "/sns/produce",
-                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC, "message": message},
+                params={
+                    "queue": self.BUDDY_TO_WEBLOG_QUEUE,
+                    "topic": self.BUDDY_TO_WEBLOG_TOPIC,
+                    "message": message,
+                    "raw_message_delivery_enabled": self.raw_message_delivery_enabled,
+                },
                 timeout=60,
             )
             self.consume_response = weblog.get(
@@ -259,11 +270,28 @@ class _Test_SNS:
 @scenarios.crossed_tracing_libraries
 @irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
+class Test_SNS_Propagation_Raw_Message_Delivery_Enabled(_Test_SNS):
+    buddy_interface = interfaces.python_buddy
+    buddy = python_buddy
+
+    unique_id = scenarios.crossed_tracing_libraries.unique_id
+    raw_message_delivery_enabled = True
+
+    WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_raw_msg_attributes_weblog_to_buddy_{unique_id}"
+    WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_raw_msg_attributes_weblog_to_buddy_topic_{unique_id}"
+    BUDDY_TO_WEBLOG_QUEUE = f"SNS_Propagation_raw_msg_attributes_buddy_to_weblog_{unique_id}"
+    BUDDY_TO_WEBLOG_TOPIC = f"SNS_Propagation_raw_msg_attributes_buddy_to_weblog_topic_{unique_id}"
+
+
+@scenarios.crossed_tracing_libraries
+@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
+@features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
     unique_id = scenarios.crossed_tracing_libraries.unique_id
+    raw_message_delivery_enabled = False
 
     WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_msg_attributes_weblog_to_buddy_{unique_id}"
     WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attributes_weblog_to_buddy_topic_{unique_id}"

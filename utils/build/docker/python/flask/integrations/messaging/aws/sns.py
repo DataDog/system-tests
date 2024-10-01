@@ -5,7 +5,7 @@ import time
 import boto3
 
 
-def sns_produce(queue, topic, message):
+def sns_produce(queue, topic, message, raw_message_delivery_enabled):
     """
     The goal of this function is to trigger sqs producer calls
     """
@@ -39,7 +39,11 @@ def sns_produce(queue, topic, message):
 
         sqs.set_queue_attributes(QueueUrl=sqs_url, Attributes={"Policy": json.dumps(policy)})
 
-        sns.subscribe(TopicArn=topic_arn, Protocol="sqs", Endpoint=sqs_arn, Attributes={"RawMessageDelivery": "true"})
+        attributes = {}
+        if raw_message_delivery_enabled:
+            attributes["RawMessageDelivery"] = "true"
+
+        sns.subscribe(TopicArn=topic_arn, Protocol="sqs", Endpoint=sqs_arn, Attributes=attributes)
         print(f"[SNS->SQS] Created SNS Topic: {topic} and SQS Queue: {queue}")
     except Exception as e:
         print(f"[SNS->SQS] Error during Python SNS create topic or SQS create queue: {str(e)}")

@@ -250,9 +250,10 @@ app.get('/sns/produce', (req, res) => {
   const queue = req.query.queue
   const topic = req.query.topic
   const message = req.query.message
+  const rawMessageDeliveryEnabled = req.raw_message_delivery_enabled
   console.log(`[SNS->SQS] Produce: ${message}`)
 
-  snsPublish(queue, topic, message)
+  snsPublish(queue, topic, message, rawMessageDeliveryEnabled)
     .then(() => {
       res.status(200).send('[SNS] publish ok')
     })

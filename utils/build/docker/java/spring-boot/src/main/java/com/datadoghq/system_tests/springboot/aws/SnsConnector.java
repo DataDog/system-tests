@@ -54,7 +54,7 @@ public class SnsConnector {
         }
     }
 
-    public void subscribeQueueToTopic(SnsClient snsClient, SqsClient sqsClient, String topicArn, String queueArn, String queueUrl) throws Exception {
+    public void subscribeQueueToTopic(SnsClient snsClient, SqsClient sqsClient, String topicArn, String queueArn, String queueUrl, Boolean rawMessageDelivery) throws Exception {
         try {
             // Define the policy
             String policy = "{\n" +
@@ -82,7 +82,9 @@ public class SnsConnector {
             attributes.put(QueueAttributeName.POLICY, policy);
 
             Map<String, String> subscribeAttributes = new HashMap<>();
-            subscribeAttributes.put("RawMessageDelivery", "true");
+            if (rawMessageDelivery) {
+                subscribeAttributes.put("RawMessageDelivery", "true");
+            }
 
             SetQueueAttributesRequest setAttrsRequest = SetQueueAttributesRequest.builder()
                 .queueUrl(queueUrl)
@@ -121,7 +123,7 @@ public class SnsConnector {
     }
 
     // For APM testing, produce message without starting a new thread
-    public void produceMessageWithoutNewThread(String message, SqsConnector sqs) throws Exception {
+    public void produceMessageWithoutNewThread(String message, SqsConnector sqs, Boolean rawMessageDelivery) throws Exception {
         SnsClient snsClient = createSnsClient();
         SqsClient sqsClient = sqs.createSqsClient();
         System.out.printf("[SNS->SQS] Publishing message: %s%n", message);
@@ -134,7 +136,7 @@ public class SnsConnector {
             .queueUrl(queueUrl)
             .build());
         String queueArn = queueAttributes.attributes().get(QueueAttributeName.QUEUE_ARN);
-        subscribeQueueToTopic(snsClient, sqsClient, topicArn, queueArn, queueUrl);
+        subscribeQueueToTopic(snsClient, sqsClient, topicArn, queueArn, queueUrl, rawMessageDelivery);
 
         PublishRequest publishRequest = PublishRequest.builder()
             .topicArn(topicArn)

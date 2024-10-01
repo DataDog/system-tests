@@ -598,8 +598,9 @@ def produce_sns_message():
     queue = flask_request.args.get("queue", "DistributedTracing SNS")
     topic = flask_request.args.get("topic", "DistributedTracing SNS Topic")
     message = flask_request.args.get("message", "Hello from Python SNS -> SQS")
+    raw_message_delivery_enabled = flask_request.args.get("raw_message_delivery_enabled", False)
 
-    output = sns_produce(queue, topic, message)
+    output = sns_produce(queue, topic, message, raw_message_delivery_enabled)
     if "error" in output:
         return output, 400
     else:
@@ -733,7 +734,7 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, message,),)
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, message, False),)
         consume_thread = threading.Thread(target=sns_consume, args=(queue, message,))
         produce_thread.start()
         consume_thread.start()

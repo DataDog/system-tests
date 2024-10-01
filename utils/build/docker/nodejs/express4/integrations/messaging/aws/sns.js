@@ -4,7 +4,7 @@ const tracer = require('dd-trace')
 let TopicArn
 let QueueUrl
 
-const snsPublish = (queue, topic, message) => {
+const snsPublish = (queue, topic, message, rawMessageDeliveryEnabled) => {
   // Create an SQS client
   const sns = new AWS.SNS()
   const sqs = new AWS.SQS()
@@ -64,10 +64,16 @@ const snsPublish = (queue, topic, message) => {
               return reject(err)
             }
 
+            const attributes = {}
+            if (rawMessageDeliveryEnabled) {
+              attributes.RawMessageDelivery = 'True'
+            }
+
             const subParams = {
               Protocol: 'sqs',
               Endpoint: QueueArn,
-              TopicArn
+              TopicArn,
+              Attributes: attributes
             }
 
             sns.subscribe(subParams, (err) => {
