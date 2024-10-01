@@ -283,7 +283,6 @@ class Test_SNS_Propagation_Raw_Message_Delivery_Enabled(_Test_SNS):
 
 
 @scenarios.crossed_tracing_libraries
-@irrelevant(True, reason="Tmp skip, waiting for deployement of secrets in all repos")
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
