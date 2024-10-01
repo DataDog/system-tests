@@ -189,6 +189,11 @@ tests/:
       Test_Basic: v0.85.0
     test_logs.py:
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
       Test_UpdateRuleFileWithRemoteConfig: v0.8.0

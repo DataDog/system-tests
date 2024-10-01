@@ -16,18 +16,18 @@ def _get_expectation(d):
     raise TypeError(f"Unsupported expectation type: {d}")
 
 
-def _get_span_meta(request):
+def _get_span_meta(request, metastruct=False):
     spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
     assert spans, "No root span found"
     span = spans[0]
     meta = span.get("meta", {})
-    return meta
+    meta_struct = span.get("meta_struct", {})
+    return meta, meta_struct
 
 
 def get_iast_event(request):
-    meta = _get_span_meta(request=request)
-    assert "_dd.iast.json" in meta, "No _dd.iast.json tag in span"
-    return meta["_dd.iast.json"]
+    meta, meta_struct = _get_span_meta(request=request)
+    return meta.get("_dd.iast.json") or meta_struct.get("iast")
 
 
 def assert_iast_vulnerability(
@@ -164,8 +164,7 @@ class BaseSinkTestWithoutTelemetry:
     @staticmethod
     def assert_no_iast_event(request):
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
-        meta = _get_span_meta(request=request)
-        iast_json = meta.get("_dd.iast.json")
+        iast_json = get_iast_event(request=request)
         assert iast_json is None, f"Unexpected vulnerabilities reported: {iast_json}"
 
 
