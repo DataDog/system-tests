@@ -393,6 +393,9 @@ tests/:
         Test_SNS_Propagation:
           "*": irrelevant
           net-http: missing_feature
+        Test_SNS_Propagation_Raw_Message_Delivery_Enabled:
+          "*": irrelevant
+          net-http: missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant

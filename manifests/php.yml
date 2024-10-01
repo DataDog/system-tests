@@ -233,6 +233,8 @@ tests/:
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": missing_feature
+        Test_SNS_Propagation_Raw_Message_Delivery_Enabled:
+          "*": missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": missing_feature (Endpoint not implemented)

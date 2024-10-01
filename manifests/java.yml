@@ -1158,6 +1158,9 @@ tests/:
         Test_SNS_Propagation:
           "*": irrelevant
           spring-boot: v1.38.0
+        Test_SNS_Propagation_Raw_Message_Delivery_Enabled:
+          "*": irrelevant
+          spring-boot: v1.38.0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
