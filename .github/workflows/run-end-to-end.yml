@@ -117,6 +117,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        SYSTEM_TESTS_AWS_REGION: us-east-1
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: ./run.sh PROFILING
@@ -134,6 +135,7 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        SYSTEM_TESTS_AWS_REGION: us-east-1
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL

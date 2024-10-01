@@ -414,7 +414,7 @@ public class App {
         @RequestParam(required = true) String queue,
         @RequestParam(required = true) String topic,
         @RequestParam(required = true) String message,
-        @RequestParam(required = true) Boolean raw_message_delivery_enabled,
+        @RequestParam(required = true) Boolean raw_message_delivery_enabled
     ) {
         SnsConnector sns = new SnsConnector(topic);
         SqsConnector sqs = new SqsConnector(queue);

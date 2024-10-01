@@ -110,7 +110,7 @@ public class SnsConnector {
         Thread thread = new Thread("SnsProduce") {
             public void run() {
                 try {
-                    produceMessageWithoutNewThread(message, sqs);
+                    produceMessageWithoutNewThread(message, sqs, false);
                     System.out.println("[SNS] Successfully produced message");
                 } catch (Exception e) {
                     System.err.println("[SNS] Failed to produce message in thread...");
@@ -123,7 +123,7 @@ public class SnsConnector {
     }
 
     // For APM testing, produce message without starting a new thread
-    public void produceMessageWithoutNewThread(String message, SqsConnector sqs, Boolean rawMessageDelivery) throws Exception {
+    public void produceMessageWithoutNewThread(String message, SqsConnector sqs, boolean rawMessageDelivery) throws Exception {
         SnsClient snsClient = createSnsClient();
         SqsClient sqsClient = sqs.createSqsClient();
         System.out.printf("[SNS->SQS] Publishing message: %s%n", message);
