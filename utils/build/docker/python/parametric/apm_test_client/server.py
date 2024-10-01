@@ -19,6 +19,8 @@ from opentelemetry.trace.span import TraceState
 from opentelemetry.trace.span import SpanContext as OtelSpanContext
 from opentelemetry.trace import set_span_in_context
 from ddtrace.opentelemetry import TracerProvider
+from opentelemetry.baggage import set_baggage
+from opentelemetry.baggage import get_baggage
 
 import ddtrace
 from ddtrace import Span
@@ -83,12 +85,7 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         parent = HTTPPropagator.extract(headers)
 
     span = ddtrace.tracer.start_span(
-        args.name,
-        service=args.service,
-        span_type=args.type,
-        resource=args.resource,
-        child_of=parent,
-        activate=True,
+        args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
     for link in args.links:
         link_parent_id = link.get("parent_id", 0)
@@ -101,10 +98,7 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
             span.link_span(context, link.get("attributes"))
 
     spans[span.span_id] = span
-    return StartSpanReturn(
-        span_id=span.span_id,
-        trace_id=span.trace_id,
-    )
+    return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
 
 
 class SpanFinishArgs(BaseModel):
@@ -479,6 +473,25 @@ def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
     span = otel_spans[args.span_id]
     span.add_event(args.name, args.attributes, args.timestamp)
     return OtelAddEventReturn()
+
+
+class OtelSetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+    value: str
+
+
+class OtelSetBaggageReturn(BaseModel):
+    value: str
+
+
+@app.post("/trace/otel/otel_set_baggage")
+def otel_set_baggage(args: OtelSetBaggageArgs) -> OtelSetBaggageReturn:
+    # span = otel_spans[args.span_id]
+    headers = {}
+    context = set_baggage(args.key, args.value)
+    value = get_baggage(args.key, context)
+    return OtelSetBaggageReturn(value=value)
 
 
 class OtelRecordExceptionReturn(BaseModel):
