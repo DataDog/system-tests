@@ -217,12 +217,13 @@ func main() {
 	})
 
 	r.GET("/session/user", func(ctx echo.Context) error {
-		user := ctx.Query("sdk_user")
-		cookie, err := ctx.Request.Cookie("session")
+		user := ctx.Request().URL.Query().Get("sdk_user")
+		cookie, err := ctx.Request().Cookie("session")
 		if err != nil {
-			ctx.Writer.WriteHeader(500)
+			return ctx.String(500, "no session cookie")
 		}
-		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		return ctx.NoContent(200)
 	})
 
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
