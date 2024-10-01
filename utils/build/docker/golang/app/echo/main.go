@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -201,6 +202,28 @@ func main() {
 		}
 
 		return ctx.String(http.StatusOK, string(content))
+	})
+
+	r.GET("/session/new", func(ctx echo.Context) error {
+		sessionID := strconv.Itoa(rand.Int())
+		ctx.SetCookie(&http.Cookie{
+			Name:     "session",
+			Value:    sessionID,
+			MaxAge:   3600,
+			Secure:   true,
+			HttpOnly: true,
+		})
+		return ctx.NoContent(200)
+	})
+
+	r.GET("/session/user", func(ctx echo.Context) error {
+		user := ctx.Request().URL.Query().Get("sdk_user")
+		cookie, err := ctx.Request().Cookie("session")
+		if err != nil {
+			return ctx.String(500, "no session cookie")
+		}
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		return ctx.NoContent(200)
 	})
 
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))

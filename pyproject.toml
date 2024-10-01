@@ -43,10 +43,6 @@ allow_no_feature_nodes = [
     "tests/parametric/test_span_links.py",
     "tests/parametric/test_tracer.py",
     "tests/perfs/test_performances.py",  # exotic scenario, not really used
-    "tests/test_library_logs.py",  # we do not have a real feature to attach
-    "tests/test_miscs.py",  # we do not have a real feature to attach
-    "tests/test_schemas.py",  # Too broad test, can't attach to a feature
-    "tests/test_smoke.py",  # Too broad test, can't attach to a feature
     "tests/test_the_test/",  # Not a real test
 ]
 

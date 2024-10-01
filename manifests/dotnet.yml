@@ -118,7 +118,7 @@ tests/:
         Test_Lfi_Capability: v3.3.0
         Test_Lfi_Mandatory_SpanTags: v2.52.0
         Test_Lfi_Optional_SpanTags: v2.52.0
-        Test_Lfi_RC_CustomAction: bug
+        Test_Lfi_RC_CustomAction: missing_feature
         Test_Lfi_StackTrace: v2.51.0
         Test_Lfi_Telemetry: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
@@ -244,8 +244,8 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
-      Test_BlockingActionChangesWithRemoteConfig: missing_feature
-      Test_UpdateRuleFileWithRemoteConfig: missing_feature
+      Test_BlockingActionChangesWithRemoteConfig: v3.4.0
+      Test_UpdateRuleFileWithRemoteConfig: v3.4.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
       Test_Info: v2.0.0
