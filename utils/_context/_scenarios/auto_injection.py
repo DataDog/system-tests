@@ -14,6 +14,7 @@ from utils._context.virtual_machines import (
     AmazonLinux2023amd64,
     AmazonLinux2DotNet6,
     AmazonLinux2amd64,
+    AmazonLinux2arm64,
     Centos7amd64,
     OracleLinux92amd64,
     OracleLinux92arm64,
@@ -44,6 +45,7 @@ class _VirtualMachineScenario(Scenario):
         include_ubuntu_24_arm64=False,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=False,
+        include_amazon_linux_2_arm64=False,
         include_amazon_linux_2_dotnet_6=False,
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
@@ -85,6 +87,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Ubuntu18amd64())
         if include_amazon_linux_2_amd64:
             self.required_vms.append(AmazonLinux2amd64())
+        if include_amazon_linux_2_arm64:
+            self.required_vms.append(AmazonLinux2arm64())
         if include_amazon_linux_2_dotnet_6:
             self.required_vms.append(AmazonLinux2DotNet6())
         if include_amazon_linux_2023_amd64:
@@ -125,6 +129,8 @@ class _VirtualMachineScenario(Scenario):
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
         self._library = LibraryVersion(config.option.vm_library, "0.0")
+        self._datadog_apm_inject_version = "v0.00.00"
+        self._os_configurations = {}
         self._env = config.option.vm_env
         self._weblog = config.option.vm_weblog
         self._check_test_environment()
@@ -196,6 +202,15 @@ class _VirtualMachineScenario(Scenario):
         for vm in self.required_vms:
             for key in vm.tested_components:
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ")
+                if key.startswith("datadog-apm-inject") and self._tested_components[key]:
+                    self._datadog_apm_inject_version = f"v{self._tested_components[key].lstrip(' ')}"
+                if key.startswith("datadog-apm-library-") and self._tested_components[key]:
+                    self._library.version = self._tested_components[key].lstrip(" ")
+
+            # Extract vm name (os) and arch
+            # TODO fix os name
+            self._os_configurations[f"os_{vm.name}"] = vm.name.replace("_amd64", "").replace("_arm64", "")
+            self._os_configurations[f"arch_{vm.name}"] = vm.os_cpu
 
     def close_targets(self):
         if self.is_main_worker:
@@ -214,6 +229,14 @@ class _VirtualMachineScenario(Scenario):
     def components(self):
         return self._tested_components
 
+    @property
+    def dd_apm_inject_version(self):
+        return self._datadog_apm_inject_version
+
+    @property
+    def configuration(self):
+        return self._os_configurations
+
     def customize_feature_parity_dashboard(self, result):
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2
@@ -222,7 +245,14 @@ class _VirtualMachineScenario(Scenario):
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
     def __init__(
-        self, name, doc, vm_provision="installer-auto-inject", agent_env=None, app_env=None, scenario_groups=None
+        self,
+        name,
+        doc,
+        vm_provision="installer-auto-inject",
+        agent_env=None,
+        app_env=None,
+        scenario_groups=None,
+        github_workflow=None,
     ) -> None:
         super().__init__(
             name,
@@ -230,13 +260,14 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             agent_env=agent_env,
             app_env=app_env,
             doc=doc,
-            github_workflow=None,
+            github_workflow=github_workflow,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
             include_ubuntu_24_amd64=True,
             include_ubuntu_24_arm64=True,
             include_ubuntu_18_amd64=True,
             include_amazon_linux_2_amd64=True,
+            include_amazon_linux_2_arm64=True,
             include_amazon_linux_2_dotnet_6=True,
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
