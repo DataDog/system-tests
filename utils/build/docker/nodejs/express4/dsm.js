@@ -17,6 +17,7 @@ function initRoutes (app, tracer) {
     const routingKey = req.query.routing_key
     const stream = req.query.stream
     let message = req.query.message
+    const rawMessageDeliveryEnabled = req.query.raw_message_delivery_enabled
 
     if (integration === 'kafka') {
       message = message ?? 'hello from kafka DSM JS'
@@ -60,7 +61,7 @@ function initRoutes (app, tracer) {
       message = message ?? 'hello from SNS DSM JS'
       const timeout = req.query.timeout ?? 5
 
-      snsPublish(queue, topic, message, false)
+      snsPublish(queue, topic, message, rawMessageDeliveryEnabled)
         .then(() => {
           snsConsume(queue, timeout * 1000, message)
             .then(() => {

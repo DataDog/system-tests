@@ -320,10 +320,10 @@ class Test_DsmSQS:
         )
 
 
-@features.datastreams_monitoring_support_for_sns
-@scenarios.integrations
-class Test_DsmSNS:
+class _Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
+
+    raw_message_delivery_enabled = False
 
     def setup_dsm_sns(self):
         try:
@@ -338,8 +338,19 @@ class Test_DsmSNS:
                 self.topic = f"{DSM_TOPIC}_{context.library.library}"
                 self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}"
 
+            if self.raw_message_delivery_enabled:
+                self.topic += "_raw"
+                self.queue += "_raw"
+
             self.r = weblog.get(
-                f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
+                "/dsm",
+                params={
+                    "integration": "sns",
+                    "queue": self.queue,
+                    "topic": self.topic,
+                    "message": message,
+                    "raw_message_delivery_enabled": self.raw_message_delivery_enabled,
+                },
                 timeout=DSM_REQUEST_TIMEOUT,
             )
         finally:
@@ -381,6 +392,18 @@ class Test_DsmSNS:
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in,
         )
+
+
+@features.datastreams_monitoring_support_for_sns
+@scenarios.integrations
+class Test_DsmSNS(_Test_DsmSNS):
+    raw_message_delivery_enabled = False
+
+
+@features.datastreams_monitoring_support_for_sns
+@scenarios.integrations
+class Test_DsmSNS_Raw_Message_Delivery_Enabled(_Test_DsmSNS):
+    raw_message_delivery_enabled = True
 
 
 @features.datastreams_monitoring_support_for_kinesis

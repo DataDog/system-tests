@@ -670,6 +670,9 @@ tests/:
       Test_DsmSNS:
         '*': irrelevant
         flask-poc: v1.16.0
+      Test_DsmSNS_Raw_Message_Delivery_Enabled:
+        '*': irrelevant
+        flask-poc: v1.16.0
       Test_DsmSQS:
         '*': irrelevant
         flask-poc: v1.16.0

@@ -106,11 +106,11 @@ public class SnsConnector {
         }
     }
 
-    public Thread startProducingMessage(String message, SqsConnector sqs) throws Exception {
+    public Thread startProducingMessage(String message, SqsConnector sqs, boolean rawMessageDelivery) throws Exception {
         Thread thread = new Thread("SnsProduce") {
             public void run() {
                 try {
-                    produceMessageWithoutNewThread(message, sqs, false);
+                    produceMessageWithoutNewThread(message, sqs, rawMessageDelivery);
                     System.out.println("[SNS] Successfully produced message");
                 } catch (Exception e) {
                     System.err.println("[SNS] Failed to produce message in thread...");

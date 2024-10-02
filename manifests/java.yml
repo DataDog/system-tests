@@ -1210,6 +1210,9 @@ tests/:
       Test_DsmSNS:
         "*": irrelevant
         spring-boot: v1.38.0
+      Test_DsmSNS_Raw_Message_Delivery_Enabled:
+        "*": irrelevant
+        spring-boot: v1.38.0
       Test_DsmSQS:
         "*": irrelevant
         spring-boot: v0.1 # real version not known

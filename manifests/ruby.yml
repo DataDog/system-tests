@@ -319,6 +319,9 @@ tests/:
       Test_DsmSNS:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
+      Test_DsmSNS_Raw_Message_Delivery_Enabled:
+        "*": irrelevant
+        rails70: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)

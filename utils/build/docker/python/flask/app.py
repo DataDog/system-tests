@@ -686,6 +686,7 @@ def dsm():
     exchange = flask_request.args.get("exchange")
     routing_key = flask_request.args.get("routing_key")
     message = flask_request.args.get("message")
+    raw_message_delivery_enabled = flask_request.args.get("raw_message_delivery_enabled")
 
     logging.info(f"[DSM] Got request with integration: {integration}")
 
@@ -734,7 +735,9 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, message, False),)
+        produce_thread = threading.Thread(
+            target=sns_produce, args=(queue, topic, message, raw_message_delivery_enabled),
+        )
         consume_thread = threading.Thread(target=sns_consume, args=(queue, message,))
         produce_thread.start()
         consume_thread.start()
