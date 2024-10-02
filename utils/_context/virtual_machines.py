@@ -543,3 +543,34 @@ class Ubuntu24arm64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+
+class RedHat86amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_8_6_amd64",
+            aws_config=_AWSConfig(ami_id="ami-031eff1ae75bb87e4", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat_8_6",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+class RedHat86arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_8_6_arm64",
+            aws_config=_AWSConfig(ami_id="ami-096f447a8a5bc013f", ami_instance_type="t4g.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat_8_6",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
