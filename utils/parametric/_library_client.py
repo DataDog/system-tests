@@ -751,7 +751,7 @@ class APMLibraryClientGRPC:
         self._client.OtelSetName(pb.OtelSetNameArgs(span_id=span_id, name=name))
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
-        self._client.OtelSetBaggage(pb.OtelSetBaggageArgs(span_id=span_id, key=key, value=value)).value
+        return self._client.OtelSetBaggage(pb.OtelSetBaggageArgs(span_id=span_id, key=key, value=value)).value
 
     def otel_set_status(self, span_id: int, code: int, description: str):
         self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code, description=description))
