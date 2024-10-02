@@ -79,7 +79,7 @@ class Test_HeaderTags_Whitespace_Tag:
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_TAG: HEADER_VAL_BASIC}
         self.r = weblog.get("/waf", headers=self.headers)
-    
+
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_TAG: HEADER_VAL_BASIC}
 
@@ -103,7 +103,6 @@ class Test_HeaderTags_Whitespace_Val_Short:
 
         for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
-                
                 assert tag in span["meta"]
 
 
