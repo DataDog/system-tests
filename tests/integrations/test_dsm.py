@@ -389,7 +389,7 @@ class _Test_DsmSNS:
             producer_hash = compute_dsm_hash(0, tags_out)
             consumer_hash = compute_dsm_hash(producer_hash, tags_in)
         else:
-            key = "raw_delivery_enabled" if self.raw_message_delivery_enabled else "raw_delivery_enabled"
+            key = "raw_delivery_enabled" if self.raw_message_delivery_enabled else "raw_delivery_disabled"
             producer_hash = hash_inputs["nodejs"]["producer"][key]
             consumer_hash = hash_inputs["nodejs"]["consumer"][key]
 
