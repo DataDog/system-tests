@@ -64,7 +64,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0.dev
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
         test_hardcoded_secrets.py:
@@ -97,20 +97,20 @@ tests/:
         test_path_traversal.py:
           TestPathTraversal:
             '*': v2.10.0dev
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.18.0
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
             flask-poc: v1.18.0
             pylons: missing_feature
             python3.12: v1.18.0
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0dev
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
         test_untrusted_deserialization.py:
@@ -123,7 +123,7 @@ tests/:
         test_weak_cipher.py:
           TestWeakCipher:
             '*': v1.18.0
-            fastapi: missing_feature
+            fastapi: v2.15.0.dev
         test_weak_hash.py:
           TestWeakHash:
             '*': v1.18.0
@@ -516,7 +516,7 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: bug (fails on instrumentation)
+      Test_Debugger_Expression_Language: bug (DEBUG-2898)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -683,18 +683,20 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
+      Test_Config_RateLimit: v2.6.0
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: flaky (failure 2.8.0/2.9.0.dev)
+      TestDynamicConfigHeaderTags: flaky (APMAPI-734)
       TestDynamicConfigSamplingRules: v2.9.0dev
-      TestDynamicConfigTracingEnabled: flaky (failure 2.8.0/2.9.0.dev)
+      TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
-      TestDynamicConfigV2: flaky (failure 2.8.0/2.9.0.dev)
+      TestDynamicConfigV2: flaky (APMAPI-734)
     test_headers_b3.py:
       Test_Headers_B3: v2.8.0
     test_headers_b3multi.py:
@@ -724,7 +726,7 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_partial_flushing.py:
-      Test_Partial_Flushing: flaky (failure 2.8.0/2.9.0.dev)
+      Test_Partial_Flushing: flaky (APMAPI-734)
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
@@ -777,6 +779,10 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_IntegrationEnabled_False: missing_feature
+    Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_data_integrity.py:
@@ -803,6 +809,9 @@ tests/:
     Test_Profile:
       '*': v0.1 # actual version unknown
       python3.12: v2.1.0.dev
+  test_sampling_rates.py:
+    Test_SamplingDecisions: v2.8.0
+    Test_SamplingRates: v2.8.0
   test_scrubbing.py:
     Test_UrlField:
       '*': v1.7.1
@@ -810,7 +819,7 @@ tests/:
     Test_UrlQuery: v1.6.0rc1.dev
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
-    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
+    Test_MetaDatadogTags: bug (APMAPI-735)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0.dev
     Test_StandardTagsMethod: v1.2.1

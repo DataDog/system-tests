@@ -23,9 +23,8 @@ class Test_Crashtracking:
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="APMSP-1370")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-727")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent, test_library):
         test_library.crash()
@@ -39,10 +38,14 @@ class Test_Crashtracking:
                 assert self.is_crash_report(test_library, event) is False
 
     def is_crash_report(self, test_library, event) -> bool:
-        assert isinstance(event["payload"], list)
-        assert len(event["payload"]) > 0
-        assert isinstance(event["payload"][0], dict)
-        assert "tags" in event["payload"][0]
+        if not isinstance(event.get("payload"), list):
+            return False
+        if not event["payload"]:
+            return False
+        if not isinstance(event["payload"][0], dict):
+            return False
+        if "tags" not in event["payload"][0]:
+            return False
 
         tags = event["payload"][0]["tags"]
         print("tags: ", tags)

@@ -261,6 +261,8 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
+      Test_Config_RateLimit: missing_feature
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: missing_feature
@@ -334,6 +336,10 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: v1.3.0 # Unknown initial version
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_IntegrationEnabled_False: missing_feature
+    Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:

@@ -2,7 +2,15 @@
 
 declare -r ARCH="$1"
 
-if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
+if [[ "$(cat /etc/redhat-release || true)" == "Red Hat Enterprise Linux release 8."* ]]; then
+    OS="RedHat_8"
+elif [[ "$(cat /etc/redhat-release || true)" == "Red Hat Enterprise Linux release 9."* ]]; then
+    OS="RedHat_9"
+elif [[ "$(cat /etc/redhat-release || true)" == "AlmaLinux release"* ]]; then
+    OS="RedHat_9"
+elif [[ "$(cat /etc/redhat-release || true)" == "CentOS Linux release 7.8.2003 (Core)" ]]; then
+    OS="RedHat_Centos_7_8"
+elif [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
     OS="Debian"
 elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIBUTION" = "CentOS" ] || [ "$DISTRIBUTION" = "Amazon" ] || [ "$DISTRIBUTION" = "Rocky" ] || [ "$DISTRIBUTION" = "AlmaLinux" ]; then
     OS="RedHat"
@@ -18,8 +26,18 @@ elif [ -f /etc/SuSE-release ] || [ "$DISTRIBUTION" = "SUSE" ] || [ "$DISTRIBUTIO
 elif [ -f /etc/alpine-release ]; then
     OS="Alpine"
 fi
-
-if [ "$OS" = "RedHat" ]; then
+echo "SELECTED OS: $OS"
+if [ "$OS" = "RedHat_8" ] || [ "$OS" = "RedHat_9" ]; then
+    if ! command -v yum &> /dev/null
+    then
+         microdnf install -y yum
+    fi
+    yum install -y which zip unzip wget
+elif [ "$OS" = "RedHat_Centos_7_8" ]; then
+    sed -i.bak 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+    sed -i.bak 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+    yum install -y which zip unzip wget
+elif [ "$OS" = "RedHat" ]; then
     # Update the repo URLs, since July 2024 we need to use vault for CentOS 7
     if [ "${ARCH}" != "amd64" ]; then
         repo_version="altarch/7.9.2009"

@@ -90,6 +90,8 @@ jobs:
         library: ${{ inputs.library }}
         weblog: ${{ matrix.weblog }}
         scenarios: ${{ inputs.scenarios }}
+        dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Log in to the Container registry
       if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
@@ -156,6 +158,11 @@ jobs:
     - name: Run TRACING_CONFIG_NONDEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run TRACING_CONFIG_NONDEFAULT_2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_2"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT_2
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACING_CONFIG_NONDEFAULT_3 scenario

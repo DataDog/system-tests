@@ -44,7 +44,7 @@
 
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
-    sudo systemctl restart sshd.service || true
+    sudo systemctl restart sshd.service || sudo systemctl restart ssh.service || true
     echo "DONE"
 - os_type: linux
   os_distro: rpm
@@ -61,6 +61,26 @@
     #sudo yum -y update
     sudo systemctl restart sshd.service
 
+- os_type: linux
+  os_distro: rpm
+  os_branch: oracle_linux
+  remote-command: |
+    #Allow DD env variables from ssh
+    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
+    sudo id -u datadog &>/dev/null || sudo useradd -m datadog
+    sudo yum clean expire-cache
+    #sudo yum -y update
+    sudo systemctl restart sshd.service
+    #We need to access from outside the VM
+    sudo systemctl stop firewalld
+    sudo systemctl stop iptables
+    sudo systemctl disable firewalld
+    sudo systemctl disable iptables
+    if [ $? -eq 3 ]
+    then
+      echo "Firewall disabled"
+      exit 0
+    fi
 - os_type: linux
   os_distro: rpm
   remote-command: |

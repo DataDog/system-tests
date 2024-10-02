@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -77,8 +80,23 @@ func main() {
 		status, _ := strconv.Atoi(ctx.Param("status_code"))
 		span, _ := tracer.SpanFromContext(ctx.Request.Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range ctx.Request.URL.Query() {
+			for _, value := range values {
+				ctx.Writer.Header().Add(key, value)
+			}
+		}
 		ctx.Writer.WriteHeader(status)
 		ctx.Writer.Write([]byte("Value tagged"))
+		switch {
+		case ctx.Request.Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(ctx.Request.Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
+			}
+		case ctx.Request.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), ctx.Request.PostForm)
+		}
 	})
 
 	r.Any("/status", func(ctx *gin.Context) {
@@ -167,6 +185,20 @@ func main() {
 			ctx.Writer.WriteHeader(500)
 		}
 		ctx.Writer.Write(content)
+	})
+
+	r.GET("/session/new", func(ctx *gin.Context) {
+		sessionID := strconv.Itoa(rand.Int())
+		ctx.SetCookie("session", sessionID, 3600, "/", "", false, true)
+	})
+
+	r.GET("/session/user", func(ctx *gin.Context) {
+		user := ctx.Query("sdk_user")
+		cookie, err := ctx.Request.Cookie("session")
+		if err != nil {
+			ctx.Writer.WriteHeader(500)
+		}
+		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
