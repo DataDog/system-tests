@@ -179,8 +179,6 @@ class Test_Config_RateLimit:
         assert trace_0_sampling_priority == 2
         assert trace_1_sampling_priority == -1
 
-    # DD_TRACE_RATE_LIMIT should have no effect if DD_TRACE_SAMPLE_RATE or DD_TRACE_SAMPLING_RULES is not set
-    @missing_feature(context.library == "python", reason="Not implemented")
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
     def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
         with test_library:
