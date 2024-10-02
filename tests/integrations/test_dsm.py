@@ -373,7 +373,7 @@ class _Test_DsmSNS:
                     "raw_delivery_enabled": 15466202493380574985,
                     "raw_delivery_disabled": 5574101569053455889,
                 },
-                "consumer":  {
+                "consumer": {
                     "raw_delivery_enabled": 9372735371403270535,
                     "raw_delivery_disabled": 3220237713045744553,
                 },
