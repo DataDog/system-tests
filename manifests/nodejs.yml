@@ -510,6 +510,9 @@ tests/:
       Test_DsmSNS:
         '*': irrelevant
         express4: *ref_5_20_0
+      Test_DsmSNS_Raw_Message_Delivery_Enabled:
+        '*': irrelevant
+        express4: *ref_5_20_0
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0

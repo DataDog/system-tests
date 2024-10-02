@@ -369,8 +369,14 @@ class _Test_DsmSNS:
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
             "nodejs": {
-                "producer": 5574101569053455889,
-                "consumer": 3220237713045744553,
+                "producer": {
+                    "raw_delivery_enabled": 15466202493380574985,
+                    "raw_delivery_disabled": 5574101569053455889,
+                },
+                "consumer":  {
+                    "raw_delivery_enabled": 9372735371403270535,
+                    "raw_delivery_disabled": 3220237713045744553,
+                },
                 "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
@@ -383,8 +389,9 @@ class _Test_DsmSNS:
             producer_hash = compute_dsm_hash(0, tags_out)
             consumer_hash = compute_dsm_hash(producer_hash, tags_in)
         else:
-            producer_hash = hash_inputs["nodejs"]["producer"]
-            consumer_hash = hash_inputs["nodejs"]["consumer"]
+            key = "raw_delivery_enabled" if self.raw_message_delivery_enabled else "raw_delivery_enabled"
+            producer_hash = hash_inputs["nodejs"]["producer"][key]
+            consumer_hash = hash_inputs["nodejs"]["consumer"][key]
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=tags_out,
