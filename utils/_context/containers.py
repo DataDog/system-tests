@@ -1079,7 +1079,6 @@ class DummyServerContainer(TestedContainer):
             image_name="jasonrm/dummy-server:latest",
             name="dummy-server",
             host_log_folder=host_log_folder,
-            ports={"8080": ("127.0.0.1", 8080)},
             healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
         )
 
@@ -1090,8 +1089,9 @@ class EnvoyContainer(TestedContainer):
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
             host_log_folder=host_log_folder,
-            # ports={"8080": ("127.0.0.1", 8080)},
-            # healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+            volumes={f"./envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
+            ports={"80": ("127.0.0.1", 80), "9901": ("127.0.0.1", 9901)},
+            healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},
         )
 
 
@@ -1102,8 +1102,8 @@ class ExternalProcessingContainer(TestedContainer):
             name="extproc",
             host_log_folder=host_log_folder,
             environment={"DD_APPSEC_ENABLED": "true"}
-            # ports={"8080": ("127.0.0.1", 8080)},
-            # healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+            ports={"80": ("127.0.0.1", 8080), "443": ("127.0.0.1", 443)},
+            healthcheck={"test": "wget http://localhost:8080/", "retries": 10,},
         )
 
     @property

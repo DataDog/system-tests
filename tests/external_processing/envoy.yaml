@@ -4,7 +4,7 @@ static_resources:
       address:
         socket_address:
           address: 0.0.0.0
-          port_value: 8080
+          port_value: 80
       filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
@@ -47,7 +47,7 @@ static_resources:
                   address:
                     socket_address:
                       address: webserver
-                      port_value: 7777
+                      port_value: 8080
 
     - name: ext_proc_cluster
       connect_timeout: 0.25s
@@ -73,4 +73,4 @@ admin:
   address:
     socket_address:
       address: 0.0.0.0
-      port_value: 8001
+      port_value: 9901
