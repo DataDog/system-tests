@@ -4,7 +4,7 @@ lang_variant:
     install:
       - os_type: linux
         os_distro: deb
-        remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
+        remote-command: sudo apt-get -y update && (sudo apt-get -y install openjdk-11-jdk-headless || sudo apt-get -y install openjdk-17-jre-headless)
 
       - os_type: linux
         os_distro: rpm
