@@ -91,8 +91,13 @@ class VmProvider:
         )
         # Before install weblog, if we set the env variable: CI_COMMIT_BRANCH, we need to checkout this branch
         # (we are going to copy weblog sources from git instead from local machine)
+        # We commit the branch reference of the CI_COMMIT_BRANCH env variable only if the gitlab project is system-tests
+        # Proabably we need to change this in the future, and translate this logic to the pipelines
         ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
         if ci_commit_branch:
+            ci_commit_branch = (
+                os.getenv("CI_COMMIT_BRANCH") if os.getenv("CI_PROJECT_NAME", "") == "system-tests" else "main"
+            )
             logger.stdout(f"[{vm.name}] Checkout branch {ci_commit_branch}")
             last_task = self.commander.remote_command(
                 vm,
