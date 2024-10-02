@@ -89,7 +89,7 @@ app.post('/trace/span/start', (req, res) => {
     childOf: parent,
     tags
   })
-  
+
   for (const link of request.links || []) {
     const linkParentId = link.parent_id;
     if (linkParentId) {
