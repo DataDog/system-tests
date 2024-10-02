@@ -172,7 +172,7 @@ class _VirtualMachine:
             if installation.cache:
                 vm_cached_installations += f"{installation.id}_"
         vm_cached_installations = hashlib.shake_128(vm_cached_installations.encode("utf-8")).hexdigest(4)
-        return vm_cached_name + vm_cached_installations
+        return vm_cached_name + vm_cached_installations + "_" + self.get_provision().provision_name
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """
