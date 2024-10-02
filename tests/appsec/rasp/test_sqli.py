@@ -2,14 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc, context, flaky
-from tests.appsec.rasp.utils import validate_span_tags, validate_stack_traces
+from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils.dd_constants import Capabilities
+from tests.appsec.rasp.utils import (
+    validate_span_tags,
+    validate_stack_traces,
+    find_series,
+    validate_metric,
+)
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
-@flaky(context.library == "java", reason="APPSEC-54578")
 class Test_Sqli_UrlQuery:
     """SQL Injection through query parameters"""
 
@@ -33,7 +38,6 @@ class Test_Sqli_UrlQuery:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
-@flaky(context.library == "java", reason="APPSEC-54578")
 class Test_Sqli_BodyUrlEncoded:
     """SQL Injection through a url-encoded body parameter"""
 
@@ -57,7 +61,6 @@ class Test_Sqli_BodyUrlEncoded:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
-@flaky(context.library == "java", reason="APPSEC-54578")
 class Test_Sqli_BodyXml:
     """SQL Injection through an xml body parameter"""
 
@@ -82,7 +85,6 @@ class Test_Sqli_BodyXml:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
-@flaky(context.library == "java", reason="APPSEC-54578")
 class Test_Sqli_BodyJson:
     """SQL Injection through a json body parameter"""
 
@@ -147,3 +149,38 @@ class Test_Sqli_StackTrace:
     def test_sqli_stack_trace(self):
         assert self.r.status_code == 403
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
+@features.rasp_sql_injection
+@scenarios.appsec_rasp
+class Test_Sqli_Telemetry:
+    """Validate Telemetry data on exploit attempts"""
+
+    def setup_sqli_telemetry(self):
+        self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
+
+    def test_sqli_telemetry(self):
+        assert self.r.status_code == 403
+
+        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        assert series_eval
+        assert any(validate_metric("rasp.rule.eval", "sql_injection", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
+
+        series_match = find_series(True, "appsec", "rasp.rule.match")
+        assert series_match
+        assert any(validate_metric("rasp.rule.match", "sql_injection", s) for s in series_match), [
+            s.get("tags") for s in series_match
+        ]
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
+@features.rasp_sql_injection
+@scenarios.remote_config_mocked_backend_asm_dd
+class Test_Sqli_Capability:
+    """Validate that ASM_RASP_SQLI (21) capability is sent"""
+
+    def test_sqli_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SQLI)

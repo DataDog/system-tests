@@ -21,7 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>17</java.version>
         <opentracing.version>0.33.0</opentracing.version>
-        <opentelemetry.version>1.40.0</opentelemetry.version>
+        <opentelemetry.version>1.41.0</opentelemetry.version>
         <!-- Latest version of public tracer APP to match latest pulled agent -->
         <dd-trace-api.version>[1.0.0,)</dd-trace-api.version>
     </properties>

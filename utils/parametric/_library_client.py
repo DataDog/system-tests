@@ -35,6 +35,9 @@ class APMLibraryClient:
     def crash(self) -> None:
         raise NotImplementedError
 
+    def container_exec_run(self, command: str) -> tuple[bool, str]:
+        raise NotImplementedError
+
     def trace_start_span(
         self,
         name: str,
@@ -203,6 +206,23 @@ class APMLibraryClientHTTP(APMLibraryClient):
         except:
             # Expected
             pass
+
+    def container_exec_run(self, command: str) -> tuple[bool, str]:
+        try:
+            code, (stdout, _) = self.container.exec_run(command, demux=True)
+            if code is None:
+                success = False
+                message = "Exit code from command in the parametric app container is None"
+            elif stdout is None:
+                success = False
+                message = "Stdout from command in the parametric app container is None"
+            else:
+                success = True
+                message = stdout.decode()
+        except BaseException:
+            return False, "Encountered an issue running command in the parametric app container"
+
+        return success, message
 
     def trace_start_span(
         self,
@@ -450,6 +470,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
             "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
             "dd_env": config_dict.get("dd_env", None),
             "dd_version": config_dict.get("dd_version", None),
+            "dd_trace_agent_url": config_dict.get("dd_trace_agent_url", None),
+            "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
         }
 
 
@@ -581,6 +603,9 @@ class APMLibraryClientGRPC:
             logger.error(f"Container {self.container.name} status is: {self.container.status}. Logs:\n{logs}")
         except:  # noqa
             logger.error(f"Failed to get logs from container {self.container.name}")
+
+    def crash(self) -> None:
+        self._client.Crash(pb.CrashArgs())
 
     def trace_start_span(
         self,
@@ -800,6 +825,8 @@ class APMLibraryClientGRPC:
             "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
             "dd_env": config_dict.get("dd_env", None),
             "dd_version": config_dict.get("dd_version", None),
+            "dd_trace_agent_url": config_dict.get("dd_trace_agent_url", None),
+            "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
         }
 
 
@@ -818,6 +845,9 @@ class APMLibrary:
 
     def crash(self) -> None:
         self._client.crash()
+
+    def container_exec_run(self, command: str) -> tuple[bool, str]:
+        return self._client.container_exec_run(command)
 
     @contextlib.contextmanager
     def start_span(

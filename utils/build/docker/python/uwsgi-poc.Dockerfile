@@ -1,4 +1,4 @@
-FROM datadog/system-tests:uwsgi-poc.base-v3
+FROM datadog/system-tests:uwsgi-poc.base-v4
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
 RUN echo '#!/bin/bash \n\
-ddtrace-run uwsgi --http :7777 -w app:app --threads 2 --enable-threads\n' > app.sh
+uwsgi --http :7777 -w app:app --threads 2 --enable-threads --lazy-apps --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 

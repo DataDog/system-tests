@@ -6,14 +6,8 @@ let QueueUrl
 
 const snsPublish = (queue, topic, message) => {
   // Create an SQS client
-  const sns = new AWS.SNS({
-    endpoint: 'http://localstack-main:4566',
-    region: 'us-east-1'
-  })
-  const sqs = new AWS.SQS({
-    endpoint: 'http://localstack-main:4566',
-    region: 'us-east-1'
-  })
+  const sns = new AWS.SNS()
+  const sqs = new AWS.SQS()
 
   const messageToSend = message ?? 'Hello from SNS JavaScript injection'
 
@@ -32,7 +26,7 @@ const snsPublish = (queue, topic, message) => {
           reject(err)
         }
 
-        QueueUrl = `http://localstack-main:4566/000000000000/${queue}`
+        QueueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
 
         sqs.getQueueAttributes({ QueueUrl, AttributeNames: ['All'] }, (err, data) => {
           if (err) {
@@ -42,34 +36,63 @@ const snsPublish = (queue, topic, message) => {
 
           const QueueArn = data.Attributes.QueueArn
 
-          const subParams = {
-            Protocol: 'sqs',
-            Endpoint: QueueArn,
-            TopicArn
+          const policy = {
+            Version: '2012-10-17',
+            Id: `${QueueArn}/SQSDefaultPolicy`,
+            Statement: [
+              {
+                Sid: 'Allow-SNS-SendMessage',
+                Effect: 'Allow',
+                Principal: { Service: 'sns.amazonaws.com' },
+                Action: 'sqs:SendMessage',
+                Resource: QueueArn,
+                Condition: { ArnEquals: { 'aws:SourceArn': TopicArn } }
+              }
+            ]
           }
 
-          sns.subscribe(subParams, (err) => {
+          const policyParams = {
+            QueueUrl,
+            Attributes: {
+              Policy: JSON.stringify(policy)
+            }
+          }
+
+          sqs.setQueueAttributes(policyParams, (err) => {
             if (err) {
               console.log(err)
-              reject(err)
+              return reject(err)
             }
 
-            // Send messages to the queue
-            const produce = () => {
-              sns.publish({ TopicArn, Message: messageToSend }, (err, data) => {
-                if (err) {
-                  console.log(err)
-                  reject(err)
-                }
-
-                console.log(data)
-                resolve()
-              })
-              console.log('[SNS->SQS] Published a message from JavaScript SNS')
+            const subParams = {
+              Protocol: 'sqs',
+              Endpoint: QueueArn,
+              TopicArn
             }
 
-            // Start producing messages
-            produce()
+            sns.subscribe(subParams, (err) => {
+              if (err) {
+                console.log(err)
+                reject(err)
+              }
+
+              // Send messages to the queue
+              const produce = () => {
+                sns.publish({ TopicArn, Message: messageToSend }, (err, data) => {
+                  if (err) {
+                    console.log(err)
+                    reject(err)
+                  }
+
+                  console.log(data)
+                  resolve()
+                })
+                console.log(`[SNS->SQS] Published message to topic ${topic}: ${messageToSend}`)
+              }
+
+              // Start producing messages
+              produce()
+            })
           })
         })
       })
@@ -77,17 +100,19 @@ const snsPublish = (queue, topic, message) => {
   })
 }
 
-const snsConsume = async (queue, timeout) => {
+const snsConsume = async (queue, timeout, expectedMessage) => {
   // Create an SQS client
-  const sqs = new AWS.SQS({
-    endpoint: 'http://localstack-main:4566',
-    region: 'us-east-1'
-  })
+  const sqs = new AWS.SQS()
 
-  const queueUrl = `http://localstack-main:4566/000000000000/${queue}`
+  const queueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
 
   return new Promise((resolve, reject) => {
+    let messageFound = false
+
+    console.log(`[SNS->SQS] Looking for message in queue ${queue}: message: ${expectedMessage}`)
     const receiveMessage = () => {
+      if (messageFound) return
+
       sqs.receiveMessage({
         QueueUrl: queueUrl,
         MaxNumberOfMessages: 1,
@@ -99,21 +124,26 @@ const snsConsume = async (queue, timeout) => {
         }
 
         try {
-          console.log('[SNS->SQS] Received the following: ')
-          console.log(response)
           if (response && response.Messages && response.Messages.length > 0) {
+            console.log('[SNS->SQS] Received the following: ')
+            console.log(response.Messages)
             for (const message of response.Messages) {
-              // add a manual span to make finding this trace easier when asserting on tests
-              tracer.trace('sns.consume', span => {
-                span.setTag('queue_name', queue)
-              })
               console.log(message)
-              const messageJSON = JSON.parse(message.Body)
-              console.log(messageJSON)
-              const consumedMessage = messageJSON.Message
-              console.log('[SNS->SQS] Consumed the following: ' + consumedMessage)
+              if (message.Body === expectedMessage) {
+              // add a manual span to make finding this trace easier when asserting on tests
+                tracer.trace('sns.consume', span => {
+                  span.setTag('queue_name', queue)
+                })
+                console.log('[SNS->SQS] Consumed the following: ' + message.Body)
+                messageFound = true
+                resolve()
+              }
             }
-            resolve()
+            if (!messageFound) {
+              setTimeout(() => {
+                receiveMessage()
+              }, 1000)
+            }
           } else {
             console.log('[SNS->SQS] No messages received')
             setTimeout(() => {
@@ -127,8 +157,10 @@ const snsConsume = async (queue, timeout) => {
       })
     }
     setTimeout(() => {
-      console.error('[SNS->SQS] TimeoutError: Message not received')
-      reject(new Error('[SNS->SQS] TimeoutError: Message not received'))
+      if (!messageFound) {
+        console.error('[SNS->SQS] TimeoutError: Message not received')
+        reject(new Error('[SNS->SQS] TimeoutError: Message not received'))
+      }
     }, timeout) // Set a timeout of n seconds for message reception
 
     receiveMessage()

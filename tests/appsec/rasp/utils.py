@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import json
+
 from utils import interfaces
 
 
@@ -63,3 +65,68 @@ def validate_stack_traces(request):
 
             assert "frames" in stack, "'frames' not found in stack trace"
             assert len(stack["frames"]) <= 32, "stack trace above size limit (32 frames)"
+
+
+def find_series(is_metrics: bool, namespace, metric):
+    request_type = "generate-metrics" if is_metrics else "distributions"
+    series = []
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        if content.get("request_type") != request_type:
+            continue
+        fallback_namespace = content["payload"].get("namespace")
+        for serie in content["payload"]["series"]:
+            computed_namespace = serie.get("namespace", fallback_namespace)
+            # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+            serie["_computed_namespace"] = computed_namespace
+            if computed_namespace == namespace and serie["metric"] == metric:
+                series.append(serie)
+    return series
+
+
+def validate_metric(name, type, metric):
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{type}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+    )
+
+
+def _load_file(file_path):
+    with open(file_path, "r") as f:
+        return json.load(f)
+
+
+class RC_CONSTANTS:
+    CONFIG_ENABLED = (
+        "datadog/2/ASM_FEATURES/asm_features_activation/config",
+        {"asm": {"enabled": True}},
+    )
+    BLOCK_405 = (
+        "datadog/2/ASM/actions/config",
+        {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request",}]},
+    )
+
+    BLOCK_505 = (
+        "datadog/2/ASM/actions/config",
+        {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request",}]},
+    )
+
+    BLOCK_REDIRECT = (
+        "datadog/2/ASM/actions/config",
+        {
+            "actions": [
+                {
+                    "id": "block",
+                    "parameters": {"location": "http://google.com", "status_code": 302},
+                    "type": "redirect_request",
+                }
+            ]
+        },
+    )
+
+    RULES = (
+        "datadog/2/ASM/rules/config",
+        _load_file("./tests/appsec/rasp/rasp_ruleset.json"),
+    )

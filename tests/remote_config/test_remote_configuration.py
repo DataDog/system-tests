@@ -193,7 +193,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         reason="ASM_FEATURES was not subscribed when a custom rules file was present",
     )
     @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
-    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
+    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
@@ -204,9 +204,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -285,7 +284,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
+    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
@@ -300,9 +299,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -334,13 +332,13 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library >= "java@1.1.0" and context.library < "java@1.4.0", reason="?")
+    @bug(context.library >= "java@1.1.0" and context.library < "java@1.4.0", reason="APMRP-360")
     @irrelevant(
         context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
     )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
-    @bug(context.library <= "java@1.12.1", reason="config state id value was wrong")
+    @bug(context.library <= "java@1.12.1", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
@@ -351,9 +349,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
         def validate(data):
             """ Helper to validate config request content """
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -400,13 +397,12 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         self.assert_client_fields()
 
         def validate(data):
-            status_code = data["response"]["status_code"]
+            """Helper to validate config request content"""
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
-            """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -450,9 +446,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
         def validate(data):
             """Helper to validate config request content"""
 
-            status_code = data["response"]["status_code"]
-
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -498,9 +492,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 

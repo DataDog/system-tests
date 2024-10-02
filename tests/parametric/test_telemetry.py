@@ -90,6 +90,62 @@ class Test_Defaults:
 
 
 @scenarios.parametric
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o")
+@features.tracing_configuration_consistency
+# To pass this test, ensure the lang you are testing has the necessary mapping in its config_rules.json file: https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static
+# And replace the `missing_feature` marker under the lang's manifest file, for Test_Consistent_Configs
+class Test_Consistent_Configs:
+    """Clients should report modifications to features."""
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                "DD_ENV": "dev",
+                "DD_SERVICE": "service_test",
+                "DD_VERSION": "5.2.0",
+                "DD_TRACE_RATE_LIMIT": 10,
+                "DD_TRACE_HEADER_TAGS": "User-Agent:my-user-agent,Content-Type.",
+                "DD_TRACE_ENABLED": "false",
+                "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "\d{3}-\d{2}-\d{4}",
+                "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory",
+                "DD_TRACE_CLIENT_IP_HEADER": "random-header-name",
+                "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-250",
+                "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "250-200",
+                "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
+                # "DD_TRACE_AGENT_URL": "some-host:some-port", # Don't want to configure this, since we need tracer <> agent connection to run these tests!
+                # "DD_TRACE_<INTEGRATION>_ENABLED": "N/A", # Skipping because it is blocked by the telemetry intake & this information is already collected through other (non-config) telemetry.
+            }
+        ],
+    )
+    def test_library_settings(self, library_env, test_agent, test_library):
+        with test_library.start_span("test"):
+            pass
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        configuration = event["payload"]["configuration"]
+        configuration_by_name = {item["name"]: item for item in configuration}
+
+        # Check that the tags name match the expected value
+        assert configuration_by_name.get("DD_ENV").get("value") == "dev"
+        assert configuration_by_name.get("DD_SERVICE").get("value") == "service_test"
+        assert configuration_by_name.get("DD_VERSION").get("value") == "5.2.0"
+        assert configuration_by_name.get("DD_TRACE_RATE_LIMIT").get("value") == 10
+        assert (
+            configuration_by_name.get("DD_TRACE_HEADER_TAGS").get("value") == "User-Agent:my-user-agent,Content-Type."
+        )
+        assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == False
+        assert configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == "\d{3}-\d{2}-\d{4}"
+        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
+        assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER").get("value") == "random-header-name"
+        assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES").get("value") == "200-250"
+        assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES").get("value") == "250-200"
+        assert (
+            configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING").get("value") == False
+        )  # No telemetry received, tested with Python and Java(also tried: DD_HTTP_CLIENT_TAG_QUERY_STRING)
+
+
+@scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
 @features.telemetry_app_started_event
 class Test_Environment:

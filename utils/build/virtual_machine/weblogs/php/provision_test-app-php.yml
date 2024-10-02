@@ -8,7 +8,13 @@ lang_variant:
           - name: copy-auto-install-script
             local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
         remote-command: sudo sh php_install.sh deb
-
+      - os_type: linux
+        os_distro: rpm
+        os_branch: amazon_linux2
+        copy_files:
+          - name: copy-auto-install-script
+            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
+        remote-command: sudo sh php_install.sh amazon_linux_2
       - os_type: linux
         os_distro: rpm
         copy_files:
@@ -18,7 +24,9 @@ lang_variant:
 
 weblog:
     name: test-app-php
-    excluded_os_branches: [amazon_linux2_amd64, amazon_linux2_dotnet6, centos_7_amd64]
+    #Amazon Linux 2 is installing an old verison of PHP and it's not supported by SSI
+    excluded_os_branches: [ amazon_linux2_dotnet6, centos_7_amd64]
+    excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux
 

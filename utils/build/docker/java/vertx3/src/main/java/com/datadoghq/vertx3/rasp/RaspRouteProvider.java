@@ -8,6 +8,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
+import java.io.File;
+
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -26,6 +28,8 @@ public class RaspRouteProvider implements Consumer<Router> {
 
     private static final String USER_ID = "user_id";
 
+    private static final String FILE = "file";
+
     private final DataSource dataSource;
 
     public RaspRouteProvider(final DataSource dataSource) {
@@ -38,6 +42,9 @@ public class RaspRouteProvider implements Consumer<Router> {
         router.route().path("/rasp/sqli").consumes("application/xml").blockingHandler(rc -> executeSql(rc, parseXml(rc.getBody()).getUserId()));
         router.route().path("/rasp/sqli").consumes("application/json").blockingHandler(rc -> executeSql(rc, rc.getBodyAsJson().getString(USER_ID)));
         router.route().path("/rasp/sqli").blockingHandler(rc -> executeSql(rc, rc.request().getParam(USER_ID)));
+        router.route().path("/rasp/lfi").consumes("application/xml").blockingHandler(rc -> executeLfi(rc, parseFileXml(rc.getBody()).getFile()));
+        router.route().path("/rasp/lfi").consumes("application/json").blockingHandler(rc -> executeLfi(rc, rc.getBodyAsJson().getString(FILE)));
+        router.route().path("/rasp/lfi").blockingHandler(rc -> executeLfi(rc, rc.request().getParam(FILE)));
     }
 
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
@@ -55,11 +62,27 @@ public class RaspRouteProvider implements Consumer<Router> {
         }
     }
 
+    private void executeLfi(final RoutingContext rc, final String file) {
+        new File(file);
+        rc.response().end("OK");
+    }
+
     private UserDTO parseXml(final Buffer buffer) {
         try {
             JAXBContext jc = JAXBContext.newInstance(UserDTO.class);
             Unmarshaller unmarshaller = jc.createUnmarshaller();
             return (UserDTO) unmarshaller.unmarshal(new ByteBufInputStream(buffer.getByteBuf()));
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private FileDTO parseFileXml(final Buffer buffer) {
+        try {
+            JAXBContext jc = JAXBContext.newInstance(FileDTO.class);
+            Unmarshaller unmarshaller = jc.createUnmarshaller();
+            return (FileDTO) unmarshaller.unmarshal(new ByteBufInputStream(buffer.getByteBuf()));
         } catch (JAXBException e) {
             throw new RuntimeException(e);
         }
@@ -79,6 +102,22 @@ public class RaspRouteProvider implements Consumer<Router> {
 
         public void setUserId(String userId) {
             this.userId = userId;
+        }
+    }
+
+    @XmlRootElement(name = FILE)
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class FileDTO {
+
+        @XmlValue
+        private String file;
+
+        public String getFile() {
+            return file;
+        }
+
+        public void setFile(String file) {
+            this.file = file;
         }
     }
 }

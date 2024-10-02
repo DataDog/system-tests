@@ -86,6 +86,13 @@ async def healthcheck():
     }
 
 
+@app.get("/set_cookie", response_class=PlainTextResponse)
+async def set_cookie(request: Request):
+    return PlainTextResponse(
+        "OK", headers={"Set-Cookie": f"{request.query_params['name']}={request.query_params['value']}"}
+    )
+
+
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"
@@ -279,6 +286,11 @@ async def status_code(code: int = 200):
     return PlainTextResponse("OK, probably", status_code=code)
 
 
+@app.get("/stats-unique")
+async def stats_unique(code: int = 200):
+    return PlainTextResponse("OK, probably", status_code=code)
+
+
 @app.get("/make_distant_call")
 def make_distant_call(url: str):
     response = requests.get(url)
@@ -395,14 +407,28 @@ def _sink_point(table="user", id="1"):  # noqa: A002
     cursor.execute(sql)
 
 
+def _sink_point_path_traversal(tainted_str="user"):
+    try:
+        m = open(tainted_str)
+        _ = m.read()
+    except Exception:
+        pass
+
+
 class Body_for_iast(BaseModel):
     table: str
     user: str
 
 
 @app.post("/iast/source/body/test", response_class=PlainTextResponse)
-async def view_iast_source_body(body: Body_for_iast):
-    _sink_point(table=body.table, id=body.user)
+async def view_iast_source_body(request: Request):
+    body = await request.receive()
+
+    result = body["body"]
+
+    json_body = json.loads(result)
+
+    _sink_point_path_traversal(json_body["value"])
     return "OK"
 
 
@@ -410,20 +436,20 @@ async def view_iast_source_body(body: Body_for_iast):
 async def view_iast_source_cookie_name(request: Request):
     param = [key for key in request.cookies if key == "table"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(tainted_str=param[0])
         return "OK"
     return "KO"
 
 
 @app.get("/iast/source/cookievalue/test", response_class=PlainTextResponse)
 async def view_iast_source_cookie_value(table: typing.Annotated[str, Cookie()] = "undefined"):
-    _sink_point(table=table)
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
 @app.get("/iast/source/header/test", response_class=PlainTextResponse)
 async def view_iast_source_header_value(table: typing.Annotated[str, Header()] = "undefined"):
-    _sink_point(table=table)
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
@@ -459,6 +485,18 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
 async def view_iast_path_traversal_insecure(path: typing.Annotated[str, Form()]):
     os.mkdir(path)
+    return "OK"
+
+
+@app.get("/iast/source/path/test", response_class=PlainTextResponse)
+async def view_iast_source_path(request: Request):
+    _sink_point_path_traversal(tainted_str=request.url.path)
+    return "OK"
+
+
+@app.get("/iast/source/path_parameter/test/{table}", response_class=PlainTextResponse)
+async def view_iast_source_path(table):
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
@@ -555,25 +593,53 @@ def track_custom_event():
 
 
 @app.post("/iast/sqli/test_secure", response_class=PlainTextResponse)
-def view_sqli_secure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+async def view_sqli_secure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
+    sql = "SELECT * FROM users WHERE username=? AND password=?"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql, username, password)
+    cursor.execute(sql, (username, password))
     return "OK"
 
 
 @app.post("/iast/sqli/test_insecure", response_class=PlainTextResponse)
-def view_sqli_insecure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "'"
+async def view_sqli_insecure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
+    sql = "SELECT * FROM users WHERE username='" + username + "' AND password='" + password + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     cursor.execute(sql)
     return "OK"
 
 
+@app.post("/iast/ssrf/test_insecure", response_class=PlainTextResponse)
+async def view_iast_ssrf_insecure(url: typing.Annotated[str, Form()]):
+    try:
+        result = requests.get(str(url))
+    except Exception:
+        pass
+
+    return "OK"
+
+
+@app.post("/iast/ssrf/test_secure", response_class=PlainTextResponse)
+async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
+    from urllib.parse import urlparse
+
+    # Validate the URL and enforce whitelist
+    allowed_domains = ["example.com", "api.example.com"]
+    parsed_url = urlparse(str(url))
+
+    if parsed_url.hostname not in allowed_domains:
+        return "Forbidden", 403
+    try:
+        result = requests.get(parsed_url.geturl())
+    except Exception:
+        pass
+
+    return "OK"
+
+
 @app.get("/iast/insecure-cookie/test_insecure")
-def test_insecure_cookie():
+async def test_insecure_cookie():
     resp = PlainTextResponse("OK")
     resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="none")
     return resp
@@ -642,8 +708,9 @@ def test_weak_randomness_secure():
 
 
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
-def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
+async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
+
     subp = subprocess.Popen(args=[cmd, "-la", filename])
     subp.communicate()
     subp.wait()
@@ -651,7 +718,7 @@ def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
 
 
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
-def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
+async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
     command = " ".join([cmd, "-la", filename])  # noqa F841
     # TODO: add secure command

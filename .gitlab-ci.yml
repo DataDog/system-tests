@@ -2,6 +2,7 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
+  - extravms_tracer
   - ruby_tracer
   - nodejs_tracer
   - java_tracer
@@ -29,6 +30,45 @@ variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
+    KUBERNETES_CPU_REQUEST: "6"
+    KUBERNETES_CPU_LIMIT: "6"
+    AMI_UPDATE:
+      description: "Set to true to force the update the AMIs used in the system-tests"
+
+onboarding_install_extra_vms:
+  extends: .base_job_onboarding_system_tests
+  stage: extravms_tracer
+  allow_failure: true
+  dependencies: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+  variables:
+    SCENARIO: "SIMPLE_INSTALLER_AUTO_INJECTION"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_ENV: [prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container,test-app-nodejs-alpine-libgcc]
+          TEST_LIBRARY: "nodejs"
+        - ONBOARDING_FILTER_ENV: [prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine-libgcc]
+          TEST_LIBRARY: "java"
+        - ONBOARDING_FILTER_ENV: [prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python,test-app-python-container,test-app-python-alpine-libgcc]
+          TEST_LIBRARY: "python"
+        - ONBOARDING_FILTER_ENV: [prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
+          TEST_LIBRARY: "dotnet"
+        - ONBOARDING_FILTER_ENV: [prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
+          TEST_LIBRARY: "ruby"
+        - ONBOARDING_FILTER_ENV: [prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83,test-app-php-container-alpine]
+          TEST_LIBRARY: "php"
+  script:
+      - ./build.sh -i runner
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
 
 onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
@@ -234,8 +274,26 @@ onboarding_php:
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-shell-script]
+          SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-container-alpine]
+          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83,test-app-php-container-alpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          SCENARIO: [INSTALLER_AUTO_INJECTION_LD_PRELOAD]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
+          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
@@ -276,6 +334,7 @@ check_merge_labels:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
+    -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
@@ -291,6 +350,7 @@ generate_system_tests_images:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
+      -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
       - ./utils/build/build_tracer_buddies.sh --push
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh

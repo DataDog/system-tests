@@ -63,9 +63,9 @@ class Test_Login_Events:
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
         )
 
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @irrelevant(
-        context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
+        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
         reason="APM reports all user id for now on Django",
     )
     def test_login_pii_success_local(self):
@@ -81,9 +81,9 @@ class Test_Login_Events:
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @irrelevant(
-        context.library == "python" and context.scenario.weblog_variant in ["django-poc", "python3.12"],
+        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
         reason="APM reports all user id for now on Django",
     )
     def test_login_pii_success_basic(self):
@@ -127,7 +127,7 @@ class Test_Login_Events:
             "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
         )
 
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -149,7 +149,7 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -170,7 +170,7 @@ class Test_Login_Events:
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
         )
 
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -192,7 +192,7 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="Reports empty space in usr.id when id is a PII")
+    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -944,8 +944,9 @@ class Test_V2_Login_Events_Anon:
         "Accept-Language": "en-GB, *;q=0.5",
         "Content-Language": "en-GB",
         "Content-Length": "0",
-        "Content-Type": "text/html; charset=utf-8",
-        "Content-Encoding": "deflate, gzip",
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+        # removed because the request is not using this encoding to make the request and makes the test fail
+        # "Content-Encoding": "deflate, gzip",
         "Host": "127.0.0.1:1234",
         "User-Agent": "Benign User Agent 1.0",
         "X-Forwarded-For": "42.42.42.42, 43.43.43.43",

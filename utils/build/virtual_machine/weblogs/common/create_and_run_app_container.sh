@@ -11,6 +11,10 @@ cp Dockerfile.template Dockerfile || true
 
 sudo systemctl start docker # Start docker service if it's not started
 
+#workaround. Remove the system-tests cloned folder. The sources are copied to current home folder
+#if we don't remove it, the dotnet restore will try to restore the system-tests folder
+sudo rm -rf system-tests || true
+
 #The parameter RUNTIME is used only for dotnet
 sudo docker build --no-cache --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
 

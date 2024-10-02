@@ -1,3 +1,4 @@
+import signal
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -67,6 +68,11 @@ class StartSpanReturn(BaseModel):
     trace_id: int
 
 
+@app.get("/trace/crash")
+def trace_crash() -> None:
+    os.kill(os.getpid(), signal.SIGSEGV.value)
+
+
 @app.post("/trace/span/start")
 def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
     parent: Union[None, Span, Context]
@@ -79,6 +85,9 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         trace_id = parent.trace_id if parent else None
         parent_id = parent.span_id if parent else None
         parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=args.origin)
+
+    if args.service == "":
+        args.service = None
 
     if len(args.http_headers) > 0:
         headers = {k: v for k, v in args.http_headers}
@@ -129,6 +138,7 @@ def trace_config() -> TraceConfigReturn:
             "dd_trace_sample_ignore_parent": None,
             "dd_env": config.env,
             "dd_version": config.version,
+            "dd_trace_rate_limit": str(config._trace_rate_limit),
         }
     )
 

@@ -5,17 +5,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strconv"
 	"time"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
 
 	"github.com/Shopify/sarama"
+
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
 
@@ -49,6 +53,33 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
+		if c := r.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				w.WriteHeader(code)
+				return
+			}
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+
+		healthCheck, err := common.GetHealtchCheck()
+		if err != nil {
+			http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
+		}
+
+		jsonData, err := json.Marshal(healthCheck)
+		if err != nil {
+			http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+	})
+
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
 		body, err := common.ParseBody(r)
 		if err == nil {
@@ -76,6 +107,31 @@ func main() {
 	mux.HandleFunc("/sample_rate_route/", func(w http.ResponseWriter, r *http.Request) {
 		// net/http mux doesn't support advanced patterns, but the given prefix will match any /sample_rate_route/{i}
 		w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/tag_value/{tag_value}/{status_code}", func(w http.ResponseWriter, r *http.Request) {
+		tag := r.PathValue("tag_value")
+		status, _ := strconv.Atoi(r.PathValue("status_code"))
+		span, _ := tracer.SpanFromContext(r.Context())
+		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range r.URL.Query() {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
+		}
+		w.WriteHeader(status)
+		w.Write([]byte("Value tagged"))
+
+		switch {
+		case r.Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(r.Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(r.Context(), bodyMap)
+			}
+		case r.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(r.Context(), r.PostForm)
+		}
 	})
 
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
@@ -437,6 +493,21 @@ func main() {
 
 		w.WriteHeader(200)
 		w.Write([]byte("ok"))
+	})
+
+	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
+		sessionID := strconv.Itoa(rand.Int())
+		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")
+	})
+
+	mux.HandleFunc("/session/user", func(w http.ResponseWriter, r *http.Request) {
+		user := r.URL.Query().Get("sdk_user")
+		cookie, err := r.Cookie("session")
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte("missing session cookie"))
+		}
+		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)

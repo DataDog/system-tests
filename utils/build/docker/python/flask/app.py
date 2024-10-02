@@ -9,6 +9,8 @@ import sys
 import threading
 import urllib.request
 
+import boto3
+from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
@@ -67,6 +69,8 @@ from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
+from ddtrace.data_streams import set_consume_checkpoint
+from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 
@@ -160,6 +164,12 @@ def reset_dsm_context():
         del data_streams_processor()._current_context.value
     except AttributeError:
         pass
+
+
+def flush_dsm_checkpoints():
+    # force flush stats to ensure they're available to agent after test setup is complete
+    tracer.data_streams_processor.periodic()
+    data_streams_processor().periodic()
 
 
 @app.route("/")
@@ -354,6 +364,12 @@ def headers():
 
 @app.route("/status")
 def status_code():
+    code = flask_request.args.get("code", default=200, type=int)
+    return Response("OK, probably", status=code)
+
+
+@app.route("/stats-unique")
+def stats_unique():
     code = flask_request.args.get("code", default=200, type=int)
     return Response("OK, probably", status=code)
 
@@ -555,7 +571,8 @@ def consume_kafka_message():
 @app.route("/sqs/produce")
 def produce_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
-    message = "Hello from Python SQS"
+    message = flask_request.args.get("message", "Hello from Python SQS")
+
     output = sqs_produce(queue, message)
     if "error" in output:
         return output, 400
@@ -567,7 +584,9 @@ def produce_sqs_message():
 def consume_sqs_message():
     queue = flask_request.args.get("queue", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = sqs_consume(queue, timeout)
+    message = flask_request.args.get("message", "Hello from Python SQS")
+
+    output = sqs_consume(queue, message, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -578,7 +597,8 @@ def consume_sqs_message():
 def produce_sns_message():
     queue = flask_request.args.get("queue", "DistributedTracing SNS")
     topic = flask_request.args.get("topic", "DistributedTracing SNS Topic")
-    message = "Hello from Python SNS -> SQS"
+    message = flask_request.args.get("message", "Hello from Python SNS -> SQS")
+
     output = sns_produce(queue, topic, message)
     if "error" in output:
         return output, 400
@@ -590,7 +610,9 @@ def produce_sns_message():
 def consume_sns_message():
     queue = flask_request.args.get("queue", "DistributedTracing SNS")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = sns_consume(queue, timeout)
+    message = flask_request.args.get("message", "Hello from Python SNS -> SQS")
+
+    output = sns_consume(queue, message, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -601,9 +623,8 @@ def consume_sns_message():
 def produce_kinesis_message():
     stream = flask_request.args.get("stream", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
+    message = flask_request.args.get("message", "Hello from Python Producer: Kinesis Context Propagation Test")
 
-    # we only allow injection into JSON messages encoded as a string
-    message = json.dumps({"message": "Hello from Python Producer: Kinesis Context Propagation Test"})
     output = kinesis_produce(stream, message, "1", timeout)
     if "error" in output:
         return output, 400
@@ -615,7 +636,9 @@ def produce_kinesis_message():
 def consume_kinesis_message():
     stream = flask_request.args.get("stream", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
-    output = kinesis_consume(stream, timeout)
+    message = flask_request.args.get("message", "Hello from Python Producer: Kinesis Context Propagation Test")
+
+    output = kinesis_consume(stream, message, timeout)
     if "error" in output:
         return output, 400
     else:
@@ -661,6 +684,7 @@ def dsm():
     stream = flask_request.args.get("stream")
     exchange = flask_request.args.get("exchange")
     routing_key = flask_request.args.get("routing_key")
+    message = flask_request.args.get("message")
 
     logging.info(f"[DSM] Got request with integration: {integration}")
 
@@ -688,8 +712,8 @@ def dsm():
         logging.info("[kafka] Returning response")
         response = Response("ok")
     elif integration == "sqs":
-        produce_thread = threading.Thread(target=sqs_produce, args=(queue, "Hello, SQS from DSM python!",),)
-        consume_thread = threading.Thread(target=sqs_consume, args=(queue,))
+        produce_thread = threading.Thread(target=sqs_produce, args=(queue, message,),)
+        consume_thread = threading.Thread(target=sqs_consume, args=(queue, message,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -709,8 +733,8 @@ def dsm():
         logging.info("[RabbitMQ] Returning response")
         response = Response("ok")
     elif integration == "sns":
-        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, "Hello, SNS->SQS from DSM python!",),)
-        consume_thread = threading.Thread(target=sns_consume, args=(queue,))
+        produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, message,),)
+        consume_thread = threading.Thread(target=sns_consume, args=(queue, message,))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -719,10 +743,9 @@ def dsm():
         response = Response("ok")
     elif integration == "kinesis":
         timeout = int(flask_request.args.get("timeout", "60"))
-        message = json.dumps({"message": "Hello from Python DSM Kinesis test"})
 
         produce_thread = threading.Thread(target=kinesis_produce, args=(stream, message, "1", timeout))
-        consume_thread = threading.Thread(target=kinesis_consume, args=(stream, timeout))
+        consume_thread = threading.Thread(target=kinesis_consume, args=(stream, message, timeout))
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -734,6 +757,95 @@ def dsm():
     tracer.data_streams_processor.periodic()
     data_streams_processor().periodic()
     return response
+
+
+@app.route("/dsm/manual/produce")
+def dsm_manual_checkpoint_produce():
+    reset_dsm_context()
+    typ = flask_request.args.get("type")
+    target = flask_request.args.get("target")
+    headers = {}
+
+    def setter(k, v):
+        headers[k] = v
+
+    set_produce_checkpoint(typ, target, setter)
+    flush_dsm_checkpoints()
+
+    # headers = quote(headers)
+
+    logging.info(f"[DSM Manual Produced with Thread] Injected Headers: {headers}")
+
+    return Response("ok", headers=headers)
+
+
+@app.route("/dsm/manual/produce_with_thread")
+def dsm_manual_checkpoint_produce_with_thread():
+    reset_dsm_context()
+
+    def worker(typ, target, headers):
+        def setter(k, v):
+            headers[k] = v
+
+        set_produce_checkpoint(typ, target, setter)
+
+    typ = flask_request.args.get("type")
+    target = flask_request.args.get("target")
+    headers = {}
+
+    # Start a new thread to run the worker function
+    thread = threading.Thread(target=worker, args=(typ, target, headers))
+    thread.start()
+    thread.join()  # Wait for the thread to complete for this example
+    flush_dsm_checkpoints()
+
+    # headers = quote(headers)
+
+    logging.info(f"[DSM Manual Produce with Thread] Injected Headers: {headers}")
+
+    return Response("ok", headers=headers)
+
+
+@app.route("/dsm/manual/consume")
+def dsm_manual_checkpoint_consume():
+    reset_dsm_context()
+
+    typ = flask_request.args.get("type")
+    source = flask_request.args.get("source")
+    carrier = json.loads(flask_request.headers.get("_datadog"))
+    logging.info(f"[DSM Manual Consume] Received Headers: {carrier}")
+
+    def getter(k):
+        return carrier[k]
+
+    set_consume_checkpoint(typ, source, getter)
+    flush_dsm_checkpoints()
+    return Response("ok")
+
+
+@app.route("/dsm/manual/consume_with_thread")
+def dsm_manual_checkpoint_consume_with_thread():
+    reset_dsm_context()
+
+    def worker(typ, target, headers):
+        logging.info(f"[DSM Manual Consume With Thread] Received Headers: {headers}")
+
+        def getter(k):
+            return headers[k]
+
+        set_consume_checkpoint(typ, target, getter)
+
+    typ = flask_request.args.get("type")
+    source = flask_request.args.get("source")
+    carrier = json.loads(flask_request.headers.get("_datadog"))
+
+    # Start a new thread to run the worker function
+    thread = threading.Thread(target=worker, args=(typ, source, carrier))
+    thread.start()
+    thread.join()  # Wait for the thread to complete for this example
+    flush_dsm_checkpoints()
+
+    return Response("ok")
 
 
 @app.route("/dsm/inject")
@@ -821,8 +933,7 @@ def _sink_point_path_traversal(tainted_str="user"):
 @app.route("/iast/source/body/test", methods=["POST"])
 def view_iast_source_body():
     table = flask_request.json.get("name")
-    user = flask_request.json.get("value")
-    _sink_point_sqli(table=table, id=user)
+    _sink_point_sqli(table=table)
     return Response("OK")
 
 
@@ -874,6 +985,19 @@ def view_iast_source_parameter():
         table = flask_request.args.get("table")
     else:
         table = flask_request.json.get("table")
+    _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/path/test", methods=["GET", "POST"])
+def view_iast_source_path():
+    table = flask_request.path
+    _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/source/path_parameter/test/<string:table>", methods=["GET", "POST"])
+def view_iast_source_path_parameter(table):
     _sink_point_sqli(table=table)
     return Response("OK")
 
@@ -1041,10 +1165,19 @@ def view_sqli_insecure():
     return Response("OK")
 
 
+@app.route("/set_cookie", methods=["GET"])
+def set_cookie():
+    name = flask_request.args.get("name")
+    value = flask_request.args.get("value")
+    resp = Response("OK")
+    resp.headers["Set-Cookie"] = f"{name}={value}"
+    return resp
+
+
 @app.route("/iast/insecure-cookie/test_insecure")
 def test_insecure_cookie():
     resp = Response("OK")
-    resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="None")
+    resp.set_cookie("insecure", "cookie", secure=False, httponly=True, samesite="Strict")
     return resp
 
 
@@ -1056,9 +1189,9 @@ def test_secure_cookie():
 
 
 @app.route("/iast/insecure-cookie/test_empty_cookie")
-def test_empty_cookie():
+def test_insecure_cookie_empty_cookie():
     resp = Response("OK")
-    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    resp.set_cookie("insecure", "", secure=False, httponly=True, samesite="Strict")
     return resp
 
 
@@ -1079,7 +1212,7 @@ def test_nohttponly_secure_cookie():
 @app.route("/iast/no-httponly-cookie/test_empty_cookie")
 def test_nohttponly_empty_cookie():
     resp = Response("OK")
-    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="Strict")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=False, samesite="Strict")
     return resp
 
 
@@ -1094,6 +1227,13 @@ def test_nosamesite_insecure_cookie():
 def test_nosamesite_secure_cookie():
     resp = Response("OK")
     resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="Strict")
+    return resp
+
+
+@app.route("/iast/no-samesite-cookie/test_empty_cookie")
+def test_no_samesite_empty_cookie():
+    resp = Response("OK")
+    resp.set_cookie("insecure", "", secure=True, httponly=True, samesite="None")
     return resp
 
 
@@ -1176,3 +1316,22 @@ def return_headers(*args, **kwargs):
     for key, value in flask_request.headers.items():
         headers[key] = value
     return jsonify(headers)
+
+
+@app.route("/mock_s3/put_object", methods=["GET", "POST", "OPTIONS"])
+def s3_put_object():
+
+    bucket = flask_request.args.get("bucket")
+    key = flask_request.args.get("key")
+    body: str = flask_request.args.get("key")
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=bucket)
+        response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+
+    return jsonify(result)

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -49,14 +50,18 @@ public abstract class ApmTestApiOtel : ApmTestApi
         // try extracting parent context from headers (remote parent)
         if (requestBodyObject.TryGetValue("http_headers", out var headersList))
         {
-            var extractedContext = _spanContextExtractor.Extract(
+            var manualExtractedContext = _spanContextExtractor.Extract(
             ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
             getter: GetHeaderValues!);
 
-            _logger?.LogInformation("Extracted SpanContext: {ExtractedContext}", extractedContext);
+            _logger?.LogInformation("Extracted SpanContext: {ExtractedContext}", manualExtractedContext);
 
-            if (extractedContext is not null)
+            if (manualExtractedContext is not null)
             {
+                // This implementation is .NET v3 specific, and assumes that the span returned by StartActive is a DuckType
+                var extractedContext = manualExtractedContext.GetType()
+                    .GetProperty("Instance", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                    ?.GetValue(manualExtractedContext);
                 var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
                 var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
                 var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
@@ -137,10 +142,14 @@ public abstract class ApmTestApiOtel : ApmTestApi
                 {
                     var httpHeadersToken = (JArray)spanLink["http_headers"]!;
 
-                    var extractedContext = _spanContextExtractor.Extract(
+                    var manualExtractedContext = _spanContextExtractor.Extract(
                             httpHeadersToken.ToObject<string[][]>(),
                             getter: GetHeaderValues!);
 
+                    // This implementation is .NET v3 specific, and assumes that the span returned by StartActive is a DuckType
+                    var extractedContext = manualExtractedContext?.GetType()
+                        .GetProperty("Instance", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                        ?.GetValue(manualExtractedContext);
                     var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
                     var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
                     var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;

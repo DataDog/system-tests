@@ -83,7 +83,17 @@ class _SSHConfig:
 
 class _VirtualMachine:
     def __init__(
-        self, name, aws_config, vagrant_config, krunvm_config, os_type, os_distro, os_branch, os_cpu, **kwargs,
+        self,
+        name,
+        aws_config,
+        vagrant_config,
+        krunvm_config,
+        os_type,
+        os_distro,
+        os_branch,
+        os_cpu,
+        default_vm=True,
+        **kwargs,
     ) -> None:
         self.name = name
         self.datadog_config = DataDogConfig()
@@ -100,9 +110,28 @@ class _VirtualMachine:
         self.deffault_open_port = 5985
         self.agent_env = None
         self.app_env = None
+        self.default_vm = default_vm
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
+
+    def get_ip(self):
+        """ If we run the tests using xdist we lost the ip address of the VM. We can recover it from the logs"""
+        if not self.ssh_config.hostname:
+            self._load_ip_from_logs()
+        return self.ssh_config.hostname
+
+    def _load_ip_from_logs(self):
+        """ Load the ip address from the logs"""
+        vms_desc_file = f"{context.scenario.host_log_folder}/vms_desc.log"
+        logger.info(f"Loading ip for {self.name} from {vms_desc_file}")
+        if os.path.isfile(vms_desc_file):
+            with open(vms_desc_file, "r") as f:
+                for line in f:
+                    if self.name in line:
+                        self.ssh_config.hostname = line.split(":")[1]
+                        logger.info(f"IP found for {self.name}. IP: {self.ssh_config.hostname}")
+                        break
 
     def get_log_folder(self):
         vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
@@ -143,7 +172,7 @@ class _VirtualMachine:
             if installation.cache:
                 vm_cached_installations += f"{installation.id}_"
         vm_cached_installations = hashlib.shake_128(vm_cached_installations.encode("utf-8")).hexdigest(4)
-        return vm_cached_name + vm_cached_installations
+        return vm_cached_name + vm_cached_installations + "_" + self.get_provision().provision_name
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """
@@ -247,8 +276,24 @@ class AmazonLinux2amd64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="amazon_linux2_amd64",
+            os_branch="amazon_linux2",
             os_cpu="amd64",
+            **kwargs,
+        )
+
+
+class AmazonLinux2arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2_arm64",
+            aws_config=_AWSConfig(ami_id="ami-024e548e5cf8ed98b", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2",
+            os_cpu="arm64",
+            default_vm=False,
             **kwargs,
         )
 
@@ -311,5 +356,190 @@ class Centos7amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="centos_7_amd64",
             os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 9.2. Owner oracle, id: 131827586825
+class OracleLinux92amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_9_2_amd64",
+            aws_config=_AWSConfig(ami_id="ami-01453ca80e53609e3", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class OracleLinux92arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_9_2_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0d1bcd0124ba74024", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 8.8. Owner oracle, id: 131827586825
+class OracleLinux88amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_8_8_amd64",
+            aws_config=_AWSConfig(ami_id="ami-02a7419f257858fad", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class OracleLinux88arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_8_8_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0463a0d7ecd42cc89", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 7.9. Owner oracle, id: 131827586825
+class OracleLinux79amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_7_9_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0fb08d5eb039a9ebd", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# 8.10.20240820
+# https://wiki.almalinux.org/cloud/AWS.html#community-amis
+class AlmaLinux8amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_8_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0825c833650fed842", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class AlmaLinux8arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_8_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0f1d97cfa7cf5ad5d", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# 9.4.20240805
+class AlmaLinux9amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_9_amd64",
+            aws_config=_AWSConfig(
+                ami_id="ami-0c2163c916f8dd3c8", ami_instance_type="t2.medium", user="ec2-user"
+            ),  # 9.4
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class AlmaLinux9arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "AlmaLinux_9_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0ba8fa4bea636d73f", ami_instance_type="t4g.small", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="alma_linux",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Ubuntu24amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_24_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0e86e20dae9224db8", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu24",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Ubuntu24arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_24_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0e879a1b306fffb22", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu24",
+            os_cpu="arm64",
+            default_vm=False,
             **kwargs,
         )

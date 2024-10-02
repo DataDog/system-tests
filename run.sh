@@ -385,6 +385,11 @@ function main() {
                 scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
                 unset "scenarios[${i}]"
                 ;;
+
+            APPSEC_DISABLED)
+                scenarios+=(EVERYTHING_DISABLED)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 
@@ -417,6 +422,9 @@ function main() {
         fi
         if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
+        fi
+        if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
+            pytest_numprocesses=6
         fi
     done
 

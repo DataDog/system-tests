@@ -47,28 +47,6 @@ jobs:
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
-  test_the_test_legacy_39:
-    runs-on:
-      group: "APM Larger Runners"
-    name: Test the test legacy python3.9
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install runner
-        uses: ./.github/actions/install_runner
-        with:
-          legacy_python_39: true
-      - name: Test the test (direct)
-        run: ./run.sh TEST_THE_TEST
-      - name: Build
-        run: ./build.sh
-      - name: Test idiomatics scenarios
-        run: |
-          ./run.sh DEFAULT
-          ./run.sh PARAMETRIC -L golang --splits=8 --group=1
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-
   scenarios:
     name: Get scenarios and groups
     uses: ./.github/workflows/compute-scenarios.yml
@@ -121,6 +99,9 @@ jobs:
         - dev
       fail-fast: false
     uses: ./.github/workflows/system-tests.yml
+    permissions:
+      contents: read
+      packages: write
     secrets: inherit
     with:
       library: ${{ matrix.library }}
@@ -143,6 +124,8 @@ jobs:
     - get_dev_artifacts  # non official set-up, this needs put this job in last
     if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
+    permissions:
+      packages: write
     secrets: inherit
 
   exotics:

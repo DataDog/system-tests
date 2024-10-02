@@ -1,6 +1,5 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
-from functools import lru_cache
 import time
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
@@ -45,6 +44,7 @@ def is_v1_payload(data):
     return get_request_content(data).get("api_version") == "v1"
 
 
+@rfc("https://docs.google.com/document/d/1Fai2gZlkvfa_WQs_yJsmi3nUwiOsMtNu2LFBnbTHJRA/edit#heading=h.llmi584vls7r")
 @features.telemetry_instrumentation
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
@@ -194,7 +194,7 @@ class Test_Telemetry:
                     )
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
+    @flaky(context.library <= "python@1.20.2", reason="APMRP-360")
     @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
@@ -215,6 +215,7 @@ class Test_Telemetry:
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @flaky(library="python", reason="app-started not sent first")
+    @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
@@ -236,9 +237,7 @@ class Test_Telemetry:
                 app_started[0]["request"]["content"]["seq_id"] == min_seq_id
             ), "app-started is not the first message by seq_id"
 
-    @bug(
-        weblog_variant="spring-boot-openliberty", reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
-    )
+    @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
     @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_proxy_forwarding(self):
@@ -338,45 +337,29 @@ class Test_Telemetry:
         return delays_by_runtime
 
     @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library <= "java@1.38.1", reason="Telemetry second heartbeat was sent too fast")
-    @flaky(library="nodejs", reason="AIT-9176")
+    @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
+    @flaky(context.library <= "php@0.90", reason="APMRP-360")
     @flaky(library="ruby", reason="APMAPI-226")
+    @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
     @features.telemetry_heart_beat_collected
-    def test_app_heartbeat_not_too_fast(self):
-        """ Check for telemetry heartbeat are not sent to fast, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL """
-
-        delays_by_runtime = self._get_heartbeat_delays_by_runtime()
-
-        # This interval can't be perfeclty exact, give some room for tests
-        LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
-
-        for delays in delays_by_runtime.values():
-            ### Check each individual delays, as there are no good reason to have a delay too fast
-            for delay in delays:
-                assert (
-                    delay > LIMIT
-                ), f"Heartbeat sent too fast: ({delay}s). It should be sent every {context.telemetry_heartbeat_interval}s"
-
-    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
-    @flaky(library="ruby", reason="APMAPI-226")
-    @features.telemetry_heart_beat_collected
-    def test_app_heartbeat_not_too_slow(self):
+    def test_app_heartbeats_delays(self):
         """
-            Check for telemetry heartbeat are not sent to fast, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
-            As there ar a lot of reason for this heartbeat to be sent too slow, we will check the average delay
+            Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+            There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
+            to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
         """
 
         delays_by_runtime = self._get_heartbeat_delays_by_runtime()
 
         # This interval can't be perfeclty exact, give some room for tests
-        LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
+        LOWER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
+        UPPER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
+        expectation = f"It should be sent every {context.telemetry_heartbeat_interval}s"
 
         for delays in delays_by_runtime.values():
             average_delay = sum(delays) / len(delays)
-            assert (
-                average_delay < LIMIT
-            ), f"Heartbeat sent too slow: ({average_delay}s). It should be sent every {context.telemetry_heartbeat_interval}s"
+            assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
+            assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
