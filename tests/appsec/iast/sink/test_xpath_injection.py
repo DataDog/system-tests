@@ -7,7 +7,6 @@ from ..utils import BaseSinkTestWithoutTelemetry
 
 
 @features.iast_sink_xpathinjection
-@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestXPathInjection(BaseSinkTestWithoutTelemetry):
     """Test xpath injection detection."""
 
