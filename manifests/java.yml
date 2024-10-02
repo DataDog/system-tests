@@ -1300,8 +1300,8 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: missing_feature
-    Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_IntegrationEnabled_False: v1.40.0 # MTOFF
+    Test_Config_IntegrationEnabled_True: v1.40.0 #MTOFF
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
