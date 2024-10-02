@@ -701,6 +701,18 @@ class WeblogContainer(TestedContainer):
         self.environment["AWS_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
         self.environment["AWS_DEFAULT_REGION"] = self.environment["AWS_REGION"]
 
+        # ensure AWS authentication env variables are set, or log an exception if not.
+        if self.name in ["INTEGRATIONS", "CROSSED_TRACING_LIBRARIES"]:
+            if self.environment["AWS_ACCESS_KEY_ID"] == "":
+                logger.exception(f"Error while starting {self.name} weblogs: AWS environment variables
+                    for authentication must be set on your local machine: please set 'SYSTEM_TESTS_AWS_ACCESS_KEY_ID' 
+                    using valid credentials for Datadog AWS Sandbox Account: 601427279990")
+            if self.environment["AWS_SECRET_ACCESS_KEY"] == "":
+                logger.exception(f"Error while starting {self.name} weblogs: AWS environment variables
+                    for authentication must be set on your local machine: please set 'SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY'
+                    using valid credentials for Datadog AWS Sandbox Account: 601427279990")
+
+
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
         )
