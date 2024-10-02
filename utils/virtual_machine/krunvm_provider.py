@@ -45,7 +45,7 @@ class KrunVmProvider(VmProvider):
         """ Check if there is an image for one test. Also check if we are using the env var to force the iamge creation"""
         image_id = None
         # Configure name
-        image_name = vm.get_cache_name() + "_" + context.scenario.name
+        image_name = vm.get_cache_name()
         image_name = image_name.lower()
         image_id = "localhost/" + image_name
 
@@ -158,7 +158,7 @@ class KrunVmCommander(Commander):
         # First we need to wait for cacheable commands to be processed
         self.wait_until_commands_processed(vm, timeout=600)
 
-        cache_image_name = vm.get_cache_name() + "_" + context.scenario.name
+        cache_image_name = vm.get_cache_name()
         cache_image_name = cache_image_name.lower()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.info(f"Creating cached image with name [{cache_image_name}] from [{vm.name}] and container [{server}]")
