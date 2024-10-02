@@ -1,4 +1,5 @@
-from utils import weblog, interfaces
+from utils import weblog, interfaces, scenarios
+
 
 @scenarios.external_processing
 class Test_ExternalProcessing:

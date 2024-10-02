@@ -1079,3 +1079,41 @@ class DockerSSIContainer(TestedContainer):
         """Get env variables from the container """
         env = self.image.env | self.environment
         return env.get(env_var)
+
+
+class DummyServerContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="jasonrm/dummy-server:latest",
+            name="dummy-server",
+            host_log_folder=host_log_folder,
+            ports={"8080": ("127.0.0.1", 8080)},
+            healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+        )
+
+
+class EnvoyContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="envoyproxy/envoy:v1.31-latest",
+            name="envoy",
+            host_log_folder=host_log_folder,
+            # ports={"8080": ("127.0.0.1", 8080)},
+            # healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+        )
+
+
+class ExternalProcessingContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest",
+            name="extproc",
+            host_log_folder=host_log_folder,
+            environment={"DD_APPSEC_ENABLED": "true"}
+            # ports={"8080": ("127.0.0.1", 8080)},
+            # healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+        )
+
+    @property
+    def library(self) -> LibraryVersion:
+        return LibraryVersion("golang", "0.0.0")  # TODO
