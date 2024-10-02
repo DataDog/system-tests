@@ -32,7 +32,7 @@ class Test_Fingerprinting_Header_And_Network:
         assert all("_dd.appsec.fp.http.network" in m for m in r_span_meta)
         for m in r_span_meta:
             fp = m["_dd.appsec.fp.http.network"]
-            assert re.match(self.network_fingerprint_regex, fp), f"{fp} does not match network_fingerprint_regex regex"
+            assert re.match(self.network_fingerprint_regex, fp), f"{fp} does not match network fingerprint regex"
         assert all("_dd.appsec.fp.http.network" not in m for m in get_span_meta(self.n))
 
     def setup_fingerprinting_header(self):
@@ -46,7 +46,7 @@ class Test_Fingerprinting_Header_And_Network:
         assert all("_dd.appsec.fp.http.header" in m for m in r_span_meta)
         for m in r_span_meta:
             fp = m["_dd.appsec.fp.http.header"]
-            assert re.match(self.header_fingerprint_regex, fp), f"{fp} does not match header_fingerprint_regex regex"
+            assert re.match(self.header_fingerprint_regex, fp), f"{fp} does not match header fingerprint regex"
         assert all("_dd.appsec.fp.http.header" not in m for m in get_span_meta(self.n))
 
     def setup_fingerprinting_network_block(self):
@@ -80,9 +80,7 @@ class Test_Fingerprinting_Endpoint:
         assert all("_dd.appsec.fp.http.endpoint" in m for m in r_span_meta)
         for m in r_span_meta:
             fp = m["_dd.appsec.fp.http.endpoint"]
-            assert re.match(
-                self.endpoint_fingerprint_regex, fp
-            ), f"{fp} does not match endpoint_fingerprint_regex regex"
+            assert re.match(self.endpoint_fingerprint_regex, fp), f"{fp} does not match endpoint fingerprint regex"
         assert all("_dd.appsec.fp.http.endpoint" not in m for m in get_span_meta(self.n))
 
 
@@ -103,7 +101,7 @@ class Test_Fingerprinting_Session:
         assert all("_dd.appsec.fp.session" in m for m in r_user_span_meta)
         for m in r_user_span_meta:
             fp = m["_dd.appsec.fp.session"]
-            assert re.match(self.session_fingerprint_regex, fp), f"{fp} does not match session_fingerprint_regex regex"
+            assert re.match(self.session_fingerprint_regex, fp), f"{fp} does not match session fingerprint regex"
 
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
