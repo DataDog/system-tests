@@ -23,8 +23,3 @@ class Test_Otel_Span_With_Baggage:
             with test_library.otel_start_span(name="otel-baggage-inject") as otel_span:
                 value = test_library.otel_set_baggage(otel_span.span_id, "foo", "bar")
                 assert value == "bar"
-
-    # def test_otel_datadog_baggage(self, test_agent, test_library):
-    #     with test_library:
-    #         with test_library.otel_start_span(name="otel-baggage") as otel_span:
-    #             value = test_library.otel_set_baggage(otel_span.span_id, "abcd", "1234")

@@ -79,9 +79,9 @@ class Test_Headers_Baggage:
         assert span.get("parent_id") == 987654321
         assert "baggage" not in headers.keys()
 
-    def test_baggage_inject_header_D005(self, test_library):
+    def test_baggage_inject_header_D004(self, test_library):
         """testing baggage header injection, proper concatenation of key value pairs, and encoding"""
-        with test_library.start_span(name="test_baggage_set_D005") as span:
+        with test_library.start_span(name="test_baggage_set_D004") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
@@ -100,10 +100,10 @@ class Test_Headers_Baggage:
         assert "serverNode=DF%2028" in baggage_items
         assert "%22%2C%3B%5C%28%29%2F%3A%3C%3D%3E%3F%40%5B%5D%7B%7D=%22%2C%3B%5C" in baggage_items
 
-    def test_baggage_extract_header(self, test_library):
+    def test_baggage_extract_header_D005(self, test_library):
         """testing baggage header extraction and decoding"""
         with test_library.start_span(
-            name="test_baggage_extract_header",
+            name="test_baggage_extract_header_D005",
             http_headers=[
                 [
                     "baggage",
@@ -122,8 +122,8 @@ class Test_Headers_Baggage:
                 '",;\\()/:<=>?@[]{}': '",;\\',
             }
 
-    def test_baggage_set(self, test_library):
-        with test_library.start_span(name="test_baggage_set") as span:
+    def test_baggage_set_D006(self, test_library):
+        with test_library.start_span(name="test_baggage_set_D006") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
@@ -135,19 +135,19 @@ class Test_Headers_Baggage:
             assert span.get_baggage("serverNode") == "DF 28"
 
     @disable_baggage()
-    def test_baggage_set_disabled_D006(self, test_library):
+    def test_baggage_set_disabled_D007(self, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled."""
-        with test_library.start_span(name="test_baggage_set_disabled_D006") as span:
+        with test_library.start_span(name="test_baggage_set_disabled_D007") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
 
             headers = test_library.inject_headers(span.span_id)
         assert not any("baggage" in item for item in headers)
 
-    def test_baggage_get_D007(self, test_library):
+    def test_baggage_get_D008(self, test_library):
         """testing baggage API get_baggage"""
         with test_library.start_span(
-            name="test_baggage_get_D007", http_headers=[["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]],
+            name="test_baggage_get_D008", http_headers=[["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]],
         ) as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
@@ -156,18 +156,18 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
-    def test_baggage_get_all_D008(self, test_library):
+    def test_baggage_get_all_D009(self, test_library):
         """testing baggage API get_all_baggage"""
-        with test_library.start_span(name="test_baggage_get_all_D008", http_headers=[["baggage", "foo=bar"]]) as span:
+        with test_library.start_span(name="test_baggage_get_all_D009", http_headers=[["baggage", "foo=bar"]]) as span:
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
             span.set_baggage("serverNode", "DF 28")
             baggage = span.get_all_baggage()
             assert baggage == {"foo": "bar", "baz": "qux", "userId": "Amélie", "serverNode": "DF 28"}
 
-    def test_baggage_remove_D009(self, test_library):
+    def test_baggage_remove_D010(self, test_library):
         """testing baggage API remove_baggage"""
-        with test_library.start_span(name="test_baggage_remove_D009") as span:
+        with test_library.start_span(name="test_baggage_remove_D010") as span:
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
             span.set_baggage("serverNode", "DF 28")
@@ -177,67 +177,58 @@ class Test_Headers_Baggage:
             span.remove_baggage("serverNode")
             assert span.get_all_baggage() == {}
 
-    def test_baggage_remove_all_D010(self, test_library):
+    def test_baggage_remove_all_D011(self, test_library):
         """testing baggage API remove_all_baggage"""
-        with test_library.start_span(name="test_baggage_remove_all_D010") as span:
+        with test_library.start_span(name="test_baggage_remove_all_D011") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
             span.remove_all_baggage()
             assert span.get_all_baggage() == {}
 
-    def test_baggage_malformed_headers_D011(self, test_library, test_agent):
-        """Ensure that malformed baggage headers are handled properly."""
-        with test_library.start_span(
-            name="test_baggage_malformed_headers_D011",
-            http_headers=[["baggage", "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"]],
-        ) as span:
+    def test_baggage_malformed_headers_D012(self, test_library, test_agent):
+        """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
+        with test_library:
+            headers = make_single_request_and_get_inject_headers(
+                test_library, [["baggage", "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"]],
+            )
 
-            assert span.get_all_baggage() == {}
-            headers = test_library.inject_headers(span.span_id)
-            assert not any("baggage" in item for item in headers)
-
-    def test_baggage_malformed_headers_D012(self, test_library):
-        with test_library.start_span(
-            name="test_baggage_malformed_headers_D012", http_headers=[["baggage", "=no-key"]],
-        ) as span:
-
-            assert span.get_all_baggage() == {}
-            headers = test_library.inject_headers(span.span_id)
-            assert not any("baggage" in item for item in headers)
+            assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D013(self, test_library):
-        with test_library.start_span(
-            name="test_baggage_malformed_headers_D013", http_headers=[["baggage", "no-value="]],
-        ) as span:
+        """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
+        with test_library:
+            headers = make_single_request_and_get_inject_headers(test_library, [["baggage", "=no-key"]],)
 
-            assert span.get_all_baggage() == {}
-            headers = test_library.inject_headers(span.span_id)
-            assert not any("baggage" in item for item in headers)
+            assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D014(self, test_library):
-        with test_library.start_span(
-            name="test_baggage_malformed_headers_D014",
-            http_headers=[["baggage", "foo=gets-dropped-because-subsequent-pair-is-malformed,="]],
-        ) as span:
+        with test_library:
+            headers = make_single_request_and_get_inject_headers(test_library, [["baggage", "no-value="]],)
 
-            assert span.get_all_baggage() == {}
-            headers = test_library.inject_headers(span.span_id)
-            assert not any("baggage" in item for item in headers)
+            assert "baggage" not in headers.keys()
 
-    def test_baggageheader_maxitems_inject_D015(self, test_library):
+    def test_baggage_malformed_headers_D015(self, test_library):
+        with test_library:
+            headers = make_single_request_and_get_inject_headers(
+                test_library, [["baggage", "foo=gets-dropped-because-subsequent-pair-is-malformed,="]],
+            )
+
+            assert "baggage" not in headers.keys()
+
+    def test_baggageheader_maxitems_inject_D016(self, test_library):
         """Ensure that baggage headers are not injected when the number of baggage items exceeds the maximum number of items."""
         max_items = 64
-        with test_library.start_span(name="test_baggageheader_maxitems_inject_D015") as span:
+        with test_library.start_span(name="test_baggageheader_maxitems_inject_D016") as span:
             for i in range(max_items + 1):
                 span.set_baggage(f"key{i}", f"value{i}")
 
             headers = test_library.inject_headers(span.span_id)
             assert not any("baggage" in item for item in headers)
 
-    def test_baggageheader_maxbytes_inject_D016(self, test_library):
+    def test_baggageheader_maxbytes_inject_D017(self, test_library):
         """Ensure that baggage headers are not injected when the total byte size of the baggage exceeds the maximum size."""
         max_bytes = 8192
-        with test_library.start_span(name="test_baggageheader_maxbytes_inject_D016",) as span:
+        with test_library.start_span(name="test_baggageheader_maxbytes_inject_D017",) as span:
             span.set_baggage("foo", "a" * (max_bytes))
 
         headers = test_library.inject_headers(span.span_id)
