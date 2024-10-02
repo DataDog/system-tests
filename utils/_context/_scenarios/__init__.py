@@ -467,7 +467,12 @@ class scenarios:
 
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
-        weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "", "DD_TRACE_KAFKA_ENABLED": "true", "DD_TRACE_KAFKAJS_ENABLED": "true", "DD_TRACE_CLIENT_IP_ENABLED": "true"},
+        weblog_env={
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
+            "DD_TRACE_KAFKA_ENABLED": "true",
+            "DD_TRACE_KAFKAJS_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+        },
         include_kafka=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
     )

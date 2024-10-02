@@ -255,7 +255,6 @@ class Test_Config_ClientIPHeader_Precedence:
         self.requests = []
         for i in range(len(self.IP_HEADERS)):
             headers = {k: v for k, v in self.IP_HEADERS[i:]}
-            print(99, headers)
             self.requests.append(
                 weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=headers)
             )
@@ -267,9 +266,7 @@ class Test_Config_ClientIPHeader_Precedence:
         for i in range(len(self.IP_HEADERS)):
             req = self.requests[i]
             ip = self.IP_HEADERS[i][1]
-
             trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
-            
             expected_tags = {"http.client_ip": ip}
             assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
@@ -279,7 +276,6 @@ def _get_span_by_tags(spans, tags):
         # Avoids retrieving the client span by the operation/resource name, this value varies between languages
         # Use the expected tags to identify the span
         for k, v in tags.items():
-            print(66, span["meta"], v)
             if span["meta"].get(k) != v:
                 break
         else:

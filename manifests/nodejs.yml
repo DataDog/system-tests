@@ -651,8 +651,8 @@ tests/:
     Test_HeaderTags_Colon_Trailing: *ref_4_11_0
     Test_HeaderTags_Long: *ref_4_11_0
     Test_HeaderTags_Short: *ref_4_11_0
-    Test_HeaderTags_Whitespace_Header: *ref_5_22_0
-    Test_HeaderTags_Whitespace_Tag: *ref_5_22_0
+    Test_HeaderTags_Whitespace_Header: *ref_5_24_0
+    Test_HeaderTags_Whitespace_Tag: *ref_5_24_0
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
