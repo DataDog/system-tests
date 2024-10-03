@@ -1096,16 +1096,23 @@ class EnvoyContainer(TestedContainer):
 
 
 class ExternalProcessingContainer(TestedContainer):
+    library: LibraryVersion
+
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest",
+            image_name="ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev",
             name="extproc",
             host_log_folder=host_log_folder,
             environment={"DD_APPSEC_ENABLED": "true"},
             ports={"80": ("127.0.0.1", 8081), "443": ("127.0.0.1", 8443)},
-            healthcheck={"test": "wget http://localhost:80/", "retries": 10,},
+            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
         )
 
-    @property
-    def library(self) -> LibraryVersion:
-        return LibraryVersion("golang", "0.0.0")  # TODO
+    def post_start(self):
+        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        self.library = LibraryVersion(lib["language"], lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
