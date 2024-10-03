@@ -462,7 +462,7 @@ tests/:
       Test_Otel_Env_Vars: v1.66.0
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_with_baggage.py:
-      Test_Otel_Span_With_Baggage: not_implemented
+      Test_Otel_Span_With_Baggage: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature

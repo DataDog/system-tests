@@ -286,7 +286,7 @@ tests/:
     test_otel_span_methods.py:
         Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_baggage.py:
-        Test_Otel_Span_With_Baggage: not_implemented
+        Test_Otel_Span_With_Baggage: missing_feature
     test_otel_span_with_w3c.py:
         Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
