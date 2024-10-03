@@ -557,7 +557,7 @@ class Ubuntu20amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu20",
             os_cpu="amd64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
 
@@ -573,6 +573,6 @@ class Ubuntu20arm64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu20",
             os_cpu="arm64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
