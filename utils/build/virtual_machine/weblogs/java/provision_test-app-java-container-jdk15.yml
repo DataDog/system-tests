@@ -5,6 +5,14 @@ lang_variant:
     install:
       - os_type: linux
         os_distro: deb
+        os_branch: debian
+        remote-command: |
+          echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          sudo apt update
+          sudo apt -y install openjdk-11-jdk
+
+      - os_type: linux
+        os_distro: deb
         remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
 
       - os_type: linux
