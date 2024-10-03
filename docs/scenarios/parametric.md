@@ -191,7 +191,7 @@ There is three ways for running the NodeJS tests with a custom tracer:
 There is two ways for running the Ruby tests with a custom tracer:
 
 1. Create an file ruby-load-from-bundle-add in binaries/, the content will be installed by bundle add. Content example:
-gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'
+gem 'datadog', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'datadog/auto_instrument'
 2. Clone the dd-trace-rb repo inside binaries
 
 #### C++
