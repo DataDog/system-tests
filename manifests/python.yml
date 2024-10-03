@@ -782,7 +782,7 @@ tests/:
     Test_Config_IntegrationEnabled_False: v2.0.0
     Test_Config_IntegrationEnabled_True: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
-    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_data_integrity.py:
