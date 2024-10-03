@@ -307,7 +307,7 @@ class AmazonLinux2DotNet6(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="amazon_linux2_dotnet6",
+            os_branch="amazon_linux2_dotnet6_",
             os_cpu="amd64",
             **kwargs,
         )
