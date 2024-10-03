@@ -447,7 +447,7 @@ tests/:
       Test_Config_TraceEnabled: v1.67.0
       Test_Config_RateLimit: v1.67.0
       Test_Config_TraceLogDirectory: v1.67.0 #TODO: Change to v1.69.0
-      Test_Config_UnifiedServiceTagging: v1.67.0
+      Test_Config_UnifiedServiceTagging: bug #TODO: Log bug for apm-shared-testing
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.64.0-dev
@@ -461,7 +461,7 @@ tests/:
     test_otel_sdk_interoperability.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Consistent_Configs: v1.68.0
+      Test_Consistent_Configs: missing_feature (APMAPI-745)
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
