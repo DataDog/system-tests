@@ -588,7 +588,7 @@ class Ubuntu21arm64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="deb",
-            os_branch="ubuntu2x",
+            os_branch="ubuntu2x_",
             os_cpu="arm64",
             default_vm=True,
             **kwargs,
