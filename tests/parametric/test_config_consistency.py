@@ -59,7 +59,7 @@ class Test_Config_TraceLogDirectory:
             with test_library.start_span("allowed"):
                 pass
 
-        success, message = test_library.container_exec_run("ls -l /parametric-tracer-logs")
+        success, message = test_library.container_exec_run("ls /parametric-tracer-logs")
         assert success, message
         assert len(message.splitlines()) > 0, "No tracer logs detected"
 
