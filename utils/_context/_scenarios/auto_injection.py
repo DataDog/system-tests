@@ -7,8 +7,13 @@ from utils.tools import logger
 from utils._context.virtual_machines import (
     Ubuntu20amd64,
     Ubuntu20arm64,
+    Ubuntu21arm64,
     Ubuntu22amd64,
     Ubuntu22arm64,
+    Ubuntu23_04_amd64,
+    Ubuntu23_04_arm64,
+    Ubuntu23_10_amd64,
+    Ubuntu23_10_arm64,
     Ubuntu24amd64,
     Ubuntu24arm64,
     Ubuntu18amd64,
@@ -43,8 +48,13 @@ class _VirtualMachineScenario(Scenario):
         vm_provision=None,
         include_ubuntu_20_amd64=False,
         include_ubuntu_20_arm64=False,
+        include_ubuntu_21_arm64=False,
         include_ubuntu_22_amd64=False,
         include_ubuntu_22_arm64=False,
+        include_ubuntu_23_04_amd64=False,
+        include_ubuntu_23_04_arm64=False,
+        include_ubuntu_23_10_amd64=False,
+        include_ubuntu_23_10_arm64=False,
         include_ubuntu_24_amd64=False,
         include_ubuntu_24_arm64=False,
         include_ubuntu_18_amd64=False,
@@ -83,10 +93,20 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Ubuntu20amd64())
         if include_ubuntu_20_arm64:
             self.required_vms.append(Ubuntu20arm64())
+        if include_ubuntu_21_arm64:
+            self.required_vms.append(Ubuntu21arm64())
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
         if include_ubuntu_22_arm64:
             self.required_vms.append(Ubuntu22arm64())
+        if include_ubuntu_23_04_amd64:
+            self.required_vms.append(Ubuntu23_04_amd64())
+        if include_ubuntu_23_04_arm64:
+            self.required_vms.append(Ubuntu23_04_arm64())
+        if include_ubuntu_23_10_amd64:
+            self.required_vms.append(Ubuntu23_10_amd64())
+        if include_ubuntu_23_10_arm64:
+            self.required_vms.append(Ubuntu23_10_arm64())
         if include_ubuntu_24_amd64:
             self.required_vms.append(Ubuntu24amd64())
         if include_ubuntu_24_arm64:
@@ -271,8 +291,13 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             github_workflow=github_workflow,
             include_ubuntu_20_amd64=True,
             include_ubuntu_20_arm64=True,
+            include_ubuntu_21_arm64=True,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
+            include_ubuntu_23_04_amd64=True,
+            include_ubuntu_23_04_arm64=True,
+            include_ubuntu_23_10_amd64=True,
+            include_ubuntu_23_10_arm64=True,
             include_ubuntu_24_amd64=True,
             include_ubuntu_24_arm64=True,
             include_ubuntu_18_amd64=True,
