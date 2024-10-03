@@ -539,22 +539,6 @@ class Debian10arm64(_VirtualMachine):
         )
 
 
-class Debian9amd64(_VirtualMachine):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(
-            "Debian_9_amd64",
-            aws_config=_AWSConfig(ami_id="ami-099d228beefd189f5", ami_instance_type="t2.medium", user="admin"),
-            vagrant_config=None,
-            krunvm_config=None,
-            os_type="linux",
-            os_distro="deb",
-            os_branch="debian",
-            os_cpu="amd64",
-            default_vm=False,
-            **kwargs,
-        )
-
-
 # 8.10.20240820
 # https://wiki.almalinux.org/cloud/AWS.html#community-amis
 class AlmaLinux8amd64(_VirtualMachine):
