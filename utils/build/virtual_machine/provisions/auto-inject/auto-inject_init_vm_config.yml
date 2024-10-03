@@ -25,6 +25,17 @@
     echo "After stop updates. System service apt-daily.service  status"
     sudo systemctl list-units --all apt-daily.service || true
 
+    lsb_release=/etc/lsb-release
+    if [ -e "$lsb_release" ]; then
+      if grep -q 'Ubuntu 21.04' "$lsb_release"; then
+      echo "Configuring ubuntu 21.04 repositories"
+      sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
+      sudo sed -i -r 's/ubuntu-ports/ubuntu/g' /etc/apt/sources.list
+      sudo sed -i -r 's/us-east-1.ec2.//g' /etc/apt/sources.list
+      echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
+      sudo apt-get update
+      fi
+    fi 
     sudo apt-get -y update
 
     #Install some basic tools (microvm doesn't have them by default)
@@ -44,7 +55,12 @@
 
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
-    sudo systemctl restart sshd.service || true
+    sudo systemctl restart sshd.service || sudo systemctl restart ssh.service || true
+
+    #Install git and clone system tests repository
+    sudo apt-get -y install git wget
+    git clone https://github.com/DataDog/system-tests.git
+
     echo "DONE"
 - os_type: linux
   os_distro: rpm
@@ -61,6 +77,10 @@
     #sudo yum -y update
     sudo systemctl restart sshd.service
 
+    #Install git and clone system tests repository
+    sudo yum -y install git wget
+    git clone https://github.com/DataDog/system-tests.git
+
 - os_type: linux
   os_distro: rpm
   os_branch: oracle_linux
@@ -71,6 +91,9 @@
     sudo yum clean expire-cache
     #sudo yum -y update
     sudo systemctl restart sshd.service
+    #Install git and clone system tests repository
+    sudo yum -y install git wget
+    git clone https://github.com/DataDog/system-tests.git
     #We need to access from outside the VM
     sudo systemctl stop firewalld
     sudo systemctl stop iptables
@@ -90,3 +113,6 @@
     sudo yum clean expire-cache
     #sudo yum -y update
     sudo systemctl restart sshd.service
+    #Install git and clone system tests repository
+    sudo yum -y install git wget
+    git clone https://github.com/DataDog/system-tests.git
