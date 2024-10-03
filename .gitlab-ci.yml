@@ -68,7 +68,7 @@ onboarding_install_extra_vms:
           TEST_LIBRARY: "php"
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False --vm-only-branch ubuntu2x
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False --vm-only-branch ubuntu2x #TODO REMOVE THIS
 
 onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
