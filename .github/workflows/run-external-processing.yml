@@ -36,7 +36,6 @@ jobs:
         uses: ./.github/actions/install_runner
 
       - name: Log in to the Container registry
-        if: ${{ inputs.library == 'ruby' }}
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Build proxy image
@@ -62,5 +61,5 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: logs_graphql_golang_golang-dummy_${{ inputs.ci_environment }}
+          name: logs_externalprocessing_golang_golang-dummy_${{ inputs.ci_environment }}
           path: artifact.tar.gz

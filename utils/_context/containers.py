@@ -1099,8 +1099,14 @@ class ExternalProcessingContainer(TestedContainer):
     library: LibraryVersion
 
     def __init__(self, host_log_folder) -> None:
+        try:
+            with open("binaries/golang-service-extensions-callout-image", "r", encoding="utf-8") as f:
+                image = f.read().strip()
+        except FileNotFoundError:
+            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
+
         super().__init__(
-            image_name="ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev",
+            image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
             environment={"DD_APPSEC_ENABLED": "true"},
@@ -1116,3 +1122,4 @@ class ExternalProcessingContainer(TestedContainer):
         self.library = LibraryVersion(lib["language"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Image: {self.image.name}")
