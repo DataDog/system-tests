@@ -137,7 +137,7 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
   parametric/:
     test_config_consistency.py:
-      Test_Config_RateLimit: missing_feature
+      Test_Config_RateLimit: v1.1.0
       Test_Config_TraceAgentURL: v1.1.0
       Test_Config_TraceEnabled: v1.1.0
       Test_Config_TraceLogDirectory: missing_feature
