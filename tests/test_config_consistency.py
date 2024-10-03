@@ -312,7 +312,7 @@ class Test_Config_IntegrationEnabled_False:
     """ Verify behavior of integrations automatic spans """
 
     def setup_kafka_integration_enabled_false(self):
-        self.r = weblog.get("/kafka/produce")
+        self.r = weblog.get("/kafka/produce", params={"topic": "Something"})
 
     def test_kafka_integration_enabled_false(self):
         assert self.r.status_code == 200
@@ -336,7 +336,7 @@ class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
 
     def setup_kafka_integration_enabled_true(self):
-        self.r = weblog.get("/kafka/produce")
+        self.r = weblog.get("/kafka/produce", params={"topic": "Something"})
 
     def test_kafka_integration_enabled_true(self):
         assert self.r.status_code == 200
