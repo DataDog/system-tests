@@ -1089,9 +1089,9 @@ class EnvoyContainer(TestedContainer):
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
             host_log_folder=host_log_folder,
-            volumes={f"./envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
-            ports={"80": ("127.0.0.1", 80), "9901": ("127.0.0.1", 9901)},
-            healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},
+            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
+            ports={"80": ("127.0.0.1", 8080), "9901": ("127.0.0.1", 9901)},
+            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
         )
 
 
@@ -1101,9 +1101,9 @@ class ExternalProcessingContainer(TestedContainer):
             image_name="ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest",
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={"DD_APPSEC_ENABLED": "true"}
-            ports={"80": ("127.0.0.1", 8080), "443": ("127.0.0.1", 443)},
-            healthcheck={"test": "wget http://localhost:8080/", "retries": 10,},
+            environment={"DD_APPSEC_ENABLED": "true"},
+            ports={"80": ("127.0.0.1", 8081), "443": ("127.0.0.1", 8443)},
+            healthcheck={"test": "wget http://localhost:80/", "retries": 10,},
         )
 
     @property
