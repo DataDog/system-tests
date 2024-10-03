@@ -174,6 +174,7 @@ def rc_check_request(data, expected, caching):
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_features
 @features.appsec_onboarding
+@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -205,7 +206,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         def validate(data):
             """Helper to validate config request content"""
 
-            if data["response"]["content"] is None:
+            if len(data["response"]["content"]) == 0:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -300,7 +301,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
         def validate(data):
             """Helper to validate config request content"""
 
-            if data["response"]["content"] is None:
+            if len(data["response"]["content"]) == 0:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -321,6 +322,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_dd
 @features.remote_config_object_supported
+@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -350,14 +352,14 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         def validate(data):
             """ Helper to validate config request content """
 
-            if data["response"]["content"] is None:
+            if len(data["response"]["content"]) == 0:
                 # the proxy did not yet overwrite response
                 return False
 
-            logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
 
+            logger.info(f"Validating request #{self.request_number} in {data['log_filename']}")
             rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=True)
 
             self.request_number += 1
@@ -399,7 +401,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         def validate(data):
             """Helper to validate config request content"""
 
-            if data["response"]["content"] is None:
+            if len(data["response"]["content"]) == 0:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -446,7 +448,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
         def validate(data):
             """Helper to validate config request content"""
 
-            if data["response"]["content"] is None:
+            if len(data["response"]["content"]) == 0:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -493,7 +495,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
         def validate(data):
             """Helper to validate config request content"""
 
-            if data["response"]["content"] is None:
+            if len(data["response"]["content"]) == 0:
                 # the proxy did not yet overwrite response
                 return False
 

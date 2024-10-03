@@ -258,7 +258,8 @@ class _RequestLogger:
 
                     # mimic the default response from the agent
                     flow.response.status_code = 200
-                    flow.response.content = b""
+                    flow.response.content = b"{}"
+                    flow.response.headers["Content-Type"] = "application/json"
 
                     if self.rc_api_command is not None:
                         request_content = json.loads(flow.request.content)
