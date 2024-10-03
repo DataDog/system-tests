@@ -12,7 +12,7 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # SSO profile and parameters
-SSO_PROFILE="system-tests"
+SSO_PROFILE="default"
 SSO_REGION="us-east-1"
 SSO_ACCOUNT_ID="601427279990"
 SSO_ROLE_NAME="account-admin"

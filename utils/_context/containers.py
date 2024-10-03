@@ -711,13 +711,13 @@ class WeblogContainer(TestedContainer):
                     f"Error while starting {self.environment['SYSTEMTESTS_SCENARIO']} weblogs: AWS environment variables "
                     f"for authentication must be set on your local machine: please set 'SYSTEM_TESTS_AWS_ACCESS_KEY_ID' "
                     f"using valid credentials for Datadog AWS Sandbox Account: 601427279990. Credentials can be refreshed by "
-                    f"running: source scripts/aws_login.sh"
+                    f"running: source utils/scripts/aws_login.sh"
                 )
                 raise PermissionError(
                     "Error: Necessary AWS Credentials of 'SYSTEM_TESTS_AWS_ACCESS_KEY_ID' "
                     "and/or 'SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY' are not set. Please ensure you have valid "
                     "environment variable credentials for Datadog AWS Sandbox Account: 601427279990 set in "
-                    "your local environment. Credentials can be refreshed by running: source scripts/aws_login.sh"
+                    "your local environment. Credentials can be refreshed by running: source utils/scripts/aws_login.sh"
                 )
 
             if self.environment["AWS_SECRET_ACCESS_KEY"] == "":
@@ -725,13 +725,13 @@ class WeblogContainer(TestedContainer):
                     f"Error while starting {self.environment['SYSTEMTESTS_SCENARIO']} weblogs: AWS environment variables "
                     f"for authentication must be set on your local machine: please set 'SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY' "
                     f"using valid credentials for Datadog AWS Sandbox Account: 601427279990. Credentials can be refreshed by "
-                    f"running: source scripts/aws_login.sh"
+                    f"running: source utils/scripts/aws_login.sh"
                 )
                 raise PermissionError(
                     "Error: Necessary AWS Credentials of 'SYSTEM_TESTS_AWS_ACCESS_KEY_ID' "
                     "and/or 'SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY' are not set. Please ensure you have valid "
                     "environment variable credentials for Datadog AWS Sandbox Account: 601427279990 set in "
-                    "your local environment. Credentials can be refreshed by running: source scripts/aws_login.sh"
+                    "your local environment. Credentials can be refreshed by running: source utils/scripts/aws_login.sh"
                 )
 
         self._library = LibraryVersion(
