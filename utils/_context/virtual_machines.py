@@ -576,3 +576,19 @@ class Ubuntu20arm64(_VirtualMachine):
             default_vm=True,
             **kwargs,
         )
+
+
+class AmazonLinux2018amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Amazon_Linux_2018_amd64",
+            aws_config=_AWSConfig(ami_id="ami-07541a4f680f1ba8e", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="amazon_linux2018_amd64",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
