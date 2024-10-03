@@ -352,6 +352,8 @@ tests/:
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
+    test_otel_span_with_baggage.py:
+      Test_Otel_Span_With_Baggage: not_implemented
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v1.17.0
     test_sampling_delegation.py:
