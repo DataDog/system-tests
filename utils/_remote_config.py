@@ -137,7 +137,7 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             if runtime_id not in counts_by_runtime_id:
                 counts_by_runtime_id[runtime_id] = 0
-            if data["response"]["status_code"] == 200:
+            if data["response"]["status_code"] == 200 and data["response"]["content"] is not None:
                 counts_by_runtime_id[runtime_id] += 1
 
             # wait for N successful responses, +1 for the ACK request from the lib
