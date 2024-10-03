@@ -335,8 +335,8 @@ class Test_DsmSNS:
                 self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
                 self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
             else:
-                self.topic = f"{DSM_TOPIC}_{context.library.library}"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}"
+                self.topic = f"{DSM_TOPIC}_{context.library.library}_raw_delivery_enabled"
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw_delivery_enabled"
 
             self.r = weblog.get(
                 f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
@@ -358,8 +358,8 @@ class Test_DsmSNS:
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
             "nodejs": {
-                "producer": 5574101569053455889,
-                "consumer": 3220237713045744553,
+                "producer": 16856592503221680343,
+                "consumer": 14142566188504140382,
                 "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
