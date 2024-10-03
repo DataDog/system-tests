@@ -413,6 +413,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
             "dd_env": config_dict.get("dd_env", None),
             "dd_version": config_dict.get("dd_version", None),
             "dd_trace_agent_url": config_dict.get("dd_trace_agent_url", None),
+            "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
         }
 
 
@@ -731,6 +732,7 @@ class APMLibraryClientGRPC:
             "dd_env": config_dict.get("dd_env", None),
             "dd_version": config_dict.get("dd_version", None),
             "dd_trace_agent_url": config_dict.get("dd_trace_agent_url", None),
+            "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
         }
 
 

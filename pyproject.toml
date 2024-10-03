@@ -43,10 +43,6 @@ allow_no_feature_nodes = [
     "tests/parametric/test_span_links.py",
     "tests/parametric/test_tracer.py",
     "tests/perfs/test_performances.py",  # exotic scenario, not really used
-    "tests/test_library_logs.py",  # we do not have a real feature to attach
-    "tests/test_miscs.py",  # we do not have a real feature to attach
-    "tests/test_schemas.py",  # Too broad test, can't attach to a feature
-    "tests/test_smoke.py",  # Too broad test, can't attach to a feature
     "tests/test_the_test/",  # Not a real test
 ]
 
@@ -63,16 +59,11 @@ allow_no_jira_ticket_for_bugs = [
     "tests/appsec/test_shell_execution.py::Test_ShellExecution.test_truncate_blank_2nd_argument",
     "tests/appsec/test_traces.py::Test_AppSecEventSpanTags.test_header_collection",
     "tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist.test_blocking_test",
-    "tests/appsec/waf/test_addresses.py::Test_BodyXml.test_xml_attr_value",
-    "tests/appsec/waf/test_addresses.py::Test_BodyXml.test_xml_content",
     "tests/appsec/waf/test_rules.py::Test_SQLI.test_sqli3",
     "tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScript.test_install",
     "tests/auto_inject/test_auto_inject_install.py::TestInstallerAutoInjectManual.test_install_uninstall",
     "tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManual.test_install",
     "tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction.test_pii_redaction_dotnet_2_50",
-    "tests/integrations/test_db_integrations_sql.py::Test_MsSql.test_db_name",
-    "tests/integrations/test_db_integrations_sql.py::Test_MsSql.test_db_system",
-    "tests/integrations/test_db_integrations_sql.py::Test_MsSql.test_db_user",
     "tests/integrations/test_db_integrations_sql.py::Test_Postgres.test_db_type",
     "tests/integrations/test_dbm.py::Test_Dbm.test_trace_payload_service",
     "tests/integrations/test_dsm.py::Test_DsmRabbitmq.test_dsm_rabbitmq",
@@ -95,7 +86,6 @@ allow_no_jira_ticket_for_bugs = [
     "tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD.test_headers_tracestate_dd_evicts_32_or_greater_list_members",
     "tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD.test_headers_tracestate_dd_keeps_32_or_fewer_list_members",
     "tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods.test_otel_span_started_with_link_from_other_spans",
-    "tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods.test_otel_span_started_with_link_from_w3c_headers",
     "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing.test_partial_flushing_one_span_default",
     "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_multi_rule_independent_rate_limiters_sss013",
     "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_single_rule_rate_limiter_span_sampling_sss008",
@@ -104,8 +94,6 @@ allow_no_jira_ticket_for_bugs = [
     "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_matching",
     "tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures.test_tracer_update_sequence",
     "tests/stats/test_miscs.py::Test_Miscs.test_request_headers",
-    "tests/test_data_integrity.py::Test_TraceHeaders.test_trace_header_container_tags",
-    "tests/test_identify.py::Test_Basic.test_identify_tags",
     "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
     "tests/test_semantic_conventions.py::Test_Meta.test_meta_component_tag",
     "tests/test_semantic_conventions.py::Test_Meta.test_meta_http_url",

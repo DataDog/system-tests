@@ -2,7 +2,7 @@
 Test configuration consistency for features across supported APM SDKs.
 """
 import pytest
-from utils import scenarios, features, context, bug
+from utils import scenarios, features, context, bug, missing_feature
 from utils.parametric.spec.trace import find_span_in_traces
 
 parametrize = pytest.mark.parametrize
@@ -152,3 +152,47 @@ class Test_Config_TraceAgentURL:
         assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
+
+
+@scenarios.parametric
+@features.tracing_configuration_consistency
+class Test_Config_RateLimit:
+    # The default value of DD_TRACE_RATE_LIMIT is validated using the tracer configuration.
+    # This approach avoids the need to create a new weblog endpoint that generates 100 traces per second,
+    # which would be unreliable for testing and require significant effort for each tracer's weblog application.
+    # The feature is mainly tested in the second test case, where the rate limit is set to 1 to ensure it works as expected.
+    @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": "1"}])
+    def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.get_tracer_config()
+        assert resp["dd_trace_rate_limit"] == "100"
+
+    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    def test_setting_trace_rate_limit(self, library_env, test_agent, test_library):
+        with test_library:
+            with test_library.start_span(name="s1") as s1:
+                pass
+            with test_library.start_span(name="s2") as s2:
+                pass
+
+        traces = test_agent.wait_for_num_traces(2)
+        trace_0_sampling_priority = traces[0][0]["metrics"]["_sampling_priority_v1"]
+        trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
+        assert trace_0_sampling_priority == 2
+        assert trace_1_sampling_priority == -1
+
+    # DD_TRACE_RATE_LIMIT should have no effect if DD_TRACE_SAMPLE_RATE or DD_TRACE_SAMPLING_RULES is not set
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
+    def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
+        with test_library:
+            with test_library.start_span(name="s1") as s1:
+                pass
+            with test_library.start_span(name="s2") as s2:
+                pass
+
+        traces = test_agent.wait_for_num_traces(2)
+        trace_0_sampling_priority = traces[0][0]["metrics"]["_sampling_priority_v1"]
+        trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
+        assert trace_0_sampling_priority == 1
+        assert trace_1_sampling_priority == 1

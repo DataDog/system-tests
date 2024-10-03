@@ -154,7 +154,6 @@ tests/:
       Test_Login_Events:
         '*': v1.13.0
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
-        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
@@ -167,9 +166,6 @@ tests/:
       Test_Login_Events_Extended:
         '*': v1.14.0
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
-        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
-        rails40: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
-        rails41: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
@@ -334,6 +330,7 @@ tests/:
       TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
+      Test_Config_RateLimit: missing_feature
       Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
@@ -407,6 +404,8 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_IntegrationEnabled_False: missing_feature
+    Test_Config_IntegrationEnabled_True: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature

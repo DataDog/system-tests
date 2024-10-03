@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/dd-trace-rb/ruby:2.3.8-dd
+FROM ghcr.io/datadog/dd-trace-rb/ruby:2.5.9-dd
 
 RUN curl -O https://rubygems.org/downloads/libv8-node-15.14.0.1-$(arch)-linux.gem && gem install libv8-node-15.14.0.1-$(arch)-linux.gem && rm libv8-node-15.14.0.1-$(arch)-linux.gem
 

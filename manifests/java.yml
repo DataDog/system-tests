@@ -299,7 +299,7 @@ tests/:
           TestCookieValue:
             '*': v1.10.0
             akka-http: v1.12.0
-            jersey-grizzly2: bug (APPSEC-54982)
+            jersey-grizzly2: v1.41.0
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -323,7 +323,7 @@ tests/:
           TestHeaderValue:
             '*': v1.3.0
             akka-http: v1.12.0
-            jersey-grizzly2: bug (APPSEC-54982)
+            jersey-grizzly2: v1.41.0
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -377,7 +377,7 @@ tests/:
           TestParameterValue:
             '*': v1.1.0
             akka-http: v1.12.0
-            jersey-grizzly2: bug (APPSEC-54982)
+            jersey-grizzly2: v1.41.0
             play: missing_feature
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
@@ -1225,6 +1225,7 @@ tests/:
       TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
+      Test_Config_RateLimit: missing_feature
       Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
@@ -1299,6 +1300,8 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_IntegrationEnabled_False: missing_feature
+    Test_Config_IntegrationEnabled_True: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
