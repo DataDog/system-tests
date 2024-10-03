@@ -51,15 +51,6 @@ class VirtualMachineProvisioner:
                 vms_to_remove.append(vm)
                 continue
 
-            # Exclude by excluded_os_names
-            if (
-                "excluded_os_names" in config_data["weblog"]
-                and vm.name not in config_data["weblog"]["excluded_os_names"]
-            ):
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to NOT weblog directive in excluded_os_names")
-                vms_to_remove.append(vm)
-                continue
-
             # Exlude by vm_provider_id and vm configuration. IE: vm_provider_id: vagrant exclude all vms that don't have vagrant configuration
             if vm_provider_id == "vagrant" and vm.vagrant_config is None:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a Vagrant VM")
