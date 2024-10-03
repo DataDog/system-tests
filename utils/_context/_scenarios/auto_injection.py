@@ -30,6 +30,11 @@ from utils._context.virtual_machines import (
     OracleLinux79amd64,
     Debian12amd64,
     Debian12arm64,
+    Debian11amd64,
+    Debian11arm64,
+    Debian10amd64,
+    Debian10arm64,
+    Debian9amd64,
     AlmaLinux8amd64,
     AlmaLinux8arm64,
     AlmaLinux9amd64,
@@ -73,6 +78,11 @@ class _VirtualMachineScenario(Scenario):
         include_oraclelinux_7_9_amd64=False,
         include_debian_12_amd64=False,
         include_debian_12_arm64=False,
+        include_debian_11_amd64=False,
+        include_debian_11_arm64=False,
+        include_debian_10_amd64=False,
+        include_debian_10_arm64=False,
+        include_debian_9_amd64=False,
         include_almalinux_8_amd64=False,
         include_almalinux_8_arm64=False,
         include_almalinux_9_amd64=False,
@@ -144,6 +154,16 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Debian12amd64())
         if include_debian_12_arm64:
             self.required_vms.append(Debian12arm64())
+        if include_debian_11_amd64:
+            self.required_vms.append(Debian11amd64())
+        if include_debian_11_arm64:
+            self.required_vms.append(Debian11arm64())
+        if include_debian_10_amd64:
+            self.required_vms.append(Debian10amd64())
+        if include_debian_10_arm64:
+            self.required_vms.append(Debian10arm64())
+        if include_debian_9_amd64:
+            self.required_vms.append(Debian9amd64())
         if include_almalinux_8_amd64:
             self.required_vms.append(AlmaLinux8amd64())
         if include_almalinux_8_arm64:
@@ -322,6 +342,11 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_oraclelinux_7_9_amd64=True,
             include_debian_12_amd64=True,
             include_debian_12_arm64=True,
+            include_debian_11_amd64=True,
+            include_debian_11_arm64=True,
+            include_debian_10_amd64=True,
+            include_debian_10_arm64=True,
+            include_debian_9_amd64=True,
             include_almalinux_8_amd64=True,
             include_almalinux_8_arm64=True,
             include_almalinux_9_amd64=True,
