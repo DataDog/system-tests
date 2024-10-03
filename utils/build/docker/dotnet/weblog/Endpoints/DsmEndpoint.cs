@@ -48,14 +48,10 @@ namespace weblog
                 }
                 else if ("sqs".Equals(integration))
                 {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
                     Console.WriteLine($"[SQS] Begin producing DSM message: {message}");
-                    Task.Run(() => SqsProducer.DoWork(queue, message));
+                    await Task.Run(() => SqsProducer.DoWork(queue, message));
                     Console.WriteLine($"[SQS] Begin consuming DSM message: {message}");
-                    Task.Run(() => SqsConsumer.DoWork(queue, message));
-
-#pragma warning restore CS4014
+                    await Task.Run(() => SqsConsumer.DoWork(queue, message));
                     await context.Response.WriteAsync("ok");
                 } else {
                     await context.Response.WriteAsync("unknown integration: " + integration);
@@ -192,12 +188,16 @@ namespace weblog
         public static async Task DoWork(string queue, string message)
         {
             var sqsClient = new AmazonSQSClient();
-            // create queue
+            // Create queue
             Console.WriteLine($"[SQS] Consume: Creating queue {queue}");
             CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(queue);
             var qUrl = responseCreate.QueueUrl;
+
             Console.WriteLine($"[SQS] looking for messages in queue {qUrl}");
-            while (true)
+
+            bool continueProcessing = true;
+
+            while (continueProcessing)
             {
                 using (Datadog.Trace.Tracer.Instance.StartActive("SqsConsume"))
                 {
@@ -207,19 +207,24 @@ namespace weblog
                         MaxNumberOfMessages = 1,
                         WaitTimeSeconds = 1
                     });
+
                     if (result == null || result.Messages.Count == 0)
                     {
                         Console.WriteLine("[SQS] No messages to consume at this time");
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-                    if (result.Messages[0].Body != message)
-                    {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                         continue;
                     }
 
-                    Console.WriteLine($"[SQS] Consumed message from {qUrl}: {result.Messages[0].Body}");
+                    var receivedMessage = result.Messages[0];
+                    if (receivedMessage.Body != message)
+                    {
+                        await Task.Delay(1000);
+                        continue;
+                    }
+
+                    Console.WriteLine($"[SQS] Consumed message from {qUrl}: {receivedMessage.Body}");
+
+                    continueProcessing = false; // Exit the loop after processing the desired message
                 }
             }
         }

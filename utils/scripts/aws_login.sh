@@ -100,7 +100,7 @@ export SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 export SYSTEM_TESTS_AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
 
 echo ""
-echo "Datadog APM System Tets AWS Environment Variables Set:"
+echo "Datadog APM System Tests AWS Environment Variables Set:"
 echo ""
 echo "SYSTEM_TESTS_AWS_ACCESS_KEY_ID=$(echo "${SYSTEM_TESTS_AWS_ACCESS_KEY_ID}" | cut -c1-3)******"
 echo "SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY=$(echo "${SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY}" | cut -c1-3)******"

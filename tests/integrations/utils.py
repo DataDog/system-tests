@@ -225,7 +225,7 @@ def delete_sqs_queue(queue_name):
             get_callable=get_callable,
         )
     except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] == "InvalidClientTokenId":
+        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
             stdout_logger.error(AWS_BAD_CREDENTIALS_MSG)
             return
         else:
@@ -242,7 +242,7 @@ def delete_sns_topic(topic_name):
         delete_aws_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
     except botocore.exceptions.ClientError as e:
         breakpoint()
-        if e.response["Error"]["Code"] == "InvalidClientTokenId":
+        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
             stdout_logger.error(AWS_BAD_CREDENTIALS_MSG)
             return
         else:
@@ -256,7 +256,7 @@ def delete_kinesis_stream(stream_name):
         delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
         delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
     except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] == "InvalidClientTokenId":
+        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
             stdout_logger.error(AWS_BAD_CREDENTIALS_MSG)
             return
         else:
