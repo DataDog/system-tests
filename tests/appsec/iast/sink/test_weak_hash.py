@@ -35,7 +35,6 @@ def _expected_evidence():
 
 
 @features.weak_hash_vulnerability_detection
-@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestWeakHash(BaseSinkTest):
     """Verify weak hash detection."""
 

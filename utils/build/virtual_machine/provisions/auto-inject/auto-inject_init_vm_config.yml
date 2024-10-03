@@ -45,6 +45,10 @@
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo systemctl restart sshd.service || sudo systemctl restart ssh.service || true
+
+    #Install git and clone system tests repository
+    sudo apt-get -y install git wget
+    git clone https://github.com/DataDog/system-tests.git
     echo "DONE"
 - os_type: linux
   os_distro: rpm
@@ -61,6 +65,10 @@
     #sudo yum -y update
     sudo systemctl restart sshd.service
 
+    #Install git and clone system tests repository
+    sudo yum -y install git wget
+    git clone https://github.com/DataDog/system-tests.git
+
 - os_type: linux
   os_distro: rpm
   os_branch: oracle_linux
@@ -71,6 +79,9 @@
     sudo yum clean expire-cache
     #sudo yum -y update
     sudo systemctl restart sshd.service
+    #Install git and clone system tests repository
+    sudo yum -y install git wget
+    git clone https://github.com/DataDog/system-tests.git
     #We need to access from outside the VM
     sudo systemctl stop firewalld
     sudo systemctl stop iptables
@@ -90,3 +101,6 @@
     sudo yum clean expire-cache
     #sudo yum -y update
     sudo systemctl restart sshd.service
+    #Install git and clone system tests repository
+    sudo yum -y install git wget
+    git clone https://github.com/DataDog/system-tests.git
