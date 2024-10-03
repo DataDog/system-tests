@@ -543,3 +543,36 @@ class Ubuntu24arm64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+
+# Ubuntu 20 from private amis
+class Ubuntu20amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_20_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0ffb8e1df897204c4", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu20",
+            os_cpu="amd64",
+            default_vm=True,
+            **kwargs,
+        )
+
+
+class Ubuntu20arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_20_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0ccf50ab09c6df2d4", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu20",
+            os_cpu="arm64",
+            default_vm=True,
+            **kwargs,
+        )

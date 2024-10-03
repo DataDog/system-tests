@@ -5,6 +5,8 @@ from utils.tools import logger
 
 
 from utils._context.virtual_machines import (
+    Ubuntu20amd64,
+    Ubuntu20arm64,
     Ubuntu22amd64,
     Ubuntu22arm64,
     Ubuntu24amd64,
@@ -39,6 +41,8 @@ class _VirtualMachineScenario(Scenario):
         github_workflow,
         doc,
         vm_provision=None,
+        include_ubuntu_20_amd64=False,
+        include_ubuntu_20_arm64=False,
         include_ubuntu_22_amd64=False,
         include_ubuntu_22_arm64=False,
         include_ubuntu_24_amd64=False,
@@ -75,6 +79,10 @@ class _VirtualMachineScenario(Scenario):
         # Variables that will populate for the app installation
         self.app_env = app_env
 
+        if include_ubuntu_20_amd64:
+            self.required_vms.append(Ubuntu20amd64())
+        if include_ubuntu_20_arm64:
+            self.required_vms.append(Ubuntu20arm64())
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
         if include_ubuntu_22_arm64:
@@ -261,6 +269,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             app_env=app_env,
             doc=doc,
             github_workflow=github_workflow,
+            include_ubuntu_20_amd64=True,
+            include_ubuntu_20_arm64=True,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
             include_ubuntu_24_amd64=True,
