@@ -37,6 +37,104 @@ class VirtualMachineProvisioner:
                 vms_to_remove.append(vm)
                 continue
 
+            # Include by excluded_os_branches
+            if "excluded_os_branches" not in config_data["weblog"]:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due no excluded_os_branches")
+                vms_to_remove.append(vm)
+                continue
+
+            if (
+                "excluded_os_branches" in config_data["weblog"]
+                and vm.os_branch not in config_data["weblog"]["excluded_os_branches"]
+            ):
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive NOT in excluded_os_branches")
+                vms_to_remove.append(vm)
+                continue
+
+            # Exclude by excluded_os_names
+            if (
+                "excluded_os_names" in config_data["weblog"]
+                and vm.name not in config_data["weblog"]["excluded_os_names"]
+            ):
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to NOT weblog directive in excluded_os_names")
+                vms_to_remove.append(vm)
+                continue
+
+            # Exlude by vm_provider_id and vm configuration. IE: vm_provider_id: vagrant exclude all vms that don't have vagrant configuration
+            if vm_provider_id == "vagrant" and vm.vagrant_config is None:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a Vagrant VM")
+                vms_to_remove.append(vm)
+                continue
+            if vm_provider_id == "krunvm" and vm.krunvm_config is None:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a KrunVm VM")
+                vms_to_remove.append(vm)
+                continue
+            if vm_provider_id == "aws" and vm.aws_config is None:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a AWS VM")
+                vms_to_remove.append(vm)
+                continue
+
+            # Exclude by vm fields: os_distro, os_branch, os_cpu
+            for installation in installations:
+                assert "os_type" in installation, "os_type is required for weblog installation"
+                if installation["os_type"] == vm.os_type:
+                    allowed = True
+                    if "os_distro" in installation and installation["os_distro"] != vm.os_distro:
+                        allowed = False
+                        continue
+                    if "os_branch" in installation and installation["os_branch"] != vm.os_branch:
+                        allowed = False
+                        continue
+                    if "os_cpu" in installation and installation["os_cpu"] != vm.os_cpu:
+                        allowed = False
+                        continue
+                    if allowed == True:
+                        break
+            if allowed == False:
+                logger.stdout(f"WARNING: Weblog doesn't support VM [{vm.name}]. Removed!")
+                vms_to_remove.append(vm)
+
+            if not vm_only_branch and only_default_vms != "All":
+                if only_default_vms == "True" and not vm.default_vm:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a default VM")
+                    vms_to_remove.append(vm)
+                if only_default_vms == "False" and vm.default_vm:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's a default VM")
+                    vms_to_remove.append(vm)
+        # Ok remove the vms
+        for vm in vms_to_remove:
+            required_vms.remove(vm)
+
+    def remove_unsupported_machines2(
+        self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch, vm_skip_branches, only_default_vms
+    ):
+        """ Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch  """
+
+        weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
+        config_data = None
+        with open(weblog_provision_file, encoding="utf-8") as f:
+            config_data = yaml.load(f, Loader=yaml.FullLoader)
+        vms_to_remove = []
+
+        # Skipped branches seted by the user parameter
+        skipped_branches = []
+        if vm_skip_branches:
+            skipped_branches = vm_skip_branches.split(",")
+
+        for vm in required_vms:
+            installations = config_data["weblog"]["install"]
+            allowed = False
+            # Exclude by vm_only_branch
+            if vm_only_branch and vm.os_branch != vm_only_branch:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
+                vms_to_remove.append(vm)
+                continue
+            # Exclude by vm_skip_branches
+            if vm_skip_branches and vm.os_branch in skipped_branches:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_skip_branches directive")
+                vms_to_remove.append(vm)
+                continue
+
             # Exclude by excluded_os_branches
             if (
                 "excluded_os_branches" in config_data["weblog"]
