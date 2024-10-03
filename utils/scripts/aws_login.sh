@@ -91,9 +91,9 @@ if [ -z "$CREDENTIALS" ]; then
 fi
 
 # Parse JSON response to set environment variables
-AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | jq -r '.roleCredentials.accessKeyId')
-AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.roleCredentials.secretAccessKey')
-AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.roleCredentials.sessionToken')
+AWS_ACCESS_KEY_ID=$(echo "$CREDENTIALS" | jq -r '.roleCredentials.accessKeyId')
+AWS_SECRET_ACCESS_KEY=$(echo "$CREDENTIALS" | jq -r '.roleCredentials.secretAccessKey')
+AWS_SESSION_TOKEN=$(echo "$CREDENTIALS" | jq -r '.roleCredentials.sessionToken')
 
 export SYSTEM_TESTS_AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
 export SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -102,9 +102,9 @@ export SYSTEM_TESTS_AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
 echo ""
 echo "Datadog APM System Tets AWS Environment Variables Set:"
 echo ""
-echo "SYSTEM_TESTS_AWS_ACCESS_KEY_ID=$(echo ${SYSTEM_TESTS_AWS_ACCESS_KEY_ID} | cut -c1-3)******"
-echo "SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY=$(echo ${SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY} | cut -c1-3)******"
-echo "SYSTEM_TESTS_AWS_SESSION_TOKEN=$(echo ${SYSTEM_TESTS_AWS_SESSION_TOKEN} | cut -c1-3)******"
+echo "SYSTEM_TESTS_AWS_ACCESS_KEY_ID=$(echo "${SYSTEM_TESTS_AWS_ACCESS_KEY_ID}" | cut -c1-3)******"
+echo "SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY=$(echo "${SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY}" | cut -c1-3)******"
+echo "SYSTEM_TESTS_AWS_SESSION_TOKEN=$(echo "${SYSTEM_TESTS_AWS_SESSION_TOKEN}" | cut -c1-3)******"
 echo ""
 echo "AWS credentials have been set. You can now run your tests."
 echo ""
