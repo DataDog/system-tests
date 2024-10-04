@@ -14,8 +14,6 @@ lang_variant:
 weblog:
     name: test-app-java-alpine-jdk15
     excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2, ubuntu22_arm64, amazon_linux2023_arm64]
-    # Alma Linux 8 ARM64 is not stable. It fails when we execute 'gradle build' in the Dockerfile
-    excluded_os_names: [AlmaLinux_8_arm64]
     install:
       - os_type: linux
         copy_files:
