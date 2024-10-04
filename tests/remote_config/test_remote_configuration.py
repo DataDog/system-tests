@@ -204,9 +204,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -300,9 +299,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -351,9 +349,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
         def validate(data):
             """ Helper to validate config request content """
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -400,13 +397,12 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         self.assert_client_fields()
 
         def validate(data):
-            status_code = data["response"]["status_code"]
+            """Helper to validate config request content"""
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
-            """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -450,9 +446,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
         def validate(data):
             """Helper to validate config request content"""
 
-            status_code = data["response"]["status_code"]
-
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 
@@ -498,9 +492,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
+            if data["response"]["content"] is None:
                 # the proxy did not yet overwrite response
                 return False
 

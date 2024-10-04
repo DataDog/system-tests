@@ -335,12 +335,9 @@ class _Test_DsmSNS:
                 self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
                 self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
             else:
-                self.topic = f"{DSM_TOPIC}_{context.library.library}"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}"
-
-            if self.raw_message_delivery_enabled:
-                self.topic += "_raw"
-                self.queue += "_raw"
+                suffix = "enabled" if self.raw_message_delivery_enabled else "disabled"
+                self.topic = f"{DSM_TOPIC}_{context.library.library}_raw_delivery_{suffix}"
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw_delivery_{suffix}"
 
             self.r = weblog.get(
                 "/dsm",
@@ -370,12 +367,12 @@ class _Test_DsmSNS:
             },
             "nodejs": {
                 "producer": {
-                    "raw_delivery_enabled": 15466202493380574985,
-                    "raw_delivery_disabled": 5574101569053455889,
+                    "raw_delivery_enabled": 16856592503221680343,
+                    "raw_delivery_disabled": 2028285070545924082,
                 },
                 "consumer": {
-                    "raw_delivery_enabled": 9372735371403270535,
-                    "raw_delivery_disabled": 3220237713045744553,
+                    "raw_delivery_enabled": 14142566188504140382,
+                    "raw_delivery_disabled": 6367276299385706898,
                 },
                 "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),

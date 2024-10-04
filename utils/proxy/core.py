@@ -255,6 +255,11 @@ class _RequestLogger:
                 self._add_rc_capabilities_in_info_request(flow)
 
                 if flow.request.path == "/v0.7/config":
+
+                    # mimic the default response from the agent
+                    flow.response.status_code = 200
+                    flow.response.content = b""
+
                     if self.rc_api_command is not None:
                         request_content = json.loads(flow.request.content)
                         runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
@@ -265,7 +270,6 @@ class _RequestLogger:
 
                         logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
 
-                        flow.response.status_code = 200
                         flow.response.content = self.rc_api_command
 
                         self.rc_api_runtime_ids_applied.add(runtime_id)
@@ -284,7 +288,6 @@ class _RequestLogger:
                                 self.rc_api_runtime_ids_request_count[runtime_id]
                             ]
 
-                        flow.response.status_code = 200
                         flow.response.content = json.dumps(response).encode()
 
                         self.rc_api_runtime_ids_request_count[runtime_id] += 1
