@@ -112,6 +112,7 @@ AWS_BAD_CREDENTIALS_MSG = """
 
     🔧 Or to first set up `aws-vault` / `aws-cli`, please visit:
         🔗 [AWS CLI Config Setup & Update Guide]
+        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-v2-setup)
         🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-config-setup--update)
 
 🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
