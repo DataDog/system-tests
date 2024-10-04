@@ -14,8 +14,6 @@
         sudo apt-get update
         sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
         sudo apt-get -y install docker-buildx-plugin || true #Ubuntu 21.04 doesn't have this package
-        echo `uname -s`
-        echo `uname -m`
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
         echo "DOCKER INSTALLED!"
         #To run Docker without root privileges
