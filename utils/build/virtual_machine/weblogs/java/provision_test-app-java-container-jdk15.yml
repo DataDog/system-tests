@@ -1,6 +1,6 @@
 lang_variant:
     name: OpenJDK11
-     #We compile with jdk 11, but we run the app with java 15
+     #We compile with jdk 11, but we run the app with java 15.
     cache: true
     install:
       - os_type: linux
@@ -19,7 +19,7 @@ lang_variant:
         os_distro: rpm
         os_branch: amazon_linux2
         remote-command: sudo yum -y install java-11-amazon-corretto-headless
-        
+
       - os_type: linux
         os_distro: rpm
         remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
