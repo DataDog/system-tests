@@ -1,6 +1,6 @@
 import json
 from utils import weblog, interfaces, context
-from utils.tools import logging
+from utils.tools import logger
 
 
 def _get_expectation(d):
@@ -56,7 +56,7 @@ def _check_telemetry_response_from_agent():
         code = data["response"]["status_code"]
         if code != 200:
             filename = data["log_filename"]
-            logging.warning(f"Agent answered {code} on {filename}, it may cause telemetry issues")
+            logger.warning(f"Agent answered {code} on {filename}, it may cause telemetry issues")
             return
 
 
@@ -164,9 +164,14 @@ class BaseSinkTestWithoutTelemetry:
     @staticmethod
     def assert_no_iast_event(request):
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
-        meta = _get_span_meta(request=request)
-        iast_json = meta.get("_dd.iast.json")
-        assert iast_json is None, f"Unexpected vulnerabilities reported: {iast_json}"
+
+        for data, _, span in interfaces.library.get_spans(request=request):
+            logger.info(f"Looking for IAST events in {data['log_filename']}")
+            meta = span.get("meta", {})
+            iast_json = meta.get("_dd.iast.json")
+            if iast_json is not None:
+                logger.error(json.dumps(iast_json, indent=2))
+                raise ValueError("Unexpected vulnerability reported")
 
 
 class BaseSinkTest(BaseSinkTestWithoutTelemetry):
@@ -182,7 +187,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         expected_metric = "instrumented.sink"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
-        logging.debug("Series: %s", series)
+        logger.debug("Series: %s", series)
 
         # lower the vulnerability_type, as all assertion will be case-insensitive
         expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
@@ -213,7 +218,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         expected_metric = "executed.sink"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
-        logging.debug("Series: %s", series)
+        logger.debug("Series: %s", series)
 
         # lower the vulnerability_type, as all assertion will be case-insensitive
         expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
@@ -319,7 +324,7 @@ class BaseSourceTest:
         expected_metric = "instrumented.source"
         series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
-        logging.debug(f"Series: {json.dumps(series, indent=2)}")
+        logger.debug(f"Series: {json.dumps(series, indent=2)}")
 
         # lower the source_type, as all assertion will be case-insensitive
         expected_tag = f"source_type:{self.source_type}".lower()
@@ -358,7 +363,7 @@ class BaseSourceTest:
 
         assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
-        logging.debug(f"Series:\n{json.dumps(series, indent=2)}")
+        logger.debug(f"Series:\n{json.dumps(series, indent=2)}")
 
         for s in series:
             assert s["_computed_namespace"] == expected_namespace

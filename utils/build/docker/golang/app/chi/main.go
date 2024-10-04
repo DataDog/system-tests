@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -229,6 +230,21 @@ func main() {
 			return
 		}
 		w.Write([]byte(content))
+	})
+
+	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
+		sessionID := strconv.Itoa(rand.Int())
+		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")
+	})
+
+	mux.HandleFunc("/session/user", func(w http.ResponseWriter, r *http.Request) {
+		user := r.URL.Query().Get("sdk_user")
+		cookie, err := r.Cookie("session")
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte("missing session cookie"))
+		}
+		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)

@@ -298,13 +298,13 @@ tests/:
       Test_UserLoginFailureEvent: v1.47.0
       Test_UserLoginSuccessEvent: v1.47.0
     test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint: missing_feature
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
-      Test_Fingerprinting_Header_And_Network: missing_feature
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
-      Test_Fingerprinting_Session: missing_feature
-      Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Endpoint: v1.69.0-dev
+      Test_Fingerprinting_Endpoint_Capability: v1.69.0-dev
+      Test_Fingerprinting_Header_And_Network: v1.69.0-dev
+      Test_Fingerprinting_Header_Capability: v1.69.0-dev
+      Test_Fingerprinting_Network_Capability: v1.69.0-dev
+      Test_Fingerprinting_Session: v1.69.0-dev
+      Test_Fingerprinting_Session_Capability: v1.69.0-dev
     test_identify.py:
       Test_Basic: v1.37.0
     test_ip_blocking_full_denylist.py:
