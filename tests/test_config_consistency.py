@@ -275,6 +275,11 @@ def _get_span_by_tags(spans, tags):
 
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
+@irrelevant(
+    library="golang",
+    weblog_variant="gin",
+    reason="A custom service name is specified on the gin integration, causing a conflict",
+)
 class Test_Config_UnifiedServiceTagging_CustomService:
     """ Verify behavior of http clients and distributed traces """
 
