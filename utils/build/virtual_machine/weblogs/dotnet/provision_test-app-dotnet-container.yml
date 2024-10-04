@@ -1,6 +1,6 @@
 weblog:
     name: test-app-dotnet-container
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6]
     #Alma Linux 8 ARM64 fails also without the SSI. It fails when we execute 'dotnet restore' in the Dockerfile
     excluded_os_names: [AlmaLinux_8_arm64]
     install: 
