@@ -10,6 +10,12 @@ lang_variant:
           sudo apt-get install -y dotnet-runtime-6.0
       - os_type: linux
         os_distro: rpm
+        os_branch: amazon_linux2
+        remote-command: |
+          sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+          sudo yum install -y dotnet-sdk-6.0
+      - os_type: linux
+        os_distro: rpm
         remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
 
 weblog:
