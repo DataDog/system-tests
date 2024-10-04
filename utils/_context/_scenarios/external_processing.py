@@ -41,9 +41,21 @@ class ExternalProcessingScenario(DockerScenario):
         # tag: dev
         # base: latest/v*.*.*
 
+    def _create_interface_folders(self):
+        self._create_log_subfolder("interfaces/agent")
+        self._create_log_subfolder("interfaces/library")
+
+    def get_warmups(self) -> list:
+        warmups = super().get_warmups()
+
+        if not self.replay:
+            warmups.insert(0, self._create_interface_folders)
+
+        return warmups
+
     @property
     def weblog_variant(self):
-        return "golang-dummy"
+        return "external-processing"
 
     @property
     def library(self):
