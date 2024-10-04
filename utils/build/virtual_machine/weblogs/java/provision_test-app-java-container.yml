@@ -12,7 +12,7 @@ lang_variant:
 
 weblog:
     name: test-app-java-container
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2]
+    excluded_os_branches: [amazon_linux2_dotnet6]
     #Alma Linux 8 ARM64 is not stable.
     excluded_os_names: [AlmaLinux_8_arm64]
     install:
