@@ -1,4 +1,4 @@
-from utils._context.containers import DummyServerContainer, ExternalProcessingContainer, EnvoyContainer
+from utils._context.containers import DummyServerContainer, ExternalProcessingContainer, EnvoyContainer, AgentContainer
 from .endtoend import DockerScenario, ScenarioGroup
 
 
@@ -12,10 +12,16 @@ class ExternalProcessingScenario(DockerScenario):
             use_proxy=True,
         )
 
+        self._agent_container = AgentContainer(self.host_log_folder)
         self._external_processing_container = ExternalProcessingContainer(self.host_log_folder)
+        self._envoy_container = EnvoyContainer(self.host_log_folder)
 
+        self._agent_container.depends_on.append(self.proxy_container)
+        self._external_processing_container.depends_on.append(self.proxy_container)
+
+        self._required_containers.append(self._agent_container)
         self._required_containers.append(self._external_processing_container)
-        self._required_containers.append(EnvoyContainer(self.host_log_folder))
+        self._required_containers.append(self._envoy_container)
         self._required_containers.append(DummyServerContainer(self.host_log_folder))
 
         # start envoyproxy/envoy:v1.31-latest⁠

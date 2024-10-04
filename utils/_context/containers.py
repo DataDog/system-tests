@@ -1112,7 +1112,7 @@ class ExternalProcessingContainer(TestedContainer):
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={"DD_APPSEC_ENABLED": "true"},
+            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126,},
             healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
         )
 

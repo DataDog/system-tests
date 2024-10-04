@@ -68,9 +68,11 @@ static_resources:
                     socket_address:
                       address: extproc
                       port_value: 443
-admin:
-  access_log_path: "/tmp/admin_access.log"
-  address:
-    socket_address:
-      address: 0.0.0.0
-      port_value: 9901
+
+# used for health checking
+# admin:
+#   access_log_path: "/tmp/admin_access.log"
+#   address:
+#     socket_address:
+#       address: 0.0.0.0
+#       port_value: 9901
