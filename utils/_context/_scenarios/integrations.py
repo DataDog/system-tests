@@ -33,7 +33,7 @@ def _check_aws_variables(scenario: EndToEndScenario):
             "local machine\nPlease set 'SYSTEM_TESTS_AWS_ACCESS_KEY_ID' using valid credentials for Datadog AWS "
             "Sandbox Account: 601427279990.\nCredentials can be refreshed by running:\n"
             "    source utils/scripts/aws_login.sh",
-            1
+            1,
         )
 
     if not os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"):
@@ -42,7 +42,7 @@ def _check_aws_variables(scenario: EndToEndScenario):
             "local machine\nplease set 'SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY' using valid credentials for Datadog AWS "
             "Sandbox Account: 601427279990. Credentials can be refreshed by running:\n"
             "source utils/scripts/aws_login.sh",
-            1
+            1,
         )
 
 
