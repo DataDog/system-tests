@@ -338,6 +338,8 @@ class TestedContainer:
             keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
         if os.environ.get("AWS_SECRET_ACCESS_KEY"):
             keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
+        if os.environ.get("AWS_SESSION_TOKEN"):
+            keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
@@ -571,12 +573,17 @@ class BuddyContainer(TestedContainer):
         )
 
         self.interface = None
-        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
-        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", "")
-        # for when local development is used, a session token is created due to SSO login
-        self.environment["AWS_SESSION_TOKEN"] = os.environ.get("SYSTEM_TESTS_AWS_SESSION_TOKEN", "")
-        self.environment["AWS_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
-        self.environment["AWS_DEFAULT_REGION"] = self.environment["AWS_REGION"]
+
+        # copy AWS env variables from local env to weblogs
+        for key, value in os.environ.items():
+            if "AWS" in key:
+                self.environment[key] = value
+
+        # Set default AWS values if specific keys are not present
+        self.environment["AWS_REGION"] = self.environment.get("AWS_REGION", "us-east-1")
+        self.environment["AWS_DEFAULT_REGION"] = self.environment.get(
+            "AWS_DEFAULT_REGION", self.environment["AWS_REGION"]
+        )
 
 
 class WeblogContainer(TestedContainer):
@@ -698,11 +705,16 @@ class WeblogContainer(TestedContainer):
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
 
-        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
-        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", "")
-        self.environment["AWS_SESSION_TOKEN"] = os.environ.get("SYSTEM_TESTS_AWS_SESSION_TOKEN", "")
-        self.environment["AWS_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
-        self.environment["AWS_DEFAULT_REGION"] = self.environment["AWS_REGION"]
+        # copy AWS env variables from local env to weblogs
+        for key, value in os.environ.items():
+            if "AWS" in key:
+                self.environment[key] = value
+
+        # Set default AWS values if specific keys are not present
+        self.environment["AWS_REGION"] = self.environment.get("AWS_REGION", "us-east-1")
+        self.environment["AWS_DEFAULT_REGION"] = self.environment.get(
+            "AWS_DEFAULT_REGION", self.environment["AWS_REGION"]
+        )
 
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),

@@ -9,6 +9,7 @@ import botocore.exceptions
 
 from utils import weblog, interfaces
 from utils.tools import logger, get_logger
+from utils._context._scenarios.integrations import AWS_BAD_CREDENTIALS_MSG
 
 
 class BaseDbIntegrationsTestClass:
@@ -156,19 +157,16 @@ class BaseDbIntegrationsTestClass:
 
 
 # set AWS credentials for runner
-os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
-os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", "")
-os.environ["AWS_DEFAULT_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
-os.environ["AWS_SESSION_TOKEN"] = os.environ.get("SYSTEM_TESTS_AWS_SESSION_TOKEN", "")
+# if AWS access key is not already set, this means that its a remote CI run, so
+# set the necessary credentials
+if "AWS_ACCESS_KEY_ID" not in os.environ:
+    os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
+    os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", "")
+    os.environ["AWS_DEFAULT_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
+    os.environ["AWS_SESSION_TOKEN"] = os.environ.get("SYSTEM_TESTS_AWS_SESSION_TOKEN", "")
 
 
 stdout_logger = get_logger(name="std-out", use_stdout=True)
-
-AWS_BAD_CREDENTIALS_MSG = f"\n\n     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\
-                System-Tests could not authenticate with AWS, please refresh AWS credentials by running: \
-`source utils/scripts/aws_login.sh` \n\n     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
 
 
 def delete_aws_resource(
