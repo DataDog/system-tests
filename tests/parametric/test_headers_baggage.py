@@ -11,13 +11,8 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.spec.trace import find_only_span
-from utils import missing_feature, context, scenarios, features, bug
 
 parametrize = pytest.mark.parametrize
-
-import logging
-
-logging.basicConfig(level=logging.INFO)  # or logging.WARNING, logging.ERROR to reduce verbosity
 
 
 def disable_baggage() -> Any:

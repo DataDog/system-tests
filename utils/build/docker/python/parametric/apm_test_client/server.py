@@ -214,33 +214,33 @@ def trace_span_set_meta(args: SpanSetMetaArgs) -> SpanSetMetaReturn:
 @app.post("/trace/span/set_baggage")
 def trace_set_baggage(args: SpanSetBaggageArgs) -> SpanSetBaggageReturn:
     span = spans[args.span_id]
-    span.context._set_baggage_item(args.key, args.value)
+    span.context.set_baggage_item(args.key, args.value)
     return SpanSetBaggageReturn()
 
 
 @app.get("/trace/span/get_baggage")
 def trace_get_baggage(args: SpanGetBaggageArgs) -> SpanGetBaggageReturn:
     span = spans[args.span_id]
-    return SpanGetBaggageReturn(baggage=span.context._get_baggage_item(args.key))
+    return SpanGetBaggageReturn(baggage=span.context.get_baggage_item(args.key))
 
 
 @app.get("/trace/span/get_all_baggage")
 def trace_get_all_baggage(args: SpanGetAllBaggageArgs) -> SpanGetAllBaggageReturn:
     span = spans[args.span_id]
-    return SpanGetAllBaggageReturn(baggage=span.context._get_all_baggage_items())
+    return SpanGetAllBaggageReturn(baggage=span.context.get_all_baggage_items())
 
 
 @app.post("/trace/span/remove_baggage")
 def trace_remove_baggage(args: SpanRemoveBaggageArgs) -> SpanRemoveBaggageReturn:
     span = spans[args.span_id]
-    span.context._remove_baggage_item(args.key)
+    span.context.remove_baggage_item(args.key)
     return SpanRemoveBaggageReturn()
 
 
 @app.post("/trace/span/remove_all_baggage")
 def trace_remove_all_baggage(args: SpanRemoveAllBaggageArgs) -> SpanRemoveAllBaggageReturn:
     span = spans[args.span_id]
-    span.context._remove_all_baggage_items()
+    span.context.remove_all_baggage_items()
     return SpanRemoveBaggageReturn()
 
 
