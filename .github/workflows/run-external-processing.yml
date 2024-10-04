@@ -47,7 +47,7 @@ jobs:
           library: golang
           weblog: golang-dummy
           scenarios: '["EXTERNAL_PROCESSING"]'
-          
+
       - name: Run EXTERNAL_PROCESSING scenario
         run: ./run.sh EXTERNAL_PROCESSING
         env:
