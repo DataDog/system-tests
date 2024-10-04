@@ -574,9 +574,13 @@ class BuddyContainer(TestedContainer):
 
         self.interface = None
 
-        # copy AWS env variables from local env to weblogs
+        aws_env_var_prefix = "AWS"
+        if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
+            aws_env_var_prefix = "SYSTEM_TESTS_AWS"
+
+        # copy AWS or SYSTEM_TESTS_AWS env variables from local env to weblogs
         for key, value in os.environ.items():
-            if "AWS" in key:
+            if aws_env_var_prefix in key:
                 self.environment[key] = value
 
         # Set default AWS values if specific keys are not present

@@ -163,7 +163,6 @@ if "AWS_ACCESS_KEY_ID" not in os.environ:
     os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", "")
     os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", "")
     os.environ["AWS_DEFAULT_REGION"] = os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1")
-    os.environ["AWS_SESSION_TOKEN"] = os.environ.get("SYSTEM_TESTS_AWS_SESSION_TOKEN", "")
 
 
 stdout_logger = get_logger(name="std-out", use_stdout=True)
