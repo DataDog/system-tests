@@ -1,12 +1,12 @@
- #Add initial configuration that it must do after start the machine 
+ #Add initial configuration that it must do after start the machine
 - os_type: linux
   os_distro: deb
   remote-command: |
 
-    #Disable auto updates. It could raise problems if the update proccess is launched just when we are trying to install de software 
+    #Disable auto updates. It could raise problems if the update proccess is launched just when we are trying to install de software
     sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
     sudo sed -i 's/1/0/g'  /etc/apt/apt.conf.d/10periodic || true
- 
+
     echo "On VM boot the Apt service status::::"
     sudo ps -fea|grep apt
     echo "On VM boot the System service apt-daily.service  status"
@@ -29,13 +29,17 @@
     if [ -e "$lsb_release" ]; then
       if grep -q 'Ubuntu 21.04' "$lsb_release"; then
       echo "Configuring ubuntu 21.04 repositories"
-      sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
+      sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
       sudo sed -i -r 's/ubuntu-ports/ubuntu/g' /etc/apt/sources.list
       sudo sed -i -r 's/us-east-1.ec2.//g' /etc/apt/sources.list
+      fi
+      if grep -q 'Debian 10' "$lsb_release"; then
+      echo "Configuring debian 10 repositories"
+      sudo sed -i -r 's/cdn-aws.deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+      fi
       echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
       sudo apt-get update
-      fi
-    fi 
+    fi
     sudo apt-get -y update
 
     #Install some basic tools (microvm doesn't have them by default)
@@ -65,11 +69,11 @@
 - os_type: linux
   os_distro: rpm
   os_branch: centos_7_amd64 # CentOS override as the mirrors are not available anymore
-  remote-command: |    
+  remote-command: |
     sudo sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
     sudo sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
     sudo sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
-  
+
     #Allow DD env variables from ssh
     echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
