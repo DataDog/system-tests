@@ -975,6 +975,9 @@ tests/:
         ratpack: missing_feature (endpoint not implemented)
         resteasy-netty3: missing_feature (endpoint not implemented)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: missing_feature (missing addresses)
+        spring-boot-undertow: missing_feature (missing addresses)
+        spring-boot-wildfly: missing_feature (missing addresses)
         vertx3: missing_feature (endpoint not implemented)
         vertx4: missing_feature (endpoint not implemented)
       Test_Fingerprinting_Session_Capability:
