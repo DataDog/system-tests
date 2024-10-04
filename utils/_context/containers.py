@@ -1077,7 +1077,7 @@ class DummyServerContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
             image_name="jasonrm/dummy-server:latest",
-            name="dummy-server",
+            name="http-app",
             host_log_folder=host_log_folder,
             healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
         )
@@ -1085,12 +1085,15 @@ class DummyServerContainer(TestedContainer):
 
 class EnvoyContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
+
+        from utils import weblog
+
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
             host_log_folder=host_log_folder,
             volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
-            ports={"80": ("127.0.0.1", 8080), "9901": ("127.0.0.1", 9901)},
+            ports={"80": ("127.0.0.1", weblog.port)},
             # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
         )
 
@@ -1110,7 +1113,6 @@ class ExternalProcessingContainer(TestedContainer):
             name="extproc",
             host_log_folder=host_log_folder,
             environment={"DD_APPSEC_ENABLED": "true"},
-            ports={"80": ("127.0.0.1", 8081), "443": ("127.0.0.1", 8443)},
             healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
         )
 
