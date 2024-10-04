@@ -33,10 +33,12 @@
       sudo sed -i -r 's/ubuntu-ports/ubuntu/g' /etc/apt/sources.list
       sudo sed -i -r 's/us-east-1.ec2.//g' /etc/apt/sources.list
       fi
-      if grep -q 'Debian 10' "$lsb_release"; then
+      echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
+      sudo apt-get update
+    fi
+    if [ "$(. /etc/os-release && echo "$VERSION_CODENAME")" = "buster" ]; then
       echo "Configuring debian 10 repositories"
       sudo sed -i -r 's/cdn-aws.deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
-      fi
       echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
       sudo apt-get update
     fi
