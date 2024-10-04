@@ -51,6 +51,7 @@ public class TraceController {
         Method getTracePropagationStylesToInject = configClass.getMethod("getTracePropagationStylesToInject");
         Method isDebugEnabled = configClass.getMethod("isDebugEnabled");
         Method getLogLevel = configClass.getMethod("getLogLevel");
+        Method getAgentUrl = configClass.getMethod("getAgentUrl");
 
         Method isTraceOtelEnabled = instrumenterConfigClass.getMethod("isTraceOtelEnabled");
 
@@ -63,6 +64,7 @@ public class TraceController {
         configMap.put("dd_runtime_metrics_enabled", isRuntimeMetricsEnabled.invoke(configObject).toString());
         configMap.put("dd_trace_debug", isDebugEnabled.invoke(configObject).toString());
         configMap.put("dd_trace_otel_enabled", isTraceOtelEnabled.invoke(instrumenterConfigObject).toString());
+        configMap.put("dd_trace_agent_url", getAgentUrl.invoke(configObject).toString());
         // configMap.put("dd_trace_sample_ignore_parent", Config.get());
 
         Object sampleRate = getTraceSampleRate.invoke(configObject);
