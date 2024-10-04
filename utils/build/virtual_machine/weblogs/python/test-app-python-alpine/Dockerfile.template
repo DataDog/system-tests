@@ -1,7 +1,6 @@
 FROM public.ecr.aws/docker/library/python:3-alpine
 # Install python/pip
 ENV PYTHONUNBUFFERED=1
-
 RUN pip3 install --no-cache --upgrade pip setuptools
 
 ENV DJANGO_SETTINGS_MODULE django_app
