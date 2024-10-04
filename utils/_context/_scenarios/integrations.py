@@ -1,5 +1,8 @@
+import os
 import random
 import string
+
+import pytest
 
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
@@ -21,6 +24,26 @@ def _get_unique_id(replay: bool, host_log_folder: str) -> str:
             f.write(unique_id)
 
     return unique_id
+
+
+def _check_aws_variables(scenario: EndToEndScenario):
+    if not os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"):
+        pytest.exit(
+            f"Error while starting {scenario.name}: AWS environment variables for authentication must be set on your "
+            "local machine\nPlease set 'SYSTEM_TESTS_AWS_ACCESS_KEY_ID' using valid credentials for Datadog AWS "
+            "Sandbox Account: 601427279990.\nCredentials can be refreshed by running:\n"
+            "    source utils/scripts/aws_login.sh",
+            1
+        )
+
+    if not os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"):
+        pytest.exit(
+            f"Error while starting {scenario.name}: AWS environment variables for authentication must be set on your "
+            "local machine\nplease set 'SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY' using valid credentials for Datadog AWS "
+            "Sandbox Account: 601427279990. Credentials can be refreshed by running:\n"
+            "source utils/scripts/aws_login.sh",
+            1
+        )
 
 
 class IntegrationsScenario(EndToEndScenario):
@@ -46,6 +69,7 @@ class IntegrationsScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
+        _check_aws_variables(self)
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
 
 
@@ -72,4 +96,5 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
+        _check_aws_variables(self)
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
