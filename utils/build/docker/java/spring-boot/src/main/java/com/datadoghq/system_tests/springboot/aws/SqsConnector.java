@@ -126,7 +126,7 @@ public class SqsConnector {
             ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
             List<Message> messages = response.messages();
             for (Message actualMessage : messages) {
-                if (actualMessage.body().equals(expectedMessage)) {
+                if (actualMessage.body().contains(expectedMessage)) {
                     System.out.println("[" + service.toUpperCase() + "] got message! " + actualMessage.body() + " from " + queue);
                     return true;
                 }
