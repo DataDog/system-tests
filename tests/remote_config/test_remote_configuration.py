@@ -45,6 +45,15 @@ class Test_Agent:
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
+    @staticmethod
+    def response_has_been_overwritten(data):
+        # For legacy API send_sequential_commands
+        for name, _ in data["response"]["headers"]:
+            if name == "st-proxy-overwrite-rc-response":
+                return True
+
+        return False
+
     def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
 
@@ -206,8 +215,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         def validate(data):
             """Helper to validate config request content"""
 
-            if len(data["response"]["content"]) == 0:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             logger.info(f"validating request number {self.request_number}")
@@ -301,8 +309,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
         def validate(data):
             """Helper to validate config request content"""
 
-            if len(data["response"]["content"]) == 0:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
@@ -352,8 +359,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         def validate(data):
             """ Helper to validate config request content """
 
-            if len(data["response"]["content"]) == 0:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
@@ -401,8 +407,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         def validate(data):
             """Helper to validate config request content"""
 
-            if len(data["response"]["content"]) == 0:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             logger.info(f"validating request number {self.request_number}")
@@ -448,8 +453,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
         def validate(data):
             """Helper to validate config request content"""
 
-            if len(data["response"]["content"]) == 0:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
@@ -495,8 +499,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
         def validate(data):
             """Helper to validate config request content"""
 
-            if len(data["response"]["content"]) == 0:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             logger.info(f"validating request number {self.request_number}")
