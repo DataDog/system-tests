@@ -26,7 +26,7 @@ type HealtchCheck struct {
 }
 
 func init() {
-	os.Setenv("DD_TRACE_DEBUG", "true")
+	// os.Setenv("DD_TRACE_DEBUG", "true")
 }
 
 func InitDatadog() {
