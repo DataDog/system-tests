@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, rfc
+from utils import weblog, interfaces, scenarios, features, rfc, irrelevant
 
 
 @scenarios.default
