@@ -706,6 +706,7 @@ class RedHat86amd64(_VirtualMachine):
             **kwargs,
         )
 
+
 class RedHat86arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
