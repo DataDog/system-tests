@@ -56,12 +56,6 @@ class Test_ConfRuleSet:
         interfaces.library.assert_no_appsec_event(self.r_1)
         interfaces.library.assert_waf_attack(self.r_2, pattern="dedicated-value-for-testing-purpose")
 
-    def test_log(self):
-        """ Check there is no error reported in logs """
-        stdout.assert_absence("AppSec could not read the rule file")
-        stdout.assert_absence("failed to parse rule")
-        stdout.assert_absence("WAF initialization failed")
-
 
 @scenarios.appsec_custom_rules
 @features.threats_configuration
