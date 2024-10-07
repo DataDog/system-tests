@@ -1063,6 +1063,60 @@ class DockerSSIContainer(TestedContainer):
         return env.get(env_var)
 
 
+class DummyServerContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="jasonrm/dummy-server:latest",
+            name="http-app",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+        )
+
+
+class EnvoyContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+
+        from utils import weblog
+
+        super().__init__(
+            image_name="envoyproxy/envoy:v1.31-latest",
+            name="envoy",
+            host_log_folder=host_log_folder,
+            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
+            ports={"80": ("127.0.0.1", weblog.port)},
+            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
+        )
+
+
+class ExternalProcessingContainer(TestedContainer):
+    library: LibraryVersion
+
+    def __init__(self, host_log_folder) -> None:
+        try:
+            with open("binaries/golang-service-extensions-callout-image", "r", encoding="utf-8") as f:
+                image = f.read().strip()
+        except FileNotFoundError:
+            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
+
+        super().__init__(
+            image_name=image,
+            name="extproc",
+            host_log_folder=host_log_folder,
+            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126,},
+            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
+        )
+
+    def post_start(self):
+        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        self.library = LibraryVersion(lib["language"], lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Image: {self.image.name}")
+
+
 def set_aws_auth_environment(image):
     # copy SYSTEM_TESTS_AWS env variables from local env to docker image
 
