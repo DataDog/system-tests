@@ -61,7 +61,8 @@ class IntegrationsScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
-        _check_aws_variables(self)
+        if not self.replay:
+            _check_aws_variables(self)
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
 
 
@@ -88,7 +89,8 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
-        _check_aws_variables(self)
+        if not self.replay:
+            _check_aws_variables(self)
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
 
 
