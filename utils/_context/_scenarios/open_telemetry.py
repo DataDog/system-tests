@@ -4,6 +4,7 @@ from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 from utils.tools import logger
+from utils import interfaces
 from utils._context.library_version import Version
 
 from utils._context.containers import (
@@ -69,7 +70,6 @@ class OpenTelemetryScenario(DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
 
     def configure(self, config):
-        from utils import interfaces
 
         super().configure(config)
         self._check_env_vars()
@@ -84,14 +84,12 @@ class OpenTelemetryScenario(DockerScenario):
             self.collector_container.environment["DD_SITE"] = dd_site
         if self.include_agent:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = True
-            interfaces.agent.configure(replay=self.replay)
+            interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
-        interfaces.backend.configure(replay=self.replay)
-        interfaces.open_telemetry.configure(replay=self.replay)
+        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
 
     def _start_interface_watchdog(self):
-        from utils import interfaces
-
         class Event(FileSystemEventHandler):
             def __init__(self, interface) -> None:
                 super().__init__()
@@ -125,7 +123,6 @@ class OpenTelemetryScenario(DockerScenario):
         return warmups
 
     def _wait_for_app_readiness(self):
-        from utils import interfaces  # import here to avoid circular import
 
         if self.use_proxy:
             logger.debug("Wait for app readiness")
@@ -135,7 +132,6 @@ class OpenTelemetryScenario(DockerScenario):
             logger.debug("Open telemetry ready")
 
     def post_setup(self):
-        from utils import interfaces
 
         if self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)

@@ -3,7 +3,7 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
-
+from utils import interfaces
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -126,7 +126,7 @@ class DockerScenario(Scenario):
         observer = PollingObserver()
 
         for interface in interfaces:
-            observer.schedule(Event(interface), path=interface._log_folder)
+            observer.schedule(Event(interface), path=interface.log_folder)
 
         observer.start()
 
@@ -282,22 +282,20 @@ class EndToEndScenario(DockerScenario):
         return declared_scenario in (self.name, "EndToEndScenario")
 
     def configure(self, config):
-        from utils import interfaces
-
         super().configure(config)
 
         if config.option.force_dd_trace_debug:
             self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
 
-        interfaces.agent.configure(self.replay)
-        interfaces.library.configure(self.replay)
-        interfaces.backend.configure(self.replay)
-        interfaces.library_dotnet_managed.configure(self.replay)
+        interfaces.agent.configure(self.host_log_folder, self.replay)
+        interfaces.library.configure(self.host_log_folder, self.replay)
+        interfaces.backend.configure(self.host_log_folder, self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
 
         for container in self.buddies:
             # a little bit of python wizzardry to solve circular import
             container.interface = getattr(interfaces, container.name)
-            container.interface.configure(self.replay)
+            container.interface.configure(self.host_log_folder, self.replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -332,8 +330,6 @@ class EndToEndScenario(DockerScenario):
         logger.stdout("")
 
     def _start_interface_watchdog(self):
-        from utils import interfaces
-
         super()._start_interfaces_watchdog(
             [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
         )
@@ -349,8 +345,6 @@ class EndToEndScenario(DockerScenario):
         return warmups
 
     def _wait_for_app_readiness(self):
-        from utils import interfaces  # import here to avoid circular import
-
         if self.use_proxy:
             logger.debug("Wait for app readiness")
 
@@ -370,8 +364,6 @@ class EndToEndScenario(DockerScenario):
             logger.debug("Agent ready")
 
     def post_setup(self):
-        from utils import interfaces
-
         try:
             self._wait_and_stop_containers()
         finally:
@@ -380,7 +372,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self):
-        from utils import interfaces
 
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
