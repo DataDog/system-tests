@@ -22,6 +22,7 @@ lang_variant:
         os_distro: rpm
         os_branch: amazon_linux2
         remote-command: |
+          sudo yum install libicu
           sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
           sudo yum install -y dotnet-sdk-6.0
 
