@@ -15,5 +15,6 @@ weblog:
 
           - name: copy-nodejs-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-alpine/Dockerfile.template
+            remote_path: Dockerfile.template
 
         remote-command: sh create_and_run_app_container.sh

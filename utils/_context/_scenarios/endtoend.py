@@ -262,6 +262,9 @@ class EndToEndScenario(DockerScenario):
 
         super().configure(config)
 
+        if config.option.force_dd_trace_debug:
+            self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
+
         interfaces.agent.configure(self.replay)
         interfaces.library.configure(self.replay)
         interfaces.backend.configure(self.replay)
@@ -297,7 +300,12 @@ class EndToEndScenario(DockerScenario):
         except BaseException:
             logger.exception("can't get weblog system info")
         else:
-            logger.stdout(f"Weblog system: {message}")
+            logger.stdout(f"Weblog system: {message.strip()}")
+
+        if self.weblog_container.environment.get("DD_TRACE_DEBUG") == "true":
+            logger.stdout("\t/!\\ Debug logs are activated in weblog")
+
+        logger.stdout("")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
