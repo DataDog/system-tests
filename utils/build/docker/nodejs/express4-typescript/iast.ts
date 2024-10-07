@@ -137,6 +137,11 @@ function initSinkRoutes (app: Express): void {
     res.send('OK')
   })
 
+  app.post('/iast/insecure-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
   app.get('/iast/insecure-cookie/test_empty_cookie', (req: Request, res: Response): void => {
     res.clearCookie('insecure')
     res.setHeader('set-cookie', 'empty=')
@@ -155,6 +160,11 @@ function initSinkRoutes (app: Express): void {
     res.send('OK')
   })
 
+  app.post('/iast/no-httponly-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { secure: true, sameSite: true })
+    res.send('OK')
+  })
+
   app.get('/iast/no-httponly-cookie/test_empty_cookie', (req: Request, res: Response): void => {
     res.clearCookie('insecure')
     res.setHeader('set-cookie', 'httponlyempty=')
@@ -170,6 +180,11 @@ function initSinkRoutes (app: Express): void {
   app.get('/iast/no-samesite-cookie/test_secure', (req: Request, res: Response): void => {
     res.setHeader('set-cookie', 'samesite=cookie; Secure; HttpOnly; SameSite=Strict')
     res.cookie('samesite2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
+  app.post('/iast/no-samesite-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { secure: true, httpOnly: true })
     res.send('OK')
   })
 

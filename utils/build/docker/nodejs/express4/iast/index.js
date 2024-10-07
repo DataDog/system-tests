@@ -130,6 +130,11 @@ function initRoutes (app, tracer) {
     res.send('OK')
   })
 
+  app.post('/iast/insecure-cookie/custom_cookie', (req, res) => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
   app.get('/iast/insecure-cookie/test_empty_cookie', (req, res) => {
     res.clearCookie('insecure')
     res.setHeader('set-cookie', 'empty=')
@@ -139,6 +144,11 @@ function initRoutes (app, tracer) {
 
   app.get('/iast/no-httponly-cookie/test_insecure', (req, res) => {
     res.cookie('no-httponly', 'cookie')
+    res.send('OK')
+  })
+
+  app.post('/iast/no-httponly-cookie/custom_cookie', (req, res) => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { secure: true, sameSite: true })
     res.send('OK')
   })
 
@@ -163,6 +173,11 @@ function initRoutes (app, tracer) {
   app.get('/iast/no-samesite-cookie/test_secure', (req, res) => {
     res.setHeader('set-cookie', 'samesite=cookie; Secure; HttpOnly; SameSite=Strict')
     res.cookie('samesite2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
+  app.post('/iast/no-samesite-cookie/custom_cookie', (req, res) => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { secure: true, httpOnly: true })
     res.send('OK')
   })
 

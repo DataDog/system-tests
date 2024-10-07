@@ -102,6 +102,7 @@ tests/:
           TestInsecureCookie:
             '*': *ref_4_1_0
             nextjs: missing_feature
+          TestInsecureCookieNameFilter: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
             '*': *ref_4_1_0
@@ -110,10 +111,12 @@ tests/:
           TestNoHttponlyCookie:
             '*': *ref_4_3_0
             nextjs: missing_feature
+          TestNoHttponlyCookieNameFilter: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': *ref_4_3_0
             nextjs: missing_feature
+          TestNoSamesiteCookieNameFilter: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
