@@ -7,7 +7,7 @@ import subprocess
 import sys
 import typing
 
-import boto3
+# import boto3
 import fastapi
 from fastapi import Cookie
 from fastapi import FastAPI
@@ -785,6 +785,8 @@ def s3_put_object(bucket: str, key: str):
     body = key
 
     with mock_aws():
+        import boto3  # a local import to make sure that mock_aws patches it
+
         conn = boto3.resource("s3", region_name="us-east-1")
         conn.create_bucket(Bucket=bucket)
         response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
