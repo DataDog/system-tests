@@ -34,6 +34,10 @@ from utils._context.virtual_machines import (
     AlmaLinux8arm64,
     AlmaLinux9amd64,
     AlmaLinux9arm64,
+    Fedora36amd64,
+    Fedora36arm64,
+    Fedora37amd64,
+    Fedora37arm64,
 )
 
 from .core import Scenario
@@ -77,6 +81,10 @@ class _VirtualMachineScenario(Scenario):
         include_almalinux_8_arm64=False,
         include_almalinux_9_amd64=False,
         include_almalinux_9_arm64=False,
+        include_fedora_36_amd64=False,
+        include_fedora_36_arm64=False,
+        include_fedora_37_amd64=False,
+        include_fedora_37_arm64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -152,6 +160,14 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AlmaLinux9amd64())
         if include_almalinux_9_arm64:
             self.required_vms.append(AlmaLinux9arm64())
+        if include_fedora_36_amd64:
+            self.required_vms.append(Fedora36amd64())
+        if include_fedora_36_arm64:
+            self.required_vms.append(Fedora36arm64())
+        if include_fedora_37_amd64:
+            self.required_vms.append(Fedora37amd64())
+        if include_fedora_37_arm64:
+            self.required_vms.append(Fedora37arm64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -297,34 +313,38 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             app_env=app_env,
             doc=doc,
             github_workflow=github_workflow,
-            include_ubuntu_20_amd64=True,
-            include_ubuntu_20_arm64=True,
-            include_ubuntu_21_arm64=True,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_ubuntu_23_04_amd64=True,
-            include_ubuntu_23_04_arm64=True,
-            include_ubuntu_23_10_amd64=True,
-            include_ubuntu_23_10_arm64=True,
-            include_ubuntu_24_amd64=True,
-            include_ubuntu_24_arm64=True,
-            include_ubuntu_18_amd64=True,
-            include_amazon_linux_2_amd64=True,
-            include_amazon_linux_2_arm64=True,
-            include_amazon_linux_2_dotnet_6=True,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-            include_centos_7_amd64=True,
-            include_oraclelinux_9_2_amd64=True,
-            include_oraclelinux_9_2_arm64=True,
-            include_oraclelinux_8_8_amd64=True,
-            include_oraclelinux_8_8_arm64=True,
-            include_oraclelinux_7_9_amd64=True,
-            include_debian_12_amd64=True,
-            include_debian_12_arm64=True,
-            include_almalinux_8_amd64=True,
-            include_almalinux_8_arm64=True,
-            include_almalinux_9_amd64=True,
-            include_almalinux_9_arm64=True,
+            include_ubuntu_20_amd64=False,
+            include_ubuntu_20_arm64=False,
+            include_ubuntu_21_arm64=False,
+            include_ubuntu_22_amd64=False,
+            include_ubuntu_22_arm64=False,
+            include_ubuntu_23_04_amd64=False,
+            include_ubuntu_23_04_arm64=False,
+            include_ubuntu_23_10_amd64=False,
+            include_ubuntu_23_10_arm64=False,
+            include_ubuntu_24_amd64=False,
+            include_ubuntu_24_arm64=False,
+            include_ubuntu_18_amd64=False,
+            include_amazon_linux_2_amd64=False,
+            include_amazon_linux_2_arm64=False,
+            include_amazon_linux_2_dotnet_6=False,
+            include_amazon_linux_2023_amd64=False,
+            include_amazon_linux_2023_arm64=False,
+            include_centos_7_amd64=False,
+            include_oraclelinux_9_2_amd64=False,
+            include_oraclelinux_9_2_arm64=False,
+            include_oraclelinux_8_8_amd64=False,
+            include_oraclelinux_8_8_arm64=False,
+            include_oraclelinux_7_9_amd64=False,
+            include_debian_12_amd64=False,
+            include_debian_12_arm64=False,
+            include_almalinux_8_amd64=False,
+            include_almalinux_8_arm64=False,
+            include_almalinux_9_amd64=False,
+            include_almalinux_9_arm64=False,
+            include_fedora_36_amd64=True,
+            include_fedora_36_arm64=True,
+            include_fedora_37_amd64=True,
+            include_fedora_37_arm64=True,
             scenario_groups=scenario_groups,
         )

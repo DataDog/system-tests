@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/python:3-alpine
+FROM public.ecr.aws/docker/library/python:3.12-alpine
 # Install python/pip
 ENV PYTHONUNBUFFERED=1
 RUN apk add libgcc
