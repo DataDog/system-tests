@@ -573,21 +573,7 @@ class BuddyContainer(TestedContainer):
         )
 
         self.interface = None
-
-        aws_env_var_prefix = "AWS"
-        if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
-            aws_env_var_prefix = "SYSTEM_TESTS_AWS"
-
-        # copy AWS or SYSTEM_TESTS_AWS env variables from local env to weblogs
-        for key, value in os.environ.items():
-            if aws_env_var_prefix in key:
-                self.environment[key] = value
-
-        # Set default AWS values if specific keys are not present
-        self.environment["AWS_REGION"] = self.environment.get("AWS_REGION", "us-east-1")
-        self.environment["AWS_DEFAULT_REGION"] = self.environment.get(
-            "AWS_DEFAULT_REGION", self.environment["AWS_REGION"]
-        )
+        set_aws_auth_environment(self)
 
 
 class WeblogContainer(TestedContainer):
@@ -708,17 +694,7 @@ class WeblogContainer(TestedContainer):
 
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
-
-        # copy AWS env variables from local env to weblogs
-        for key, value in os.environ.items():
-            if "AWS" in key:
-                self.environment[key] = value
-
-        # Set default AWS values if specific keys are not present
-        self.environment["AWS_REGION"] = self.environment.get("AWS_REGION", "us-east-1")
-        self.environment["AWS_DEFAULT_REGION"] = self.environment.get(
-            "AWS_DEFAULT_REGION", self.environment["AWS_REGION"]
-        )
+        set_aws_auth_environment(self)
 
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
@@ -1085,3 +1061,23 @@ class DockerSSIContainer(TestedContainer):
         """Get env variables from the container """
         env = self.image.env | self.environment
         return env.get(env_var)
+
+
+def set_aws_auth_environment(image):
+    # copy SYSTEM_TESTS_AWS env variables from local env to docker image
+
+    if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
+        prefix = "SYSTEM_TESTS_AWS"
+        for key, value in os.environ.items():
+            if prefix in key:
+                image.environment[key.replace("SYSTEM_TESTS_", "")] = value
+    else:
+        prefix = "AWS"
+        for key, value in os.environ.items():
+            if prefix in key:
+                image.environment[key] = value
+
+    # Set default AWS values if specific keys are not present
+    if "AWS_REGION" not in image.environment:
+        image.environment["AWS_REGION"] = "us-east-1"
+        image.environment["AWS_DEFAULT_REGION"] = "us-east-1"
