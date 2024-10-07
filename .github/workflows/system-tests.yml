@@ -153,3 +153,4 @@ jobs:
     with:
       build_proxy_image: ${{ inputs.build_proxy_image }}
       ci_environment: ${{ inputs.ci_environment }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}

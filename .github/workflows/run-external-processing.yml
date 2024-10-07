@@ -3,6 +3,11 @@ name: External-processing tests
 on:
   workflow_call:
     inputs:
+      binaries_artifact:
+        description: "Artifact name containing the binaries to test"
+        default: ''
+        required: false
+        type: string
       ci_environment:
         description: "Which CI environment is running the tests, used for FPD"
         default: 'custom'
@@ -37,6 +42,13 @@ jobs:
 
       - name: Log in to the Container registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Get binaries artifact
+        if : ${{ inputs.binaries_artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.binaries_artifact }}
+          path: binaries/
 
       - name: Pull images
         uses: ./.github/actions/pull_images
