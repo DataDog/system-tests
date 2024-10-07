@@ -778,9 +778,9 @@ def return_headers(request: Request):
     return JSONResponse(headers)
 
 
-@app.get("/mock_s3/put_object", methods=JSONResponse)
-@app.post("/mock_s3/put_object", methods=JSONResponse)
-@app.options("/mock_s3/put_object", methods=JSONResponse)
+@app.get("/mock_s3/put_object", response_class=JSONResponse)
+@app.post("/mock_s3/put_object", response_class=JSONResponse)
+@app.options("/mock_s3/put_object", response_class=JSONResponse)
 def s3_put_object(bucket: str, key: str):
     body = key
 
