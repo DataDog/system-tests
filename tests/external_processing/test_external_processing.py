@@ -1,6 +1,7 @@
-from utils import weblog, interfaces, scenarios
+from utils import weblog, interfaces, scenarios, features
 
 
+@features.not_reported  # it's just a POC. We'll need to figure out how we want to see results in FPD
 @scenarios.external_processing
 class Test_ExternalProcessing:
     def setup_main(self):

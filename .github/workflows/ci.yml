@@ -109,7 +109,7 @@ jobs:
     with:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.scenarios.outputs.scenarios }}
-      scenarios_groups: external-processing  # DO NOT MERGE ${{ needs.scenarios.outputs.scenarios_groups }}
+      scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
       binaries_artifact: ${{ matrix.version == 'dev' && format('binaries_dev_{0}', matrix.library) || '' }}
       ci_environment: ${{ matrix.version }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
