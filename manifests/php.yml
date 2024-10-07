@@ -275,6 +275,8 @@ tests/:
       TestDynamicConfigV1: missing_feature
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_headers_baggage.py:
+      Test_Headers_Baggage: missing_feature
     test_otel_api_interoperability.py:
       Test_Otel_API_Interoperability: v0.94.0
     test_otel_env_vars.py:
@@ -283,6 +285,8 @@ tests/:
       Test_Otel_SDK_Interoperability: v0.94.0
     test_otel_span_methods.py:
         Test_Otel_Span_Methods: v0.94.0
+    test_otel_span_with_baggage.py:
+        Test_Otel_Span_With_Baggage: missing_feature
     test_otel_span_with_w3c.py:
         Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
