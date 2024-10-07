@@ -1,6 +1,6 @@
 FROM public.ecr.aws/docker/library/alpine:3.20
 
-RUN apk add --update php83 libcurl bash
+RUN apk add --update php83 libgcc libcurl bash
 
 RUN mkdir /app
 WORKDIR /app
