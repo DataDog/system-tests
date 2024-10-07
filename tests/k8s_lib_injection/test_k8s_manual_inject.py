@@ -2,7 +2,7 @@ import os
 import time
 
 import requests
-from utils import scenarios, features, bug, context
+from utils import scenarios, features, bug, context, missing_feature
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
@@ -11,6 +11,7 @@ from utils import scenarios, features
 
 
 class _TestAdmisionController:
+    @missing_feature(context.library == "php")
     def test_inject_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test _test_inject_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.get_weblog_port()}] Agent: [{test_k8s_instance.k8s_kind_cluster.get_agent_port()}]"
@@ -22,6 +23,7 @@ class _TestAdmisionController:
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_admission_controller finished")
 
+    @missing_feature(context.library == "php")
     def test_inject_uds_admission_controller(self, test_k8s_instance):
         logger.info(
             f"Launching test test_inject_uds_admission_controller: Weblog: [{test_k8s_instance.k8s_kind_cluster.get_weblog_port()}] Agent: [{test_k8s_instance.k8s_kind_cluster.get_agent_port()}]"
