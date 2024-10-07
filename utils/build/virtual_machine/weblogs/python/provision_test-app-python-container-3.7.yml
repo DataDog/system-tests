@@ -1,6 +1,6 @@
 weblog:
     name: test-app-python-container-3.7
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    exact_os_branches: [ubuntu24]
     install:
       - os_type: linux
         copy_files:
