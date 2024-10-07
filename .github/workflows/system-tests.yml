@@ -147,7 +147,7 @@ jobs:
   external-processing:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' }}
+    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && inputs.binaries_artifact != ''}}
     uses: ./.github/workflows/run-external-processing.yml
     secrets: inherit
     with:
