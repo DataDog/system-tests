@@ -19,7 +19,7 @@ env:
 
 
 jobs:
-  graphql:
+  external-processing:
     runs-on:
       group: "APM Larger Runners"
 
@@ -38,15 +38,19 @@ jobs:
       - name: Log in to the Container registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
-      - name: Build proxy image
-        if: inputs.build_proxy_image
-        run: ./build.sh -i proxy
       - name: Pull images
         uses: ./.github/actions/pull_images
         with:
           library: golang
           weblog: golang-dummy
           scenarios: '["EXTERNAL_PROCESSING"]'
+
+      - name: Build proxy image
+        if: inputs.build_proxy_image
+        run: ./build.sh -i proxy
+
+      - name: Build agent image
+        run: ./build.sh -i agent
 
       - name: Run EXTERNAL_PROCESSING scenario
         run: ./run.sh EXTERNAL_PROCESSING
