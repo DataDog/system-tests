@@ -219,7 +219,7 @@ class Test_Config_ClientIPHeader_Configured:
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
-@scenarios.tracing_config_nondefault
+@scenarios.tracing_config_nondefault_2
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Precedence:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true 
@@ -312,7 +312,7 @@ class Test_Config_IntegrationEnabled_False:
     """ Verify behavior of integrations automatic spans """
 
     def setup_kafka_integration_enabled_false(self):
-        self.r = weblog.get("/kafka/produce")
+        self.r = weblog.get("/kafka/produce", params={"topic": "random"}, timeout=60)
 
     def test_kafka_integration_enabled_false(self):
         assert self.r.status_code == 200
@@ -336,7 +336,7 @@ class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
 
     def setup_kafka_integration_enabled_true(self):
-        self.r = weblog.get("/kafka/produce")
+        self.r = weblog.get("/kafka/produce", params={"topic": "random"}, timeout=60)
 
     def test_kafka_integration_enabled_true(self):
         assert self.r.status_code == 200
