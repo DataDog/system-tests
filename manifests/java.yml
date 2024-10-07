@@ -1292,7 +1292,7 @@ tests/:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientIPHeader_Configured: v1.40.0
+    Test_Config_ClientIPHeader_Configured: missing_feature
     Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
     Test_Config_ClientTagQueryString_Configured: missing_feature (endpoints return 404, but in theory should work)
     Test_Config_ClientTagQueryString_Empty: missing_feature (incorrect default value)
