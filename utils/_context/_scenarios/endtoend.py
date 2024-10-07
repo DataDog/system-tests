@@ -307,13 +307,6 @@ class EndToEndScenario(DockerScenario):
 
         logger.stdout("")
 
-    def _create_interface_folders(self):
-        for interface in ("agent", "library", "backend"):
-            self._create_log_subfolder(f"interfaces/{interface}")
-
-        for container in self.buddies:
-            self._create_log_subfolder(f"interfaces/{container.interface.name}")
-
     def _start_interface_watchdog(self):
         from utils import interfaces
 
@@ -347,8 +340,7 @@ class EndToEndScenario(DockerScenario):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(0, self._create_interface_folders)
-            warmups.insert(1, self._start_interface_watchdog)
+            warmups.insert(0, self._start_interface_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
 

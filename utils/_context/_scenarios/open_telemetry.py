@@ -69,6 +69,8 @@ class OpenTelemetryScenario(DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
 
     def configure(self, config):
+        from utils import interfaces
+
         super().configure(config)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
@@ -82,12 +84,10 @@ class OpenTelemetryScenario(DockerScenario):
             self.collector_container.environment["DD_SITE"] = dd_site
         if self.include_agent:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = True
+            interfaces.agent.configure(replay=self.replay)
 
-    def _create_interface_folders(self):
-        for interface in ("open_telemetry", "backend"):
-            self._create_log_subfolder(f"interfaces/{interface}")
-        if self.include_agent:
-            self._create_log_subfolder("interfaces/agent")
+        interfaces.backend.configure(replay=self.replay)
+        interfaces.open_telemetry.configure(replay=self.replay)
 
     def _start_interface_watchdog(self):
         from utils import interfaces
@@ -119,8 +119,7 @@ class OpenTelemetryScenario(DockerScenario):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(0, self._create_interface_folders)
-            warmups.insert(1, self._start_interface_watchdog)
+            warmups.insert(0, self._start_interface_watchdog)
             warmups.append(self._wait_for_app_readiness)
 
         return warmups

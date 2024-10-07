@@ -7,7 +7,9 @@
 import json
 from os import listdir
 from os.path import isfile, join
+from pathlib import Path
 import re
+import shutil
 import threading
 import time
 
@@ -52,6 +54,14 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._data_list = []
         self._ingested_files = set()
         self._schema_errors = None
+
+    def configure(self, replay):
+        super().configure(replay)
+
+        if not replay:
+            shutil.rmtree(self._log_folder, ignore_errors=True)
+            Path(self._log_folder).mkdir(parents=True, exist_ok=True)
+            Path(self._log_folder + "/files").mkdir(parents=True, exist_ok=True)
 
     @property
     def _log_folder(self):
