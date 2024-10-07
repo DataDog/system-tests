@@ -28,6 +28,8 @@ from utils._context.virtual_machines import (
     OracleLinux88amd64,
     OracleLinux88arm64,
     OracleLinux79amd64,
+    Debian12amd64,
+    Debian12arm64,
     AlmaLinux8amd64,
     AlmaLinux8arm64,
     AlmaLinux9amd64,
@@ -69,6 +71,8 @@ class _VirtualMachineScenario(Scenario):
         include_oraclelinux_8_8_amd64=False,
         include_oraclelinux_8_8_arm64=False,
         include_oraclelinux_7_9_amd64=False,
+        include_debian_12_amd64=False,
+        include_debian_12_arm64=False,
         include_almalinux_8_amd64=False,
         include_almalinux_8_arm64=False,
         include_almalinux_9_amd64=False,
@@ -136,6 +140,10 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(OracleLinux88arm64())
         if include_oraclelinux_7_9_amd64:
             self.required_vms.append(OracleLinux79amd64())
+        if include_debian_12_amd64:
+            self.required_vms.append(Debian12amd64())
+        if include_debian_12_arm64:
+            self.required_vms.append(Debian12arm64())
         if include_almalinux_8_amd64:
             self.required_vms.append(AlmaLinux8amd64())
         if include_almalinux_8_arm64:
@@ -312,6 +320,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_oraclelinux_8_8_amd64=True,
             include_oraclelinux_8_8_arm64=True,
             include_oraclelinux_7_9_amd64=True,
+            include_debian_12_amd64=True,
+            include_debian_12_arm64=True,
             include_almalinux_8_amd64=True,
             include_almalinux_8_arm64=True,
             include_almalinux_9_amd64=True,

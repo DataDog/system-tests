@@ -3,7 +3,6 @@ import json
 import hashlib
 
 from utils.tools import logger
-from utils._context.library_version import Version
 from utils import context
 from utils.onboarding.debug_vm import extract_logs_to_file
 
@@ -439,6 +438,38 @@ class OracleLinux79amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Debian12amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_12_amd64",
+            aws_config=_AWSConfig(ami_id="ami-064519b8c76274859", ami_instance_type="t2.medium", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Debian12arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_12_arm64",
+            aws_config=_AWSConfig(ami_id="ami-031399937db27e013", ami_instance_type="t4g.small", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="arm64",
             default_vm=False,
             **kwargs,
         )

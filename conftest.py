@@ -37,6 +37,8 @@ def pytest_addoption(parser):
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
 
+    parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
+
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
@@ -87,6 +89,9 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+
+    if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
+        config.option.force_dd_trace_debug = True
 
     # handle options that can be filled by environ
     if not config.option.report_environment and "SYSTEM_TESTS_REPORT_ENVIRONMENT" in os.environ:
