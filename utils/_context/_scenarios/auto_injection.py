@@ -5,8 +5,15 @@ from utils.tools import logger
 
 
 from utils._context.virtual_machines import (
+    Ubuntu20amd64,
+    Ubuntu20arm64,
+    Ubuntu21arm64,
     Ubuntu22amd64,
     Ubuntu22arm64,
+    Ubuntu23_04_amd64,
+    Ubuntu23_04_arm64,
+    Ubuntu23_10_amd64,
+    Ubuntu23_10_arm64,
     Ubuntu24amd64,
     Ubuntu24arm64,
     Ubuntu18amd64,
@@ -21,10 +28,14 @@ from utils._context.virtual_machines import (
     OracleLinux88amd64,
     OracleLinux88arm64,
     OracleLinux79amd64,
+    Debian12amd64,
+    Debian12arm64,
     AlmaLinux8amd64,
     AlmaLinux8arm64,
     AlmaLinux9amd64,
     AlmaLinux9arm64,
+    RedHat86amd64,
+    RedHat86arm64,
 )
 
 from .core import Scenario
@@ -39,8 +50,15 @@ class _VirtualMachineScenario(Scenario):
         github_workflow,
         doc,
         vm_provision=None,
+        include_ubuntu_20_amd64=False,
+        include_ubuntu_20_arm64=False,
+        include_ubuntu_21_arm64=False,
         include_ubuntu_22_amd64=False,
         include_ubuntu_22_arm64=False,
+        include_ubuntu_23_04_amd64=False,
+        include_ubuntu_23_04_arm64=False,
+        include_ubuntu_23_10_amd64=False,
+        include_ubuntu_23_10_arm64=False,
         include_ubuntu_24_amd64=False,
         include_ubuntu_24_arm64=False,
         include_ubuntu_18_amd64=False,
@@ -55,10 +73,14 @@ class _VirtualMachineScenario(Scenario):
         include_oraclelinux_8_8_amd64=False,
         include_oraclelinux_8_8_arm64=False,
         include_oraclelinux_7_9_amd64=False,
+        include_debian_12_amd64=False,
+        include_debian_12_arm64=False,
         include_almalinux_8_amd64=False,
         include_almalinux_8_arm64=False,
         include_almalinux_9_amd64=False,
         include_almalinux_9_arm64=False,
+        include_redhat_8_amd64=False,
+        include_redhat_8_arm64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -75,10 +97,24 @@ class _VirtualMachineScenario(Scenario):
         # Variables that will populate for the app installation
         self.app_env = app_env
 
+        if include_ubuntu_20_amd64:
+            self.required_vms.append(Ubuntu20amd64())
+        if include_ubuntu_20_arm64:
+            self.required_vms.append(Ubuntu20arm64())
+        if include_ubuntu_21_arm64:
+            self.required_vms.append(Ubuntu21arm64())
         if include_ubuntu_22_amd64:
             self.required_vms.append(Ubuntu22amd64())
         if include_ubuntu_22_arm64:
             self.required_vms.append(Ubuntu22arm64())
+        if include_ubuntu_23_04_amd64:
+            self.required_vms.append(Ubuntu23_04_amd64())
+        if include_ubuntu_23_04_arm64:
+            self.required_vms.append(Ubuntu23_04_arm64())
+        if include_ubuntu_23_10_amd64:
+            self.required_vms.append(Ubuntu23_10_amd64())
+        if include_ubuntu_23_10_arm64:
+            self.required_vms.append(Ubuntu23_10_arm64())
         if include_ubuntu_24_amd64:
             self.required_vms.append(Ubuntu24amd64())
         if include_ubuntu_24_arm64:
@@ -108,6 +144,10 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(OracleLinux88arm64())
         if include_oraclelinux_7_9_amd64:
             self.required_vms.append(OracleLinux79amd64())
+        if include_debian_12_amd64:
+            self.required_vms.append(Debian12amd64())
+        if include_debian_12_arm64:
+            self.required_vms.append(Debian12arm64())
         if include_almalinux_8_amd64:
             self.required_vms.append(AlmaLinux8amd64())
         if include_almalinux_8_arm64:
@@ -116,6 +156,10 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AlmaLinux9amd64())
         if include_almalinux_9_arm64:
             self.required_vms.append(AlmaLinux9arm64())
+        if include_redhat_8_amd64:
+            self.required_vms.append(RedHat86amd64())
+        if include_redhat_8_arm64:
+            self.required_vms.append(RedHat86arm64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -261,8 +305,15 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             app_env=app_env,
             doc=doc,
             github_workflow=github_workflow,
+            include_ubuntu_20_amd64=True,
+            include_ubuntu_20_arm64=True,
+            include_ubuntu_21_arm64=True,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
+            include_ubuntu_23_04_amd64=True,
+            include_ubuntu_23_04_arm64=True,
+            include_ubuntu_23_10_amd64=True,
+            include_ubuntu_23_10_arm64=True,
             include_ubuntu_24_amd64=True,
             include_ubuntu_24_arm64=True,
             include_ubuntu_18_amd64=True,
@@ -277,9 +328,13 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_oraclelinux_8_8_amd64=True,
             include_oraclelinux_8_8_arm64=True,
             include_oraclelinux_7_9_amd64=True,
+            include_debian_12_amd64=True,
+            include_debian_12_arm64=True,
             include_almalinux_8_amd64=True,
             include_almalinux_8_arm64=True,
             include_almalinux_9_amd64=True,
             include_almalinux_9_arm64=True,
+            include_redhat_8_amd64=True,
+            include_redhat_8_arm64=True,
             scenario_groups=scenario_groups,
         )

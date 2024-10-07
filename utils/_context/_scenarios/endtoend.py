@@ -106,6 +106,30 @@ class DockerScenario(Scenario):
                 return container
         return None
 
+    def _start_interfaces_watchdog(self, interfaces):
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def _ingest(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+            on_modified = _ingest
+            on_created = _ingest
+
+        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
+        # limits on Linux) -> using the good old bare polling system
+        observer = PollingObserver()
+
+        for interface in interfaces:
+            observer.schedule(Event(interface), path=interface._log_folder)
+
+        observer.start()
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
@@ -262,6 +286,9 @@ class EndToEndScenario(DockerScenario):
 
         super().configure(config)
 
+        if config.option.force_dd_trace_debug:
+            self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
+
         interfaces.agent.configure(self.replay)
         interfaces.library.configure(self.replay)
         interfaces.backend.configure(self.replay)
@@ -297,7 +324,12 @@ class EndToEndScenario(DockerScenario):
         except BaseException:
             logger.exception("can't get weblog system info")
         else:
-            logger.stdout(f"Weblog system: {message}")
+            logger.stdout(f"Weblog system: {message.strip()}")
+
+        if self.weblog_container.environment.get("DD_TRACE_DEBUG") == "true":
+            logger.stdout("\t/!\\ Debug logs are activated in weblog")
+
+        logger.stdout("")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -306,41 +338,19 @@ class EndToEndScenario(DockerScenario):
         for container in self.buddies:
             self._create_log_subfolder(f"interfaces/{container.interface.name}")
 
-    def _start_interface_watchdog(self):
+    def _start_interfaces_watchdog(self, _=None):
         from utils import interfaces
 
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def _ingest(self, event):
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
-            on_modified = _ingest
-            on_created = _ingest
-
-        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
-        # limits on Linux) -> using the good old bare polling system
-        observer = PollingObserver()
-
-        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library")
-        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
-
-        for container in self.buddies:
-            observer.schedule(Event(container.interface), path=container.interface._log_folder)
-
-        observer.start()
+        super()._start_interfaces_watchdog(
+            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
+        )
 
     def get_warmups(self):
         warmups = super().get_warmups()
 
         if not self.replay:
             warmups.insert(0, self._create_interface_folders)
-            warmups.insert(1, self._start_interface_watchdog)
+            warmups.insert(1, self._start_interfaces_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
 

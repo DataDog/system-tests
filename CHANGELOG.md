@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+
+### 2024-09 (157 PR merged)
+
+* 2024-09-23 [Remove legacy check on python 3.9](https://github.com/DataDog/system-tests/pull/3094) by @cbeauchesne
+* 2024-09-18 [Enforce JIRA ticket in bug/flaky declarations](https://github.com/DataDog/system-tests/pull/3034) by @cbeauchesne
+* 2024-09-12 [[ruby] Increment path in ruby "dev" version, and set a prerelease](https://github.com/DataDog/system-tests/pull/3022) by @cbeauchesne
+* 2024-09-12 [Removes system-tests-core form owners of manifests](https://github.com/DataDog/system-tests/pull/3018) by @cbeauchesne
+* 2024-09-06 [`-o xfail_strict=True` to force XPASS to fail](https://github.com/DataDog/system-tests/pull/2995) by @cbeauchesne
+* 2024-09-10 [Print weblog crash logs](https://github.com/DataDog/system-tests/pull/2912) by @simon-id
+
+
 ### 2024-08 (102 PR merged)
 
 * 2024-08-29 [[java] Enable e2e tests on all spring-boot variants](https://github.com/DataDog/system-tests/pull/2946) by @smola
