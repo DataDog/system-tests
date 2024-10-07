@@ -292,7 +292,7 @@ class AmazonLinux2arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="amazon_linux2",
             os_cpu="arm64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 
