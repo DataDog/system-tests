@@ -298,6 +298,7 @@ class TestDynamicConfigV1:
         assert len(events) > 0
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @bug(library="ruby", reason="Telemetry event 'app-client-configuration-change' not found")
     def test_apply_state(self, library_env, test_agent, test_library):
         """Create a default RC record and ensure the apply_state is correctly set.
 
@@ -311,6 +312,7 @@ class TestDynamicConfigV1:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
+    @bug(library="ruby", reason="gRPC error: failed to connect to all addresses; recvmsg:Connection reset by peer")
     def test_trace_sampling_rate_override_default(self, test_agent, test_library):
         """The RC sampling rate should override the default sampling rate.
 
@@ -340,6 +342,7 @@ class TestDynamicConfigV1:
     )
     @bug(library="cpp", reason="Trace sampling RC creates another sampler which makes the computation wrong")
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
+    @bug(library="ruby", reason="Telemetry event 'app-client-configuration-change' not found")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 
@@ -382,6 +385,7 @@ class TestDynamicConfigV1:
         ],
     )
     @bug(library="cpp", reason="empty service default to '*'")
+    @bug(library="ruby", reason="Telemetry event 'app-client-configuration-change' not found")
     def test_trace_sampling_rate_with_sampling_rules(self, library_env, test_agent, test_library):
         """Ensure that sampling rules still apply when the sample rate is set via remote config."""
         RC_SAMPLING_RULE_RATE = 0.56
@@ -416,6 +420,7 @@ class TestDynamicConfigV1:
             {**DEFAULT_ENVVARS,},
         ],
     )
+    @bug(library="ruby", reason="Telemetry event 'app-client-configuration-change' not found")
     def test_log_injection_enabled(self, library_env, test_agent, test_library):
         """Ensure that the log injection setting can be set.
 
@@ -452,6 +457,7 @@ class TestDynamicConfigV1_ServiceTargets:
         ],
     )
     @bug(library="nodejs")
+    @bug(library="ruby")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
@@ -512,6 +518,7 @@ class TestDynamicConfigV2:
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
     )
+    @bug(context.library == "ruby", reason="DD_TAGS rc is not supported")
     def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
         expected_local_tags = {}
         if "DD_TAGS" in library_env:
@@ -561,6 +568,7 @@ class TestDynamicConfigV2:
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_HTTP_HEADER_TAGS])
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @bug(context.library == "ruby", reason="APM_TRACING_CUSTOM_TAGS rc is not supported")
     def test_capability_tracing_custom_tags(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the custom tags capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_CUSTOM_TAGS])
