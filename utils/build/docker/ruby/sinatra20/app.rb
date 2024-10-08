@@ -1,3 +1,4 @@
+require 'datadog'
 require 'pry'
 require 'sinatra'
 require "net/http"
@@ -36,6 +37,19 @@ end
 
 get '/' do
   'Hello, world!'
+end
+
+get '/healthcheck' do
+  content_type :json
+
+  {
+    status: 'ok',
+    library: {
+      language: 'ruby',
+      version: Datadog::VERSION::STRING
+    }
+  }.to_json
+
 end
 
 post '/' do
