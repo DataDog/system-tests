@@ -1,6 +1,6 @@
 weblog:
     name: test-app-python-container-3.7
-    exact_os_branches: [ubuntu24_amd64, ubuntu24_arm64]
+    exact_os_branches: [ubuntu24]
     install:
       - os_type: linux
         copy_files:
