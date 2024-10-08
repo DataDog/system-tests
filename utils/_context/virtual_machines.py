@@ -722,6 +722,7 @@ class RedHat86arm64(_VirtualMachine):
             **kwargs,
         )
 
+
 class Fedora36amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
@@ -736,6 +737,7 @@ class Fedora36amd64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
 
 class Fedora36arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
@@ -752,6 +754,7 @@ class Fedora36arm64(_VirtualMachine):
             **kwargs,
         )
 
+
 class Fedora37amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
@@ -766,6 +769,7 @@ class Fedora37amd64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
 
 class Fedora37arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
