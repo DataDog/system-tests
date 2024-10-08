@@ -1,5 +1,8 @@
+import os
 import random
 import string
+
+import pytest
 
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
@@ -21,6 +24,18 @@ def _get_unique_id(replay: bool, host_log_folder: str) -> str:
             f.write(unique_id)
 
     return unique_id
+
+
+def _check_aws_variables(scenario: EndToEndScenario):
+    if not os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID") and not os.environ.get("AWS_ACCESS_KEY_ID"):
+        pytest.exit(
+            f"\n    Error while starting {scenario.name}\n" + AWS_BAD_CREDENTIALS_MSG, 1,
+        )
+
+    if not os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY") and not os.environ.get("AWS_ACCESS_KEY_ID"):
+        pytest.exit(
+            f"\n    Error while starting {scenario.name}\n" + AWS_BAD_CREDENTIALS_MSG, 1,
+        )
 
 
 class IntegrationsScenario(EndToEndScenario):
@@ -46,6 +61,8 @@ class IntegrationsScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
+        if not self.replay:
+            _check_aws_variables(self)
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
 
 
@@ -72,4 +89,33 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
+        if not self.replay:
+            _check_aws_variables(self)
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+
+
+AWS_BAD_CREDENTIALS_MSG = """
+🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
+                                ⚠️⚠️⚠️⚠️⚠️⚠️⚠️  AWS Authentication Error  ⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+
+    It seems that your AWS authentication is not set up correctly. 
+    Please take the following actions:
+
+    🔑 With `aws-vault` setup:
+
+        To enter an authenticated shell session that sets temp AWS credentials in your shell environment:
+        👉 `aws-vault login sso-sandbox-account-admin --`
+        👉 `[your system-test command]`
+                or 
+        
+        To run ONLY the system tests command with auth: (temp AWS credentials are not set in shell environment)
+        👉 `aws-vault login sso-sandbox-account-admin -- [your system-test command]`
+    
+
+    🔧 Or to first set up `aws-vault` / `aws-cli`, please visit:
+        🔗 [AWS CLI Config Setup & Update Guide]
+        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-v2-setup)
+        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-config-setup--update)
+
+🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
+"""
