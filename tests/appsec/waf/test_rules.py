@@ -258,7 +258,6 @@ class Test_SSRF:
         interfaces.library.assert_waf_attack(self.r, waf_rules.ssrf.sqr_000_001)
 
 
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @features.waf_rules
 class Test_DiscoveryScan:
     """AppSec WAF Tests on Discovery Scan rules"""
