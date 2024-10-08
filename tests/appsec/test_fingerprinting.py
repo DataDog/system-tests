@@ -107,7 +107,7 @@ class Test_Fingerprinting_Session:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
 @features.fingerprinting
-@scenarios.remote_config_mocked_backend_asm_dd_nocache
+@scenarios.remote_config_mocked_backend_asm_dd
 class Test_Fingerprinting_Endpoint_Capability:
     """Validate that ASM_ENDPOINT_FINGERPRINT (32) capability is sent"""
 
@@ -117,7 +117,7 @@ class Test_Fingerprinting_Endpoint_Capability:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
 @features.fingerprinting
-@scenarios.remote_config_mocked_backend_asm_dd_nocache
+@scenarios.remote_config_mocked_backend_asm_dd
 class Test_Fingerprinting_Session_Capability:
     """Validate that ASM_SESSION_FINGERPRINT (33) capability is sent"""
 
@@ -127,7 +127,7 @@ class Test_Fingerprinting_Session_Capability:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
 @features.fingerprinting
-@scenarios.remote_config_mocked_backend_asm_dd_nocache
+@scenarios.remote_config_mocked_backend_asm_dd
 class Test_Fingerprinting_Network_Capability:
     """Validate that ASM_NETWORK_FINGERPRINT (34) capability is sent"""
 
@@ -137,7 +137,7 @@ class Test_Fingerprinting_Network_Capability:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
 @features.fingerprinting
-@scenarios.remote_config_mocked_backend_asm_dd_nocache
+@scenarios.remote_config_mocked_backend_asm_dd
 class Test_Fingerprinting_Header_Capability:
     """Validate that ASM_HEADER_FINGERPRINT (35) capability is sent"""
 
