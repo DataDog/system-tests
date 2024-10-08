@@ -413,12 +413,13 @@ public class App {
     ResponseEntity<String> snsProduce(
         @RequestParam(required = true) String queue,
         @RequestParam(required = true) String topic,
-        @RequestParam(required = true) String message
+        @RequestParam(required = true) String message,
+        @RequestParam(required = true) Boolean raw_message_delivery_enabled
     ) {
         SnsConnector sns = new SnsConnector(topic);
         SqsConnector sqs = new SqsConnector(queue);
         try {
-            sns.produceMessageWithoutNewThread(message, sqs);
+            sns.produceMessageWithoutNewThread(message, sqs, raw_message_delivery_enabled);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -523,7 +524,8 @@ public class App {
         @RequestParam(required = false, name = "routing_key") String routing_key,
         @RequestParam(required = false, name = "exchange") String exchange,
         @RequestParam(required = false, name = "group") String group,
-        @RequestParam(required = false, name = "message") String message
+        @RequestParam(required = false, name = "message") String message,
+        @RequestParam(required = false, name = "raw_message_delivery_enabled") Boolean raw_message_delivery_enabled
     ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);
@@ -619,7 +621,7 @@ public class App {
             SnsConnector sns = new SnsConnector(topic);
             SqsConnector sqs = new SqsConnector(queue);
             try {
-                Thread produceThread = sns.startProducingMessage(message, sqs);
+                Thread produceThread = sns.startProducingMessage(message, sqs, raw_message_delivery_enabled);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start producing message...");

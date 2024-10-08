@@ -4,7 +4,7 @@ const tracer = require('dd-trace')
 let TopicArn
 let QueueUrl
 
-const snsPublish = (queue, topic, message) => {
+const snsPublish = (queue, topic, message, rawMessageDeliveryEnabled) => {
   // Create an SQS client
   const sns = new AWS.SNS()
   const sqs = new AWS.SQS()
@@ -64,10 +64,16 @@ const snsPublish = (queue, topic, message) => {
               return reject(err)
             }
 
+            const attributes = {}
+            if (rawMessageDeliveryEnabled) {
+              attributes.RawMessageDelivery = 'True'
+            }
+
             const subParams = {
               Protocol: 'sqs',
               Endpoint: QueueArn,
-              TopicArn
+              TopicArn,
+              Attributes: attributes
             }
 
             sns.subscribe(subParams, (err) => {
@@ -129,7 +135,7 @@ const snsConsume = async (queue, timeout, expectedMessage) => {
             console.log(response.Messages)
             for (const message of response.Messages) {
               console.log(message)
-              if (message.Body === expectedMessage) {
+              if (message.Body.includes(expectedMessage)) {
               // add a manual span to make finding this trace easier when asserting on tests
                 tracer.trace('sns.consume', span => {
                   span.setTag('queue_name', queue)
