@@ -191,14 +191,6 @@ class Test_XSS:
         for r in self.requests:
             interfaces.library.assert_waf_attack(r, waf_rules.xss)
 
-    def setup_xss2(self):
-        self.r_xss2 = weblog.get("/waf/", cookies={"value": '<vmlframe src="xss">'})
-
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_xss2(self):
-        """XSS patterns in cookie, with special char"""
-        interfaces.library.assert_waf_attack(self.r_xss2, waf_rules.xss)
-
 
 @features.waf_rules
 class Test_SQLI:
@@ -210,14 +202,6 @@ class Test_SQLI:
     def test_sqli(self):
         interfaces.library.assert_waf_attack(self.r_1, waf_rules.sql_injection.crs_942_160)
 
-    def setup_sqli1(self):
-        self.r_2 = weblog.get("/waf/", params={"value": "0000012345"})
-
-    @irrelevant(context.appsec_rules_version >= "1.2.6", reason="crs-942-220 has been removed")
-    def test_sqli1(self):
-        """AppSec catches SQLI attacks"""
-        interfaces.library.assert_waf_attack(self.r_2, "crs-942-220")
-
     def setup_sqli2(self):
         self.r_3 = weblog.get("/waf/", params={"value": "alter d char set f"})
         self.r_4 = weblog.get("/waf/", params={"value": "merge using("})
@@ -228,39 +212,10 @@ class Test_SQLI:
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.sql_injection.crs_942_240)
         interfaces.library.assert_waf_attack(self.r_4, waf_rules.sql_injection.crs_942_250)
 
-    def setup_sqli3(self):
-        self.r_5 = weblog.get("/waf/", cookies={"value": "%3Bshutdown--"})
-
-    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
-    @bug(library="java", reason="under Valentin's investigations")
-    @missing_feature(library="golang", reason="cookies are not url-decoded and this attack works with a ;")
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_sqli3(self):
-        """SQLI patterns in cookie"""
-        interfaces.library.assert_waf_attack(self.r_5, waf_rules.sql_injection.crs_942_280)
-
-    def setup_sqli_942_140(self):
-        self.r_6 = weblog.get("/waf/", cookies={"value": "db_name("})
-
-    @irrelevant(context.appsec_rules_version >= "1.2.6", reason="crs-942-140 has been removed")
-    def test_sqli_942_140(self):
-        """AppSec catches SQLI attacks"""
-        interfaces.library.assert_waf_attack(self.r_6, "crs-942-140")
-
 
 @features.waf_rules
 class Test_NoSqli:
     """ Appsec WAF tests on NoSQLi rules """
-
-    def setup_nosqli_value(self):
-        self.r_1 = weblog.get("/waf/", params={"value": "[$ne]"})
-        self.r_2 = weblog.get("/waf/", headers={"x-attack": "$nin"})
-
-    @irrelevant(context.appsec_rules_version >= "1.3.0", reason="rules run only on keys starting 1.3.0")
-    def test_nosqli_value(self):
-        """AppSec catches NoSQLI attacks in values"""
-        interfaces.library.assert_waf_attack(self.r_1, waf_rules.nosql_injection)
-        interfaces.library.assert_waf_attack(self.r_2, waf_rules.nosql_injection)
 
     def setup_nosqli_keys(self):
         self.r_3 = weblog.get("/waf/", params={"[$ne]": "value"})
@@ -268,7 +223,6 @@ class Test_NoSqli:
 
     @missing_feature(context.library in ["php"], reason="Need to use last WAF version")
     @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
-    @irrelevant(context.appsec_rules_version < "1.3.0", reason="before 1.3.0, keys was not supported")
     @irrelevant(library="nodejs", reason="brackets are interpreted as arrays and thus truncated")
     def test_nosqli_keys(self):
         """AppSec catches NoSQLI attacks in keys"""
