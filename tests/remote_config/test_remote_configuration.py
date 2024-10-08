@@ -32,7 +32,11 @@ class Test_Agent:
     @scenarios.remote_config_mocked_backend_asm_dd
     def test_agent_provide_config_endpoint(self):
         """Check that agent exposes /v0.7/config endpoint"""
-        for data in interfaces.library.get_data("/info"):
+        all_data = list(interfaces.library.get_data("/info"))
+
+        assert len(all_data) > 0, "The library didn't make any /info request to the agent"
+
+        for data in all_data:
             for endpoint in data["response"]["content"]["endpoints"]:
                 if endpoint == "/v0.7/config":
                     return
