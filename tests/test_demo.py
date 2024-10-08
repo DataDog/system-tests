@@ -29,7 +29,7 @@ class Test_Demo:
             logger.info(f" !Span inspection! {span}")
             span_count += 1
 
-        assert span_count <= 1, "Oh no, this endpoint should only have one span."
+        assert span_count == 1, "Oh no, this endpoint should only have one span."
 
         cool_tag = span["meta"]["DD_WOW_WOW"]
         cool_tag_expectation = "wow wow wee wow"
