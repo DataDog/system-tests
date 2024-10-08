@@ -332,8 +332,8 @@ class Test_DsmSNS:
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
             # which changes for each run with the time stamp added
             if context.library.library != "nodejs":
-                self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}"
+                self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}_raw_delivery_enabled"
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations.unique_id}_raw_delivery_enabled"
             else:
                 self.topic = f"{DSM_TOPIC}_{context.library.library}_raw_delivery_enabled"
                 self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw_delivery_enabled"

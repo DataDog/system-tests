@@ -340,6 +340,15 @@ class TestedContainer:
             keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
         if os.environ.get("AWS_SESSION_TOKEN"):
             keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
+        if os.environ.get("AWS_SECURITY_TOKEN"):
+            keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
+
+        # set by CI runner
+        if os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"):
+            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_ACCESS_KEY_ID"], "utf-8"))
+        if os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"):
+            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"], "utf-8"))
+
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
