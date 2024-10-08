@@ -175,6 +175,22 @@ must set the appropriate tag in the span to `tainted_value` and return a respons
 
 The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on reponse status code or response header content.
 
+### GET /iast/insecure-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/insecure-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except Secure, to detect only the INSECURE_COOKIE vulnerability.
+
+### POST /iast/insecure-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except Secure, to detect only the INSECURE_COOKIE vulnerability.
+
+### GET /iast/insecure-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without Secure flag, INSECURE_COOKIE vulnerability shouldn't be detected.
+
 ### GET /iast/insecure_hashing/deduplicate
 
 Parameterless endpoint. This endpoint contains a vulnerable souce code line (weak hash) in a loop with at least two iterations.
@@ -196,6 +212,38 @@ The endpoint executes a unique operation of String hashing with unsecure MD5 alg
 ### GET /iast/hardcoded_secrets/test_insecure
 
 Parameterless endpoint. This endpoint contains a hardcoded secret. The declaration of the hardcoded secret should be sufficient to trigger the vulnerability, so returning it in the response is optional.
+
+### GET /iast/no-httponly-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/no-httponly-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except HttpOnly, to detect only the NO_HTTPONLY_COOKIE vulnerability.
+
+### GET /iast/no-httponly-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without HttpOnly flag, NO_HTTPONLY_COOKIE vulnerability shouldn't be detected.
+
+### POST /iast/no-httponly-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except HttpOnly, to detect only the NO_HTTPONLY_COOKIE vulnerability.
+
+### GET /iast/no-samesite-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/no-samesite-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
+
+### GET /iast/no-samesite-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without SameSite=Strict flag, NO_SAMESITE_COOKIE vulnerability shouldn't be detected.
+
+### POST /iast/no-samesite-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
 
 ### \[GET, POST\] /iast/source/*
 

@@ -127,7 +127,7 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/insecure-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('insecure', 'cookie')
+    res.cookie('insecure', 'cookie', { httpOnly: true, sameSite: true })
     res.send('OK')
   })
 
@@ -150,7 +150,7 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/no-httponly-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('no-httponly', 'cookie')
+    res.cookie('no-httponly', 'cookie', { secure: true, sameSite: true })
     res.send('OK')
   })
 
@@ -173,7 +173,7 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/no-samesite-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('nosamesite', 'cookie')
+    res.cookie('nosamesite', 'cookie', { httpOnly: true, sameSite: true })
     res.send('OK')
   })
 
