@@ -3,7 +3,7 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
-
+from utils import interfaces
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -105,6 +105,30 @@ class DockerScenario(Scenario):
             if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
                 return container
         return None
+
+    def _start_interfaces_watchdog(self, interfaces):
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def _ingest(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+            on_modified = _ingest
+            on_created = _ingest
+
+        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
+        # limits on Linux) -> using the good old bare polling system
+        observer = PollingObserver()
+
+        for interface in interfaces:
+            observer.schedule(Event(interface), path=interface.log_folder)
+
+        observer.start()
 
     def get_warmups(self):
         warmups = super().get_warmups()
@@ -258,22 +282,20 @@ class EndToEndScenario(DockerScenario):
         return declared_scenario in (self.name, "EndToEndScenario")
 
     def configure(self, config):
-        from utils import interfaces
-
         super().configure(config)
 
         if config.option.force_dd_trace_debug:
             self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
 
-        interfaces.agent.configure(self.replay)
-        interfaces.library.configure(self.replay)
-        interfaces.backend.configure(self.replay)
-        interfaces.library_dotnet_managed.configure(self.replay)
+        interfaces.agent.configure(self.host_log_folder, self.replay)
+        interfaces.library.configure(self.host_log_folder, self.replay)
+        interfaces.backend.configure(self.host_log_folder, self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
 
         for container in self.buddies:
             # a little bit of python wizzardry to solve circular import
             container.interface = getattr(interfaces, container.name)
-            container.interface.configure(self.replay)
+            container.interface.configure(self.host_log_folder, self.replay)
 
         if self.library_interface_timeout is None:
             if self.weblog_container.library == "java":
@@ -307,47 +329,15 @@ class EndToEndScenario(DockerScenario):
 
         logger.stdout("")
 
-    def _create_interface_folders(self):
-        for interface in ("agent", "library", "backend"):
-            self._create_log_subfolder(f"interfaces/{interface}")
-
-        for container in self.buddies:
-            self._create_log_subfolder(f"interfaces/{container.interface.name}")
-
     def _start_interface_watchdog(self):
-        from utils import interfaces
-
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def _ingest(self, event):
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
-            on_modified = _ingest
-            on_created = _ingest
-
-        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
-        # limits on Linux) -> using the good old bare polling system
-        observer = PollingObserver()
-
-        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library")
-        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
-
-        for container in self.buddies:
-            observer.schedule(Event(container.interface), path=container.interface._log_folder)
-
-        observer.start()
+        super()._start_interfaces_watchdog(
+            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
+        )
 
     def get_warmups(self):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(0, self._create_interface_folders)
             warmups.insert(1, self._start_interface_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
@@ -355,8 +345,6 @@ class EndToEndScenario(DockerScenario):
         return warmups
 
     def _wait_for_app_readiness(self):
-        from utils import interfaces  # import here to avoid circular import
-
         if self.use_proxy:
             logger.debug("Wait for app readiness")
 
@@ -376,8 +364,6 @@ class EndToEndScenario(DockerScenario):
             logger.debug("Agent ready")
 
     def post_setup(self):
-        from utils import interfaces
-
         try:
             self._wait_and_stop_containers()
         finally:
@@ -386,7 +372,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self):
-        from utils import interfaces
 
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")

@@ -207,6 +207,7 @@ class _RequestLogger:
             message_count = messages_counts[interface]
             messages_counts[interface] += 1
             log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
+            export_content_files_to = f"{log_foldename}/files"
             log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
 
             data = {
@@ -227,12 +228,24 @@ class _RequestLogger:
                 },
             }
 
-            deserialize(data, key="request", content=flow.request.content, interface=interface)
+            deserialize(
+                data,
+                key="request",
+                content=flow.request.content,
+                interface=interface,
+                export_content_files_to=export_content_files_to,
+            )
 
             if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
                 data["response"] = None
             else:
-                deserialize(data, key="response", content=flow.response.content, interface=interface)
+                deserialize(
+                    data,
+                    key="response",
+                    content=flow.response.content,
+                    interface=interface,
+                    export_content_files_to=export_content_files_to,
+                )
 
             try:
                 data = self._scrub(data)

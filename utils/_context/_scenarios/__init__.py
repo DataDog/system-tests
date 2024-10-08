@@ -16,6 +16,7 @@ from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 from .docker_ssi import DockerSSIScenario
+from .external_processing import ExternalProcessingScenario
 
 update_environ_with_local_env()
 
@@ -445,7 +446,6 @@ class scenarios:
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             # disable ASM to test non asm client ip tagging
             "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
@@ -459,7 +459,11 @@ class scenarios:
 
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
-        weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "", "DD_TRACE_KAFKA_ENABLED": "true"},
+        weblog_env={
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
+            "DD_TRACE_KAFKA_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+        },
         include_kafka=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
     )
@@ -689,6 +693,8 @@ class scenarios:
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
+
+    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
 
 
 def get_all_scenarios() -> list[Scenario]:
