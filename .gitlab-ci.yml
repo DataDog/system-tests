@@ -185,14 +185,12 @@ onboarding_python:
             test-app-python-container-3.10,
             test-app-python-container-3.11,
             test-app-python-container-3.12,
-            test-app-python-container-3.13
             test-app-python-container-3.7-alpine,
             test-app-python-container-3.8-alpine,
             test-app-python-container-3.9-alpine,
             test-app-python-container-3.10-alpine,
             test-app-python-container-3.11-alpine,
             test-app-python-container-3.12-alpine,
-            test-app-python-container-3.13-alpine
           ]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]
