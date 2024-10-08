@@ -39,8 +39,6 @@ app.get('/', (req, res) => {
 })
 
 app.get('/healthcheck', (req, res) => {
-  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
-  const maybeRequire = name => { try { return require(name) } catch (e) {} }
 
   res.json({
     status: 'ok',
