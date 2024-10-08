@@ -721,3 +721,67 @@ class RedHat86arm64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+
+class Fedora36amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_36_amd64",
+            aws_config=_AWSConfig(ami_id="ami-05e7ccec1e0408397", ami_instance_type="t2.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora36arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_36_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0487fbde1f898f0f1", ami_instance_type="t4g.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora37amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_37_amd64",
+            aws_config=_AWSConfig(ami_id="ami-032e9a5778bde5a1a", ami_instance_type="t2.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora37arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_37_arm64",
+            aws_config=_AWSConfig(ami_id="ami-08ec1e90576b74511", ami_instance_type="t4g.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
