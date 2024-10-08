@@ -39,12 +39,11 @@ app.get('/', (req, res) => {
 })
 
 app.get('/healthcheck', (req, res) => {
-
   res.json({
     status: 'ok',
     library: {
       language: 'nodejs',
-      version: require('dd-trace/package.json').version,
+      version: require('dd-trace/package.json').version
     }
   })
 })

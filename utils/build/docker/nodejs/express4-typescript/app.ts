@@ -31,12 +31,11 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.get('/healthcheck', (req: Request, res: Response) => {
-
   res.json({
     status: 'ok',
     library: {
       language: 'nodejs',
-      version: require('dd-trace/package.json').version,
+      version: require('dd-trace/package.json').version
     }
   });
 })
