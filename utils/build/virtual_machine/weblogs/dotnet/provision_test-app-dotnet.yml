@@ -14,6 +14,15 @@ lang_variant:
 
       - os_type: linux
         os_distro: deb
+        os_branch: ubuntu22_arm64
+        remote-command: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
+          sudo apt-get install -y dotnet-sdk-6.0
+          sudo apt-get install -y dotnet-runtime-6.0
+
+      - os_type: linux
+        os_distro: deb
         remote-command: |
           sudo apt-get install -y dotnet-sdk-6.0
           sudo apt-get install -y dotnet-runtime-6.0
