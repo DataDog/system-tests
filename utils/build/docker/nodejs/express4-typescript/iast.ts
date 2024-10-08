@@ -173,7 +173,7 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/no-samesite-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('nosamesite', 'cookie', { httpOnly: true, sameSite: true })
+    res.cookie('nosamesite', 'cookie', { secure: true, httpOnly: true })
     res.send('OK')
   })
 
