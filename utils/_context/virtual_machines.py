@@ -555,7 +555,7 @@ class Ubuntu24amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu24",
             os_cpu="amd64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 
@@ -569,7 +569,7 @@ class Ubuntu24arm64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="deb",
-            os_branch="ubuntu24",
+            os_branch="ubuntu24_",
             os_cpu="arm64",
             default_vm=False,
             **kwargs,
