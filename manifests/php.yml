@@ -332,7 +332,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientIPHeader_Configured: v1.3.0
+    Test_Config_ClientIPHeader_Configured: missing_feature
     Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
     Test_Config_ClientTagQueryString_Empty: v1.2.0

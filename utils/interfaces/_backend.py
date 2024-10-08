@@ -225,7 +225,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             "query": query,
             "request": {"content": json_payload},
             "response": {"status_code": r.status_code, "content": r.content, "headers": dict(r.headers),},
-            "log_filename": f"{self._log_folder}/{self.message_count:03d}_{path.replace('/', '_')}.json",
+            "log_filename": f"{self.log_folder}/{self.message_count:03d}_{path.replace('/', '_')}.json",
         }
         self.message_count += 1
 
