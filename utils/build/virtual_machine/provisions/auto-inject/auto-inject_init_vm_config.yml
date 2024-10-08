@@ -105,6 +105,22 @@
       exit 0
     fi
 - os_type: linux
+  os_branch: fedora
+  os_distro: rpm
+  remote-command: |
+    # Disable SELinux as it isn't supported by the injector today
+    sudo setenforce 0
+    sudo sed -i 's/enforcing/disabled/g' /etc/selinux/config
+    # Allow DD env variables from ssh
+    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
+    sudo id -u datadog &>/dev/null || sudo useradd -m datadog
+    sudo yum clean expire-cache
+    #sudo yum -y update
+    sudo systemctl restart sshd.service
+    #Install git and clone system tests repository
+    sudo yum -y install git wget which
+    git clone https://github.com/DataDog/system-tests.git
+- os_type: linux
   os_distro: rpm
   remote-command: |
     #Allow DD env variables from ssh
