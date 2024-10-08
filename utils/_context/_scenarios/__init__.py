@@ -696,9 +696,7 @@ class scenarios:
     # It's VERY important to match the exact name of the property and the name
     my_nice_scenario = EndToEndScenario(
         name="MY_NICE_SCENARIO",
-        weblog_env={
-            "DD_VERY_NICE_FEATURE": "wow wow wee wow",
-        },
+        weblog_env={"DD_VERY_NICE_FEATURE": "wow wow wee wow",},
         scenario_groups=[ScenarioGroup.VERY_COOL_SCENARIO_GROUP],
         doc="This scenario is very nice, you like? I describe it!",
     )

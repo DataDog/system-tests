@@ -5,10 +5,10 @@
 from utils import weblog, interfaces, features, scenarios
 
 
-#If your test verifies a feature, make sure you represent it
+# If your test verifies a feature, make sure you represent it
 # @features.unix_domain_sockets_support_for_traces
-@features.not_reported # This hides your feature from the jaws of the Feature Parity Dashboard
-@scenarios.my_nice_scenario # Do you need this? Maybe? Only you can decide.
+@features.not_reported  # This hides your feature from the jaws of the Feature Parity Dashboard
+@scenarios.my_nice_scenario  # Do you need this? Maybe? Only you can decide.
 class Test_Demo:
     """ This is a place to describe the purpose of the test """
 
@@ -21,7 +21,7 @@ class Test_Demo:
 
     def setup_very_nice_system_test_has_cool_tag_on_span(self):
         self.r = weblog.get("/my-cool-variable")
-        
+
     def test_very_nice_system_test_has_cool_tag_on_span(self):
         span_count = 0
         for _, _, span in interfaces.library.get_spans(request=self.r):
