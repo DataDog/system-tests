@@ -32,7 +32,6 @@ RUN apt-get update && apt-get install -y curl
 
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=agent /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 COPY --from=build /app/with-profiling/myproject ./with-profiling/
 COPY --from=build /app/without-profiling/myproject ./without-profiling/
 

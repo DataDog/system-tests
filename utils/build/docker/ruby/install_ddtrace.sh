@@ -51,7 +51,5 @@ bundle install
 
 bundle info $GEM_NAME | grep -m 1 $GEM_NAME > SYSTEM_TESTS_LIBRARY_VERSION
 
-cat "$(bundle info $GEM_NAME | grep 'Path:' | awk '{ print $2 }')"/lib/datadog/appsec/assets/waf_rules/recommended.json | ruby -rjson -e 'puts JSON.parse(STDIN.read).fetch("metadata", {}).fetch("rules_version", "1.2.5")' > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-
 echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
-echo "appsec event rules version: $(cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"
+

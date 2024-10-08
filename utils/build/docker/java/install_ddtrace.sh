@@ -24,15 +24,5 @@ echo "Installed $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION) java library"
 
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 
-if [[ $SYSTEM_TESTS_LIBRARY_VERSION == 0.96* ]]; then
-  echo "1.2.5" > /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-else
-  jar xf /dd-tracer/dd-java-agent.jar appsec/default_config.json
-  curl -Lf -o jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64
-  chmod +x jq
-  ./jq -r .metadata.rules_version appsec/default_config.json > /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-fi
-
 echo "dd-trace version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
-echo "rules version: $(cat /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"
 

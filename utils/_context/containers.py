@@ -630,7 +630,6 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self.appsec_rules_version = None
         self._library: LibraryVersion = None
 
         # Basic env set for all scenarios
@@ -689,9 +688,6 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
-
         self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
         self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
         self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
@@ -738,13 +734,10 @@ class WeblogContainer(TestedContainer):
 
             self._library = LibraryVersion(lib["language"], lib["version"])
 
-            if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
-                self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
-
         logger.stdout(f"Library: {self.library}")
 
         if self.appsec_rules_file:
-            logger.stdout(f"AppSec rules version: {self.appsec_rules_version}")
+            logger.stdout("Using a custom appsec rules file")
 
         if self.uds_mode:
             logger.stdout(f"UDS socket: {self.uds_socket}")

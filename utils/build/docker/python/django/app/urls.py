@@ -66,20 +66,12 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 @csrf_exempt
 def healthcheck(request):
-    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
-        data = json.load(f)
-
-    if "metadata" not in data:
-        appsec_event_rules_version = "1.2.5"
-    else:
-        appsec_event_rules_version = data["metadata"]["rules_version"]
 
     result = {
         "status": "ok",
         "library": {
             "language": "python",
             "version": ddtrace.__version__,
-            "appsec_event_rules_version": appsec_event_rules_version,
         },
     }
 

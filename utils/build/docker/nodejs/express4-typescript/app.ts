@@ -39,7 +39,6 @@ app.get('/healthcheck', (req: Request, res: Response) => {
     library: {
       language: 'nodejs',
       version: require('dd-trace/package.json').version,
-      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
     }
   });
 })

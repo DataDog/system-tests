@@ -453,10 +453,6 @@ class EndToEndScenario(DockerScenario):
         return self.weblog_container.uds_socket
 
     @property
-    def appsec_rules_version(self):
-        return self.weblog_container.appsec_rules_version
-
-    @property
     def uds_mode(self):
         return self.weblog_container.uds_mode
 
@@ -481,5 +477,4 @@ class EndToEndScenario(DockerScenario):
         return {
             "agent": self.agent_version,
             "library": self.library.version,
-            "appsec_rules": self.appsec_rules_version,
         }

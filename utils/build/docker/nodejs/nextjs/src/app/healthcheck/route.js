@@ -15,7 +15,6 @@ export async function GET (request) {
     library: {
       language: 'nodejs',
       version,
-      appsec_event_rules_version: rulesVersion
     }
   }, {
     status: 200

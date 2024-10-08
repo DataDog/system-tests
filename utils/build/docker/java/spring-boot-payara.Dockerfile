@@ -22,7 +22,6 @@ FROM eclipse-temurin:11-jre
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 
-COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.war /app/app.war
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 COPY --from=build /binaries/payara-micro.jar /app/payara-micro.jar
