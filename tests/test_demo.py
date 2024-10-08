@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 from utils import weblog, interfaces, features, scenarios
-
+from utils.tools import logger
 
 # If your test verifies a feature, make sure you represent it
 # @features.unix_domain_sockets_support_for_traces
@@ -25,14 +25,12 @@ class Test_Demo:
     def test_very_nice_system_test_has_cool_tag_on_span(self):
         span_count = 0
         for _, _, span in interfaces.library.get_spans(request=self.r):
-            print(" !Span inspection! ")
-            print(span)
+            # can be info, debug, error... This will be printed out in case of failure of the test.
+            logger.info(f" !Span inspection! {span}")
             span_count += 1
 
-        if span_count > 1:
-            raise ValueError(f"Oh no, this endpoint should only have one span.")
+        assert span_count <= 1, "Oh no, this endpoint should only have one span."
 
         cool_tag = span["meta"]["DD_WOW_WOW"]
         cool_tag_expectation = "wow wow wee wow"
-        if cool_tag != cool_tag_expectation:
-            raise ValueError(f"Expected {cool_tag_expectation} but got {cool_tag}")
+        assert cool_tag == cool_tag_expectation, "Expected {cool_tag_expectation} but got {cool_tag}"

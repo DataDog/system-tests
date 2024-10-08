@@ -24,7 +24,6 @@ class ScenarioGroup(Enum):
     DOCKER_SSI = "docker-ssi"
     ESSENTIALS = "essentials"
     EXTERNAL_PROCESSING = "external-processing"
-    VERY_COOL_SCENARIO_GROUP = "very-cool-scenario-group"
 
 
 VALID_GITHUB_WORKFLOWS = {
