@@ -7,7 +7,6 @@ from ..utils import BaseSinkTestWithoutTelemetry
 
 
 @features.iast_sink_weakrandomness
-@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestWeakRandomness(BaseSinkTestWithoutTelemetry):
     """Test weak randomness detection."""
 

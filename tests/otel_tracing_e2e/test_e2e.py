@@ -168,6 +168,26 @@ class Test_OTelLogE2E:
             return
         validate_log_trace_correlation(otel_log_trace_attrs, trace_agent)
 
+        # The 2nd account has logs and traces sent via the backend OTLP intake endpoint
+        try:
+            log_intake = interfaces.backend.get_logs(
+                query=f"trace_id:{dd_trace_id}",
+                rid=rid,
+                dd_api_key=os.environ["DD_API_KEY_2"],
+                dd_app_key=os.environ["DD_APP_KEY_2"],
+            )
+            otel_log_trace_attrs = validate_log(log_intake, rid, "backend_endpoint")
+            trace_intake = interfaces.backend.assert_otlp_trace_exist(
+                request=self.r,
+                dd_trace_id=dd_trace_id,
+                dd_api_key=os.environ["DD_API_KEY_2"],
+                dd_app_key=os.environ["DD_APP_KEY_2"],
+            )
+        except ValueError:
+            logger.warning("Backend does not provide logs")
+            return
+        validate_log_trace_correlation(otel_log_trace_attrs, trace_intake)
+
         # The 3rd account has logs and traces sent by OTel Collector
         try:
             log_collector = interfaces.backend.get_logs(

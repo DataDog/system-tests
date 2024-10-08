@@ -74,9 +74,9 @@ class AWSPulumiProvider(VmProvider):
 
     def _start_vm(self, vm):
         # Check for cached ami, before starting a new one
-        ami_id = self._get_cached_ami(vm)
+        should_skip_ami_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
+        ami_id = self._get_cached_ami(vm) if not should_skip_ami_cache else None
         logger.info(f"Cache AMI: {vm.get_cache_name()}")
-
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
             vm.name,
@@ -107,7 +107,9 @@ class AWSPulumiProvider(VmProvider):
             dial_error_limit=-1,
         )
         # Install provision on the started server
-        self.install_provision(vm, ec2_server, server_connection, create_cache=ami_id is None)
+        self.install_provision(
+            vm, ec2_server, server_connection, create_cache=ami_id is None, skip_ami_cache=should_skip_ami_cache,
+        )
 
     def stack_destroy(self):
         if os.getenv("ONBOARDING_KEEP_VMS") is None:
@@ -136,7 +138,7 @@ class AWSPulumiProvider(VmProvider):
         """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
         ami_id = None
         # Configure name
-        ami_name = vm.get_cache_name() + "__" + context.scenario.name
+        ami_name = vm.get_cache_name()
 
         # Check for existing ami
         ami_existing = aws.ec2.get_ami_ids(
@@ -165,7 +167,7 @@ class AWSPulumiProvider(VmProvider):
                 ami_name = None
 
             # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
-            if os.getenv("AMI_UPDATE") is not None:
+            if os.getenv("AMI_UPDATE") is not None and os.getenv("AMI_UPDATE").casefold() == "true":
                 # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
                 # aws.ec2.Ami( ami_existing.name,
                 #    name=ami_existing.name,
@@ -207,7 +209,7 @@ class AWSPulumiProvider(VmProvider):
 class AWSCommander(Commander):
     def create_cache(self, vm, server, last_task):
         """ Create a cache : Create an AMI from the server current status."""
-        ami_name = vm.get_cache_name() + "__" + context.scenario.name
+        ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.info(f"Creating AMI with name [{ami_name}] from instance ")
         # Expiration date for the ami
@@ -294,13 +296,13 @@ class AWSCommander(Commander):
             # construct full file path
             source = source_folder + "/" + file_name
             destination = destination_folder + "/" + file_name
-            logger.debug(f"remote_copy_folders: source:[{source}] and remote destination: [{destination}] ")
+            # logger.debug(f"remote_copy_folders: source:[{source}] and remote destination: [{destination}] ")
 
             if os.path.isfile(source):
                 if not relative_path:
                     destination = os.path.basename(destination)
 
-                logger.debug(f"Copy single file: source:[{source}] and remote destination: [{destination}] ")
+                # logger.debug(f"Copy single file: source:[{source}] and remote destination: [{destination}] ")
                 # Launch copy file command
                 quee_depends_on.insert(
                     0,
@@ -317,7 +319,7 @@ class AWSCommander(Commander):
                 if not relative_path:
                     p = pathlib.Path("/" + destination)
                     destination = str(p.relative_to(*p.parts[:2]))
-                logger.debug(f"Creating remote folder: {destination}")
+                # logger.debug(f"Creating remote folder: {destination}")
 
                 quee_depends_on.insert(
                     0,

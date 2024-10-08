@@ -5,6 +5,14 @@ lang_variant:
     install:
       - os_type: linux
         os_distro: deb
+        os_branch: debian
+        remote-command: |
+          echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          sudo apt update
+          sudo apt -y install openjdk-11-jdk
+
+      - os_type: linux
+        os_distro: deb
         remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
 
       - os_type: linux
@@ -13,7 +21,7 @@ lang_variant:
 
 weblog:
     name: test-app-java-container-jdk15
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64]
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2]
     install:
       - os_type: linux
         copy_files:
@@ -28,13 +36,15 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/Dockerfile.jdk15
             remote_path: Dockerfile.template
         
-          - name: copy-entrypoint-docker
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/docker_entrypoint_docker.sh
-
           - name: copy-java-app
-            local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
+            local_path: lib-injection/build/docker/java/jetty-app
+
+          - name: compile-app-script
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
+
+          - name: run-app-script
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/run_app.sh
 
         remote-command: |
-          sudo chmod -R 755 *
-          ./gradlew build
+          sh compile_app.sh 8080
           sh create_and_run_app_container.sh

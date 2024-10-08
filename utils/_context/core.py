@@ -67,12 +67,28 @@ class _Context:
         return self._get_scenario_property("appsec_rules_version", "")
 
     @property
+    def dd_apm_inject_version(self):
+        return self._get_scenario_property("dd_apm_inject_version", "")
+
+    @property
+    def installed_language_runtime(self):
+        return self._get_scenario_property("installed_language_runtime", "")
+
+    @property
+    def k8s_cluster_agent_version(self):
+        return self._get_scenario_property("k8s_cluster_agent_version", "")
+
+    @property
     def components(self):
         return self.scenario.components
 
     @property
     def parametrized_tests_metadata(self):
         return self.scenario.parametrized_tests_metadata
+
+    @property
+    def configuration(self):
+        return self._get_scenario_property("configuration", {})
 
     def serialize(self):
         result = {

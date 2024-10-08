@@ -4,7 +4,7 @@ lang_variant:
     install:
       - os_type: linux
         os_distro: deb
-        remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
+        remote-command: sudo apt-get -y update && (sudo apt-get -y install openjdk-11-jdk-headless || sudo apt-get -y install openjdk-17-jre-headless)
 
       - os_type: linux
         os_distro: rpm
@@ -12,7 +12,7 @@ lang_variant:
 
 weblog:
     name: test-app-java-buildpack
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2_amd64, ubuntu22_arm64, amazon_linux2023_arm64]
+    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2, ubuntu22_arm64, amazon_linux2023_arm64]
     install:
       - os_type: linux
         copy_files:

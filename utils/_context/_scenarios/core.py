@@ -5,7 +5,6 @@ from pathlib import Path
 import shutil
 
 import pytest
-
 from utils.tools import logger, get_log_formatter
 
 
@@ -22,6 +21,9 @@ class ScenarioGroup(Enum):
     PROFILING = "profiling"
     SAMPLING = "sampling"
     ONBOARDING = "onboarding"
+    DOCKER_SSI = "docker-ssi"
+    ESSENTIALS = "essentials"
+    EXTERNAL_PROCESSING = "external-processing"
 
 
 VALID_GITHUB_WORKFLOWS = {
@@ -32,6 +34,8 @@ VALID_GITHUB_WORKFLOWS = {
     "opentelemetry",
     "parametric",
     "testthetest",
+    "dockerssi",
+    "externalprocessing",
 }
 
 

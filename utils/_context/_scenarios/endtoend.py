@@ -14,9 +14,7 @@ from utils._context.containers import (
     CassandraContainer,
     RabbitMqContainer,
     MySqlContainer,
-    ElasticMQContainer,
-    LocalstackContainer,
-    SqlServerContainer,
+    MsSqlServerContainer,
     create_network,
     BuddyContainer,
     TestedContainer,
@@ -46,8 +44,6 @@ class DockerScenario(Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
-        include_elasticmq=False,
-        include_localstack=False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -89,13 +85,7 @@ class DockerScenario(Scenario):
             self._supporting_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
 
         if include_sqlserver:
-            self._supporting_containers.append(SqlServerContainer(host_log_folder=self.host_log_folder))
-
-        if include_elasticmq:
-            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
-
-        if include_localstack:
-            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
 
         self._required_containers.extend(self._supporting_containers)
 
@@ -115,6 +105,30 @@ class DockerScenario(Scenario):
             if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
                 return container
         return None
+
+    def _start_interfaces_watchdog(self, interfaces):
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def _ingest(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+            on_modified = _ingest
+            on_created = _ingest
+
+        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
+        # limits on Linux) -> using the good old bare polling system
+        observer = PollingObserver()
+
+        for interface in interfaces:
+            observer.schedule(Event(interface), path=interface._log_folder)
+
+        observer.start()
 
     def get_warmups(self):
         warmups = super().get_warmups()
@@ -178,8 +192,6 @@ class EndToEndScenario(DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
-        include_elasticmq=False,
-        include_localstack=False,
     ) -> None:
 
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END] + (scenario_groups or [])
@@ -199,8 +211,6 @@ class EndToEndScenario(DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
-            include_elasticmq=include_elasticmq,
-            include_localstack=include_localstack,
         )
 
         self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
@@ -218,8 +228,6 @@ class EndToEndScenario(DockerScenario):
                 "INCLUDE_RABBITMQ": str(include_rabbitmq).lower(),
                 "INCLUDE_MYSQL": str(include_mysql_db).lower(),
                 "INCLUDE_SQLSERVER": str(include_sqlserver).lower(),
-                "INCLUDE_ELASTICMQ": str(include_elasticmq).lower(),
-                "INCLUDE_LOCALSTACK": str(include_localstack).lower(),
             }
         )
 
@@ -252,7 +260,7 @@ class EndToEndScenario(DockerScenario):
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
-                    f"datadog/system-tests:{language}_buddy-v0",
+                    f"datadog/system-tests:{language}_buddy-v1",
                     self.host_log_folder,
                     proxy_port=port,
                     environment=weblog_env,
@@ -277,6 +285,9 @@ class EndToEndScenario(DockerScenario):
         from utils import interfaces
 
         super().configure(config)
+
+        if config.option.force_dd_trace_debug:
+            self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
 
         interfaces.agent.configure(self.replay)
         interfaces.library.configure(self.replay)
@@ -313,7 +324,12 @@ class EndToEndScenario(DockerScenario):
         except BaseException:
             logger.exception("can't get weblog system info")
         else:
-            logger.stdout(f"Weblog system: {message}")
+            logger.stdout(f"Weblog system: {message.strip()}")
+
+        if self.weblog_container.environment.get("DD_TRACE_DEBUG") == "true":
+            logger.stdout("\t/!\\ Debug logs are activated in weblog")
+
+        logger.stdout("")
 
     def _create_interface_folders(self):
         for interface in ("agent", "library", "backend"):
@@ -322,41 +338,19 @@ class EndToEndScenario(DockerScenario):
         for container in self.buddies:
             self._create_log_subfolder(f"interfaces/{container.interface.name}")
 
-    def _start_interface_watchdog(self):
+    def _start_interfaces_watchdog(self, _=None):
         from utils import interfaces
 
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def _ingest(self, event):
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
-            on_modified = _ingest
-            on_created = _ingest
-
-        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
-        # limits on Linux) -> using the good old bare polling system
-        observer = PollingObserver()
-
-        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library")
-        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
-
-        for container in self.buddies:
-            observer.schedule(Event(container.interface), path=container.interface._log_folder)
-
-        observer.start()
+        super()._start_interfaces_watchdog(
+            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
+        )
 
     def get_warmups(self):
         warmups = super().get_warmups()
 
         if not self.replay:
             warmups.insert(0, self._create_interface_folders)
-            warmups.insert(1, self._start_interface_watchdog)
+            warmups.insert(1, self._start_interfaces_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
 

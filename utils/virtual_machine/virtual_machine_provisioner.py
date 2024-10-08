@@ -8,7 +8,7 @@ class VirtualMachineProvisioner:
     """ Manages the provision parser for the virtual machines."""
 
     def remove_unsupported_machines(
-        self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch, vm_skip_branches
+        self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch, vm_skip_branches, only_default_vms
     ):
         """ Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch  """
 
@@ -45,6 +45,13 @@ class VirtualMachineProvisioner:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in excluded_os_branches")
                 vms_to_remove.append(vm)
                 continue
+
+            # Exclude by excluded_os_names
+            if "excluded_os_names" in config_data["weblog"] and vm.name in config_data["weblog"]["excluded_os_names"]:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in excluded_os_names")
+                vms_to_remove.append(vm)
+                continue
+
             # Exlude by vm_provider_id and vm configuration. IE: vm_provider_id: vagrant exclude all vms that don't have vagrant configuration
             if vm_provider_id == "vagrant" and vm.vagrant_config is None:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a Vagrant VM")
@@ -78,6 +85,14 @@ class VirtualMachineProvisioner:
             if allowed == False:
                 logger.stdout(f"WARNING: Weblog doesn't support VM [{vm.name}]. Removed!")
                 vms_to_remove.append(vm)
+
+            if not vm_only_branch and only_default_vms != "All":
+                if only_default_vms == "True" and not vm.default_vm:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a default VM")
+                    vms_to_remove.append(vm)
+                if only_default_vms == "False" and vm.default_vm:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's a default VM")
+                    vms_to_remove.append(vm)
         # Ok remove the vms
         for vm in vms_to_remove:
             required_vms.remove(vm)
@@ -86,7 +101,7 @@ class VirtualMachineProvisioner:
         """ Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
 
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
-        provision = Provision()
+        provision = Provision(vm_provision_name)
         provision_file = f"utils/build/virtual_machine/provisions/{vm_provision_name}/provision.yml"
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
 
@@ -191,11 +206,23 @@ class VirtualMachineProvisioner:
         weblog = weblog_raw_data["weblog"]
         assert weblog["name"] == weblog_name, f"Weblog name {weblog_name} does not match the provision file name"
         installations = weblog["install"]
-        installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
+        ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
+        installation = self._get_installation(
+            env,
+            library_name,
+            os_type,
+            os_distro,
+            os_branch,
+            os_cpu,
+            installations,
+            use_git=ci_commit_branch is not None,
+        )
         installation.id = weblog["name"]
         return installation
 
-    def _get_installation(self, env, library_name, os_type, os_distro, os_branch, os_cpu, installations_raw_data):
+    def _get_installation(
+        self, env, library_name, os_type, os_distro, os_branch, os_cpu, installations_raw_data, use_git=False
+    ):
         installation_raw_data = None
         for install in installations_raw_data:
             if "env" in install and install["env"] != env:
@@ -224,13 +251,15 @@ class VirtualMachineProvisioner:
         installation.remote_command = (
             installation_raw_data["remote-command"] if "remote-command" in installation_raw_data else None
         )
+
         if "copy_files" in installation_raw_data:
             for copy_file in installation_raw_data["copy_files"]:
                 installation.copy_files.append(
                     CopyFile(
                         copy_file["name"],
                         copy_file["remote_path"] if "remote_path" in copy_file else None,
-                        copy_file["local_path"],
+                        copy_file["local_path"] if "local_path" in copy_file and not use_git else None,
+                        copy_file["local_path"] if "local_path" in copy_file and use_git else None,
                     )
                 )
 
@@ -240,7 +269,8 @@ class VirtualMachineProvisioner:
 class Provision:
     """ Contains all the information about the provision that it will be launched on the vm 1"""
 
-    def __init__(self):
+    def __init__(self, provision_name):
+        self.provision_name = provision_name
         self.env = {}
         self.installations = []
         self.lang_variant_installation = None
@@ -263,9 +293,10 @@ class Intallation:
 
 
 class CopyFile:
-    def __init__(self, name, remote_path, local_path):
+    def __init__(self, name, remote_path, local_path, git_path):
         self.remote_path = remote_path
         self.local_path = local_path
+        self.git_path = git_path
         self.name = name
 
 

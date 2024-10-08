@@ -1,3 +1,5 @@
+const { Worker } = require('worker_threads')
+
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
@@ -14,9 +16,10 @@ function initRoutes (app, tracer) {
     const exchange = req.query.exchange
     const routingKey = req.query.routing_key
     const stream = req.query.stream
+    let message = req.query.message
 
     if (integration === 'kafka') {
-      const message = 'hello from kafka DSM JS'
+      message = message ?? 'hello from kafka DSM JS'
       const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
 
       kafkaProduce(queue, message)
@@ -35,12 +38,12 @@ function initRoutes (app, tracer) {
           res.status(500).send('[Kafka] Internal Server Error during DSM Kafka produce')
         })
     } else if (integration === 'sqs') {
-      const message = 'hello from SQS DSM JS'
+      message = message ?? 'hello from SQS DSM JS'
       const timeout = req.query.timeout ?? 5
 
       sqsProduce(queue, message)
         .then(() => {
-          sqsConsume(queue, timeout * 1000)
+          sqsConsume(queue, timeout * 1000, message)
             .then(() => {
               res.send('ok')
             })
@@ -54,12 +57,12 @@ function initRoutes (app, tracer) {
           res.status(500).send('[SQS] Internal Server Error during DSM SQS produce')
         })
     } else if (integration === 'sns') {
-      const message = 'hello from SNS DSM JS'
+      message = message ?? 'hello from SNS DSM JS'
       const timeout = req.query.timeout ?? 5
 
       snsPublish(queue, topic, message)
         .then(() => {
-          snsConsume(queue, timeout * 1000)
+          snsConsume(queue, timeout * 1000, message)
             .then(() => {
               res.send('ok')
             })
@@ -73,7 +76,7 @@ function initRoutes (app, tracer) {
           res.status(500).send('[SNS->SQS] Internal Server Error during DSM SNS publish')
         })
     } else if (integration === 'rabbitmq') {
-      const message = 'hello from SQS DSM JS'
+      message = message ?? 'hello from SQS DSM JS'
       const timeout = req.query.timeout ?? 5
 
       rabbitmqProduce(queue, exchange, routingKey, message)
@@ -92,12 +95,12 @@ function initRoutes (app, tracer) {
           res.status(500).send('[RabbitMQ] Internal Server Error during RabbitMQ DSM produce')
         })
     } else if (integration === 'kinesis') {
-      const message = JSON.stringify({ message: 'hello from Kinesis DSM JS' })
+      message = message ?? JSON.stringify({ message: 'hello from Kinesis DSM JS' })
       const timeout = req.query.timeout ?? 60
 
       kinesisProduce(stream, message, '1', timeout)
-        .then(() => {
-          kinesisConsume(stream, timeout * 1000)
+        .then((value) => {
+          kinesisConsume(stream, timeout * 1000, message, value.SequenceNumber)
             .then(() => {
               res.status(200).send('ok')
             })
@@ -141,6 +144,122 @@ function initRoutes (app, tracer) {
     )
 
     res.status(200).send('ok')
+  })
+
+  app.get('/dsm/manual/produce', (req, res) => {
+    const type = req.query.type
+    const target = req.query.target
+    const headers = {}
+
+    tracer.dataStreamsCheckpointer.setProduceCheckpoint(
+      type, target, headers
+    )
+
+    res.set(headers)
+    res.status(200).send('ok')
+  })
+
+  app.get('/dsm/manual/produce_with_thread', (req, res) => {
+    const type = req.query.type
+    const target = req.query.target
+    const headers = {}
+    let responseSent = false // Flag to ensure only one response is sent
+
+    // Create a new worker thread to handle the setProduceCheckpoint function
+    const worker = new Worker(`
+        const { parentPort, workerData } = require('worker_threads');
+        const tracer = require('dd-trace').init({
+          debug: true,
+          flushInterval: 5000
+        });
+
+        const { type, target, headers } = workerData;
+        tracer.dataStreamsCheckpointer.setProduceCheckpoint(type, target, headers);
+
+        parentPort.postMessage(headers);
+    `, {
+      eval: true,
+      workerData: { type, target, headers }
+    })
+
+    worker.on('message', (resultHeaders) => {
+      if (!responseSent) {
+        responseSent = true
+        res.set(resultHeaders)
+        res.status(200).send('ok')
+      }
+    })
+
+    worker.on('error', (error) => {
+      if (!responseSent) {
+        responseSent = true
+        res.status(500).send(`Worker error: ${error.message}`)
+      }
+    })
+
+    worker.on('exit', (code) => {
+      if (code !== 0 && !responseSent) {
+        responseSent = true
+        res.status(500).send(`Worker stopped with exit code ${code}`)
+      }
+    })
+  })
+
+  app.get('/dsm/manual/consume', (req, res) => {
+    const type = req.query.type
+    const target = req.query.source
+    const headers = JSON.parse(req.headers._datadog)
+
+    tracer.dataStreamsCheckpointer.setConsumeCheckpoint(
+      type, target, headers
+    )
+
+    res.status(200).send('ok')
+  })
+
+  app.get('/dsm/manual/consume_with_thread', (req, res) => {
+    const type = req.query.type
+    const source = req.query.source
+    const headers = JSON.parse(req.headers._datadog)
+    let responseSent = false // Flag to ensure only one response is sent
+
+    // Create a new worker thread to handle the setProduceCheckpoint function
+    const worker = new Worker(`
+      const { parentPort, workerData } = require('worker_threads')
+      const tracer = require('dd-trace').init({
+        debug: true,
+        flushInterval: 5000
+      });
+
+      const { type, source, headers } = workerData
+      tracer.dataStreamsCheckpointer.setConsumeCheckpoint(type, source, headers)
+
+      parentPort.postMessage("ok")
+  `, {
+      eval: true,
+      workerData: { type, source, headers }
+    })
+
+    worker.on('message', () => {
+      if (!responseSent) {
+        responseSent = true
+        res.status(200).send('ok')
+      }
+    })
+
+    worker.on('error', (error) => {
+      if (!responseSent) {
+        responseSent = true
+        res.status(500).send(`Worker error: ${error.message}`)
+      }
+    })
+
+    worker.on('exit', (code) => {
+      if (code !== 0 && !responseSent) {
+        responseSent = true
+        res.status(500).send(`Worker stopped with exit code ${code}`)
+      }
+    })
   })
 }
 

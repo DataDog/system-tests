@@ -60,35 +60,12 @@ on:
 jobs:
   compute_parameters:
     name: Get parameters
-    runs-on: ubuntu-latest
-    outputs:
-      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
-      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
-      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
-      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
-      libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
-      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
-      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
-      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
-      _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Install runner
-      uses: ./.github/actions/install_runner
-    - name: main
-      id: main
-      run: |
-        source venv/bin/activate
-        python utils/scripts/get_github_parameters.py >> $GITHUB_OUTPUT
-      env:
-        PYTHONPATH: "."
-        SCENARIOS: ${{ inputs.scenarios }}
-        SCENARIOS_GROUPS: ${{ inputs.scenarios_groups }}
-        LIBRARY: ${{ inputs.library }}
-        _EXPERIMENTAL_PARAMETRIC_JOB_COUNT: ${{ inputs._experimental_parametric_job_count }}
+    uses: ./.github/workflows/compute-workflow-parameters.yml
+    with:
+      library: ${{ inputs.library }}
+      scenarios: ${{ inputs.scenarios }}
+      scenarios_groups: ${{ inputs.scenarios_groups }}
+      _experimental_parametric_job_count: ${{ inputs._experimental_parametric_job_count }}
 
   parametric:
     needs:
@@ -156,3 +133,24 @@ jobs:
       library: ${{ inputs.library }}
       weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
+
+  docker-ssi:
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.dockerssi_scenarios != '[]' && inputs.binaries_artifact == ''}} #Execute only for latest releases of the ssi
+    uses: ./.github/workflows/run-docker-ssi.yml
+    secrets: inherit
+    with:
+      library: ${{ inputs.library }}
+      weblogs: ${{ needs.compute_parameters.outputs.dockerssi_weblogs }}
+
+  external-processing:
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && inputs.binaries_artifact != ''}}
+    uses: ./.github/workflows/run-external-processing.yml
+    secrets: inherit
+    with:
+      build_proxy_image: ${{ inputs.build_proxy_image }}
+      ci_environment: ${{ inputs.ci_environment }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}

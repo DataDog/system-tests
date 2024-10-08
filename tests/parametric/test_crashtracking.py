@@ -14,7 +14,6 @@ from utils import bug, context, features, irrelevant, missing_feature, rfc, scen
 class Test_Crashtracking:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
@@ -24,8 +23,7 @@ class Test_Crashtracking:
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="APMSP-1370")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent, test_library):
@@ -37,9 +35,18 @@ class Test_Crashtracking:
             event = json.loads(base64.b64decode(req["body"]))
 
             if event["request_type"] == "logs":
-                assert self.is_crash_report(test_library, event) == False
+                assert self.is_crash_report(test_library, event) is False
 
     def is_crash_report(self, test_library, event) -> bool:
+        if not isinstance(event.get("payload"), list):
+            return False
+        if not event["payload"]:
+            return False
+        if not isinstance(event["payload"][0], dict):
+            return False
+        if "tags" not in event["payload"][0]:
+            return False
+
         tags = event["payload"][0]["tags"]
         print("tags: ", tags)
         tags_dict = dict(item.split(":") for item in tags.split(","))

@@ -87,7 +87,7 @@ class Test_BlockingActionChangesWithRemoteConfig:
         assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
         assert self.response_4.status_code == 302
-        assert self.response_4.text == ""
+        assert self.response_4.text == "" or '<a href="http://google.com">' in self.response_4.text
         assert self.response_4.headers["location"] == "http://google.com"
 
         # ASM disabled

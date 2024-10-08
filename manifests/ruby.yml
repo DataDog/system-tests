@@ -154,7 +154,6 @@ tests/:
       Test_Login_Events:
         '*': v1.13.0
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
-        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String and Rails 3 protected attributes)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
@@ -167,9 +166,6 @@ tests/:
       Test_Login_Events_Extended:
         '*': v1.14.0
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
-        rails32: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
-        rails40: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
-        rails41: missing_feature (Not able to configure weblog variant properly. Issue with SQLite and PRIMARY_KEY as String)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
@@ -183,7 +179,7 @@ tests/:
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
-      Test_BlockingGraphqlResolvers: v2.3.0
+      Test_BlockingGraphqlResolvers: v2.3.1-dev
       Test_Blocking_client_ip: v1.0.0
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0
@@ -212,7 +208,12 @@ tests/:
       Test_UserLoginSuccessEvent: v1.9.0
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: missing_feature
       Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Header_Capability: missing_feature
+      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:
@@ -318,9 +319,24 @@ tests/:
       Test_DsmSQS:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
+      Test_Dsm_Manual_Checkpoint_Inter_Process:
+        '*': irrelevant
+        rails70: missing_feature (Endpoint not implemented)
+      Test_Dsm_Manual_Checkpoint_Intra_Process:
+        '*': irrelevant
+        rails70: missing_feature (Endpoint not implemented)
+  k8s_lib_injection/:
+    test_k8s_manual_inject.py:
+      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
+      Test_Config_RateLimit: missing_feature
+      Test_Config_TraceAgentURL: missing_feature
       Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceLogDirectory: missing_feature
+      Test_Config_UnifiedServiceTagging: missing_feature
+    test_crashtracking.py:
+      Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: bug (To be confirmed, theorical version is v2.0.0)
       TestDynamicConfigSamplingRules: v2.0.0
@@ -328,12 +344,16 @@ tests/:
       TestDynamicConfigV1: bug (to be investigated, theorical version is v1.13.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_headers_baggage.py:
+      Test_Headers_Baggage: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.1.0
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
+    test_otel_span_with_baggage.py:
+      Test_Otel_Span_With_Baggage: missing_feature
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v1.17.0
     test_sampling_delegation.py:
@@ -345,6 +365,7 @@ tests/:
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
       Test_TelemetryInstallSignature: missing_feature
@@ -358,7 +379,7 @@ tests/:
       Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
-      Test_TracerSCITagging: missing_feature
+      Test_TracerSCITagging: v1.21.0
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
   remote_config/:
@@ -370,12 +391,29 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
+  serverless/:
+    test_span_pointers.py:
+      Test_SpanPointers: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeader_Configured: v2.3.0
+    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
+    Test_Config_ClientTagQueryString_Configured: missing_feature
+    Test_Config_ClientTagQueryString_Empty: missing_feature (removes query string by default)
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_IntegrationEnabled_False: missing_feature
+    Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
+    Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -401,7 +439,7 @@ tests/:
     Test_UrlQuery: v1.0.0
   test_semantic_conventions.py:
     Test_Meta: v1.7.0
-    Test_MetaDatadogTags: bug (Inconsistent implementation across tracers; will need a dedicated testing scenario)
+    Test_MetaDatadogTags: bug (APMAPI-735)
     Test_MetricsStandardTags: v1.7.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
