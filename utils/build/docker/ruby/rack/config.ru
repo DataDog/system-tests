@@ -7,6 +7,7 @@ require 'json'
 
 # tracer configuration of Rack integration
 
+require 'datadog'
 require 'datadog/auto_instrument'
 require 'datadog/kit/appsec/events'
 
@@ -53,6 +54,25 @@ class Hello
     [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
   end
 end
+
+# /healthcheck
+class Healthcheck
+  def self.run
+    response = {
+      status: 'ok',
+      library: {
+        language: 'ruby',
+        version: Datadog::VERSION::STRING
+      }
+    }
+
+    [
+      200,
+      { 'Content-Type' => 'application/json' },
+      [response.to_json]
+    ]
+  end
+end  
 
 # /spans
 class Spans
@@ -216,6 +236,8 @@ app = proc do |env|
     # %r{^/params(?:/.*|)$} doesn't really makes sense for Rack as it does not put the
     # value anywhere for AppSec to receive it
     Hello.run
+  elsif request.path == '/healthcheck'
+    Healthcheck.run
   elsif request.path == '/spans'
     Spans.run(request)
   elsif request.path == '/headers'
