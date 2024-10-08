@@ -70,10 +70,7 @@ async def healthcheck():
 
     return {
         "status": "ok",
-        "library": {
-            "language": "python",
-            "version": ddtrace.__version__,
-        },
+        "library": {"language": "python", "version": ddtrace.__version__,},
     }
 
 

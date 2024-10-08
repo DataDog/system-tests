@@ -69,10 +69,7 @@ def healthcheck(request):
 
     result = {
         "status": "ok",
-        "library": {
-            "language": "python",
-            "version": ddtrace.__version__,
-        },
+        "library": {"language": "python", "version": ddtrace.__version__,},
     }
 
     return HttpResponse(json.dumps(result), content_type="application/json")
