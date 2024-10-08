@@ -21,7 +21,7 @@ FROM eclipse-temurin:11-jre
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
+
 COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.war /app/app.war
 COPY --from=build /dd-tracer/dd-java-agent.jar .

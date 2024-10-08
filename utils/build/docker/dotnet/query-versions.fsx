@@ -69,7 +69,6 @@ module QueryVersions =
         let version =
             if assem.GetName().Version.Major <= 2 && assem.GetName().Version.Minor <= 14 then getOldWafVersion()
             else getWafVersion()
-        File.WriteAllText("/app/SYSTEM_TESTS_LIBDDWAF_VERSION", version)
 
     writeRulesVersion ()
     writeWafVersion ()

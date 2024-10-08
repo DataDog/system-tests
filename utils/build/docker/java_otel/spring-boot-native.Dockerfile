@@ -22,7 +22,6 @@ RUN /opt/apache-maven-3.8.6/bin/mvn clean package
 
 # Set up required args
 RUN echo $OTEL_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
-RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
 RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 
 RUN echo "#!/bin/bash\njava -jar target/myproject-3.0.0-SNAPSHOT.jar --server.port=7777" > app.sh

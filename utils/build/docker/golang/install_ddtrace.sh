@@ -23,8 +23,6 @@ lib_mod_dir=$(go list -f '{{.Dir}}' -m gopkg.in/DataDog/dd-trace-go.v1)
 version=$(sed -nrE 's#.*"v(.*)".*#\1#p' $lib_mod_dir/internal/version/version.go) # Parse the version string content "v.*"
 echo $version > SYSTEM_TESTS_LIBRARY_VERSION
 
-touch SYSTEM_TESTS_LIBDDWAF_VERSION
-
 rules_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/appsec-internal-go)
 
 # Read the rule file version

@@ -17,7 +17,6 @@ type DatadogInformations struct {
 	Language                string `json:"language"`
 	Version                 string `json:"version"`
 	AppsecEventRulesVersion string `json:"appsec_event_rules_version"`
-	LibddwafVersion         string `json:"libddwaf_version"`
 }
 
 type HealtchCheck struct {

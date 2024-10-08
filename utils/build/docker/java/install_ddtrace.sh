@@ -22,8 +22,6 @@ java -jar /dd-tracer/dd-java-agent.jar > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 echo "Installed $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION) java library"
 
-touch /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
-
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 
 if [[ $SYSTEM_TESTS_LIBRARY_VERSION == 0.96* ]]; then
@@ -36,6 +34,5 @@ else
 fi
 
 echo "dd-trace version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
-echo "libddwaf version: $(cat /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION)"
 echo "rules version: $(cat /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"
 

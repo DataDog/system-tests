@@ -79,7 +79,6 @@ def healthcheck(request):
         "library": {
             "language": "python",
             "version": ddtrace.__version__,
-            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
             "appsec_event_rules_version": appsec_event_rules_version,
         },
     }

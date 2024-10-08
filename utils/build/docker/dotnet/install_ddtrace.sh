@@ -39,5 +39,4 @@ echo "${version:0:-2}" > /app/SYSTEM_TESTS_LIBRARY_VERSION
 LD_LIBRARY_PATH=/opt/datadog dotnet fsi --langversion:preview /binaries/query-versions.fsx
 
 echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
-echo "libddwaf version: $(cat /app/SYSTEM_TESTS_LIBDDWAF_VERSION)"
 echo "appsec event rules version: $(cat /app/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"

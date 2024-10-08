@@ -15,7 +15,6 @@ export async function GET (request) {
     library: {
       language: 'nodejs',
       version,
-      libddwaf_version: pkg.libddwaf_version,
       appsec_event_rules_version: rulesVersion
     }
   }, {
