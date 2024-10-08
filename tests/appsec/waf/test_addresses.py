@@ -141,52 +141,6 @@ class Test_Cookies:
     # Cookies rules has been removed in rules version 1.2.7. Test on cookies are now done on custom rules scenario.
     # Once we have rules with cookie back in the default rules set, we can re-use this class to validated this feature
 
-    def setup_cookies(self):
-        self.r_cookies = weblog.get("/waf/", cookies={"attack": ".htaccess"})
-
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_cookies(self):
-        """Appsec WAF detects attackes in cookies"""
-        interfaces.library.assert_waf_attack(self.r_cookies, pattern=".htaccess", address="server.request.cookies")
-
-    def setup_cookies_with_semicolon(self):
-        self.r_cwsc_1 = weblog.get("/waf", cookies={"value": "%3Bshutdown--"})
-        self.r_cwsc_2 = weblog.get("/waf", cookies={"key": ".cookie-%3Bdomain="})
-
-    @irrelevant(
-        library="java",
-        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
-        "encoded to represent disallowed octets",
-    )
-    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_cookies_with_semicolon(self):
-        """Cookie with pattern containing a semicolon"""
-        interfaces.library.assert_waf_attack(self.r_cwsc_1, pattern=";shutdown--", address="server.request.cookies")
-        interfaces.library.assert_waf_attack(
-            self.r_cwsc_2, pattern=".cookie-;domain=", address="server.request.cookies"
-        )
-
-    def setup_cookies_with_spaces(self):
-        self.r_cws = weblog.get("/waf/", cookies={"x-attack": "var_dump ()"})
-
-    @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_cookies_with_spaces(self):
-        """Cookie with pattern containing a space"""
-        interfaces.library.assert_waf_attack(self.r_cws, pattern="var_dump ()", address="server.request.cookies")
-
-    def setup_cookies_with_special_chars2(self):
-        self.r_cwsc2 = weblog.get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
-
-    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
-    @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
-    @bug(context.library < "java@0.96.0", reason="APMRP-360")
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_cookies_with_special_chars2(self):
-        """Other cookies patterns"""
-        interfaces.library.assert_waf_attack(self.r_cwsc2, pattern='o:4:"x":5:{d}', address="server.request.cookies")
-
     def setup_cookies_custom_rules(self):
         self.r_ccr = weblog.get("/waf/", cookies={"attack": ".htaccess"})
 
