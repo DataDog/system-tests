@@ -33,6 +33,10 @@ func main() {
 		return c.NoContent(http.StatusOK)
 	})
 
+	// r.Any("/my-cool-variable", func(c echo.Context) error {
+	// 	return c.NoContent(http.StatusOK)
+	// })
+
 	r.GET("/healthcheck", func(c echo.Context) error {
 		healthCheck, err := common.GetHealtchCheck()
 

@@ -418,6 +418,13 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	mux.HandleFunc("/my-cool-variable", func(w http.ResponseWriter, r *http.Request) {
+		cool_feature_text := os.Getenv("DD_VERY_NICE_FEATURE")
+		span, _ := tracer.SpanFromContext(r.Context())
+		span.SetTag("DD_WOW_WOW", cool_feature_text)
+		w.WriteHeader(http.StatusOK)
+	})
+
 	mux.HandleFunc("/dsm/inject", func(w http.ResponseWriter, r *http.Request) {
 		topic := r.URL.Query().Get("topic")
 		if len(topic) == 0 {
