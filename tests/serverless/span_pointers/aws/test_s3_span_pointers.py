@@ -53,7 +53,7 @@ def _validate_hash_pointer(r):
 
 @rfc("https://github.com/DataDog/dd-span-pointer-rules")
 @features.serverless_span_pointers
-class Test_SpanPointers:
+class Test_PutObject:
     def setup_main(self):
         self.r = weblog.get("/mock_s3/put_object", params={"bucket": "mybucket", "key": "my-key"})
 

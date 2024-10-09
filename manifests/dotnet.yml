@@ -379,8 +379,10 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_PutObject: v2.14.0
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
