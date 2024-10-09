@@ -234,12 +234,13 @@ class _VirtualMachineScenario(Scenario):
         assert self._library is not None, "Library is not set (use --vm-library)"
         assert self._env is not None, "Env is not set (use --vm-env)"
         assert self._weblog is not None, "Weblog is not set (use --vm-weblog)"
-        assert os.path.isfile(
-            f"utils/build/virtual_machine/weblogs/{self._library.library}/provision_{self._weblog}.yml"
-        ), "Weblog Provision file not found."
-        assert os.path.isfile(
-            f"utils/build/virtual_machine/provisions/{self.vm_provision_name}/provision.yml"
-        ), "Provision file not found"
+
+        base_folder = "utils/build/virtual_machine"
+        weblog_provision_file = f"{base_folder}/weblogs/{self._library.library}/provision_{self._weblog}.yml"
+        assert os.path.isfile(weblog_provision_file), f"Weblog Provision file not found: {weblog_provision_file}"
+
+        provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
+        assert os.path.isfile(provision_file), f"Provision file not found: {provision_file}"
 
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"

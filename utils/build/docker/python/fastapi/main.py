@@ -7,6 +7,7 @@ import subprocess
 import sys
 import typing
 
+import boto3
 import fastapi
 from fastapi import Cookie
 from fastapi import FastAPI
@@ -21,6 +22,7 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
+from moto import mock_aws
 import psycopg2
 from pydantic import BaseModel
 import requests
@@ -67,22 +69,10 @@ async def root():
 
 @app.get("/healthcheck")
 async def healthcheck():
-    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
-        data = json.load(f)
-
-    if "metadata" not in data:
-        appsec_event_rules_version = "1.2.5"
-    else:
-        appsec_event_rules_version = data["metadata"]["rules_version"]
 
     return {
         "status": "ok",
-        "library": {
-            "language": "python",
-            "version": ddtrace.__version__,
-            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
-            "appsec_event_rules_version": appsec_event_rules_version,
-        },
+        "library": {"language": "python", "version": ddtrace.__version__,},
     }
 
 
@@ -774,3 +764,35 @@ def return_headers(request: Request):
     for key, value in request.headers.items():
         headers[key] = value
     return JSONResponse(headers)
+
+
+@app.get("/mock_s3/put_object", response_class=JSONResponse)
+@app.post("/mock_s3/put_object", response_class=JSONResponse)
+@app.options("/mock_s3/put_object", response_class=JSONResponse)
+def s3_put_object(bucket: str, key: str):
+    body = key
+
+    e: typing.Optional[Exception] = None
+
+    for _ in range(3):
+        # NOTE: there is something strange in the way that boto3 and moto
+        # interact with fastapi. The first time that we run this code,
+        # something isn't quite completely wrapped or instantiated. So we add a
+        # retry. Would be nice not to have to worry about s3 at all.
+        try:
+            with mock_aws():
+                conn = boto3.resource("s3", region_name="us-east-1")
+                conn.create_bucket(Bucket=bucket)
+                response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
+
+                # boto adds double quotes to the ETag
+                # so we need to remove them to match what would have done AWS
+                result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+
+            return JSONResponse(result)
+        except Exception as e:
+            print(e)
+
+    if e is None:
+        raise Exception("no exception but no return either")
+    raise e

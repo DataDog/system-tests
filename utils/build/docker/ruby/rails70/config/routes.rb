@@ -7,6 +7,8 @@ Rails.application.routes.draw do
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
 
+  get  '/healthcheck' => 'system_test#healthcheck'
+
   get  '/waf' => 'system_test#waf'
   post '/waf' => 'system_test#waf'
   get  '/waf/*other' => 'system_test#waf'

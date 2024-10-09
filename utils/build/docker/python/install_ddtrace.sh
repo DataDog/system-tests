@@ -26,5 +26,3 @@ cd -
 
 # python uses the next API to get the library version. See https://github.com/DataDog/system-tests/issues/2799
 echo "0.0.0" > SYSTEM_TESTS_LIBRARY_VERSION
-echo "0.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
-echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
