@@ -174,6 +174,7 @@ class EndToEndScenario(DockerScenario):
         github_workflow="endtoend",
         scenario_groups=None,
         weblog_env=None,
+        weblog_volumes: dict | None = None,
         tracer_sampling_rate=None,
         appsec_rules=None,
         appsec_enabled=True,
@@ -239,6 +240,7 @@ class EndToEndScenario(DockerScenario):
             appsec_enabled=appsec_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy,
+            volumes=weblog_volumes,
         )
 
         self.weblog_container.depends_on.append(self.agent_container)
