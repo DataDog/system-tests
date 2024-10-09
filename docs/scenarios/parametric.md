@@ -256,6 +256,14 @@ The logs are contained in this folder:  `./logs_parametric`
 - Exiting the tests abruptly maybe leave some docker containers running. Use `docker ps` to find and `docker kill` any
   containers that may still be running.
 
+### Tests failing locally but not in CI
+
+A cause for this can be that the Docker image containing the APM library is cached locally with an older version of the
+library. Deleting the image will force a rebuild which will resolve the issue.
+
+```sh
+docker image rm <library>-test-library
+```
 
 ### Port conflict on 50052
 
@@ -279,16 +287,6 @@ Failed to fire hook: while creating logrus local file hook: user: Current requir
 are being produced then likely build kit has to be disabled.
 
 To do that open the Docker UI > Docker Engine. Change `buildkit: true` to `buildkit: false` and restart Docker.
-
-
-### Tests failing locally but not in CI
-
-A cause for this can be that the Docker image containing the APM library is cached locally with an older version of the
-library. Deleting the image will force a rebuild which will resolve the issue.
-
-```sh
-docker image rm <library>-test-library
-```
 
 ### Docker Cleanup
 If you encounter an excessive number of errors during your workflow, one potential solution is to perform a cleanup of Docker resources. This can help resolve issues related to corrupted containers, dangling images, or unused volumes that might be causing conflicts.
