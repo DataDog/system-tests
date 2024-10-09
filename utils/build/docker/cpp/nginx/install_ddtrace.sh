@@ -53,6 +53,8 @@ else
   rm "$TARBALL"
 fi
 
-strings /usr/lib/nginx/modules/ngx_http_datadog_module.so | grep -F "[dd-trace-cpp version" | sed 's/.* version \([^]]\+\).*/\1/' > SYSTEM_TESTS_LIBRARY_VERSION
+VERSION=$(strings /usr/lib/nginx/modules/ngx_http_datadog_module.so | grep -F "[dd-trace-cpp version" | sed 's/.* version \([^]]\+\).*/\1/')
+echo '{"status": "ok", "library": {"language": "cpp", "version": "'$VERSION'"}}' > /builds/healthcheck.json
+echo $VERSION > SYSTEM_TESTS_LIBRARY_VERSION
+echo "Library version : $VERSION"
 
-echo "Library version : $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
