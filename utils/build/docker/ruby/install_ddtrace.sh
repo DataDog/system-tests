@@ -49,6 +49,6 @@ bundle config set --local without test development
 
 bundle install
 
-echo "0.0.0" > SYSTEM_TESTS_LIBRARY_VERSION
-touch SYSTEM_TESTS_LIBDDWAF_VERSION
-touch SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+bundle info $GEM_NAME | grep -m 1 $GEM_NAME > SYSTEM_TESTS_LIBRARY_VERSION
+
+echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
