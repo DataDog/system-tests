@@ -52,6 +52,7 @@ public class TraceController {
         Method isDebugEnabled = configClass.getMethod("isDebugEnabled");
         Method getLogLevel = configClass.getMethod("getLogLevel");
         Method getAgentUrl = configClass.getMethod("getAgentUrl");
+        Method getTraceRateLimit = configClass.getMethod("getTraceRateLimit");
 
         Method isTraceOtelEnabled = instrumenterConfigClass.getMethod("isTraceOtelEnabled");
 
@@ -70,6 +71,11 @@ public class TraceController {
         Object sampleRate = getTraceSampleRate.invoke(configObject);
         if (sampleRate instanceof Double) {
             configMap.put("dd_trace_sample_rate", String.valueOf((Double)sampleRate));
+        }
+
+        Object rateLimit = getTraceRateLimit.invoke(configObject);
+        if (rateLimit instanceof Integer) {
+          configMap.put("dd_trace_rate_limit", Integer.toString((int)rateLimit));
         }
 
         Object globalTags = getGlobalTags.invoke(configObject);

@@ -197,6 +197,9 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
     echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
 
+    echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
+    echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
+
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"

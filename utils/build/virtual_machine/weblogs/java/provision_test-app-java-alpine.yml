@@ -17,7 +17,7 @@ lang_variant:
       - os_type: linux
         os_distro: deb
         remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
-
+        
       - os_type: linux
         os_distro: rpm
         remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
@@ -25,8 +25,6 @@ lang_variant:
 weblog:
     name: test-app-java-alpine
     excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2]
-    #Alma Linux 8 ARM64 is not stable. It fails when we execute 'gradle build' in the Dockerfile
-    excluded_os_names: [AlmaLinux_8_arm64]
     install:
       - os_type: linux
         copy_files:

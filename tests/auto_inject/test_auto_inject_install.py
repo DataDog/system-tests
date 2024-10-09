@@ -83,7 +83,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @flaky(weblog_variant="test-app-java-buildpack", reason="Docker hub rate limmits")
     # We are skipping all the machines. TODO fix this
     @bug(
-        condition=context.weblog_variant == "test-app-python-alpine-libgcc"
+        condition=context.weblog_variant == "test-app-python-alpine"
         and f"os_AlmaLinux_8_arm64" in context.configuration,
         reason="APMON-1576",
     )

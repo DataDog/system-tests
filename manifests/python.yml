@@ -82,16 +82,19 @@ tests/:
           TestInsecureCookie:
             '*': v1.19.0
             fastapi: missing_feature
+          TestInsecureCookieNameFilter: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': v1.19.0
             fastapi: missing_feature
+          TestNoHttponlyCookieNameFilter: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': v1.19.0
             fastapi: missing_feature
+          TestNoSamesiteCookieNameFilter: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
@@ -701,6 +704,8 @@ tests/:
       Test_Headers_B3: v2.8.0
     test_headers_b3multi.py:
       Test_Headers_B3multi: v2.8.0
+    test_headers_baggage.py:
+      Test_Headers_Baggage: missing_feature
     test_headers_datadog.py:
       Test_Headers_Datadog: v2.8.0
     test_headers_none.py:
@@ -721,6 +726,8 @@ tests/:
       Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
+    test_otel_span_with_baggage.py:
+      Test_Otel_Span_With_Baggage: missing_feature
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v2.8.0
     test_otel_tracer.py:

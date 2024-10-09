@@ -38,6 +38,12 @@ from utils._context.virtual_machines import (
     AlmaLinux8arm64,
     AlmaLinux9amd64,
     AlmaLinux9arm64,
+    RedHat86amd64,
+    RedHat86arm64,
+    Fedora36amd64,
+    Fedora36arm64,
+    Fedora37amd64,
+    Fedora37arm64,
 )
 
 from .core import Scenario
@@ -85,6 +91,12 @@ class _VirtualMachineScenario(Scenario):
         include_almalinux_8_arm64=False,
         include_almalinux_9_amd64=False,
         include_almalinux_9_arm64=False,
+        include_redhat_8_amd64=False,
+        include_redhat_8_arm64=False,
+        include_fedora_36_amd64=False,
+        include_fedora_36_arm64=False,
+        include_fedora_37_amd64=False,
+        include_fedora_37_arm64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -168,6 +180,18 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AlmaLinux9amd64())
         if include_almalinux_9_arm64:
             self.required_vms.append(AlmaLinux9arm64())
+        if include_redhat_8_amd64:
+            self.required_vms.append(RedHat86amd64())
+        if include_redhat_8_arm64:
+            self.required_vms.append(RedHat86arm64())
+        if include_fedora_36_amd64:
+            self.required_vms.append(Fedora36amd64())
+        if include_fedora_36_arm64:
+            self.required_vms.append(Fedora36arm64())
+        if include_fedora_37_amd64:
+            self.required_vms.append(Fedora37amd64())
+        if include_fedora_37_arm64:
+            self.required_vms.append(Fedora37arm64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -226,12 +250,13 @@ class _VirtualMachineScenario(Scenario):
         assert self._library is not None, "Library is not set (use --vm-library)"
         assert self._env is not None, "Env is not set (use --vm-env)"
         assert self._weblog is not None, "Weblog is not set (use --vm-weblog)"
-        assert os.path.isfile(
-            f"utils/build/virtual_machine/weblogs/{self._library.library}/provision_{self._weblog}.yml"
-        ), "Weblog Provision file not found."
-        assert os.path.isfile(
-            f"utils/build/virtual_machine/provisions/{self.vm_provision_name}/provision.yml"
-        ), "Provision file not found"
+
+        base_folder = "utils/build/virtual_machine"
+        weblog_provision_file = f"{base_folder}/weblogs/{self._library.library}/provision_{self._weblog}.yml"
+        assert os.path.isfile(weblog_provision_file), f"Weblog Provision file not found: {weblog_provision_file}"
+
+        provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
+        assert os.path.isfile(provision_file), f"Provision file not found: {provision_file}"
 
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
@@ -346,5 +371,11 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_almalinux_8_arm64=True,
             include_almalinux_9_amd64=True,
             include_almalinux_9_arm64=True,
+            include_redhat_8_amd64=True,
+            include_redhat_8_arm64=True,
+            include_fedora_36_amd64=True,
+            include_fedora_36_arm64=True,
+            include_fedora_37_amd64=True,
+            include_fedora_37_arm64=True,
             scenario_groups=scenario_groups,
         )

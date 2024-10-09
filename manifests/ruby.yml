@@ -44,12 +44,15 @@ tests/:
           Test_InsecureAuthProtocol: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
+          TestInsecureCookieNameFilter: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie: missing_feature
+          TestNoHttponlyCookieNameFilter: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
+          TestNoSamesiteCookieNameFilter: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
@@ -344,12 +347,16 @@ tests/:
       TestDynamicConfigV1: bug (to be investigated, theorical version is v1.13.0)
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_headers_baggage.py:
+      Test_Headers_Baggage: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.1.0
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
+    test_otel_span_with_baggage.py:
+      Test_Otel_Span_With_Baggage: missing_feature
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v1.17.0
     test_sampling_delegation.py:
