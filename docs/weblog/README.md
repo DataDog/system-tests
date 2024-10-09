@@ -700,9 +700,7 @@ Returns a JSON dict, with those values :
     "status": "ok",
     "library": {
       "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
-      "version": "1.2.3",  // version of the library
-      "libddwaf_version": "4.5.6"  // version of libddwaf,
-      "appsec_event_rules_version": "7.8.9"  // version of appsec event rules
+      "version": "1.2.3"  // version of the library
     }
   }
 ```
