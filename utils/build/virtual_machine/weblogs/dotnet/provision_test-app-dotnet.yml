@@ -43,10 +43,17 @@ lang_variant:
         os_distro: rpm
         os_branch: amazon_linux2
         remote-command: |
-          sudo yum install libicu
-          sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
-          sudo yum install -y dotnet-sdk-6.0
-
+          sudo yum install -y libicu60 krb5-libs openssl-libs zlib
+          #This works for amd 64, but not for arm64 because arm64 is installing a version < 6.0.12. No crash, but the app isn't instrumented
+          #sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+          #sudo yum install -y dotnet-sdk-6.0
+          #Disable the DEBUG traces due to https://datadoghq.atlassian.net/browse/AIT-10255
+          export DD_APM_INSTRUMENTATION_DEBUG=false
+          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+          chmod +x ./dotnet-install.sh
+          sudo ./dotnet-install.sh --channel 6.0 -InstallDir /opt
+          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
+          sudo ln -s /opt/dotnet /usr/bin/dotnet
       - os_type: linux
         os_distro: rpm
         remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
@@ -56,7 +63,7 @@ weblog:
     #amazon_linux2_dotnet6 excluded due to https://datadoghq.atlassian.net/browse/AIT-10335
     #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
     #Ubuntu 21 (amd64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
-    excluded_os_branches: [ubuntu18_amd64,amazon_linux2, amazon_linux2_dotnet6, centos_7_amd64, ubuntu20_arm64,ubuntu21, debian]
+    excluded_os_branches: [ubuntu18_amd64, amazon_linux2_dotnet6, centos_7_amd64, ubuntu20_arm64,ubuntu21, debian]
     excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux
