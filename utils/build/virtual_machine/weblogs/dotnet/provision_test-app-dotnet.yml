@@ -23,9 +23,9 @@ lang_variant:
 
       - os_type: linux
         os_distro: deb
-        os_branch: ubuntu21
+        os_branch: ubuntu20_amd64
         remote-command: |
-          wget https://packages.microsoft.com/config/ubuntu/21.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+          wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
           sudo dpkg -i packages-microsoft-prod.deb
           rm packages-microsoft-prod.deb
           sudo apt-get update
@@ -54,7 +54,9 @@ lang_variant:
 weblog:
     name: test-app-dotnet
     #amazon_linux2_dotnet6 excluded due to https://datadoghq.atlassian.net/browse/AIT-10335
-    excluded_os_branches: [ubuntu18_amd64,amazon_linux2, amazon_linux2_dotnet6, centos_7_amd64, ubuntu20, debian]
+    #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
+    #Ubuntu 21 (amd64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
+    excluded_os_branches: [ubuntu18_amd64,amazon_linux2, amazon_linux2_dotnet6, centos_7_amd64, ubuntu20_arm64,ubuntu21, debian]
     excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux
