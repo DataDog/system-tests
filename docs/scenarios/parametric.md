@@ -297,8 +297,6 @@ docker image rm <library>-test-library
 The Python implementation of the interface `app/python`, when run, provides a specification of the API when run.
 See the steps below in the HTTP section to run the Python server and view the specification.
 
-## Implementation
-
 ### Shared Interface
 
 #### HTTP
