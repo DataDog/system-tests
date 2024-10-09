@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"io"
 	"log"
 	"math/rand"
@@ -16,15 +13,13 @@ import (
 	"os"
 	"strconv"
 	"time"
+	awsHelpers "weblog/net-http/aws"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
 
 	"github.com/Shopify/sarama"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/sns"
-
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
 
@@ -533,116 +528,44 @@ func main() {
 			message = "Hello from Go SNS -> SQS"
 		}
 
-		cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
+		result, err := awsHelpers.SnsProduce(queue, topic, message)
 		if err != nil {
-			log.Printf("[SNS->SQS] Error loading AWS configuration: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}
 
-		snsClient := sns.NewFromConfig(cfg)
-		sqsClient := sqs.NewFromConfig(cfg)
-
-		var topicArn string
-		var queueUrl string
-		var queueArn string
-
-		// Create SNS topic and SQS queue
-		topicResult, err := snsClient.CreateTopic(context.TODO(), &sns.CreateTopicInput{
-			Name: aws.String(topic),
-		})
-		if err != nil {
-			log.Printf("[SNS->SQS] Error during Go SNS create topic: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		topicArn = *topicResult.TopicArn
-
-		queueResult, err := sqsClient.CreateQueue(context.TODO(), &sqs.CreateQueueInput{
-			QueueName: aws.String(queue),
-		})
-		if err != nil {
-			log.Printf("[SNS->SQS] Error during Go SQS create queue: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		queueUrl = *queueResult.QueueUrl
-
-		// Get queue ARN
-		queueAttrs, err := sqsClient.GetQueueAttributes(context.TODO(), &sqs.GetQueueAttributesInput{
-			QueueUrl:       aws.String(queueUrl),
-			AttributeNames: []types.QueueAttributeName{types.QueueAttributeNameQueueArn},
-		})
-		if err != nil {
-			log.Printf("[SNS->SQS] Error getting queue attributes: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		queueArn = queueAttrs.Attributes[string(types.QueueAttributeNameQueueArn)]
-
-		// Set queue policy
-		policy := map[string]interface{}{
-			"Version": "2012-10-17",
-			"Id":      fmt.Sprintf("%s/SQSDefaultPolicy", queueArn),
-			"Statement": []map[string]interface{}{
-				{
-					"Sid":    "Allow-SNS-SendMessage",
-					"Effect": "Allow",
-					"Principal": map[string]string{
-						"Service": "sns.amazonaws.com",
-					},
-					"Action":   "sqs:SendMessage",
-					"Resource": queueArn,
-					"Condition": map[string]interface{}{
-						"ArnEquals": map[string]string{
-							"aws:SourceArn": topicArn,
-						},
-					},
-				},
-			},
-		}
-		policyJSON, _ := json.Marshal(policy)
-		_, err = sqsClient.SetQueueAttributes(context.TODO(), &sqs.SetQueueAttributesInput{
-			QueueUrl: aws.String(queueUrl),
-			Attributes: map[string]string{
-				"Policy": string(policyJSON),
-			},
-		})
-		if err != nil {
-			log.Printf("[SNS->SQS] Error setting queue policy: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		// Subscribe SQS to SNS
-		_, err = snsClient.Subscribe(context.TODO(), &sns.SubscribeInput{
-			TopicArn:   aws.String(topicArn),
-			Protocol:   aws.String("sqs"),
-			Endpoint:   aws.String(queueArn),
-			Attributes: map[string]string{"RawMessageDelivery": "true"},
-		})
-		if err != nil {
-			log.Printf("[SNS->SQS] Error subscribing SQS to SNS: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		log.Printf("[SNS->SQS] Created SNS Topic: %s and SQS Queue: %s", topic, queue)
-
-		// Publish message to SNS topic
-		_, err = snsClient.Publish(context.TODO(), &sns.PublishInput{
-			Message:  aws.String(message),
-			TopicArn: aws.String(topicArn),
-		})
-		if err != nil {
-			log.Printf("[SNS->SQS] Error during Go SNS publish message: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		log.Printf("[SNS->SQS] Go SNS message published successfully")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("SNS Produce ok"))
+		w.Write([]byte(result))
+	})
+
+	mux.HandleFunc("/sns/consume", func(w http.ResponseWriter, r *http.Request) {
+		queue := r.URL.Query().Get("queue")
+		if queue == "" {
+			queue = "DistributedTracing SNS"
+		}
+		timeout, err := strconv.Atoi(r.URL.Query().Get("timeout"))
+		if err != nil || timeout <= 0 {
+			timeout = 60 // Default timeout
+		}
+		expectedMessage := r.URL.Query().Get("message")
+		if expectedMessage == "" {
+			expectedMessage = "Hello from Go SNS -> SQS"
+		}
+
+		result, err := awsHelpers.SnsConsume(queue, expectedMessage, timeout)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		if _, hasError := result["error"]; hasError {
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
+		json.NewEncoder(w).Encode(result)
 	})
 
 	common.InitDatadog()
