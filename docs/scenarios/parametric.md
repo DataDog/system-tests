@@ -68,14 +68,9 @@ The following dependencies are required to run the tests locally:
 - Docker
 - Python 3.12
 
-then, run the following command, which will create a Python virtual environment and install the Python dependencies from the root directory:
-
-```sh
-./build.sh -i runner
-```
-
-
 ### Running the tests
+
+Build will happen at the beginning of the run statements. 
 
 Run all the tests for a particular tracer library:
 
@@ -97,9 +92,36 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k test_metrics_
 
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
-#### Go
+### Using Pytest
 
-For running the Go tests, see the README in apps/golang.
+The tests are executed using pytest. Below are some common command-line options you can use to control and customize your test runs.
+- `-k EXPRESSION`: Run tests that match the given expression (substring or pattern). Useful for running specific tests or groups of tests.
+
+```sh
+TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k test_metrics_msgpack_serialization_TS001
+```
+
+- `-v`: Increase verbosity. Shows each test name and its result (pass/fail) as they are run.
+
+```sh
+TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -v
+```
+
+- `-vv`: Even more verbose output. Provides detailed information including setup and teardown for each test.
+
+```sh
+TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -vv -k test_metrics_
+```
+
+- `-s`: Disable output capture. Allows you to see print statements and logs directly in the console.
+
+```sh
+TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -s
+```
+
+### Running the tests for a custom tracer
+
+#### Go
 
 To test unmerged PRs locally, run the following in the utils/build/docker/golang/parametric directory:
 
@@ -110,14 +132,14 @@ go mod tidy
 
 #### dotnet
 
-Add a file datadog-dotnet-apm-<VERSION>.tar.gz in binaries/. <VERSION> must be a valid version number.
+- Add a file `datadog-dotnet-apm-<VERSION>.tar.gz` in `binaries/`. `<VERSION>` must be a valid version number.
+  - One way to get that file is from an Azure pipeline (either a recent one from master if the changes you want to test were merged recently, or the one from your PR if it's open)
 
 #### Java
 
-##### Run Parametric tests with a custom Java Tracer version
+Follow these steps to run Parametric tests with a custom Java Tracer version:
 
-1. Clone the repo and checkout to the branch you'd like to test
-Clone the repo:
+1. Clone the repo and checkout to the branch you'd like to test:
 ```bash
 git clone git@github.com:DataDog/dd-trace-java.git
 cd dd-trace-java
@@ -168,18 +190,16 @@ From the repo root folder:
 
 #### Python
 
-To run the Python tests "locally" push your code to a branch and then specify ``PYTHON_DDTRACE_PACKAGE``.
-
-
-```sh
-TEST_LIBRARY=python PYTHON_DDTRACE_PACKAGE=git+https://github.com/Datadog/dd-trace-py@2.x ./run.sh PARAMETRIC [-k ...]
+To run the Python tests against a custom tracer:  
+```bash
+echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-branch>” > binaries/python-load-from-pip
 ```
 
 #### NodeJS
 
 There is three ways for running the NodeJS tests with a custom tracer:
 1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
-    * `DataDog/dd-trace-js#master`
+    - `DataDog/dd-trace-js#master`
 2. Clone the dd-trace-js repo inside `binaries`
 3. Create a file `nodejs-load-from-local` in `binaries/`, this will disable installing with `npm install dd-trace` and
    will instead get the content of the file, and use it as a location of the `dd-trace-js` repo and then mount it as a
@@ -202,41 +222,22 @@ There is two ways for running the C++ library tests with a custom tracer:
     * `https://github.com/DataDog/dd-trace-cpp@<COMMIT HASH>`
 2. Clone the dd-trace-cpp repo inside `binaries`
 
-The parametric shared tests can be run against the C++ library,
-[dd-trace-cpp][1], this way:
-```console
-$ TEST_LIBRARY=cpp ./run.sh PARAMETRIC
+#### When you are done testing against a custom tracer:
+```bash
+rm -rf binaries/python-load-from-pip
 ```
 
-Use the `-k` command line argument, which is forwarded to [pytest][2], to
-specify a substring within a particular test file, class, or method. Then only
-matching tests will run, e.g.
-```console
-$ TEST_LIBRARY=cpp ./run.sh PARAMETRIC -k test_headers
-```
+### Understanding the test outcomes
+Please refer to this chart:
 
-It's convenient to have a pretty printer for the tests' XML output. I use
-[xunit-viewer][3].
-```console
-$ npm install junit-viewer -g
-```
-
-My development iterations then involve running the following at the top of the
-repository:
-```console
-$ TEST_LIBRARY=cpp ./run.sh PARAMETRIC -k test_headers; xunit-viewer -r logs_parametric/reportJunit.xml
-```
-
-This will create a file `index.html` at the top of the repository, which I then
-inspect with a web browser.
-
-The C++ build can be made to point to a different GitHub branch by modifying the
-`FetchContent_Declare` command's `GIT_TAG` argument in [CMakeLists.txt][4].
-
-In order to coerce Docker to rebuild the C++ gRPC server image, one of the build
-inputs must change, and so whenever I push changes to the target branch, I also
-modify a scratch comment in `CMakeLists.txt` to trigger a rebuild on the next
-test run.
+| Declaration            | Test is executed  | Test actual outcome | System test output  | Comment
+| -                      | -                 | -                   | -                   | -
+| \<no_declaration>      | Yes               | ✅ Pass             | 🟢 Success          | All good :sunglasses:
+| Missing feature or bug | Yes               | ❌ Fail             | 🟢 Success          | Expected failure
+| Missing feature or bug | Yes               | ✅ Pass             | 🟠 Success          | XPASS: The feature has been implemented, bug has been fixed -> easy win
+| Flaky                  | No                | N.A.                | N.A.                | A flaky test doesn't provide any usefull information, and thus, is not executed.
+| Irrelevant             | No                | N.A.                | N.A                 | There is no purpose of running such a test
+| \<no_declaration>      | Yes               | ❌ Fail             | 🔴 Fail             | Only use case where system test fails : the test should have been ok, and is not
 
 ### Debugging
 
@@ -296,37 +297,6 @@ docker image rm <library>-test-library
 The Python implementation of the interface `app/python`, when run, provides a specification of the API when run.
 See the steps below in the HTTP section to run the Python server and view the specification.
 
-## Updating protos
-
-In order to update the `parametric/protos`, these steps must be followed.
-
-1. Create a virtual environment and activate it:
-```bash
-python3.12 -m venv .venv && source .venv/bin/activate
-```
-
-2. Install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Install `grpcio-tools` (make sure grpcaio is the same version):
-```bash
-pip install grpcio-tools==1.60.1
-```
-
-4. Change directory to `utils/parametric`:
-```console
-cd utils/parametric
-```
-
-5. Run the script to generate the proto files:
-```bash
-./generate_protos.sh
-```
-
-Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
-
 ## Implementation
 
 ### Shared Interface
@@ -362,7 +332,36 @@ service APMClient {
   rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
 }
 ```
+#### Updating protos for GRPC
 
+In order to update the `parametric/protos`, these steps must be followed.
+
+1. Create a virtual environment and activate it:
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate
+```
+
+2. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Install `grpcio-tools` (make sure grpcaio is the same version):
+```bash
+pip install grpcio-tools==1.60.1
+```
+
+4. Change directory to `utils/parametric`:
+```console
+cd utils/parametric
+```
+
+5. Run the script to generate the proto files:
+```bash
+./generate_protos.sh
+```
+
+Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
 
 ### Architecture
 
