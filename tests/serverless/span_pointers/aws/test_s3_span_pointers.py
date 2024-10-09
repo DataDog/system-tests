@@ -2,7 +2,7 @@ import json
 
 from utils import weblog, interfaces, rfc, features
 from utils.tools import logger
-from tests.serverless.span_pointers.pointer_helpers import (
+from tests.serverless.span_pointers.utils import (
     POINTER_DIRECTION_DOWNSTREAM,
     make_single_span_link_validator,
     standard_hashing_function,
