@@ -247,6 +247,7 @@ These can be used to debug the test case.
 The output also contains the commands used to build and run the containers which can be run manually to debug the issue
 further.
 
+The logs are contained in this folder:  `./logs_parametric`
 
 ## Troubleshooting
 
