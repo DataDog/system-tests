@@ -1,6 +1,8 @@
 import pytest
 
 from utils._context.containers import DummyServerContainer, ExternalProcessingContainer, EnvoyContainer, AgentContainer
+from utils import interfaces
+
 from utils.tools import logger
 
 from .endtoend import DockerScenario, ScenarioGroup
@@ -46,17 +48,18 @@ class ExternalProcessingScenario(DockerScenario):
         # tag: dev
         # base: latest/v*.*.*
 
-    def _create_interface_folders(self):
-        self._create_log_subfolder("interfaces/agent")
-        self._create_log_subfolder("interfaces/library")
+    def configure(self, config):
+
+        super().configure(config)
+
+        interfaces.library.configure(self.host_log_folder, self.replay)
+        interfaces.agent.configure(self.host_log_folder, self.replay)
 
     def _start_interfaces_watchdog(self, _=None):
-        from utils import interfaces
 
         super()._start_interfaces_watchdog([interfaces.library, interfaces.agent])
 
     def _wait_for_app_readiness(self):
-        from utils import interfaces  # import here to avoid circular import
 
         logger.debug("Wait for app readiness")
 
@@ -72,7 +75,6 @@ class ExternalProcessingScenario(DockerScenario):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(0, self._create_interface_folders)
             warmups.insert(1, self._start_interfaces_watchdog)
             warmups.append(self._wait_for_app_readiness)
 
@@ -85,7 +87,6 @@ class ExternalProcessingScenario(DockerScenario):
             self.close_targets()
 
     def _wait_and_stop_containers(self):
-        from utils import interfaces
 
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")

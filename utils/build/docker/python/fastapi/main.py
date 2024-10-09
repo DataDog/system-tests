@@ -67,22 +67,10 @@ async def root():
 
 @app.get("/healthcheck")
 async def healthcheck():
-    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
-        data = json.load(f)
-
-    if "metadata" not in data:
-        appsec_event_rules_version = "1.2.5"
-    else:
-        appsec_event_rules_version = data["metadata"]["rules_version"]
 
     return {
         "status": "ok",
-        "library": {
-            "language": "python",
-            "version": ddtrace.__version__,
-            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
-            "appsec_event_rules_version": appsec_event_rules_version,
-        },
+        "library": {"language": "python", "version": ddtrace.__version__,},
     }
 
 

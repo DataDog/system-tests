@@ -307,7 +307,7 @@ class Test:
         context.scenario = scenarios.default
 
         i = _PostgresStdout()
-        i.configure(True)
+        i.configure(scenarios.default.host_log_folder, True)
         i.load_data()
 
         for item in i.get_data():

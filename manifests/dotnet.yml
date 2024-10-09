@@ -42,12 +42,15 @@ tests/:
           Test_InsecureAuthProtocol: v2.49.0
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
+          TestInsecureCookieNameFilter: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: v2.36.0
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie: v2.39.0
+          TestNoHttponlyCookieNameFilter: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: v2.39.0
+          TestNoSamesiteCookieNameFilter: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: v2.47.0
         test_path_traversal.py:
