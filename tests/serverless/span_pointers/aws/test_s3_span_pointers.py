@@ -17,7 +17,7 @@ def _validate_s3_object_pointer(r):
     key = r.request.params["key"].encode("utf-8")
     etag = response_content["object"]["e_tag"].encode("ascii")
 
-    assert '"' not in etag, "boto3 sometimes includes double-quotes in etags"
+    assert b'"' not in etag, "boto3 sometimes includes double-quotes in etags"
 
     logger.info(f"bucket: {bucket}, key: {key}, etag: {etag}")
 
