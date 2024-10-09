@@ -1,4 +1,3 @@
-require 'datadog'
 require 'pry'
 require 'sinatra'
 require "net/http"

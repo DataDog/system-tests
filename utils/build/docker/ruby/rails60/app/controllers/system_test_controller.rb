@@ -1,4 +1,3 @@
-require 'datadog'
 require 'datadog/kit/appsec/events'
 
 class SystemTestController < ApplicationController
