@@ -13,13 +13,14 @@ import (
 	"os"
 	"strconv"
 	"time"
-	awsHelpers "weblog/net-http/aws"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
+	awsHelpers "weblog/net-http/aws"
 
 	"github.com/Shopify/sarama"
+
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
 
@@ -587,6 +588,35 @@ func main() {
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(result))
+	})
+
+	mux.HandleFunc("/sqs/consume", func(w http.ResponseWriter, r *http.Request) {
+		queue := r.URL.Query().Get("queue")
+		if queue == "" {
+			queue = "DistributedTracing"
+		}
+		timeout, err := strconv.Atoi(r.URL.Query().Get("timeout"))
+		if err != nil || timeout <= 0 {
+			timeout = 60 // Default timeout
+		}
+		expectedMessage := r.URL.Query().Get("message")
+		if expectedMessage == "" {
+			expectedMessage = "Hello from Go SQS"
+		}
+
+		result, err := awsHelpers.SqsConsume(queue, expectedMessage, timeout)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		if _, hasError := result["error"]; hasError {
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
+		json.NewEncoder(w).Encode(result)
 	})
 
 	common.InitDatadog()

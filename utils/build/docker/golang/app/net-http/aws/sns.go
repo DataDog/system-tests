@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
+// SnsProduce The goal of this function is to trigger sns producer calls
 func SnsProduce(queue, topic, message string) (string, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
@@ -104,6 +105,7 @@ func SnsProduce(queue, topic, message string) (string, error) {
 	return "SNS Produce ok", nil
 }
 
+// SnsConsume The goal of this function is to trigger sns consumer calls
 func SnsConsume(queue, expectedMessage string, timeout int) (map[string]string, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
