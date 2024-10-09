@@ -458,6 +458,21 @@ class _TestAgentAPI:
                 return event
         return None
 
+    def wait_for_rc_request(self, wait_loops: int = 1000):
+        """Wait for the first RemoteConfig request to be received by the test agent."""
+        rc_reqs = []
+        for i in range(wait_loops):
+            try:
+                rc_reqs = self.rc_requests()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                if rc_reqs:
+                    return rc_reqs[0]
+            time.sleep(0.01)
+        total_wait_time = wait_loops * 0.01
+        raise AssertionError(f"No RemoteConfig request found after waiting for {total_wait_time} seconds")
+
     def wait_for_rc_apply_state(
         self,
         product: str,
