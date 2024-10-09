@@ -2,7 +2,7 @@ lang_variant:
     name: Ruby_3_0_2
     version: 3.0.2
     cache: true
-    install: 
+    install:
       - os_type: linux
         os_distro: deb
         remote-command: |
@@ -33,7 +33,7 @@ weblog:
 
         copy_files:
           - name: copy-ruby-app
-            local_path: lib-injection/build/docker/ruby/lib_injection_rails_app  
+            local_path: lib-injection/build/docker/ruby/lib_injection_rails_app
 
           - name: copy-service
             local_path: utils/build/virtual_machine/weblogs/common/test-app.service
