@@ -568,6 +568,27 @@ func main() {
 		json.NewEncoder(w).Encode(result)
 	})
 
+	mux.HandleFunc("/sqs/produce", func(w http.ResponseWriter, r *http.Request) {
+		queue := r.URL.Query().Get("queue")
+		if queue == "" {
+			queue = "DistributedTracing"
+		}
+		message := r.URL.Query().Get("message")
+		if message == "" {
+			message = "Hello from Go SQS"
+		}
+
+		result, err := awsHelpers.SqsProduce(queue, message)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(result))
+	})
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
 	http.ListenAndServe(":7777", mux)
