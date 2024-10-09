@@ -196,7 +196,13 @@ class _VirtualMachine:
             command_env["DD_DOCKER_LOGIN"] = self.datadog_config.docker_login
             command_env["DD_DOCKER_LOGIN_PASS"] = self.datadog_config.docker_login_pass
         # Tested library
-        command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
+        lang = command_env["DD_LANG"]
+        if lang == "nodejs":
+            lang = "js"
+        elif lang == "golang":
+            # We don't inject tracing/profiling via SSI for Go,
+            # so just set "java" to make the SSI setup happy
+            lang = "java"
         # VM name
         command_env["DD_VM_NAME"] = self.name
         # Scenario custom environment: agent and app env variables

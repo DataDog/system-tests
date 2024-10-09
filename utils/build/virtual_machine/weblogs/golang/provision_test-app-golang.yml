@@ -1,0 +1,24 @@
+lang_variant:
+    name: Go
+    cache: true
+    install:
+      - os_type: linux
+        copy_files:
+          - name: copy-go-source
+            local_path: utils/build/virtual_machine/weblogs/golang/test-app-golang/main.go
+          - name: copy-auto-install-script
+            local_path: utils/build/virtual_machine/weblogs/golang/test-app-golang/build.sh
+        remote-command: sudo sh build.sh
+
+weblog:
+    name: test-app-golang
+    install:
+      - os_type: linux
+        copy_files:
+          - name: copy-service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/golang/test-app-golang/test-app-golang_run.sh
+        remote-command: sudo sh test-app-golang_run.sh

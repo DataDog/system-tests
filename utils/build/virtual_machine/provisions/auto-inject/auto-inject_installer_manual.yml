@@ -52,6 +52,12 @@
     cat scenario_agent.env
     export $(cat scenario_agent.env | xargs)
 
+    if [ "${DD_LANG}" == "golang" ]; then
+      export DD_LANG="all"
+      export DD_APM_INSTRUMENTATION_LANGUAGES="java"
+      export DD_APM_INSTRUMENTATION_LIBRARIES="java"
+    fi
+
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
     

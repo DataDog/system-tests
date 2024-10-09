@@ -22,6 +22,10 @@ else
     export DD_SITE="datadoghq.com" 
 fi
 
+if [ "${DD_LANG}" == "golang" ]; then
+    export DD_LANG="all"
+fi
+
 # Environment variables for the installer
 export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
 export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
