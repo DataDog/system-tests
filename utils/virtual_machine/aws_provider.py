@@ -21,6 +21,7 @@ from utils.virtual_machine.vm_logger import vm_logger
 
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 
+
 class AWSPulumiProvider(VmProvider):
     def __init__(self):
         super().__init__()
