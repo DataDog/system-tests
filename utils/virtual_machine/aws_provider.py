@@ -3,6 +3,7 @@ import pathlib
 import uuid
 import requests
 import tempfile
+import asyncio
 from random import randint
 
 import paramiko
@@ -19,8 +20,6 @@ from utils import context
 from utils.virtual_machine.vm_logger import vm_logger
 
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
-import asyncio
-import time
 
 class AWSPulumiProvider(VmProvider):
     def __init__(self):
@@ -42,8 +41,6 @@ class AWSPulumiProvider(VmProvider):
         logger.info(f"Starting AWS VMs: {self.vms}")
 
         def pulumi_start_program():
-            start_time = time.time()
-            logger.stdout(f"--------- pulumi_start_program Starting AWS VMS: {self.vms} -----------")
             # Static loading of keypairs for ec2 machines
             self.pulumi_ssh = PulumiSSH()
             self.pulumi_ssh.load(self.vms)
@@ -52,8 +49,6 @@ class AWSPulumiProvider(VmProvider):
             for vm in self.vms:
                 logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
                 self._start_vm(vm)
-            end_time = time.time()
-            logger.stdout(f"--------- pulumi_start_program Finished Starting AWS VMS: {end_time - start_time}s -----------")
 
         project_name = "system-tests-vms"
         try:
@@ -80,7 +75,9 @@ class AWSPulumiProvider(VmProvider):
     def _start_vm(self, vm):
         # Check for cached ami, before starting a new one
         should_skip_ami_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
-        ami_id = pulumi.Output.from_input(asyncio.to_thread(self._get_cached_ami, vm)) if not should_skip_ami_cache else None
+        ami_id = (
+            pulumi.Output.from_input(asyncio.to_thread(self._get_cached_ami, vm)) if not should_skip_ami_cache else None
+        )
         logger.info(f"Cache AMI: {vm.get_cache_name()}")
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
