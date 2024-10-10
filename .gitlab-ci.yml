@@ -183,6 +183,7 @@ onboarding_python:
             test-app-python-container-3.11,
             test-app-python-container-3.12,
             test-app-python-container-3.7-alpine,
+            test-app-python-container-3.8-alpine,
             test-app-python-container-3.9-alpine,
             test-app-python-container-3.10-alpine,
             test-app-python-container-3.11-alpine,
