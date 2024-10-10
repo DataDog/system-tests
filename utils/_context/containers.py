@@ -587,7 +587,7 @@ class WeblogContainer(TestedContainer):
         appsec_enabled=True,
         additional_trace_header_tags=(),
         use_proxy=True,
-        volumes: dict | None = None,
+        volumes=None,
     ) -> None:
 
         from utils import weblog

@@ -174,7 +174,7 @@ class EndToEndScenario(DockerScenario):
         github_workflow="endtoend",
         scenario_groups=None,
         weblog_env=None,
-        weblog_volumes: dict | None = None,
+        weblog_volumes=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
         appsec_enabled=True,
