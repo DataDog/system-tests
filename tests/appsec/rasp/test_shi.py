@@ -172,7 +172,7 @@ class Test_Shi_Telemetry:
         ]
 
 
-@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.remote_config_mocked_backend_asm_dd
 class Test_Shi_Capability:
