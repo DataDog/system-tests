@@ -105,6 +105,7 @@ class AWSPulumiProvider(VmProvider):
             user=vm.aws_config.user,
             private_key=self.pulumi_ssh.private_key_pem,
             dial_error_limit=-1,
+            per_dial_timeout=30,
         )
         # Install provision on the started server
         self.install_provision(
