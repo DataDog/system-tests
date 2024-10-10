@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, bug, weblog, features
-from ..utils import BaseSinkTest
+from ..utils import BaseSinkTest, BaseTestCookieNameFilter
 
 
 @features.iast_sink_samesite_cookie
@@ -37,3 +37,11 @@ class TestNoSamesiteCookie(BaseSinkTest):
     @missing_feature(weblog_variant="vertx4", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+
+@features.iast_sink_samesite_cookie
+class TestNoSamesiteCookieNameFilter(BaseTestCookieNameFilter):
+    """Test no SameSite cookie name filter."""
+
+    vulnerability_type = "NO_SAMESITE_COOKIE"
+    endpoint = "/iast/no-samesite-cookie/custom_cookie"

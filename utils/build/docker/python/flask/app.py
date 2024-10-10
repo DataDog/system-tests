@@ -179,14 +179,6 @@ def hello_world():
 
 @app.route("/healthcheck")
 def healthcheck():
-    path = ddtrace.appsec.__path__[0] + "/rules.json"
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-
-    if "metadata" not in data:
-        appsec_event_rules_version = "1.2.5"
-    else:
-        appsec_event_rules_version = data["metadata"]["rules_version"]
 
     return {
         "status": "ok",
@@ -194,7 +186,6 @@ def healthcheck():
             "language": "python",
             "version": ddtrace.__version__,
             "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
-            "appsec_event_rules_version": appsec_event_rules_version,
         },
     }
 
@@ -974,7 +965,7 @@ def view_iast_source_parametername_get():
 
 @app.route("/iast/source/parametername/test", methods=["POST"])
 def view_iast_source_parametername_post():
-    param = [key for key in flask_request.json.keys() if key == "user"]
+    param = [key for key in flask_request.form.keys() if key == "user"]
     _sink_point_sqli(id=param[0])
     return Response("OK")
 
@@ -984,7 +975,7 @@ def view_iast_source_parameter():
     if flask_request.args:
         table = flask_request.args.get("table")
     else:
-        table = flask_request.json.get("table")
+        table = flask_request.form.get("table")
     _sink_point_sqli(table=table)
     return Response("OK")
 
