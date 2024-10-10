@@ -587,15 +587,15 @@ class WeblogContainer(TestedContainer):
         appsec_enabled=True,
         additional_trace_header_tags=(),
         use_proxy=True,
+        volumes: dict | None = None,
     ) -> None:
 
         from utils import weblog
 
         self.port = weblog.port
 
-        volumes = {
-            f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
-        }
+        volumes = {} if volumes is None else volumes
+        volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
         try:
             with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
