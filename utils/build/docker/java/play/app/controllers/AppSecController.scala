@@ -16,6 +16,10 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient, mat: Materializer)
@@ -25,6 +29,36 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     span.setTag("test-tag", "my value")
     withSpan(span) {
       Results.Ok("Hello world!")
+    }
+  }
+
+  def healthcheck = Action {
+    val version: String = getVersion match {
+      case Success(v) => v
+      case Failure(_) => "0.0.0"
+    }
+
+    // Créer l'objet JSON pour la réponse
+    val response = Json.obj(
+      "status" -> "ok",
+      "library" -> Json.obj(
+        "language" -> "java",
+        "version" -> version
+      )
+    )
+
+    Ok(response)
+  }
+
+  // Méthode pour lire la version du fichier
+  private def getVersion: Try[String] = {
+    Try {
+      val source = Option(getClass.getClassLoader.getResourceAsStream("dd-java-agent.version"))
+        .getOrElse(throw new RuntimeException("File not found"))
+      val reader = new BufferedReader(new InputStreamReader(source, StandardCharsets.ISO_8859_1))
+      val version = reader.readLine()
+      reader.close()
+      version
     }
   }
 

@@ -1,4 +1,5 @@
 GET  /                         controllers.AppSecController.index
+GET  /healthcheck              controllers.AppSecController.healthcheck
 GET  /headers                  controllers.AppSecController.headers
 GET  /tag_value/:value/:code   controllers.AppSecController.tagValue(value: String, code: Int)
 POST /tag_value/:value/:code   controllers.AppSecController.tagValuePost(value: String, code: Int)
