@@ -80,7 +80,7 @@ class AWSPulumiProvider(VmProvider):
     def _start_vm(self, vm):
         # Check for cached ami, before starting a new one
         should_skip_ami_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
-        ami_id = pulumi.Output.from_input(asyncio.to_thread(self._get_cached_ami, vm))) if not should_skip_ami_cache else None
+        ami_id = pulumi.Output.from_input(asyncio.to_thread(self._get_cached_ami, vm)) if not should_skip_ami_cache else None
         logger.info(f"Cache AMI: {vm.get_cache_name()}")
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
