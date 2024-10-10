@@ -629,7 +629,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     parsed_url = urlparse(str(url))
 
     if parsed_url.hostname not in allowed_domains:
-        return "Forbidden", 403
+        return PlainTextResponse("Forbidden", status_code=403)
     try:
         result = requests.get(parsed_url.geturl())
     except Exception:
