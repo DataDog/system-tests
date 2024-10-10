@@ -173,10 +173,10 @@ class Test_Shi_Telemetry:
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
-@features.rasp_sql_injection
+@features.rasp_shell_injection
 @scenarios.remote_config_mocked_backend_asm_dd
 class Test_Shi_Capability:
     """Validate that ASM_RASP_SHI (24) capability is sent"""
 
-    def test_sqli_capability(self):
+    def test_shi_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SHI)
