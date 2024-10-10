@@ -560,7 +560,7 @@ class Test_TelemetrySCAEnvVar:
         assert cfg_appsec_enabled.get("value") == outcome_value
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-     @missing_feature(context.library <= "python@2.16.0", reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used")
+    @missing_feature(context.library <= "python@2.16.0", reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used")
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
 
