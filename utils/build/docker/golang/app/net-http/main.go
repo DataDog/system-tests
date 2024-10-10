@@ -148,14 +148,23 @@ func main() {
 
 			client := httptrace.WrapClient(http.DefaultClient)
 			req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
-			_, err := client.Do(req)
-
+			res, err := client.Do(req)
+			sc := res.StatusCode
 			if err != nil {
 				log.Fatalln(err)
 				w.WriteHeader(500)
+			} else {
+				type Response struct {
+					Status_Code int `json:"status_code"`
+				}
+				response := Response{Status_Code: sc}
+				jsonResponse, err := json.Marshal(response)
+				if err == nil {
+					w.Header().Set("Content-Type", "application/json")
+					w.Write(jsonResponse)
+				}
 			}
 		}
-		w.Write([]byte("OK"))
 	})
 
 	mux.HandleFunc("/headers", headers)

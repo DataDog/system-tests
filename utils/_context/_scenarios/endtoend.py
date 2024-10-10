@@ -174,6 +174,7 @@ class EndToEndScenario(DockerScenario):
         github_workflow="endtoend",
         scenario_groups=None,
         weblog_env=None,
+        weblog_volumes=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
         appsec_enabled=True,
@@ -239,6 +240,7 @@ class EndToEndScenario(DockerScenario):
             appsec_enabled=appsec_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy,
+            volumes=weblog_volumes,
         )
 
         self.weblog_container.depends_on.append(self.agent_container)
@@ -453,14 +455,6 @@ class EndToEndScenario(DockerScenario):
         return self.weblog_container.uds_socket
 
     @property
-    def libddwaf_version(self):
-        return self.weblog_container.libddwaf_version
-
-    @property
-    def appsec_rules_version(self):
-        return self.weblog_container.appsec_rules_version
-
-    @property
     def uds_mode(self):
         return self.weblog_container.uds_mode
 
@@ -476,7 +470,6 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
         result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
-        result["dd_tags[systest.suite.context.libddwaf_version]"] = self.weblog_container.libddwaf_version
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
 
         return result
@@ -486,6 +479,4 @@ class EndToEndScenario(DockerScenario):
         return {
             "agent": self.agent_version,
             "library": self.library.version,
-            "libddwaf": self.weblog_container.libddwaf_version,
-            "appsec_rules": self.appsec_rules_version,
         }

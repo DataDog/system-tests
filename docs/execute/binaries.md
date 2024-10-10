@@ -22,8 +22,9 @@ But, obviously, testing validated versions of components is not really interesti
 
 ## Golang library
 
-1. Add a file `golang-load-from-go-get`, the content will be installed by `go get`. Content example:
-    * `gopkg.in/DataDog/dd-trace-go.v1@master`
+1. Under `binaries`, create a file `golang-load-from-go-get`, the content will be installed by `go get`. You can specify a specify branch of dd-trace-go you want to install for testing. Content example:
+    * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
+    * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
 2. Clone the dd-trace-go repo inside `binaries`
 
 ## Java library
@@ -42,7 +43,8 @@ But, obviously, testing validated versions of components is not really interesti
 
 ## PHP library
 
-1. Add a valid `.apk` file in `binaries`.
+1. In the `build packages` stage from the `package extension` job for your PR on CircleCI find the relevant `datadog-setup.php` and `dd-library-php-*-aarch64-linux-gnu.tar.gz` file.
+2. Add both files inside the `binaries` folder.
 
 ## Python library
 

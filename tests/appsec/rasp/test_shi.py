@@ -153,10 +153,10 @@ class Test_Shi_StackTrace:
 class Test_Shi_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
-    def setup_ssrf_telemetry(self):
+    def setup_shi_telemetry(self):
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
-    def test_ssrf_telemetry(self):
+    def test_shi_telemetry(self):
         assert self.r.status_code == 403
 
         series_eval = find_series(True, "appsec", "rasp.rule.eval")
@@ -172,11 +172,11 @@ class Test_Shi_Telemetry:
         ]
 
 
-@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
-@features.rasp_sql_injection
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.rasp_shell_injection
 @scenarios.remote_config_mocked_backend_asm_dd
 class Test_Shi_Capability:
     """Validate that ASM_RASP_SHI (24) capability is sent"""
 
-    def test_sqli_capability(self):
+    def test_shi_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SHI)
