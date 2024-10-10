@@ -2410,7 +2410,7 @@ class features:
     @staticmethod
     def serverless_span_pointers(test_object):
         """
-        Serverless : span_links is correctly reported
+        Serverless : Span Pointers are correctly incorporated in spans
 
         https://feature-parity.us1.prod.dog/#/?feature=328
         """
