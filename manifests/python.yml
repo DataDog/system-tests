@@ -775,9 +775,12 @@ tests/:
     span_pointers/:
       aws/:
         test_s3_span_pointers.py:
+          # NOTE: fastapi-based async things don't play well with moto
           Test_PutObject:
             '*': missing_feature
+            django-poc: v2.14.0
             flask-poc: v2.14.0
+            python3.12: v2.14.0
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
