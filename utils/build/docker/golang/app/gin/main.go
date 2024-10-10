@@ -27,6 +27,7 @@ func main() {
 
 	r := gin.New()
 	r.Use(gintrace.Middleware("weblog"))
+	r.Use(gintrace.Middleware(""))
 
 	r.Any("/", func(ctx *gin.Context) {
 		ctx.Writer.WriteHeader(http.StatusOK)
