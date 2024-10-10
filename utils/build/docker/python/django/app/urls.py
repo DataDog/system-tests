@@ -9,14 +9,12 @@ import sys
 import http.client
 import urllib.request
 
-import boto3
 import django
 import requests
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
-from moto import mock_aws
 import urllib3
 from iast import (
     weak_cipher,
@@ -698,23 +696,6 @@ def create_extra_service(request):
     return HttpResponse("OK")
 
 
-def s3_put_object(request):
-    bucket = request.GET.get("bucket")
-    key = request.GET.get("key")
-    body = request.GET.get("key")
-
-    with mock_aws():
-        conn = boto3.resource("s3", region_name="us-east-1")
-        conn.create_bucket(Bucket=bucket)
-        response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
-
-        # boto adds double quotes to the ETag
-        # so we need to remove them to match what would have done AWS
-        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
-
-    return JsonResponse(result)
-
-
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -782,5 +763,4 @@ urlpatterns = [
     path("login", login),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
-    path("mock_s3/put_object", s3_put_object),
 ]

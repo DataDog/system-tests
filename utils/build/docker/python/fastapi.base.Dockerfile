@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
 RUN python --version && curl --version
 
 # install python deps
-RUN pip install fastapi uvicorn cryptography==42.0.8 pycryptodome python-multipart boto3==1.34.141 'moto[s3]'==5.0.14
+RUN pip install fastapi uvicorn cryptography==42.0.8 pycryptodome python-multipart
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
