@@ -31,7 +31,8 @@ then
     echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_app.env
 fi
-sudo -E docker-compose -f docker-compose.yml up -d test-app
+echo "STARTING test-app CONTAINER"
+sudo -E docker-compose -f docker-compose.yml up -d test-app || sudo docker-compose logs
 
 echo "..:: RUNNING DOCKER SERVICES ::.." 
 sudo docker-compose ps
