@@ -153,10 +153,10 @@ class Test_Shi_StackTrace:
 class Test_Shi_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
-    def setup_ssrf_telemetry(self):
+    def setup_shi_telemetry(self):
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
-    def test_ssrf_telemetry(self):
+    def test_shi_telemetry(self):
         assert self.r.status_code == 403
 
         series_eval = find_series(True, "appsec", "rasp.rule.eval")
