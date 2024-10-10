@@ -38,6 +38,19 @@ get '/' do
   'Hello, world!'
 end
 
+get '/healthcheck' do
+  content_type :json
+
+  {
+    status: 'ok',
+    library: {
+      language: 'ruby',
+      version: Datadog::VERSION::STRING
+    }
+  }.to_json
+
+end
+
 post '/' do
   'Hello, world!'
 end

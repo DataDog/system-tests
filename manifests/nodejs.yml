@@ -103,6 +103,9 @@ tests/:
           TestInsecureCookie:
             '*': *ref_4_1_0
             nextjs: missing_feature
+          TestInsecureCookieNameFilter:
+            '*': *ref_5_24_0
+            nextjs: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
             '*': *ref_4_1_0
@@ -111,9 +114,15 @@ tests/:
           TestNoHttponlyCookie:
             '*': *ref_4_3_0
             nextjs: missing_feature
+          TestNoHttponlyCookieNameFilter:
+            '*': *ref_5_24_0
+            nextjs: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': *ref_4_3_0
+            nextjs: missing_feature
+          TestNoSamesiteCookieNameFilter:
+            '*': *ref_5_24_0
             nextjs: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
@@ -394,11 +403,11 @@ tests/:
         '*': *ref_3_13_0
         nextjs: missing_feature
     test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint: missing_feature
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
-      Test_Fingerprinting_Header_And_Network: missing_feature
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Endpoint: *ref_5_24_0
+      Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
+      Test_Fingerprinting_Header_And_Network: *ref_5_24_0
+      Test_Fingerprinting_Header_Capability: *ref_5_24_0
+      Test_Fingerprinting_Network_Capability: *ref_5_24_0
       Test_Fingerprinting_Session: missing_feature
       Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:

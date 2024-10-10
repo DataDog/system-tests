@@ -42,7 +42,8 @@ But, obviously, testing validated versions of components is not really interesti
 
 ## PHP library
 
-1. Add a valid `.apk` file in `binaries`.
+1. In the `build packages` stage from the `package extension` job for your PR on CircleCI find the relevant `datadog-setup.php` and `dd-library-php-*-aarch64-linux-gnu.tar.gz` file.
+2. Add both files inside the `binaries` folder.
 
 ## Python library
 

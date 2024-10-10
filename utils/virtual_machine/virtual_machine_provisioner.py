@@ -26,6 +26,12 @@ class VirtualMachineProvisioner:
         for vm in required_vms:
             installations = config_data["weblog"]["install"]
             allowed = False
+            if "exact_os_branches" in config_data["weblog"]:
+                if vm.os_branch not in config_data["weblog"]["exact_os_branches"]:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in exact_os_branches")
+                    vms_to_remove.append(vm)
+                continue
+
             # Exclude by vm_only_branch
             if vm_only_branch and vm.os_branch != vm_only_branch:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
@@ -189,7 +195,7 @@ class VirtualMachineProvisioner:
 
     def _get_lang_variant_provision(self, env, library_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data):
         if "lang_variant" not in weblog_raw_data:
-            logger.debug(f"lang_variant not found in weblog provision file")
+            logger.debug("lang_variant not found in weblog provision file")
             return None
         lang_variant = weblog_raw_data["lang_variant"]
         installations = lang_variant["install"]

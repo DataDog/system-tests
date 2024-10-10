@@ -65,7 +65,6 @@ class Test_Info:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_RequestHeaders:
