@@ -335,9 +335,9 @@ tests/:
     test_config_consistency.py:
       Test_Config_RateLimit: missing_feature
       Test_Config_TraceAgentURL: missing_feature
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: v2.0.0
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
@@ -409,7 +409,7 @@ tests/:
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query string by default)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_Default: v2.0.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
@@ -417,6 +417,8 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
+    Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
