@@ -16,8 +16,6 @@ import (
 type DatadogInformations struct {
 	Language                string `json:"language"`
 	Version                 string `json:"version"`
-	AppsecEventRulesVersion string `json:"appsec_event_rules_version"`
-	LibddwafVersion         string `json:"libddwaf_version"`
 }
 
 type HealtchCheck struct {
@@ -91,14 +89,8 @@ func GetDatadogInformations() (DatadogInformations, error) {
 		return DatadogInformations{}, errors.New("Can't get SYSTEM_TESTS_LIBRARY_VERSION")
 	}
 
-	appsecRulesVersion, err := os.ReadFile("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION")
-	if err != nil {
-		return DatadogInformations{}, errors.New("Can't get SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION")
-	}
-
 	return DatadogInformations{
 		Language:                "golang",
 		Version:                 string(tracerVersion),
-		AppsecEventRulesVersion: string(appsecRulesVersion),
 	}, nil
 }

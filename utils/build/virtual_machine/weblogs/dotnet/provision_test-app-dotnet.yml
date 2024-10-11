@@ -5,18 +5,65 @@ lang_variant:
     install:
       - os_type: linux
         os_distro: deb
+        os_branch: ubuntu24
+        remote-command: |
+          sudo add-apt-repository -y ppa:dotnet/backports
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-6.0
+          sudo apt-get install -y dotnet-runtime-6.0
+
+      - os_type: linux
+        os_distro: deb
+        os_branch: ubuntu22_arm64
+        remote-command: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
+          sudo apt-get install -y dotnet-sdk-6.0
+          sudo apt-get install -y dotnet-runtime-6.0
+
+      - os_type: linux
+        os_distro: deb
+        os_branch: ubuntu20_amd64
+        remote-command: |
+          wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
+          sudo apt-get install -y dotnet-sdk-6.0
+          sudo apt-get install -y dotnet-runtime-6.0
+
+      - os_type: linux
+        os_distro: deb
         remote-command: |
           sudo apt-get install -y dotnet-sdk-6.0
           sudo apt-get install -y dotnet-runtime-6.0
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: amazon_linux2
+        remote-command: |
+          sudo yum install -y libicu60 krb5-libs openssl-libs zlib
+          #This works for amd 64, but not for arm64 because arm64 is installing a version < 6.0.12. No crash, but the app isn't instrumented
+          #sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+          #sudo yum install -y dotnet-sdk-6.0
+          #Disable the DEBUG traces due to https://datadoghq.atlassian.net/browse/AIT-10255
+          export DD_APM_INSTRUMENTATION_DEBUG=false
+          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+          chmod +x ./dotnet-install.sh
+          sudo ./dotnet-install.sh --channel 6.0 -InstallDir /opt
+          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
+          sudo ln -s /opt/dotnet /usr/bin/dotnet
       - os_type: linux
         os_distro: rpm
         remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
 
 weblog:
     name: test-app-dotnet
-    #ubuntu 22 arm excluded due to "dotnet-runtime-6.0 : Depends: liblttng-ust1 (>= 2.13.0) but it is not installable".
     #amazon_linux2_dotnet6 excluded due to https://datadoghq.atlassian.net/browse/AIT-10335
-    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu18_amd64, amazon_linux2, amazon_linux2_dotnet6, centos_7_amd64, ubuntu24, ubuntu20, ubuntu21, ubuntu23, debian]
+    #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
+    #Ubuntu 21 (amd64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
+    excluded_os_branches: [ubuntu18_amd64, amazon_linux2_dotnet6, centos_7_amd64, ubuntu20_arm64,ubuntu21, debian]
     excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux
