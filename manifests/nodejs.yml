@@ -229,8 +229,10 @@ tests/:
           '*': *ref_5_24_0
           nextjs: missing_feature
         Test_Lfi_BodyXml: missing_feature
+        Test_Lfi_Capability: *ref_5_24_0
         Test_Lfi_Mandatory_SpanTags: *ref_5_24_0
         Test_Lfi_Optional_SpanTags: *ref_5_24_0
+        Test_Lfi_RC_CustomAction: missing_feature
         Test_Lfi_StackTrace:
           '*': *ref_5_24_0
           nextjs: missing_feature
