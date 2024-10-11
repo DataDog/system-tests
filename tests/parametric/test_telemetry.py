@@ -140,6 +140,7 @@ class Test_Consistent_Configs:
             }
         ],
     )
+    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
