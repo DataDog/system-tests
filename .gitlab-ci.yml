@@ -80,6 +80,7 @@ onboarding_nodejs:
     - when: manual
   variables:
     TEST_LIBRARY: "nodejs"
+    SKIP_AMI_CACHE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]

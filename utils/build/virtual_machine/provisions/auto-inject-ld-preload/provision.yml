@@ -14,7 +14,7 @@ provision_steps:
   - init-config # Init the VM configuration
   - prepare-docker # Install docker
   - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
-  - patch-docker-daemon #Patch the docker daemon to allow the auto-injection
+  - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
   - ld-so-preload # Add some staff to the ld.so.preload before install dd software
   - install-installer # Install the installer
 
@@ -30,6 +30,10 @@ prepare-docker:
 amazon-ecr-credential-helper:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/amazon-ecr-credential-helper.yml
+
+patch-docker-daemon:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/docker/patch-docker-daemon.yml
 
 ld-so-preload:
   install: !include utils/build/virtual_machine/provisions/auto-inject-ld-preload/ld-preload.yml
