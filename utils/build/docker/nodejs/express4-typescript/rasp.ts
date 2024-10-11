@@ -66,29 +66,31 @@ function initRaspEndpoints (app: Express) {
     app.get('/rasp/lfi', (req: Request, res: Response) => {
         let result
         try {
-          result = JSON.stringify(statSync(req.query.file))
+            result = JSON.stringify(statSync(req.query.file))
         } catch (e: any) {
-          result = e.toString()
+            result = e.toString()
 
-          if (e.name === 'DatadogRaspAbortError') {
-            throw e
-          }
+            if (e.name === 'DatadogRaspAbortError') {
+                throw e
+            }
         }
-        res.send(result)
-      })
 
-      app.post('/rasp/lfi', (req: Request, res: Response) => {
+        res.send(result)
+    })
+
+    app.post('/rasp/lfi', (req: Request, res: Response) => {
         let result
         try {
-          result = JSON.stringify(statSync(req.body.file))
+            result = JSON.stringify(statSync(req.body.file))
         } catch (e: any) {
-          result = e.toString()
+            result = e.toString()
 
-          if (e.name === 'DatadogRaspAbortError') {
-            throw e
-          }
+            if (e.name === 'DatadogRaspAbortError') {
+                throw e
+            }
         }
+
         res.send(result)
-      })
+    })
 }
 module.exports = initRaspEndpoints
