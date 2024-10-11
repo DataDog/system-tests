@@ -392,14 +392,14 @@ tests/:
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": irrelevant
-          net-http: missing_feature
+          net-http: v0.1  # real version not known
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
-          net-http: missing_feature (Endpoint not implemented)
+          net-http: v0.1  # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          net-http: missing_feature (Endpoint not implemented)
+          net-http: v0.1  # real version not known
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature

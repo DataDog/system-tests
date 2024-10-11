@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	awstrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/aws/aws-sdk-go-v2/aws"
 )
 
 // SnsProduce The goal of this function is to trigger sns producer calls
@@ -21,6 +22,7 @@ func SnsProduce(queue, topic, message string) (string, error) {
 		return "", fmt.Errorf("[SNS->SQS] Error loading AWS configuration: %v", err)
 	}
 
+	awstrace.AppendMiddleware(&cfg)
 	snsClient := sns.NewFromConfig(cfg)
 	sqsClient := sqs.NewFromConfig(cfg)
 
@@ -106,12 +108,13 @@ func SnsProduce(queue, topic, message string) (string, error) {
 }
 
 // SnsConsume The goal of this function is to trigger sns consumer calls
-func SnsConsume(queue, expectedMessage string, timeout int) (map[string]string, error) {
+func SnsConsume(queue, expectedMessage string, timeout int) (string, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
-		return nil, fmt.Errorf("[SNS->SQS] Error loading AWS configuration: %v", err)
+		return "", fmt.Errorf("[SNS->SQS] Error loading AWS configuration: %v", err)
 	}
 
+	awstrace.AppendMiddleware(&cfg)
 	sqsClient := sqs.NewFromConfig(cfg)
 
 	queueURL := fmt.Sprintf("https://sqs.us-east-1.amazonaws.com/601427279990/%s", queue)
@@ -132,7 +135,7 @@ func SnsConsume(queue, expectedMessage string, timeout int) (map[string]string, 
 
 			if *message.Body == expectedMessage {
 				log.Printf("[SNS->SQS] Success. Found the following message: %s", *message.Body)
-				return map[string]string{"message": *message.Body}, nil
+				return *message.Body, nil
 			}
 
 			log.Printf("[SNS->SQS] Trying to decode raw message: %s", *message.Body)
@@ -140,7 +143,7 @@ func SnsConsume(queue, expectedMessage string, timeout int) (map[string]string, 
 			if err := json.Unmarshal([]byte(*message.Body), &messageJSON); err == nil {
 				if msg, ok := messageJSON["Message"].(string); ok && msg == expectedMessage {
 					log.Printf("[SNS->SQS] Success. Found the following message: %s", msg)
-					return map[string]string{"message": msg}, nil
+					return msg, nil
 				}
 			}
 		}
@@ -148,5 +151,5 @@ func SnsConsume(queue, expectedMessage string, timeout int) (map[string]string, 
 		time.Sleep(time.Second)
 	}
 
-	return map[string]string{"error": "[SNS->SQS] No messages to consume"}, nil
+	return "", fmt.Errorf("[SNS->SQS] No messages to consume")
 }

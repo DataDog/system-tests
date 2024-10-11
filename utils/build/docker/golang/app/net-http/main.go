@@ -532,7 +532,7 @@ func main() {
 		result, err := awsHelpers.SnsProduce(queue, topic, message)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
 			return
 		}
 
@@ -556,17 +556,13 @@ func main() {
 
 		result, err := awsHelpers.SnsConsume(queue, expectedMessage, timeout)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}
 
-		if _, hasError := result["error"]; hasError {
-			w.WriteHeader(http.StatusBadRequest)
-		} else {
-			w.WriteHeader(http.StatusOK)
-		}
-		json.NewEncoder(w).Encode(result)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, result)))
 	})
 
 	mux.HandleFunc("/sqs/produce", func(w http.ResponseWriter, r *http.Request) {
@@ -582,7 +578,7 @@ func main() {
 		result, err := awsHelpers.SqsProduce(queue, message)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
 			return
 		}
 
@@ -607,16 +603,12 @@ func main() {
 		result, err := awsHelpers.SqsConsume(queue, expectedMessage, timeout)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, result)))
 			return
 		}
 
-		if _, hasError := result["error"]; hasError {
-			w.WriteHeader(http.StatusBadRequest)
-		} else {
-			w.WriteHeader(http.StatusOK)
-		}
-		json.NewEncoder(w).Encode(result)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, result)))
 	})
 
 	common.InitDatadog()

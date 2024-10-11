@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	awstrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/aws/aws-sdk-go-v2/aws"
 	"log"
 	"time"
 )
@@ -17,6 +18,7 @@ func SqsProduce(queue, message string) (string, error) {
 		return "", fmt.Errorf("[SQS] Error loading AWS configuration: %v", err)
 	}
 
+	awstrace.AppendMiddleware(&cfg)
 	sqsClient := sqs.NewFromConfig(cfg)
 
 	// Create SQS queue
@@ -45,12 +47,13 @@ func SqsProduce(queue, message string) (string, error) {
 }
 
 // SqsConsume The goal of this function is to trigger sqs consumer calls
-func SqsConsume(queue, expectedMessage string, timeout int) (map[string]string, error) {
+func SqsConsume(queue, expectedMessage string, timeout int) (string, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
-		return nil, fmt.Errorf("[SQS] Error loading AWS configuration: %v", err)
+		return "", fmt.Errorf("[SQS] Error loading AWS configuration: %v", err)
 	}
 
+	awstrace.AppendMiddleware(&cfg)
 	sqsClient := sqs.NewFromConfig(cfg)
 
 	queueURL := fmt.Sprintf("https://sqs.us-east-1.amazonaws.com/601427279990/%s", queue)
@@ -70,12 +73,12 @@ func SqsConsume(queue, expectedMessage string, timeout int) (map[string]string, 
 			if *message.Body == expectedMessage {
 				log.Printf("Consumed the following SQS message with params: %+v", message)
 				log.Printf("Consumed the following SQS message: %s", *message.Body)
-				return map[string]string{"message": *message.Body}, nil
+				return *message.Body, nil
 			}
 		}
 
 		time.Sleep(time.Second)
 	}
 
-	return map[string]string{"error": "No messages to consume"}, nil
+	return "", fmt.Errorf("[SQS] No messages to consume")
 }
