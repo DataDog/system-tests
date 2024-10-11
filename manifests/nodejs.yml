@@ -353,7 +353,9 @@ tests/:
         nextjs: missing_feature
       Test_Blocking_request_headers: *ref_3_19_0
       Test_Blocking_request_method: *ref_3_19_0
-      Test_Blocking_request_path_params: missing_feature
+      Test_Blocking_request_path_params:
+        '*': *ref_5_24_0
+        nextjs: missing_feature
       Test_Blocking_request_query:
         '*': *ref_3_19_0
         nextjs: missing_feature
