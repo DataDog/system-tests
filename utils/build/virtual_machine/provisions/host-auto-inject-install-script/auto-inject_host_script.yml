@@ -13,5 +13,11 @@
     cat scenario_agent.env
     export $(cat scenario_agent.env | xargs) 
 
+    if [ "${DD_LANG}" == "golang" ]; then
+      export DD_LANG="java"
+      export DD_APM_INSTRUMENTATION_LANGUAGES="java"
+      export DD_APM_INSTRUMENTATION_LIBRARIES="java"
+    fi
+
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml

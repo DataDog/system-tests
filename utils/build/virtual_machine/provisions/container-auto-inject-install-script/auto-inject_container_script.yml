@@ -17,6 +17,12 @@
     cat scenario_agent.env
     export $(cat scenario_agent.env | xargs) 
     
+    if [ "${DD_LANG}" == "golang" ]; then
+      export DD_LANG="java"
+      export DD_APM_INSTRUMENTATION_LANGUAGES="java"
+      export DD_APM_INSTRUMENTATION_LIBRARIES="java"
+    fi
+
     sudo mkdir -p /var/run/datadog-installer
     sudo mkdir -p /opt/datadog/apm/inject/run
     sudo chmod 777 /opt/datadog/apm/inject/run
