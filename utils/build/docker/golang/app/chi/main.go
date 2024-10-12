@@ -124,6 +124,10 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	// mux.HandleFunc("/my-cool-variable", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Write([]byte("OK"))
+	// })
+
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		if url := r.URL.Query().Get("url"); url != "" {
 			client := httptrace.WrapClient(http.DefaultClient)
