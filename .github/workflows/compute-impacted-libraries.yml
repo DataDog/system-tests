@@ -67,7 +67,7 @@ jobs:
 
                       if not manifest_match and not weblog_match and not injection_match:
                           print(f"{file} may impact any library => run all of them")
-                          result |= {"cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
+                          result = {"python"}
                           break
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
