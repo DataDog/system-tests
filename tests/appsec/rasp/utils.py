@@ -127,6 +127,6 @@ class RC_CONSTANTS:
     )
 
     RULES = (
-        "datadog/2/ASM/rules/config",
+        "datadog/2/ASM_DD/rules/config",
         _load_file("./tests/appsec/rasp/rasp_ruleset.json"),
     )
