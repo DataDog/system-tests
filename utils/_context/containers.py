@@ -698,7 +698,7 @@ class WeblogContainer(TestedContainer):
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("cpp", "dotnet", "nodejs", "php", "python", "golang", "ruby"):
+        if self.library in ("cpp", "dotnet", "nodejs", "php", "python", "golang", "ruby", "python_otel"):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -727,7 +727,7 @@ class WeblogContainer(TestedContainer):
 
         # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("cpp", "dotnet", "nodejs", "python", "php", "golang", "ruby"):
+        if self.library in ("cpp", "dotnet", "nodejs", "python", "php", "golang", "ruby", "python_otel"):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
