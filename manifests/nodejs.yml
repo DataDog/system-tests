@@ -55,7 +55,11 @@ tests/:
         Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_sampling: *ref_4_21_0
+        Test_API_Security_Sampling_Rate: *ref_4_21_0
+        Test_API_Security_Sampling_Different_Endpoints: missing_feature (open PR)
+        Test_API_Security_Sampling_Different_Paths: missing_feature (open PR)
+        Test_API_Security_Sampling_Different_Status: missing_feature (open PR)
+        Test_API_Security_Sampling_With_Delay: missing_feature (open PR)
       test_schemas.py:
         Test_Scanners: *ref_4_21_0
         Test_Schema_Request_Cookies: *ref_4_21_0
