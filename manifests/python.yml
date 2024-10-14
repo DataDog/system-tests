@@ -165,7 +165,7 @@ tests/:
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
-            fastapi: v2.13.0.dev
+            fastapi: bug (APPSEC-55240)
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
