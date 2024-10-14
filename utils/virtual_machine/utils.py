@@ -24,7 +24,7 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
             if bugs and hasattr(bugs, "__len__") and len(bugs) > 0:
                 for bug in bugs:
                     if (
-                        ("vm_name" not in bug or vm.name == bug["vm_name"])
+                        (not "vm_name" in bug or vm.name == bug["vm_name"])
                         and (not "vm_cpu" in bug or vm.os_cpu == bug["vm_cpu"])
                         and (not "weblog_variant" in bug or context.weblog_variant == bug["weblog_variant"])
                     ):
