@@ -278,11 +278,11 @@ class _VirtualMachineScenario(Scenario):
     def fill_context(self):
         for vm in self.required_vms:
             for key in vm.tested_components:
-                self._tested_components[key] = vm.tested_components[key].lstrip(" ")
+                self._tested_components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
                 if key.startswith("datadog-apm-inject") and self._tested_components[key]:
-                    self._datadog_apm_inject_version = f"v{self._tested_components[key].lstrip(' ')}"
+                    self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
                 if key.startswith("datadog-apm-library-") and self._tested_components[key]:
-                    self._library.version = self._tested_components[key].lstrip(" ")
+                    self._library.version = self._tested_components[key]
 
             # Extract vm name (os) and arch
             # TODO fix os name
