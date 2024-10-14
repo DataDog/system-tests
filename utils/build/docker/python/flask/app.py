@@ -179,6 +179,8 @@ def hello_world():
 
 @app.route("/healthcheck")
 def healthcheck():
+    # need the import as _ddwaf may not be automatically imported if appsec disabled.
+    import ddtrace.appsec._ddwaf
 
     return {
         "status": "ok",
