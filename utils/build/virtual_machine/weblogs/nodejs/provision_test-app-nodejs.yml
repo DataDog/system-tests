@@ -20,7 +20,7 @@ lang_variant:
 weblog:
     name: test-app-nodejs
     #Excluded because we can not run node18 due to gclib version
-    excluded_os_branches: [amazon_linux2_dotnet6, ubuntu18_amd64, amazon_linux2, centos_7_amd64]
+    excluded_os_branches: [ubuntu18_amd64, amazon_linux2, centos_7_amd64]
     excluded_os_names: [OracleLinux_7_9_amd64]
     install: 
       - os_type: linux
