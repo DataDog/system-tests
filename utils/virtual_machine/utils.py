@@ -1,5 +1,6 @@
 import pytest
 from utils import context
+from utils._decorators import is_jira_ticket
 
 
 def parametrize_virtual_machines(bugs: list[dict] = None):
@@ -28,9 +29,12 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
                         and (not "vm_cpu" in bug or vm.os_cpu == bug["vm_cpu"])
                         and (not "weblog_variant" in bug or context.weblog_variant == bug["weblog_variant"])
                     ):
-                        parameters.append(pytest.param(vm, marks=pytest.mark.xfail(reason=f"bug: {bug['reason']}")))
-                        bug_found = True
-                        break
+                        if "reason" in bug and is_jira_ticket(bug["reason"]):
+                            parameters.append(pytest.param(vm, marks=pytest.mark.xfail(reason=f"bug: {bug['reason']}")))
+                            bug_found = True
+                            break
+                        else:
+                            raise ValueError(f"Invalid bug reason for {vm.name} {bug}. Please use a valid JIRA ticket.")
 
             if bug_found == False:
                 parameters.append(vm)
