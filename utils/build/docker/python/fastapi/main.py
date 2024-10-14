@@ -86,6 +86,11 @@ async def sample_rate(i):
     return "OK"
 
 
+@app.get("/api_security/sampling/{status_code}", response_class=PlainTextResponse)
+async def api_security_sampling_with_default(status_code: int = 200):
+    return PlainTextResponse("Hello!", status_code=status_code)
+
+
 @app.get("/waf", response_class=PlainTextResponse)
 @app.post("/waf", response_class=PlainTextResponse)
 @app.options("/waf", response_class=PlainTextResponse)

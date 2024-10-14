@@ -59,6 +59,10 @@ def hello_world(request):
     return HttpResponse("Hello, World!")
 
 
+def api_security_sampling(request, *args, **kwargs):
+    return HttpResponse("Hello!", status=int(kwargs["status_code"]))
+
+
 def sample_rate(request, i):
     return HttpResponse("OK")
 
@@ -805,6 +809,7 @@ def s3_multipart_upload(request):
 
 urlpatterns = [
     path("", hello_world),
+    path("api_security/sampling/<int:status_code>", api_security_sampling),
     path("sample_rate_route/<int:i>", sample_rate),
     path("healthcheck", healthcheck),
     path("waf", waf),

@@ -41,9 +41,7 @@ class Test_API_Security_Sampling_Rate:
             for _ in range(self.N ** 2)
         ]
 
-    @irrelevant(
-        context.library in ("nodejs", "python"), reason="New sampling algorithm tests have been implemented"
-    )
+    @irrelevant(context.library in ("nodejs", "python"), reason="New sampling algorithm tests have been implemented")
     def test_sampling_rate(self):
         """can provide request header schema"""
         N = self.N
@@ -59,6 +57,7 @@ class Test_API_Security_Sampling_Rate:
         logger.info(f"API SECURITY SAMPLING RESULT: diff is {diff:.2f} standard deviations")
         assert diff <= 4.0, "sampling rate is not 0.1"
 
+
 @rfc("https://docs.google.com/document/d/1PYoHms9PPXR8V_5_T5-KXAhoFDKQYA8mTnmS12xkGOE")
 @scenarios.appsec_api_security_with_sampling
 @features.api_security_configuration
@@ -66,11 +65,10 @@ class Test_API_Security_Sampling_Different_Endpoints:
     """Test API Security - with different endpoints"""
 
     def setup_sampling_delay(self):
-        # Wait for 10s to avoid other tests calling same endpoints
-        time.sleep(10)
-        self.request1 = weblog.get("/identify")
-        self.request2 = weblog.get("/headers")
-        self.all_requests = [weblog.get("/identify") for _ in range(20)]
+        time.sleep(5)
+        self.request1 = weblog.get("/api_security/sampling/200")
+        self.request2 = weblog.get("/sample_rate_route/1")
+        self.all_requests = [weblog.get("/api_security/sampling/200") for _ in range(10)]
 
     def test_sampling_delay(self):
 
@@ -85,6 +83,7 @@ class Test_API_Security_Sampling_Different_Endpoints:
         assert all(r.status_code == 200 for r in self.all_requests)
         assert all(get_schema(r, "req.headers") is None for r in self.all_requests)
 
+
 @rfc("https://docs.google.com/document/d/1PYoHms9PPXR8V_5_T5-KXAhoFDKQYA8mTnmS12xkGOE")
 @scenarios.appsec_api_security_with_sampling
 @features.api_security_configuration
@@ -92,15 +91,10 @@ class Test_API_Security_Sampling_Different_Paths:
     """Test API Security - same endpoints but different paths"""
 
     def setup_sampling_delay(self):
-        # Wait for 10s to avoid other tests calling same endpoints
-        time.sleep(10)
-        self.request1 = weblog.get("/sample_rate_route/21")
-        self.all_requests = [
-            weblog.get(
-                f"/sample_rate_route/{i}"
-            )
-            for i in range(20)
-        ]
+        # Wait for 5s to avoid other tests calling same endpoints
+        time.sleep(5)
+        self.request1 = weblog.get("/sample_rate_route/11")
+        self.all_requests = [weblog.get(f"/sample_rate_route/{i}") for i in range(10)]
 
     def test_sampling_delay(self):
 
@@ -111,6 +105,7 @@ class Test_API_Security_Sampling_Different_Paths:
         assert all(r.status_code == 200 for r in self.all_requests)
         assert all(get_schema(r, "req.headers") is None for r in self.all_requests)
 
+
 @rfc("https://docs.google.com/document/d/1PYoHms9PPXR8V_5_T5-KXAhoFDKQYA8mTnmS12xkGOE")
 @scenarios.appsec_api_security_with_sampling
 @features.api_security_configuration
@@ -118,11 +113,11 @@ class Test_API_Security_Sampling_Different_Status:
     """Test API Security - Same endpoint and different status"""
 
     def setup_sampling_delay(self):
-        # Wait for 10s to avoid other tests calling same endpoints
-        time.sleep(10)
-        self.request1 = weblog.get("/tag_value/api_match_AS002/200")
-        self.request2 = weblog.get("/tag_value/api_match_AS002/201")
-        self.all_requests = [weblog.get("/tag_value/api_match_AS003/201") for _ in range(20) ]
+        # Wait for 5s to avoid other tests calling same endpoints
+        time.sleep(5)
+        self.request1 = weblog.get("/api_security/sampling/200")
+        self.request2 = weblog.get("/api_security/sampling/201")
+        self.all_requests = [weblog.get("/api_security/sampling/201") for _ in range(10)]
 
     def test_sampling_delay(self):
         """can provide request header schema"""
@@ -138,6 +133,7 @@ class Test_API_Security_Sampling_Different_Status:
         assert all(r.status_code == 201 for r in self.all_requests)
         assert all(get_schema(r, "req.headers") is None for r in self.all_requests)
 
+
 @rfc("https://docs.google.com/document/d/1PYoHms9PPXR8V_5_T5-KXAhoFDKQYA8mTnmS12xkGOE")
 @scenarios.appsec_api_security_with_sampling
 @features.api_security_configuration
@@ -145,12 +141,12 @@ class Test_API_Security_Sampling_With_Delay:
     """Test API Security - Same endpoint with delay"""
 
     def setup_sampling_delay(self):
-        # Wait for 13s to avoid other tests calling same endpoints
-        time.sleep(13)
-        self.request1 = weblog.get("/headers")
-        self.request2 = weblog.get("/headers")
-        time.sleep(4) # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
-        self.request3 = weblog.get("/headers")
+        # Wait for 5s to avoid other tests calling same endpoints
+        time.sleep(5)
+        self.request1 = weblog.get("/sample_rate_route/1")
+        self.request2 = weblog.get("/sample_rate_route/1")
+        time.sleep(4)  # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
+        self.request3 = weblog.get("/sample_rate_route/1")
 
     def test_sampling_delay(self):
         """can provide request header schema"""
