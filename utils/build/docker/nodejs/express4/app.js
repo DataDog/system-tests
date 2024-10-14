@@ -56,6 +56,11 @@ app.get('/sample_rate_route/:i', (req, res) => {
   res.send('OK')
 })
 
+app.get('/api_security/sampling/:status', (req, res) => {
+  res.status(req.params.status || 200)
+  res.send('Hello!')
+})
+
 app.get('/params/:value', (req, res) => {
   res.send('OK')
 })
