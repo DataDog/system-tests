@@ -59,7 +59,6 @@ class Test_Partial_Flushing:
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",}]
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
-    @missing_feature(context.library == "java", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
     @missing_feature(context.library == "nodejs", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
