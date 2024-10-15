@@ -7,13 +7,14 @@
 import json
 from os import listdir
 from os.path import isfile, join
+from pathlib import Path
 import re
+import shutil
 import threading
 import time
 
 import pytest
 
-from utils._context.core import context
 from utils.tools import logger
 from utils.interfaces._schemas_validators import SchemaValidator, SchemaError
 
@@ -24,13 +25,18 @@ class InterfaceValidator:
     One instance of this list handle only one interface
     """
 
+    replay: bool
+    """ True if the process is in replay mode """
+
+    log_folder: str
+    """ Folder where interfaces' logs are stored """
+
     def __init__(self, name):
         self.name = name
 
-        self.replay = False
-
-    def configure(self, replay):
+    def configure(self, host_log_folder, replay):
         self.replay = replay
+        self.log_folder = f"{host_log_folder}/interfaces/{self.name}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -53,9 +59,13 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._ingested_files = set()
         self._schema_errors = None
 
-    @property
-    def _log_folder(self):
-        return f"{context.scenario.host_log_folder}/interfaces/{self.name}"
+    def configure(self, host_log_folder, replay):
+        super().configure(host_log_folder, replay)
+
+        if not replay:
+            shutil.rmtree(self.log_folder, ignore_errors=True)
+            Path(self.log_folder).mkdir(parents=True, exist_ok=True)
+            Path(self.log_folder + "/files").mkdir(parents=True, exist_ok=True)
 
     def ingest_file(self, src_path):
 
@@ -99,8 +109,8 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
     def load_data_from_logs(self):
 
-        for filename in sorted(listdir(self._log_folder)):
-            file_path = join(self._log_folder, filename)
+        for filename in sorted(listdir(self.log_folder)):
+            file_path = join(self.log_folder, filename)
             if isfile(file_path):
 
                 with open(file_path, "r", encoding="utf-8") as f:

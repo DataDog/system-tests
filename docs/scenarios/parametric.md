@@ -192,6 +192,9 @@ There is two ways for running the Ruby tests with a custom tracer:
 
 1. Create an file ruby-load-from-bundle-add in binaries/, the content will be installed by bundle add. Content example:
 gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'
+In addition, instead of `branch:`, `ref` can be used to reference a commit hash.
+We'd recommend this if you're going to be iterating as it causes the build
+script to always rebuild the ddtrace gem.
 2. Clone the dd-trace-rb repo inside binaries
 
 #### C++

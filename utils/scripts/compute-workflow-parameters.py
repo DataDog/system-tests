@@ -88,7 +88,7 @@ def get_endtoend_weblogs(library):
             "rack",
             "uds-sinatra",
             *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
-            *[f"rails{v}" for v in ["50", "51", "52", "60", "61", "70", "71"]],
+            *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71"]],
         ],
     }
 

@@ -20,6 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <agent.path>/app/dd-java-agent.jar</agent.path>
         <start-class>com.datadoghq.springbootnative.App</start-class>
+        <graal.build.args>-Ob</graal.build.args>
     </properties>
 
     <dependencies>
@@ -55,50 +56,42 @@
             <version>4.0.1</version>
         </dependency>
     </dependencies>
-    
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <configuration>
+                     <buildArgs>
+                        ${graal.build.args}
+                     </buildArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <profiles>
         <profile>
             <id>with-profiling</id>
             <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.graalvm.buildtools</groupId>
-                        <artifactId>native-maven-plugin</artifactId>
-                        <configuration>
-                             <buildArgs>
-                                -J-javaagent:${agent.path} -J-Ddd.profiling.enabled=true --enable-monitoring=jfr -Ob
-                             </buildArgs>
-                        </configuration>
-                    </plugin>
-                </plugins>
                 <directory>with-profiling</directory>
             </build>
+            <properties>
+                <graal.build.args>-J-javaagent:${agent.path} -J-Ddd.profiling.enabled=true --enable-monitoring=jfr -Ob</graal.build.args>
+            </properties>
         </profile>
         <profile>
             <id>without-profiling</id>
             <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.graalvm.buildtools</groupId>
-                        <artifactId>native-maven-plugin</artifactId>
-                        <configuration>
-                             <buildArgs>
-                                -J-javaagent:${agent.path} -Ob
-                             </buildArgs>
-                        </configuration>
-                    </plugin>
-                </plugins>
                 <directory>without-profiling</directory>
             </build>
+            <properties>
+                <graal.build.args>-J-javaagent:${agent.path} -Ob</graal.build.args>
+            </properties>
         </profile>
     </profiles>
-
 </project>

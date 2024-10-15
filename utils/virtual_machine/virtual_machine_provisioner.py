@@ -26,6 +26,12 @@ class VirtualMachineProvisioner:
         for vm in required_vms:
             installations = config_data["weblog"]["install"]
             allowed = False
+            if "exact_os_branches" in config_data["weblog"]:
+                if vm.os_branch not in config_data["weblog"]["exact_os_branches"]:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in exact_os_branches")
+                    vms_to_remove.append(vm)
+                continue
+
             # Exclude by vm_only_branch
             if vm_only_branch and vm.os_branch != vm_only_branch:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
@@ -101,7 +107,7 @@ class VirtualMachineProvisioner:
         """ Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
 
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
-        provision = Provision()
+        provision = Provision(vm_provision_name)
         provision_file = f"utils/build/virtual_machine/provisions/{vm_provision_name}/provision.yml"
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
 
@@ -189,7 +195,7 @@ class VirtualMachineProvisioner:
 
     def _get_lang_variant_provision(self, env, library_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data):
         if "lang_variant" not in weblog_raw_data:
-            logger.debug(f"lang_variant not found in weblog provision file")
+            logger.debug("lang_variant not found in weblog provision file")
             return None
         lang_variant = weblog_raw_data["lang_variant"]
         installations = lang_variant["install"]
@@ -206,11 +212,23 @@ class VirtualMachineProvisioner:
         weblog = weblog_raw_data["weblog"]
         assert weblog["name"] == weblog_name, f"Weblog name {weblog_name} does not match the provision file name"
         installations = weblog["install"]
-        installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
+        ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
+        installation = self._get_installation(
+            env,
+            library_name,
+            os_type,
+            os_distro,
+            os_branch,
+            os_cpu,
+            installations,
+            use_git=ci_commit_branch is not None,
+        )
         installation.id = weblog["name"]
         return installation
 
-    def _get_installation(self, env, library_name, os_type, os_distro, os_branch, os_cpu, installations_raw_data):
+    def _get_installation(
+        self, env, library_name, os_type, os_distro, os_branch, os_cpu, installations_raw_data, use_git=False
+    ):
         installation_raw_data = None
         for install in installations_raw_data:
             if "env" in install and install["env"] != env:
@@ -239,13 +257,15 @@ class VirtualMachineProvisioner:
         installation.remote_command = (
             installation_raw_data["remote-command"] if "remote-command" in installation_raw_data else None
         )
+
         if "copy_files" in installation_raw_data:
             for copy_file in installation_raw_data["copy_files"]:
                 installation.copy_files.append(
                     CopyFile(
                         copy_file["name"],
                         copy_file["remote_path"] if "remote_path" in copy_file else None,
-                        copy_file["local_path"],
+                        copy_file["local_path"] if "local_path" in copy_file and not use_git else None,
+                        copy_file["local_path"] if "local_path" in copy_file and use_git else None,
                     )
                 )
 
@@ -255,7 +275,8 @@ class VirtualMachineProvisioner:
 class Provision:
     """ Contains all the information about the provision that it will be launched on the vm 1"""
 
-    def __init__(self):
+    def __init__(self, provision_name):
+        self.provision_name = provision_name
         self.env = {}
         self.installations = []
         self.lang_variant_installation = None
@@ -278,9 +299,10 @@ class Intallation:
 
 
 class CopyFile:
-    def __init__(self, name, remote_path, local_path):
+    def __init__(self, name, remote_path, local_path, git_path):
         self.remote_path = remote_path
         self.local_path = local_path
+        self.git_path = git_path
         self.name = name
 
 

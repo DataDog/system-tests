@@ -84,6 +84,8 @@ class features:
 
         if "uds" in context.weblog_variant:
             pytest.mark.features(feature_id=6)(test_object)
+        else:
+            pytest.mark.features(feature_id=-1)(test_object)
 
         return test_object
 
@@ -2408,7 +2410,7 @@ class features:
     @staticmethod
     def serverless_span_pointers(test_object):
         """
-        Serverless : span_links is correctly reported
+        Serverless : Span Pointers are correctly incorporated in spans
 
         https://feature-parity.us1.prod.dog/#/?feature=328
         """

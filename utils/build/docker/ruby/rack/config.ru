@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'pry'
-require "net/http"
-require "uri"
+require 'net/http'
+require 'uri'
 require 'json'
 
 # tracer configuration of Rack integration
@@ -13,7 +15,7 @@ Datadog.configure do |c|
   if c.respond_to?(:tracing)
     c.tracing.instrument :rack
   else
-    c.use :rack, service_name: (ENV['DD_SERVICE'] || 'rack')
+    c.use :rack, service_name: ENV['DD_SERVICE'] || 'rack'
   end
 end
 
@@ -35,52 +37,76 @@ end
 require 'rack/contrib/json_body_parser'
 use Rack::JSONBodyParser
 
-if ENV['DD_APPSEC_ENABLED'] == 'true'
-  use Datadog::AppSec::Contrib::Rack::RequestBodyMiddleware
-end
-
+use Datadog::AppSec::Contrib::Rack::RequestBodyMiddleware if ENV['DD_APPSEC_ENABLED'] == 'true'
 
 # Send non-web init event
 
 if defined?(Datadog::Tracing)
-  Datadog::Tracing.trace('init.service') { }
+  Datadog::Tracing.trace('init.service') {}
 else
-  Datadog.tracer.trace('init.service') { }
+  Datadog.tracer.trace('init.service') {}
 end
 
-# trivial rack endpoint
+# /
+class Hello
+  def self.run
+    [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
+  end
+end
 
-app = proc do |env|
-  request = Rack::Request.new(env)
+# /healthcheck
+class Healthcheck
+  def self.run
+    response = {
+      status: 'ok',
+      library: {
+        language: 'ruby',
+        version: Datadog::VERSION::STRING
+      }
+    }
 
-  if request.path == '/'
-    [ 200, {'Content-Type' => 'text/plain'}, ['Hello, wat is love?'] ]
-  elsif request.path =~ /^\/waf(?:\/.*|)$/
-    [ 200, {'Content-Type' => 'text/plain'}, ['Hello, wat is love?'] ]
-  elsif request.path =~ /^\/params(?:\/.*|)$/
-    # this route doesn't really makes sense for Rack as it does not put the
-    # value anywhere for AppSec to receive it
-    [ 200, {'Content-Type' => 'text/plain'}, ['Hello, wat is love?'] ]
-  elsif request.path == '/spans'
-    begin
-      repeats = Integer(request.params['repeats'] || 0)
-      garbage = Integer(request.params['garbage'] || 0)
-    rescue ArgumentError
-      [ 400, {'Content-Type' => 'text/plain'}, ['bad request'] ]
-    else
-      repeats.times do |i|
-        Datadog::Tracing.trace('repeat-#{i}') do |span|
-          garbage.times do |j|
-            span.set_tag("garbage-#{j}", "#{j}")
-          end
+    [
+      200,
+      { 'Content-Type' => 'application/json' },
+      [response.to_json]
+    ]
+  end
+end  
+
+# /spans
+class Spans
+  def self.run(request)
+    repeats = Integer(request.params['repeats'] || 0)
+    garbage = Integer(request.params['garbage'] || 0)
+
+    repeats.times do |i|
+      Datadog::Tracing.trace("repeat-#{i}") do |span|
+        garbage.times do |j|
+          span.set_tag("garbage-#{j}", j.to_s)
         end
       end
-
-      [ 200, {'Content-Type' => 'text/plain'}, ['Generated #{repeats} spans with #{garbage} garbage tags'] ]
     end
-  elsif request.path == '/headers'
-    [ 200, {'Content-Type' => 'text/plain', 'Content-Length' => '42', 'Content-Language' => 'en-US'}, ['Hello, headers!'] ]
-  elsif request.path == '/identify'
+
+    [200, { 'Content-Type' => 'text/plain' }, ["Generated #{repeats} spans with #{garbage} garbage tags"]]
+  rescue ArgumentError
+    [400, { 'Content-Type' => 'text/plain' }, ['bad request']]
+  end
+end
+
+# /headers
+class Headers
+  def self.run
+    [
+      200,
+      { 'Content-Type' => 'text/plain', 'Content-Length' => '42', 'Content-Language' => 'en-US' },
+      ['Hello, headers!']
+    ]
+  end
+end
+
+# /identify
+class Identify
+  def self.run
     trace = Datadog::Tracing.active_trace
     trace.set_tag('usr.id', 'usr.id')
     trace.set_tag('usr.name', 'usr.name')
@@ -89,11 +115,25 @@ app = proc do |env|
     trace.set_tag('usr.role', 'usr.role')
     trace.set_tag('usr.scope', 'usr.scope')
 
-    [ 200, {'Content-Type' => 'text/plain'}, ['Hello, wat is love?'] ]
-  elsif request.path.include?('/status')
-    [ request.params["code"].to_i, {'Content-Type' => 'text/plain'}, ['Ok'] ]
-  elsif request.path == '/make_distant_call'
-    url = request.params["url"]
+    [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
+  end
+end
+
+# contains /status
+class Status
+  def self.run(request)
+    code = Integer(request.params['code'] || 200)
+
+    [code, { 'Content-Type' => 'text/plain' }, ['Ok']]
+  rescue ArgumentError
+    [400, { 'Content-Type' => 'text/plain' }, ['bad request']]
+  end
+end
+
+# /make_distant_call
+class MakeDistantCall
+  def self.run(request)
+    url = request.params['url']
     uri = URI(url)
     request = nil
     response = nil
@@ -105,47 +145,120 @@ app = proc do |env|
     end
 
     result = {
-      "url": url,
-      "status_code": response.code,
-      "request_headers": request.each_header.to_h,
-      "response_headers": response.each_header.to_h,
+      url: url,
+      status_code: response.code,
+      request_headers: request.each_header.to_h,
+      response_headers: response.each_header.to_h
     }
 
-    [200, { 'Content-Type' => 'application/json' }, [ result.to_json ]]
-  elsif request.path == '/user_login_success_event'
+    [200, { 'Content-Type' => 'application/json' }, [result.to_json]]
+  end
+end
+
+# /user_login_success_event
+class UserLoginSuccessEvent
+  def self.run
     Datadog::Kit::AppSec::Events.track_login_success(
-      Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
+      Datadog::Tracing.active_trace, user: { id: 'system_tests_user' }, metadata0: 'value0', metadata1: 'value1'
     )
 
-    [ 200, {'Content-Type' => 'text/plain'}, ['Ok'] ]
-  elsif  request.path == '/user_login_failure_event'
+    [200, { 'Content-Type' => 'text/plain' }, ['Ok']]
+  end
+end
+
+# /user_login_failure_event
+class UserLoginFailureEvent
+  def self.run
     Datadog::Kit::AppSec::Events.track_login_failure(
-      Datadog::Tracing.active_trace, user_id: 'system_tests_user', user_exists: true, metadata0: "value0", metadata1: "value1"
+      Datadog::Tracing.active_trace,
+      user_id: 'system_tests_user',
+      user_exists: true,
+      metadata0: 'value0',
+      metadata1: 'value1'
     )
 
-    [ 200, {'Content-Type' => 'text/plain'}, ['Ok'] ]
-  elsif request.path ==  '/custom_event'
-    Datadog::Kit::AppSec::Events.track('system_tests_event', Datadog::Tracing.active_trace,  metadata0: "value0", metadata1: "value1")
+    [200, { 'Content-Type' => 'text/plain' }, ['Ok']]
+  end
+end
 
-    [ 200, {'Content-Type' => 'text/plain'}, ['Ok'] ]
-  elsif request.path.include?('tag_value')
-		tag_value, status_code = request.path.split('/').select { |p| !p.empty? && p != 'tag_value' }
+# /custom_event
+class CustomEvent
+  def self.run
+    Datadog::Kit::AppSec::Events.track('system_tests_event',
+                                       Datadog::Tracing.active_trace,
+                                       metadata0: 'value0',
+                                       metadata1: 'value1')
+
+    [200, { 'Content-Type' => 'text/plain' }, ['Ok']]
+  end
+end
+
+# contains tag_value
+class TagValue
+  def self.run(request)
+    tag_value, status_code = request.path.split('/').select { |p| !p.empty? && p != 'tag_value' }
     trace = Datadog::Tracing.active_trace
-    trace.set_tag("appsec.events.system_tests_appsec_event.value", tag_value)
+    trace.set_tag('appsec.events.system_tests_appsec_event.value', tag_value)
 
     headers = request.params.each.with_object({}) do |(key, value), hash|
       hash[key] = value
     end
 
-    [ status_code, headers, ['Value tagged'] ]
-  elsif request.path.include?('/users')
-    user_id = request.params["user"]
+    [status_code, headers, ['Value tagged']]
+  end
+end
+
+# contains /users
+class Users
+  def self.run(request)
+    user_id = request.params['user']
 
     Datadog::Kit::Identity.set_user(id: user_id)
 
-    [ 200, {'Content-Type' => 'text/plain'}, ['Hello, user!'] ]
+    [200, { 'Content-Type' => 'text/plain' }, ['Hello, user!']]
+  end
+end
+
+# any other route
+class NotFound
+  def self.run
+    [404, { 'Content-Type' => 'text/plain' }, ['not found']]
+  end
+end
+
+# trivial rack endpoint. We use a proc instead of Rack Builder because
+# we compare the request path using regexp and include?
+app = proc do |env|
+  request = Rack::Request.new(env)
+
+  if request.path == '/' || request.path =~ %r{^/waf(?:/.*|)$} || request.path =~ %r{^/params(?:/.*|)$}
+    # %r{^/params(?:/.*|)$} doesn't really makes sense for Rack as it does not put the
+    # value anywhere for AppSec to receive it
+    Hello.run
+  elsif request.path == '/healthcheck'
+    Healthcheck.run
+  elsif request.path == '/spans'
+    Spans.run(request)
+  elsif request.path == '/headers'
+    Headers.run
+  elsif request.path == '/identify'
+    Identify.run
+  elsif request.path.include?('/status')
+    Status.run(request)
+  elsif request.path == '/make_distant_call'
+    MakeDistantCall.run(request)
+  elsif request.path == '/user_login_success_event'
+    UserLoginSuccessEvent.run
+  elsif request.path == '/user_login_failure_event'
+    UserLoginFailureEvent.run
+  elsif request.path == '/custom_event'
+    CustomEvent.run
+  elsif request.path.include?('tag_value')
+    TagValue.run(request)
+  elsif request.path.include?('/users')
+    Users.run(request)
   else
-    [ 404, {'Content-Type' => 'text/plain'}, ['not found'] ]
+    NotFound.run
   end
 end
 

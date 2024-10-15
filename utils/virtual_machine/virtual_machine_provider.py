@@ -46,7 +46,7 @@ class VmProvider:
         """ Stop and destroy machines"""
         raise NotImplementedError
 
-    def install_provision(self, vm, server, server_connection, create_cache=True):
+    def install_provision(self, vm, server, server_connection, create_cache=True, skip_ami_cache=False):
         """ 
         This method orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
@@ -55,7 +55,7 @@ class VmProvider:
         logger.stdout(f"Provisioning [{vm.name}]")
         provision = vm.get_provision()
         last_task = server
-        if create_cache:
+        if create_cache or skip_ami_cache:
             # First install cacheable installations
             for installation in provision.installations:
                 if installation.cache:
@@ -66,7 +66,9 @@ class VmProvider:
             if provision.lang_variant_installation:
                 logger.stdout(f"[{vm.name}] Provisioning lang variant {provision.lang_variant_installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
-            last_task = self.commander.create_cache(vm, server, last_task)
+
+            if create_cache and not skip_ami_cache:
+                last_task = self.commander.create_cache(vm, server, last_task)
 
         # Then install non cacheable installations
         for installation in provision.installations:
@@ -77,8 +79,9 @@ class VmProvider:
         # Extract tested/installed components
         logger.stdout(f"[{vm.name}] Extracting {provision.tested_components_installation.id}")
 
+        # We don't get the last_task. This task can be executed in parallel with the next one
         output_callback = lambda args: args[0].set_tested_components(args[1])
-        last_task = self._remote_install(
+        self._remote_install(
             server_connection,
             vm,
             last_task,
@@ -86,6 +89,24 @@ class VmProvider:
             logger_name="tested_components",
             output_callback=output_callback,
         )
+        # Before install weblog, if we set the env variable: CI_COMMIT_BRANCH, we need to checkout this branch
+        # (we are going to copy weblog sources from git instead from local machine)
+        # We commit the branch reference of the CI_COMMIT_BRANCH env variable only if the gitlab project is system-tests
+        # Proabably we need to change this in the future, and translate this logic to the pipelines
+        ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
+        if ci_commit_branch:
+            ci_commit_branch = (
+                os.getenv("CI_COMMIT_BRANCH") if os.getenv("CI_PROJECT_NAME", "") == "system-tests" else "main"
+            )
+            logger.stdout(f"[{vm.name}] Checkout branch {ci_commit_branch}")
+            last_task = self.commander.remote_command(
+                vm,
+                "checkout_branch",
+                f"cd system-tests && git pull && git checkout {ci_commit_branch}",
+                vm.get_command_environment(),
+                server_connection,
+                last_task,
+            )
 
         # Finally install weblog
         logger.stdout(f"[{vm.name}] Installing {provision.weblog_installation.id}")
@@ -130,16 +151,36 @@ class VmProvider:
                 # If we don't use remote_path, the remote_path will be a default remote user home
                 if file_to_copy.remote_path:
                     remote_path = file_to_copy.remote_path
+                elif file_to_copy.git_path:
+                    remote_path = "."
                 else:
                     remote_path = os.path.basename(file_to_copy.local_path)
 
-                if not os.path.isdir(file_to_copy.local_path):
+                if file_to_copy.git_path:
+                    logger.debug("Copy file from git path")
+
+                    if os.path.isdir(file_to_copy.git_path):
+                        file_to_copy.git_path = file_to_copy.git_path + "/*"
+
+                    # system-tests is cloned into home folder
+                    last_task = self.commander.remote_command(
+                        vm,
+                        file_to_copy.name + f"-{vm.name}-{installation.id}",
+                        "cp -r system-tests/" + file_to_copy.git_path + " " + remote_path,
+                        command_environment,
+                        server_connection,
+                        last_task,
+                        logger_name=logger_name,
+                        output_callback=output_callback,
+                        populate_env=installation.populate_env,
+                    )
+                elif not os.path.isdir(file_to_copy.local_path):
                     # If the local path contains a variable, we need to replace it
                     for key, value in command_environment.items():
                         file_to_copy.local_path = file_to_copy.local_path.replace(f"${key}", value)
                         remote_path = remote_path.replace(f"${key}", value)
 
-                    logger.debug(f"Copy file from {file_to_copy.local_path} to {remote_path}")
+                    # logger.debug(f"Copy file from {file_to_copy.local_path} to {remote_path}")
                     # Launch copy file command
                     last_task = self.commander.copy_file(
                         file_to_copy.name + f"-{vm.name}-{installation.id}",

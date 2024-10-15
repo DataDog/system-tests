@@ -16,6 +16,7 @@ from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 from .docker_ssi import DockerSSIScenario
+from .external_processing import ExternalProcessingScenario
 
 update_environ_with_local_env()
 
@@ -263,7 +264,6 @@ class scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
             "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
@@ -291,7 +291,6 @@ class scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
@@ -306,11 +305,7 @@ class scenarios:
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
-        },
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true",},
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
@@ -449,9 +444,8 @@ class scenarios:
         "TRACING_CONFIG_NONDEFAULT",
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
-            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "ssn=\d{3}-\d{2}-\d{4}",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             # disable ASM to test non asm client ip tagging
             "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
@@ -465,7 +459,11 @@ class scenarios:
 
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
-        weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "", "DD_TRACE_KAFKA_ENABLED": "true"},
+        weblog_env={
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
+            "DD_TRACE_KAFKA_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+        },
         include_kafka=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
     )
@@ -654,76 +652,6 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    ##DEPRECATED SCENARIOS: Delete after migration of tracer pipelines + auto_inject pipelines
-
-    # Replaced by SIMPLE_INSTALLER_AUTO_INJECTION
-    simple_host_auto_injection = InstallerAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION",
-        "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-    simple_container_auto_injection = InstallerAutoInjectionScenario(
-        "SIMPLE_CONTAINER_AUTO_INJECTION",
-        "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
-    # Replaced by SIMPLE_AUTO_INJECTION_PROFILING
-    simple_host_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
-        "DEPRECATED: Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-    simple_container_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_CONTAINER_AUTO_INJECTION_PROFILING",
-        "DEPRECATED: Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    # Replaced by INSTALLER_AUTO_INJECTION
-    host_auto_injection = InstallerAutoInjectionScenario(
-        "HOST_AUTO_INJECTION",
-        doc="DEPRECATED: Installer auto injection scenario",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-    container_auto_injection = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION",
-        doc="DEPRECATED: Installer auto injection scenario",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    # Replaced by INSTALLER_AUTO_INJECTION_BLOCK_LIST
-    host_auto_injection_block_list = InstallerAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_BLOCK_LIST",
-        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    # Replaced by INSTALLER_NOT_SUPPORTED_AUTO_INJECTION
-    container_not_supported_auto_injection = InstallerAutoInjectionScenario(
-        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
-        "Onboarding host Single Step Instrumentation scenario for not supported languages",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
     k8s_library_injection_basic = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_BASIC",
         doc=" Kubernetes Instrumentation basic scenario",
@@ -765,6 +693,8 @@ class scenarios:
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
+
+    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
 
 
 def get_all_scenarios() -> list[Scenario]:

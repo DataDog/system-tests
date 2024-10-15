@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, rfc
+from utils import weblog, interfaces, scenarios, features, rfc, irrelevant
 
 
 @scenarios.default
@@ -201,7 +201,7 @@ class Test_Config_ClientTagQueryString_Configured:
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
-@scenarios.tracing_config_nondefault
+@scenarios.tracing_config_nondefault_2
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Configured:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
@@ -281,6 +281,11 @@ class Test_Config_UnifiedServiceTagging_CustomService:
     def setup_specified_service_name(self):
         self.r = weblog.get("/")
 
+    @irrelevant(
+        library="golang",
+        weblog_variant="gin",
+        reason="A custom service name is specified on the gin integration, causing a conflict",
+    )
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)

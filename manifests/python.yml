@@ -82,16 +82,19 @@ tests/:
           TestInsecureCookie:
             '*': v1.19.0
             fastapi: missing_feature
+          TestInsecureCookieNameFilter: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': v1.19.0
             fastapi: missing_feature
+          TestNoHttponlyCookieNameFilter: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': v1.19.0
             fastapi: missing_feature
+          TestNoSamesiteCookieNameFilter: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
         test_path_traversal.py:
@@ -162,7 +165,7 @@ tests/:
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
-            fastapi: v2.13.0.dev
+            fastapi: bug (APPSEC-55240)
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -701,6 +704,8 @@ tests/:
       Test_Headers_B3: v2.8.0
     test_headers_b3multi.py:
       Test_Headers_B3multi: v2.8.0
+    test_headers_baggage.py:
+      Test_Headers_Baggage: missing_feature
     test_headers_datadog.py:
       Test_Headers_Datadog: v2.8.0
     test_headers_none.py:
@@ -721,6 +726,8 @@ tests/:
       Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
+    test_otel_span_with_baggage.py:
+      Test_Otel_Span_With_Baggage: missing_feature
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v2.8.0
     test_otel_tracer.py:
@@ -765,8 +772,15 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          # NOTE: fastapi-based async things don't play well with moto
+          Test_PutObject:
+            '*': missing_feature
+            django-poc: v2.14.0
+            flask-poc: v2.14.0
+            python3.12: v2.14.0
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

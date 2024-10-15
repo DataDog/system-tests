@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
@@ -121,18 +123,36 @@ func main() {
 	})
 
 	r.Any("/make_distant_call", func(c echo.Context) error {
-		if url := c.Request().URL.Query().Get("url"); url != "" {
-
-			client := httptrace.WrapClient(http.DefaultClient)
-			req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
-			_, err := client.Do(req)
-
-			if err != nil {
-				log.Fatalln(err)
-				return c.String(500, "KO")
-			}
+		url := c.Request().URL.Query().Get("url")
+		if url == "" {
+			return c.String(200, "OK")
 		}
-		return c.String(200, "OK")
+
+		client := httptrace.WrapClient(http.DefaultClient)
+		req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[key] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		return c.JSON(200, struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
 	})
 
 	r.Any("/headers/", headers)
@@ -201,6 +221,28 @@ func main() {
 		}
 
 		return ctx.String(http.StatusOK, string(content))
+	})
+
+	r.GET("/session/new", func(ctx echo.Context) error {
+		sessionID := strconv.Itoa(rand.Int())
+		ctx.SetCookie(&http.Cookie{
+			Name:     "session",
+			Value:    sessionID,
+			MaxAge:   3600,
+			Secure:   true,
+			HttpOnly: true,
+		})
+		return ctx.NoContent(200)
+	})
+
+	r.GET("/session/user", func(ctx echo.Context) error {
+		user := ctx.Request().URL.Query().Get("sdk_user")
+		cookie, err := ctx.Request().Cookie("session")
+		if err != nil {
+			return ctx.String(500, "no session cookie")
+		}
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		return ctx.NoContent(200)
 	})
 
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))

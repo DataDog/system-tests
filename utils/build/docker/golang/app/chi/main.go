@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"weblog/internal/rasp"
@@ -124,17 +126,42 @@ func main() {
 	})
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
-		if url := r.URL.Query().Get("url"); url != "" {
-			client := httptrace.WrapClient(http.DefaultClient)
-			req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
-			_, err := client.Do(req)
-
-			if err != nil {
-				log.Fatalln(err)
-				w.WriteHeader(500)
-			}
+		url := r.URL.Query().Get("url")
+		if url == "" {
+			w.Write([]byte("OK"))
+			return
 		}
-		w.Write([]byte("OK"))
+
+		client := httptrace.WrapClient(http.DefaultClient)
+		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatalln("client.Do", err)
+		}
+
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[key] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		jsonResponse, err := json.Marshal(struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
+		if err != nil {
+			log.Fatalln(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResponse)
 	})
 
 	mux.HandleFunc("/headers/", headers)
@@ -229,6 +256,21 @@ func main() {
 			return
 		}
 		w.Write([]byte(content))
+	})
+
+	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
+		sessionID := strconv.Itoa(rand.Int())
+		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")
+	})
+
+	mux.HandleFunc("/session/user", func(w http.ResponseWriter, r *http.Request) {
+		user := r.URL.Query().Get("sdk_user")
+		cookie, err := r.Cookie("session")
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte("missing session cookie"))
+		}
+		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)

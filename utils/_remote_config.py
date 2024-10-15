@@ -134,18 +134,24 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
 
     def all_payload_sent(data):
         if data["path"] == "/v0.7/config":
-            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
-            if runtime_id not in counts_by_runtime_id:
-                counts_by_runtime_id[runtime_id] = 0
-            if data["response"]["status_code"] == 200:
-                counts_by_runtime_id[runtime_id] += 1
 
             # wait for N successful responses, +1 for the ACK request from the lib
             for count in counts_by_runtime_id.values():
-                if count < len(commands) + 1:
-                    return False
+                if count >= len(commands):
+                    return True
 
-            return True
+            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
+
+            if runtime_id not in counts_by_runtime_id:
+                counts_by_runtime_id[runtime_id] = 0
+
+            for name, value in data["response"]["headers"]:
+                if name == "st-proxy-overwrite-rc-response":
+                    counts_by_runtime_id[runtime_id] = int(value) + 1
+                    logger.debug(f"Response {int(value) + 1}/{len(commands)} for {runtime_id}")
+                    break
+
+            return False
 
     rc_poll_interval = 5  # seconds
     extra_timeout = 10  # give more room for startup

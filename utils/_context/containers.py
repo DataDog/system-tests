@@ -587,15 +587,15 @@ class WeblogContainer(TestedContainer):
         appsec_enabled=True,
         additional_trace_header_tags=(),
         use_proxy=True,
+        volumes=None,
     ) -> None:
 
         from utils import weblog
 
         self.port = weblog.port
 
-        volumes = {
-            f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
-        }
+        volumes = {} if volumes is None else volumes
+        volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
         try:
             with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
@@ -630,8 +630,6 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self.libddwaf_version = None
-        self.appsec_rules_version = None
         self._library: LibraryVersion = None
 
         # Basic env set for all scenarios
@@ -690,12 +688,6 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
-            self.libddwaf_version = LibraryVersion("libddwaf", libddwaf_version).version
-
-        appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
-
         self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
         self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
         self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
@@ -706,7 +698,18 @@ class WeblogContainer(TestedContainer):
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python", "golang"):
+        if self.library in (
+            "cpp",
+            "dotnet",
+            "nodejs",
+            "php",
+            "python",
+            "golang",
+            "ruby",
+            "java",
+            "python_otel",
+            "nodejs_otel",
+        ):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -714,11 +717,6 @@ class WeblogContainer(TestedContainer):
 
         if self.library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
-
-            if self.library == "python":
-                # activating debug log on python causes a huge amount of logs, making the network
-                # stack fails a lot randomly
-                self.environment["DD_TRACE_DEBUG"] = "false"
 
         elif self.library in ("golang", "nodejs", "php", "ruby"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
@@ -740,25 +738,28 @@ class WeblogContainer(TestedContainer):
 
         # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python", "golang"):
+        if self.library in (
+            "cpp",
+            "dotnet",
+            "nodejs",
+            "python",
+            "php",
+            "golang",
+            "ruby",
+            "java",
+            "python_otel",
+            "nodejs_otel",
+        ):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
 
             self._library = LibraryVersion(lib["language"], lib["version"])
-            if "libddwaf_version" in lib:
-                self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
-
-            if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
-                self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
 
         logger.stdout(f"Library: {self.library}")
 
-        if self.libddwaf_version:
-            logger.stdout(f"libddwaf: {self.libddwaf_version}")
-
         if self.appsec_rules_file:
-            logger.stdout(f"AppSec rules version: {self.appsec_rules_version}")
+            logger.stdout("Using a custom appsec rules file")
 
         if self.uds_mode:
             logger.stdout(f"UDS socket: {self.uds_socket}")
@@ -945,7 +946,7 @@ class MsSqlServerContainer(SqlDbTestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
+        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
 
         if "DOCKER_HOST" in os.environ:
@@ -1071,3 +1072,57 @@ class DockerSSIContainer(TestedContainer):
         """Get env variables from the container """
         env = self.image.env | self.environment
         return env.get(env_var)
+
+
+class DummyServerContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="jasonrm/dummy-server:latest",
+            name="http-app",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+        )
+
+
+class EnvoyContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+
+        from utils import weblog
+
+        super().__init__(
+            image_name="envoyproxy/envoy:v1.31-latest",
+            name="envoy",
+            host_log_folder=host_log_folder,
+            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
+            ports={"80": ("127.0.0.1", weblog.port)},
+            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
+        )
+
+
+class ExternalProcessingContainer(TestedContainer):
+    library: LibraryVersion
+
+    def __init__(self, host_log_folder) -> None:
+        try:
+            with open("binaries/golang-service-extensions-callout-image", "r", encoding="utf-8") as f:
+                image = f.read().strip()
+        except FileNotFoundError:
+            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
+
+        super().__init__(
+            image_name=image,
+            name="extproc",
+            host_log_folder=host_log_folder,
+            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126,},
+            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
+        )
+
+    def post_start(self):
+        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        self.library = LibraryVersion(lib["language"], lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Image: {self.image.name}")

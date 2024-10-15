@@ -27,12 +27,17 @@ class Test_Agent:
     """misc test on agent/remote config features"""
 
     @irrelevant(library="nodejs", reason="nodejs tracer does not call /info")
+    @irrelevant(library="php", reason="PHP tracer does not call /info")
     @missing_feature(library="ruby", reason="ruby tracer does not call /info")
     @irrelevant(library="cpp")
     @scenarios.remote_config_mocked_backend_asm_dd
     def test_agent_provide_config_endpoint(self):
         """Check that agent exposes /v0.7/config endpoint"""
-        for data in interfaces.library.get_data("/info"):
+        all_data = list(interfaces.library.get_data("/info"))
+
+        assert len(all_data) > 0, "The library didn't make any /info request to the agent"
+
+        for data in all_data:
             for endpoint in data["response"]["content"]["endpoints"]:
                 if endpoint == "/v0.7/config":
                     return
@@ -44,6 +49,15 @@ class Test_Agent:
 @features.remote_config_object_supported
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
+
+    @staticmethod
+    def response_has_been_overwritten(data):
+        # For legacy API send_sequential_commands
+        for name, _ in data["response"]["headers"]:
+            if name == "st-proxy-overwrite-rc-response":
+                return True
+
+        return False
 
     def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
@@ -174,6 +188,7 @@ def rc_check_request(data, expected, caching):
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_features
 @features.appsec_onboarding
+@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -204,10 +219,8 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             logger.info(f"validating request number {self.request_number}")
@@ -300,10 +313,8 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
@@ -323,6 +334,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_dd
 @features.remote_config_object_supported
+@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -351,16 +363,14 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
         def validate(data):
             """ Helper to validate config request content """
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
-            logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
 
+            logger.info(f"Validating request #{self.request_number} in {data['log_filename']}")
             rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=True)
 
             self.request_number += 1
@@ -400,13 +410,11 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         self.assert_client_fields()
 
         def validate(data):
-            status_code = data["response"]["status_code"]
+            """Helper to validate config request content"""
 
-            if status_code == 404:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
-            """Helper to validate config request content"""
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -450,10 +458,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
         def validate(data):
             """Helper to validate config request content"""
 
-            status_code = data["response"]["status_code"]
-
-            if status_code == 404:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
@@ -498,10 +503,8 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
         def validate(data):
             """Helper to validate config request content"""
-            status_code = data["response"]["status_code"]
 
-            if status_code == 404:
-                # the proxy did not yet overwrite response
+            if not self.response_has_been_overwritten(data):
                 return False
 
             logger.info(f"validating request number {self.request_number}")

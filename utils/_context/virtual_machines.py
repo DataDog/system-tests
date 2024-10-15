@@ -3,7 +3,6 @@ import json
 import hashlib
 
 from utils.tools import logger
-from utils._context.library_version import Version
 from utils import context
 from utils.onboarding.debug_vm import extract_logs_to_file
 
@@ -172,7 +171,7 @@ class _VirtualMachine:
             if installation.cache:
                 vm_cached_installations += f"{installation.id}_"
         vm_cached_installations = hashlib.shake_128(vm_cached_installations.encode("utf-8")).hexdigest(4)
-        return vm_cached_name + vm_cached_installations
+        return vm_cached_name + vm_cached_installations + "_" + self.get_provision().provision_name
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """
@@ -294,21 +293,6 @@ class AmazonLinux2arm64(_VirtualMachine):
             os_branch="amazon_linux2",
             os_cpu="arm64",
             default_vm=False,
-            **kwargs,
-        )
-
-
-class AmazonLinux2DotNet6(_VirtualMachine):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(
-            "Amazon_Linux_2_DotNet6",
-            aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t2.medium", user="ec2-user"),
-            vagrant_config=None,
-            krunvm_config=None,
-            os_type="linux",
-            os_distro="rpm",
-            os_branch="amazon_linux2_dotnet6",
-            os_cpu="amd64",
             **kwargs,
         )
 
@@ -444,6 +428,38 @@ class OracleLinux79amd64(_VirtualMachine):
         )
 
 
+class Debian12amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_12_amd64",
+            aws_config=_AWSConfig(ami_id="ami-064519b8c76274859", ami_instance_type="t2.medium", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Debian12arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_12_arm64",
+            aws_config=_AWSConfig(ami_id="ami-031399937db27e013", ami_instance_type="t4g.small", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
 # 8.10.20240820
 # https://wiki.almalinux.org/cloud/AWS.html#community-amis
 class AlmaLinux8amd64(_VirtualMachine):
@@ -466,7 +482,7 @@ class AlmaLinux8arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "AlmaLinux_8_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0f1d97cfa7cf5ad5d", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0f1d97cfa7cf5ad5d", ami_instance_type="t4g.medium", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -539,6 +555,217 @@ class Ubuntu24arm64(_VirtualMachine):
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu24",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Ubuntu 20 from private amis
+class Ubuntu20amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_20_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0ffb8e1df897204c4", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu20_amd64",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Ubuntu20arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_20_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0ccf50ab09c6df2d4", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu20_arm64",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Ubuntu 21 from private amis
+class Ubuntu21arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_21_arm64",
+            aws_config=_AWSConfig(ami_id="ami-05712368b95488c7b", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu21",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Ubuntu 23 from private amis
+class Ubuntu23_04_amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_23_04_amd64",
+            aws_config=_AWSConfig(ami_id="ami-09c5d86a379ab69a5", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu23",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Ubuntu23_04_arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_23_04_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0093a09a926ddbe35", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu23",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Ubuntu23_10_amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_23_10_amd64",
+            aws_config=_AWSConfig(ami_id="ami-079a4355fa40b81e0", ami_instance_type="t2.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu23",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Ubuntu23_10_arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_23_10_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0b41986f4597707d2", ami_instance_type="t4g.small", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu23",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class RedHat86amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_8_6_amd64",
+            aws_config=_AWSConfig(ami_id="ami-031eff1ae75bb87e4", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat_8_6",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class RedHat86arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_8_6_arm64",
+            aws_config=_AWSConfig(ami_id="ami-096f447a8a5bc013f", ami_instance_type="t4g.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat_8_6",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora36amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_36_amd64",
+            aws_config=_AWSConfig(ami_id="ami-05e7ccec1e0408397", ami_instance_type="t2.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora36arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_36_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0487fbde1f898f0f1", ami_instance_type="t4g.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora37amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_37_amd64",
+            aws_config=_AWSConfig(ami_id="ami-032e9a5778bde5a1a", ami_instance_type="t2.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora37arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_37_arm64",
+            aws_config=_AWSConfig(ami_id="ami-08ec1e90576b74511", ami_instance_type="t4g.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
             os_cpu="arm64",
             default_vm=False,
             **kwargs,

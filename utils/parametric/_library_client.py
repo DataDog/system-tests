@@ -117,6 +117,21 @@ class APMLibraryClient:
     def span_set_meta(self, span_id: int, key: str, value) -> None:
         raise NotImplementedError
 
+    def span_set_baggage(self, span_id: int, key: str, value: str) -> None:
+        raise NotImplementedError
+
+    def span_get_baggage(self, span_id: int, key: str) -> str:
+        raise NotImplementedError
+
+    def span_get_all_baggage(self, span_id: int) -> dict[str, str]:
+        raise NotImplementedError
+
+    def span_remove_baggage(self, span_id: int, key: str) -> None:
+        raise NotImplementedError
+
+    def span_remove_all_baggage(self, span_id: int) -> None:
+        raise NotImplementedError
+
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
         raise NotImplementedError
 
@@ -145,6 +160,9 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def otel_flush(self, timeout: int) -> bool:
+        raise NotImplementedError
+
+    def otel_set_bagage(self, span_id: int, key: str, value: str) -> None:
         raise NotImplementedError
 
     def http_request(self, method: str, url: str, headers: List[Tuple[str, str]]) -> None:
@@ -246,16 +264,39 @@ class APMLibraryClientHTTP(APMLibraryClient):
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def finish_span(self, span_id: int) -> None:
-        self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id,})
+        self._session.post(
+            self._url("/trace/span/finish"), json={"span_id": span_id,},
+        )
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
-        self._session.post(self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource,})
+        self._session.post(
+            self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource,},
+        )
 
     def span_set_meta(self, span_id: int, key: str, value) -> None:
-        self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,})
+        self._session.post(
+            self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,},
+        )
+
+    def span_set_baggage(self, span_id: int, key: str, value: str) -> None:
+        self._session.post(
+            self._url("/trace/span/set_baggage"), json={"span_id": span_id, "key": key, "value": value,},
+        )
+
+    def span_remove_baggage(self, span_id: int, key: str) -> None:
+        self._session.post(
+            self._url("/trace/span/remove_baggage"), json={"span_id": span_id, "key": key,},
+        )
+
+    def span_remove_all_baggage(self, span_id: int) -> None:
+        self._session.post(
+            self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id,},
+        )
 
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
-        self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value,})
+        self._session.post(
+            self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value,},
+        )
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(
@@ -277,15 +318,25 @@ class APMLibraryClientHTTP(APMLibraryClient):
         )
 
     def span_get_meta(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,})
+        resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,},)
         return resp.json()["value"]
 
     def span_get_metric(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,})
+        resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,},)
         return resp.json()["value"]
 
+    def span_get_baggage(self, span_id: int, key: str) -> str:
+        resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key,},)
+        resp = resp.json()
+        return resp["baggage"]
+
+    def span_get_all_baggage(self, span_id: int):
+        resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
+        resp = resp.json()
+        return resp["baggage"]
+
     def span_get_resource(self, span_id: int):
-        resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,})
+        resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,},)
         return resp.json()["resource"]
 
     def trace_inject_headers(self, span_id):
@@ -333,11 +384,11 @@ class APMLibraryClientHTTP(APMLibraryClient):
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def otel_get_attribute(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,})
+        resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,},)
         return resp.json()["value"]
 
     def otel_get_name(self, span_id: int):
-        resp = self._session.post(self._url("/trace/otel/get_name"), json={"span_id": span_id,})
+        resp = self._session.post(self._url("/trace/otel/get_name"), json={"span_id": span_id,},)
         return resp.json()["name"]
 
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
@@ -389,6 +440,13 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout}).json()
         return resp["success"]
 
+    def otel_set_bagage(self, span_id: int, key: str, value: str) -> None:
+        resp = self._session.post(
+            self._url("/trace/otel/otel_set_baggage"), json={"span_id": span_id, "key": key, "value": value}
+        )
+        resp = resp.json()
+        return resp["value"]
+
     def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
         resp = self._session.post(
             self._url("/http/client/request"),
@@ -431,6 +489,21 @@ class _TestSpan:
 
     def set_metric(self, key: str, val: float):
         self._client.span_set_metric(self.span_id, key, val)
+
+    def set_baggage(self, key: str, val: str):
+        self._client.span_set_baggage(self.span_id, key, val)
+
+    def get_baggage(self, key: str):
+        return self._client.span_get_baggage(self.span_id, key)
+
+    def get_all_baggage(self):
+        return self._client.span_get_all_baggage(self.span_id)
+
+    def remove_baggage(self, key: str):
+        self._client.span_remove_baggage(self.span_id, key)
+
+    def remove_all_baggage(self):
+        self._client.span_remove_all_baggage(self.span_id)
 
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
@@ -488,6 +561,9 @@ class _TestOtelSpan:
 
     def span_context(self) -> OtelSpanContext:
         return self._client.otel_get_span_context(self.span_id)
+
+    def set_baggage(self, key: str, value: str):
+        self._client.otel_set_bagage(self.span_id, key, value)
 
     # SDK methods
 
@@ -643,6 +719,21 @@ class APMLibraryClientGRPC:
     def span_set_meta(self, span_id: int, key: str, val: str):
         self._client.SpanSetMeta(pb.SpanSetMetaArgs(span_id=span_id, key=key, value=val,))
 
+    def span_set_baggage(self, span_id: int, key: str, val: str):
+        self._client.SpanSetBaggage(pb.SpanSetBaggageArgs(span_id=span_id, key=key, value=val,))
+
+    def span_remove_baggage(self, span_id: int, key: str):
+        self._client.SpanRemoveBaggage(pb.SpanRemoveBaggageArgs(span_id=span_id, key=key,))
+
+    def span_remove_all_baggage(self, span_id: int):
+        self._client.SpanRemoveAllBaggage(pb.SpanRemoveAllBaggageArgs(span_id=span_id,))
+
+    def span_get_baggage(self, span_id: int, key: str):
+        return self._client.SpanGetBaggage(pb.SpanGetBaggageArgs(span_id=span_id, key=key,)).value
+
+    def span_get_all_baggage(self, span_id: int):
+        return self._client.SpanGetAllBaggage(pb.SpanGetAllBaggageArgs(span_id=span_id)).value
+
     def span_set_metric(self, span_id: int, key: str, val: float):
         self._client.SpanSetMetric(pb.SpanSetMetricArgs(span_id=span_id, key=key, value=val,))
 
@@ -683,6 +774,9 @@ class APMLibraryClientGRPC:
 
     def otel_set_name(self, span_id: int, name: str):
         self._client.OtelSetName(pb.OtelSetNameArgs(span_id=span_id, name=name))
+
+    def otel_set_baggage(self, span_id: int, key: str, value: str):
+        return self._client.OtelSetBaggage(pb.OtelSetBaggageArgs(span_id=span_id, key=key, value=value)).value
 
     def otel_set_status(self, span_id: int, code: int, description: str):
         self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code, description=description))
@@ -834,6 +928,9 @@ class APMLibrary:
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
+
+    def otel_set_baggage(self, span_id: int, key: str, value: str):
+        return self._client.otel_set_bagage(span_id, key, value)
 
     def http_client_request(
         self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",

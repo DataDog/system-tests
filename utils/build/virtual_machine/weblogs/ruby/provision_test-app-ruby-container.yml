@@ -1,6 +1,6 @@
 weblog:
     name: test-app-ruby-container
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2]
+    excluded_os_branches: [amazon_linux2, ubuntu21, fedora]
     install:
       - os_type: linux
 
