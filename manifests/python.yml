@@ -787,7 +787,7 @@ tests/:
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v2.12.0
     Test_Config_ClientIPHeader_Precedence: v2.12.0
-    Test_Config_ClientTagQueryString_Configured: v2.14.0.dev
+    Test_Config_ClientTagQueryString_Configured: v2.15.0
     Test_Config_ClientTagQueryString_Empty: v2.12.0
     Test_Config_HttpClientErrorStatuses_Default: v2.0.0
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (xpassing but should fail, this enviornment variable is not supported)
