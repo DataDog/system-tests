@@ -132,6 +132,11 @@ jobs:
       run: ./run.sh INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run INTEGRATIONS_AWS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
+      run: ./run.sh INTEGRATIONS_AWS
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
         SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
