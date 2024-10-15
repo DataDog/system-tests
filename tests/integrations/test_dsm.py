@@ -332,11 +332,11 @@ class Test_DsmSNS:
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
             # which changes for each run with the time stamp added
             if context.library.library != "nodejs":
-                self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw_delivery_enabled"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw_delivery_enabled"
+                self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
             else:
-                self.topic = f"{DSM_TOPIC}_{context.library.library}_raw_delivery_enabled"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw_delivery_enabled"
+                self.topic = f"{DSM_TOPIC}_{context.library.library}_raw"
+                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw"
 
             self.r = weblog.get(
                 f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
