@@ -309,7 +309,7 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 #### HTTP
 
-We have transitioned to using an HTTP interface, replacing the legacy GRPC interface. To view the HTTP interface, follow these steps:
+We have transitioned to using an HTTP interface, replacing the legacy GRPC interface. To view the available HTTP endpoints , follow these steps:
 
 1. ```
 ./utils/scripts/parametric/run_reference_http.sh
