@@ -270,7 +270,6 @@ class Test_DsmSQS:
 
     def setup_dsm_sqs(self):
         try:
-            breakpoint()
             message = get_message("Test_DsmSQS", "sqs")
 
             # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
