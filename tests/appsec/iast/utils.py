@@ -373,3 +373,24 @@ class BaseSourceTest:
             assert len(s["points"]) == 1
             p = s["points"][0]
             assert p[1] >= 1
+
+
+class BaseTestCookieNameFilter:
+    vulnerability_type = None
+    endpoint = None
+
+    def setup_cookie_name_filter(self):
+        prefix = "0" * 36
+        cookieName1 = prefix + "name1"
+        cookieName2 = "name2"
+        cookieName3 = prefix + "name3"
+        self.req1 = weblog.post(self.endpoint, data={"cookieName": cookieName1, "cookieValue": "value1"})
+        self.req2 = weblog.post(self.endpoint, data={"cookieName": cookieName2, "cookieValue": "value2"})
+        self.req3 = weblog.post(self.endpoint, data={"cookieName": cookieName3, "cookieValue": "value3"})
+
+    def test_cookie_name_filter(self):
+        assert_iast_vulnerability(request=self.req1, vulnerability_count=1, vulnerability_type=self.vulnerability_type)
+        assert_iast_vulnerability(request=self.req2, vulnerability_count=1, vulnerability_type=self.vulnerability_type)
+
+        meta_req3 = _get_span_meta(self.req3)
+        assert "_dd.iast.json" not in meta_req3

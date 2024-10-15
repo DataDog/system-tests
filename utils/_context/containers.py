@@ -595,15 +595,15 @@ class WeblogContainer(TestedContainer):
         appsec_enabled=True,
         additional_trace_header_tags=(),
         use_proxy=True,
+        volumes=None,
     ) -> None:
 
         from utils import weblog
 
         self.port = weblog.port
 
-        volumes = {
-            f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
-        }
+        volumes = {} if volumes is None else volumes
+        volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
         try:
             with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
@@ -638,8 +638,6 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self.libddwaf_version = None
-        self.appsec_rules_version = None
         self._library: LibraryVersion = None
 
         # Basic env set for all scenarios
@@ -703,14 +701,29 @@ class WeblogContainer(TestedContainer):
 
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
-        _set_aws_auth_environment(self)
+
+        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
+        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
+        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
+        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
 
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python", "golang"):
+        if self.library in (
+            "cpp",
+            "dotnet",
+            "nodejs",
+            "php",
+            "python",
+            "golang",
+            "ruby",
+            "java",
+            "python_otel",
+            "nodejs_otel",
+        ):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -739,25 +752,28 @@ class WeblogContainer(TestedContainer):
 
         # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python", "golang"):
+        if self.library in (
+            "cpp",
+            "dotnet",
+            "nodejs",
+            "python",
+            "php",
+            "golang",
+            "ruby",
+            "java",
+            "python_otel",
+            "nodejs_otel",
+        ):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
 
             self._library = LibraryVersion(lib["language"], lib["version"])
-            if "libddwaf_version" in lib:
-                self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
-
-            if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
-                self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
 
         logger.stdout(f"Library: {self.library}")
 
-        if self.libddwaf_version:
-            logger.stdout(f"libddwaf: {self.libddwaf_version}")
-
         if self.appsec_rules_file:
-            logger.stdout(f"AppSec rules version: {self.appsec_rules_version}")
+            logger.stdout("Using a custom appsec rules file")
 
         if self.uds_mode:
             logger.stdout(f"UDS socket: {self.uds_socket}")
@@ -944,7 +960,7 @@ class MsSqlServerContainer(SqlDbTestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
+        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
 
         if "DOCKER_HOST" in os.environ:
