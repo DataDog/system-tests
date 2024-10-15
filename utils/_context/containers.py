@@ -582,7 +582,7 @@ class BuddyContainer(TestedContainer):
         )
 
         self.interface = None
-        set_aws_auth_environment(self)
+        _set_aws_auth_environment(self)
 
 
 class WeblogContainer(TestedContainer):
@@ -703,7 +703,7 @@ class WeblogContainer(TestedContainer):
 
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
-        set_aws_auth_environment(self)
+        _set_aws_auth_environment(self)
 
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
@@ -1126,7 +1126,7 @@ class ExternalProcessingContainer(TestedContainer):
         logger.stdout(f"Image: {self.image.name}")
 
 
-def set_aws_auth_environment(image):
+def _set_aws_auth_environment(image):
     # copy SYSTEM_TESTS_AWS env variables from local env to docker image
 
     if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:

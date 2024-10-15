@@ -8,7 +8,7 @@ from utils.tools import update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup
 from .endtoend import DockerScenario, EndToEndScenario
-from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario
+from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
@@ -56,9 +56,8 @@ class scenarios:
     performances = PerformanceScenario(
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
-
     integrations = IntegrationsScenario()
-
+    integrations_aws = AWSIntegrationsScenario()
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(

@@ -26,18 +26,6 @@ def _get_unique_id(replay: bool, host_log_folder: str) -> str:
     return unique_id
 
 
-def _check_aws_variables(scenario: EndToEndScenario):
-    if not os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID") and not os.environ.get("AWS_ACCESS_KEY_ID"):
-        pytest.exit(
-            f"\n    Error while starting {scenario.name}\n" + AWS_BAD_CREDENTIALS_MSG, 1,
-        )
-
-    if not os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY") and not os.environ.get("AWS_ACCESS_KEY_ID"):
-        pytest.exit(
-            f"\n    Error while starting {scenario.name}\n" + AWS_BAD_CREDENTIALS_MSG, 1,
-        )
-
-
 class IntegrationsScenario(EndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
@@ -61,12 +49,34 @@ class IntegrationsScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
-        if not self.replay:
-            _check_aws_variables(self)
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
 
 
-class CrossedTracingLibraryScenario(EndToEndScenario):
+class AWSIntegrationsScenario(EndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "INTEGRATIONS_AWS",
+            weblog_env={
+                "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+                "AWS_ACCESS_KEY_ID": "my-access-key",
+                "AWS_SECRET_ACCESS_KEY": "my-access-key",
+            },
+            doc="Spawns tracer, and agent. Test AWS integrations.",
+            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
+        )
+        # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
+        # from other tests. This time hash is added to the message, test consumers only stops once finding the specific
+        # message.
+        self.unique_id = None
+
+    def configure(self, config):
+        super().configure(config)
+        if not self.replay:
+            self._check_aws_variables(self)
+        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+
+
+class CrossedTracingLibraryScenario(AWSIntegrationsScenario):
     def __init__(self) -> None:
         super().__init__(
             "CROSSED_TRACING_LIBRARIES",
@@ -79,43 +89,10 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             include_buddies=True,
             include_rabbitmq=True,
             doc="Spawns a buddy for each supported language of APM",
-            scenario_groups=[ScenarioGroup.INTEGRATIONS],
+            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
 
         # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
         # from other tests. This time hash is added to the message, test consumers only stops once finding the specific
         # message.
         self.unique_id = None
-
-    def configure(self, config):
-        super().configure(config)
-        if not self.replay:
-            _check_aws_variables(self)
-        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
-
-
-AWS_BAD_CREDENTIALS_MSG = """
-🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
-                                ⚠️⚠️⚠️⚠️⚠️⚠️⚠️  AWS Authentication Error  ⚠️⚠️⚠️⚠️⚠️⚠️⚠️
-
-    It seems that your AWS authentication is not set up correctly. 
-    Please take the following actions:
-
-    🔑 With `aws-vault` setup:
-
-        To enter an authenticated shell session that sets temp AWS credentials in your shell environment:
-        👉 `aws-vault login sso-sandbox-account-admin --`
-        👉 `[your system-test command]`
-                or 
-        
-        To run ONLY the system tests command with auth: (temp AWS credentials are not set in shell environment)
-        👉 `aws-vault login sso-sandbox-account-admin -- [your system-test command]`
-    
-
-    🔧 Or to first set up `aws-vault` / `aws-cli`, please visit:
-        🔗 [AWS CLI Config Setup & Update Guide]
-        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-v2-setup)
-        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-config-setup--update)
-
-🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
-"""

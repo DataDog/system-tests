@@ -9,7 +9,7 @@ import botocore.exceptions
 
 from utils import weblog, interfaces
 from utils.tools import logger
-from utils._context._scenarios.integrations import AWS_BAD_CREDENTIALS_MSG
+from utils._context._scenarios.endtoend import AWS_BAD_CREDENTIALS_MSG
 
 
 class BaseDbIntegrationsTestClass:
