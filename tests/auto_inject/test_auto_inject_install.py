@@ -1,6 +1,5 @@
 from utils import scenarios, features, bug, flaky, context
 from utils.tools import logger
-from utils import scenarios, features
 import tests.auto_inject.utils as base
 
 
@@ -84,7 +83,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # We are skipping all the machines. TODO fix this
     @bug(
         condition=context.weblog_variant == "test-app-python-alpine"
-        and f"os_AlmaLinux_8_arm64" in context.configuration,
+        and "os_AlmaLinux_8_arm64" in context.configuration,
         reason="APMON-1576",
     )
     def test_install(self, virtual_machine):

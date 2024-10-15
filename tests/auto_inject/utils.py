@@ -1,6 +1,5 @@
 import os
 import pytest
-import paramiko
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
@@ -11,7 +10,7 @@ from threading import Timer
 
 
 class AutoInjectBaseTest:
-    def _test_install(self, virtual_machine, profile: bool = False):
+    def _test_install(self, virtual_machine, profile: bool = False, crashlog: bool = False):
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
@@ -21,7 +20,7 @@ class AutoInjectBaseTest:
         request_uuid = None
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
             logger.info(
-                f"We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
+                "We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
             )
             request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
         else:
@@ -33,7 +32,7 @@ class AutoInjectBaseTest:
             request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
 
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, 120.0, profile=profile)
+        wait_backend_trace_id(request_uuid, 120.0, profile=profile, crashlog=crashlog)
 
     def close_channel(self, channel):
         try:
