@@ -1,6 +1,5 @@
 weblog:
     name: test-app-php-container-83
-    excluded_os_branches: [amazon_linux2_dotnet6]
     install:
       - os_type: linux
 

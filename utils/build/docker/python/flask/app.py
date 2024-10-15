@@ -179,14 +179,9 @@ def hello_world():
 
 @app.route("/healthcheck")
 def healthcheck():
-
     return {
         "status": "ok",
-        "library": {
-            "language": "python",
-            "version": ddtrace.__version__,
-            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
-        },
+        "library": {"language": "python", "version": ddtrace.__version__,},
     }
 
 
