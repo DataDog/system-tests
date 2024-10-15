@@ -67,7 +67,7 @@ class Test_Defaults:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @missing_feature(context.library < "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
@@ -140,7 +140,7 @@ class Test_Consistent_Configs:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @missing_feature(context.library < "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
@@ -542,7 +542,7 @@ class Test_TelemetrySCAEnvVar:
         ],
     )
     @missing_feature(
-        context.library <= "python@2.16.0", reason="Converts boolean values to strings",
+        context.library < "python@2.16.0", reason="Converts boolean values to strings",
     )
     def test_telemetry_sca_enabled_propagated(
         self, library_env, specific_libraries_support, outcome_value, test_agent, test_library
@@ -561,7 +561,7 @@ class Test_TelemetrySCAEnvVar:
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @missing_feature(
-        context.library <= "python@2.16.0",
+        context.library < "python@2.16.0",
         reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used",
     )
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
