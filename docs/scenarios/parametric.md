@@ -197,7 +197,7 @@ echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-b
 
 #### NodeJS
 
-There is three ways for running the NodeJS tests with a custom tracer:
+There are three ways for running the NodeJS tests with a custom tracer:
 1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
     - `DataDog/dd-trace-js#master`
 2. Clone the dd-trace-js repo inside `binaries`
