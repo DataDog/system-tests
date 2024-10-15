@@ -189,7 +189,7 @@ onboarding_python:
             test-app-python-container-3.11-alpine,
             test-app-python-container-3.12-alpine,
           ]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
+          SCENARIO: [INSTALLER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [INSTALLER_AUTO_INJECTION_LD_PRELOAD]
