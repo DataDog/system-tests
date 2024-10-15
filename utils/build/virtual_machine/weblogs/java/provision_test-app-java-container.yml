@@ -25,7 +25,6 @@ lang_variant:
 
 weblog:
     name: test-app-java-container
-    #excluded_os_branches: [ amazon_linux2]
     install:
       - os_type: linux
         copy_files:
