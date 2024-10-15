@@ -696,12 +696,6 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
-            self.libddwaf_version = LibraryVersion("libddwaf", libddwaf_version).version
-
-        appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
-
         _set_aws_auth_environment(self)
 
         self._library = LibraryVersion(

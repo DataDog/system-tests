@@ -358,8 +358,8 @@ class Test_DsmSNS:
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
             "nodejs": {
-                "producer": 16856592503221680343,
-                "consumer": 14142566188504140382,
+                "producer": 15466202493380574985,
+                "consumer": 9372735371403270535,
                 "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },

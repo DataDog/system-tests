@@ -64,7 +64,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
         super().__init__(
             name,
             weblog_env={
-                "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+                "DD_TRACE_API_VERSION": "v0.4",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
             },
