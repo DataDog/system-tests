@@ -53,15 +53,25 @@ class IntegrationsScenario(EndToEndScenario):
 
 
 class AWSIntegrationsScenario(EndToEndScenario):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        name="INTEGRATIONS_AWS",
+        doc="Spawns tracer, and agent. Test AWS integrations.",
+        include_kafka=False,
+        include_rabbitmq=False,
+        include_buddies=False,
+    ) -> None:
         super().__init__(
-            "INTEGRATIONS_AWS",
+            name,
             weblog_env={
                 "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
             },
-            doc="Spawns tracer, and agent. Test AWS integrations.",
+            doc=doc,
+            include_kafka=include_kafka,
+            include_rabbitmq=include_rabbitmq,
+            include_buddies=include_buddies,
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
         # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
@@ -72,7 +82,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
     def configure(self, config):
         super().configure(config)
         if not self.replay:
-            self._check_aws_variables(self)
+            self._check_aws_variables()
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
 
 
@@ -80,19 +90,8 @@ class CrossedTracingLibraryScenario(AWSIntegrationsScenario):
     def __init__(self) -> None:
         super().__init__(
             "CROSSED_TRACING_LIBRARIES",
-            weblog_env={
-                "DD_TRACE_API_VERSION": "v0.4",
-                "AWS_ACCESS_KEY_ID": "my-access-key",
-                "AWS_SECRET_ACCESS_KEY": "my-access-key",
-            },
             include_kafka=True,
             include_buddies=True,
             include_rabbitmq=True,
-            doc="Spawns a buddy for each supported language of APM",
-            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
+            doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
         )
-
-        # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
-        # from other tests. This time hash is added to the message, test consumers only stops once finding the specific
-        # message.
-        self.unique_id = None

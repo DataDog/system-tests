@@ -341,7 +341,7 @@ class TestedContainer:
         if os.environ.get("AWS_SESSION_TOKEN"):
             keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
         if os.environ.get("AWS_SECURITY_TOKEN"):
-            keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
+            keys.append(bytearray(os.environ["AWS_SECURITY_TOKEN"], "utf-8"))
 
         # set by CI runner
         if os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"):
@@ -702,10 +702,7 @@ class WeblogContainer(TestedContainer):
         appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
         self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
 
-        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
-        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
-        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
-        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
+        _set_aws_auth_environment(self)
 
         self._library = LibraryVersion(
             self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
