@@ -17,14 +17,15 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
     *     @parametrize_virtual_machines(bugs=[{"vm_branch":"debian","reason": "APMON-1576"}])
     Reason is mandatory for each bug and it MUST reference to a JIRA ticket.
     """
+    if callable(bugs):
+        # here, bugs is not the bug list, but the decorated method
+        raise TypeError(f"Typo in {bugs}'s decorator, you forgot parenthesis. Please use `@decorator()`")
 
     def decorator(func):
-
         parameters = []
-
         for vm in getattr(context.scenario, "required_vms", []):
             bug_found = False
-            if bugs and hasattr(bugs, "__len__") and len(bugs) > 0:
+            if bugs:
                 for bug in bugs:
                     if (
                         (not "vm_name" in bug or vm.name == bug["vm_name"])
