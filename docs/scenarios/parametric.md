@@ -355,7 +355,7 @@ cd utils/parametric
 
 Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
 
-### Architecture
+### Architecture/How System-tests work
 Below is an overview of how the  testing architecture is structured:
 - Shared Tests in Python: We write shared test cases using Python's pytest framework. These tests are designed to be generic and interact with clients through the HTTP interface.
 - HTTP Servers in Docker: For each language client, we build and run an HTTP server within a Docker container. These servers expose the required endpoints defined in the OpenAPI schema and handle the client-specific logic.
