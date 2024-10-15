@@ -20,7 +20,7 @@ lang_variant:
 
 weblog:
     name: test-app-java-alpine
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2]
+    excluded_os_branches: [ amazon_linux2]
     install:
       - os_type: linux
         copy_files:

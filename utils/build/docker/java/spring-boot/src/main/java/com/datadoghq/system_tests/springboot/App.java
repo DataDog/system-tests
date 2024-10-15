@@ -25,6 +25,12 @@ import datadog.trace.api.EventTracker;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
+
+
+import java.nio.charset.StandardCharsets;
+import org.springframework.web.server.ResponseStatusException;
+
+
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -121,6 +127,36 @@ public class App {
         // waiting for that, just set a random value
         response.setHeader("Content-Language", "not-set");
         return "Hello World!";
+    }
+
+    @RequestMapping("/healthcheck")
+    Map<String, Object> healtchcheck() {
+
+        String version;
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+        try (final BufferedReader reader =
+            new BufferedReader(
+                new InputStreamReader(
+                    cl.getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+            String line = reader.readLine();
+            if (line == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+            }
+            version = line;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+        }
+
+        Map<String, String> library = new HashMap<>();
+        library.put("language", "java");
+        library.put("version", version);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "ok");
+        response.put("library", library);
+
+        return response;
     }
 
     @GetMapping("/headers")
