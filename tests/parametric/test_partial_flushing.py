@@ -84,6 +84,10 @@ def do_partial_flush_test(self, test_agent, test_library):
             assert len(partial_trace) == 1
             child_span = find_span(partial_trace, child1.span_id)
             assert child_span["name"] == "child1"
+            # verify the partially flushed chunk has proper "trace level" tags
+            assert child_span["metrics"]["_sampling_priority_v1"] == 1.0
+            assert len(child_span["meta"]["_dd.p.tid"]) > 0
+
 
     traces = test_agent.wait_for_num_traces(1, clear=True)
     full_trace = find_trace(traces, parent_span.trace_id)
