@@ -709,6 +709,7 @@ class WeblogContainer(TestedContainer):
             "java",
             "python_otel",
             "nodejs_otel",
+            "java_otel",
         ):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
@@ -749,6 +750,7 @@ class WeblogContainer(TestedContainer):
             "java",
             "python_otel",
             "nodejs_otel",
+            "java_otel",
         ):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)

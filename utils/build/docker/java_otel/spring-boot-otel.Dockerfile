@@ -4,10 +4,10 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
 
-COPY ./utils/build/docker/java/spring-boot/pom.xml .
+COPY ./utils/build/docker/java_otel/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
-COPY ./utils/build/docker/java/spring-boot/src ./src
+COPY ./utils/build/docker/java_otel/spring-boot/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
 
 COPY ./utils/build/docker/java_otel/install_opentelemetry.sh binaries* /binaries/
