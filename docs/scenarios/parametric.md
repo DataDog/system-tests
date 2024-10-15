@@ -70,7 +70,7 @@ The following dependencies are required to run the tests locally:
 
 ### Running the tests
 
-Build will happen at the beginning of the run statements. 
+Build will happen at the beginning of the run statements.
 
 Run all the tests for a particular tracer library:
 
@@ -190,7 +190,7 @@ From the repo root folder:
 
 #### Python
 
-To run the Python tests against a custom tracer:  
+To run the Python tests against a custom tracer:
 ```bash
 echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-branch>” > binaries/python-load-from-pip
 ```
@@ -309,36 +309,22 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 #### HTTP
 
-An HTTP interface can be used instead of the GRPC. To view the interface run
+We have transitioned to using an HTTP interface, replacing the legacy GRPC interface. To view the HTTP interface, follow these steps:
 
-```
+1. ```
 ./utils/scripts/parametric/run_reference_http.sh
 ```
 
-and navigate to http://localhost:8000/docs. The OpenAPI schema can be downloaded at
-http://localhost:8000/openapi.json. The schema can be imported
-into [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or
-other tooling to assist in development.
+2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
 
+3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
 
 #### Legacy GRPC
+**Important:** The legacy GRPC interface will be **deprecated** and no longer in use. All client interactions and tests will be migrated to use the HTTP interface.
 
-In order to achieve shared tests, we introduce a shared GRPC interface to the clients. Thus, each client need only implement the GRPC interface server and then these shared tests can be run against the library. The GRPC interface implements common APIs across the clients which provide the building blocks for test cases.
+Previously, we used a shared GRPC interface to enable shared testing across different clients. Each client would implement the GRPC interface server, allowing shared tests to be run against the client libraries. The GRPC service definition included methods like StartSpan, FinishSpan, SpanSetMeta, and others, which facilitated span and trace operations.
 
-```proto
-service APMClient {
-  rpc StartSpan(StartSpanArgs) returns (StartSpanReturn) {}
-  rpc FinishSpan(FinishSpanArgs) returns (FinishSpanReturn) {}
-  rpc SpanSetMeta(SpanSetMetaArgs) returns (SpanSetMetaReturn) {}
-  rpc SpanSetMetric(SpanSetMetricArgs) returns (SpanSetMetricReturn) {}
-  rpc SpanSetError(SpanSetErrorArgs) returns (SpanSetErrorReturn) {}
-  rpc InjectHeaders(InjectHeadersArgs) returns (InjectHeadersReturn) {}
-  rpc FlushSpans(FlushSpansArgs) returns (FlushSpansReturn) {}
-  rpc FlushTraceStats(FlushTraceStatsArgs) returns (FlushTraceStatsReturn) {}
-  rpc StopTracer(StopTracerArgs) returns (StopTracerReturn) {}
-}
-```
-#### Updating protos for GRPC
+#### Updating protos for GRPC (will be deprecated)
 
 In order to update the `parametric/protos`, these steps must be followed.
 
@@ -370,13 +356,13 @@ cd utils/parametric
 Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
 
 ### Architecture
+Below is an overview of how the  testing architecture is structured:
+- Shared Tests in Python: We write shared test cases using Python's pytest framework. These tests are designed to be generic and interact with clients through the HTTP interface.
+- HTTP Servers in Docker: For each language client, we build and run an HTTP server within a Docker container. These servers expose the required endpoints defined in the OpenAPI schema and handle the client-specific logic.
+- [Test Agent](https://github.com/DataDog/dd-apm-test-agent/) in Docker: We start a test agent in a separate Docker container. This agent collects data (such as spans and traces) submitted by the HTTP servers. It serves as a centralized point for aggregating and accessing test data.
+- Test Execution: The Python test cases use an HTTP client to communicate with the servers. The servers generate data based on the interactions, which is then sent to the test agent. The tests can query the test agent to retrieve  data and perform assertions to verify correct behavior.
 
-- Shared tests are written in Python (pytest).
-- GRPC/HTTP servers for each language are built and run in docker containers.
-- [test agent](https://github.com/DataDog/dd-apm-test-agent/) is started in a container to collect the data from the GRPC servers.
-
-Test cases are written in Python and target the shared GRPC interface. The tests use a GRPC client to query the servers and the servers generate the data which is submitted to the test agent. Test cases can then query the data from the test agent to perform assertions.
-
+This architecture allows us to ensure that all clients conform to the same interface and behavior, making it easier to maintain consistency across different languages and implementations.
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
 
