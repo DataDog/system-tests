@@ -30,7 +30,7 @@ weblog:
     name: test-app-ruby
     # centos_7_amd64, redhat_8_6, & fedora are excluded because they do not provide the right Ruby versions
     # TODO oracle_linux and alma_linux. Failed when we run the app. Related with how we install Ruby
-    excluded_os_branches: [ubuntu18_amd64, amazon_linux2, centos_7_amd64, oracle_linux, alma_linux, ubuntu24, ubuntu20_amd64,ubuntu20_arm64, ubuntu21, ubuntu23, redhat_8_6, fedora]
+    excluded_os_branches: [ amazon_linux2, centos_7_amd64, oracle_linux, alma_linux, redhat_8_6, fedora]
     install:
       - os_type: linux
 
