@@ -18,6 +18,7 @@ from utils.tools import logger
 
 # Kafka specific
 DSM_CONSUMER_GROUP = "testgroup1"
+DSM_KAFKA_CLUSTER_ID = "r4zt_wrqTRuT7W2NJsB_GA"
 
 # RabbitMQ Specific
 DSM_EXCHANGE = "dsm-system-tests-exchange"
@@ -84,6 +85,51 @@ class Test_DsmKafka:
         )
         DsmHelper.assert_checkpoint_presence(
             hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
+        )
+
+
+@features.datastreams_monitoring_support_for_kafka
+@scenarios.integrations
+class Test_DsmKafka_with_ClusterId:
+    """ Verify DSM stats points for Kafka ensuring cluster id is also included """
+
+    def setup_dsm_kafka(self):
+        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
+
+    def test_dsm_kafka(self):
+        assert self.r.text == "ok"
+
+        # Hashes are created by applying the FNV-1 algorithm on
+        # checkpoint strings (e.g. service:foo)
+        # There is currently no FNV-1 library availble for node.js
+        # So we are using a different algorithm for node.js for now
+        language_hashes = {
+            "default": {
+                "producer": 4463699290244539355,
+                "consumer": 3735318893869752335,
+                "edge_tags_in": (
+                    "direction:in",
+                    f"group:{DSM_CONSUMER_GROUP}",
+                    f"kafka_cluster_id:{DSM_KAFKA_CLUSTER_ID}",
+                    f"topic:{DSM_QUEUE}",
+                    "type:kafka"
+                ),
+                "edge_tags_out": (
+                    "direction:out", f"kafka_cluster_id:{DSM_KAFKA_CLUSTER_ID}", f"topic:{DSM_QUEUE}", "type:kafka"
+                )
+            },
+        }
+
+        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
+        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_out"]
+
+        DsmHelper.assert_checkpoint_presence(
+            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
+        )
+        DsmHelper.assert_checkpoint_presence(
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
 
 

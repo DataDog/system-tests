@@ -420,6 +420,9 @@ tests/:
       Test_DsmKafka:
         "*": irrelevant
         net-http: v0.1  # real version unknown
+      Test_DsmKafka_with_ClusterId:
+        "*": irrelevant
+        net-http: missing_feature
       Test_DsmKinesis:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)

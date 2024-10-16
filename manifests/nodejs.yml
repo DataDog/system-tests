@@ -528,6 +528,9 @@ tests/:
       Test_DsmKafka:
         '*': *ref_4_4_0
         nextjs: missing_feature (missing endpoint)
+      Test_DsmKafka_with_ClusterId:
+        '*':  missing_feature
+        nextjs: missing_feature (missing endpoint)
       Test_DsmKinesis:
         '*': irrelevant
         express4: *ref_5_2_0

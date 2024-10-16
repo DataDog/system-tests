@@ -655,6 +655,9 @@ tests/:
       Test_DsmKafka:
         '*': irrelevant
         flask-poc: v1.20.3
+      Test_DsmKafka_with_ClusterId:
+        '*': irrelevant
+        flask-poc: missing_feature
       Test_DsmKinesis:
         '*': irrelevant
         flask-poc: v2.8.0.dev
