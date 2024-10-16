@@ -49,8 +49,9 @@ puts 'Loading server classes...'
 
 set :port, 4567
 
-spans = {}
+dd_spans = {}
 otel_spans = {}
+dd_traces = {}
 
 class StartSpanArgs
   attr_accessor :parent_id, :name, :service, :type, :resource, :origin, :http_headers, :links
@@ -459,6 +460,13 @@ def parse_dd_link(link)
   )
 end
 
+def find_span(span_id)
+  span = Datadog::Tracing.active_span
+  raise 'Request span is not the active span' unless span && span.id == span_id
+
+  span
+end
+
 post '/trace/span/start' do
   args = StartSpanArgs.new(JSON.parse(request.body.read))
 
@@ -493,8 +501,8 @@ post '/trace/span/start' do
     parse_dd_link(link)
   end if args.span_links.size > 0
 
-  @dd_spans[span.id] = span
-  @dd_traces[span.trace_id] = Datadog::Tracing.active_trace
+  dd_spans[span.id] = span
+  dd_traces[span.trace_id] = Datadog::Tracing.active_trace
 
   StartSpanReturn.new(span.span_id, span.trace_id).to_json
 
@@ -509,21 +517,19 @@ post '/trace/span/finish' do
 end
 
 get '/trace/config' do
-  config = {
-    'dd_service' => Datadog.configuration.service,
-    'dd_log_level' => nil,
-    'dd_trace_sample_rate' => Datadog.configuration.tracer.sample_rate.to_s,
-    'dd_trace_enabled' => Datadog.configuration.tracer.enabled.to_s,
-    'dd_runtime_metrics_enabled' => Datadog.configuration.runtime_metrics.enabled.to_s,
-    'dd_tags' => Datadog.configuration.tags.map { |k, v| "#{k}:#{v}" }.join(','),
-    'dd_trace_propagation_style' => Datadog.configuration.tracer.propagation_style.join(','),
-    'dd_trace_debug' => Datadog.configuration.tracer.debug.to_s,
-    'dd_trace_otel_enabled' => Datadog.configuration.tracer.otel_enabled.to_s,
-    'dd_trace_sample_ignore_parent' => nil,
-    'dd_env' => Datadog.configuration.env,
-    'dd_version' => Datadog.configuration.version,
-    'dd_trace_rate_limit' => Datadog.configuration.tracer.rate_limit.to_s
-  }
+  config = {}
+
+  Datadog.configure do |c|
+    config["dd_service"] = c.service || ""
+    config["dd_trace_sample_rate"] = c.tracing.sampling.default_rate.to_s
+    config["dd_trace_enabled"] = c.tracing.enabled.to_s
+    config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s # x
+    config["dd_trace_propagation_style"] = c.tracing.propagation_style.join(",")
+    config["dd_trace_debug"] = c.diagnostics.debug.to_s
+    config["dd_env"] = c.env || ""
+    config["dd_version"] = c.version || ""
+    config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
+  end
   TraceConfigReturn.new(config).to_json
 end
 
@@ -537,215 +543,69 @@ end
 
 post '/trace/span/set_metric' do
   args = SpanSetMetricArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
+  span = find_span(args.span_id)
   span.set_metric(args.key, args.value)
   SpanSetMetricReturn.new.to_json
 end
 
 post '/trace/span/inject_headers' do
   args = SpanInjectArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  headers = {}
-  if get_ddtrace_version >= Gem::Version.new('2.8.0')
-    Datadog::HTTPPropagator.inject(span.context, headers, span)
-  else
-    Datadog::HTTPPropagator.inject(span.context, headers)
-  end
-  SpanInjectReturn.new(headers.to_a).to_json
-end
-
-post '/trace/span/flush' do
-  args = TraceSpansFlushArgs.new(JSON.parse(request.body.read))
-  Datadog.tracer.flush
-  TraceSpansFlushReturn.new.to_json
-end
-
-post '/trace/stats/flush' do
-  args = TraceStatsFlushArgs.new(JSON.parse(request.body.read))
-  stats_proc = Datadog.tracer.span_processors.select do |p|
-    p.is_a?(Datadog::SpanStatsProcessorV06)
-  end
-  stats_proc.first.periodic if stats_proc.any?
-  TraceStatsFlushReturn.new.to_json
-end
-
-post '/trace/span/error' do
-  args = TraceSpanErrorArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  span.set_tag(Datadog::Ext::Errors::MSG, args.message)
-  span.set_tag(Datadog::Ext::Errors::TYPE, args.type)
-  span.set_tag(Datadog::Ext::Errors::STACK, args.stack)
-  span.set_error(true)
-  TraceSpanErrorReturn.new.to_json
-end
-
-post '/trace/span/add_link' do
-  args = TraceSpanAddLinksArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  linked_span = spans[args.parent_id]
-  span.link_span(linked_span.context, attributes: args.attributes)
-  TraceSpanAddLinkReturn.new.to_json
-end
-
-post '/http/client/request' do
-  args = HttpClientRequestArgs.new(JSON.parse(request.body.read))
-  integration_config = Datadog.configuration[:http]
-  request_headers = args.headers.to_h
-  response_headers = { 'Content-Length' => '14' }
-  Datadog.tracer.trace('fake-request') do |request_span|
-    Datadog::Contrib::HTTP::Ext::Distributed::Headers.inject!(request_span, integration_config, request_headers, response_headers)
-    spans[request_span.span_id] = request_span
-  end
-  Datadog.configuration[:http].reset!
-  HttpClientRequestReturn.new.to_json
-end
-
-post '/trace/span/start' do
-  args = StartSpanArgs.new(JSON.parse(request.body.read))
-  parent = args.parent_id ? spans[args.parent_id] : nil
-
-  if args.origin != ''
-    trace_id = parent ? parent.trace_id : nil
-    parent_id = parent ? parent.span_id : nil
-    parent = Datadog::Context.new(trace_id: trace_id, span_id: parent_id, dd_origin: args.origin)
-  end
-
-  if args.service == ''
-    args.service = nil
-  end
-
-  if args.http_headers.any?
-    headers = args.http_headers.to_h
-    parent = Datadog::HTTPPropagator.extract(headers)
-  end
-
-  span = Datadog.tracer.trace(args.name, service: args.service, span_type: args.type, resource: args.resource, child_of: parent, activate: true)
-  args.links.each do |link|
-    link_parent_id = link['parent_id']
-    if link_parent_id > 0
-      link_parent = spans[link_parent_id]
-      span.link_span(link_parent.context, link['attributes'])
+  find_span(args.span_id)
+  env = {}
+    if Datadog::Tracing::Contrib::HTTP.respond_to?(:inject)
+      Datadog::Tracing::Contrib::HTTP.inject(Datadog::Tracing.active_trace.to_digest, env)
     else
-      headers = link['http_headers'].to_h
-      context = Datadog::HTTPPropagator.extract(headers)
-      span.link_span(context, link['attributes'])
+      Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest, env)
     end
-  end
 
-  spans[span.span_id] = span
-  StartSpanReturn.new(span.span_id, span.trace_id).to_json
-end
-
-post '/trace/span/finish' do
-  args = SpanFinishArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  span.finish
-  SpanFinishReturn.new.to_json
-end
-
-get '/trace/config' do
-  config = {
-    'dd_service' => Datadog.configuration.service,
-    'dd_log_level' => nil,
-    'dd_trace_sample_rate' => Datadog.configuration.tracer.sample_rate.to_s,
-    'dd_trace_enabled' => Datadog.configuration.tracer.enabled.to_s,
-    'dd_runtime_metrics_enabled' => Datadog.configuration.runtime_metrics.enabled.to_s,
-    'dd_tags' => Datadog.configuration.tags.map { |k, v| "#{k}:#{v}" }.join(','),
-    'dd_trace_propagation_style' => Datadog.configuration.tracer.propagation_style.join(','),
-    'dd_trace_debug' => Datadog.configuration.tracer.debug.to_s,
-    'dd_trace_otel_enabled' => Datadog.configuration.tracer.otel_enabled.to_s,
-    'dd_trace_sample_ignore_parent' => nil,
-    'dd_env' => Datadog.configuration.env,
-    'dd_version' => Datadog.configuration.version,
-    'dd_trace_rate_limit' => Datadog.configuration.tracer.rate_limit.to_s
-  }
-  TraceConfigReturn.new(config).to_json
-end
-
-post '/trace/span/set_meta' do
-  args = SpanSetMetaArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  span.set_tag(args.key, args.value)
-  SpanSetMetaReturn.new.to_json
-end
-
-
-post '/trace/span/set_metric' do
-  args = SpanSetMetricArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  span.set_metric(args.key, args.value)
-  SpanSetMetricReturn.new.to_json
-end
-
-post '/trace/span/inject_headers' do
-  args = SpanInjectArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  headers = {}
-  if get_ddtrace_version >= Gem::Version.new('2.8.0')
-    Datadog::HTTPPropagator.inject(span.context, headers, span)
-  else
-    Datadog::HTTPPropagator.inject(span.context, headers)
-  end
-  SpanInjectReturn.new(headers.to_a).to_json
+    tuples = env.map do |key, value|
+      HeaderTuple.new(key:, value:)
+    end
+  SpanInjectReturn.new(http_headers: DistributedHTTPHeaders.new(http_headers: tuples))
 end
 
 post '/trace/span/flush' do
-  args = TraceSpansFlushArgs.new(JSON.parse(request.body.read))
-  Datadog.tracer.flush
+  wait_for_flush(5)
+
   TraceSpansFlushReturn.new.to_json
 end
 
 post '/trace/stats/flush' do
-  args = TraceStatsFlushArgs.new(JSON.parse(request.body.read))
-  stats_proc = Datadog.tracer.span_processors.select do |p|
-    p.is_a?(Datadog::SpanStatsProcessorV06)
-  end
-  stats_proc.first.periodic if stats_proc.any?
   TraceStatsFlushReturn.new.to_json
 end
 
 post '/trace/span/error' do
   args = TraceSpanErrorArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  span.set_tag(Datadog::Ext::Errors::MSG, args.message)
-  span.set_tag(Datadog::Ext::Errors::TYPE, args.type)
-  span.set_tag(Datadog::Ext::Errors::STACK, args.stack)
-  span.set_error(true)
+  span = find_span(args.span_id)
+  span.set_error([
+                     args.type,
+                     args.message,
+                     args.stack,
+                   ])
   TraceSpanErrorReturn.new.to_json
 end
 
 post '/trace/span/add_link' do
   args = TraceSpanAddLinksArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  linked_span = spans[args.parent_id]
-  span.link_span(linked_span.context, attributes: args.attributes)
+  link = parse_dd_link(args.span_link)
+  dd_spans[args.span_id].links.push(link)
   TraceSpanAddLinkReturn.new.to_json
 end
 
 post '/http/client/request' do
-  content_type :json
-  args = JSON.parse(request.body.read, symbolize_names: true)
-  
-  integration_config = config.falcon
-  request_headers = args[:headers].to_h
-  response_headers = { "Content-Length" => "14" }
-  
-  request_span = ddtrace.tracer.trace("fake-request") do |span|
-    set_http_meta(span, integration_config, request_headers: request_headers, response_headers: response_headers)
-    spans[span.span_id] = span
+  url = URI(args.url)
+  headers = args.headers.http_headers.map{|x|[x.key, x.value] }.to_h
+  method = args.to_h[:method]
+
+  request_class = Net::HTTP.const_get(method.capitalize)
+  request = request_class.new(url, headers).tap { |r| r.body = args.body }
+
+  Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
+    http.request(request)
   end
-  
-  config.http._reset
-  config._header_tag_name.invalidate
-  
   HttpClientRequestReturn.new.to_json
 end
 
-  
-  def to_json(*_args)
-    { span_id: @span_id, trace_id: @trace_id }.to_json
-  end
-end
 
 post '/trace/otel/start_span' do
   content_type :json
@@ -1050,4 +910,18 @@ end
 
 def get_ddtrace_version
   Gem::Version.new(DDTrace::VERSION)
+end
+
+def wait_for_flush(seconds)
+  return true unless (worker = Datadog.send(:components).tracer.writer.worker)
+
+  count = 0
+  sleep_time = seconds / 100.0
+  until worker.trace_buffer&.empty?
+    sleep sleep_time
+    count += 1
+    return false if count >= 100
+  end
+
+  true
 end
