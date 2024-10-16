@@ -538,7 +538,7 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang"), True),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, False),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang"), False),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), None),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), False),
         ],
     )
     @missing_feature(
@@ -557,6 +557,8 @@ class Test_TelemetrySCAEnvVar:
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
         assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
 
+        if context.library == "java":
+            outcome_value = str(outcome_value).lower()
         assert cfg_appsec_enabled.get("value") == outcome_value
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
