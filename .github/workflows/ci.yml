@@ -69,9 +69,8 @@ jobs:
       - name: Get library artifact
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
 
-      # https://datadoghq.atlassian.net/browse/AMLII-2060
-      # - name: Get agent artifact
-      #   run: ./utils/scripts/load-binary.sh agent
+      - name: Get agent artifact
+        run: ./utils/scripts/load-binary.sh agent
 
       # ### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
       # ### skipping this, waiting for a proper solution

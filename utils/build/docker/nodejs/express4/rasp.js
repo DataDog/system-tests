@@ -1,5 +1,6 @@
 'use strict'
 
+const { statSync } = require('fs')
 const http = require('http')
 const pg = require('pg')
 
@@ -58,6 +59,34 @@ function initRaspEndpoints (app) {
     }
 
     res.end('end')
+  })
+
+  app.get('/rasp/lfi', (req, res) => {
+    let result
+    try {
+      result = JSON.stringify(statSync(req.query.file))
+    } catch (e) {
+      result = e.toString()
+
+      if (e.name === 'DatadogRaspAbortError') {
+        throw e
+      }
+    }
+    res.send(result)
+  })
+
+  app.post('/rasp/lfi', (req, res) => {
+    let result
+    try {
+      result = JSON.stringify(statSync(req.body.file))
+    } catch (e) {
+      result = e.toString()
+
+      if (e.name === 'DatadogRaspAbortError') {
+        throw e
+      }
+    }
+    res.send(result)
   })
 }
 module.exports = initRaspEndpoints
