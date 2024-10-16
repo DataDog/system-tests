@@ -1,4 +1,3 @@
-import os
 import json
 
 import pytest
@@ -624,6 +623,15 @@ class scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
+    )
+
+    container_auto_injection_install_script_crashtracking = InstallerAutoInjectionScenario(
+        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_CRASHTRACKING",
+        "Onboarding Container Single Step Instrumentation crashtracking scenario using agent auto install script",
+        vm_provision="container-auto-inject-install-script",
+        app_env={"DD_CRASHTRACKING_ENABLED": "true"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )

@@ -1,8 +1,9 @@
 import os
 import pytest
 from utils.tools import logger
-from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
+from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, request_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
+from utils.onboarding.backend_interface import cause_and_verify_crash
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
 from utils import context
@@ -17,22 +18,12 @@ class AutoInjectBaseTest:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
-        request_uuid = None
-        if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
-            logger.info(
-                "We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
-            )
-            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
-        else:
-            logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
-            wait_for_port(vm_port, vm_ip, 80.0)
-            logger.info(f"[{vm_ip}]: Weblog app is ready!")
-            warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-            logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
-            request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
+        request_uuid = request_weblog(virtual_machine, vm_ip, vm_port)
 
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, 120.0, profile=profile, crashlog=crashlog)
+        runtime_id = wait_backend_trace_id(request_uuid, 120.0, profile=profile)
+        if crashlog:
+            cause_and_verify_crash(runtime_id, vm_ip, vm_port)
 
     def close_channel(self, channel):
         try:

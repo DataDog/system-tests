@@ -2,9 +2,11 @@ import functools
 import os
 import time
 from typing import Callable
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 import requests
 from utils.tools import logger
+from utils.onboarding.weblog_interface import make_get_request
 
 
 def _headers():
@@ -130,7 +132,7 @@ def wait_backend_data(
     appsec: bool = False,
     crashlog: bool = False,
     validator=None,
-):
+) -> Optional[str]:
     runtime_id = None
     if trace_id is not None:
         status, runtime_id = _retry_request_until_timeout(
@@ -140,9 +142,14 @@ def wait_backend_data(
     if profile and runtime_id is not None:
         (status,) = _retry_request_until_timeout(functools.partial(_query_for_profile(runtime_id)))
         logger.info(f"profile for trace [{trace_id}] (runtime [{runtime_id}]) found in the backend!")
-    if crashlog and runtime_id is not None:
-        (status,) = _retry_request_until_timeout(functools.partial(_query_for_crash_log(runtime_id)))
-        logger.info(f"crash from runtime {runtime_id} found in the backend!")
+    return runtime_id
 
 
 wait_backend_trace_id = wait_backend_data
+
+
+def cause_and_verify_crash(runtime_id: str, vm_ip: str, vm_port: str):
+    logger.info(f"Making a crash-inducing request to weblog [{vm_ip}:{vm_port}]")
+    make_get_request(f"http://{vm_ip}:{vm_port}/crashme")
+    (status,) = _retry_request_until_timeout(functools.partial(_query_for_crash_log(runtime_id)))
+    logger.info(f"crash from runtime {runtime_id} found in the backend!")
