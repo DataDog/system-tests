@@ -424,41 +424,82 @@ def get_ddtrace_version
   Gem::Version.new(Datadog::VERSION)
 end
 
+def extract_http_headers(headers)
+  if Datadog::Tracing::Contrib::HTTP.respond_to?(:extract)
+    Datadog::Tracing::Contrib::HTTP.extract(headers.to_h)
+  else
+    Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.extract(headers.to_h)
+  end
+end
+
+
+
+def parse_dd_link(link)
+  link_dg = if link.http_headers != nil && link.http_headers.http_headers.size != nil
+              headers = link.http_headers.http_headers.group_by(&:key).map do |name, values|
+                          [name, values.map(&:value).join(', ')]
+                        end
+              extract_http_headers(headers)
+            elsif @dd_spans.key?(link.parent_id)
+              span_op = @dd_spans[link.parent_id]
+              trace_op = @dd_traces[span_op.trace_id]
+              Datadog::Tracing::TraceDigest.new(
+                span_id: span_op.id,
+                trace_id: span_op.trace_id,
+                trace_sampling_priority: trace_op.sampling_priority,
+                trace_flags: trace_op.sampling_priority && trace_op.sampling_priority > 0 ? 1 : 0,
+                trace_state: trace_op.trace_state
+              )
+            else
+              raise "Span id in #{link} not found in span list: #{@dd_spans}"
+            end
+  Datadog::Tracing::SpanLink.new(
+    link_dg,
+    attributes: link['attributes']
+  )
+end
+
 post '/trace/span/start' do
   args = StartSpanArgs.new(JSON.parse(request.body.read))
-  parent = args.parent_id ? spans[args.parent_id] : nil
 
-  if args.origin != ''
-    trace_id = parent ? parent.trace_id : nil
-    parent_id = parent ? parent.span_id : nil
-    parent = Datadog::Context.new(trace_id: trace_id, span_id: parent_id, dd_origin: args.origin)
-  end
-
-  if args.service == ''
-    args.service = nil
-  end
-
-  if args.http_headers.any?
-    headers = args.http_headers.to_h
-    parent = Datadog::HTTPPropagator.extract(headers)
-  end
-
-  span = Datadog.tracer.trace(args.name, service: args.service, span_type: args.type, resource: args.resource, child_of: parent, activate: true)
-  args.links.each do |link|
-    link_parent_id = link['parent_id']
-    if link_parent_id > 0
-      link_parent = spans[link_parent_id]
-      span.link_span(link_parent.context, link['attributes'])
+  digest = if args.http_headers.http_headers.size != 0
+    # Emulate how Rack headers concatenates header with duplicate values with a `, `.
+    headers = args.http_headers.http_headers.group_by(&:key).map do |name, values|
+      [name, values.map(&:value).join(', ')]
+    end
+    extract_http_headers(headers)
+  elsif !args.origin.empty? || args.parent_id != 0
+    # DEV: Parametric tests do not differentiate between a distributed span request from a span parenting request.
+    # DEV: We have to consider the parent_id being present present and origin being absent as a span parenting request.
+    # DEV: This is incorrect because a distributed request can have an absent origin.
+    if !args.origin.empty?
+      Datadog::Tracing::TraceDigest.new(trace_origin: args.origin, span_id: args.parent_id)
     else
-      headers = link['http_headers'].to_h
-      context = Datadog::HTTPPropagator.extract(headers)
-      span.link_span(context, link['attributes'])
+      unless Datadog::Tracing.active_span&.id == args.parent_id
+        raise "active parent span id (#{Datadog::Tracing.active_span&.id}) does not match requested parent_id (#{args.parent_id})"
+      end
     end
   end
 
-  spans[span.span_id] = span
+  span = Datadog::Tracing.trace(
+    args.name,
+    service: args.service,
+    resource: args.resource,
+    type: args.type,
+    continue_from: digest,
+  )
+
+  span.links = args.links do |link|
+    parse_dd_link(link)
+  end if args.span_links.size > 0
+
+  @dd_spans[span.id] = span
+  @dd_traces[span.trace_id] = Datadog::Tracing.active_trace
+
   StartSpanReturn.new(span.span_id, span.trace_id).to_json
+
 end
+
 
 post '/trace/span/finish' do
   args = SpanFinishArgs.new(JSON.parse(request.body.read))
