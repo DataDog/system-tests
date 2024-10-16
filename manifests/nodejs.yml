@@ -369,7 +369,9 @@ tests/:
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         nextjs: missing_feature
-      Test_Blocking_request_body_multipart: missing_feature
+      Test_Blocking_request_body_multipart:
+        '*': *ref_5_24_0
+        nextjs: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
         nextjs: missing_feature
