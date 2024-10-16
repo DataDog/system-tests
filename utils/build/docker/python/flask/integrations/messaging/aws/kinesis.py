@@ -17,6 +17,8 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
     message = json.dumps({"message": message})
 
     start = time.time()
+    message_sent = False
+    exc = None
 
     while not message_sent and time.time() < start + timeout:
         try:
@@ -24,9 +26,6 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
             logging.info(f"[Kinesis] Created Kinesis Stream with name: {stream}")
         except Exception as e:
             logging.info(f"[Kinesis] Error during Python Kinesis create stream: {str(e)}")
-
-        message_sent = False
-        exc = None
 
         # loop to ensure that message is sent, the kinesis stream may be becoming active and if not active can error out
         try:
