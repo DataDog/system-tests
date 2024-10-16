@@ -156,7 +156,6 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
 
-
 @lru_cache
 def _get_aws_session():
     # set AWS credentials for runner, either using 'SYSTEM_TESTS_AWS...' vars or default vars
