@@ -378,7 +378,7 @@ onboarding_simple_tests:
     - when: manual
   variables:
     TEST_LIBRARY: "ruby"
-    SKIP_AMI_CACHE: "true"
+    AMI_UPDATE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [prod]
