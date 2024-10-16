@@ -124,11 +124,11 @@
   os_distro: rpm
   remote-command: |
     #Allow DD env variables from ssh
-    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
+    echo -e '\nAcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
     sudo id -u datadog &>/dev/null || sudo useradd -m datadog
     sudo yum clean expire-cache
     #sudo yum -y update
-    sudo systemctl restart sshd.service
+    sudo systemctl restart sshd.service || sudo service sshd restart
     #Install git and clone system tests repository
     sudo yum -y install git wget
     git clone https://github.com/DataDog/system-tests.git
