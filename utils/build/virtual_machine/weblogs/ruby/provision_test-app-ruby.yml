@@ -19,18 +19,23 @@ lang_variant:
         os_distro: rpm
         remote-command: |
           sudo yum remove rubygem-bundler || true
-          sudo yum install -y gcc libyaml-devel
-          sudo amazon-linux-extras install -y ruby3.0
-          sudo yum install -y ruby-devel
-          sudo yum groupinstall -y "Development Tools"
-          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install rails
-          sudo DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.26'
+          sudo yum install -y gcc libyaml-devel curl
+          sudo yum install openssl-devel -y
+
+          #sudo yum install -y git curl libssl-dev libreadline-dev zlib1g-dev autoconf bison build-essential libyaml-dev libreadline-dev libncurses5-dev libffi-dev libgdbm-dev
+          curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
+          export PATH=~/.rbenv/bin/:~/.rbenv/shims:$PATH
+          curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
+          rbenv install 3.0.2 --verbose
+          rbenv global 3.0.2
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
+
 
 weblog:
     name: test-app-ruby
     # centos_7_amd64, redhat_8_6, & fedora are excluded because they do not provide the right Ruby versions
     # TODO oracle_linux and alma_linux. Failed when we run the app. Related with how we install Ruby
-    excluded_os_branches: [ amazon_linux2, centos_7_amd64, oracle_linux, alma_linux, redhat_8_6, fedora]
+    excluded_os_branches: [ oracle_linux, alma_linux, fedora]
     install:
       - os_type: linux
 
