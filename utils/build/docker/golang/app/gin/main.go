@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
@@ -27,7 +28,6 @@ func main() {
 
 	r := gin.New()
 	r.Use(gintrace.Middleware("weblog"))
-	r.Use(gintrace.Middleware(""))
 
 	r.Any("/", func(ctx *gin.Context) {
 		ctx.Writer.WriteHeader(http.StatusOK)
@@ -110,18 +110,37 @@ func main() {
 	})
 
 	r.Any("/make_distant_call", func(ctx *gin.Context) {
-		if url := ctx.Request.URL.Query().Get("url"); url != "" {
-
-			client := httptrace.WrapClient(http.DefaultClient)
-			req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
-			_, err := client.Do(req)
-
-			if err != nil {
-				log.Fatalln(err)
-				ctx.Writer.WriteHeader(500)
-			}
+		url := ctx.Request.URL.Query().Get("url")
+		if url == "" {
+			ctx.Writer.Write([]byte("OK"))
+			return
 		}
-		ctx.Writer.Write([]byte("OK"))
+
+		client := httptrace.WrapClient(http.DefaultClient)
+		req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[key] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		ctx.JSON(200, struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
 	})
 
 	r.Any("/headers/", headers)

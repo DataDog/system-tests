@@ -698,7 +698,19 @@ class WeblogContainer(TestedContainer):
         )
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("cpp", "dotnet", "nodejs", "php", "python", "golang", "ruby"):
+        if self.library in (
+            "cpp",
+            "dotnet",
+            "nodejs",
+            "php",
+            "python",
+            "golang",
+            "ruby",
+            "java",
+            "python_otel",
+            "nodejs_otel",
+            "java_otel",
+        ):
             self.healthcheck = {
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
@@ -727,7 +739,19 @@ class WeblogContainer(TestedContainer):
 
         # new way of getting info from the weblog. Only working for nodejs and python right now
         # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("cpp", "dotnet", "nodejs", "python", "php", "golang", "ruby"):
+        if self.library in (
+            "cpp",
+            "dotnet",
+            "nodejs",
+            "python",
+            "php",
+            "golang",
+            "ruby",
+            "java",
+            "python_otel",
+            "nodejs_otel",
+            "java_otel",
+        ):
             with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 lib = data["library"]
@@ -924,7 +948,7 @@ class MsSqlServerContainer(SqlDbTestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
+        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
 
         if "DOCKER_HOST" in os.environ:

@@ -33,7 +33,7 @@ RUN npm install --save @opentelemetry/auto-instrumentations-node
 RUN npm install @opentelemetry/instrumentation-mysql2
 RUN npm install --save opentelemetry-instrumentation-mssql
 
-RUN npm list --json | jq -r '.dependencies."@opentelemetry/auto-instrumentations-node".version' > SYSTEM_TESTS_LIBRARY_VERSION
+RUN touch SYSTEM_TESTS_LIBRARY_VERSION
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
