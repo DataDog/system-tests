@@ -321,12 +321,8 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
     test_automated_login_events.py:
-      Test_Login_Events:
-        '*': *ref_4_4_0
-        nextjs: missing_feature
-      Test_Login_Events_Extended:
-        '*': *ref_4_4_0
-        nextjs: missing_feature
+      Test_Login_Events: irrelevant
+      Test_Login_Events_Extended: irrelevant
       Test_V2_Login_Events: *ref_5_24_0
       Test_V2_Login_Events_Anon: *ref_5_24_0
       Test_V2_Login_Events_RC: *ref_5_24_0

@@ -798,7 +798,7 @@ class Test_V2_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
             assert "appsec.events.users.login.failure.usr.id" in meta
-            if context.library == "java":
+            if context.library in ["java", "nodejs",]:
                 # in case of failure java only has access to the original username sent in the request
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
             else:
@@ -826,7 +826,7 @@ class Test_V2_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
             assert "appsec.events.users.login.failure.usr.id" in meta
-            if context.library == "java":
+            if context.library in ["java", "nodejs",]:
                 # in case of failure java only has access to the original username sent in the request
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
             else:
