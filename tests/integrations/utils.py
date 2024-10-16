@@ -8,9 +8,8 @@ from typing import Callable
 import boto3
 import botocore.exceptions
 
-from utils import weblog, interfaces
+from utils import weblog, interfaces, scenarios
 from utils.tools import logger
-from utils._context._scenarios.endtoend import AWS_BAD_CREDENTIALS_MSG
 
 
 class BaseDbIntegrationsTestClass:
@@ -223,7 +222,7 @@ def delete_sqs_queue(queue_name):
         )
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(AWS_BAD_CREDENTIALS_MSG)
+            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
             return
         else:
             logger.exception(f"Unexpected error while deleting AWS resources {e}")
@@ -239,7 +238,7 @@ def delete_sns_topic(topic_name):
         delete_aws_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(AWS_BAD_CREDENTIALS_MSG)
+            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
             return
         else:
             logger.exception(f"Unexpected error while deleting AWS resources {e}")
@@ -253,7 +252,7 @@ def delete_kinesis_stream(stream_name):
         delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(AWS_BAD_CREDENTIALS_MSG)
+            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
             return
         else:
             logger.exception(f"Unexpected error while deleting AWS resources {e}")
