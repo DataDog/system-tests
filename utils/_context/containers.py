@@ -6,7 +6,6 @@ from pathlib import Path
 from subprocess import run
 import time
 from functools import lru_cache
-import platform
 from threading import RLock, Thread
 
 import docker
@@ -65,6 +64,7 @@ def create_inject_volume():
 
 
 class TestedContainer:
+    _container: Container
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
@@ -95,7 +95,6 @@ class TestedContainer:
 
         self.environment = environment or {}
         self.kwargs = kwargs
-        self._container = None
         self.depends_on: list[TestedContainer] = []
         self._starting_lock = RLock()
         self._starting_thread = None
@@ -482,16 +481,18 @@ class ProxyContainer(TestedContainer):
 
 
 class AgentContainer(TestedContainer):
-    def __init__(self, host_log_folder, use_proxy=True) -> None:
+    def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
 
-        environment = {
-            "DD_ENV": "system-tests",
-            "DD_HOSTNAME": "test",
-            "DD_SITE": self.dd_site,
-            "DD_APM_RECEIVER_PORT": self.agent_port,
-            "DD_DOGSTATSD_PORT": "8125",
-            "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
-        }
+        environment = environment or {}
+        environment.update(
+            {
+                "DD_ENV": "system-tests",
+                "DD_HOSTNAME": "test",
+                "DD_SITE": self.dd_site,
+                "DD_APM_RECEIVER_PORT": self.agent_port,
+                "DD_DOGSTATSD_PORT": "8125",
+            }
+        )
 
         if use_proxy:
             environment["DD_PROXY_HTTPS"] = "http://proxy:8126"

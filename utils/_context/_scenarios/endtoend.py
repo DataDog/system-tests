@@ -175,6 +175,7 @@ class EndToEndScenario(DockerScenario):
         scenario_groups=None,
         weblog_env=None,
         weblog_volumes=None,
+        agent_env=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
         appsec_enabled=True,
@@ -214,7 +215,9 @@ class EndToEndScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
         )
 
-        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
+        self.agent_container = AgentContainer(
+            host_log_folder=self.host_log_folder, use_proxy=use_proxy, environment=agent_env
+        )
 
         if self.use_proxy:
             self.agent_container.depends_on.append(self.proxy_container)

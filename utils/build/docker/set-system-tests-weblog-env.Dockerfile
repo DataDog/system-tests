@@ -7,8 +7,6 @@ ENV DD_TAGS='key1:val1, key2 : val2 '
 ENV DD_ENV=system-tests
 ENV DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
 
-ENV SOME_SECRET_ENV=leaked-env-var
-
 # 10 seconds
 ENV DD_APPSEC_WAF_TIMEOUT=10000000
 ENV DD_APPSEC_TRACE_RATE_LIMIT=10000
