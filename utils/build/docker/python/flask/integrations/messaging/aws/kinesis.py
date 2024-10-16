@@ -16,18 +16,18 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
     # we only allow injection into JSON messages encoded as a string
     message = json.dumps({"message": message})
 
-    try:
-        kinesis.create_stream(StreamName=stream, ShardCount=1)
-        logging.info(f"[Kinesis] Created Kinesis Stream with name: {stream}")
-    except Exception as e:
-        logging.info(f"[Kinesis] Error during Python Kinesis create stream: {str(e)}")
+    start = time.time()
 
-    message_sent = False
-    exc = None
+    while not message_sent and time.time() < start + timeout:
+        try:
+            kinesis.create_stream(StreamName=stream, ShardCount=1)
+            logging.info(f"[Kinesis] Created Kinesis Stream with name: {stream}")
+        except Exception as e:
+            logging.info(f"[Kinesis] Error during Python Kinesis create stream: {str(e)}")
 
-    start_time = time.time()
+        message_sent = False
+        exc = None
 
-    while not message_sent and time.time() - start_time < timeout:
         # loop to ensure that message is sent, the kinesis stream may be becoming active and if not active can error out
         try:
             response = kinesis.describe_stream(StreamName=stream)
