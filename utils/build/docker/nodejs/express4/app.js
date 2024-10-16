@@ -351,7 +351,7 @@ app.all('/tag_value/:tag_value/:status_code', (req, res) => {
 
   res.status(req.params.status_code || 200)
 
-  if (req.params?.tag_value?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+  if (req.params.tag_value.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body })
   } else {
     res.send('Value tagged')
