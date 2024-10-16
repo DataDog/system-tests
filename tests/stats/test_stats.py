@@ -30,24 +30,32 @@ class Test_Client_Stats:
     @bug(
         context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375",
     )
-    @flaky(library="golang", reason="APMAPI-738")
-    @flaky(library="dotnet", reason="APMAPI-738")
     def test_client_stats(self):
         stats_count = 0
+        ok_hits = 0
+        ok_top_hits = 0
+        no_content_hits = 0
+        no_content_top_hits = 0
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
-                assert 5 == s["Hits"], "expect 5 hits at 200 status code"
-                assert 5 == s["TopLevelHits"], "expect 5 top level hits at 200 status code"
+                ok_hits += s["Hits"]
+                ok_top_hits += s["TopLevelHits"]
             elif s["HTTPStatusCode"] == 204:
-                assert 3 == s["Hits"], "expect 3 hits at 204 status code"
-                assert 3 == s["TopLevelHits"], "expect 3 top level hits at 204 status code"
+                no_content_hits += s["Hits"]
+                no_content_top_hits += s["TopLevelHits"]
             else:
                 assert False, "Unexpected status code " + str(s["HTTPStatusCode"])
             assert "weblog" == s["Service"], "expect weblog as service"
             assert "web" == s["Type"], "expect 'web' type"
-        assert stats_count == 2, "expect 2 stats"
+        assert (
+            stats_count <= 4
+        ), "expect <= 4 stats"  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
+        assert ok_hits == ok_top_hits == 5, "expect exactly 5 'OK' hits and top level hits across all payloads"
+        assert (
+            no_content_hits == no_content_top_hits == 3
+        ), "expect exactly 5 'No Content' hits and top level hits across all payloads"
 
     @missing_feature(
         context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
