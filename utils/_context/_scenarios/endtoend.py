@@ -292,6 +292,10 @@ class EndToEndScenario(DockerScenario):
         if config.option.force_dd_trace_debug:
             self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
 
+        if config.option.force_dd_iast_debug:
+            self.weblog_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
+            self.weblog_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
+
         interfaces.agent.configure(self.host_log_folder, self.replay)
         interfaces.library.configure(self.host_log_folder, self.replay)
         interfaces.backend.configure(self.host_log_folder, self.replay)
