@@ -299,17 +299,19 @@ class EndToEndScenario(DockerScenario):
             container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.host_log_folder, self.replay)
 
+        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+
         if self.library_interface_timeout is None:
-            if self.weblog_container.library == "java":
+            if library == "java":
                 self.library_interface_timeout = 25
-            elif self.weblog_container.library.library in ("golang",):
+            elif library in ("golang",):
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs", "ruby"):
+            elif library in ("nodejs", "ruby"):
                 self.library_interface_timeout = 0
-            elif self.weblog_container.library.library in ("php",):
+            elif library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("python",):
+            elif library in ("python",):
                 self.library_interface_timeout = 5
             else:
                 self.library_interface_timeout = 40
