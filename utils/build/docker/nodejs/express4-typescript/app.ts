@@ -199,16 +199,17 @@ app.get('/load_dependency', (req: Request, res: Response) => {
   res.send("Loaded a dependency")
 });
 
-app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
-  require('dd-trace/packages/dd-trace/src/plugins/util/web').root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag);
+app.all('/tag_value/:tag_value/:status_code', (req: Request, res: Response) => {
+  require('dd-trace/packages/dd-trace/src/plugins/util/web')
+    .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag_value);
 
   for (const [k, v] of Object.entries(req.query)) {
     res.set(k, v && v.toString());
   }
 
-  res.status(parseInt(req.params.status) || 200)
+  res.status(parseInt(req.params.status_code) || 200)
 
-  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+  if (req.params?.tag_value?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body });
   } else {
     res.send('Value tagged');
