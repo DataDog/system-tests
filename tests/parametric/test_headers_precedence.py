@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext, TRACECONTEXT_FLAGS_SET
-from utils.parametric.spec.trace import find_only_span, find_span, find_trace, retrieve_span_links
+from utils.parametric.spec.trace import find_only_span, find_span, find_trace, retrieve_span_links, find_span_in_traces
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
 
@@ -649,7 +649,7 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "nodejs", reason="not_implemented yet")
     @missing_feature(context.library == "php", reason="not_implemented yet")
     @enable_datadog_b3multi_tracecontext_extract_first_false()
-    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts_default(self, test_agent, test_library):
+    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts(self, test_agent, test_library):
         """
         This test asserts that when multiple contexts are extracted,
         the first context extracted is the primary context, and the one used.
@@ -660,9 +660,9 @@ class Test_Headers_Precedence:
             # 1) Datadog and tracecontext headers, Datadog is primary context,
             # trace-id does not match,
             # tracestate is present, so should be added to tracecontext span_link
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
+            with test_library.start_span(
+                name="span1",
+                http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "2"],
@@ -670,13 +670,13 @@ class Test_Headers_Precedence:
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
-            )
-            span1 = find_only_span(test_agent.wait_for_num_traces(clear=True, num=1))
+            ) as s1:
+                pass
             # 2) Datadog and tracecontext headers, trace-id does match, Datadog is primary context
             # we want to make sure there's no span link since they match
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
+            with test_library.start_span(
+                name="span2",
+                http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "1"],
@@ -684,14 +684,14 @@ class Test_Headers_Precedence:
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
-            )
-            span2 = find_only_span(test_agent.wait_for_num_traces(clear=True, num=1))
+            ) as s2:
+                pass
             # 3) Datadog, tracecontext, b3multi headers, Datadog is primary context
             # tracecontext and b3multi trace_id do match it
             # we should have two span links, b3multi should not have tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
+            with test_library.start_span(
+                name="span3",
+                http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "4"],
@@ -702,13 +702,13 @@ class Test_Headers_Precedence:
                     ["x-b3-spanid", "a2fb4a1d1a96d312"],
                     ["x-b3-sampled", "1"],
                 ],
-            )
-            span3 = find_only_span(test_agent.wait_for_num_traces(clear=True, num=1))
+            ) as s3:
+                pass
             # 4) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has trace_id 0 since that's not valid.
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
+            with test_library.start_span(
+                name="span4",
+                http_headers=[
                     ["x-datadog-trace-id", "5"],
                     ["x-datadog-parent-id", "987654321"],
                     ["x-datadog-sampling-priority", "2"],
@@ -717,13 +717,13 @@ class Test_Headers_Precedence:
                     ["x-b3-spanid", "a2fb4a1d1a96d312"],
                     ["x-b3-sampled", "1"],
                 ],
-            )
-            span4 = find_only_span(test_agent.wait_for_num_traces(clear=True, num=1))
+            ) as s4:
+                pass
             # 5) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has span_id 0 since that's not valid.
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
+            with test_library.start_span(
+                name="span5",
+                http_headers=[
                     ["x-datadog-trace-id", "6"],
                     ["x-datadog-parent-id", "987654321"],
                     ["x-datadog-sampling-priority", "2"],
@@ -732,8 +732,18 @@ class Test_Headers_Precedence:
                     ["x-b3-spanid", " 0000000000000000"],
                     ["x-b3-sampled", "1"],
                 ],
-            )
-            span5 = find_only_span(test_agent.wait_for_num_traces(clear=True, num=1))
+            ) as s5:
+                pass
+
+        traces = test_agent.wait_for_num_traces(5)
+        assert len(traces) == 5
+        span1, span2, span3, span4, span5 = (
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+            find_span_in_traces(traces, s3.trace_id, s3.span_id),
+            find_span_in_traces(traces, s4.trace_id, s4.span_id),
+            find_span_in_traces(traces, s5.trace_id, s5.span_id),
+        )
 
         # 1) Datadog and tracecontext headers, trace-id does not match, Datadog is primary context
         # tracestate is present, so should be added to tracecontext span_link
@@ -793,7 +803,7 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "nodejs", reason="not_implemented yet")
     @missing_feature(context.library == "php", reason="not_implemented yet")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext,datadog,b3multi"}])
-    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts_tracecontext(
+    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts_tracecontext_precedence(
         self, test_agent, test_library
     ):
         """
@@ -813,16 +823,16 @@ class Test_Headers_Precedence:
                     ["x-b3-spanid", "a2fb4a1d1a96d312"],
                     ["x-b3-sampled", "1"],
                 ],
-            ):
+            ) as s1:
                 pass
 
-        span = find_only_span(test_agent.wait_for_num_traces(1))
+        traces = test_agent.wait_for_num_traces(1)
+        assert len(traces) == 1
+        span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
 
         assert span["name"] == "trace_ids_do_not_match"
         span_links = retrieve_span_links(span)
-        print("case2: ", span)
         assert len(span_links) == 2
-        print("spanlinks: ", span_links)
         link1 = span_links[0]
         assert link1["trace_id"] == 2
         assert link1["span_id"] == 10
