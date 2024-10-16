@@ -617,7 +617,7 @@ class WeblogContainer(TestedContainer):
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
             healthcheck={
-                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}",
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
             },
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
@@ -693,32 +693,11 @@ class WeblogContainer(TestedContainer):
         self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
         self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
 
-        self._library = LibraryVersion(
-            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
-        )
+        library = self.image.env["SYSTEM_TESTS_LIBRARY"]
 
-        # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in (
-            "cpp",
-            "dotnet",
-            "nodejs",
-            "php",
-            "python",
-            "golang",
-            "ruby",
-            "java",
-            "python_otel",
-            "nodejs_otel",
-        ):
-            self.healthcheck = {
-                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
-                "retries": 60,
-            }
-
-        if self.library in ("cpp", "dotnet", "java", "python"):
+        if library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
-
-        elif self.library in ("golang", "nodejs", "php", "ruby"):
+        elif library in ("golang", "nodejs", "php", "ruby"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
         else:
             self.environment["DD_TRACE_HEADER_TAGS"] = ""
@@ -736,25 +715,11 @@ class WeblogContainer(TestedContainer):
 
         logger.debug(f"Docker host is {weblog.domain}")
 
-        # new way of getting info from the weblog. Only working for nodejs and python right now
-        # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in (
-            "cpp",
-            "dotnet",
-            "nodejs",
-            "python",
-            "php",
-            "golang",
-            "ruby",
-            "java",
-            "python_otel",
-            "nodejs_otel",
-        ):
-            with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
-                data = json.load(f)
-                lib = data["library"]
+        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
 
-            self._library = LibraryVersion(lib["language"], lib["version"])
+        self._library = LibraryVersion(lib["language"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
 
