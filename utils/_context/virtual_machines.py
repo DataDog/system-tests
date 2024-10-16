@@ -297,21 +297,6 @@ class AmazonLinux2arm64(_VirtualMachine):
         )
 
 
-class AmazonLinux2DotNet6(_VirtualMachine):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(
-            "Amazon_Linux_2_DotNet6",
-            aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t2.medium", user="ec2-user"),
-            vagrant_config=None,
-            krunvm_config=None,
-            os_type="linux",
-            os_distro="rpm",
-            os_branch="amazon_linux2_dotnet6",
-            os_cpu="amd64",
-            **kwargs,
-        )
-
-
 class AmazonLinux2023amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
@@ -497,7 +482,7 @@ class AlmaLinux8arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "AlmaLinux_8_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0f1d97cfa7cf5ad5d", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0f1d97cfa7cf5ad5d", ami_instance_type="t4g.medium", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -586,7 +571,7 @@ class Ubuntu20amd64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="deb",
-            os_branch="ubuntu20",
+            os_branch="ubuntu20_amd64",
             os_cpu="amd64",
             default_vm=False,
             **kwargs,
@@ -602,7 +587,7 @@ class Ubuntu20arm64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="deb",
-            os_branch="ubuntu20",
+            os_branch="ubuntu20_arm64",
             os_cpu="arm64",
             default_vm=False,
             **kwargs,
@@ -685,6 +670,102 @@ class Ubuntu23_10_arm64(_VirtualMachine):
             os_type="linux",
             os_distro="deb",
             os_branch="ubuntu23",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class RedHat86amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_8_6_amd64",
+            aws_config=_AWSConfig(ami_id="ami-031eff1ae75bb87e4", ami_instance_type="t2.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat_8_6",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class RedHat86arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_8_6_arm64",
+            aws_config=_AWSConfig(ami_id="ami-096f447a8a5bc013f", ami_instance_type="t4g.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat_8_6",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora36amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_36_amd64",
+            aws_config=_AWSConfig(ami_id="ami-05e7ccec1e0408397", ami_instance_type="t2.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora36arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_36_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0487fbde1f898f0f1", ami_instance_type="t4g.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora37amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_37_amd64",
+            aws_config=_AWSConfig(ami_id="ami-032e9a5778bde5a1a", ami_instance_type="t2.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora37arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_37_arm64",
+            aws_config=_AWSConfig(ami_id="ami-08ec1e90576b74511", ami_instance_type="t4g.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
             os_cpu="arm64",
             default_vm=False,
             **kwargs,

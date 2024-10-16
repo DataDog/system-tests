@@ -55,16 +55,8 @@ class _Context:
         return self._get_scenario_property("telemetry_heartbeat_interval", None)
 
     @property
-    def libddwaf_version(self):
-        return self._get_scenario_property("libddwaf_version", "")
-
-    @property
     def appsec_rules_file(self):
         return self._get_scenario_property("appsec_rules_file", "")
-
-    @property
-    def appsec_rules_version(self):
-        return self._get_scenario_property("appsec_rules_version", "")
 
     @property
     def dd_apm_inject_version(self):
@@ -96,7 +88,6 @@ class _Context:
             "library": self.library.serialize(),
             "weblog_variant": self.weblog_variant,
             "sampling_rate": self.tracer_sampling_rate,
-            "libddwaf_version": str(self.libddwaf_version),
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
             "scenario": self.scenario,

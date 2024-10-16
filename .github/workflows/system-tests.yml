@@ -143,3 +143,14 @@ jobs:
     with:
       library: ${{ inputs.library }}
       weblogs: ${{ needs.compute_parameters.outputs.dockerssi_weblogs }}
+
+  external-processing:
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && inputs.binaries_artifact != ''}}
+    uses: ./.github/workflows/run-external-processing.yml
+    secrets: inherit
+    with:
+      build_proxy_image: ${{ inputs.build_proxy_image }}
+      ci_environment: ${{ inputs.ci_environment }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}

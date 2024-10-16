@@ -39,16 +39,11 @@ app.get('/', (req, res) => {
 })
 
 app.get('/healthcheck', (req, res) => {
-  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
-  const maybeRequire = name => { try { return require(name) } catch (e) {} }
-
   res.json({
     status: 'ok',
     library: {
       language: 'nodejs',
-      version: require('dd-trace/package.json').version,
-      libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
-      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
+      version: require('dd-trace/package.json').version
     }
   })
 })
@@ -346,17 +341,17 @@ app.get('/load_dependency', (req, res) => {
   res.send('Loaded a dependency')
 })
 
-app.all('/tag_value/:tag/:status', (req, res) => {
+app.all('/tag_value/:tag_value/:status_code', (req, res) => {
   require('dd-trace/packages/dd-trace/src/plugins/util/web')
-    .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag)
+    .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag_value)
 
   for (const [k, v] of Object.entries(req.query)) {
     res.set(k, v)
   }
 
-  res.status(req.params.status || 200)
+  res.status(req.params.status_code || 200)
 
-  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+  if (req.params.tag_value.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body })
   } else {
     res.send('Value tagged')

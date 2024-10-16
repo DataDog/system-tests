@@ -35,6 +35,10 @@ go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
 go mod tidy
 ```
 
+* Content example:
+    * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
+    * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
+
 2. Clone the dd-trace-go repo inside `binaries`
 
 ## Java library
