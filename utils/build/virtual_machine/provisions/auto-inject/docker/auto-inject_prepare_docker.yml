@@ -5,14 +5,15 @@
         sudo apt-get update
         sudo apt-get -y install ca-certificates curl gnupg
         sudo install -m 0755 -d /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        curl -fsSL https://download.docker.com/linux/$(grep -E '^ID=' /etc/os-release | cut -c4-)/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
         sudo chmod a+r /etc/apt/keyrings/docker.gpg
         echo \
-          "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/"$(grep -E '^ID=' /etc/os-release | cut -c4-)" \
           "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         sudo apt-get update
-        sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+        sudo apt-get -y install docker-buildx-plugin || true #Ubuntu 21.04 doesn't have this package
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
         echo "DOCKER INSTALLED!"
         #To run Docker without root privileges
@@ -23,9 +24,9 @@
       os_distro: rpm
       os_branch: centos_7_amd64 # CentOS override
       remote-command: |
-        curl -fsSL https://get.docker.com -o install-docker.sh 
+        curl -fsSL https://get.docker.com -o install-docker.sh
         chmod 755 install-docker.sh
-        sed -i 's/yum config-manager/yum-config-manager/g' install-docker.sh 
+        sed -i 's/yum config-manager/yum-config-manager/g' install-docker.sh
         sudo sh install-docker.sh
         sudo systemctl start docker
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
@@ -72,8 +73,17 @@
             sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
+      os_branch: redhat_8_6
+      remote-command: |
+            sudo yum remove podman buildah -y || true
+            sudo yum install -y yum-utils
+            sudo yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+            sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+            sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+    - os_type: linux
+      os_distro: rpm
       remote-command: |
         sudo yum -y install docker
         sudo systemctl start docker.service
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
- 
+

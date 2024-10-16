@@ -20,6 +20,8 @@ from opentelemetry.trace.span import TraceState
 from opentelemetry.trace.span import SpanContext as OtelSpanContext
 from opentelemetry.trace import set_span_in_context
 from ddtrace.opentelemetry import TracerProvider
+from opentelemetry.baggage import set_baggage
+from opentelemetry.baggage import get_baggage
 
 import ddtrace
 from ddtrace import Span
@@ -158,11 +160,88 @@ class SpanSetMetaReturn(BaseModel):
     pass
 
 
+class SpanSetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+    value: str
+
+
+class SpanSetBaggageReturn(BaseModel):
+    pass
+
+
+class SpanGetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+
+
+class SpanGetBaggageReturn(BaseModel):
+    baggage: str
+
+
+class SpanGetAllBaggageArgs(BaseModel):
+    span_id: int
+
+
+class SpanGetAllBaggageReturn(BaseModel):
+    baggage: dict[str, str]
+
+
+class SpanRemoveBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+
+
+class SpanRemoveBaggageReturn(BaseModel):
+    pass
+
+
+class SpanRemoveAllBaggageArgs(BaseModel):
+    span_id: int
+
+
+class SpanRemoveAllBaggageReturn(BaseModel):
+    pass
+
+
 @app.post("/trace/span/set_meta")
 def trace_span_set_meta(args: SpanSetMetaArgs) -> SpanSetMetaReturn:
     span = spans[args.span_id]
     span.set_tag(args.key, args.value)
     return SpanSetMetaReturn()
+
+
+@app.post("/trace/span/set_baggage")
+def trace_set_baggage(args: SpanSetBaggageArgs) -> SpanSetBaggageReturn:
+    span = spans[args.span_id]
+    span.context.set_baggage_item(args.key, args.value)
+    return SpanSetBaggageReturn()
+
+
+@app.get("/trace/span/get_baggage")
+def trace_get_baggage(args: SpanGetBaggageArgs) -> SpanGetBaggageReturn:
+    span = spans[args.span_id]
+    return SpanGetBaggageReturn(baggage=span.context.get_baggage_item(args.key))
+
+
+@app.get("/trace/span/get_all_baggage")
+def trace_get_all_baggage(args: SpanGetAllBaggageArgs) -> SpanGetAllBaggageReturn:
+    span = spans[args.span_id]
+    return SpanGetAllBaggageReturn(baggage=span.context.get_all_baggage_items())
+
+
+@app.post("/trace/span/remove_baggage")
+def trace_remove_baggage(args: SpanRemoveBaggageArgs) -> SpanRemoveBaggageReturn:
+    span = spans[args.span_id]
+    span.context.remove_baggage_item(args.key)
+    return SpanRemoveBaggageReturn()
+
+
+@app.post("/trace/span/remove_all_baggage")
+def trace_remove_all_baggage(args: SpanRemoveAllBaggageArgs) -> SpanRemoveAllBaggageReturn:
+    span = spans[args.span_id]
+    span.context.remove_all_baggage_items()
+    return SpanRemoveBaggageReturn()
 
 
 class SpanSetMetricArgs(BaseModel):
@@ -338,9 +417,11 @@ def otel_start_span(args: OtelStartSpanArgs):
                 ddcontext.trace_id,
                 ddcontext.span_id,
                 True,
-                TraceFlags.SAMPLED
-                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                else TraceFlags.DEFAULT,
+                (
+                    TraceFlags.SAMPLED
+                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
+                    else TraceFlags.DEFAULT
+                ),
                 TraceState.from_header([ddcontext._tracestate]),
             )
         )
@@ -359,9 +440,11 @@ def otel_start_span(args: OtelStartSpanArgs):
                 ddcontext.trace_id,
                 ddcontext.span_id,
                 True,
-                TraceFlags.SAMPLED
-                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                else TraceFlags.DEFAULT,
+                (
+                    TraceFlags.SAMPLED
+                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
+                    else TraceFlags.DEFAULT
+                ),
                 TraceState.from_header([ddcontext._tracestate]),
             )
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
@@ -400,6 +483,25 @@ def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
     span = otel_spans[args.span_id]
     span.add_event(args.name, args.attributes, args.timestamp)
     return OtelAddEventReturn()
+
+
+class OtelSetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+    value: str
+
+
+class OtelSetBaggageReturn(BaseModel):
+    value: str
+
+
+@app.post("/trace/otel/otel_set_baggage")
+def otel_set_baggage(args: OtelSetBaggageArgs) -> OtelSetBaggageReturn:
+    # span = otel_spans[args.span_id]
+    headers = {}
+    context = set_baggage(args.key, args.value)
+    value = get_baggage(args.key, context)
+    return OtelSetBaggageReturn(value=value)
 
 
 class OtelRecordExceptionReturn(BaseModel):

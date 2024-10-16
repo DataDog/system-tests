@@ -1,9 +1,9 @@
 import json
 import re
 
-from utils import weblog, interfaces, scenarios, features, rfc, bug, context
-from utils._context.header_tag_vars import *
 from requests.structures import CaseInsensitiveDict
+
+from utils import weblog, interfaces, scenarios, features, rfc, bug, flaky
 
 # Python regexp that matches:
 # "GET /requestdownstream"
@@ -89,7 +89,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -134,7 +134,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -179,7 +179,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -224,7 +224,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -273,7 +273,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -310,6 +310,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
     @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
     @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
     @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    @flaky(library="python", reason="APPSEC-55222")  # _dd.apm.enabled missing in metrics
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -367,7 +368,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -411,7 +412,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -455,7 +456,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -502,7 +503,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -549,7 +550,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -596,7 +597,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
