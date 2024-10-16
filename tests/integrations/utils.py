@@ -1,3 +1,4 @@
+from functools import lru_cache
 import hashlib
 import os
 import struct
@@ -156,15 +157,15 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
 
-# set AWS credentials for runner, either using 'SYSTEM_TESTS_AWS...' vars or default vars
-if "AWS_ACCESS_KEY_ID" not in os.environ:
-    aws_session = boto3.Session(
-        aws_access_key_id=os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID", ""),
-        aws_secret_access_key=os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY", ""),
+
+@lru_cache
+def _get_aws_session():
+    # set AWS credentials for runner, either using 'SYSTEM_TESTS_AWS...' vars or default vars
+    return boto3.Session(
+        aws_access_key_id=os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"),
         region_name=os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1"),
     )
-else:
-    aws_session = boto3.Session()
 
 
 def delete_aws_resource(
@@ -210,7 +211,7 @@ def delete_aws_resource(
 def delete_sqs_queue(queue_name):
     try:
         queue_url = f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue_name}"
-        sqs_client = aws_session.client("sqs")
+        sqs_client = _get_aws_session().client("sqs")
         delete_callable = lambda url: sqs_client.delete_queue(QueueUrl=url)
         get_callable = lambda url: sqs_client.get_queue_attributes(QueueUrl=url)
         delete_aws_resource(
@@ -232,7 +233,7 @@ def delete_sqs_queue(queue_name):
 def delete_sns_topic(topic_name):
     try:
         topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
-        sns_client = aws_session.client("sns")
+        sns_client = _get_aws_session().client("sns")
         get_callable = lambda arn: sns_client.get_topic_attributes(TopicArn=arn)
         delete_callable = lambda arn: sns_client.delete_topic(TopicArn=arn)
         delete_aws_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
@@ -247,7 +248,7 @@ def delete_sns_topic(topic_name):
 
 def delete_kinesis_stream(stream_name):
     try:
-        kinesis_client = aws_session.client("kinesis")
+        kinesis_client = _get_aws_session().client("kinesis")
         delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
         delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
     except botocore.exceptions.ClientError as e:
