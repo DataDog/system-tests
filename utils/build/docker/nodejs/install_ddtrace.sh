@@ -22,6 +22,3 @@ else
 
     npm install $target
 fi
-
-# nodejs uses the next API to get the library version. See https://github.com/DataDog/system-tests/issues/2799
-echo "0.0.0" > SYSTEM_TESTS_LIBRARY_VERSION

@@ -18,7 +18,6 @@ COPY utils/build/docker/python_otel/flask-poc-otel/app.sh /app
 
 RUN opentelemetry-bootstrap -a install
 RUN pip freeze | grep opentelemetry
-RUN touch SYSTEM_TESTS_LIBRARY_VERSION
 
 ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 ENV FLASK_APP=app.py

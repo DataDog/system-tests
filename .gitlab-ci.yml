@@ -308,6 +308,7 @@ onboarding_php:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
+
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
@@ -321,15 +322,19 @@ onboarding_parse_results:
   script:
       - |
         for folder in reports/logs*/ ; do
-          if [ -e ./${folder}feature_parity.json ]
-          then
-            curl -X POST ${FP_IMPORT_URL} \
-              --fail \
-              --header "Content-Type: application/json" \
-              --header "FP_API_KEY: ${FP_API_KEY}" \
-              --data "@./${folder}feature_parity.json" \
-              --include
-          fi
+          echo "Checking folder: ${folder}"
+          for filename in ./${folder}*_feature_parity.json; do
+            if [ -e ${filename} ]
+            then
+              echo "Processing report: ${filename}"
+              curl -X POST ${FP_IMPORT_URL} \
+                --fail \
+                --header "Content-Type: application/json" \
+                --header "FP_API_KEY: ${FP_API_KEY}" \
+                --data "@${filename}" \
+                --include
+            fi
+          done
         done
 
 check_merge_labels:
@@ -365,3 +370,4 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
+
