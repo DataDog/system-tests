@@ -223,7 +223,13 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
     )
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_builtIn_block_commands(self, virtual_machine):
         """ Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block """
 
@@ -238,7 +244,13 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
     )
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_builtIn_block_args(self, virtual_machine):
         """ Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
         language = context.scenario.library.library
@@ -253,7 +265,13 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
     )
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_builtIn_instrument_args(self, virtual_machine):
         """ Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
         language = context.scenario.library.library
@@ -277,7 +295,13 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
     )
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_user_ignored_args(self, virtual_machine):
         """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python,php) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
         language = context.scenario.library.library
