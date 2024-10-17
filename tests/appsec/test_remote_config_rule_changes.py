@@ -138,6 +138,22 @@ class Test_UpdateRuleFileWithRemoteConfig:
     when the remote config rule file is deleted.
     """
 
+    def _find_series(self, request_type, namespace, metric):
+        series = []
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != request_type:
+                continue
+            fallback_namespace = content["payload"].get("namespace")
+            for serie in content["payload"]["series"]:
+                computed_namespace = serie.get("namespace", fallback_namespace)
+                # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+                serie["_computed_namespace"] = computed_namespace
+                print(f">>>> {serie}")
+                if computed_namespace == namespace and serie["metric"] == metric:
+                    series.append(serie)
+        return series
+
     def setup_update_rules(self):
         self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
@@ -213,3 +229,15 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         # ASM disabled
         assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+
+        # Check for rule version in telemetry
+        series = self._find_series("generate-metrics", "appsec", "waf.requests")
+        rule_versions= set()
+        for s in series:
+            for t in s["tags"]:
+                if t.startswith("event_rules_version:"):
+                    rule_versions.add(t[20:].strip())
+        assert len(rule_versions)==2
+        assert RULE_FILE[1]["metadata"]["rules_version"] in rule_versions
+        for r in rule_versions:
+            assert re.match(expected_version_regex, r), f"version [{r}] doesn't match expected version regex"
