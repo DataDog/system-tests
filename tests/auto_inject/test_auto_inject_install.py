@@ -84,6 +84,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 
 @scenarios.container_auto_injection_install_script_crashtracking
 class TestContainerAutoInjectInstallScriptCrashTracking(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines()
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine, crashlog=True)
 

@@ -6,17 +6,21 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.tools import logger
 
 
-def make_get_request(app_url):
+def make_get_request(app_url, swallow: bool = False) -> str:
     generated_uuid = str(randint(1, 100000000000000000))
-    requests.get(
-        app_url,
-        headers={
-            "x-datadog-trace-id": generated_uuid,
-            "x-datadog-parent-id": generated_uuid,
-            "x-datadog-sampling-priority": "2",
-        },
-        timeout=10,
-    )
+    try:
+        requests.get(
+            app_url,
+            headers={
+                "x-datadog-trace-id": generated_uuid,
+                "x-datadog-parent-id": generated_uuid,
+                "x-datadog-sampling-priority": "2",
+            },
+            timeout=10,
+        )
+    except Exception:
+        if not swallow:
+            raise
     return generated_uuid
 
 
