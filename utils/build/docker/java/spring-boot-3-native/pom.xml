@@ -18,9 +18,10 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <agent.path>/app/dd-java-agent.jar</agent.path>
+        <agent.path>./app/dd-java-agent.jar</agent.path>
         <start-class>com.datadoghq.springbootnative.App</start-class>
-        <graal.build.args>-Ob</graal.build.args>
+        <!-- <graal.build.args>-Ob</graal.build.args> -->
+        <!-- <graal.build.systemProperties></graal.build.systemProperties> -->
     </properties>
 
     <dependencies>
@@ -71,6 +72,14 @@
                      <buildArgs>
                         ${graal.build.args}
                      </buildArgs>
+                     <debug>true</debug>
+                     <quickBuild>true</quickBuild>
+                     <systemProperties>
+                        ${graal.build.systemProperties}
+                     </systemProperties>
+                     <jvmArgs>
+                        ${graal.build.jvmArgs}
+                     </jvmArgs>
                 </configuration>
             </plugin>
         </plugins>
@@ -82,7 +91,12 @@
                 <directory>with-profiling</directory>
             </build>
             <properties>
-                <graal.build.args>--enable-monitoring=jfr -J-Ddd.profiling.enabled=true -Ob -J-javaagent:${agent.path} </graal.build.args>
+                <graal.build.args>--enable-monitoring=jfr -J-javaagent:${agent.path}</graal.build.args>
+                <graal.build.systemProperties>
+                    <dd.profiling.enabled>
+                        true
+                    </dd.profiling.enabled>
+                </graal.build.systemProperties>
             </properties>
         </profile>
         <profile>
@@ -91,7 +105,7 @@
                 <directory>without-profiling</directory>
             </build>
             <properties>
-                <graal.build.args>-J-javaagent:${agent.path} -Ob</graal.build.args>
+                <graal.build.args>-J-javaagent:${agent.path}</graal.build.args>
             </properties>
         </profile>
     </profiles>
