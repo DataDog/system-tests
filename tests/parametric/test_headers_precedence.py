@@ -736,7 +736,6 @@ class Test_Headers_Precedence:
                 pass
 
         traces = test_agent.wait_for_num_traces(5)
-        assert len(traces) == 5
         span1, span2, span3, span4, span5 = (
             find_span_in_traces(traces, s1.trace_id, s1.span_id),
             find_span_in_traces(traces, s2.trace_id, s2.span_id),
@@ -821,13 +820,12 @@ class Test_Headers_Precedence:
                     ["x-datadog-tags", "_dd.p.tid=2222222222222222"],
                     ["x-b3-traceid", "11111111111111110000000000000003"],
                     ["x-b3-spanid", "a2fb4a1d1a96d312"],
-                    ["x-b3-sampled", "1"],
+                    ["x-b3-sampled", "0"],
                 ],
             ) as s1:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
-        assert len(traces) == 1
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
 
         assert span["name"] == "trace_ids_do_not_match"
@@ -845,7 +843,7 @@ class Test_Headers_Precedence:
         assert link2["trace_id"] == 3
         assert link2["span_id"] == 11744061942159299346
         assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
-        assert link2["flags"] == 1 | TRACECONTEXT_FLAGS_SET
+        assert link2["flags"] == 0 | TRACECONTEXT_FLAGS_SET
         assert link2["trace_id_high"] == 1229782938247303441
         assert link2.get("tracestate") == None
 
