@@ -297,21 +297,6 @@ class AmazonLinux2arm64(_VirtualMachine):
         )
 
 
-class AmazonLinux2DotNet6(_VirtualMachine):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(
-            "Amazon_Linux_2_DotNet6",
-            aws_config=_AWSConfig(ami_id="ami-005b11f8b84489615", ami_instance_type="t2.medium", user="ec2-user"),
-            vagrant_config=None,
-            krunvm_config=None,
-            os_type="linux",
-            os_distro="rpm",
-            os_branch="amazon_linux2_dotnet6",
-            os_cpu="amd64",
-            **kwargs,
-        )
-
-
 class AmazonLinux2023amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(

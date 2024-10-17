@@ -955,14 +955,34 @@ tests/:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Header_And_Network:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
-      Test_Fingerprinting_Session: missing_feature
-      Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Header_Capability:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Network_Capability:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Session:
+        '*': v1.40.0
+        akka-http: missing_feature (endpoint not implemented)
+        jersey-grizzly2: missing_feature (endpoint not implemented)
+        play: missing_feature (endpoint not implemented)
+        ratpack: missing_feature (endpoint not implemented)
+        resteasy-netty3: missing_feature (endpoint not implemented)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: missing_feature (missing addresses)
+        spring-boot-undertow: missing_feature (missing addresses)
+        spring-boot-wildfly: missing_feature (missing addresses)
+        vertx3: missing_feature (endpoint not implemented)
+        vertx4: missing_feature (endpoint not implemented)
+      Test_Fingerprinting_Session_Capability:
+        '*': v1.40.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
@@ -1287,8 +1307,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

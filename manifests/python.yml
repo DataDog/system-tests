@@ -165,7 +165,7 @@ tests/:
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
-            fastapi: v2.13.0.dev
+            fastapi: bug (APPSEC-55240)
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -772,8 +772,15 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: v2.14.0
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          # NOTE: fastapi-based async things don't play well with moto
+          Test_PutObject:
+            '*': missing_feature
+            django-poc: v2.14.0
+            flask-poc: v2.14.0
+            python3.12: v2.14.0
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

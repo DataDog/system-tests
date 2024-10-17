@@ -494,8 +494,10 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_PutObject: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: v1.69.0
@@ -504,7 +506,10 @@ tests/:
     Test_Config_HttpClientErrorStatuses_Default: v1.69.0
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.69.0
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
+      "*": v1.69.0
+      echo: missing_feature
+      uds-echo: missing_feature
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
@@ -522,7 +527,7 @@ tests/:
   test_library_conf.py:
     Test_HeaderTags: v1.53.0
     Test_HeaderTags_Colon_Leading: v1.53.0
-    Test_HeaderTags_Colon_Trailing: v1.69.0
+    Test_HeaderTags_Colon_Trailing: bug (AIT-8571)
     Test_HeaderTags_Long: v1.53.0
     Test_HeaderTags_Short: v1.53.0
     Test_HeaderTags_Whitespace_Header: v1.53.0

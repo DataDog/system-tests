@@ -4,6 +4,7 @@ import type { Express, Request, Response } from 'express';
 
 const http = require('http')
 const pg = require('pg')
+const { statSync } = require('fs')
 
 function initRaspEndpoints (app: Express) {
     const pool = new pg.Pool()
@@ -60,6 +61,36 @@ function initRaspEndpoints (app: Express) {
         }
 
         res.end('end')
+    })
+
+    app.get('/rasp/lfi', (req: Request, res: Response) => {
+        let result
+        try {
+            result = JSON.stringify(statSync(req.query.file))
+        } catch (e: any) {
+            result = e.toString()
+
+            if (e.name === 'DatadogRaspAbortError') {
+                throw e
+            }
+        }
+
+        res.send(result)
+    })
+
+    app.post('/rasp/lfi', (req: Request, res: Response) => {
+        let result
+        try {
+            result = JSON.stringify(statSync(req.body.file))
+        } catch (e: any) {
+            result = e.toString()
+
+            if (e.name === 'DatadogRaspAbortError') {
+                throw e
+            }
+        }
+
+        res.send(result)
     })
 }
 module.exports = initRaspEndpoints

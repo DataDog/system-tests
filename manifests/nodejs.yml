@@ -61,7 +61,9 @@ tests/:
           nextjs: *ref_5_3_0
         Test_Schema_Request_Headers: *ref_4_21_0
         Test_Schema_Request_Json_Body: *ref_4_21_0
-        Test_Schema_Request_Path_Parameters: missing_feature (path_params not supported yet)
+        Test_Schema_Request_Path_Parameters:
+          '*': *ref_4_21_0
+          nextjs: missing_feature
         Test_Schema_Request_Query_Parameters: *ref_4_21_0
         Test_Schema_Response_Body:
           '*': *ref_5_3_0
@@ -221,7 +223,29 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
-      test_lfi.py: missing_feature
+      test_lfi.py:
+        Test_Lfi_BodyJson:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_BodyUrlEncoded:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_BodyXml: missing_feature
+        Test_Lfi_Capability: *ref_5_24_0
+        Test_Lfi_Mandatory_SpanTags: *ref_5_24_0
+        Test_Lfi_Optional_SpanTags: *ref_5_24_0
+        Test_Lfi_RC_CustomAction:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_StackTrace:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_Telemetry:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_UrlQuery:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
       test_shi.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson:
@@ -353,7 +377,9 @@ tests/:
         nextjs: missing_feature
       Test_Blocking_request_headers: *ref_3_19_0
       Test_Blocking_request_method: *ref_3_19_0
-      Test_Blocking_request_path_params: missing_feature
+      Test_Blocking_request_path_params:
+        '*': *ref_5_24_0
+        nextjs: missing_feature
       Test_Blocking_request_query:
         '*': *ref_3_19_0
         nextjs: missing_feature
@@ -581,8 +607,10 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
