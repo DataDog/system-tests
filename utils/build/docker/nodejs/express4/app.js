@@ -19,6 +19,9 @@ const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
 
+const multer = require('multer')
+const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
+
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
@@ -46,6 +49,10 @@ app.get('/healthcheck', (req, res) => {
       version: require('dd-trace/package.json').version
     }
   })
+})
+
+app.post('/waf', uploadToMemory.single('foo'), (req, res) => {
+  res.send('Hello\n')
 })
 
 app.all(['/waf', '/waf/*'], (req, res) => {

@@ -11,6 +11,9 @@ const passport = require('passport')
 const { Kafka } = require("kafkajs")
 const { spawnSync } = require('child_process');
 
+const multer = require('multer')
+const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
+
 const iast = require('./iast')
 
 iast.initData().catch(() => {})
@@ -39,6 +42,11 @@ app.get('/healthcheck', (req: Request, res: Response) => {
     }
   });
 })
+
+app.post('/waf', uploadToMemory.single('foo'), (req: Request, res: Response) => {
+  res.send('Hello\n')
+})
+
 
 app.all(['/waf', '/waf/*'], (req: Request, res: Response) => {
   res.send('Hello\n');
