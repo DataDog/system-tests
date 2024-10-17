@@ -25,6 +25,17 @@
     echo "After stop updates. System service apt-daily.service  status"
     sudo systemctl list-units --all apt-daily.service || true
 
+    lsb_release=/etc/lsb-release
+    if [ -e "$lsb_release" ]; then
+      if grep -q 'Ubuntu 21.04' "$lsb_release"; then
+      echo "Configuring ubuntu 21.04 repositories"
+      sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
+      sudo sed -i -r 's/ubuntu-ports/ubuntu/g' /etc/apt/sources.list
+      sudo sed -i -r 's/us-east-1.ec2.//g' /etc/apt/sources.list
+      echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
+      sudo apt-get update
+      fi
+    fi 
     sudo apt-get -y update
 
     #Install some basic tools (microvm doesn't have them by default)
@@ -49,6 +60,7 @@
     #Install git and clone system tests repository
     sudo apt-get -y install git wget
     git clone https://github.com/DataDog/system-tests.git
+
     echo "DONE"
 - os_type: linux
   os_distro: rpm
@@ -92,6 +104,22 @@
       echo "Firewall disabled"
       exit 0
     fi
+- os_type: linux
+  os_branch: fedora
+  os_distro: rpm
+  remote-command: |
+    # Disable SELinux as it isn't supported by the injector today
+    sudo setenforce 0
+    sudo sed -i 's/enforcing/disabled/g' /etc/selinux/config
+    # Allow DD env variables from ssh
+    echo 'AcceptEnv DD_*' | sudo tee -a /etc/ssh/sshd_config
+    sudo id -u datadog &>/dev/null || sudo useradd -m datadog
+    sudo yum clean expire-cache
+    #sudo yum -y update
+    sudo systemctl restart sshd.service
+    #Install git and clone system tests repository
+    sudo yum -y install git wget which
+    git clone https://github.com/DataDog/system-tests.git
 - os_type: linux
   os_distro: rpm
   remote-command: |

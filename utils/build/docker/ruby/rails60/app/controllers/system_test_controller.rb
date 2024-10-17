@@ -7,6 +7,16 @@ class SystemTestController < ApplicationController
     render plain: 'Hello, world!'
   end
 
+  def healthcheck
+    render json: { 
+      status: 'ok',
+      library: {
+        language: 'ruby',
+        version: Datadog::VERSION::STRING
+      }
+    }
+  end
+
   def waf
     render plain: 'Hello, world!'
   end

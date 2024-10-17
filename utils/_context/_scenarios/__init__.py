@@ -7,6 +7,7 @@ from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.tools import update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup
+from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
 from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
@@ -16,6 +17,7 @@ from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 from .docker_ssi import DockerSSIScenario
+from .external_processing import ExternalProcessingScenario
 
 update_environ_with_local_env()
 
@@ -38,18 +40,7 @@ class scenarios:
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
-    default = EndToEndScenario(
-        "DEFAULT",
-        weblog_env={
-            "DD_DBM_PROPAGATION_MODE": "service",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_COMPUTE_STATS": "true",
-        },
-        include_postgres_db=True,
-        scenario_groups=[ScenarioGroup.ESSENTIALS],
-        doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
-    )
+    default = DefaultScenario("DEFAULT")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(
@@ -263,7 +254,6 @@ class scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
             "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
@@ -291,7 +281,6 @@ class scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
@@ -306,11 +295,7 @@ class scenarios:
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
-        },
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true",},
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
@@ -449,9 +434,8 @@ class scenarios:
         "TRACING_CONFIG_NONDEFAULT",
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
-            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "ssn=\d{3}-\d{2}-\d{4}",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             # disable ASM to test non asm client ip tagging
             "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
@@ -465,7 +449,11 @@ class scenarios:
 
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
-        weblog_env={"DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "", "DD_TRACE_KAFKA_ENABLED": "true"},
+        weblog_env={
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
+            "DD_TRACE_KAFKA_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+        },
         include_kafka=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
     )
@@ -695,6 +683,8 @@ class scenarios:
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
+
+    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
 
 
 def get_all_scenarios() -> list[Scenario]:

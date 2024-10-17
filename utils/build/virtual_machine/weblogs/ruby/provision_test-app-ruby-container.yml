@@ -1,6 +1,7 @@
 weblog:
     name: test-app-ruby-container
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2]
+    #Ubuntu 21: https://github.com/DataDog/auto_inject/pull/443
+    excluded_os_branches: [ ubuntu21, fedora]
     install:
       - os_type: linux
 

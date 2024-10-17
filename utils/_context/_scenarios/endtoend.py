@@ -3,7 +3,7 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
-
+from utils import interfaces
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -106,6 +106,30 @@ class DockerScenario(Scenario):
                 return container
         return None
 
+    def _start_interfaces_watchdog(self, interfaces):
+        class Event(FileSystemEventHandler):
+            def __init__(self, interface) -> None:
+                super().__init__()
+                self.interface = interface
+
+            def _ingest(self, event):
+                if event.is_directory:
+                    return
+
+                self.interface.ingest_file(event.src_path)
+
+            on_modified = _ingest
+            on_created = _ingest
+
+        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
+        # limits on Linux) -> using the good old bare polling system
+        observer = PollingObserver()
+
+        for interface in interfaces:
+            observer.schedule(Event(interface), path=interface.log_folder)
+
+        observer.start()
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
@@ -150,6 +174,8 @@ class EndToEndScenario(DockerScenario):
         github_workflow="endtoend",
         scenario_groups=None,
         weblog_env=None,
+        weblog_volumes=None,
+        agent_env=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
         appsec_enabled=True,
@@ -189,7 +215,9 @@ class EndToEndScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
         )
 
-        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
+        self.agent_container = AgentContainer(
+            host_log_folder=self.host_log_folder, use_proxy=use_proxy, environment=agent_env
+        )
 
         if self.use_proxy:
             self.agent_container.depends_on.append(self.proxy_container)
@@ -215,6 +243,7 @@ class EndToEndScenario(DockerScenario):
             appsec_enabled=appsec_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy,
+            volumes=weblog_volumes,
         )
 
         self.weblog_container.depends_on.append(self.agent_container)
@@ -258,31 +287,38 @@ class EndToEndScenario(DockerScenario):
         return declared_scenario in (self.name, "EndToEndScenario")
 
     def configure(self, config):
-        from utils import interfaces
-
         super().configure(config)
 
-        interfaces.agent.configure(self.replay)
-        interfaces.library.configure(self.replay)
-        interfaces.backend.configure(self.replay)
-        interfaces.library_dotnet_managed.configure(self.replay)
+        if config.option.force_dd_trace_debug:
+            self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
+
+        if config.option.force_dd_iast_debug:
+            self.weblog_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
+            self.weblog_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
+
+        interfaces.agent.configure(self.host_log_folder, self.replay)
+        interfaces.library.configure(self.host_log_folder, self.replay)
+        interfaces.backend.configure(self.host_log_folder, self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
 
         for container in self.buddies:
             # a little bit of python wizzardry to solve circular import
             container.interface = getattr(interfaces, container.name)
-            container.interface.configure(self.replay)
+            container.interface.configure(self.host_log_folder, self.replay)
+
+        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
 
         if self.library_interface_timeout is None:
-            if self.weblog_container.library == "java":
+            if library == "java":
                 self.library_interface_timeout = 25
-            elif self.weblog_container.library.library in ("golang",):
+            elif library in ("golang",):
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs", "ruby"):
+            elif library in ("nodejs", "ruby"):
                 self.library_interface_timeout = 0
-            elif self.weblog_container.library.library in ("php",):
+            elif library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("python",):
+            elif library in ("python",):
                 self.library_interface_timeout = 5
             else:
                 self.library_interface_timeout = 40
@@ -297,49 +333,22 @@ class EndToEndScenario(DockerScenario):
         except BaseException:
             logger.exception("can't get weblog system info")
         else:
-            logger.stdout(f"Weblog system: {message}")
+            logger.stdout(f"Weblog system: {message.strip()}")
 
-    def _create_interface_folders(self):
-        for interface in ("agent", "library", "backend"):
-            self._create_log_subfolder(f"interfaces/{interface}")
+        if self.weblog_container.environment.get("DD_TRACE_DEBUG") == "true":
+            logger.stdout("\t/!\\ Debug logs are activated in weblog")
 
-        for container in self.buddies:
-            self._create_log_subfolder(f"interfaces/{container.interface.name}")
+        logger.stdout("")
 
     def _start_interface_watchdog(self):
-        from utils import interfaces
-
-        class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
-                super().__init__()
-                self.interface = interface
-
-            def _ingest(self, event):
-                if event.is_directory:
-                    return
-
-                self.interface.ingest_file(event.src_path)
-
-            on_modified = _ingest
-            on_created = _ingest
-
-        # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
-        # limits on Linux) -> using the good old bare polling system
-        observer = PollingObserver()
-
-        observer.schedule(Event(interfaces.library), path=f"{self.host_log_folder}/interfaces/library")
-        observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
-
-        for container in self.buddies:
-            observer.schedule(Event(container.interface), path=container.interface._log_folder)
-
-        observer.start()
+        super()._start_interfaces_watchdog(
+            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
+        )
 
     def get_warmups(self):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(0, self._create_interface_folders)
             warmups.insert(1, self._start_interface_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
@@ -347,8 +356,6 @@ class EndToEndScenario(DockerScenario):
         return warmups
 
     def _wait_for_app_readiness(self):
-        from utils import interfaces  # import here to avoid circular import
-
         if self.use_proxy:
             logger.debug("Wait for app readiness")
 
@@ -368,8 +375,6 @@ class EndToEndScenario(DockerScenario):
             logger.debug("Agent ready")
 
     def post_setup(self):
-        from utils import interfaces
-
         try:
             self._wait_and_stop_containers()
         finally:
@@ -378,7 +383,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self):
-        from utils import interfaces
 
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
@@ -460,14 +464,6 @@ class EndToEndScenario(DockerScenario):
         return self.weblog_container.uds_socket
 
     @property
-    def libddwaf_version(self):
-        return self.weblog_container.libddwaf_version
-
-    @property
-    def appsec_rules_version(self):
-        return self.weblog_container.appsec_rules_version
-
-    @property
     def uds_mode(self):
         return self.weblog_container.uds_mode
 
@@ -483,7 +479,6 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
         result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
-        result["dd_tags[systest.suite.context.libddwaf_version]"] = self.weblog_container.libddwaf_version
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
 
         return result
@@ -493,6 +488,4 @@ class EndToEndScenario(DockerScenario):
         return {
             "agent": self.agent_version,
             "library": self.library.version,
-            "libddwaf": self.weblog_container.libddwaf_version,
-            "appsec_rules": self.appsec_rules_version,
         }

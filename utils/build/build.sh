@@ -236,14 +236,12 @@ build() {
                 .
 
             if test -f "binaries/waf_rule_set.json"; then
-                SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
-                    --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                     -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                     -t system_tests/weblog \
                     $EXTRA_DOCKER_ARGS \
@@ -256,11 +254,6 @@ build() {
             # or an arg. So we use this 2-step trick to get it.
             # If anybody has an idea to achieve this in a cleanest way ...
 
-            echo "Getting system test context and saving it in weblog image"
-            SYSTEM_TESTS_LIBRARY_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
-            SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
-            SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
-
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
@@ -268,9 +261,6 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
                 --build-arg SYSTEM_TESTS_WEBLOG_VARIANT="$WEBLOG_VARIANT" \
-                --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \
-                --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
-                --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                 -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
                 -t system_tests/weblog \
                 .

@@ -36,6 +36,7 @@ refs:
   - &ref_5_20_0 '>=5.20.0 || ^4.44.0'
   - &ref_5_22_0 '>=5.22.0 || ^4.46.0'
   - &ref_5_23_0 '>=5.23.0 || ^4.47.0'
+  - &ref_5_24_0 '>=5.24.0 || ^4.48.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -60,7 +61,9 @@ tests/:
           nextjs: *ref_5_3_0
         Test_Schema_Request_Headers: *ref_4_21_0
         Test_Schema_Request_Json_Body: *ref_4_21_0
-        Test_Schema_Request_Path_Parameters: missing_feature (path_params not supported yet)
+        Test_Schema_Request_Path_Parameters:
+          '*': *ref_4_21_0
+          nextjs: missing_feature
         Test_Schema_Request_Query_Parameters: *ref_4_21_0
         Test_Schema_Response_Body:
           '*': *ref_5_3_0
@@ -102,6 +105,9 @@ tests/:
           TestInsecureCookie:
             '*': *ref_4_1_0
             nextjs: missing_feature
+          TestInsecureCookieNameFilter:
+            '*': *ref_5_24_0
+            nextjs: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
             '*': *ref_4_1_0
@@ -110,9 +116,15 @@ tests/:
           TestNoHttponlyCookie:
             '*': *ref_4_3_0
             nextjs: missing_feature
+          TestNoHttponlyCookieNameFilter:
+            '*': *ref_5_24_0
+            nextjs: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': *ref_4_3_0
+            nextjs: missing_feature
+          TestNoSamesiteCookieNameFilter:
+            '*': *ref_5_24_0
             nextjs: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
@@ -211,7 +223,29 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
-      test_lfi.py: missing_feature
+      test_lfi.py:
+        Test_Lfi_BodyJson:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_BodyUrlEncoded:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_BodyXml: missing_feature
+        Test_Lfi_Capability: *ref_5_24_0
+        Test_Lfi_Mandatory_SpanTags: *ref_5_24_0
+        Test_Lfi_Optional_SpanTags: *ref_5_24_0
+        Test_Lfi_RC_CustomAction:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_StackTrace:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_Telemetry:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
+        Test_Lfi_UrlQuery:
+          '*': *ref_5_24_0
+          nextjs: missing_feature
       test_shi.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson:
@@ -343,7 +377,9 @@ tests/:
         nextjs: missing_feature
       Test_Blocking_request_headers: *ref_3_19_0
       Test_Blocking_request_method: *ref_3_19_0
-      Test_Blocking_request_path_params: missing_feature
+      Test_Blocking_request_path_params:
+        '*': *ref_5_24_0
+        nextjs: missing_feature
       Test_Blocking_request_query:
         '*': *ref_3_19_0
         nextjs: missing_feature
@@ -375,11 +411,11 @@ tests/:
         '*': *ref_3_13_0
         nextjs: missing_feature
     test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint: missing_feature
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
-      Test_Fingerprinting_Header_And_Network: missing_feature
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Endpoint: *ref_5_24_0
+      Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
+      Test_Fingerprinting_Header_And_Network: *ref_5_24_0
+      Test_Fingerprinting_Header_Capability: *ref_5_24_0
+      Test_Fingerprinting_Network_Capability: *ref_5_24_0
       Test_Fingerprinting_Session: missing_feature
       Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
@@ -533,10 +569,14 @@ tests/:
       TestDynamicConfigV1: *ref_4_11_0
       TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
       TestDynamicConfigV2: *ref_4_23_0
+    test_headers_baggage.py:
+      Test_Headers_Baggage: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v5.11.0 #implemented in v5.11.0, v4.35.0, &v3.56.0
     test_otel_sdk_interoperability.py: missing_feature
+    test_otel_span_with_baggage.py:
+      Test_Otel_Span_With_Baggage: missing_feature
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
@@ -567,8 +607,10 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0 #actual version unknown
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

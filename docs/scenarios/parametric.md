@@ -129,11 +129,9 @@ By default you will be on the `master` branch, but if you'd like to run system-t
 ./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar
 ```
 
-3. Copy both artifacts into the `system-tests/binaries/` folder:
-  * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
-  * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
+3. You should now have a Java tracer agent artifact called `dd-java-agent-*.jar` under the `dd-trace-java/dd-java-agent/build/libs/` folder and a Java tracer public API artifact called `dd-trace-api-*.jar` under the `dd-trace-java/dd-trace-api/build/libs/` folder (Note: the * is a placeholder for the version snapshot you built locally, so the files won't literally be called e.g,`dd-java-agent-*.jar`). Move these files into the system tests repo under its `/binaries` folder: `system-tests/binaries/`.
 
-Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
+*Note*, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
 
 4. Run Parametric tests from the `system-tests/parametric` folder:
 
@@ -192,6 +190,9 @@ There is two ways for running the Ruby tests with a custom tracer:
 
 1. Create an file ruby-load-from-bundle-add in binaries/, the content will be installed by bundle add. Content example:
 gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'
+In addition, instead of `branch:`, `ref` can be used to reference a commit hash.
+We'd recommend this if you're going to be iterating as it causes the build
+script to always rebuild the ddtrace gem.
 2. Clone the dd-trace-rb repo inside binaries
 
 #### C++
