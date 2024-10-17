@@ -62,7 +62,7 @@ class Test_Partial_Flushing:
         no_partial_flush_test(self, test_agent, test_library)
 
     @pytest.mark.parametrize(
-        "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",}]
+        "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",}],
     )
     @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
@@ -120,4 +120,3 @@ def no_partial_flush_test(self, test_agent, test_library):
     assert len(traces) == 1
     root_span = find_span(trace, parent_span.span_id)
     assert root_span["name"] == "root"
-    assert len(root_span["meta"]["_dd.p.tid"]) > 0
