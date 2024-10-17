@@ -2,14 +2,13 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
-  #- extravms_tracer
-  #- ruby_tracer
-  #- nodejs_tracer
-  #- java_tracer
-  #- python_tracer
-  #- dotnet_tracer
-  #- php_tracer
-  - test_tracer
+  - extravms_tracer
+  - ruby_tracer
+  - nodejs_tracer
+  - java_tracer
+  - python_tracer
+  - dotnet_tracer
+  - php_tracer
   - parse_results
   - before_tests
 
@@ -36,7 +35,7 @@ variables:
     AMI_UPDATE:
       description: "Set to true to force the update the AMIs used in the system-tests"
 
-.onboarding_install_extra_vms:
+onboarding_install_extra_vms:
   extends: .base_job_onboarding_system_tests
   stage: extravms_tracer
   allow_failure: true
@@ -70,7 +69,7 @@ variables:
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
-.onboarding_nodejs:
+onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -108,7 +107,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -149,7 +148,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -201,7 +200,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_dotnet:
+onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
@@ -236,7 +235,7 @@ variables:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_ruby:
+onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
@@ -269,9 +268,9 @@ variables:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-only-branch ubuntu22_amd64
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
 
-.onboarding_php:
+onboarding_php:
   extends: .base_job_onboarding_system_tests
   stage: php_tracer
   allow_failure: true
@@ -367,24 +366,3 @@ generate_system_tests_images:
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
 
-onboarding_simple_tests:
-  extends: .base_job_onboarding_system_tests
-  stage: test_tracer
-  allow_failure: true
-  dependencies: []
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "ruby"
-    AMI_UPDATE: "true"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          VM: [ubuntu18_amd64, ubuntu20_amd64,ubuntu20_arm64, ubuntu21, ubuntu22_amd64, ubuntu22_arm64, ubuntu23, ubuntu24, centos_7_amd64, redhat_8_6, amazon_linux2, amazon_linux2023_amd64, amazon_linux2023_arm64, debian]
-  script:
-      - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-only-branch ${VM}
