@@ -76,7 +76,14 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     #  on the installer. As we can't only uninstall the injector, we are skipping
     #  the uninstall test today
     @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_install_uninstall(self, virtual_machine):
         logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
         logger.info(f"Check install for : [{virtual_machine.name}]")
@@ -91,7 +98,12 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
     @parametrize_virtual_machines(
-        bugs=[{"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"}]
+        bugs=[
+            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
     )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
