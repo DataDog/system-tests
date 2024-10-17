@@ -232,12 +232,12 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         # Check for rule version in telemetry
         series = self._find_series("generate-metrics", "appsec", "waf.requests")
-        rule_versions= set()
+        rule_versions = set()
         for s in series:
             for t in s["tags"]:
                 if t.startswith("event_rules_version:"):
                     rule_versions.add(t[20:].strip())
-        assert len(rule_versions)==2
+        assert len(rule_versions) == 2
         assert RULE_FILE[1]["metadata"]["rules_version"] in rule_versions
         for r in rule_versions:
             assert re.match(expected_version_regex, r), f"version [{r}] doesn't match expected version regex"
