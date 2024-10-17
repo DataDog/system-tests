@@ -15,6 +15,9 @@ class Test_Partial_Flushing:
     )
     @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     @missing_feature(context.library == "php", reason="partial flushing not implemented")
+    @bug(
+        context.library == "nodejs", reason="APMLP-270",
+    )
     def test_partial_flushing_one_span(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure
@@ -34,6 +37,9 @@ class Test_Partial_Flushing:
     @bug(
         context.library == "python",
         reason="There is a problem with this tests when we execute python on multiple tests workers",
+    )
+    @bug(
+        context.library == "nodejs", reason="APMLP-270",
     )
     def test_partial_flushing_one_span_default(self, test_agent, test_library):
         """
@@ -114,3 +120,4 @@ def no_partial_flush_test(self, test_agent, test_library):
     assert len(traces) == 1
     root_span = find_span(trace, parent_span.span_id)
     assert root_span["name"] == "root"
+    assert len(root_span["meta"]["_dd.p.tid"]) > 0
