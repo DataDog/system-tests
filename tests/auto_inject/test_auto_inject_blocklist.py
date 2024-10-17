@@ -225,9 +225,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     )
     @parametrize_virtual_machines(
         bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_builtIn_block_commands(self, virtual_machine):
@@ -246,9 +246,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     )
     @parametrize_virtual_machines(
         bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_builtIn_block_args(self, virtual_machine):
@@ -267,9 +267,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     )
     @parametrize_virtual_machines(
         bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_builtIn_instrument_args(self, virtual_machine):
@@ -297,9 +297,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     )
     @parametrize_virtual_machines(
         bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_user_ignored_args(self, virtual_machine):
