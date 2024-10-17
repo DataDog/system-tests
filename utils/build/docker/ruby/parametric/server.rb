@@ -85,9 +85,9 @@ class ServerImpl < APMClient::Service
 
     span = Datadog::Tracing.trace(
       start_span_args.name,
-      service: start_span_args.service,
-      resource: start_span_args.resource,
-      type: start_span_args.type,
+      service: start_span_args.service.empty? ? nil : start_span_args.service,
+      resource: start_span_args.resource.empty? ? nil : start_span_args.resource,
+      type: start_span_args.type.empty? ? nil : start_span_args.type,
       continue_from: digest,
     )
 
@@ -396,10 +396,7 @@ class ServerImpl < APMClient::Service
   private
 
   def find_span(span_id)
-    span = Datadog::Tracing.active_span
-    raise 'Request span is not the active span' unless span && span.id == span_id
-
-    span
+    @dd_spans[span_id] || raise("Requested span #{span_id} not found. All spans: #{@dd_spans}")
   end
 
   def wait_for_flush(seconds)
