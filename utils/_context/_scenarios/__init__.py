@@ -7,6 +7,7 @@ from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.tools import update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup
+from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
 from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
@@ -39,18 +40,7 @@ class scenarios:
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
-    default = EndToEndScenario(
-        "DEFAULT",
-        weblog_env={
-            "DD_DBM_PROPAGATION_MODE": "service",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_COMPUTE_STATS": "true",
-        },
-        include_postgres_db=True,
-        scenario_groups=[ScenarioGroup.ESSENTIALS],
-        doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
-    )
+    default = DefaultScenario("DEFAULT")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(

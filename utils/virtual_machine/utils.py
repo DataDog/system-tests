@@ -32,6 +32,7 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
                         and (not "vm_branch" in bug or vm.os_branch == bug["vm_branch"])
                         and (not "vm_cpu" in bug or vm.os_cpu == bug["vm_cpu"])
                         and (not "weblog_variant" in bug or context.weblog_variant == bug["weblog_variant"])
+                        and (not "library" in bug or context.library == bug["library"])
                     ):
                         if "reason" in bug and is_jira_ticket(bug["reason"]):
                             parameters.append(pytest.param(vm, marks=pytest.mark.xfail(reason=f"bug: {bug['reason']}")))
