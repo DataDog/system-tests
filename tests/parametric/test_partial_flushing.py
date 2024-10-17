@@ -88,7 +88,6 @@ def do_partial_flush_test(self, test_agent, test_library):
             assert child_span["metrics"]["_sampling_priority_v1"] == 1.0
             assert len(child_span["meta"]["_dd.p.tid"]) > 0
 
-
     traces = test_agent.wait_for_num_traces(1, clear=True)
     full_trace = find_trace(traces, parent_span.trace_id)
     root_span = find_span(full_trace, parent_span.span_id)
