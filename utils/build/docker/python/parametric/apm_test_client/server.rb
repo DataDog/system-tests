@@ -16,7 +16,6 @@ begin
 rescue LoadError
 end
 
-require 'datadog/tracing/contrib/grpc/distributed/propagation' # Loads optional `Datadog::Tracing::Contrib::GRPC::Distributed`
 puts 'Loading server dependencies...'
 
 require 'datadog/tracing/span_link'
@@ -433,6 +432,15 @@ def extract_http_headers(headers)
   end
 end
 
+  # OTel system tests provide times in microseconds, but Ruby OTel
+  # measures time in seconds (Float).
+  def otel_correct_time(microseconds)
+    if microseconds.nil? || microseconds == 0
+      nil
+    else
+      microseconds / 1000000.0
+    end
+  end
 
 
 def parse_dd_link(link)
@@ -457,6 +465,24 @@ def parse_dd_link(link)
   Datadog::Tracing::SpanLink.new(
     link_dg,
     attributes: link['attributes']
+  )
+end
+
+def parse_otel_link(link)
+  link_context = if link.http_headers != nil && link.http_headers.http_headers.size != nil
+              headers = link.http_headers.http_headers.group_by(&:key).map do |name, values|
+                          [name, values.map(&:value).join(', ')]
+                        end
+              digest = extract_http_headers(headers)
+              digest_to_spancontext(digest)
+            elsif @otel_spans.key?(link.parent_id)
+              @otel_spans[link.parent_id].context
+            else
+              raise "Span id in #{link} not found in span list: #{@otel_spans}"
+            end
+  OpenTelemetry::Trace::Link.new(
+    link_context,
+    link.attributes
   )
 end
 
@@ -611,56 +637,34 @@ post '/trace/otel/start_span' do
   content_type :json
   args = OtelStartSpanArgs.new(JSON.parse(request.body.read, symbolize_names: true))
   
-  otel_tracer = OpenTelemetry.tracer_provider.tracer(__FILE__)
-  
-  parent_span = if args.parent_id
-                  otel_spans[args.parent_id]
-                elsif args.http_headers
-                  headers = args.http_headers.to_h
-                  ddcontext = HTTPPropagator.extract(headers)
-                  OtelNonRecordingSpan.new(
-                    OtelSpanContext.new(
-                      ddcontext.trace_id,
-                      ddcontext.span_id,
-                      true,
-                      ddcontext.sampling_priority && ddcontext.sampling_priority > 0 ? TraceFlags::SAMPLED : TraceFlags::DEFAULT,
-                      TraceState.from_header([ddcontext._tracestate])
-                    )
-                  )
-                end
-  
-  links = args.links.map do |link|
-    parent_id = link[:parent_id] || 0
-    span_context = if parent_id > 0
-                     otel_spans[parent_id].span_context
-                   else
-                     headers = link[:http_headers].to_h
-                     ddcontext = HTTPPropagator.extract(headers)
-                     OtelSpanContext.new(
-                       ddcontext.trace_id,
-                       ddcontext.span_id,
-                       true,
-                       ddcontext.sampling_priority && ddcontext.sampling_priority > 0 ? TraceFlags::SAMPLED : TraceFlags::DEFAULT,
-                       TraceState.from_header([ddcontext._tracestate])
-                     )
-                   end
-    OpenTelemetry::Trace::Link.new(span_context, link[:attributes])
-  end
-  
-  otel_span = otel_tracer.start_span(
-    args.name,
-    with_parent: parent_span,
-    kind: args.span_kind,
-    attributes: args.attributes,
-    links: links,
-    start_timestamp: args.timestamp ? args.timestamp * 1e3 : nil,
-    record_exception: true,
-    set_status_on_exception: true
-  )
-  
-  ctx = otel_span.context
-  otel_spans[ctx.span_id] = otel_span
-  OtelStartSpanReturn.new(ctx.span_id, ctx.trace_id).to_json
+  headers = header_hash(args.http_headers)
+    if !headers.empty?
+      parent_context = OpenTelemetry.propagation.extract(headers)
+    elsif args.parent_id != 0
+      parent_span = otel_spans[args.parent_id]
+      parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
+    end
+
+    otel_links = args.span_links.map do |link|
+      parse_otel_link(link)
+    end
+
+    span = otel_tracer.start_span(
+      args.name,
+      with_parent: parent_context,
+      attributes: args.attributes,
+      start_timestamp: otel_correct_time(args.timestamp),
+      kind: OTEL_SPAN_KIND[args.span_kind],
+      links: otel_links
+    )
+
+    context = span.context
+
+    span_id_b10 = context.hex_span_id.to_i(16)
+    trace_id_b10 = context.hex_trace_id.to_i(16)
+    @otel_spans[span_id_b10] = span
+    OpenTelemetry::Trace::Link.new(span_id: span_id_b10, trace_id: Datadog::Tracing::Utils::TraceId.to_low_order(trace_id_b10))
+
 end
 
 post '/trace/otel/add_event' do
@@ -668,8 +672,11 @@ post '/trace/otel/add_event' do
   args = OtelAddEventArgs.new(JSON.parse(request.body.read, symbolize_names: true))
   
   span = otel_spans[args.span_id]
-  span.add_event(args.name, attributes: args.attributes, timestamp: args.timestamp)
-  
+  span.add_event(
+    args.name,
+    timestamp: otel_correct_time(args.timestamp),
+    attributes: args.attributes
+  )  
   OtelAddEventReturn.new.to_json
 end
 
@@ -695,8 +702,10 @@ post '/trace/otel/record_exception' do
   args = OtelRecordExceptionArgs.new(JSON.parse(request.body.read, symbolize_names: true))
   
   span = otel_spans[args.span_id]
-  span.record_exception(Exception.new(args.message), attributes: args.attributes)
-  
+  span.record_exception(
+    StandardError.new(args.message),
+    attributes: args.attributes
+  )  
   OtelRecordExceptionReturn.new.to_json
 end
 
@@ -720,8 +729,7 @@ post '/trace/otel/end_span' do
   args = OtelEndSpanArgs.new(JSON.parse(request.body.read, symbolize_names: true))
   
   span = otel_spans[args.id]
-  st = args.timestamp ? args.timestamp * 1e3 : nil
-  span.finish(end_timestamp: st)
+  span.finish(end_timestamp: otel_correct_time(args.timestamp))
   
   OtelEndSpanReturn.new.to_json
 end
@@ -750,11 +758,9 @@ post '/trace/otel/flush' do
   content_type :json
   args = OtelFlushSpansArgs.new(JSON.parse(request.body.read, symbolize_names: true))
   
-  ddtrace.tracer.writer.flush
-  spans.clear
-  otel_spans.clear
+  success = wait_for_flush(args.seconds)
   
-  OtelFlushSpansReturn.new(true).to_json
+  OtelFlushSpansReturn.new(success).to_json
 end
 
 class OtelIsRecordingArgs
@@ -823,9 +829,9 @@ post '/trace/otel/span_context' do
   ctx = span.context
   
   OtelSpanContextReturn.new(
-    format('%016x', ctx.span_id),
-    format('%032x', ctx.trace_id),
-    format('%02x', ctx.trace_flags),
+    format('%016x', context.hex_span_id.to_i(16)),
+    format('%032x', context.hex_trace_id.to_i(16)),
+    ctx.trace_flags.sampled? ? '01' : '00',
     ctx.trace_state.to_s,
     ctx.remote?
   ).to_json
@@ -852,8 +858,10 @@ post '/trace/otel/set_status' do
   args = OtelSetStatusArgs.new(JSON.parse(request.body.read, symbolize_names: true))
   
   span = otel_spans[args.span_id]
-  status_code = OpenTelemetry::Trace::Status::StatusCode.const_get(args.code.upcase)
-  span.status = OpenTelemetry::Trace::Status.new(status_code, description: args.description)
+  span.status = OpenTelemetry::Trace::Status.public_send(
+    args.code.downcase,
+    args.description
+  )
   
   OtelSetStatusReturn.new.to_json
 end
@@ -903,7 +911,9 @@ post '/trace/otel/set_attributes' do
   args = OtelSetAttributesArgs.new(JSON.parse(request.body.read, symbolize_names: true))
   
   span = otel_spans[args.span_id]
-  span.set_attributes(args.attributes)
+  args.attributes.each do |key, value|
+    span.set_attribute(key, value)
+  end
   
   OtelSetAttributesReturn.new.to_json
 end
