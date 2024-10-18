@@ -359,6 +359,8 @@ tests/:
       Test_Otel_Span_With_Baggage: missing_feature
     test_otel_span_with_w3c.py:
       Test_Otel_Span_With_W3c: v1.17.0
+    test_partial_flushing.py: # Not configurable in a standard way
+      Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature
@@ -385,8 +387,6 @@ tests/:
       Test_TracerSCITagging: v1.21.0
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
-    test_partial_flushing.py: # Not configurable in a standard way
-      Test_Partial_Flushing: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
