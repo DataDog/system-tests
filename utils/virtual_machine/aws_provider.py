@@ -72,6 +72,12 @@ class AWSPulumiProvider(VmProvider):
                 ["operation:up", "result:fail", f"stack:{self.stack_name}"],
             )
 
+    def _start_vm_2(self, vm):
+        # Check for cached ami, before starting a new one
+        should_skip_ami_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
+        ami_id = self._get_cached_ami(vm) if not should_skip_ami_cache else None
+        logger.info(f"Cache AMI: [{vm.get_cache_name()}] ID: [{ami_id}]")
+
     def _start_vm(self, vm):
         # Check for cached ami, before starting a new one
         should_skip_ami_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
@@ -238,7 +244,7 @@ class AWSCommander(Commander):
             connection=connection,
             local_path=local_path,
             remote_path=remote_path,
-            opts=pulumi.ResourceOptions(depends_on=[last_task]),
+            opts=pulumi.ResourceOptions(depends_on=[last_task], retain_on_delete=True),
         )
         return last_task
 
@@ -264,7 +270,7 @@ class AWSCommander(Commander):
             connection=connection,
             create=remote_command,
             environment=env,
-            opts=pulumi.ResourceOptions(depends_on=[last_task]),
+            opts=pulumi.ResourceOptions(depends_on=[last_task], retain_on_delete=True),
         )
         if logger_name:
             cmd_exec_install.stdout.apply(
@@ -311,7 +317,7 @@ class AWSCommander(Commander):
                         connection=connection,
                         local_path=source,
                         remote_path=destination,
-                        opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
+                        opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()], retain_on_delete=True),
                     ),
                 )
             else:
@@ -327,7 +333,7 @@ class AWSCommander(Commander):
                         "mkdir-" + destination + "-" + str(uuid.uuid4()) + "-" + command_id,
                         connection=connection,
                         create=f"mkdir -p {destination}",
-                        opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()]),
+                        opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()], retain_on_delete=True),
                     ),
                 )
                 quee_depends_on.insert(
