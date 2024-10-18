@@ -24,7 +24,7 @@
         ];
 
         # use this pyton version, and include the abvoe packages
-        python = pkgs.python39.withPackages python_packages;
+        python = pkgs.python312.withPackages python_packages;
       in {
         devShell = pkgs.stdenv.mkDerivation {
           name = "devshell";
@@ -41,7 +41,11 @@
             bash
             fswatch
             rsync
+          ] ++ lib.optionals (pkgs.stdenv.isDarwin) [
+            # for python watchdog package
+            darwin.apple_sdk.frameworks.CoreServices
           ];
+
 
           shellHook = ''
             export PYTHON_VERSION="$(python -c 'import platform; import re; print(re.sub(r"\.\d+$", "", platform.python_version()))')"
