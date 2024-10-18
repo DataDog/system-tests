@@ -1,0 +1,15 @@
+#!/bin/bash
+# test-app.sysvinit
+case "$1" in
+start) echo "Running test-app_service in start mode"
+    su - datadog -c "env $(cat /var/log/datadog_weblog/*.env | xargs) nohup APP_RUN_COMMAND >> /var/log/datadog_weblog/app.log 2>&1 </dev/null &"
+;;
+stop)
+echo "Running the test-app_service script in stop mode"
+APP_STOP_COMMAND
+;;
+*)
+echo "Usage: test-app_service {start | stop}"
+exit 1
+esac
+exit 0

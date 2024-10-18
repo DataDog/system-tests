@@ -19,7 +19,14 @@ lang_variant:
         os_distro: rpm
         os_branch: amazon_linux2
         remote-command: sudo yum -y install java-11-amazon-corretto-headless
-        
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: amazon_linux2018_amd64
+        remote-command: |
+          sudo curl -o java11.rpm https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/java-11-amazon-corretto-devel-11.0.5.10-1.x86_64.rpm
+          sudo yum -y localinstall java11.rpm
+                  
       - os_type: linux
         os_distro: rpm
         remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
