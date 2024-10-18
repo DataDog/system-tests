@@ -621,7 +621,6 @@ class scenarios:
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_CRASHTRACKING",
         "Onboarding Container Single Step Instrumentation crashtracking scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
-        app_env={"DD_CRASHTRACKING_ENABLED": "true"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
