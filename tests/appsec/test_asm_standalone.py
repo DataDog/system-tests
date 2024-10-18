@@ -4,13 +4,7 @@ import re
 from requests.structures import CaseInsensitiveDict
 
 from utils import weblog, interfaces, scenarios, features, rfc, bug, flaky
-
-# Python regexp that matches:
-# "GET /requestdownstream"
-# "GET /requestdownstream/"
-# "GET requestdownstream"
-# "GET requestdownstream/"
-REQUESTDOWNSTREAM_RESOURCE_PATTERN = re.compile(r"GET /?requestdownstream/?")
+from utils.tools import get_rid_from_request, get_rid_from_span
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -81,9 +75,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -126,9 +121,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -171,9 +167,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -216,9 +213,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -265,9 +263,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -315,9 +314,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -360,9 +360,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -404,9 +405,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -448,9 +450,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -495,9 +498,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -542,9 +546,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
@@ -589,9 +594,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        rid = get_rid_from_request(self.r)
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
+            if not get_rid_from_span(span) == rid:
                 continue
 
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
