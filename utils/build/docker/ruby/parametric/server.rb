@@ -1,9 +1,9 @@
 require 'sinatra'
 require 'json'
-require 'ddtrace'
-require 'opentelemetry/sdk'
-require 'opentelemetry/exporter/otlp'
-require 'opentelemetry/instrumentation/all'
+# Add current folder to the search path
+current_dir = Dir.pwd
+$LOAD_PATH.unshift(current_dir) unless $LOAD_PATH.include?(current_dir)
+
 # Support gem rename on both branches
 begin
   require 'datadog'
@@ -16,10 +16,10 @@ begin
 rescue LoadError
 end
 
+require 'datadog/tracing/contrib/grpc/distributed/propagation' # Loads optional `Datadog::Tracing::Contrib::GRPC::Distributed`
 puts 'Loading server dependencies...'
 
 require 'datadog/tracing/span_link'
-require 'apm_test_client_services_pb'
 
 # Only used for OpenTelemetry testing.
 require 'opentelemetry/sdk'
@@ -46,7 +46,8 @@ end
 STDOUT.sync = true
 puts 'Loading server classes...'
 
-set :port, 4567
+set :bind, '0.0.0.0'
+set :port, ENV.fetch('APM_TEST_CLIENT_SERVER_PORT')
 
 dd_spans = {}
 otel_spans = {}
@@ -444,8 +445,8 @@ end
 
 
 def parse_dd_link(link)
-  link_dg = if link.http_headers != nil && link.http_headers.http_headers.size != nil
-              headers = link.http_headers.http_headers.group_by(&:key).map do |name, values|
+  link_dg = if link.http_headers != nil && link.http_headers.size != nil
+              headers = link.http_headers.group_by(&:key).map do |name, values|
                           [name, values.map(&:value).join(', ')]
                         end
               extract_http_headers(headers)
@@ -469,8 +470,8 @@ def parse_dd_link(link)
 end
 
 def parse_otel_link(link)
-  link_context = if link.http_headers != nil && link.http_headers.http_headers.size != nil
-              headers = link.http_headers.http_headers.group_by(&:key).map do |name, values|
+  link_context = if link.http_headers != nil && link.http_headers.size != nil
+              headers = link.http_headers.group_by(&:key).map do |name, values|
                           [name, values.map(&:value).join(', ')]
                         end
               digest = extract_http_headers(headers)
@@ -496,9 +497,9 @@ end
 post '/trace/span/start' do
   args = StartSpanArgs.new(JSON.parse(request.body.read))
 
-  digest = if args.http_headers.http_headers.size != 0
+  digest = if args.http_headers.size != 0
     # Emulate how Rack headers concatenates header with duplicate values with a `, `.
-    headers = args.http_headers.http_headers.group_by(&:key).map do |name, values|
+    headers = args.http_headers.group_by(&:key).map do |name, values|
       [name, values.map(&:value).join(', ')]
     end
     extract_http_headers(headers)
@@ -525,21 +526,30 @@ post '/trace/span/start' do
 
   span.links = args.links do |link|
     parse_dd_link(link)
-  end if args.span_links.size > 0
+  end if args.links.size > 0
 
   dd_spans[span.id] = span
   dd_traces[span.trace_id] = Datadog::Tracing.active_trace
-
-  StartSpanReturn.new(span.span_id, span.trace_id).to_json
+  # not sure if we need the lower 64 bits of trace id or if we can just use the whole thing
+  # grpc implementation had to use the lower 64 bits, however the python tracer looks to just return
+  # the whole trace id
+  StartSpanReturn.new(span.id, span.trace_id).to_json
 
 end
 
 
 post '/trace/span/finish' do
   args = SpanFinishArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
+  span = dd_spans[args.span_id]
   span.finish
   SpanFinishReturn.new.to_json
+end
+
+post"/trace/span/set_meta" do
+  args = SpanSetMetaArgs.new(JSON.parse(request.body.read))
+  span = dd_spans[args.span_id]
+  span.set_tag(args.key, args.value)
+  return SpanSetMetaReturn.new.to_json
 end
 
 get '/trace/config' do
@@ -557,13 +567,6 @@ get '/trace/config' do
     config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
   end
   TraceConfigReturn.new(config).to_json
-end
-
-post '/trace/span/set_meta' do
-  args = SpanSetMetaArgs.new(JSON.parse(request.body.read))
-  span = spans[args.span_id]
-  span.set_tag(args.key, args.value)
-  SpanSetMetaReturn.new.to_json
 end
 
 
@@ -645,7 +648,7 @@ post '/trace/otel/start_span' do
       parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
     end
 
-    otel_links = args.span_links.map do |link|
+    otel_links = args.links.map do |link|
       parse_otel_link(link)
     end
 
