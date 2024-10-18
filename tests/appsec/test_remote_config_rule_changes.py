@@ -149,7 +149,6 @@ class Test_UpdateRuleFileWithRemoteConfig:
                 computed_namespace = serie.get("namespace", fallback_namespace)
                 # Inject here the computed namespace considering the fallback. This simplifies later assertions.
                 serie["_computed_namespace"] = computed_namespace
-                print(f">>>> {serie}")
                 if computed_namespace == namespace and serie["metric"] in metrics:
                     series.append(serie)
         return series
