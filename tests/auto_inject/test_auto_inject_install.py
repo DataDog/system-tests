@@ -1,6 +1,5 @@
 from utils import scenarios, features, flaky
 from utils.tools import logger
-from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
@@ -81,6 +80,13 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @parametrize_virtual_machines()
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine, profile=True)
+
+
+@scenarios.container_auto_injection_install_script_crashtracking
+class TestContainerAutoInjectInstallScriptCrashTracking(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines()
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine, crashlog=True)
 
 
 @features.installer_auto_instrumentation
