@@ -71,6 +71,7 @@
                      <buildArgs>
                         ${graal.build.args}
                      </buildArgs>
+                     <quickBuild>true</quickBuild>
                 </configuration>
             </plugin>
         </plugins>
@@ -82,7 +83,7 @@
                 <directory>with-profiling</directory>
             </build>
             <properties>
-                <graal.build.args>-J-javaagent:${agent.path} -J-Ddd.profiling.enabled=true --enable-monitoring=jfr -Ob</graal.build.args>
+                <graal.build.args>--enable-monitoring=jfr -J-Ddd.profiling.enabled=true -J-javaagent:${agent.path}</graal.build.args>
             </properties>
         </profile>
         <profile>
@@ -91,7 +92,7 @@
                 <directory>without-profiling</directory>
             </build>
             <properties>
-                <graal.build.args>-J-javaagent:${agent.path} -Ob</graal.build.args>
+                <graal.build.args>-J-javaagent:${agent.path}</graal.build.args>
             </properties>
         </profile>
     </profiles>
