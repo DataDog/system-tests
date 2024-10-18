@@ -18,9 +18,11 @@ def make_get_request(app_url, swallow: bool = False) -> str:
             },
             timeout=10,
         )
-    except Exception:
+    except Exception as e:
         if not swallow:
             raise
+        else:
+            logger.warning(e)
     return generated_uuid
 
 

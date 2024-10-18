@@ -1,5 +1,3 @@
-import os
-import pytest
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, request_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
