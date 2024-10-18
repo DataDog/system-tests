@@ -30,6 +30,10 @@ class DataDogConfig:
         self.installer_versions["agent"] = os.getenv("DD_INSTALLER_AGENT_VERSION")
         self.installer_versions["injector"] = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
 
+        # Cached properties
+        self.skip_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
+        self.update_cache = os.getenv("AMI_UPDATE", "False").lower() == "true"
+
         # if None in (self.dd_api_key, self.dd_app_key):
         #    logger.warn("Datadog agent is not configured correctly for auto-injection testing")
 
