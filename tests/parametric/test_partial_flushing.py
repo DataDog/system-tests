@@ -9,14 +9,8 @@ class Test_Partial_Flushing:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
     )
-    @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(
         context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
-    )
-    @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
-    @missing_feature(context.library == "php", reason="partial flushing not implemented")
-    @bug(
-        context.library == "nodejs", reason="APMLP-270",
     )
     def test_partial_flushing_one_span(self, test_agent, test_library):
         """
@@ -26,20 +20,14 @@ class Test_Partial_Flushing:
         do_partial_flush_test(self, test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1",}])
-    @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
     @missing_feature(
         context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
     )
-    @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
-    @missing_feature(context.library == "php", reason="partial flushing not implemented")
     @missing_feature(context.library == "golang", reason="partial flushing not enabled by default")
     @missing_feature(context.library == "dotnet", reason="partial flushing not enabled by default")
     @bug(
         context.library == "python",
         reason="There is a problem with this tests when we execute python on multiple tests workers",
-    )
-    @bug(
-        context.library == "nodejs", reason="APMLP-270",
     )
     def test_partial_flushing_one_span_default(self, test_agent, test_library):
         """
@@ -51,9 +39,6 @@ class Test_Partial_Flushing:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true",}]
     )
-    @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
-    @missing_feature(context.library == "php", reason="partial flushing not implemented")
-    @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
     def test_partial_flushing_under_limit_one_payload(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure
@@ -64,10 +49,6 @@ class Test_Partial_Flushing:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false",}],
     )
-    @missing_feature(context.library == "cpp", reason="partial flushing not implemented")
-    @missing_feature(context.library == "ruby", reason="no way to configure partial flushing")
-    @missing_feature(context.library == "php", reason="partial flushing not implemented")
-    @missing_feature(context.library == "nodejs", reason="does not use DD_TRACE_PARTIAL_FLUSH_ENABLED")
     def test_partial_flushing_disabled(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure

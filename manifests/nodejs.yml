@@ -597,6 +597,8 @@ tests/:
       Test_TracerSCITagging: *ref_3_21_0
     test_tracer_flare.py:
       TestTracerFlareV1: *ref_5_15_0
+    test_partial_flushing.py:
+      Test_Partial_Flushing: bug (APMLP-270)
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: *ref_4_17_0

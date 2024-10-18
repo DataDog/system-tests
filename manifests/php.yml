@@ -319,6 +319,8 @@ tests/:
       Test_TracerSCITagging: v1.2.0
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
+    test_partial_flushing.py:
+      Test_Partial_Flushing: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
