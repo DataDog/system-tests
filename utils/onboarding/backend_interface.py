@@ -83,7 +83,7 @@ def _query_for_profile(runtime_id):
 
 def _query_for_crash_log(runtime_id):
     path = "/api/v2/logs/events/search"
-    host = "https://dd.datadoghq.com"
+    host = "https://api.datadoghq.com"
     try:
         time_to = datetime.now(timezone.utc)
         time_from = time_to - timedelta(minutes=2)
@@ -151,5 +151,5 @@ wait_backend_trace_id = wait_backend_data
 def cause_and_verify_crash(runtime_id: str, vm_ip: str, vm_port: str):
     logger.info(f"Making a crash-inducing request to weblog [{vm_ip}:{vm_port}]")
     make_get_request(f"http://{vm_ip}:{vm_port}/crashme", swallow=True)
-    (status,) = _retry_request_until_timeout(functools.partial(_query_for_crash_log, runtime_id), timeout=60.0)
+    (status,) = _retry_request_until_timeout(functools.partial(_query_for_crash_log, runtime_id), timeout=10.0)
     logger.info(f"crash from runtime {runtime_id} found in the backend!")
