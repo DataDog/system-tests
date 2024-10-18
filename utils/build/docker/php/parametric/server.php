@@ -150,7 +150,8 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
         \DDTrace\set_distributed_tracing_context($context["trace_id"], $context["distributed_tracing_parent_id"] ?? 0, $origin);
     }
     $span->name = arg($req, 'name');
-    $span->service = arg($req, 'service');
+    $service = arg($req, 'service');
+    $span->service = (!is_null($service) && $service !== '') ? $service : $span->service;
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
     $span->links = $links;
@@ -637,6 +638,7 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
         'dd_trace_debug' => var_export(\dd_trace_env_config("DD_TRACE_DEBUG"), true),
         'dd_trace_otel_enabled' => var_export(\dd_trace_env_config("DD_TRACE_OTEL_ENABLED"), true),
         'dd_log_level' => trim(var_export(\dd_trace_env_config("DD_TRACE_LOG_LEVEL"), true), "'"),
+        'dd_trace_agent_url' => trim(var_export(\dd_trace_env_config("DD_TRACE_AGENT_URL"), true), "'"),
     );
     return jsonResponse(array(
         'config' => $config
