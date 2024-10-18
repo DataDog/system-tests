@@ -147,8 +147,6 @@ class Test_UpdateRuleFileWithRemoteConfig:
             fallback_namespace = content["payload"].get("namespace")
             for serie in content["payload"]["series"]:
                 computed_namespace = serie.get("namespace", fallback_namespace)
-                # Inject here the computed namespace considering the fallback. This simplifies later assertions.
-                serie["_computed_namespace"] = computed_namespace
                 if computed_namespace == namespace and serie["metric"] in metrics:
                     series.append(serie)
         return series
@@ -236,7 +234,8 @@ class Test_UpdateRuleFileWithRemoteConfig:
             for t in s.get("tags", ()):
                 if t.startswith("event_rules_version:"):
                     rule_versions.add(t[20:].strip())
-        assert len(rule_versions) == 2
+        # depending of previous tests, we should have at least the current RC version and the static file version.
+        assert len(rule_versions) >= 2
         assert RULE_FILE[1]["metadata"]["rules_version"] in rule_versions
         for r in rule_versions:
             assert re.match(expected_version_regex, r), f"version [{r}] doesn't match expected version regex"
