@@ -20,7 +20,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <agent.path>/app/dd-java-agent.jar</agent.path>
         <start-class>com.datadoghq.springbootnative.App</start-class>
-        <graal.build.args>-Ob</graal.build.args>
     </properties>
 
     <dependencies>
@@ -68,9 +67,6 @@
                 <artifactId>native-maven-plugin</artifactId>
                 <version>0.10.3</version>
                 <configuration>
-                     <buildArgs>
-                        ${graal.build.args}
-                     </buildArgs>
                      <quickBuild>true</quickBuild>
                 </configuration>
             </plugin>
@@ -81,19 +77,37 @@
             <id>with-profiling</id>
             <build>
                 <directory>with-profiling</directory>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                          <buildArgs combine.children="append">
+                            <buildArg>--enable-monitoring=jfr</buildArg>
+                            <buildArg>-J-Ddd.profiling.enabled=true</buildArg>
+                            <buildArg>-J-javaagent:${agent.path}</buildArg>
+                          </buildArgs>
+                        </configuration>
+                      </plugin>
+                </plugins>
             </build>
-            <properties>
-                <graal.build.args>--enable-monitoring=jfr -J-Ddd.profiling.enabled=true -J-javaagent:${agent.path}</graal.build.args>
-            </properties>
         </profile>
         <profile>
             <id>without-profiling</id>
             <build>
                 <directory>without-profiling</directory>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                          <buildArgs combine.children="append">
+                            <buildArg>-J-javaagent:${agent.path}</buildArg>
+                          </buildArgs>
+                        </configuration>
+                      </plugin>
+                </plugins>
             </build>
-            <properties>
-                <graal.build.args>-J-javaagent:${agent.path}</graal.build.args>
-            </properties>
         </profile>
     </profiles>
 </project>
