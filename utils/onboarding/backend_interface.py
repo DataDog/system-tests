@@ -86,7 +86,7 @@ def _query_for_crash_log(runtime_id):
     host = "https://api.datadoghq.com"
     try:
         time_to = datetime.now(timezone.utc)
-        time_from = time_to - timedelta(minutes=2)
+        time_from = time_to - timedelta(minutes=5)
 
         queryJson = {
             "filter": {
