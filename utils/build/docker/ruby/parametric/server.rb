@@ -114,12 +114,18 @@ class ServerImpl < APMClient::Service
       config["dd_service"] = c.service || ""
       config["dd_trace_sample_rate"] = c.tracing.sampling.default_rate.to_s
       config["dd_trace_enabled"] = c.tracing.enabled.to_s
-      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s # x
+      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s
       config["dd_trace_propagation_style"] = c.tracing.propagation_style.join(",")
       config["dd_trace_debug"] = c.diagnostics.debug.to_s
       config["dd_env"] = c.env || ""
       config["dd_version"] = c.version || ""
       config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
+      config["dd_trace_rate_limit"] = c.tracing.sampling.rate_limit.to_s
+      config["dd_trace_agent_url"] =  if c.agent.uds_path
+                                        "unix://#{c.agent.uds_path}"
+                                      else
+                                        "http://#{c.agent.host}:#{c.agent.port}"
+                                      end
     end
     GetTraceConfigReturn.new(config: config)
   end
