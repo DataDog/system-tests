@@ -9,8 +9,6 @@ from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
 from utils import weblog
-from utils import bug
-from utils import context
 
 
 CONFIG_ENABLED = (
@@ -136,6 +134,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
     """A library should use the default rules when AppSec is activated via remote config,
     and no rule file is provided by ASM_DD. It should also revert to the default rules
     when the remote config rule file is deleted.
+    Also test the span tags and telemetry data for the rule version.
     """
 
     def _find_series(self, request_type, namespace, metrics):
