@@ -30,6 +30,7 @@ But, obviously, testing validated versions of components is not really interesti
 ## Java library
 
 1. Add a valid `dd-java-agent-<VERSION>.jar` file in `binaries`. `<VERSION>` must be a valid version number.
+* To use the `jar` from your *PR* find the `build_lib` step and check the artifacts tab up toward the top then add it to the folder above.
 
 ## NodeJS library
 

@@ -152,7 +152,7 @@ tests/:
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: v2.5.0
     test_automated_login_events.py:
       Test_Login_Events:
         '*': v1.13.0
