@@ -390,7 +390,7 @@ tests/:
         '*': *ref_3_19_0
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
-        '*': missing_feature (v3.19.0, but test is not implemented)
+        '*': *ref_5_24_0
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: *ref_3_6_0
