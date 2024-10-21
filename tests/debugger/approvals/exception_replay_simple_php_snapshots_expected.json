@@ -1,0 +1,32 @@
+[
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exception_capture_id": "<scrubbed>",
+    "exception_hash": "d970cec0014608ee",
+    "frame_index": 0,
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplaySimple",
+        "type": "DebuggerController"
+      }
+    }
+  }
+]
