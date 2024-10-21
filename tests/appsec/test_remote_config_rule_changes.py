@@ -4,6 +4,8 @@
 
 import re
 
+from utils import context
+from utils import bug
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
@@ -169,7 +171,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         self.config_state_5 = rc.rc_state.reset().apply()
 
-    @bug(context.library < "nodejs@5.25.0", reason="rules version was not correctly reported after an RC update")
+    @bug(context.library < "nodejs@5.25.0", reason="APMRP-360")
     def test_update_rules(self):
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
