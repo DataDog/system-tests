@@ -350,6 +350,7 @@ tests/:
       Test_Otel_Span_With_W3c: v2.42.0
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
+    test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature

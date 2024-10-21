@@ -61,6 +61,7 @@ class StartSpanArgs(BaseModel):
     origin: str
     http_headers: List[Tuple[str, str]]
     links: List[Dict]
+    events: List[Dict]
 
 
 class StartSpanReturn(BaseModel):
@@ -105,6 +106,9 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
             headers = {k: v for k, v in link["http_headers"]}
             context = HTTPPropagator.extract(headers)
             span.link_span(context, link.get("attributes"))
+
+    for event in args.events:
+        span._add_event(event["name"], event.get("attributes"), event.get("time_unix_nano"))
 
     spans[span.span_id] = span
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
@@ -342,10 +346,17 @@ class TraceSpanAddLinksArgs(BaseModel):
     parent_id: int
     attributes: dict
 
+class TraceSpanAddEventsArgs(BaseModel):
+    span_id: int
+    name: str
+    timestamp: int
+    attributes: dict
 
 class TraceSpanAddLinkReturn(BaseModel):
     pass
 
+class TraceSpanAddEventReturn(BaseModel):
+    pass
 
 @app.post("/trace/span/add_link")
 def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
@@ -353,6 +364,12 @@ def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
     linked_span = spans[args.parent_id]
     span.link_span(linked_span.context, attributes=args.attributes)
     return TraceSpanAddLinkReturn()
+
+@app.post("/trace/span/add_event")
+def trace_span_add_event(args: TraceSpanAddEventsArgs) -> TraceSpanAddEventReturn:
+    span = spans[args.span_id]
+    span._add_event(args.name, args.attributes, args.timestamp)
+    return TraceSpanAddEventReturn()
 
 
 class HttpClientRequestArgs(BaseModel):
@@ -393,6 +410,7 @@ class OtelStartSpanArgs(BaseModel):
     resource: str = ""  # Not used but defined in protos/apm-test-client.protos
     type: str = ""  # Not used but defined in protos/apm-test-client.protos
     links: List[Dict] = []  # Not used but defined in protos/apm-test-client.protos
+    events: List[Dict] = []  # Not used but defined in protos/apm-test-client.protos
     timestamp: int
     http_headers: List[Tuple[str, str]]
     attributes: dict
@@ -449,12 +467,17 @@ def otel_start_span(args: OtelStartSpanArgs):
             )
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
 
+    events = []
+    for event in args.events:
+        events.append(opentelemetry.trace.Event(event["name"], event.get("attributes"), event.get("timestamp")))
+
     otel_span = otel_tracer.start_span(
         args.name,
         context=set_span_in_context(parent_span),
         kind=SpanKind(args.span_kind),
         attributes=args.attributes,
         links=links,
+        events=events,
         # parametric tests expect timestamps to be set in microseconds (required by go)
         # but the python implementation sets time nanoseconds.
         start_time=args.timestamp * 1e3 if args.timestamp else None,
@@ -481,7 +504,7 @@ class OtelAddEventArgs(BaseModel):
 @app.post("/trace/otel/add_event")
 def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
     span = otel_spans[args.span_id]
-    span.add_event(args.name, args.attributes, args.timestamp)
+    span._add_event(args.name, args.attributes, args.timestamp)
     return OtelAddEventReturn()
 
 
