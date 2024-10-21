@@ -47,13 +47,17 @@ class AWSPulumiProvider(VmProvider):
             self.pulumi_ssh.load(self.vms)
             # Debug purposes. How many instances, created by system-tests are running in the AWS account?
             self._check_running_instances()
-            # First check if there are cached AMIs
-            self._get_cached_amis(self.vms)
-            before = time.time()
+            # Debug purposes. How many AMI CACHES, created by system-tests are available in the AWS account?
+            self._check_available_cached_amis()
+            logger.info(f"Starting AWS VMs.....")
+            # First check and configure if there are cached AMIs
+            self._configure_cached_amis(self.vms)
+
             for vm in self.vms:
-                logger.info(f"--------- Starting AWS VM: {vm.name} -----------")
+                logger.info(
+                    f"-- Starting AWS VM: [{vm.name}], ID:[{vm.aws_config.ami_id}], update cache:[{vm.datadog_config.update_cache}], skip cache: [{ vm.datadog_config.skip_cache}] --"
+                )
                 self._start_vm(vm)
-            logger.info(f"Time to start all VMs: {time.time() - before}")
 
         project_name = "system-tests-vms"
         try:
@@ -78,9 +82,6 @@ class AWSPulumiProvider(VmProvider):
             )
 
     def _start_vm(self, vm):
-        # Check for cached ami, before starting a new one
-        should_skip_ami_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
-        should_update_ami = os.getenv("AMI_UPDATE", "False").lower() == "true"
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
             vm.name,
@@ -110,48 +111,7 @@ class AWSPulumiProvider(VmProvider):
             dial_error_limit=-1,
         )
         # Install provision on the started server
-        self.install_provision(
-            vm, ec2_server, server_connection, create_cache=should_update_ami, skip_ami_cache=should_skip_ami_cache,
-        )
-
-    def _start_vm_2(self, vm):
-        # Check for cached ami, before starting a new one
-        should_skip_ami_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
-        ami_id = self._get_cached_ami(vm) if not should_skip_ami_cache else None
-        logger.info(f"Cache AMI: {vm.get_cache_name()}")
-        # Startup VM and prepare connection
-        ec2_server = aws.ec2.Instance(
-            vm.name,
-            instance_type=vm.aws_config.ami_instance_type,
-            vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
-            subnet_id=vm.aws_config.aws_infra_config.subnet_id,
-            key_name=self.pulumi_ssh.keypair_name,
-            ami=vm.aws_config.ami_id if ami_id is None else ami_id,
-            tags=self._get_ec2_tags(vm),
-            opts=self.pulumi_ssh.aws_key_resource,
-            root_block_device={"volume_size": 16},
-            iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
-        )
-
-        # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
-        Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
-        pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
-        Output.all(ec2_server.private_ip, vm.name, ec2_server.id).apply(
-            lambda args: vm_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}:{args[2]}")
-        )
-
-        vm.ssh_config.username = vm.aws_config.user
-
-        server_connection = command.remote.ConnectionArgs(
-            host=ec2_server.private_ip,
-            user=vm.aws_config.user,
-            private_key=self.pulumi_ssh.private_key_pem,
-            dial_error_limit=-1,
-        )
-        # Install provision on the started server
-        self.install_provision(
-            vm, ec2_server, server_connection, create_cache=ami_id is None, skip_ami_cache=should_skip_ami_cache,
-        )
+        self.install_provision(vm, ec2_server, server_connection)
 
     def stack_destroy(self):
         if os.getenv("ONBOARDING_KEEP_VMS") is None:
@@ -177,23 +137,21 @@ class AWSPulumiProvider(VmProvider):
             )
 
     def _get_cached_amis(self, vms):
-        if os.getenv("SKIP_AMI_CACHE", "False").lower() == "true" or os.getenv("AMI_UPDATE", "False").lower() == "true":
-            logger.info("Skipping AMI cache")
-            return
-        before_time = time.time()
+        """ Get all the cached AMIs for the VMs """
         names_filter_to_check = []
+        cached_amis = []
+        # Create search filter if vm is not marked as skip_cache or update_cache
         for vm in vms:
-            if not vm.skip_cache and vm.update_cache:
+            if not vm.datadog_config.skip_cache and not vm.datadog_config.update_cache:
                 names_filter_to_check.append(vm.get_cache_name() + "-*")
 
-        # names_filter_to_check = [vm.get_cache_name() + "-*" if not vm.skip_cache or not vm.update_cache else None for vm in vms]
-
+        # There are vms that should use the cache
         if len(names_filter_to_check) > 0:
-            # Check for existing ami
+            # Check for existing ami cache for the vms
             ami_existing = aws.ec2.get_ami_ids(
                 filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=names_filter_to_check,)], owners=["self"],
             )
-            cached_amis = []
+            # We found some cached AMIsm let's check the details: status, expiration, etc
             for ami in ami_existing.ids:
                 # Latest ami details
                 ami_recent = aws.ec2.get_ami(
@@ -204,70 +162,42 @@ class AWSPulumiProvider(VmProvider):
                 logger.info(
                     f"We found an existing AMI  name:[{ami_recent.name}], ID:[{ami_recent.id}], status:[{ami_recent.state}], expiration:[{ami_recent.deprecation_time}], created:[{ami_recent.creation_date}]"
                 )
-                if str(ami_recent.state) != "available":
-                    logger.info(
-                        f"We found an existing AMI but we can no use it because the current status is {ami_recent.state}"
-                    )
-                    logger.info("We are not going to create a new AMI and we are not going to use it")
-                    # TODO RMM what could we do?
-                else:
-                    cached_amis.append(ami_recent)
+                cached_amis.append(ami_recent)
+        return cached_amis
 
-            for vm in vms:
-                if vm.get_cache_name() in ami_recent.name:
-                    logger.info(f"Setting cached AMI for VM [{vm.name}] with AMI ID [{ami_recent.id}]")
-                    vm.aws_config.ami_id = ami_recent.id
+    def _configure_cached_amis(self, vms):
+        """ Configure the cached AMIs for the VMs """
+        before_time = time.time()
+        cached_amis = self._get_cached_amis(vms)
+        for vm in vms:
+            # We don't want to use cache ami for skip_ami_cache or ami_update
+            if vm.datadog_config.skip_cache or vm.datadog_config.update_cache:
+                continue
+            # Let's search the cached AMI for the VM
+            cached_ami_found = False
+            for cached_ami in cached_amis:
+                # The final name it's the vm.get_cache_name() + "-somethingaddedbyaws"
+                if vm.name in cached_ami.name:
+                    if str(cached_ami.state) != "available":
+                        logger.info(
+                            f"We found an existing cache AMI for vm [{vm.name}] but we can no use it because the current status is {ami_recent.state}"
+                        )
+                        logger.info("We are not going to create a new AMI and we are not going to use it")
+                        vm.datadog_config.update_cache = False
+                        vm.datadog_config.skip_cache = True
+                    else:
+                        logger.info(
+                            f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] to cached AMI ID [{cached_ami.id}]"
+                        )
+                        vm.aws_config.ami_id = cached_ami.id
+                    cached_ami_found = True
                     break
 
-        logger.info(f"TIME cache for AMIs: {time.time() - before_time}")
+            # Here we don't find a cached AMI for the VM. Force creation
+            if not cached_ami_found:
+                vm.datadog_config.update_cache = True
 
-    def _get_cached_ami(self, vm):
-        """ Check if there is an AMI for one test. Also check if we are using the env var to force the AMI creation"""
-        ami_id = None
-        # Configure name
-        ami_name = vm.get_cache_name()
-
-        # Check for existing ami
-        ami_existing = aws.ec2.get_ami_ids(
-            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[ami_name + "-*"],)], owners=["self"],
-        )
-
-        if len(ami_existing.ids) > 0:
-            for id in ami_existing.ids:
-                logger.info(f"Found existing AMI with ID {id}")
-            # Latest ami details
-            ami_recent = aws.ec2.get_ami(
-                # filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ ami_existing.ids[0]],)],
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[ami_name + "-*"],)],
-                owners=["self"],
-                most_recent=True,
-            )
-            logger.info(
-                f"We found an existing AMI with name {ami_name} - {ami_recent.name}: [{ami_recent.id}] and status:[{ami_recent.state}] and expiration: [{ami_recent.deprecation_time}]"
-            )
-            # The AMI exists. We don't need to create the AMI again
-            ami_id = ami_recent.id
-
-            if str(ami_recent.state) != "available":
-                logger.info(
-                    f"We found an existing AMI but we can no use it because the current status is {ami_recent.state}"
-                )
-                logger.info("We are not going to create a new AMI and we are not going to use it")
-                ami_id = None
-                ami_name = None
-
-            # But if we ser env var, created AMI again mandatory (TODO we should destroy previously existing one)
-            if os.getenv("AMI_UPDATE") is not None and os.getenv("AMI_UPDATE").casefold() == "true":
-                # TODO Pulumi is not prepared to delete resources. Workaround: Import existing ami to pulumi stack, to be deleted when destroying the stack
-                # aws.ec2.Ami( ami_existing.name,
-                #    name=ami_existing.name,
-                #    opts=pulumi.ResourceOptions(import_=ami_existing.id))
-                logger.info("We found an existing AMI but AMI_UPDATE is set. We are going to update the AMI")
-                ami_id = None
-
-        else:
-            logger.info(f"Not found an existing AMI with name {ami_name}")
-        return ami_id
+        logger.info(f"Time cache for AMIs: {time.time() - before_time}")
 
     def _get_ec2_tags(self, vm):
         """ Build the ec2 tags for the VM """
@@ -291,9 +221,30 @@ class AWSPulumiProvider(VmProvider):
 
         logger.info(f"AWS Listing running instances with system-tests tag")
         for instance_id in instances.ids:
-            logger.info(f"Instance id: [{instance_id}]  status:[running] (created by other execution)")
+            logger.info(f"- Instance id: [{instance_id}]  status:[running] (created by other execution)")
 
         logger.info(f"Total tags: {instances.instance_tags}")
+
+    def _check_available_cached_amis(self):
+        """ Print the AMI Caches availables in the AWS account and created by system-tests """
+        try:
+            logger.info(f"AWS Listing available ami caches with system-tests tag")
+            ami_existing = aws.ec2.get_ami_ids(
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="tag:CI", values=["system-tests"],)], owners=["self"],
+            )
+            for ami in ami_existing.ids:
+                # Latest ami details
+                ami_recent = aws.ec2.get_ami(
+                    filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami],)],
+                    owners=["self"],
+                    most_recent=True,
+                )
+                logger.info(
+                    f"* name:[{ami_recent.name}], ID:[{ami_recent.id}], status:[{ami_recent.state}], expiration:[{ami_recent.deprecation_time}], created:[{ami_recent.creation_date}]"
+                )
+        except Exception as e:
+            logger.error(f"Error checking cached AMIs: {e}")
+            logger.info("No cached AMIs found in the account")
 
 
 class AWSCommander(Commander):
@@ -306,9 +257,12 @@ class AWSCommander(Commander):
         # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
         task_dep = aws.ec2.AmiFromInstance(
             ami_name,
+            description=ami_name,
             # deprecation_time=expiration_date,
             source_instance_id=server.id,
             opts=pulumi.ResourceOptions(depends_on=[last_task], retain_on_delete=True),
+            snapshot_without_reboot=True,
+            tags={"CI": "system-tests"},
         )
         return task_dep
 

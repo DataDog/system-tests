@@ -167,15 +167,16 @@ class _VirtualMachine:
         extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
-        vm_cached_name = f"{self.name}_"
+        cached_name = (
+            f"{self.name}_{self.get_provision().provision_name}_{self.get_provision().weblog_installation.id}_"
+        )
+        vm_cached_name = ""
         if self.get_provision().lang_variant_installation:
-            vm_cached_name += f"{self.get_provision().lang_variant_installation.id}_"
-        vm_cached_installations = ""
+            vm_cached_name += f"{self.get_provision().lang_variant_installation}_"
         for installation in self.get_provision().installations:
             if installation.cache:
-                vm_cached_installations += f"{installation.id}_"
-        vm_cached_installations = hashlib.shake_128(vm_cached_installations.encode("utf-8")).hexdigest(4)
-        return vm_cached_name + vm_cached_installations + "_" + self.get_provision().provision_name
+                vm_cached_name += f"{installation}_"
+        return cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """
