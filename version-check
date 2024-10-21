@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -eu
+
+library="java"
+weblog_variant="ratpack"
+
+readonly OUTPUT_DIR=version-check-output
+mkdir -p "$OUTPUT_DIR"
+
+declare -A SEEN_XPASS
+declare -A SEEN_FAIL
+
+versions=(
+    0.110.0
+    0.111.0
+    0.112.0
+    0.113.0
+    0.114.0
+    0.115.0
+    1.0.0
+    1.1.0
+    1.2.0
+    1.3.0
+    1.4.0
+    1.5.0
+    1.6.0
+    1.7.0
+    1.8.0
+    1.9.0
+    1.10.0
+    1.11.0
+    1.12.0
+    1.13.0
+    1.14.0
+    1.15.0
+    1.16.0
+    1.17.0
+    1.18.0
+    1.19.0
+    1.20.0
+    1.21.0
+    1.22.0
+    1.23.0
+    1.24.0
+    1.25.1
+    1.26.0
+    1.27.0
+    1.28.0
+)
+
+for v in "${versions[@]}"; do
+    output_file="$OUTPUT_DIR/$library-$v-$weblog_variant.txt"
+    if [[ -f "$output_file" ]]; then
+        echo "Skipping version $v (already tested)"
+    else
+        echo "Testing version $v"
+        jar_name="dd-java-agent-$v.jar"
+        if [ ! -f "$jar_name" ]; then
+            echo "Downloading $jar_name"
+            curl -sSLO "https://github.com/DataDog/dd-trace-java/releases/download/v$v/dd-java-agent-$v.jar"
+        fi
+        rm binaries/dd-java-agent*.jar || true
+        cp "$jar_name" binaries/
+        echo "Building $library $v $weblog_variant"
+        ./build.sh --library $library --weblog-variant $weblog_variant &> /dev/null
+        echo "Running $library $v $weblog_variant"
+        ./run.sh &> "$OUTPUT_DIR/$library-$v-$weblog_variant.txt" || true
+    fi
+
+    declare -A seen_xpass
+    declare -A seen_fail
+    for test in $(cat "$output_file" | grep ^XPASS | grep -v '::test_secure ' | grep -v 'Test_Dbm::test_trace_payload_service' | grep -v '::test_empty_cookie' | awk '{ print $2 }' ); do
+        seen_xpass[$test]=1
+    done
+    for test in $(cat "$output_file" | grep ^FAILED | awk '{ print $2 }'); do
+        seen_fail[$test]=1
+        echo "[$v] FAIL: $test"
+    done
+    for test in "${!seen_xpass[@]}"; do
+        if [[ ! -v seen_fail[$test] ]]; then
+            if [[ ! -v SEEN_XPASS[$test] ]]; then
+                echo "[$v] XPASS: $test"
+                SEEN_XPASS[$test]=1
+            fi
+        fi
+    done
+done
+
