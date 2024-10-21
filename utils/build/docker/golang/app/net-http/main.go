@@ -18,6 +18,7 @@ import (
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
+	awsHelpers "weblog/net-http/aws"
 
 	"github.com/Shopify/sarama"
 
@@ -538,6 +539,102 @@ func main() {
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+
+	mux.HandleFunc("/sns/produce", func(w http.ResponseWriter, r *http.Request) {
+		queue := r.URL.Query().Get("queue")
+		if queue == "" {
+			queue = "DistributedTracing SNS"
+		}
+		topic := r.URL.Query().Get("topic")
+		if topic == "" {
+			topic = "DistributedTracing SNS Topic"
+		}
+		message := r.URL.Query().Get("message")
+		if message == "" {
+			message = "Hello from Go SNS -> SQS"
+		}
+
+		result, err := awsHelpers.SnsProduce(queue, topic, message)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(result))
+	})
+
+	mux.HandleFunc("/sns/consume", func(w http.ResponseWriter, r *http.Request) {
+		queue := r.URL.Query().Get("queue")
+		if queue == "" {
+			queue = "DistributedTracing SNS"
+		}
+		timeout, err := strconv.Atoi(r.URL.Query().Get("timeout"))
+		if err != nil || timeout <= 0 {
+			timeout = 60 // Default timeout
+		}
+		expectedMessage := r.URL.Query().Get("message")
+		if expectedMessage == "" {
+			expectedMessage = "Hello from Go SNS -> SQS"
+		}
+
+		result, err := awsHelpers.SnsConsume(queue, expectedMessage, timeout)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, result)))
+	})
+
+	mux.HandleFunc("/sqs/produce", func(w http.ResponseWriter, r *http.Request) {
+		queue := r.URL.Query().Get("queue")
+		if queue == "" {
+			queue = "DistributedTracing"
+		}
+		message := r.URL.Query().Get("message")
+		if message == "" {
+			message = "Hello from Go SQS"
+		}
+
+		result, err := awsHelpers.SqsProduce(queue, message)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(result))
+	})
+
+	mux.HandleFunc("/sqs/consume", func(w http.ResponseWriter, r *http.Request) {
+		queue := r.URL.Query().Get("queue")
+		if queue == "" {
+			queue = "DistributedTracing"
+		}
+		timeout, err := strconv.Atoi(r.URL.Query().Get("timeout"))
+		if err != nil || timeout <= 0 {
+			timeout = 60 // Default timeout
+		}
+		expectedMessage := r.URL.Query().Get("message")
+		if expectedMessage == "" {
+			expectedMessage = "Hello from Go SQS"
+		}
+
+		result, err := awsHelpers.SqsConsume(queue, expectedMessage, timeout)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, result)))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, result)))
+	})
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()
