@@ -80,7 +80,15 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
         # The app should be instrumented and reporting traces to the backend
         self._test_install(virtual_machine)
 
-    @parametrize_virtual_machines(bugs=[{"weblog_variant": "test-app-dotnet", "reason": "AIT-8620"}])
+    @parametrize_virtual_machines(
+        bugs=[
+            {"weblog_variant": "test-app-dotnet", "reason": "AIT-8620"},
+            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_remove_ld_preload(self, virtual_machine):
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")

@@ -1,5 +1,6 @@
 import os
-
+import re
+import json
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
@@ -258,6 +259,8 @@ class _VirtualMachineScenario(Scenario):
     def fill_context(self):
         for vm in self.required_vms:
             for key in vm.tested_components:
+                if key == "host":
+                    continue
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
                 if key.startswith("datadog-apm-inject") and self._tested_components[key]:
                     self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
@@ -295,9 +298,29 @@ class _VirtualMachineScenario(Scenario):
         return self._os_configurations
 
     def customize_feature_parity_dashboard(self, result):
+        if os.getenv("CI_PIPELINE_URL"):
+            result["runUrl"] = os.getenv("CI_PIPELINE_URL")
+            result["environment"] = self._env  # dev or prod
+
+        # Customize the general report
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2
             test["description"] = test["path"][last_index:]
+
+        # We are going to split the FPD report in multiple reports, one per VM
+        for vm in self.required_vms:
+            vm_name_clean = vm.name.replace("_amd64", "").replace("_arm64", "")
+            new_result = result.copy()
+            new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
+            new_result["tests"] = []
+            for test in result["tests"]:
+                if vm.name in test["description"]:
+                    new_test = test.copy()
+                    new_test["description"] = re.sub("[\[].*?[\]]", "", new_test["description"])
+                    new_test["path"] = re.sub("[\[].*?[\]]", "", new_test["path"])
+                    new_result["tests"].append(new_test)
+            with open(f"{self.host_log_folder}/{vm.name}_feature_parity.json", "w", encoding="utf-8") as f:
+                json.dump(new_result, f, indent=2)
 
 
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):

@@ -143,6 +143,8 @@ def main():
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY.value,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
+                    #### Default scenario
+                    r"utils/_context/_scenarios/default\.py": None,  # the default scenario is always executed
                     #### Onboarding cases
                     r"utils/onboarding.*": None,
                     r"utils/virtual_machine.*": None,
@@ -177,7 +179,9 @@ def main():
                     r"format\.sh": None,
                     r"pyproject\.toml": None,
                     r"scenario_groups\.yml": None,
-                    r"shell\.nix": None,
+                    ## Nix
+                    r".*\.nix": None,
+                    r"flake\.lock": None,
                     ## few files with lot of effect
                     r"requirements\.txt": ScenarioGroup.ALL.value,
                     r"run\.sh": ScenarioGroup.ALL.value,
