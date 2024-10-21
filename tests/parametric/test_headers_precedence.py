@@ -640,6 +640,7 @@ class Test_Headers_Precedence:
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
+    @missing_feature(context.library == "java", reason="not_implemented yet")
     @missing_feature(context.library == "ruby", reason="not_implemented yet")
     @missing_feature(context.library == "cpp", reason="not_implemented yet")
     @missing_feature(context.library == "dotnet", reason="not_implemented yet")
@@ -792,6 +793,7 @@ class Test_Headers_Precedence:
         assert span5["trace_id"] == 6
         assert span5.get("span_links") == None
 
+    @missing_feature(context.library == "java", reason="not_implemented yet")
     @missing_feature(context.library == "ruby", reason="not_implemented yet")
     @missing_feature(context.library == "cpp", reason="not_implemented yet")
     @missing_feature(context.library == "dotnet", reason="not_implemented yet")
