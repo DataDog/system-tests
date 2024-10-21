@@ -1,5 +1,8 @@
-require 'sinatra'
+require 'rack'
+require 'webrick'
+require 'rack/handler/webrick'
 require 'json'
+
 # Add current folder to the search path
 current_dir = Dir.pwd
 $LOAD_PATH.unshift(current_dir) unless $LOAD_PATH.include?(current_dir)
@@ -46,9 +49,9 @@ end
 STDOUT.sync = true
 puts 'Loading server classes...'
 
-dd_spans = {}
-otel_spans = {}
-dd_traces = {}
+DD_SPANS = {}
+OTEL_SPANS = {}
+DD_TRACES = {}
 
 class StartSpanArgs
   attr_accessor :parent_id, :name, :service, :type, :resource, :origin, :http_headers, :links
@@ -447,9 +450,9 @@ def parse_dd_link(link)
                           [name, values.map(&:value).join(', ')]
                         end
               extract_http_headers(headers)
-            elsif @dd_spans.key?(link.parent_id)
-              span_op = @dd_spans[link.parent_id]
-              trace_op = @dd_traces[span_op.trace_id]
+            elsif @DD_SPANS.key?(link.parent_id)
+              span_op = @DD_SPANS[link.parent_id]
+              trace_op = @DD_TRACES[span_op.trace_id]
               Datadog::Tracing::TraceDigest.new(
                 span_id: span_op.id,
                 trace_id: span_op.trace_id,
@@ -458,7 +461,7 @@ def parse_dd_link(link)
                 trace_state: trace_op.trace_state
               )
             else
-              raise "Span id in #{link} not found in span list: #{@dd_spans}"
+              raise "Span id in #{link} not found in span list: #{@DD_SPANS}"
             end
   Datadog::Tracing::SpanLink.new(
     link_dg,
@@ -473,10 +476,10 @@ def parse_otel_link(link)
                         end
               digest = extract_http_headers(headers)
               digest_to_spancontext(digest)
-            elsif @otel_spans.key?(link.parent_id)
-              @otel_spans[link.parent_id].context
+            elsif @OTEL_SPANS.key?(link.parent_id)
+              @OTEL_SPANS[link.parent_id].context
             else
-              raise "Span id in #{link} not found in span list: #{@otel_spans}"
+              raise "Span id in #{link} not found in span list: #{@OTEL_SPANS}"
             end
   OpenTelemetry::Trace::Link.new(
     link_context,
@@ -492,27 +495,73 @@ def find_span(span_id)
 end
 
 
-class MyApp < Sinatra::Base
 
-  post '/trace/span/start' do
-    puts 'at span start'
-    pp Datadog.send(:components).tracer.writer
-  
-    Datadog:: Tracing.trace('test_start') do
-      puts 'test_start_span'
+
+class MyApp
+  def call(env)
+    req = Rack::Request.new(env)
+    res = Rack::Response.new
+
+    case req.path_info
+    when '/trace/span/start'
+      handle_trace_span_start(req, res)
+    when '/trace/span/finish'
+      handle_trace_span_finish(req, res)
+    when '/trace/span/set_meta'
+      handle_trace_span_set_meta(req, res)
+    when '/trace/config'
+      handle_trace_config(req, res)
+    when '/trace/span/set_metric'
+      handle_trace_span_set_metric(req, res)
+    when '/trace/span/inject_headers'
+      handle_trace_span_inject_headers(req, res)
+    when '/trace/span/flush'
+      handle_trace_span_flush(req, res)
+    when '/trace/stats/flush'
+      handle_trace_stats_flush(req, res)
+    when '/trace/span/error'
+      handle_trace_span_error(req, res)
+    when '/trace/span/add_link'
+      handle_trace_span_add_link(req, res)
+    when '/http/client/request'
+      handle_http_client_request(req, res)
+    when '/trace/otel/start_span'
+      handle_trace_otel_start_span(req, res)
+    when '/trace/otel/add_event'
+      handle_trace_otel_add_event(req, res)
+    when '/trace/otel/record_exception'
+      handle_trace_otel_record_exception(req, res)
+    when '/trace/otel/end_span'
+      handle_trace_otel_end_span(req, res)
+    when '/trace/otel/flush'
+      handle_trace_otel_flush(req, res)
+    when '/trace/otel/is_recording'
+      handle_trace_otel_is_recording(req, res)
+    when '/trace/otel/span_context'
+      handle_trace_otel_span_context(req, res)
+    when '/trace/otel/set_status'
+      handle_trace_otel_set_status(req, res)
+    when '/trace/otel/set_name'
+      handle_trace_otel_set_name(req, res)
+    when '/trace/otel/set_attributes'
+      handle_trace_otel_set_attributes(req, res)
+    else
+      res.status = 404
+      res.write('Not Found')
     end
-    args = StartSpanArgs.new(JSON.parse(request.body.read))
-  
+
+    res.finish
+  end
+
+  def handle_trace_span_start(req, res)
+    args = StartSpanArgs.new(JSON.parse(req.body.read))
+
     digest = if args.http_headers.size != 0
-      # Emulate how Rack headers concatenates header with duplicate values with a `, `.
       headers = args.http_headers.group_by(&:key).map do |name, values|
         [name, values.map(&:value).join(', ')]
       end
       extract_http_headers(headers)
     elsif !args.origin.empty? || args.parent_id != 0
-      # DEV: Parametric tests do not differentiate between a distributed span request from a span parenting request.
-      # DEV: We have to consider the parent_id being present present and origin being absent as a span parenting request.
-      # DEV: This is incorrect because a distributed request can have an absent origin.
       if !args.origin.empty?
         Datadog::Tracing::TraceDigest.new(trace_origin: args.origin, span_id: args.parent_id)
       else
@@ -521,7 +570,7 @@ class MyApp < Sinatra::Base
         end
       end
     end
-  
+
     span = Datadog::Tracing.trace(
       args.name,
       service: args.service,
@@ -529,417 +578,257 @@ class MyApp < Sinatra::Base
       type: args.type,
       continue_from: digest,
     )
-  
+
     span.links = args.links do |link|
       parse_dd_link(link)
     end if args.links.size > 0
-  
-    dd_spans[span.id] = span
-    dd_traces[span.trace_id] = Datadog::Tracing.active_trace
-    # not sure if we need the lower 64 bits of trace id or if we can just use the whole thing
-    # grpc implementation had to use the lower 64 bits, however the python tracer looks to just return
-    # the whole trace id
-  
-  
-    StartSpanReturn.new(span.id, span.trace_id).to_json
-  
+
+    DD_SPANS[span.id] = span
+    DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
+
+    res.write(StartSpanReturn.new(span.id, span.trace_id).to_json)
   end
-  
-  
-  post '/trace/span/finish' do
-    args = SpanFinishArgs.new(JSON.parse(request.body.read))  
+
+  def handle_trace_span_finish(req, res)
+    args = SpanFinishArgs.new(JSON.parse(req.body.read))
     span = find_span(args.span_id)
     span.finish
-    sleep 2
-    puts 'sleeping for 2 seconds in span finish'
-    SpanFinishReturn.new.to_json
+    res.write(SpanFinishReturn.new.to_json)
   end
-  
-  post"/trace/span/set_meta" do
-    args = SpanSetMetaArgs.new(JSON.parse(request.body.read))
-    span = dd_spans[args.span_id]
+
+  def handle_trace_span_set_meta(req, res)
+    args = SpanSetMetaArgs.new(JSON.parse(req.body.read))
+    span = DD_SPANS[args.span_id]
     span.set_tag(args.key, args.value)
-    return SpanSetMetaReturn.new.to_json
+    res.write(SpanSetMetaReturn.new.to_json)
   end
-  
-  get '/trace/config' do
+
+  def handle_trace_config(req, res)
     config = {}
-  
+
     Datadog.configure do |c|
       config["dd_service"] = c.service || ""
       config["dd_trace_sample_rate"] = c.tracing.sampling.default_rate.to_s
       config["dd_trace_enabled"] = c.tracing.enabled.to_s
-      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s # x
+      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s
       config["dd_trace_propagation_style"] = c.tracing.propagation_style.join(",")
       config["dd_trace_debug"] = c.diagnostics.debug.to_s
       config["dd_env"] = c.env || ""
       config["dd_version"] = c.version || ""
       config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
     end
-    TraceConfigReturn.new(config).to_json
+    res.write(TraceConfigReturn.new(config).to_json)
   end
-  
-  
-  post '/trace/span/set_metric' do
-    args = SpanSetMetricArgs.new(JSON.parse(request.body.read))
+
+  def handle_trace_span_set_metric(req, res)
+    args = SpanSetMetricArgs.new(JSON.parse(req.body.read))
     span = find_span(args.span_id)
     span.set_metric(args.key, args.value)
-    SpanSetMetricReturn.new.to_json
+    res.write(SpanSetMetricReturn.new.to_json)
   end
-  
-  post '/trace/span/inject_headers' do
-    args = SpanInjectArgs.new(JSON.parse(request.body.read))
+
+  def handle_trace_span_inject_headers(req, res)
+    args = SpanInjectArgs.new(JSON.parse(req.body.read))
     find_span(args.span_id)
     env = {}
-      if Datadog::Tracing::Contrib::HTTP.respond_to?(:inject)
-        Datadog::Tracing::Contrib::HTTP.inject(Datadog::Tracing.active_trace.to_digest, env)
-      else
-        Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest, env)
-      end
-  
-      tuples = env.map do |key, value|
-        HeaderTuple.new(key:, value:)
-      end
-    SpanInjectReturn.new(http_headers: DistributedHTTPHeaders.new(http_headers: tuples))
+    if Datadog::Tracing::Contrib::HTTP.respond_to?(:inject)
+      Datadog::Tracing::Contrib::HTTP.inject(Datadog::Tracing.active_trace.to_digest, env)
+    else
+      Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest, env)
+    end
+
+    tuples = env.map do |key, value|
+      HeaderTuple.new(key:, value:)
+    end
+    res.write(SpanInjectReturn.new(http_headers: DistributedHTTPHeaders.new(http_headers: tuples)).to_json)
   end
-  
-  post '/trace/span/flush' do
+
+  def handle_trace_span_flush(req, res)
     wait_for_flush(5)
-    puts 'sleeping for 2 seconds'
-    sleep 2
-  
-    TraceSpansFlushReturn.new.to_json
+
+    res.write(TraceSpansFlushReturn.new.to_json)
   end
-  
-  post '/trace/stats/flush' do
-    TraceStatsFlushReturn.new.to_json
+
+  def handle_trace_stats_flush(req, res)
+    res.write(TraceStatsFlushReturn.new.to_json)
   end
-  
-  post '/trace/span/error' do
-    args = TraceSpanErrorArgs.new(JSON.parse(request.body.read))
+
+  def handle_trace_span_error(req, res)
+    args = TraceSpanErrorArgs.new(JSON.parse(req.body.read))
     span = find_span(args.span_id)
     span.set_error([
-                       args.type,
-                       args.message,
-                       args.stack,
-                     ])
-    TraceSpanErrorReturn.new.to_json
+      args.type,
+      args.message,
+      args.stack,
+    ])
+    res.write(TraceSpanErrorReturn.new.to_json)
   end
-  
-  post '/trace/span/add_link' do
-    args = TraceSpanAddLinksArgs.new(JSON.parse(request.body.read))
+
+  def handle_trace_span_add_link(req, res)
+    args = TraceSpanAddLinksArgs.new(JSON.parse(req.body.read))
     link = parse_dd_link(args.span_link)
-    dd_spans[args.span_id].links.push(link)
-    TraceSpanAddLinkReturn.new.to_json
+    DD_SPANS[args.span_id].links.push(link)
+    res.write(TraceSpanAddLinkReturn.new.to_json)
   end
-  
-  post '/http/client/request' do
-    url = URI(args.url)
-    headers = args.headers.http_headers.map{|x|[x.key, x.value] }.to_h
-    method = args.to_h[:method]
-  
+
+  def handle_http_client_request(req, res)
+    args = JSON.parse(req.body.read, symbolize_names: true)
+    url = URI(args[:url])
+    headers = args[:headers][:http_headers].map { |x| [x[:key], x[:value]] }.to_h
+    method = args[:method]
+
     request_class = Net::HTTP.const_get(method.capitalize)
-    request = request_class.new(url, headers).tap { |r| r.body = args.body }
-  
+    request = request_class.new(url, headers).tap { |r| r.body = args[:body] }
+
     Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
       http.request(request)
     end
-    HttpClientRequestReturn.new.to_json
+    res.write(HttpClientRequestReturn.new.to_json)
   end
-  
-  
-  post '/trace/otel/start_span' do
+
+  def handle_trace_otel_start_span(req, res)
     content_type :json
-    args = OtelStartSpanArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
+    args = OtelStartSpanArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
     headers = header_hash(args.http_headers)
-      if !headers.empty?
-        parent_context = OpenTelemetry.propagation.extract(headers)
-      elsif args.parent_id != 0
-        parent_span = otel_spans[args.parent_id]
-        parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
-      end
-  
-      otel_links = args.links.map do |link|
-        parse_otel_link(link)
-      end
-  
-      span = otel_tracer.start_span(
-        args.name,
-        with_parent: parent_context,
-        attributes: args.attributes,
-        start_timestamp: otel_correct_time(args.timestamp),
-        kind: OTEL_SPAN_KIND[args.span_kind],
-        links: otel_links
-      )
-  
-      context = span.context
-  
-      span_id_b10 = context.hex_span_id.to_i(16)
-      trace_id_b10 = context.hex_trace_id.to_i(16)
-      @otel_spans[span_id_b10] = span
-      OpenTelemetry::Trace::Link.new(span_id: span_id_b10, trace_id: Datadog::Tracing::Utils::TraceId.to_low_order(trace_id_b10))
-  
+    if !headers.empty?
+      parent_context = OpenTelemetry.propagation.extract(headers)
+    elsif args.parent_id != 0
+      parent_span = OTEL_SPANS[args.parent_id]
+      parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
+    end
+
+    otel_links = args.links.map do |link|
+      parse_otel_link(link)
+    end
+
+    span = otel_tracer.start_span(
+      args.name,
+      with_parent: parent_context,
+      attributes: args.attributes,
+      start_timestamp: otel_correct_time(args.timestamp),
+      kind: OTEL_SPAN_KIND[args.span_kind],
+      links: otel_links
+    )
+
+    context = span.context
+
+    span_id_b10 = context.hex_span_id.to_i(16)
+    trace_id_b10 = context.hex_trace_id.to_i(16)
+    @OTEL_SPANS[span_id_b10] = span
+    OpenTelemetry::Trace::Link.new(span_id: span_id_b10, trace_id: Datadog::Tracing::Utils::TraceId.to_low_order(trace_id_b10))
   end
-  
-  post '/trace/otel/add_event' do
+
+  def handle_trace_otel_add_event(req, res)
     content_type :json
-    args = OtelAddEventArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
-    span = otel_spans[args.span_id]
+    args = OtelAddEventArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
+    span = OTEL_SPANS[args.span_id]
     span.add_event(
       args.name,
       timestamp: otel_correct_time(args.timestamp),
       attributes: args.attributes
-    )  
-    OtelAddEventReturn.new.to_json
+    )
+    res.write(OtelAddEventReturn.new.to_json)
   end
-  
-  
-  class OtelRecordExceptionArgs
-    attr_accessor :span_id, :message, :attributes
-    
-    def initialize(params)
-      @span_id = params[:span_id]
-      @message = params[:message]
-      @attributes = params[:attributes]
-    end
-  end
-  
-  class OtelRecordExceptionReturn
-    def to_json(*_args)
-      {}.to_json
-    end
-  end
-  
-  post '/trace/otel/record_exception' do
+
+  def handle_trace_otel_record_exception(req, res)
     content_type :json
-    args = OtelRecordExceptionArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
-    span = otel_spans[args.span_id]
+    args = OtelRecordExceptionArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
+    span = OTEL_SPANS[args.span_id]
     span.record_exception(
       StandardError.new(args.message),
       attributes: args.attributes
-    )  
-    OtelRecordExceptionReturn.new.to_json
+    )
+    res.write(OtelRecordExceptionReturn.new.to_json)
   end
-  
-  class OtelEndSpanArgs
-    attr_accessor :id, :timestamp
-    
-    def initialize(params)
-      @id = params[:id]
-      @timestamp = params[:timestamp]
-    end
-  end
-  
-  class OtelEndSpanReturn
-    def to_json(*_args)
-      {}.to_json
-    end
-  end
-  
-  post '/trace/otel/end_span' do
+
+  def handle_trace_otel_end_span(req, res)
     content_type :json
-    args = OtelEndSpanArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
-    span = otel_spans[args.id]
+    args = OtelEndSpanArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
+    span = OTEL_SPANS[args.id]
     span.finish(end_timestamp: otel_correct_time(args.timestamp))
-    
-    OtelEndSpanReturn.new.to_json
+
+    res.write(OtelEndSpanReturn.new.to_json)
   end
-  
-  class OtelFlushSpansArgs
-    attr_accessor :seconds
-    
-    def initialize(params)
-      @seconds = params[:seconds] || 1
-    end
-  end
-  
-  class OtelFlushSpansReturn
-    attr_accessor :success
-    
-    def initialize(success)
-      @success = success
-    end
-    
-    def to_json(*_args)
-      { success: @success }.to_json
-    end
-  end
-  
-  post '/trace/otel/flush' do
+
+  def handle_trace_otel_flush(req, res)
     content_type :json
-    args = OtelFlushSpansArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
+    args = OtelFlushSpansArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
     success = wait_for_flush(args.seconds)
-    
-    OtelFlushSpansReturn.new(success).to_json
+
+    res.write(OtelFlushSpansReturn.new(success).to_json)
   end
-  
-  class OtelIsRecordingArgs
-    attr_accessor :span_id
-    
-    def initialize(params)
-      @span_id = params[:span_id]
-    end
-  end
-  
-  class OtelIsRecordingReturn
-    attr_accessor :is_recording
-    
-    def initialize(is_recording)
-      @is_recording = is_recording
-    end
-    
-    def to_json(*_args)
-      { is_recording: @is_recording }.to_json
-    end
-  end
-  
-  post '/trace/otel/is_recording' do
+
+  def handle_trace_otel_is_recording(req, res)
     content_type :json
-    args = OtelIsRecordingArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
-    span = otel_spans[args.span_id]
-    OtelIsRecordingReturn.new(span.recording?).to_json
+    args = OtelIsRecordingArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
+    span = OTEL_SPANS[args.span_id]
+    res.write(OtelIsRecordingReturn.new(span.recording?).to_json)
   end
-  
-  class OtelSpanContextArgs
-    attr_accessor :span_id
-    
-    def initialize(params)
-      @span_id = params[:span_id]
-    end
-  end
-  
-  class OtelSpanContextReturn
-    attr_accessor :span_id, :trace_id, :trace_flags, :trace_state, :remote
-    
-    def initialize(span_id, trace_id, trace_flags, trace_state, remote)
-      @span_id = span_id
-      @trace_id = trace_id
-      @trace_flags = trace_flags
-      @trace_state = trace_state
-      @remote = remote
-    end
-    
-    def to_json(*_args)
-      {
-        span_id: @span_id,
-        trace_id: @trace_id,
-        trace_flags: @trace_flags,
-        trace_state: @trace_state,
-        remote: @remote
-      }.to_json
-    end
-  end
-  
-  post '/trace/otel/span_context' do
+
+  def handle_trace_otel_span_context(req, res)
     content_type :json
-    args = OtelSpanContextArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
-    span = otel_spans[args.span_id]
+    args = OtelSpanContextArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
+    span = OTEL_SPANS[args.span_id]
     ctx = span.context
-    
-    OtelSpanContextReturn.new(
-      format('%016x', context.hex_span_id.to_i(16)),
-      format('%032x', context.hex_trace_id.to_i(16)),
+
+    res.write(OtelSpanContextReturn.new(
+      format('%016x', ctx.hex_span_id.to_i(16)),
+      format('%032x', ctx.hex_trace_id.to_i(16)),
       ctx.trace_flags.sampled? ? '01' : '00',
       ctx.trace_state.to_s,
       ctx.remote?
-    ).to_json
+    ).to_json)
   end
-  
-  class OtelSetStatusArgs
-    attr_accessor :span_id, :code, :description
-    
-    def initialize(params)
-      @span_id = params[:span_id]
-      @code = params[:code]
-      @description = params[:description]
-    end
-  end
-  
-  class OtelSetStatusReturn
-    def to_json(*_args)
-      {}.to_json
-    end
-  end
-  
-  post '/trace/otel/set_status' do
+
+  def handle_trace_otel_set_status(req, res)
     content_type :json
-    args = OtelSetStatusArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
-    span = otel_spans[args.span_id]
+    args = OtelSetStatusArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
+    span = OTEL_SPANS[args.span_id]
     span.status = OpenTelemetry::Trace::Status.public_send(
       args.code.downcase,
       args.description
     )
-    
-    OtelSetStatusReturn.new.to_json
+
+    res.write(OtelSetStatusReturn.new.to_json)
   end
-  
-  class OtelSetNameArgs
-    attr_accessor :span_id, :name
-    
-    def initialize(params)
-      @span_id = params[:span_id]
-      @name = params[:name]
-    end
-  end
-  
-  class OtelSetNameReturn
-    def to_json(*_args)
-      {}.to_json
-    end
-  end
-  
-  post '/trace/otel/set_name' do
+
+  def handle_trace_otel_set_name(req, res)
     content_type :json
-    args = OtelSetNameArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
-    span = otel_spans[args.span_id]
+    args = OtelSetNameArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
+    span = OTEL_SPANS[args.span_id]
     span.name = args.name
-    
-    OtelSetNameReturn.new.to_json
+
+    res.write(OtelSetNameReturn.new.to_json)
   end
-  
-  class OtelSetAttributesArgs
-    attr_accessor :span_id, :attributes
-    
-    def initialize(params)
-      @span_id = params[:span_id]
-      @attributes = params[:attributes]
-    end
-  end
-  
-  class OtelSetAttributesReturn
-    def to_json(*_args)
-      {}.to_json
-    end
-  end
-  
-  post '/trace/otel/set_attributes' do
+
+  def handle_trace_otel_set_attributes(req, res)
     content_type :json
-    args = OtelSetAttributesArgs.new(JSON.parse(request.body.read, symbolize_names: true))
-    
-    span = otel_spans[args.span_id]
+    args = OtelSetAttributesArgs.new(JSON.parse(req.body.read, symbolize_names: true))
+
+    span = OTEL_SPANS[args.span_id]
     args.attributes.each do |key, value|
       span.set_attribute(key, value)
     end
-    
-    OtelSetAttributesReturn.new.to_json
+
+    res.write(OtelSetAttributesReturn.new.to_json)
   end
-  
+
   def get_ddtrace_version
     Gem::Version.new(DDTrace::VERSION)
   end
-  
+
   def wait_for_flush(seconds)
     return true unless (worker = Datadog.send(:components).tracer.writer.worker)
-  
+
     count = 0
     sleep_time = seconds / 100.0
     until worker.trace_buffer&.empty?
@@ -947,23 +836,10 @@ class MyApp < Sinatra::Base
       count += 1
       return false if count >= 100
     end
-  
+
     true
   end
-  
-  puts 'Server loaded', Datadog::Core::Environment::Execution.development?
-  
-  pp Datadog.send(:components).tracer.writer
-
 end
 
-# Run the Sinatra app in a separate thread
-Thread.new do
-  MyApp.run! host: '0.0.0.0', port: ENV.fetch('APM_TEST_CLIENT_SERVER_PORT')
-end
-
-
-# Your main process can continue doing other tasks here
-loop do
-  sleep 1
-end
+# Run the Rack app
+Rack::Handler::WEBrick.run MyApp.new, Host: '0.0.0.0', Port: ENV.fetch('APM_TEST_CLIENT_SERVER_PORT')
