@@ -180,7 +180,7 @@ class AWSPulumiProvider(VmProvider):
                 if vm.name in cached_ami.name:
                     if str(cached_ami.state) != "available":
                         logger.info(
-                            f"We found an existing cache AMI for vm [{vm.name}] but we can no use it because the current status is {ami_recent.state}"
+                            f"We found an existing cache AMI for vm [{vm.name}] but we can no use it because the current status is {cached_ami.state}"
                         )
                         logger.info("We are not going to create a new AMI and we are not going to use it")
                         vm.datadog_config.update_cache = False
