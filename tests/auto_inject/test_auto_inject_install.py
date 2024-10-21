@@ -26,11 +26,11 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
-@missing_feature(reason="Crash logs not currently forwarded to org 749096")
 @features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
     @parametrize_virtual_machines()
+    @missing_feature(reason="Crash logs not currently forwarded to org 749096")
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
