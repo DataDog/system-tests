@@ -53,6 +53,15 @@ DD_SPANS = {}
 OTEL_SPANS = {}
 DD_TRACES = {}
 
+class HeaderTuple
+  attr_accessor :key, :value
+
+  def initialize(key:, value:)
+    @key = key
+    @value = value
+  end
+end
+
 class StartSpanArgs
   attr_accessor :parent_id, :name, :service, :type, :resource, :origin, :http_headers, :links
 
@@ -637,10 +646,7 @@ class MyApp
       Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest, env)
     end
 
-    tuples = env.map do |key, value|
-      HeaderTuple.new(key:, value:)
-    end
-    res.write(SpanInjectReturn.new(http_headers: DistributedHTTPHeaders.new(http_headers: tuples)).to_json)
+    res.write(SpanInjectReturn.new(env.to_a).to_json)
   end
 
   def handle_trace_span_flush(req, res)
