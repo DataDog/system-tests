@@ -85,9 +85,9 @@ class ServerImpl < APMClient::Service
 
     span = Datadog::Tracing.trace(
       start_span_args.name,
-      service: start_span_args.service,
-      resource: start_span_args.resource,
-      type: start_span_args.type,
+      service: start_span_args.service.empty? ? nil : start_span_args.service,
+      resource: start_span_args.resource.empty? ? nil : start_span_args.resource,
+      type: start_span_args.type.empty? ? nil : start_span_args.type,
       continue_from: digest,
     )
 
@@ -114,12 +114,18 @@ class ServerImpl < APMClient::Service
       config["dd_service"] = c.service || ""
       config["dd_trace_sample_rate"] = c.tracing.sampling.default_rate.to_s
       config["dd_trace_enabled"] = c.tracing.enabled.to_s
-      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s # x
+      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s
       config["dd_trace_propagation_style"] = c.tracing.propagation_style.join(",")
       config["dd_trace_debug"] = c.diagnostics.debug.to_s
       config["dd_env"] = c.env || ""
       config["dd_version"] = c.version || ""
       config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
+      config["dd_trace_rate_limit"] = c.tracing.sampling.rate_limit.to_s
+      config["dd_trace_agent_url"] =  if c.agent.uds_path
+                                        "unix://#{c.agent.uds_path}"
+                                      else
+                                        "http://#{c.agent.host}:#{c.agent.port}"
+                                      end
     end
     GetTraceConfigReturn.new(config: config)
   end
@@ -396,10 +402,7 @@ class ServerImpl < APMClient::Service
   private
 
   def find_span(span_id)
-    span = Datadog::Tracing.active_span
-    raise 'Request span is not the active span' unless span && span.id == span_id
-
-    span
+    @dd_spans[span_id] || raise("Requested span #{span_id} not found. All spans: #{@dd_spans}")
   end
 
   def wait_for_flush(seconds)
