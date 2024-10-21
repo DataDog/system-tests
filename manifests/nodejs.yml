@@ -577,6 +577,8 @@ tests/:
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
+    test_partial_flushing.py:
+      Test_Partial_Flushing: bug (APMLP-270)
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
