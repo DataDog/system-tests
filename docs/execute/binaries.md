@@ -85,7 +85,7 @@ TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sa
   - You can download those from the `build_packages/package extension` job artifacts, from a CI run of your branch.
 - Copy it in the binaries folder
 
-##### Then run the tests
+##Then run the tests
 
 From the repo root folder:
 
