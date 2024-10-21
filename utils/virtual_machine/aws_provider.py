@@ -261,7 +261,6 @@ class AWSCommander(Commander):
             # deprecation_time=expiration_date,
             source_instance_id=server.id,
             opts=pulumi.ResourceOptions(depends_on=[last_task], retain_on_delete=True),
-            snapshot_without_reboot=True,
             tags={"CI": "system-tests"},
         )
         return task_dep
