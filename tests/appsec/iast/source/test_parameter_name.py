@@ -31,7 +31,7 @@ class TestParameterName(BaseSourceTest):
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
-    @bug(context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2", reason="Not reported")
+    @bug(context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2", reason="APPSEC-55387")
     @bug(weblog_variant="resteasy-netty3", reason="Not reported")
     def test_source_get_reported(self):
         """ for use case where only one is reported, we want to keep a test on the one reported """
