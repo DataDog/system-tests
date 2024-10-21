@@ -38,7 +38,7 @@ class TestParameterName(BaseSourceTest):
         self.validate_request_reported(self.requests["GET"])
 
     @missing_feature(weblog_variant="express4", reason="Tainted as request body")
-    @bug(context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2", reason="Not reported")
+    @bug(context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2", reason="APPSEC-55387")
     @bug(weblog_variant="resteasy-netty3", reason="Not reported")
     @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
     @missing_feature(library="dotnet", reason="Tainted as request body")
