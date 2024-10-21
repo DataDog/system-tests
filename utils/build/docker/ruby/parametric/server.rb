@@ -22,6 +22,8 @@ puts 'Loading server dependencies...'
 require 'datadog/tracing/span_link'
 require 'apm_test_client_services_pb'
 
+require 'datadog/tracing/diagnostics/environment_logger'
+
 # Only used for OpenTelemetry testing.
 require 'opentelemetry/sdk'
 require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true works out of the box for Ruby APM
@@ -121,11 +123,7 @@ class ServerImpl < APMClient::Service
       config["dd_version"] = c.version || ""
       config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
       config["dd_trace_rate_limit"] = c.tracing.sampling.rate_limit.to_s
-      config["dd_trace_agent_url"] =  if c.agent.uds_path
-                                        "unix://#{c.agent.uds_path}"
-                                      else
-                                        "http://#{c.agent.host}:#{c.agent.port}"
-                                      end
+      config["dd_trace_agent_url"] = Datadog::Tracing::Diagnostics::EnvironmentCollector.agent_url
     end
     GetTraceConfigReturn.new(config: config)
   end

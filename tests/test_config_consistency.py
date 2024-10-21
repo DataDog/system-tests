@@ -95,7 +95,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     @bug(context.library == "python", reason="APMAPI-772")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        client_span = _get_span_by_tags(spans, tags={"http.url": "http://weblog:7777/?application_key=value"})
+        client_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
         assert client_span, "\n".join([str(s) for s in spans])
 
 
