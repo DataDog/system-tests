@@ -51,6 +51,8 @@ TRACER_RELEASE_SCENARIOS:
   - PROFILING
   - LIBRARY_CONF_CUSTOM_HEADER_TAGS
   - INTEGRATIONS
+  - INTEGRATIONS_AWS
+  - CROSSED_TRACING_LIBRARIES
   - *appsec_scenarios
   - *remote_config_scenarios
   - *telemetry_scenarios
@@ -64,6 +66,7 @@ TRACER_ESSENTIAL_SCENARIOS:
   - APPSEC_API_SECURITY_RC
   - REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
   - INTEGRATIONS
+  - INTEGRATIONS_AWS
   - *tracing_config_scenarios
 
 # Scenarios that rely on backend (and thus, may be a little bit hard to avoid flakyness)

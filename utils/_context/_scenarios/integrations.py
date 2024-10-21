@@ -1,5 +1,8 @@
+import os
 import random
 import string
+
+import pytest
 
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
@@ -49,22 +52,54 @@ class IntegrationsScenario(EndToEndScenario):
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
 
 
-class CrossedTracingLibraryScenario(EndToEndScenario):
-    def __init__(self) -> None:
+class AWSIntegrationsScenario(EndToEndScenario):
+    AWS_BAD_CREDENTIALS_MSG = """
+🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
+                                ⚠️⚠️⚠️⚠️⚠️⚠️⚠️  AWS Authentication Error  ⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+
+    It seems that your AWS authentication is not set up correctly. 
+    Please take the following actions:
+
+    🔑 With `aws-vault` setup:
+
+        To enter an authenticated shell session that sets temp AWS credentials in your shell environment:
+        👉 `aws-vault login sso-sandbox-account-admin --`
+        👉 `[your system-test command]`
+                or 
+        
+        To run ONLY the system tests command with auth: (temp AWS credentials are not set in shell environment)
+        👉 `aws-vault login sso-sandbox-account-admin -- [your system-test command]`
+    
+
+    🔧 Or to first set up `aws-vault` / `aws-cli`, please visit:
+        🔗 [AWS CLI Config Setup & Update Guide]
+        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-v2-setup)
+        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-config-setup--update)
+
+🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
+"""
+
+    def __init__(
+        self,
+        name="INTEGRATIONS_AWS",
+        doc="Spawns tracer, and agent. Test AWS integrations.",
+        include_kafka=False,
+        include_rabbitmq=False,
+        include_buddies=False,
+    ) -> None:
         super().__init__(
-            "CROSSED_TRACING_LIBRARIES",
+            name,
             weblog_env={
                 "DD_TRACE_API_VERSION": "v0.4",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
             },
-            include_kafka=True,
-            include_buddies=True,
-            include_rabbitmq=True,
-            doc="Spawns a buddy for each supported language of APM",
-            scenario_groups=[ScenarioGroup.INTEGRATIONS],
+            doc=doc,
+            include_kafka=include_kafka,
+            include_rabbitmq=include_rabbitmq,
+            include_buddies=include_buddies,
+            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
-
         # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
         # from other tests. This time hash is added to the message, test consumers only stops once finding the specific
         # message.
@@ -72,4 +107,28 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
+        if not self.replay:
+            self._check_aws_variables()
         self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+
+    def _check_aws_variables(self):
+        if not os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID") and not os.environ.get("AWS_ACCESS_KEY_ID"):
+            pytest.exit(
+                f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1,
+            )
+
+        if not os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY") and not os.environ.get("AWS_ACCESS_KEY_ID"):
+            pytest.exit(
+                f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1,
+            )
+
+
+class CrossedTracingLibraryScenario(AWSIntegrationsScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CROSSED_TRACING_LIBRARIES",
+            include_kafka=True,
+            include_buddies=True,
+            include_rabbitmq=True,
+            doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
+        )

@@ -35,6 +35,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Run INTEGRATIONS_AWS scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "INTEGRATIONS_AWS", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Replay CROSSED_TRACING_LIBRARIES scenario",
             "type": "python",
             "request": "launch",
