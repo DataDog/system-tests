@@ -460,6 +460,70 @@ class Debian12arm64(_VirtualMachine):
         )
 
 
+class Debian11amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_11_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0607e701db389efe7", ami_instance_type="t2.medium", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Debian11arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_11_arm64",
+            aws_config=_AWSConfig(ami_id="ami-00988b9ead6afb0b1", ami_instance_type="t4g.small", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Debian10amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_10_amd64",
+            aws_config=_AWSConfig(ami_id="ami-03898633fee508324", ami_instance_type="t2.medium", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Debian10arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_10_arm64",
+            aws_config=_AWSConfig(ami_id="ami-01055bb8b97dfc981", ami_instance_type="t4g.small", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
 # 8.10.20240820
 # https://wiki.almalinux.org/cloud/AWS.html#community-amis
 class AlmaLinux8amd64(_VirtualMachine):
