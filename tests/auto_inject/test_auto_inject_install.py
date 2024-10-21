@@ -1,4 +1,4 @@
-from utils import scenarios, features, flaky
+from utils import scenarios, features, flaky, missing_feature
 from utils.tools import logger
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
@@ -26,6 +26,7 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
 
 
+@missing_feature(reason="Crash logs not currently forwarded to org 749096")
 @features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
