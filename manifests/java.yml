@@ -1007,7 +1007,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
-      Test_UpdateRuleFileWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: bug (APPSEC-55323)
     test_reports.py:
       Test_AttackTimestamp:
         akka-http: v1.22.0
