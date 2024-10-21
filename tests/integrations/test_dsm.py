@@ -60,30 +60,35 @@ class Test_DsmKafka:
             "nodejs": {
                 "producer": 2931833227331067675,
                 "consumer": 271115008390912609,
-                "edge_tags": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_in": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", "kafka.cluster_id:r4zt_wrqTRuT7W2NJsB_GA",f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_out": ("direction:out", "kafka.cluster_id:r4zt_wrqTRuT7W2NJsB_GA", f"topic:{DSM_QUEUE}", "type:kafka"),
             },
             # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
             "golang": {
                 "producer": 4463699290244539355,
                 "consumer": 13758451224913876939,
-                "edge_tags": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_in": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_out": ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
             },
             "default": {
                 "producer": 4463699290244539355,
                 "consumer": 3735318893869752335,
-                "edge_tags": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_in": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_out": ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
             },
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags"]
+        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_out"]
+
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
+            hash_=producer_hash, parent_hash=0, tags=edge_tags_in,
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_out,
         )
 
 
@@ -558,7 +563,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 2991387329420856704, "consumer": 2932594615174135112,},
+            "nodejs": {"producer": 16586338448658789200, "consumer": 9706550123902107656,},
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
             "java": {
@@ -634,7 +639,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 1168055216783445015, "consumer": 18123432526286354806,},
+            "nodejs": {"producer": 5168239543453408764, "consumer": 1957306998450816025,},
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
             "java": {
