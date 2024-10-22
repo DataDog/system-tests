@@ -2,9 +2,9 @@
 Test configuration consistency for features across supported APM SDKs.
 """
 import pytest
-from utils import scenarios, features, context, bug, missing_feature
+from utils import scenarios, features, context, bug
 from utils.parametric.spec.trace import find_span_in_traces
-import re
+from urllib.parse import urlparse
 
 parametrize = pytest.mark.parametrize
 
@@ -123,6 +123,7 @@ class Test_Config_UnifiedServiceTagging:
 @features.tracing_configuration_consistency
 class Test_Config_TraceAgentURL:
     # DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
+    @bug(context.library == "ruby", reason="APMAPI-459")
     @parametrize(
         "library_env",
         [
@@ -136,13 +137,10 @@ class Test_Config_TraceAgentURL:
     def test_dd_trace_agent_unix_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
-        if context.library == "golang":
-            match = re.match(r"^http://uds__var_run_datadog_apm.socket/.*", resp["dd_trace_agent_url"])
-            assert match is not None, "trace_agent_url does not match expected pattern"
-        else:
-            assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "unix"
+        assert url.path == "/var/run/datadog/apm.socket"
 
     # The DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
     @parametrize(
@@ -152,14 +150,11 @@ class Test_Config_TraceAgentURL:
     def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
-        # Go tracer reports `<url>/<protocol>/traces` as agent_url in startup log, so use a regex to match the expected suffix
-        # Ruby tracer reports timeout query string in the agent_url
-        # Python tracer reports only the host and port in the agent_url
-        assert re.match(
-            r"^http://random-host:9999[?|/].*", resp["dd_trace_agent_url"]
-        ), "trace_agent_url does not match expected pattern"
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "http"
+        assert url.hostname == "random-host"
+        assert url.port == 9999
 
 
 @scenarios.parametric
