@@ -86,6 +86,7 @@
                             <buildArg>--enable-monitoring=jfr</buildArg>
                             <buildArg>-J-Ddd.profiling.enabled=true</buildArg>
                             <buildArg>-J-javaagent:${agent.path}</buildArg>
+                            <buildArg>--pgo-instrument</buildArg>
                           </buildArgs>
                         </configuration>
                       </plugin>
@@ -103,6 +104,7 @@
                         <configuration>
                           <buildArgs combine.children="append">
                             <buildArg>-J-javaagent:${agent.path}</buildArg>
+                            <buildArg>--pgo-instrument</buildArg>
                           </buildArgs>
                         </configuration>
                       </plugin>
