@@ -81,6 +81,7 @@ class Test_Config_UnifiedServiceTagging:
 
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         assert span["service"] != "version_test"
+        # in Node.js version can automatically be grabbed from the package.json on default, thus this test does not apply
         if test_library.lang != "nodejs":
             assert "version" not in span["meta"]
         assert "env" not in span["meta"]
