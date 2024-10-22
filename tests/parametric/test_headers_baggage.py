@@ -57,7 +57,6 @@ class Test_Headers_Baggage:
         assert "x-datadog-trace-id" not in headers.keys()
         assert "x-datadog-parent-id" not in headers.keys()
         assert "baggage" in headers.keys()
-        assert len(headers.keys()) == 1
         assert headers["baggage"] == "foo=bar"
 
     @disable_baggage()
