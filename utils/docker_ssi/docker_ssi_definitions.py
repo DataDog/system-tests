@@ -145,7 +145,7 @@ TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
 WEBSPHERE_APP = WeblogDescriptor("websphere-app", "java", [SupportedImages().WEBSPHERE_AMD64])
 JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64])
-UBUNTU22_PY_APP = WeblogDescriptor("ubuntu22-py-app", "python", [SupportedImages().UBUNTU22_AMD64])
+UBUNTU22_PY_APP = WeblogDescriptor("ubuntu22-py-app", "python", [SupportedImages().UBUNTU_22_AMD64])
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
 ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP, UBUNTU22_PY_APP]
