@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"weblog/internal/common"
@@ -145,27 +146,42 @@ func main() {
 	})
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
-		if url := r.URL.Query().Get("url"); url != "" {
-
-			client := httptrace.WrapClient(http.DefaultClient)
-			req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
-			res, err := client.Do(req)
-			sc := res.StatusCode
-			if err != nil {
-				log.Fatalln(err)
-				w.WriteHeader(500)
-			} else {
-				type Response struct {
-					Status_Code int `json:"status_code"`
-				}
-				response := Response{Status_Code: sc}
-				jsonResponse, err := json.Marshal(response)
-				if err == nil {
-					w.Header().Set("Content-Type", "application/json")
-					w.Write(jsonResponse)
-				}
-			}
+		url := r.URL.Query().Get("url")
+		if url == "" {
+			w.Write([]byte("OK"))
+			return
 		}
+
+		client := httptrace.WrapClient(http.DefaultClient)
+		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatalln("client.Do", err)
+		}
+
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[key] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		jsonResponse, err := json.Marshal(struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
+		if err != nil {
+			log.Fatalln(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResponse)
 	})
 
 	mux.HandleFunc("/headers", headers)
