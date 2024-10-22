@@ -30,7 +30,12 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
 @features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
+            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"}
+        ]
+    )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
@@ -40,7 +45,9 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
 @features.host_auto_installation_script_profiling
 @scenarios.host_auto_injection_install_script_profiling
 class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"}]
+    )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
@@ -78,7 +85,9 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
 @features.container_auto_installation_script_profiling
 @scenarios.container_auto_injection_install_script_profiling
 class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"}]
+    )
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine, profile=True)
 
