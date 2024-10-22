@@ -5,7 +5,7 @@ FROM eclipse-temurin:8 as agent
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-FROM ghcr.io/graalvm/native-image-community:21.0.0 as build
+FROM container-registry.oracle.com/graalvm/native-image:21 as build
 
 # Install maven
 RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz --output /opt/maven.tar.gz && \
