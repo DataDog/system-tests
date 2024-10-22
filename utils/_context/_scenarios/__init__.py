@@ -472,6 +472,7 @@ class scenarios:
             "DD_TRACE_KAFKA_ENABLED": "true",
             "DD_TRACE_KAFKAJS_ENABLED": "true",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header"
         },
         include_kafka=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
