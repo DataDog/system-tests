@@ -167,16 +167,33 @@ class _VirtualMachine:
         extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
+        """ Generate a unique name for the  cache.
+        use: vm name + provision name + weblog id + hash of the cacheable installations 
+        We geneate the hash from cacheable steps content. If we modify the step scripts 
+        the hash will change and the cache will be regenerated.
+        If we use the AWS provider: The AWS AMI is limited to 128 characters, so we need to keep the name short
+        """
+        # Cache prefix (no encoded)
         cached_name = (
             f"{self.name}_{self.get_provision().provision_name}_{self.get_provision().weblog_installation.id}_"
         )
+        # Cache suffix. All cacheable steps encoded
         vm_cached_name = ""
         if self.get_provision().lang_variant_installation:
             vm_cached_name += f"{self.get_provision().lang_variant_installation}_"
         for installation in self.get_provision().installations:
             if installation.cache:
                 vm_cached_name += f"{installation}_"
-        return cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
+
+        full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
+
+        if len(full_cache_name) >= 120:
+            # There is a limit of 128 characters for the AMI name. 119 + 9 characters added by the aws
+            # for now encoding provision_name is enough to keep the name short
+            provision_name = hashlib.shake_128(self.get_provision().provision_name.encode("utf-8")).hexdigest(4)
+            cached_name = f"{self.name}_{provision_name}_{self.get_provision().weblog_installation.id}_"
+            full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
+        return full_cache_name
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """
