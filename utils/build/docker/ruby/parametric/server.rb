@@ -123,7 +123,7 @@ class ServerImpl < APMClient::Service
       config["dd_version"] = c.version || ""
       config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
       config["dd_trace_rate_limit"] = c.tracing.sampling.rate_limit.to_s
-      config["dd_trace_agent_url"] = Datadog::Tracing::Diagnostics::EnvironmentCollector.agent_url
+      config["dd_trace_agent_url"] = Datadog::Tracing::Diagnostics::EnvironmentCollector.collect_config![:agent_url] || ""
     end
     GetTraceConfigReturn.new(config: config)
   end

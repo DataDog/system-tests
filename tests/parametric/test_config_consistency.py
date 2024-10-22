@@ -153,11 +153,11 @@ class Test_Config_TraceAgentURL:
         with test_library as t:
             resp = t.get_tracer_config()
         # Go tracer reports `<url>/<protocol>/traces` as agent_url in startup log, so use a regex to match the expected suffix
-        if context.library == "golang":
-            match = re.match(r"^http://random-host:9999/.*", resp["dd_trace_agent_url"])
-            assert match is not None, "trace_agent_url does not match expected pattern"
-        else:
-            assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
+        # Ruby tracer reports timeout query string in the agent_url
+        # Python tracer reports only the host and port in the agent_url
+        assert re.match(
+            r"^http://random-host:9999[?|/].*", resp["dd_trace_agent_url"]
+        ), "trace_agent_url does not match expected pattern"
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
 

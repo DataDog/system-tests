@@ -339,17 +339,13 @@ class Test_Config_IntegrationEnabled_False:
 
     def test_kafka_integration_enabled_false(self):
         assert self.r.status_code == 200
-
-        nonKafkaSpans = []
-        kafkaSpans = []
-        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
-            if span.get("name") != "kafka.produce":
-                nonKafkaSpans.append(span)
-            else:
-                kafkaSpans.append(span)
-
-        assert len(nonKafkaSpans) > 0
-        assert len(kafkaSpans) == 0
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert spans, "No spans found in trace"
+        # Ruby kafka integration generates a span with the name "kafka.producer.*",
+        # unlike python/dotnet/etc. which generates a "kafka.produce" span
+        assert list(
+            filter(lambda span: "kafka.produce" in span.get("name"), spans)
+        ) == [], f"kafka.produce span was found in trace: {spans}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -371,14 +367,10 @@ class Test_Config_IntegrationEnabled_True:
 
     def test_kafka_integration_enabled_true(self):
         assert self.r.status_code == 200
-
-        nonKafkaSpans = []
-        kafkaSpans = []
-        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
-            if span.get("name") != "kafka.produce":
-                nonKafkaSpans.append(span)
-            else:
-                kafkaSpans.append(span)
-
-        assert len(nonKafkaSpans) > 0
-        assert len(kafkaSpans) > 0
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert spans, "No spans found in trace"
+        # Ruby kafka integration generates a span with the name "kafka.producer.*",
+        # unlike python/dotnet/etc. which generates a "kafka.produce" span
+        assert list(
+            filter(lambda span: "kafka.produce" in span.get("name"), spans)
+        ), f"No kafka.produce span found in trace: {spans}"
