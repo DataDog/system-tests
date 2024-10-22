@@ -33,7 +33,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
         bugs=[
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
-            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"}
+            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
         ]
     )
     def test_install(self, virtual_machine):
