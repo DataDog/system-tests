@@ -124,7 +124,6 @@ echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-b
 
 #### After Testing with a Custom Tracer:
 Most of the ways to run system-tests with a custom tracer version involve modifying the binaries directory. Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it. For example for Python:
-
 ```bash
 rm -rf binaries/python-load-from-pip
 ```
