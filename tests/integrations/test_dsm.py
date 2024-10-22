@@ -58,10 +58,21 @@ class Test_DsmKafka:
         # So we are using a different algorithm for node.js for now
         language_hashes = {
             "nodejs": {
-                "producer": 2931833227331067675,
-                "consumer": 271115008390912609,
-                "edge_tags_in": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", "kafka.cluster_id:r4zt_wrqTRuT7W2NJsB_GA",f"topic:{DSM_QUEUE}", "type:kafka"),
-                "edge_tags_out": ("direction:out", "kafka.cluster_id:r4zt_wrqTRuT7W2NJsB_GA", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "producer": 7021878731777772655,
+                "consumer": 4591800307942911915,
+                "edge_tags_in": (
+                    "direction:in",
+                    f"group:{DSM_CONSUMER_GROUP}",
+                    "kafka.cluster_id:r4zt_wrqTRuT7W2NJsB_GA",
+                    f"topic:{DSM_QUEUE}",
+                    "type:kafka",
+                ),
+                "edge_tags_out": (
+                    "direction:out",
+                    "kafka.cluster_id:r4zt_wrqTRuT7W2NJsB_GA",
+                    f"topic:{DSM_QUEUE}",
+                    "type:kafka",
+                ),
             },
             # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
             "golang": {
@@ -82,7 +93,6 @@ class Test_DsmKafka:
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
         edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
         edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_out"]
-
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=edge_tags_in,
