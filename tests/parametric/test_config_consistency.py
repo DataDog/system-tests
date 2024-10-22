@@ -86,7 +86,7 @@ class Test_Config_UnifiedServiceTagging:
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
-    @bug(context.library == "ruby", reason="APMAPI-460")
+    @bug(context.library == "ruby", reason="APMAPI-702")
     def test_specific_version(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="s1") as s1:
