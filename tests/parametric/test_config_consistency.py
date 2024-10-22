@@ -30,7 +30,7 @@ class Test_Config_TraceEnabled:
             with test_library.start_span("allowed"):
                 pass
         assert test_agent.wait_for_num_traces(
-            num=1, clear=True
+            num=1
         ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
 
     @enable_tracing_disabled()
@@ -40,7 +40,7 @@ class Test_Config_TraceEnabled:
             with test_library.start_span("allowed"):
                 pass
         with pytest.raises(ValueError) as e:
-            test_agent.wait_for_num_traces(num=1, clear=True)
+            test_agent.wait_for_num_traces(num=1)
         assert e.match(".*traces not available from test agent, got 0.*")
 
 
@@ -98,12 +98,12 @@ class Test_Config_UnifiedServiceTagging:
         assert len(traces) == 2
 
         span1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
-        assert span1["service"] == "version_test", f"{span1}"
-        assert span1["meta"]["version"] == "5.2.0", f"{span1}"
+        assert span1["service"] == "version_test"
+        assert span1["meta"]["version"] == "5.2.0"
 
         span2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
-        assert span2["service"] == "no dd_service", f"{span2}"
-        assert "version" not in span2["meta"], f"{span2}"
+        assert span2["service"] == "no dd_service"
+        assert "version" not in span2["meta"]
 
     @parametrize("library_env", [{"DD_ENV": "dev"}])
     def test_specific_env(self, library_env, test_agent, test_library):
