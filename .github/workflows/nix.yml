@@ -42,10 +42,10 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Print python version
         run: |
-          nix-shell --run 'which python'
-          nix-shell --run 'python --version'
-          nix-shell --run 'pip --version'
+          nix develop --command which python
+          nix develop --command python --version
+          nix develop --command pip --version
       - name: Build runner
-        run: nix-shell --run './build.sh -i runner'
+        run: nix develop --command ./build.sh -i runner
       - name: Test the test
-        run: nix-shell --run './run.sh TEST_THE_TEST'
+        run: nix develop --command ./run.sh TEST_THE_TEST
