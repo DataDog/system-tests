@@ -123,7 +123,7 @@ echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-b
 * copy a file `waf_rule_set` in `binaries/`
 
 #### After Testing with a Custom Tracer:
-Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it by running:
+Most of the ways to run system-tests with a custom tracer version involve modifying the binaries directory. Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it. For example for Python:
 
 ```bash
 rm -rf binaries/python-load-from-pip

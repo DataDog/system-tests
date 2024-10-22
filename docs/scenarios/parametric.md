@@ -92,6 +92,16 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k test_metrics_
 
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
+### Running the tests for a custom tracer
+To run tests against custom tracers, refer to the [Binaries Documentation](../execute/binaries.md)
+
+#### After Testing with a Custom Tracer:
+Note: Most of the ways to run system-tests with a custom tracer version involve modifying the binaries directory. Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it. For example for Python:
+
+```bash
+rm -rf binaries/python-load-from-pip
+```
+
 ### Using Pytest
 
 The tests are executed using pytest. Below are some common command-line options you can use to control and customize your test runs.
@@ -122,16 +132,6 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -vv -k test_metrics_
 
 ```sh
 TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -s
-```
-
-### Running the tests for a custom tracer
-To run tests against custom tracers, refer to the [Binaries Documentation](system-tests/docs/execute/binaries.md)
-
-#### After Testing with a Custom Tracer:
-Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it by running:
-
-```bash
-rm -rf binaries/python-load-from-pip
 ```
 
 ### Understanding the test outcomes
