@@ -3,9 +3,9 @@ ARG BASE_IMAGE
 FROM ubuntu:jammy as python
 
 RUN DEBIAN_FRONTEND=noninteractive \
-  apt update && \
-  apt install software-properties-common && \
-  add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12
+  apt update -y && \
+  apt install -y software-properties-common && \
+  add-apt-repository ppa:deadsnakes/ppa && apt update -y && apt install -y python3.12
 
 FROM ${BASE_IMAGE}
 WORKDIR /app
