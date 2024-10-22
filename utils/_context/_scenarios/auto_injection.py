@@ -259,6 +259,8 @@ class _VirtualMachineScenario(Scenario):
     def fill_context(self):
         for vm in self.required_vms:
             for key in vm.tested_components:
+                if key == "host":
+                    continue
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
                 if key.startswith("datadog-apm-inject") and self._tested_components[key]:
                     self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
@@ -296,6 +298,10 @@ class _VirtualMachineScenario(Scenario):
         return self._os_configurations
 
     def customize_feature_parity_dashboard(self, result):
+        if os.getenv("CI_PIPELINE_URL"):
+            result["runUrl"] = os.getenv("CI_PIPELINE_URL")
+            result["environment"] = self._env  # dev or prod
+
         # Customize the general report
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2

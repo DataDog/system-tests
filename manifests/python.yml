@@ -165,7 +165,7 @@ tests/:
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
-            fastapi: bug (APPSEC-55240)
+            fastapi: v2.13.0.dev
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -466,10 +466,10 @@ tests/:
         '*': v2.10.0.dev
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0.dev
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: v2.11.0.dev
       Test_Fingerprinting_Header_And_Network: v2.11.0.dev
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Header_Capability: v2.11.0.dev
+      Test_Fingerprinting_Network_Capability: v2.11.0.dev
       Test_Fingerprinting_Session: missing_feature (missing endpoint)
       Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
@@ -483,7 +483,7 @@ tests/:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: v2.10.1
-      Test_UpdateRuleFileWithRemoteConfig: v2.11.0rc
+      Test_UpdateRuleFileWithRemoteConfig: v2.16.0rc (v2.11.0 but added telemetry and span tag support in 2.16)
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
       Test_Info: v1.1.0rc2.dev
