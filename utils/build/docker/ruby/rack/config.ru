@@ -61,7 +61,7 @@ class Healthcheck
       status: 'ok',
       library: {
         language: 'ruby',
-        version: Datadog::VERSION::STRING
+        version: defined?(Datadog::VERSION) ? Datadog::VERSION::STRING : DDTrace::VERSION::STRING
       }
     }
 
