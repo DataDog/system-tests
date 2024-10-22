@@ -19,6 +19,8 @@ from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 
+_FAKE_DD_API_KEY = "fakekey"
+
 
 @lru_cache
 def _get_client():
@@ -464,7 +466,7 @@ class ProxyContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
-                "DD_API_KEY": os.environ.get("DD_API_KEY"),
+                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
@@ -491,6 +493,7 @@ class AgentContainer(TestedContainer):
                 "DD_SITE": self.dd_site,
                 "DD_APM_RECEIVER_PORT": self.agent_port,
                 "DD_DOGSTATSD_PORT": "8125",
+                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             }
         )
 
@@ -525,14 +528,6 @@ class AgentContainer(TestedContainer):
             return [
                 "datadog/agent:latest",
             ]
-
-    def configure(self, replay):
-        super().configure(replay)
-
-        if "DD_API_KEY" not in os.environ:
-            raise ValueError("DD_API_KEY is missing in env, please add it.")
-
-        self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
     def post_start(self):
         with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
