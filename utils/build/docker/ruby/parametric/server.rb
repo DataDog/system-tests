@@ -454,14 +454,11 @@ end
 
 
 def parse_dd_link(link)
-  link_dg = if link.http_headers != nil && link.http_headers.size != nil
-              headers = link.http_headers.group_by(&:key).map do |name, values|
-                          [name, values.map(&:value).join(', ')]
-                        end
-              extract_http_headers(headers)
-            elsif @DD_SPANS.key?(link.parent_id)
-              span_op = @DD_SPANS[link.parent_id]
-              trace_op = @DD_TRACES[span_op.trace_id]
+  link_dg = if link["http_headers"] != nil && link["http_headers"].size != nil
+            extract_http_headers(link['http_headers'].to_h)
+            elsif DD_SPANS.key?(link["parent_id"])
+              span_op = DD_SPANS[link["parent_id"]]
+              trace_op = DD_TRACES[span_op.trace_id]
               Datadog::Tracing::TraceDigest.new(
                 span_id: span_op.id,
                 trace_id: span_op.trace_id,
@@ -470,7 +467,7 @@ def parse_dd_link(link)
                 trace_state: trace_op.trace_state
               )
             else
-              raise "Span id in #{link} not found in span list: #{@DD_SPANS}"
+              raise "Span id in #{link} not found in span list: #{DD_SPANS}"
             end
   Datadog::Tracing::SpanLink.new(
     link_dg,
@@ -485,10 +482,10 @@ def parse_otel_link(link)
                         end
               digest = extract_http_headers(headers)
               digest_to_spancontext(digest)
-            elsif @OTEL_SPANS.key?(link.parent_id)
-              @OTEL_SPANS[link.parent_id].context
+            elsif OTEL_SPANS.key?(link.parent_id)
+              OTEL_SPANS[link.parent_id].context
             else
-              raise "Span id in #{link} not found in span list: #{@OTEL_SPANS}"
+              raise "Span id in #{link} not found in span list: #{OTEL_SPANS}"
             end
   OpenTelemetry::Trace::Link.new(
     link_context,
@@ -566,10 +563,10 @@ class MyApp
     args = StartSpanArgs.new(JSON.parse(req.body.read))
 
     digest = if args.http_headers.size != 0
-      headers = args.http_headers.group_by(&:key).map do |name, values|
-        [name, values.map(&:value).join(', ')]
+      headers = args.http_headers.flat_map do |hash|
+        headers = hash["http_headers"]
+        headers.each_slice(2).map { |pair| pair.to_h }
       end
-      extract_http_headers(headers)
     elsif !args.origin.empty? || args.parent_id != 0
       if !args.origin.empty?
         Datadog::Tracing::TraceDigest.new(trace_origin: args.origin, span_id: args.parent_id)
@@ -587,11 +584,10 @@ class MyApp
       type: args.type,
       continue_from: digest,
     )
-
-    span.links = args.links do |link|
+    span.links = args.links.map do |link|
       parse_dd_link(link)
     end if args.links.size > 0
-
+    # Span links: [{"http_headers"=>[["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"]]}]
     DD_SPANS[span.id] = span
     DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
 
@@ -672,7 +668,8 @@ class MyApp
 
   def handle_trace_span_add_link(req, res)
     args = TraceSpanAddLinksArgs.new(JSON.parse(req.body.read))
-    link = parse_dd_link(args.span_link)
+    link = parse_dd_link(args.to_h)
+
     DD_SPANS[args.span_id].links.push(link)
     res.write(TraceSpanAddLinkReturn.new.to_json)
   end
@@ -721,7 +718,7 @@ class MyApp
 
     span_id_b10 = context.hex_span_id.to_i(16)
     trace_id_b10 = context.hex_trace_id.to_i(16)
-    @OTEL_SPANS[span_id_b10] = span
+    OTEL_SPANS[span_id_b10] = span
     OpenTelemetry::Trace::Link.new(span_id: span_id_b10, trace_id: Datadog::Tracing::Utils::TraceId.to_low_order(trace_id_b10))
   end
 
