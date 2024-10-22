@@ -63,13 +63,13 @@ class Test_DsmKafka:
                 "edge_tags_in": (
                     "direction:in",
                     f"group:{DSM_CONSUMER_GROUP}",
-                    "kafka.cluster_id:5L6g3nShT-eMCtK--X86sw",
+                    "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
                     f"topic:{DSM_QUEUE}",
                     "type:kafka",
                 ),
                 "edge_tags_out": (
                     "direction:out",
-                    "kafka.cluster_id:5L6g3nShT-eMCtK--X86sw",
+                    "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
                     f"topic:{DSM_QUEUE}",
                     "type:kafka",
                 ),
