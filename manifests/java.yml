@@ -483,7 +483,9 @@ tests/:
           spring-boot-payara: bug (APPSEC-54966)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
-        Test_Sqli_Capability: missing_feature
+        Test_Sqli_Capability:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -522,7 +524,9 @@ tests/:
         Test_Ssrf_BodyXml:
           '*': missing_feature (missing endpoint)
           spring-boot: 'v1.39.0'
-        Test_Ssrf_Capability: missing_feature
+        Test_Ssrf_Capability:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Ssrf_Mandatory_SpanTags:
           '*': missing_feature (missing endpoint)
           spring-boot: 'v1.39.0'
