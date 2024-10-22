@@ -3,7 +3,8 @@ ARG BASE_IMAGE
 FROM ubuntu:jammy as python
 
 RUN DEBIAN_FRONTEND=noninteractive \
-  apt install software-properties-common \
+  apt update && \
+  apt install software-properties-common && \
   add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12
 
 FROM ${BASE_IMAGE}
