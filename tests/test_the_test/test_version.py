@@ -76,6 +76,15 @@ def test_library_version_comparizon():
 
 def test_spec():
     assert semver.Version("6.0.0-pre") in CustomSpec(">=5.0.0")
+
+    assert semver.Version("1.2.4") in CustomSpec(">1.2.3")
+    assert semver.Version("1.2.4-rc1") in CustomSpec(">1.2.3")
+    assert semver.Version("1.2.4") in CustomSpec(">1.2.4-rc1")
+
+    assert semver.Version("1.2.4-rc1") in CustomSpec("<1.2.4")
+    assert semver.Version("1.2.3") in CustomSpec("<1.2.4")
+    assert semver.Version("1.2.3") in CustomSpec("<1.2.4-rc1")
+
     assert semver.Version("3.1.2") in CustomSpec(">=5.0.0 || ^3.0.0")
     assert semver.Version("4.1.2") not in CustomSpec(">=5.0.0 || ^3.0.0")
     assert semver.Version("6.0.0") in CustomSpec(">=5.0.0 || ^3.0.0")
