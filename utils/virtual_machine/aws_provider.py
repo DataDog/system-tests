@@ -48,7 +48,7 @@ class AWSPulumiProvider(VmProvider):
             # Debug purposes. How many instances, created by system-tests are running in the AWS account?
             self._check_running_instances()
             # Debug purposes. How many AMI CACHES, created by system-tests are available in the AWS account?
-            self._check_available_cached_amis()
+            # self._check_available_cached_amis()
             logger.info(f"Starting AWS VMs.....")
             # First check and configure if there are cached AMIs
             self._configure_cached_amis(self.vms)
