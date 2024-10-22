@@ -62,6 +62,35 @@ class JavaRuntimeInstallableVersions:
         raise ValueError(f"Java version {version} not supported")
 
 
+class PythonRuntimeInstallableVersions:
+    """ Python runtime versions that can be installed automatically"""
+
+    PY37 = RuntimeInstallableVersion("PY37", "3.7.16")
+    PY38 = RuntimeInstallableVersion("PY38", "3.8.20")
+    PY39 = RuntimeInstallableVersion("PY39", "3.9.20")
+    PY310 = RuntimeInstallableVersion("PY310", "3.10.15")
+    PY311 = RuntimeInstallableVersion("PY311", "3.11.10")
+    PY312 = RuntimeInstallableVersion("PY312", "3.12.7")
+
+    @staticmethod
+    def get_all_versions():
+        return [
+            PythonRuntimeInstallableVersions.PY37,
+            PythonRuntimeInstallableVersions.PY38,
+            PythonRuntimeInstallableVersions.PY39,
+            PythonRuntimeInstallableVersions.PY310,
+            PythonRuntimeInstallableVersions.PY311,
+            PythonRuntimeInstallableVersions.PY312,
+        ]
+
+    @staticmethod
+    def get_version_id(version):
+        for version_check in PythonRuntimeInstallableVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f"Python version {version} not supported")
+
+
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
 # Maybe a weblog app contains preinstalled language runtime, in this case we define the weblog without runtime version
 JETTY_APP = WeblogDescriptor(
@@ -116,6 +145,7 @@ TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
 WEBSPHERE_APP = WeblogDescriptor("websphere-app", "java", [SupportedImages().WEBSPHERE_AMD64])
 JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64])
+UBUNTU22_PY_APP = WeblogDescriptor("ubuntu22-py-app", "python", [SupportedImages().UBUNTU22_AMD64])
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP]
+ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP, UBUNTU22_PY_APP]
