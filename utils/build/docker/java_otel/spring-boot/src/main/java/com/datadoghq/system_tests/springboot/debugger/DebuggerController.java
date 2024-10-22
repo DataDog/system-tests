@@ -111,8 +111,8 @@ public class DebuggerController {
         return a0Count + "," + a1Count + "," + a5Count + "," + l0Count + "," + l1Count + "," + l5Count + "," + h0Count + "," + h1Count + "," + h5Count + ".";
     }
 
-    @GetMapping("/expression/null")
-     public String nulls(
+    @GetMapping("/expression_nulls")
+    public String ExpressionNulls(
             @RequestParam(required = false) Integer intValue,
             @RequestParam(required = false) String strValue) {
         PiiBase pii = null;
@@ -145,7 +145,7 @@ public class DebuggerController {
         }
     }
 
-    @GetMapping("/exceptionreplay/inner")
+    @GetMapping("/exceptionreplay_inner")
     public Void exceptionReplayInner() {
         try {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Inner exception");

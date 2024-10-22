@@ -92,6 +92,14 @@ class DebuggerController {
             throw new \Exception("Recursion exception");
         }
     }
+
+    public function exceptionReplayInner() {
+        try {
+            throw new \Exception("Inner exception");
+        } catch (Exception $ex) {
+            throw new \Exception("Outer exception", 0, $ex);
+        }
+    }
 }
 
 if (empty($skipExecution)) {

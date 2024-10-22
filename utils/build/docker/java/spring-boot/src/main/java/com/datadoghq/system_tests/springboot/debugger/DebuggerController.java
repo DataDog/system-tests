@@ -112,7 +112,7 @@ public class DebuggerController {
     }
 
     @GetMapping("/expression_nulls")
-     public String ExpressionNulls(
+    public String ExpressionNulls(
             @RequestParam(required = false) Integer intValue,
             @RequestParam(required = false) String strValue) {
         PiiBase pii = null;
@@ -145,7 +145,7 @@ public class DebuggerController {
         }
     }
 
-    @GetMapping("/exceptionreplay/inner")
+    @GetMapping("/exceptionreplay_inner")
     public Void exceptionReplayInner() {
         try {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Inner exception");

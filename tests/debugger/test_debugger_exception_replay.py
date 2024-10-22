@@ -109,14 +109,14 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
     ############ Inner ############
     def setup_exception_replay_inner(self):
-        self._setup("/debugger/exceptionreplay/inner", "exceptionreplayinner")
+        self._setup("/debugger/exceptionreplay_inner", "exceptionreplayinner")
 
     @bug(library="java", reason="DEBUG-2787")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_inner(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
         self._validate_exception_replay_snapshots(test_name="exception_replay_inner")
-        self._validate_tags(test_name="exception_replay_inner", number_of_frames=2)
+        self._validate_tags(test_name="exception_replay_inner", number_of_frames=1)
 
     def __get_path(self, test_name, suffix):
         if self.tracer is None:

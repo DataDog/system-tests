@@ -155,7 +155,7 @@ namespace weblog
             }
         }
 
-        [HttpGet("exceptionreplay/inner")]
+        [HttpGet("exceptionreplay_inner")]
         [Consumes("application/json", "application/xml")]
         public IActionResult ExceptionReplayInner()
         {
