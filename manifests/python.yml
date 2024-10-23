@@ -81,19 +81,19 @@ tests/:
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.19.0
-            fastapi: missing_feature
+            fastapi: v2.16.0dev
           TestInsecureCookieNameFilter: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': v1.19.0
-            fastapi: missing_feature
+            fastapi: v2.16.0dev
           TestNoHttponlyCookieNameFilter: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': v1.19.0
-            fastapi: missing_feature
+            fastapi: v2.16.0dev
           TestNoSamesiteCookieNameFilter: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
