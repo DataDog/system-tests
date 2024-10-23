@@ -561,12 +561,11 @@ class MyApp
 
   def handle_trace_span_start(req, res)
     args = StartSpanArgs.new(JSON.parse(req.body.read))
-
     digest = if args.http_headers.size != 0
-      headers = args.http_headers.flat_map do |hash|
-        headers = hash["http_headers"]
-        headers.each_slice(2).map { |pair| pair.to_h }
-      end
+    headers = args.http_headers.group_by { |key, _| key }.transform_values do |values|
+      values.map { |_, value| value }.join(", ")
+    end
+      extract_http_headers(headers)
     elsif !args.origin.empty? || args.parent_id != 0
       if !args.origin.empty?
         Datadog::Tracing::TraceDigest.new(trace_origin: args.origin, span_id: args.parent_id)
