@@ -229,7 +229,7 @@ class Test_Config_ClientIPHeader_Configured:
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
-@scenarios.tracing_config_nondefault_2
+@scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Precedence:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true 
