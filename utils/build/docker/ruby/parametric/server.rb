@@ -223,6 +223,10 @@ class TraceSpanAddLinksArgs
     @parent_id = params['parent_id']
     @attributes = params['attributes']
   end
+
+  def to_h
+    { 'span_id' => @span_id, 'parent_id' => @parent_id, 'attributes' => @attributes }
+  end
 end
 
 class TraceSpanAddLinkReturn
