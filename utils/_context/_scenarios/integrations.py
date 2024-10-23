@@ -79,11 +79,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
 🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
 """
 
-    def __init__(
-        self,
-        name="INTEGRATIONS_AWS",
-        doc="Spawns tracer, and agent. Test AWS integrations.",
-    ) -> None:
+    def __init__(self, name="INTEGRATIONS_AWS", doc="Spawns tracer, and agent. Test AWS integrations.",) -> None:
         super().__init__(
             name,
             weblog_env={
@@ -127,5 +123,6 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             include_kafka=True,
             include_buddies=True,
             include_rabbitmq=True,
+            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
         )
