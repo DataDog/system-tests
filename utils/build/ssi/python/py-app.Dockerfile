@@ -1,15 +1,7 @@
 ARG BASE_IMAGE
 
-FROM ubuntu:jammy as python
-
-RUN DEBIAN_FRONTEND=noninteractive \
-  apt update -y && \
-  apt install -y software-properties-common && \
-  add-apt-repository ppa:deadsnakes/ppa && apt update -y && apt install -y python3.12
-
 FROM ${BASE_IMAGE}
 WORKDIR /app
-COPY --from=python /usr/lib/python3.12 /usr/lib/python3.12
 COPY lib-injection/build/docker/python/dd-lib-python-init-test-django/ .
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE django_app
