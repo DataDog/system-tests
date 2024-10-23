@@ -561,9 +561,8 @@ class Test_Trace_Sampling_With_W3C:
         """Test that a trace is sampled by the rule and the sampling decision is locked"""
 
         with test_library:
-            with test_library.start_span(
-                name="web.request", service="webserver", resource="/bar", tags=[["tag0", "val0"]]
-            ) as span:
+            with test_library.start_span(name="web.request", service="webserver", resource="/bar",) as span:
+                span.set_meta("tag0", "val0")
                 # based on the Tag("tag0", "val0") start span option, span sampling would be 'drop',
 
                 # setting new tags doesn't trigger re-sampling,

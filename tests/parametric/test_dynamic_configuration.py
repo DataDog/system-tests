@@ -35,8 +35,10 @@ DEFAULT_ENVVARS = {
 
 
 def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
+    tags = span_kwargs.pop("tags", {})
     with test_library.start_span(**span_kwargs) as s1:
-        pass
+        for k, v in tags:
+            s1.set_meta(k, v)
     test_library.flush()
     traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
     return find_trace(traces, s1.trace_id)

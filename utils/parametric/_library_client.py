@@ -39,16 +39,7 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def trace_start_span(
-        self,
-        name: str,
-        service: str,
-        resource: str,
-        parent_id: int,
-        typestr: str,
-        origin: str,
-        http_headers: List[Tuple[str, str]],
-        links: List[Link],
-        tags: List[Tuple[str, str]],
+        self, name: str, service: str, resource: str, parent_id: int, typestr: str, http_headers: List[Tuple[str, str]],
     ) -> StartSpanResponse:
         raise NotImplementedError
 
@@ -153,6 +144,9 @@ class APMLibraryClient:
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         raise NotImplementedError
 
+    def trace_extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
+        raise NotImplementedError
+
     def trace_flush(self) -> None:
         raise NotImplementedError
 
@@ -231,10 +225,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resource: str,
         parent_id: int,
         typestr: str,
-        origin: str,
         http_headers: Optional[List[Tuple[str, str]]],
-        links: Optional[List[Link]],
-        tags: Optional[List[Tuple[str, str]]],
     ):
         resp = self._session.post(
             self._url("/trace/span/start"),
@@ -244,10 +235,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "resource": resource,
                 "parent_id": parent_id,
                 "type": typestr,
-                "origin": origin,
                 "http_headers": http_headers,
-                "links": links,
-                "span_tags": tags,
             },
         )
 
@@ -344,6 +332,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
         # todo: translate json into list within list
         # so server.xx do not have to
         return resp.json()["http_headers"]
+
+    def trace_extract_headers(self, http_headers: List[Tuple[str, str]]):
+        resp = self._session.post(self._url("/trace/span/extract_headers"), json={"http_headers": http_headers})
+        return resp.json()["span_id"]
 
     def trace_flush(self) -> None:
         self._session.post(self._url("/trace/span/flush"), json={})
@@ -713,6 +705,9 @@ class APMLibraryClientGRPC:
         resp = self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
         return [(header_tuple.key, header_tuple.value) for header_tuple in resp.http_headers.http_headers]
 
+    def trace_extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
+        raise NotImplementedError
+
     def stop(self):
         return self._client.StopTracer(pb.StopTracerArgs())
 
@@ -853,14 +848,11 @@ class APMLibrary:
     def start_span(
         self,
         name: str,
-        service: str = "",
-        resource: str = "",
-        parent_id: int = 0,
-        typestr: str = "",
-        origin: str = "",
+        service: Optional[str] = None,
+        resource: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        typestr: Optional[str] = None,
         http_headers: Optional[List[Tuple[str, str]]] = None,
-        links: Optional[List[Link]] = None,
-        tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
             name=name,
@@ -868,10 +860,7 @@ class APMLibrary:
             resource=resource,
             parent_id=parent_id,
             typestr=typestr,
-            origin=origin,
             http_headers=http_headers if http_headers is not None else [],
-            links=links if links is not None else [],
-            tags=tags if tags is not None else [],
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
@@ -928,6 +917,9 @@ class APMLibrary:
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
+
+    def extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
+        return self._client.trace_extract_headers(http_headers)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
         return self._client.otel_set_bagage(span_id, key, value)
