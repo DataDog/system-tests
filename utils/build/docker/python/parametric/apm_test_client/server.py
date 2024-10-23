@@ -281,6 +281,8 @@ class TraceSpansFlushReturn(BaseModel):
 @app.post("/trace/span/flush")
 def trace_spans_flush(args: TraceSpansFlushArgs) -> TraceSpansFlushReturn:
     ddtrace.tracer.flush()
+    spans.clear()
+    ddcontexts.clear()
     return TraceSpansFlushReturn()
 
 
