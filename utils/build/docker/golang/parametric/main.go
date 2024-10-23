@@ -5,12 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
+	"net/http"
 	"os"
 	"strconv"
 
 	"go.opentelemetry.io/otel"
-	"google.golang.org/grpc"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	otel_trace "go.opentelemetry.io/otel/trace"
@@ -18,7 +17,6 @@ import (
 )
 
 type apmClientServer struct {
-	UnimplementedAPMClientServer
 	spans     map[uint64]tracer.Span
 	otelSpans map[uint64]spanContext
 	tp        *ddotel.TracerProvider
@@ -51,14 +49,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to convert port to integer: %v", err)
 	}
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
+	s := newServer()
+	http.HandleFunc("/trace/span/start", s.startSpanHandler)
+	http.HandleFunc("/trace/span/set_meta", s.spanSetMetaHandler)
+	// http.HandleFunc("trace/span/finish", s.finishSpanHandler)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
-	RegisterAPMClientServer(s, newServer())
-	log.Printf("server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	log.Printf("server listening at %v", fmt.Sprintf("0.0.0.0:%d", port))
 }
