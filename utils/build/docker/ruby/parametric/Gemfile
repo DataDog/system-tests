@@ -1,6 +1,5 @@
 source "https://rubygems.org"
 
-gem 'ddtrace' # To be overwrite by the script
 gem 'grpc'
 gem 'grpc-tools'
 
