@@ -570,7 +570,6 @@ ADD {php_reldir}/server.php .
 
 
 def ruby_library_factory() -> APMLibraryTestServer:
-    # not sure if this part is necessary now that protobuf is not used
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
     ruby_reldir = ruby_appdir.replace("\\", "/")
