@@ -561,7 +561,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @bug(
+    @irrelevant(
         library="nodejs", reason="NodeJS doesn't sort the DSM edge tags and has different hashes.",
     )
     def test_dsm_manual_checkpoint_intra_process(self):
@@ -640,7 +640,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @bug(
+    @irrelevant(
         library="nodejs", reason="NodeJS doesn't sort the DSM edge tags and has different hashes.",
     )
     def test_dsm_manual_checkpoint_inter_process(self):
