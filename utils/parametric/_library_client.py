@@ -30,6 +30,10 @@ class Link(TypedDict):
     attributes: dict
     http_headers: List[Tuple[str, str]]
 
+class Event(TypedDict):
+    time_unix_nano: int
+    name: str
+    attributes: dict
 
 class APMLibraryClient:
     def crash(self) -> None:
@@ -48,6 +52,7 @@ class APMLibraryClient:
         origin: str,
         http_headers: List[Tuple[str, str]],
         links: List[Link],
+        events: List[Event],
         tags: List[Tuple[str, str]],
     ) -> StartSpanResponse:
         raise NotImplementedError
@@ -59,6 +64,7 @@ class APMLibraryClient:
         span_kind: int,
         parent_id: int,
         links: List[Link],
+        events: List[Event],
         http_headers: List[Tuple[str, str]],
         attributes: dict = None,
     ) -> StartSpanResponse:
@@ -83,6 +89,9 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def otel_get_links(self, span_id: int) -> List[Link]:
+        raise NotImplementedError
+
+    def otel_get_events(self, span_id: int) -> List[Event]:
         raise NotImplementedError
 
     def otel_set_attributes(self, span_id: int, attributes: dict) -> None:
@@ -234,6 +243,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         origin: str,
         http_headers: Optional[List[Tuple[str, str]]],
         links: Optional[List[Link]],
+        events: Optional[List[Event]],
         tags: Optional[List[Tuple[str, str]]],
     ):
         resp = self._session.post(
@@ -247,6 +257,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "origin": origin,
                 "http_headers": http_headers,
                 "links": links,
+                "events": events,
                 "span_tags": tags,
             },
         )
@@ -317,6 +328,19 @@ class APMLibraryClientHTTP(APMLibraryClient):
             },
         )
 
+    def span_add_event(
+        self, span_id: int, name: str, timestamp: int, attributes: dict = None
+    ):
+        self._session.post(
+            self._url("/trace/span/add_event"),
+            json={
+                "span_id": span_id,
+                "name": name,
+                "timestamp": timestamp,
+                "attributes": attributes or {},
+            },
+        )
+
     def span_get_meta(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,},)
         return resp.json()["value"]
@@ -356,6 +380,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         span_kind: int,
         parent_id: int,
         links: List[Link],
+        events: List[Event],
         http_headers: List[Tuple[str, str]],
         attributes: dict = None,
     ) -> StartSpanResponse:
@@ -367,6 +392,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "span_kind": span_kind,
                 "parent_id": parent_id,
                 "links": links,
+                "events": events,
                 "http_headers": http_headers,
                 "attributes": attributes or {},
             },
@@ -398,6 +424,11 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp_json = self._session.post(self._url("/trace/otel/get_links"), json={"span_id": span_id}).json()
 
         return resp_json["links"]
+
+    def otel_get_events(self, span_id: int):
+        resp_json = self._session.post(self._url("/trace/otel/get_events"), json={"span_id": span_id}).json()
+
+        return resp_json["events"]
 
     def otel_set_attributes(self, span_id: int, attributes) -> None:
         self._session.post(self._url("/trace/otel/set_attributes"), json={"span_id": span_id, "attributes": attributes})
@@ -576,6 +607,9 @@ class _TestOtelSpan:
     def get_links(self):
         return self._client.otel_get_links(self.span_id)
 
+    def get_events(self):
+        return self._client.otel_get_events(self.span_id)
+
 
 class APMLibraryClientGRPC:
     def __init__(self, url: str, timeout: int, container: Container):
@@ -617,6 +651,7 @@ class APMLibraryClientGRPC:
         origin: str,
         http_headers: List[Tuple[str, str]],
         links: List[Link],
+        events: List[Event],
         tags: List[Tuple[str, str]],
     ):
         distributed_message = pb.DistributedHTTPHeaders()
@@ -640,6 +675,15 @@ class APMLibraryClientGRPC:
 
             pb_links.append(pb_link)
 
+        pb_events = []
+        for event in events:
+            pb_event = pb.SpanEvent(
+                time=event["time"],
+                name=event["name"],
+                attributes=convert_to_proto(event.get("attributes")),
+            )
+            pb_events.append(pb_event)
+
         try:
             resp = self._client.StartSpan(
                 pb.StartSpanArgs(
@@ -651,6 +695,7 @@ class APMLibraryClientGRPC:
                     origin=origin,
                     http_headers=distributed_message,
                     span_links=pb_links,
+                    span_events=pb_events,
                     span_tags=pb_tags,
                 )
             )
@@ -670,6 +715,7 @@ class APMLibraryClientGRPC:
         span_kind: int,
         parent_id: int,
         links: List[Link],
+        events: List[Event],
         http_headers: List[Tuple[str, str]],
         attributes: dict = None,
     ):
@@ -689,6 +735,15 @@ class APMLibraryClientGRPC:
                     pb_link.http_headers.http_headers.append(pb.HeaderTuple(key=key, value=value))
             pb_links.append(pb_link)
 
+        pb_events = []
+        for event in events:
+            pb_event = pb.SpanEvent(
+                time=event["time"],
+                name=event["name"],
+                attributes=convert_to_proto(event.get("attributes")),
+            )
+            pb_events.append(pb_event)
+
         resp = self._client.OtelStartSpan(
             pb.OtelStartSpanArgs(
                 name=name,
@@ -696,6 +751,7 @@ class APMLibraryClientGRPC:
                 span_kind=span_kind,
                 parent_id=parent_id,
                 span_links=pb_links,
+                span_events=pb_events,
                 attributes=convert_to_proto(attributes),
                 http_headers=distributed_message,
             )
@@ -753,6 +809,14 @@ class APMLibraryClientGRPC:
             raise ValueError("Link must have either parent_id or http_headers")
 
         self._client.SpanAddLink(pb.SpanAddLinkArgs(span_id=span_id, span_link=pb_link,))
+
+    def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict):
+        pb_event = pb.SpanEvent(
+            time=timestamp,
+            name=name,
+            attributes=convert_to_proto(attributes),
+        )
+        self._client.SpanAddEvent(pb.SpanAddEventArgs(span_id=span_id, event=pb_event))
 
     def finish_span(self, span_id: int):
         self._client.FinishSpan(pb.FinishSpanArgs(id=span_id))
@@ -860,6 +924,7 @@ class APMLibrary:
         origin: str = "",
         http_headers: Optional[List[Tuple[str, str]]] = None,
         links: Optional[List[Link]] = None,
+        events: Optional[List[Event]] = None,
         tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
@@ -871,6 +936,7 @@ class APMLibrary:
             origin=origin,
             http_headers=http_headers if http_headers is not None else [],
             links=links if links is not None else [],
+            events=events if events is not None else [],
             tags=tags if tags is not None else [],
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
@@ -885,6 +951,7 @@ class APMLibrary:
         span_kind: int = 0,
         parent_id: int = 0,
         links: Optional[List[Link]] = None,
+        events: Optional[List[Event]] = None,
         attributes: dict = None,
         http_headers: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestOtelSpan, None, None]:
@@ -894,6 +961,7 @@ class APMLibrary:
             span_kind=span_kind,
             parent_id=parent_id,
             links=links if links is not None else [],
+            events=events if events is not None else [],
             attributes=attributes,
             http_headers=http_headers if http_headers is not None else [],
         )

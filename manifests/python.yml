@@ -738,6 +738,7 @@ tests/:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
       Test_Sampling_Span_Tags: v2.8.0
+#    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:
