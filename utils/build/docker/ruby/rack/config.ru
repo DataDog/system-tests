@@ -7,7 +7,11 @@ require 'json'
 
 # tracer configuration of Rack integration
 
-require 'datadog/auto_instrument'
+begin
+  require 'datadog/auto_instrument'
+rescue LoadError
+  require 'ddtrace/auto_instrument'
+end
 require 'datadog/kit/appsec/events'
 
 Datadog.configure do |c|
@@ -61,7 +65,7 @@ class Healthcheck
       status: 'ok',
       library: {
         language: 'ruby',
-        version: Datadog::VERSION::STRING
+        version: defined?(Datadog::VERSION) ? Datadog::VERSION::STRING : DDTrace::VERSION::STRING
       }
     }
 

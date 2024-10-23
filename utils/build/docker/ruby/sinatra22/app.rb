@@ -5,13 +5,9 @@ require "uri"
 require 'json'
 
 begin
-  require 'ddtrace/auto_instrument'
-rescue LoadError
-end
-
-begin
   require 'datadog/auto_instrument'
 rescue LoadError
+  require 'ddtrace/auto_instrument'
 end
 
 Datadog.configure do |c|
@@ -44,7 +40,7 @@ get '/healthcheck' do
     status: 'ok',
     library: {
       language: 'ruby',
-      version: Datadog::VERSION::STRING
+      version: defined?(Datadog::VERSION) ? Datadog::VERSION::STRING : DDTrace::VERSION::STRING
     }
   }.to_json
 

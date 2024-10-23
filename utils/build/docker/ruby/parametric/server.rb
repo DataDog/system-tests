@@ -9,11 +9,8 @@ begin
   require 'datadog'
   puts Datadog::VERSION::STRING
 rescue LoadError
-end
-begin
   require 'ddtrace'
   puts DDTrace::VERSION::STRING
-rescue LoadError
 end
 
 require 'datadog/tracing/contrib/grpc/distributed/propagation' # Loads optional `Datadog::Tracing::Contrib::GRPC::Distributed`
