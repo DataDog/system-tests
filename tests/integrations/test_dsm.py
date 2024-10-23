@@ -562,8 +562,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         )
 
     @bug(
-        library="nodejs",
-        reason="NodeJS doesn't sort the DSM edge tags and has different hashes.",
+        library="nodejs", reason="NodeJS doesn't sort the DSM edge tags and has different hashes.",
     )
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
@@ -642,8 +641,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
         )
 
     @bug(
-        library="nodejs",
-        reason="NodeJS doesn't sort the DSM edge tags and has different hashes.",
+        library="nodejs", reason="NodeJS doesn't sort the DSM edge tags and has different hashes.",
     )
     def test_dsm_manual_checkpoint_inter_process(self):
         assert self.produce_threaded.status_code == 200
