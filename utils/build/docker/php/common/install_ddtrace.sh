@@ -45,8 +45,6 @@ fi
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
   /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
-library_version=$(<././SYSTEM_TESTS_LIBRARY_VERSION)
-rule_file="/opt/datadog/dd-library/${library_version}/etc/recommended.json"
 
 find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;
 mkdir -p /etc/dd-appsec

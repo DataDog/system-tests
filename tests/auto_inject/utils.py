@@ -17,7 +17,10 @@ class AutoInjectBaseTest:
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
-        vm_name = virtual_machine.name
+        header = "----------------------------------------------------------------------"
+        vm_logger(context.scenario.name, virtual_machine.name).info(
+            f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
+        )
         request_uuid = None
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
             logger.info(
@@ -123,7 +126,10 @@ class AutoInjectBaseTest:
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
 
     def _test_uninstall(self, virtual_machine):
-
+        header = "----------------------------------------------------------------------"
+        vm_logger(context.scenario.name, virtual_machine.name).info(
+            f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
+        )
         if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
 
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
@@ -141,16 +147,3 @@ class AutoInjectBaseTest:
         self._test_uninstall_commands(
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
-
-    @pytest.fixture(autouse=True)
-    def do_before_test(self, virtual_machine):
-        if virtual_machine:
-            current_test = os.environ.get("PYTEST_CURRENT_TEST").split(":")[-1].split(" ")[0]
-            start = current_test.find("[")
-            if start != -1:
-                current_test = current_test[: start + 1]
-            header = "----------------------------------------------------------------------"
-            vm_logger(context.scenario.name, virtual_machine.name).info(
-                f"{header} \n {header}  \n  Launching the test {current_test} for VM: {virtual_machine.name}  \n {header} \n {header}"
-            )
-        yield

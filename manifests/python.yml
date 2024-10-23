@@ -466,10 +466,10 @@ tests/:
         '*': v2.10.0.dev
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0.dev
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: v2.11.0.dev
       Test_Fingerprinting_Header_And_Network: v2.11.0.dev
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Header_Capability: v2.11.0.dev
+      Test_Fingerprinting_Network_Capability: v2.11.0.dev
       Test_Fingerprinting_Session: missing_feature (missing endpoint)
       Test_Fingerprinting_Session_Capability: missing_feature
     test_identify.py:
@@ -483,7 +483,7 @@ tests/:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: v2.10.1
-      Test_UpdateRuleFileWithRemoteConfig: v2.11.0rc
+      Test_UpdateRuleFileWithRemoteConfig: v2.16.0rc (v2.11.0 but added telemetry and span tag support in 2.16)
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
       Test_Info: v1.1.0rc2.dev
@@ -772,8 +772,15 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0.dev
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: v2.14.0
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          # NOTE: fastapi-based async things don't play well with moto
+          Test_PutObject:
+            '*': missing_feature
+            django-poc: v2.14.0
+            flask-poc: v2.14.0
+            python3.12: v2.14.0
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
