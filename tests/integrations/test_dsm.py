@@ -49,6 +49,7 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
+    @irrelevant(context.library in ["python", "java", "nodejs", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -60,6 +61,17 @@ class Test_DsmKafka:
             "nodejs": {
                 "producer": 7021878731777772655,
                 "consumer": 4591800307942911915,
+            },
+            # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
+            "golang": {
+                "producer": 4463699290244539355,
+                "consumer": 13758451224913876939,
+                "edge_tags_in": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_out": ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
+            },
+            "default": {
+                "producer": 14216899112169674443,
+                "consumer": 4247242616665718048,
                 "edge_tags_in": (
                     "direction:in",
                     f"group:{DSM_CONSUMER_GROUP}",
@@ -73,19 +85,6 @@ class Test_DsmKafka:
                     f"topic:{DSM_QUEUE}",
                     "type:kafka",
                 ),
-            },
-            # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
-            "golang": {
-                "producer": 4463699290244539355,
-                "consumer": 13758451224913876939,
-                "edge_tags_in": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
-                "edge_tags_out": ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
-            },
-            "default": {
-                "producer": 4463699290244539355,
-                "consumer": 3735318893869752335,
-                "edge_tags_in": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
-                "edge_tags_out": ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
             },
         }
 
