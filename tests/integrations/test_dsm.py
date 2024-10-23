@@ -288,7 +288,7 @@ class Test_DsmSQS:
 
     @bug(
         library="nodejs",
-        reason="NodeJS sometimes fails to consume the correct sqs message.",
+        reason="AIDM-377",
     )
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -353,7 +353,7 @@ class Test_DsmSNS:
 
     @bug(
         library="nodejs",
-        reason="NodeJS sometimes fails to consume the correct sns message.",
+        reason="AIDM-377",
     )
     def test_dsm_sns(self):
         assert self.r.text == "ok"
