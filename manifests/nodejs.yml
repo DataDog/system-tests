@@ -563,7 +563,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_RateLimit: *ref_5_25_0
       Test_Config_TraceAgentURL: *ref_5_25_0
-      Test_Config_TraceEnabled: *ref_3_2_0
+      Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
     test_crashtracking.py: missing_feature
@@ -626,7 +626,7 @@ tests/:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0
-    Test_Config_ClientIPHeader_Precedence: *ref_3_13_0
+    Test_Config_ClientIPHeader_Precedence: *ref_3_19_0
     Test_Config_ClientTagQueryString_Configured: missing_feature (adding query string to http.url is not supported)
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query strings by default)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
