@@ -124,6 +124,7 @@ class Test_Config_UnifiedServiceTagging:
 class Test_Config_TraceAgentURL:
     # DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
     @bug(context.library == "ruby", reason="APMAPI-459")
+    @bug(context.library == "golang", reason="APMAPI-390")
     @parametrize(
         "library_env",
         [
