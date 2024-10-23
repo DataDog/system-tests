@@ -214,12 +214,12 @@ class _Test_Kinesis:
         return producer_span, consumer_span
 
 
-@scenarios.crossed_tracing_libraries
+@scenarios.integrations_aws
 @features.aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_Kinesis):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
-    unique_id = scenarios.crossed_tracing_libraries.unique_id
+    unique_id = scenarios.integrations_aws.unique_id
     WEBLOG_TO_BUDDY_STREAM = f"Kinesis_prop_via_msg_attributes_weblog_to_buddy_{unique_id}"
     BUDDY_TO_WEBLOG_STREAM = f"Kinesis_prop_via_msg_attributes_buddy_to_weblog_{unique_id}"

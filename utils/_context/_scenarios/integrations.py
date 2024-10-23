@@ -123,7 +123,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             )
 
 
-class CrossedTracingLibraryScenario(AWSIntegrationsScenario):
+class CrossedTracingLibraryScenario(EndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "CROSSED_TRACING_LIBRARIES",

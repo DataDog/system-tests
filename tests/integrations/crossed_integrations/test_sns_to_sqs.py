@@ -256,13 +256,13 @@ class _Test_SNS:
         return producer_span, consumer_span
 
 
-@scenarios.crossed_tracing_libraries
+@scenarios.integrations_aws
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
-    unique_id = scenarios.crossed_tracing_libraries.unique_id
+    unique_id = scenarios.integrations_aws.unique_id
 
     WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_msg_attributes_weblog_to_buddy_{unique_id}"
     WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attributes_weblog_to_buddy_topic_{unique_id}"
