@@ -83,9 +83,6 @@ class AWSIntegrationsScenario(EndToEndScenario):
         self,
         name="INTEGRATIONS_AWS",
         doc="Spawns tracer, and agent. Test AWS integrations.",
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_buddies=False,
     ) -> None:
         super().__init__(
             name,
@@ -95,9 +92,9 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
             },
             doc=doc,
-            include_kafka=include_kafka,
-            include_rabbitmq=include_rabbitmq,
-            include_buddies=include_buddies,
+            include_kafka=True,
+            include_rabbitmq=True,
+            include_buddies=True,
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
         # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
