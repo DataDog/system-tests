@@ -556,6 +556,41 @@ class Test_Suspicious_Request_Blocking:
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-012")
         interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
+    def setup_blocking_without_path_params(self):
+        self.rm_req_block = weblog.get(
+            f"/tag_value/path_param_wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            cookies={"foo": "qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+            headers={"content-type": "text/plain", "client": "siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
+        )
+
+    def test_blocking_without_path_params(self):
+        """Test if requests that should be blocked are blocked"""
+        assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-013")
+    
+    def setup_blocking_before_without_path_params(self):
+        self.set_req1 = weblog.post(
+            "/tag_value/clean_value_3882/200?attack=T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            data={"good": "value"},
+            cookies={"foo": "qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+        )
+        self.block_req2 = weblog.get(
+            f"/tag_value/path_param_wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            cookies={"foo": "qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+            headers={"content-type": "text/plain", "client": "siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
+        )
+
+    def test_blocking_before_without_path_params(self):
+        """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
+        assert self.set_req1.status_code == 200
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3882"))
+        """Test that blocked requests are blocked before being processed"""
+        assert self.block_req2.status_code == 403
+        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-013")
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
+
 
 @scenarios.graphql_appsec
 @features.appsec_request_blocking

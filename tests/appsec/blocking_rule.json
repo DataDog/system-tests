@@ -576,6 +576,76 @@
       ]
     },
     {
+      "id": "tst-037-013",
+      "name": "Test block on multiple request addresses (without path_params)",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000013",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.method"
+              }
+            ],
+            "regex": "GET"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "regex": "wX1GdUiWdVdoklf0pYBi5kQApO9i77tN"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies"
+              }
+            ],
+            "regex": "siDzyETAdkvKahD3PxlvIqcE0fMIVywE"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              }
+            ],
+            "regex": "qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
       "id": "monitor-resolvers",
       "name": "Monitor Resolvers",
       "tags": {
