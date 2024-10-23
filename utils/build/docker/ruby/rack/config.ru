@@ -8,13 +8,9 @@ require 'json'
 # tracer configuration of Rack integration
 
 begin
-  require 'ddtrace/auto_instrument'
-rescue LoadError
-end
-
-begin
   require 'datadog/auto_instrument'
 rescue LoadError
+  require 'ddtrace/auto_instrument'
 end
 require 'datadog/kit/appsec/events'
 
