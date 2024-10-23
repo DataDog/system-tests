@@ -503,9 +503,9 @@ type StartSpanReturn struct {
 // 	return nil
 // }
 
-// type FinishSpanArgs struct {
-// 	Id uint64 `json:"id"`
-// }
+type FinishSpanArgs struct {
+	Id uint64 `json:"span_id"`
+}
 
 // func (x *FinishSpanArgs) Reset() {
 // 	*x = FinishSpanArgs{}

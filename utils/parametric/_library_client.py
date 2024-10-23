@@ -524,6 +524,7 @@ class _TestSpan:
         return self._client.span_get_metric(self.span_id, key)
 
     def finish(self):
+        print("MTOFF: In client; self.span_id is ", self.span_id)
         self._client.finish_span(self.span_id)
 
 
@@ -875,6 +876,7 @@ class APMLibrary:
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
+        print("MTOFF: hello from start_span; about to finish span")
         span.finish()
 
     @contextlib.contextmanager

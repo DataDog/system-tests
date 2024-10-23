@@ -52,7 +52,7 @@ func main() {
 	s := newServer()
 	http.HandleFunc("/trace/span/start", s.startSpanHandler)
 	http.HandleFunc("/trace/span/set_meta", s.spanSetMetaHandler)
-	// http.HandleFunc("trace/span/finish", s.finishSpanHandler)
+	http.HandleFunc("/trace/span/finish", s.finishSpanHandler)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

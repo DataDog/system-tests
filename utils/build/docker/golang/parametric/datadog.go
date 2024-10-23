@@ -108,23 +108,24 @@ func (s *apmClientServer) spanSetMetaHandler(w http.ResponseWriter, r *http.Requ
 // 	return &SpanSetMetricReturn{}, nil
 // }
 
-// func (s *apmClientServer) finishSpanHandler(w http.ResponseWriter, r *http.Request) {
-// 	var args FinishSpanArgs
-// 	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
-// 		http.Error(w, "Invalid request", http.StatusBadRequest)
-// 		return
-// 	}
-// 	defer r.Body.Close()
-// 	span, exists := s.spans[args.Id]
-// 	if !exists {
-// 		http.Error(w, "Span not found", http.StatusNotFound)
-// 		return
-// 	}
-// 	span.Finish()
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	json.NewEncoder(w).Encode(struct{}{})
-// }
+func (s *apmClientServer) finishSpanHandler(w http.ResponseWriter, r *http.Request) {
+	var args FinishSpanArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	span, exists := s.spans[args.Id]
+	if !exists {
+		http.Error(w, "Span not found", http.StatusNotFound)
+		return
+	}
+	span.Finish()
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct{}{})
+	time.Sleep(2 * time.Second)
+}
 
 // func (s *apmClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error) {
 // 	tracer.Flush()
