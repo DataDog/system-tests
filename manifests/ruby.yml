@@ -197,9 +197,7 @@ tests/:
       Test_Blocking_response_headers: v1.0.0
       Test_Blocking_response_status: v1.10.0
       Test_Blocking_user_id: v1.0.0
-      Test_Suspicious_Request_Blocking:
-          '*': v1.0.0
-          rack: missing_feature (no path_params in rack)
+      Test_Suspicious_Request_Blocking: v1.0.0
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.8.0
     test_customconf.py:

@@ -520,6 +520,10 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
+    @irrelevant(
+        context.library == "ruby" and context.weblog_variant == "rack",
+        reason="Rack don't send anything to the server.request.path_params WAF address",
+    )
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -537,6 +541,10 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
+    @irrelevant(
+        context.library == "ruby" and context.weblog_variant == "rack",
+        reason="Rack don't send anything to the server.request.path_params WAF address",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
