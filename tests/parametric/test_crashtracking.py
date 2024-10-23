@@ -15,6 +15,7 @@ class Test_Crashtracking:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Disabled due to instability of crash tracker APMLP-273")
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
 
