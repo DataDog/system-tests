@@ -736,7 +736,8 @@ class MyApp
       kind: OTEL_SPAN_KIND[args.span_kind],
       links: otel_links
     )
-
+    # the otel trace id is oddly not 128-bit so we reach in and grab the
+    # datadog spans trace id and convert it to 64-bit
     mask = (1 << 64) - 1
     t_id = span.datadog_span.trace_id & mask
 
