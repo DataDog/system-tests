@@ -85,6 +85,7 @@ class scenarios:
         },
         doc="Test profiling feature. Not included in default scenario because is quite slow",
         scenario_groups=[ScenarioGroup.PROFILING],
+        require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
     )
 
     sampling = EndToEndScenario(
