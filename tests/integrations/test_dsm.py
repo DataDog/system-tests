@@ -286,6 +286,10 @@ class Test_DsmSQS:
             if context.library.library != "nodejs":
                 delete_sqs_queue(self.queue)
 
+    @bug(
+        library="nodejs",
+        reason="NodeJS sometimes fails to consume the correct sqs message.",
+    )
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
@@ -347,6 +351,10 @@ class Test_DsmSNS:
                 delete_sns_topic(self.topic)
                 delete_sqs_queue(self.queue)
 
+    @bug(
+        library="nodejs",
+        reason="NodeJS sometimes fails to consume the correct sns message.",
+    )
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
