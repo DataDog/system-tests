@@ -609,7 +609,6 @@ class MyApp
         parse_dd_link(link)
       end
     end
-    # Span links: [{"http_headers"=>[["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"]]}]
     DD_SPANS[span.id] = span
     DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
 
