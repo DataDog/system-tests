@@ -64,11 +64,8 @@ def _java_tracer_flare_filenames() -> Set:
         "threads.txt",
         "tracer_health.txt",
         "tracer_version.txt",
+        "tracer.log",
     }
-
-
-def _java_tracer_flare_xor_filenames() -> List:
-    return [{"tracer.log"}, {"tracer_begin.log", "tracer_end.log"}]
 
 
 def _set_log_level(test_agent, log_level: str) -> int:
@@ -127,12 +124,10 @@ def assert_valid_zip(content):
     assert flare_file.namelist(), "tracer_file zip must contain at least one entry"
 
 
-def assert_expected_files(content, min_files, xor_sets):
+def assert_expected_files(content, min_files):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
     s = set(flare_file.namelist())
-    assert len(min_files - s) == 0 and any(
-        (len(xor_set - s) == 0) for xor_set in xor_sets
-    ), "tracer_file zip must contain a minimum list of files"
+    assert len(min_files - s) == 0, "tracer_file zip must contain a minimum list of files"
 
 
 def assert_java_log_file(content):
@@ -191,9 +186,8 @@ class TestTracerFlareV1:
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
         if context.library == "java":
             files = _java_tracer_flare_filenames()
-            xor_sets = _java_tracer_flare_xor_filenames()
             assert_java_log_file(tracer_flare["flare_file"])
-        assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
+            assert_expected_files(tracer_flare["flare_file"], files)
 
     @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
@@ -206,9 +200,8 @@ class TestTracerFlareV1:
         assert_valid_zip(tracer_flare["flare_file"])
         if context.library == "java":
             files = _java_tracer_flare_filenames()
-            xor_sets = _java_tracer_flare_xor_filenames()
             assert_java_log_file_debug(tracer_flare["flare_file"])
-        assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
+            assert_expected_files(tracer_flare["flare_file"], files)
 
     @missing_feature(library="php", reason="APMLP-195")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
