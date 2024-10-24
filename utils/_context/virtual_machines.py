@@ -284,6 +284,7 @@ class Ubuntu18amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu18_amd64",
             os_cpu="amd64",
+            default_vm=False,
             **kwargs,
         )
 
@@ -314,7 +315,6 @@ class AmazonLinux2arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="amazon_linux2",
             os_cpu="arm64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -362,7 +362,6 @@ class Centos7amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="centos_7_amd64",
             os_cpu="amd64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -562,7 +561,6 @@ class Ubuntu24amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu24",
             os_cpu="amd64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -578,7 +576,6 @@ class Ubuntu24arm64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu24",
             os_cpu="arm64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -595,7 +592,6 @@ class Ubuntu20amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu20_amd64",
             os_cpu="amd64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -611,7 +607,6 @@ class Ubuntu20arm64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu20_arm64",
             os_cpu="arm64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -628,7 +623,6 @@ class Ubuntu21arm64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu21",
             os_cpu="arm64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -645,7 +639,6 @@ class Ubuntu23_04_amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu23",
             os_cpu="amd64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -661,7 +654,6 @@ class Ubuntu23_04_arm64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu23",
             os_cpu="arm64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -677,7 +669,6 @@ class Ubuntu23_10_amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu23",
             os_cpu="amd64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -693,7 +684,6 @@ class Ubuntu23_10_arm64(_VirtualMachine):
             os_distro="deb",
             os_branch="ubuntu23",
             os_cpu="arm64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -709,7 +699,6 @@ class RedHat86amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="redhat_8_6",
             os_cpu="amd64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -725,7 +714,6 @@ class RedHat86arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="redhat_8_6",
             os_cpu="arm64",
-            default_vm=False,
             **kwargs,
         )
 
