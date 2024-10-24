@@ -51,8 +51,14 @@ func main() {
 	}
 	s := newServer()
 	http.HandleFunc("/trace/span/start", s.startSpanHandler)
+	http.HandleFunc("/trace/span/flush", s.flushSpansHandler)
+	http.HandleFunc("/trace/stats/flush", s.flushStatsHandler)
 	http.HandleFunc("/trace/span/set_meta", s.spanSetMetaHandler)
 	http.HandleFunc("/trace/span/finish", s.finishSpanHandler)
+	http.HandleFunc("/trace/span/set_metric", s.spanSetMetricHandler)
+	http.HandleFunc("/trace/span/inject_headers", s.injectHeadersHandler)
+	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
+	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

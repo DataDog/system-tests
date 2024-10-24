@@ -17,12 +17,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// type GetTraceConfigArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
-
 // func (x *GetTraceConfigArgs) Reset() {
 // 	*x = GetTraceConfigArgs{}
 // 	if protoimpl.UnsafeEnabled {
@@ -55,13 +49,9 @@ const (
 // 	return file_apm_test_client_proto_rawDescGZIP(), []int{0}
 // }
 
-// type GetTraceConfigReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-
-// 	Config map[string]string `protobuf:"bytes,1,rep,name=config,proto3" json:"config,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-// }
+type GetTraceConfigReturn struct {
+	Config map[string]string `json:"config,omitempty"`
+}
 
 // func (x *GetTraceConfigReturn) Reset() {
 // 	*x = GetTraceConfigReturn{}
@@ -110,8 +100,24 @@ type StartSpanArgs struct {
 	Type        *string                 `json:"type,omitempty"`
 	Origin      *string                 `json:"origin,omitempty"`
 	HttpHeaders []*HeaderTuple `json:"http_headers,omitempty"`
-	SpanTags    []*HeaderTuple          `json:"span_tags,omitempty"`
+	SpanTags    []TagTuple          `json:"span_tags,omitempty"`
 	SpanLinks   []*SpanLink             `json:"span_links,omitempty"`
+}
+
+type TagTuple []string
+
+func (x *TagTuple) GetKey() string {
+	if x != nil {
+		return (*x)[0]
+	}
+	return ""
+}
+
+func (x *TagTuple) GetValue() string {
+	if x != nil {
+		return (*x)[1]
+	}
+	return ""
 }
 
 func (x *StartSpanArgs) GetName() string {
@@ -163,7 +169,7 @@ func (x *StartSpanArgs) GetHttpHeaders() []*HeaderTuple {
 	return nil
 }
 
-func (x *StartSpanArgs) GetSpanTags() []*HeaderTuple {
+func (x *StartSpanArgs) GetSpanTags() []TagTuple {
 	if x != nil {
 		return x.SpanTags
 	}
@@ -177,7 +183,7 @@ func (x *StartSpanArgs) GetSpanTags() []*HeaderTuple {
 // 	return nil
 // }
 
-type DistributedHTTPHeaders []HeaderTuple
+type DistributedHTTPHeaders [][]string
 
 // type DistributedHTTPHeaders struct {
 // 	HttpHeaders []*HeaderTuple `json:"http_headers,omitempty"`
@@ -308,8 +314,8 @@ type isSpanLink_From interface {
 // func (*SpanLink_HttpHeaders) isSpanLink_From() {}
 
 type HeaderTuple struct {
-	Key   string `json:"key,omitempty"`
-	Value string `json:"value,omitempty"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // func (x *HeaderTuple) Reset() {
@@ -409,13 +415,9 @@ type StartSpanReturn struct {
 // 	return 0
 // }
 
-// type InjectHeadersArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-
-// 	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// }
+type InjectHeadersArgs struct {
+	SpanId uint64 `json:"span_id"`
+}
 
 // func (x *InjectHeadersArgs) Reset() {
 // 	*x = InjectHeadersArgs{}
@@ -456,13 +458,9 @@ type StartSpanReturn struct {
 // 	return 0
 // }
 
-// type InjectHeadersReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-
-// 	HttpHeaders *DistributedHTTPHeaders `protobuf:"bytes,1,opt,name=http_headers,json=httpHeaders,proto3,oneof" json:"http_headers,omitempty"`
-// }
+type InjectHeadersReturn struct {
+	HttpHeaders *DistributedHTTPHeaders `json:"http_headers"`
+}
 
 // func (x *InjectHeadersReturn) Reset() {
 // 	*x = InjectHeadersReturn{}
@@ -1122,15 +1120,11 @@ type SpanSetMetaArgs struct {
 // 	return ""
 // }
 
-// type SpanSetMetricArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-
-// 	SpanId uint64  `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// 	Key    string  `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
-// 	Value  float32 `protobuf:"fixed32,3,opt,name=value,proto3" json:"value,omitempty"`
-// }
+type SpanSetMetricArgs struct {
+	SpanId uint64  `json:"span_id"`
+	Key    string  `json:"key"`
+	Value  float32 `json:"value"`
+}
 
 // func (x *SpanSetMetricArgs) Reset() {
 // 	*x = SpanSetMetricArgs{}
@@ -1185,12 +1179,6 @@ type SpanSetMetaArgs struct {
 // 	return 0
 // }
 
-// type SpanSetMetricReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
-
 // func (x *SpanSetMetricReturn) Reset() {
 // 	*x = SpanSetMetricReturn{}
 // 	if protoimpl.UnsafeEnabled {
@@ -1223,16 +1211,12 @@ type SpanSetMetaArgs struct {
 // 	return file_apm_test_client_proto_rawDescGZIP(), []int{24}
 // }
 
-// type SpanSetErrorArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-
-// 	SpanId  uint64  `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// 	Type    *string `protobuf:"bytes,2,opt,name=type,proto3,oneof" json:"type,omitempty"`
-// 	Message *string `protobuf:"bytes,3,opt,name=message,proto3,oneof" json:"message,omitempty"`
-// 	Stack   *string `protobuf:"bytes,4,opt,name=stack,proto3,oneof" json:"stack,omitempty"`
-// }
+type SpanSetErrorArgs struct {
+	SpanId  uint64  `json:"span_id"`
+	Type    *string `json:"type"`
+	Message *string `json:"message"`
+	Stack   *string `json:"stack"`
+}
 
 // func (x *SpanSetErrorArgs) Reset() {
 // 	*x = SpanSetErrorArgs{}
@@ -1292,12 +1276,6 @@ type SpanSetMetaArgs struct {
 // 		return *x.Stack
 // 	}
 // 	return ""
-// }
-
-// type SpanSetErrorReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
 // }
 
 // func (x *SpanSetErrorReturn) Reset() {
@@ -1634,158 +1612,6 @@ type SpanSetMetaArgs struct {
 // 		return x.StatusCode
 // 	}
 // 	return ""
-// }
-
-// type FlushSpansArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
-
-// func (x *FlushSpansArgs) Reset() {
-// 	*x = FlushSpansArgs{}
-// 	if protoimpl.UnsafeEnabled {
-// 		mi := &file_apm_test_client_proto_msgTypes[33]
-// 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-// 		ms.StoreMessageInfo(mi)
-// 	}
-// }
-
-// func (x *FlushSpansArgs) String() string {
-// 	return protoimpl.X.MessageStringOf(x)
-// }
-
-// func (*FlushSpansArgs) ProtoMessage() {}
-
-// func (x *FlushSpansArgs) ProtoReflect() protoreflect.Message {
-// 	mi := &file_apm_test_client_proto_msgTypes[33]
-// 	if protoimpl.UnsafeEnabled && x != nil {
-// 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-// 		if ms.LoadMessageInfo() == nil {
-// 			ms.StoreMessageInfo(mi)
-// 		}
-// 		return ms
-// 	}
-// 	return mi.MessageOf(x)
-// }
-
-// // Deprecated: Use FlushSpansArgs.ProtoReflect.Descriptor instead.
-// func (*FlushSpansArgs) Descriptor() ([]byte, []int) {
-// 	return file_apm_test_client_proto_rawDescGZIP(), []int{33}
-// }
-
-// type FlushSpansReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
-
-// func (x *FlushSpansReturn) Reset() {
-// 	*x = FlushSpansReturn{}
-// 	if protoimpl.UnsafeEnabled {
-// 		mi := &file_apm_test_client_proto_msgTypes[34]
-// 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-// 		ms.StoreMessageInfo(mi)
-// 	}
-// }
-
-// func (x *FlushSpansReturn) String() string {
-// 	return protoimpl.X.MessageStringOf(x)
-// }
-
-// func (*FlushSpansReturn) ProtoMessage() {}
-
-// func (x *FlushSpansReturn) ProtoReflect() protoreflect.Message {
-// 	mi := &file_apm_test_client_proto_msgTypes[34]
-// 	if protoimpl.UnsafeEnabled && x != nil {
-// 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-// 		if ms.LoadMessageInfo() == nil {
-// 			ms.StoreMessageInfo(mi)
-// 		}
-// 		return ms
-// 	}
-// 	return mi.MessageOf(x)
-// }
-
-// // Deprecated: Use FlushSpansReturn.ProtoReflect.Descriptor instead.
-// func (*FlushSpansReturn) Descriptor() ([]byte, []int) {
-// 	return file_apm_test_client_proto_rawDescGZIP(), []int{34}
-// }
-
-// type FlushTraceStatsArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
-
-// func (x *FlushTraceStatsArgs) Reset() {
-// 	*x = FlushTraceStatsArgs{}
-// 	if protoimpl.UnsafeEnabled {
-// 		mi := &file_apm_test_client_proto_msgTypes[35]
-// 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-// 		ms.StoreMessageInfo(mi)
-// 	}
-// }
-
-// func (x *FlushTraceStatsArgs) String() string {
-// 	return protoimpl.X.MessageStringOf(x)
-// }
-
-// func (*FlushTraceStatsArgs) ProtoMessage() {}
-
-// func (x *FlushTraceStatsArgs) ProtoReflect() protoreflect.Message {
-// 	mi := &file_apm_test_client_proto_msgTypes[35]
-// 	if protoimpl.UnsafeEnabled && x != nil {
-// 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-// 		if ms.LoadMessageInfo() == nil {
-// 			ms.StoreMessageInfo(mi)
-// 		}
-// 		return ms
-// 	}
-// 	return mi.MessageOf(x)
-// }
-
-// // Deprecated: Use FlushTraceStatsArgs.ProtoReflect.Descriptor instead.
-// func (*FlushTraceStatsArgs) Descriptor() ([]byte, []int) {
-// 	return file_apm_test_client_proto_rawDescGZIP(), []int{35}
-// }
-
-// type FlushTraceStatsReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
-
-// func (x *FlushTraceStatsReturn) Reset() {
-// 	*x = FlushTraceStatsReturn{}
-// 	if protoimpl.UnsafeEnabled {
-// 		mi := &file_apm_test_client_proto_msgTypes[36]
-// 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-// 		ms.StoreMessageInfo(mi)
-// 	}
-// }
-
-// func (x *FlushTraceStatsReturn) String() string {
-// 	return protoimpl.X.MessageStringOf(x)
-// }
-
-// func (*FlushTraceStatsReturn) ProtoMessage() {}
-
-// func (x *FlushTraceStatsReturn) ProtoReflect() protoreflect.Message {
-// 	mi := &file_apm_test_client_proto_msgTypes[36]
-// 	if protoimpl.UnsafeEnabled && x != nil {
-// 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-// 		if ms.LoadMessageInfo() == nil {
-// 			ms.StoreMessageInfo(mi)
-// 		}
-// 		return ms
-// 	}
-// 	return mi.MessageOf(x)
-// }
-
-// // Deprecated: Use FlushTraceStatsReturn.ProtoReflect.Descriptor instead.
-// func (*FlushTraceStatsReturn) Descriptor() ([]byte, []int) {
-// 	return file_apm_test_client_proto_rawDescGZIP(), []int{36}
 // }
 
 // type OtelStartSpanArgs struct {

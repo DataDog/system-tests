@@ -162,9 +162,9 @@ class Test_Library_Tracestats:
 
         if test_server.lang == "golang":
             test_library.flush()
-        print("MTOFF: Checking for v06 stats")
         requests = test_agent.v06_stats_requests()
         assert len(requests) == 1, "Exactly one stats request is expected"
+
         request = requests[0]["body"]
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
