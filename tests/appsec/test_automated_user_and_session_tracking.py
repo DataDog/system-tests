@@ -96,6 +96,8 @@ class Test_Automated_User_Blocking:
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
         self.r_user_blocked = weblog.get("user/me", cookies=self.cookies,)
 
+        rc.rc_state.reset().apply()  # cleanup RC
+
     def test_user_blocking(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
@@ -109,6 +111,8 @@ class Test_Automated_User_Blocking:
         self.config_state_1 = rc.rc_state.reset().apply()
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
         self.r_user_blocked = weblog.get("user/me?sdk_user=sdkUser")
+
+        rc.rc_state.reset().apply()  # cleanup RC
 
     def test_user_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
@@ -170,6 +174,8 @@ class Test_Automated_Session_Blocking:
         BLOCK_SESSION[1]["rules_data"][0]["data"].append({"value": self.r_create_session.text, "expiration": 0})
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_SESSION).apply()
         self.r_session_blocked = weblog.get("session/user?sdk_user=sdkUser", cookies=self.cookies,)
+
+        rc.rc_state.reset().apply()  # cleanup RC
 
     def test_session_blocking(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
