@@ -290,28 +290,28 @@ type SpanLink struct {
 // 	return nil
 // }
 
-// func (x *SpanLink) GetAttributes() *Attributes {
-// 	if x != nil {
-// 		return x.Attributes
-// 	}
-// 	return nil
-// }
+func (x *SpanLink) GetAttributes() *Attributes {
+	if x != nil {
+		return x.Attributes
+	}
+	return nil
+}
 
 type isSpanLink_From interface {
 	isSpanLink_From()
 }
 
-// type SpanLink_ParentId struct {
-// 	ParentId uint64 `protobuf:"varint,1,opt,name=parent_id,json=parentId,proto3,oneof"`
-// }
+type SpanLink_ParentId struct {
+	ParentId uint64 `protobuf:"varint,1,opt,name=parent_id,json=parentId,proto3,oneof"`
+}
 
-// type SpanLink_HttpHeaders struct {
-// 	HttpHeaders *DistributedHTTPHeaders `protobuf:"bytes,2,opt,name=http_headers,json=httpHeaders,proto3,oneof"`
-// }
+type SpanLink_HttpHeaders struct {
+	HttpHeaders *[]HeaderTuple `protobuf:"bytes,2,opt,name=http_headers,json=httpHeaders,proto3,oneof"`
+}
 
-// func (*SpanLink_ParentId) isSpanLink_From() {}
+func (*SpanLink_ParentId) isSpanLink_From() {}
 
-// func (*SpanLink_HttpHeaders) isSpanLink_From() {}
+func (*SpanLink_HttpHeaders) isSpanLink_From() {}
 
 type HeaderTuple struct {
 	Key   string `json:"key"`
@@ -1614,22 +1614,22 @@ type SpanSetErrorArgs struct {
 // 	return ""
 // }
 
-// type OtelStartSpanArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelStartSpanArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	Name        string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-// 	ParentId    *uint64                 `protobuf:"varint,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
-// 	SpanKind    *uint64                 `protobuf:"varint,9,opt,name=span_kind,json=spanKind,proto3,oneof" json:"span_kind,omitempty"`
-// 	Service     *string                 `protobuf:"bytes,4,opt,name=service,proto3,oneof" json:"service,omitempty"`
-// 	Resource    *string                 `protobuf:"bytes,5,opt,name=resource,proto3,oneof" json:"resource,omitempty"`
-// 	Type        *string                 `protobuf:"bytes,6,opt,name=type,proto3,oneof" json:"type,omitempty"`
-// 	Timestamp   *int64                  `protobuf:"varint,7,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
-// 	SpanLinks   []*SpanLink             `protobuf:"bytes,11,rep,name=span_links,json=spanLinks,proto3" json:"span_links,omitempty"`
-// 	HttpHeaders *DistributedHTTPHeaders `protobuf:"bytes,10,opt,name=http_headers,json=httpHeaders,proto3,oneof" json:"http_headers,omitempty"`
-// 	Attributes  *Attributes             `protobuf:"bytes,8,opt,name=attributes,proto3" json:"attributes,omitempty"`
-// }
+	Name        string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ParentId    *uint64                 `protobuf:"varint,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
+	SpanKind    *uint64                 `protobuf:"varint,9,opt,name=span_kind,json=spanKind,proto3,oneof" json:"span_kind,omitempty"`
+	Service     *string                 `protobuf:"bytes,4,opt,name=service,proto3,oneof" json:"service,omitempty"`
+	Resource    *string                 `protobuf:"bytes,5,opt,name=resource,proto3,oneof" json:"resource,omitempty"`
+	Type        *string                 `protobuf:"bytes,6,opt,name=type,proto3,oneof" json:"type,omitempty"`
+	Timestamp   *int64                  `protobuf:"varint,7,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
+	SpanLinks   []*SpanLink             `protobuf:"bytes,11,rep,name=span_links,json=spanLinks,proto3" json:"span_links,omitempty"`
+	HttpHeaders []*HeaderTuple `protobuf:"bytes,10,opt,name=http_headers,json=httpHeaders,proto3,oneof" json:"http_headers,omitempty"`
+	Attributes  *Attributes             `protobuf:"bytes,8,opt,name=attributes,proto3" json:"attributes,omitempty"`
+}
 
 // func (x *OtelStartSpanArgs) Reset() {
 // 	*x = OtelStartSpanArgs{}
@@ -1670,19 +1670,19 @@ type SpanSetErrorArgs struct {
 // 	return ""
 // }
 
-// func (x *OtelStartSpanArgs) GetParentId() uint64 {
-// 	if x != nil && x.ParentId != nil {
-// 		return *x.ParentId
-// 	}
-// 	return 0
-// }
+func (x *OtelStartSpanArgs) GetParentId() uint64 {
+	if x != nil && x.ParentId != nil {
+		return *x.ParentId
+	}
+	return 0
+}
 
-// func (x *OtelStartSpanArgs) GetSpanKind() uint64 {
-// 	if x != nil && x.SpanKind != nil {
-// 		return *x.SpanKind
-// 	}
-// 	return 0
-// }
+func (x *OtelStartSpanArgs) GetSpanKind() uint64 {
+	if x != nil && x.SpanKind != nil {
+		return *x.SpanKind
+	}
+	return 0
+}
 
 // func (x *OtelStartSpanArgs) GetService() string {
 // 	if x != nil && x.Service != nil {
@@ -1705,42 +1705,42 @@ type SpanSetErrorArgs struct {
 // 	return ""
 // }
 
-// func (x *OtelStartSpanArgs) GetTimestamp() int64 {
-// 	if x != nil && x.Timestamp != nil {
-// 		return *x.Timestamp
-// 	}
-// 	return 0
-// }
+func (x *OtelStartSpanArgs) GetTimestamp() int64 {
+	if x != nil && x.Timestamp != nil {
+		return *x.Timestamp
+	}
+	return 0
+}
 
-// func (x *OtelStartSpanArgs) GetSpanLinks() []*SpanLink {
-// 	if x != nil {
-// 		return x.SpanLinks
-// 	}
-// 	return nil
-// }
+func (x *OtelStartSpanArgs) GetSpanLinks() []*SpanLink {
+	if x != nil {
+		return x.SpanLinks
+	}
+	return nil
+}
 
-// func (x *OtelStartSpanArgs) GetHttpHeaders() *DistributedHTTPHeaders {
-// 	if x != nil {
-// 		return x.HttpHeaders
-// 	}
-// 	return nil
-// }
+func (x *OtelStartSpanArgs) GetHttpHeaders() []*HeaderTuple {
+	if x != nil {
+		return x.HttpHeaders
+	}
+	return nil
+}
 
-// func (x *OtelStartSpanArgs) GetAttributes() *Attributes {
-// 	if x != nil {
-// 		return x.Attributes
-// 	}
-// 	return nil
-// }
+func (x *OtelStartSpanArgs) GetAttributes() *Attributes {
+	if x != nil {
+		return x.Attributes
+	}
+	return nil
+}
 
-// type OtelStartSpanReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelStartSpanReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	SpanId  uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// 	TraceId uint64 `protobuf:"varint,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-// }
+	SpanId  uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	TraceId uint64 `protobuf:"varint,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+}
 
 // func (x *OtelStartSpanReturn) Reset() {
 // 	*x = OtelStartSpanReturn{}
@@ -1788,14 +1788,14 @@ type SpanSetErrorArgs struct {
 // 	return 0
 // }
 
-// type OtelEndSpanArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelEndSpanArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	Id        uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-// 	Timestamp *int64 `protobuf:"varint,2,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
-// }
+	Id        uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Timestamp *int64 `protobuf:"varint,2,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
+}
 
 // func (x *OtelEndSpanArgs) Reset() {
 // 	*x = OtelEndSpanArgs{}
@@ -1836,18 +1836,18 @@ type SpanSetErrorArgs struct {
 // 	return 0
 // }
 
-// func (x *OtelEndSpanArgs) GetTimestamp() int64 {
-// 	if x != nil && x.Timestamp != nil {
-// 		return *x.Timestamp
-// 	}
-// 	return 0
-// }
+func (x *OtelEndSpanArgs) GetTimestamp() int64 {
+	if x != nil && x.Timestamp != nil {
+		return *x.Timestamp
+	}
+	return 0
+}
 
-// type OtelEndSpanReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
+type OtelEndSpanReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
 
 // func (x *OtelEndSpanReturn) Reset() {
 // 	*x = OtelEndSpanReturn{}
@@ -1975,13 +1975,13 @@ type SpanSetErrorArgs struct {
 // 	return false
 // }
 
-// type OtelFlushSpansArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelFlushSpansArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	Seconds uint32 `protobuf:"varint,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
-// }
+	Seconds uint32 `protobuf:"varint,1,opt,name=seconds,proto3" json:"seconds,omitempty"`
+}
 
 // func (x *OtelFlushSpansArgs) Reset() {
 // 	*x = OtelFlushSpansArgs{}
@@ -2022,13 +2022,13 @@ type SpanSetErrorArgs struct {
 // 	return 0
 // }
 
-// type OtelFlushSpansReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelFlushSpansReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-// }
+	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+}
 
 // func (x *OtelFlushSpansReturn) Reset() {
 // 	*x = OtelFlushSpansReturn{}
@@ -2069,11 +2069,11 @@ type SpanSetErrorArgs struct {
 // 	return false
 // }
 
-// type OtelFlushTraceStatsArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
+type OtelFlushTraceStatsArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
 
 // func (x *OtelFlushTraceStatsArgs) Reset() {
 // 	*x = OtelFlushTraceStatsArgs{}
@@ -2107,11 +2107,11 @@ type SpanSetErrorArgs struct {
 // 	return file_apm_test_client_proto_rawDescGZIP(), []int{45}
 // }
 
-// type OtelFlushTraceStatsReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
+type OtelFlushTraceStatsReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
 
 // func (x *OtelFlushTraceStatsReturn) Reset() {
 // 	*x = OtelFlushTraceStatsReturn{}
@@ -2221,13 +2221,13 @@ type SpanSetErrorArgs struct {
 // 	return file_apm_test_client_proto_rawDescGZIP(), []int{48}
 // }
 
-// type OtelIsRecordingArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelIsRecordingArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// }
+	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+}
 
 // func (x *OtelIsRecordingArgs) Reset() {
 // 	*x = OtelIsRecordingArgs{}
@@ -2268,13 +2268,13 @@ type SpanSetErrorArgs struct {
 // 	return 0
 // }
 
-// type OtelIsRecordingReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelIsRecordingReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	IsRecording bool `protobuf:"varint,1,opt,name=is_recording,json=isRecording,proto3" json:"is_recording,omitempty"`
-// }
+	IsRecording bool `protobuf:"varint,1,opt,name=is_recording,json=isRecording,proto3" json:"is_recording,omitempty"`
+}
 
 // func (x *OtelIsRecordingReturn) Reset() {
 // 	*x = OtelIsRecordingReturn{}
@@ -2315,13 +2315,13 @@ type SpanSetErrorArgs struct {
 // 	return false
 // }
 
-// type OtelSpanContextArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelSpanContextArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// }
+	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+}
 
 // func (x *OtelSpanContextArgs) Reset() {
 // 	*x = OtelSpanContextArgs{}
@@ -2362,17 +2362,17 @@ type SpanSetErrorArgs struct {
 // 	return 0
 // }
 
-// type OtelSpanContextReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelSpanContextReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	SpanId     string `protobuf:"bytes,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// 	TraceId    string `protobuf:"bytes,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-// 	TraceFlags string `protobuf:"bytes,3,opt,name=trace_flags,json=traceFlags,proto3" json:"trace_flags,omitempty"`
-// 	TraceState string `protobuf:"bytes,4,opt,name=trace_state,json=traceState,proto3" json:"trace_state,omitempty"`
-// 	Remote     bool   `protobuf:"varint,5,opt,name=remote,proto3" json:"remote,omitempty"`
-// }
+	SpanId     string `protobuf:"bytes,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	TraceId    string `protobuf:"bytes,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	TraceFlags string `protobuf:"bytes,3,opt,name=trace_flags,json=traceFlags,proto3" json:"trace_flags,omitempty"`
+	TraceState string `protobuf:"bytes,4,opt,name=trace_state,json=traceState,proto3" json:"trace_state,omitempty"`
+	Remote     bool   `protobuf:"varint,5,opt,name=remote,proto3" json:"remote,omitempty"`
+}
 
 // func (x *OtelSpanContextReturn) Reset() {
 // 	*x = OtelSpanContextReturn{}
@@ -2534,15 +2534,15 @@ type SpanSetErrorArgs struct {
 // 	return ""
 // }
 
-// type OtelSetStatusArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelSetStatusArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	SpanId      uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// 	Code        string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-// 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-// }
+	SpanId      uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Code        string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+}
 
 // func (x *OtelSetStatusArgs) Reset() {
 // 	*x = OtelSetStatusArgs{}
@@ -2597,22 +2597,22 @@ type SpanSetErrorArgs struct {
 // 	return ""
 // }
 
-// type OtelSetStatusReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
+type OtelSetStatusReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
 
 // func (*OtelSetStatusReturn) ProtoMessage() {}
 
-// type OtelSetNameArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelSetNameArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// 	Name   string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-// }
+	SpanId uint64 `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Name   string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+}
 
 // func (x *OtelSetNameArgs) String() string {
 // 	return protoimpl.X.MessageStringOf(x)
@@ -2634,22 +2634,22 @@ type SpanSetErrorArgs struct {
 // 	return ""
 // }
 
-// type OtelSetNameReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
+type OtelSetNameReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
 
 // func (*OtelSetNameReturn) ProtoMessage() {}
 
-// type OtelSetAttributesArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelSetAttributesArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	SpanId     uint64      `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// 	Attributes *Attributes `protobuf:"bytes,2,opt,name=attributes,proto3" json:"attributes,omitempty"`
-// }
+	SpanId     uint64      `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Attributes *Attributes `protobuf:"bytes,2,opt,name=attributes,proto3" json:"attributes,omitempty"`
+}
 
 // func (*OtelSetAttributesArgs) ProtoMessage() {}
 
@@ -2667,24 +2667,24 @@ type SpanSetErrorArgs struct {
 // 	return nil
 // }
 
-// type OtelSetAttributesReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
+type OtelSetAttributesReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
 
 // func (*OtelSetAttributesReturn) ProtoMessage() {}
 
-// type OtelAddEventArgs struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
+type OtelAddEventArgs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-// 	SpanId     uint64      `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
-// 	Name       string      `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-// 	Timestamp  *int64      `protobuf:"varint,3,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
-// 	Attributes *Attributes `protobuf:"bytes,4,opt,name=attributes,proto3" json:"attributes,omitempty"`
-// }
+	SpanId     uint64      `protobuf:"varint,1,opt,name=span_id,json=spanId,proto3" json:"span_id,omitempty"`
+	Name       string      `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Timestamp  *int64      `protobuf:"varint,3,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
+	Attributes *Attributes `protobuf:"bytes,4,opt,name=attributes,proto3" json:"attributes,omitempty"`
+}
 
 // func (x *OtelAddEventArgs) String() string {
 // 	return protoimpl.X.MessageStringOf(x)
@@ -2706,25 +2706,25 @@ type SpanSetErrorArgs struct {
 // 	return ""
 // }
 
-// func (x *OtelAddEventArgs) GetTimestamp() int64 {
-// 	if x != nil && x.Timestamp != nil {
-// 		return *x.Timestamp
-// 	}
-// 	return 0
-// }
+func (x *OtelAddEventArgs) GetTimestamp() int64 {
+	if x != nil && x.Timestamp != nil {
+		return *x.Timestamp
+	}
+	return 0
+}
 
-// func (x *OtelAddEventArgs) GetAttributes() *Attributes {
-// 	if x != nil {
-// 		return x.Attributes
-// 	}
-// 	return nil
-// }
+func (x *OtelAddEventArgs) GetAttributes() *Attributes {
+	if x != nil {
+		return x.Attributes
+	}
+	return nil
+}
 
-// type OtelAddEventReturn struct {
-// 	state         protoimpl.MessageState
-// 	sizeCache     protoimpl.SizeCache
-// 	unknownFields protoimpl.UnknownFields
-// }
+type OtelAddEventReturn struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
 
 // func (x *OtelAddEventReturn) String() string {
 // 	return protoimpl.X.MessageStringOf(x)
@@ -2930,12 +2930,12 @@ type ListVal struct {
 
 // func (*ListVal) ProtoMessage() {}
 
-// func (x *ListVal) GetVal() []*AttrVal {
-// 	if x != nil {
-// 		return x.Val
-// 	}
-// 	return nil
-// }
+func (x *ListVal) GetVal() []*AttrVal {
+	if x != nil {
+		return x.Val
+	}
+	return nil
+}
 
 type AttrVal struct {
 	state         protoimpl.MessageState
@@ -2953,65 +2953,66 @@ type AttrVal struct {
 
 // func (*AttrVal) ProtoMessage() {}
 
-// func (m *AttrVal) GetVal() isAttrVal_Val {
-// 	if m != nil {
-// 		return m.Val
-// 	}
-// 	return nil
-// }
+func (m *AttrVal) GetVal() isAttrVal_Val {
+	if m != nil {
+		return m.Val
+	}
+	return nil
+}
 
-// func (x *AttrVal) GetBoolVal() bool {
-// 	if x, ok := x.GetVal().(*AttrVal_BoolVal); ok {
-// 		return x.BoolVal
-// 	}
-// 	return false
-// }
+func (x *AttrVal) GetBoolVal() bool {
+	if x, ok := x.GetVal().(*AttrVal_BoolVal); ok {
+		return x.BoolVal
+	}
+	return false
+}
 
-// func (x *AttrVal) GetStringVal() string {
-// 	if x, ok := x.GetVal().(*AttrVal_StringVal); ok {
-// 		return x.StringVal
-// 	}
-// 	return ""
-// }
+func (x *AttrVal) GetStringVal() string {
+	if x, ok := x.GetVal().(*AttrVal_StringVal); ok {
+		return x.StringVal
+	}
+	return ""
+}
 
-// func (x *AttrVal) GetDoubleVal() float64 {
-// 	if x, ok := x.GetVal().(*AttrVal_DoubleVal); ok {
-// 		return x.DoubleVal
-// 	}
-// 	return 0
-// }
+func (x *AttrVal) GetDoubleVal() float64 {
+	if x, ok := x.GetVal().(*AttrVal_DoubleVal); ok {
+		return x.DoubleVal
+	}
+	return 0
+}
 
-// func (x *AttrVal) GetIntegerVal() int64 {
-// 	if x, ok := x.GetVal().(*AttrVal_IntegerVal); ok {
-// 		return x.IntegerVal
-// 	}
-// 	return 0
-// }
+func (x *AttrVal) GetIntegerVal() int64 {
+	if x, ok := x.GetVal().(*AttrVal_IntegerVal); ok {
+		return x.IntegerVal
+	}
+	return 0
+}
 
 type isAttrVal_Val interface {
 	isAttrVal_Val()
 }
 
-// type AttrVal_BoolVal struct {
-// 	BoolVal bool `protobuf:"varint,1,opt,name=bool_val,json=boolVal,proto3,oneof"`
-// }
+type AttrVal_BoolVal struct {
+	BoolVal bool `protobuf:"varint,1,opt,name=bool_val,json=boolVal,proto3,oneof"`
+}
 
-// type AttrVal_StringVal struct {
-// 	StringVal string `protobuf:"bytes,2,opt,name=string_val,json=stringVal,proto3,oneof"`
-// }
+type AttrVal_StringVal struct {
+	StringVal string `protobuf:"bytes,2,opt,name=string_val,json=stringVal,proto3,oneof"`
+}
 
-// type AttrVal_DoubleVal struct {
-// 	DoubleVal float64 `protobuf:"fixed64,3,opt,name=double_val,json=doubleVal,proto3,oneof"`
-// }
+func (*AttrVal_StringVal) isAttrVal_Val() {}
 
-// type AttrVal_IntegerVal struct {
-// 	IntegerVal int64 `protobuf:"varint,4,opt,name=integer_val,json=integerVal,proto3,oneof"`
-// }
+type AttrVal_DoubleVal struct {
+	DoubleVal float64 `protobuf:"fixed64,3,opt,name=double_val,json=doubleVal,proto3,oneof"`
+}
 
-// func (*AttrVal_BoolVal) isAttrVal_Val() {}
+type AttrVal_IntegerVal struct {
+	IntegerVal int64 `protobuf:"varint,4,opt,name=integer_val,json=integerVal,proto3,oneof"`
+}
 
-// func (*AttrVal_StringVal) isAttrVal_Val() {}
+func (*AttrVal_BoolVal) isAttrVal_Val() {}
 
-// func (*AttrVal_DoubleVal) isAttrVal_Val() {}
 
-// func (*AttrVal_IntegerVal) isAttrVal_Val() {}
+func (*AttrVal_DoubleVal) isAttrVal_Val() {}
+
+func (*AttrVal_IntegerVal) isAttrVal_Val() {}
