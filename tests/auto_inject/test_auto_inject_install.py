@@ -98,8 +98,8 @@ class TestContainerAutoInjectInstallScriptCrashTracking(base.AutoInjectBaseTest)
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine, crashlog=True)
 
-
-@scenarios.container_auto_injection_install_script_crashtracking
+@features.installer_auto_instrumentation
+@scenarios.container_auto_injection_install_script_crashtracking_childprocess
 class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoInjectBaseTest):
     @parametrize_virtual_machines()
     def test_install(self, virtual_machine):
