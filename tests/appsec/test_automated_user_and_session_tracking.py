@@ -85,7 +85,7 @@ BLOCK_USER = (
 
 @rfc("https://docs.google.com/document/d/1Z0kQ5f_GZR5thtwQjC6C_iY9C85Q-Cf-vFj9h_xd0zE")
 @features.user_monitoring
-@scenarios.remote_config_mocked_backend_asm_dd
+@scenarios.appsec_runtime_activation
 class Test_Automated_User_Blocking:
     def setup_user_blocking(self):
         self.config_state_1 = rc.rc_state.reset().apply()
@@ -165,7 +165,7 @@ BLOCK_SESSION = (
 
 @rfc("https://docs.google.com/document/d/1Z0kQ5f_GZR5thtwQjC6C_iY9C85Q-Cf-vFj9h_xd0zE")
 @features.user_monitoring
-@scenarios.remote_config_mocked_backend_asm_dd
+@scenarios.appsec_runtime_activation
 class Test_Automated_Session_Blocking:
     def setup_session_blocking(self):
         self.config_state_1 = rc.rc_state.reset().apply()
