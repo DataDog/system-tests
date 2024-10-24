@@ -30,13 +30,14 @@ class Test_DD_Parametric_Endpoints:
         parent_span = find_span(trace, s1.span_id)
         assert parent_span["name"] == "parent"
         assert parent_span["resource"] == "parent"
-        assert parent_span["service"] in ["", "nodejs"]
+        assert parent_span["service"] in ["", "nodejs", "ApmTestApi"]
 
         child_span = find_span(trace, s2.span_id)
         assert child_span["name"] == "child"
         assert child_span["service"] == "myservice"
         assert child_span["resource"] == "myresource"
-        assert child_span["parent_id"] == s1.span_id
+        # nodejs and dotnet libraries returns span and trace_ids as strings
+        assert child_span["parent_id"] == int(s1.span_id)
         assert child_span["type"] == "web"
 
     def test_extract_headers(self, test_agent, test_library):
