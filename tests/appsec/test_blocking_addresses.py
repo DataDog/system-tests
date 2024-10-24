@@ -551,6 +551,7 @@ class Test_Suspicious_Request_Blocking:
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3882"))
+
         """Test that blocked requests are blocked before being processed"""
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-012")
@@ -586,6 +587,7 @@ class Test_Suspicious_Request_Blocking:
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3882"))
+
         """Test that blocked requests are blocked before being processed"""
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-013")
