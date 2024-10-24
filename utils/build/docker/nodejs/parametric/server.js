@@ -171,6 +171,41 @@ app.post('/trace/span/error', (req, res) => {
   res.json({});
 });
 
+app.post('/trace/span/set_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  span.setBaggageItem(request.key, request.value)
+  res.json({});
+});
+
+app.get('/trace/span/get_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggage = span.getBaggageItem(request.key)
+  res.json({ baggage });
+});
+
+app.get('/trace/span/get_all_baggage', (req, res) => {
+const request = req.body;
+  const span = spans[request.span_id]
+  const baggage = span.getAllBaggageItems()
+  res.json({ baggage: JSON.parse(baggage) });
+});
+
+app.post('/trace/span/remove_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggages = span.removeBaggageItem(request.key)
+  res.json({});
+});
+
+app.post('/trace/span/remove_all_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggages = span.removeAllBaggageItems()
+  res.json({});
+});
+
 app.post('/trace/otel/start_span', (req, res) => {
   const request = req.body;
   const otelTracer = tracerProvider.getTracer()
