@@ -53,7 +53,7 @@ class Test_DsmKafka:
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     @irrelevant(
-        context.library in ["python", "java", "nodejs", "dotnet"], reason="New behavior with cluster id not merged yet."
+        context.library in ["java", "nodejs", "dotnet"], reason="New behavior with cluster id not merged yet."
     )
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
