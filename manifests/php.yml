@@ -165,7 +165,6 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
-    test_iast_standalone.py:
       Test_IastSecStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
