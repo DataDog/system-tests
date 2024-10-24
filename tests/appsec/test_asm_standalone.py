@@ -239,9 +239,6 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -285,9 +282,6 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     @flaky(library="python", reason="APPSEC-55222")  # _dd.apm.enabled missing in metrics
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
@@ -454,9 +448,6 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -498,9 +489,6 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -542,9 +530,6 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -581,6 +566,36 @@ class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagatio
 
     requestdownstreamUrl = "/requestdownstream"
 
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
+        super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1()
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
+        super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0()
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1()
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
+
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
@@ -588,4 +603,20 @@ class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagatio
 class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing."""
 
-    requestdownstreamUrl = "/iast/requestdownstream"
+    requestdownstreamUrl = "/vulnerablerequestdownstream"
+
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1()
+
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0()
+
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
+
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()

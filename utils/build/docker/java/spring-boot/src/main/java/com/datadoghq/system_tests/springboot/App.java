@@ -1091,7 +1091,7 @@ public class App {
         return Utils.sendGetRequest(url);
     }
 
-    @GetMapping(value = "/iast/requestdownstream")
+    @GetMapping(value = "/vulnerablerequestdownstream")
     public String vulnerableRequestdownstream(HttpServletResponse response) throws IOException {
         cryptoExamples.insecureMd5Hashing("password");
         String url = "http://localhost:7777/returnheaders";
