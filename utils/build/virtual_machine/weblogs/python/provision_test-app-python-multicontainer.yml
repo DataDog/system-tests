@@ -1,0 +1,21 @@
+weblog:
+    name: test-app-python-multicontainer
+    exact_os_branches: [ubuntu24]
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-multicontainer-run-script
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/create_and_run_app_multicontainer.sh
+          - name: copy-docker-compose-file
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/docker-compose-reverseproxy.yaml
+          - name: copy-python-app
+            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
+          - name: copy-python3_12-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/Dockerfile.python_3_12
+          - name: copy-python3_11-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/Dockerfile.python_3_11
+          - name: copy-reverseproxy-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/Dockerfile.reverseproxy
+          - name: copy-reverseproxy-conf
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/nginx.conf
+        remote-command: sh create_and_run_app_multicontainer.sh
