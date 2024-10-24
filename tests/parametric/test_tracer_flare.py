@@ -191,7 +191,6 @@ class TestTracerFlareV1:
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
         _clear_log_level(test_agent, log_cfg_id)
         assert_valid_zip(tracer_flare["flare_file"])
-
         if context.library == "java":
             files = _java_tracer_flare_filenames()
             xor_sets = _java_tracer_flare_xor_filenames()
