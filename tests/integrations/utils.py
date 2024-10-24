@@ -200,10 +200,10 @@ def delete_aws_resource(
                 return
             else:
                 logger.exception(f"Unexpected error while deleting {resource_type}: {e}")
-                raise
+                time.sleep(1)
         except Exception as e:
             logger.exception(f"Unexpected error while deleting {resource_type}: {e}")
-            raise
+            time.sleep(1)
 
 
 def delete_sqs_queue(queue_name):
@@ -247,8 +247,9 @@ def delete_sns_topic(topic_name):
 def delete_kinesis_stream(stream_name):
     try:
         kinesis_client = _get_aws_session().client("kinesis")
+        get_callable = lambda name: kinesis_client.describe_stream(StreamName=name)
         delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
-        delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
+        delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException", get_callable=get_callable)
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
             logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)

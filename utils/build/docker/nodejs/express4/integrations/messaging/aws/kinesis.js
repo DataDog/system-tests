@@ -68,10 +68,14 @@ const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis()
 
+  let messageFound = false // whether promise is resolved
+
   console.log(`[Kinesis] Looking for the following message for stream: ${stream}: ${message}`)
 
   return new Promise((resolve, reject) => {
     const consumeMessage = () => {
+      if (messageFound) return
+
       kinesis.describeStream({ StreamName: stream }, (err, response) => {
         if (err) {
           console.log(`[Kinesis] Error during Kinesis describe stream: ${err}`)
@@ -120,8 +124,10 @@ const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
                           tracer.trace('kinesis.consume', span => {
                             span.setTag('stream_name', stream)
                           })
-                          console.log(`[Kinesis] Consumed the following: ${messageStr}`)
+                          console.log(`[Kinesis] Successfully consumed desired message: ${messageStr}`)
+                          messageFound = true
                           resolve()
+                          return
                         }
                       }
                     }
