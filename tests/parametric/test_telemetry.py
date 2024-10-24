@@ -13,14 +13,34 @@ from utils import context, scenarios, rfc, features, missing_feature
 
 
 telemetry_name_mapping = {
-    "trace_sample_rate": {"dotnet": "DD_TRACE_SAMPLE_RATE", "nodejs": "DD_TRACE_SAMPLE_RATE"},
-    "logs_injection_enabled": {"dotnet": "DD_LOGS_INJECTION", "nodejs": "DD_LOG_INJECTION"},
-    "trace_header_tags": {"dotnet": "DD_TRACE_HEADER_TAGS", "nodejs": "DD_TRACE_HEADER_TAGS"},
-    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS"},
-    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "tracing"},
-    "profiling_enabled": {"dotnet": "DD_PROFILING_ENABLED", "nodejs": "profiling.enabled"},
-    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED", "nodejs": "appsec.enabled"},
-    "data_streams_enabled": {"dotnet": "DD_DATA_STREAMS_ENABLED", "nodejs": "dsmEnabled"},
+    "trace_sample_rate": {
+        "dotnet": "DD_TRACE_SAMPLE_RATE",
+        "nodejs": "DD_TRACE_SAMPLE_RATE",
+        "python": "DD_TRACE_SAMPLE_RATE",
+    },
+    "logs_injection_enabled": {
+        "dotnet": "DD_LOGS_INJECTION",
+        "nodejs": "DD_LOG_INJECTION",
+        "python": "DD_LOGS_INJECTION",
+    },
+    "trace_header_tags": {
+        "dotnet": "DD_TRACE_HEADER_TAGS",
+        "nodejs": "DD_TRACE_HEADER_TAGS",
+        "python": "DD_TRACE_HEADER_TAGS",
+    },
+    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS"},
+    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "tracing", "python": "DD_TRACE_ENABLED"},
+    "profiling_enabled": {
+        "dotnet": "DD_PROFILING_ENABLED",
+        "nodejs": "profiling.enabled",
+        "python": "DD_PROFILING_ENABLED",
+    },
+    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED", "nodejs": "appsec.enabled", "python": "DD_APPSEC_ENABLED"},
+    "data_streams_enabled": {
+        "dotnet": "DD_DATA_STREAMS_ENABLED",
+        "nodejs": "dsmEnabled",
+        "python": "DD_DATA_STREAMS_ENABLED",
+    },
 }
 
 
@@ -47,6 +67,7 @@ class Test_Defaults:
             }
         ],
     )
+    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
@@ -119,6 +140,7 @@ class Test_Consistent_Configs:
             }
         ],
     )
+    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
@@ -170,6 +192,7 @@ class Test_Environment:
             }
         ],
     )
+    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
@@ -510,19 +533,22 @@ class Test_TelemetrySCAEnvVar:
     @pytest.mark.parametrize(
         "library_env, specific_libraries_support, outcome_value",
         [
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, False, "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, ("python", "golang"), "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang"), "true"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, "false"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang"), "false"),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), "false"),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, False, True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, ("python", "golang"), True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang"), True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, False),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang"), False),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), False),
         ],
+    )
+    @missing_feature(
+        context.library <= "python@2.16.0", reason="Converts boolean values to strings",
     )
     def test_telemetry_sca_enabled_propagated(
         self, library_env, specific_libraries_support, outcome_value, test_agent, test_library
     ):
         if specific_libraries_support and context.library not in specific_libraries_support:
-            pytest.skip(f"unsupported value for {context.library}")
+            pytest.xfail(f"{outcome_value} unsupported value for {context.library}")
 
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
 
@@ -531,18 +557,21 @@ class Test_TelemetrySCAEnvVar:
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
         assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
 
-        if context.library in ("golang", "dotnet", "nodejs", "ruby"):
-            outcome_value = True if outcome_value == "true" else False
-
+        if context.library == "java":
+            outcome_value = str(outcome_value).lower()
         assert cfg_appsec_enabled.get("value") == outcome_value
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(
+        context.library <= "python@2.16.0",
+        reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used",
+    )
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
 
         DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
 
-        if context.library in ("java", "nodejs"):
+        if context.library in ("java", "nodejs", "python"):
             cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
             assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(
                 DD_APPSEC_SCA_ENABLED

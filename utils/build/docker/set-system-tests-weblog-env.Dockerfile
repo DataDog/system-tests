@@ -3,7 +3,7 @@ FROM system_tests/weblog
 # Datadog setup
 ENV DD_SERVICE=weblog
 ENV DD_VERSION=1.0.0
-ENV DD_TAGS='key1:val1, key2 : val2 '
+ENV DD_TAGS='key1:val1,key2:val2'
 ENV DD_ENV=system-tests
 ENV DD_TRACE_LOG_DIRECTORY=/var/log/system-tests
 
@@ -13,6 +13,7 @@ ENV DD_APPSEC_TRACE_RATE_LIMIT=10000
 
 ENV DD_IAST_ENABLED=true
 # Python lib has Code Security debug env var
+ENV _DD_IAST_DEBUG=true
 ENV DD_IAST_REQUEST_SAMPLING=100
 ENV DD_IAST_MAX_CONCURRENT_REQUESTS=10
 ENV DD_IAST_CONTEXT_MODE=GLOBAL

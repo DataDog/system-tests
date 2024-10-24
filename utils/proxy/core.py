@@ -46,7 +46,7 @@ class ObjectDumpEncoder(json.JSONEncoder):
 class _RequestLogger:
     def __init__(self) -> None:
         self._keys = [
-            os.environ["DD_API_KEY"],
+            os.environ.get("DD_API_KEY"),
             os.environ.get("DD_APPLICATION_KEY"),
             os.environ.get("DD_APP_KEY"),
         ]

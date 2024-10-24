@@ -184,7 +184,7 @@ class Test_AppSecObfuscator:
             params={"payload": sensitive_raw_payload},
         )
 
-    @missing_feature(library="java")
+    @missing_feature(context.library < "java@1.39.0", reason="APPSEC-54498")
     def test_appsec_obfuscator_value(self):
         """Obfuscation test of a matching rule parameter value containing a sensitive keyword."""
         # Validate that the AppSec event do not contain VALUE_WITH_SECRET value.

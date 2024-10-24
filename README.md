@@ -8,8 +8,6 @@ Workbench designed to run advanced tests (integration, smoke, functional, fuzzin
 
 ## How to use
 
-Add a valid staging `DD_API_KEY` environment variable (you can set it in a `.env` file). Then:
-
 ```mermaid
 flowchart TD
     BUILDNODE[./build.sh nodejs] --> BUILT

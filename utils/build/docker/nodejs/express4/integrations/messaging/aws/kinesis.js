@@ -98,14 +98,14 @@ const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
             kinesis.getShardIterator(params, (err, response) => {
               if (err) {
                 console.log(`[Kinesis] Error during Kinesis get shard iterator: ${err}`)
-                setTimeout(consumeMessage, 1000)
+                setTimeout(consumeMessage, 200)
               } else {
                 console.log(`[Kinesis] Found Kinesis Shard Iterator: ${response.ShardIterator} for stream: ${stream}`)
 
                 kinesis.getRecords({ ShardIterator: response.ShardIterator }, (err, recordsResponse) => {
                   if (err) {
                     console.log(`[Kinesis] Error during Kinesis get records: ${err}`)
-                    setTimeout(consumeMessage, 1000)
+                    setTimeout(consumeMessage, 200)
                   } else {
                     if (recordsResponse && recordsResponse.Records && recordsResponse.Records.length > 0) {
                       for (const actualMessage of recordsResponse.Records) {
@@ -125,13 +125,13 @@ const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
                         }
                       }
                     }
-                    setTimeout(consumeMessage, 1000)
+                    setTimeout(consumeMessage, 50)
                   }
                 })
               }
             })
           } else {
-            setTimeout(consumeMessage, 1000)
+            setTimeout(consumeMessage, 200)
           }
         }
       })

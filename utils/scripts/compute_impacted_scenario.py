@@ -179,7 +179,9 @@ def main():
                     r"format\.sh": None,
                     r"pyproject\.toml": None,
                     r"scenario_groups\.yml": None,
-                    r"shell\.nix": None,
+                    ## Nix
+                    r".*\.nix": None,
+                    r"flake\.lock": None,
                     ## few files with lot of effect
                     r"requirements\.txt": ScenarioGroup.ALL.value,
                     r"run\.sh": ScenarioGroup.ALL.value,

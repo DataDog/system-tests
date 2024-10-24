@@ -10,7 +10,7 @@ from utils.onboarding.debug_vm import extract_logs_to_file
 class AWSInfraConfig:
     def __init__(self) -> None:
         # Mandatory parameters
-        self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
+        self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID", "").split(",")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
         self.iam_instance_profile = os.getenv("ONBOARDING_AWS_INFRA_IAM_INSTANCE_PROFILE")
 
@@ -29,6 +29,10 @@ class DataDogConfig:
         self.installer_versions["library"] = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
         self.installer_versions["agent"] = os.getenv("DD_INSTALLER_AGENT_VERSION")
         self.installer_versions["injector"] = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
+
+        # Cached properties
+        self.skip_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
+        self.update_cache = os.getenv("AMI_UPDATE", "False").lower() == "true"
 
         # if None in (self.dd_api_key, self.dd_app_key):
         #    logger.warn("Datadog agent is not configured correctly for auto-injection testing")
@@ -163,15 +167,33 @@ class _VirtualMachine:
         extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
-        vm_cached_name = f"{self.name}_"
+        """ Generate a unique name for the  cache.
+        use: vm name + provision name + weblog id + hash of the cacheable installations 
+        We geneate the hash from cacheable steps content. If we modify the step scripts 
+        the hash will change and the cache will be regenerated.
+        If we use the AWS provider: The AWS AMI is limited to 128 characters, so we need to keep the name short
+        """
+        # Cache prefix (no encoded)
+        cached_name = (
+            f"{self.name}_{self.get_provision().provision_name}_{self.get_provision().weblog_installation.id}_"
+        )
+        # Cache suffix. All cacheable steps encoded
+        vm_cached_name = ""
         if self.get_provision().lang_variant_installation:
-            vm_cached_name += f"{self.get_provision().lang_variant_installation.id}_"
-        vm_cached_installations = ""
+            vm_cached_name += f"{self.get_provision().lang_variant_installation}_"
         for installation in self.get_provision().installations:
             if installation.cache:
-                vm_cached_installations += f"{installation.id}_"
-        vm_cached_installations = hashlib.shake_128(vm_cached_installations.encode("utf-8")).hexdigest(4)
-        return vm_cached_name + vm_cached_installations + "_" + self.get_provision().provision_name
+                vm_cached_name += f"{installation}_"
+
+        full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
+
+        if len(full_cache_name) >= 120:
+            # There is a limit of 128 characters for the AMI name. 119 + 9 characters added by the aws
+            # for now encoding provision_name is enough to keep the name short
+            provision_name = hashlib.shake_128(self.get_provision().provision_name.encode("utf-8")).hexdigest(4)
+            cached_name = f"{self.name}_{provision_name}_{self.get_provision().weblog_installation.id}_"
+            full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
+        return full_cache_name
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """

@@ -272,8 +272,6 @@ jobs:
           docker image list
       - name: Run scenario
         run: ./run.sh ++docker ${{ matrix.scenario }}
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
       - name: Archive logs
         uses: actions/upload-artifact@v4
         if: ${{ always() }}
