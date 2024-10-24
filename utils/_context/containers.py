@@ -804,7 +804,7 @@ class KafkaContainer(TestedContainer):
                 "KAFKA_LISTENERS": "PLAINTEXT://:9092,CONTROLLER://:9093",
                 "KAFKA_CONTROLLER_QUORUM_VOTERS": "1@kafka:9093",
                 "KAFKA_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
-                "KAFKA_CLUSTER_ID": "r4zt_wrqTRuT7W2NJsB_GA",
+                "CLUSTER_ID": "5L6g3nShT-eMCtK--X86sw",
                 "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
                 "KAFKA_INTER_BROKER_LISTENER_NAME": "PLAINTEXT",
                 "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT",
