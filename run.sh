@@ -199,6 +199,16 @@ function run_scenario() {
                 -e DD_API_KEY="${DD_API_KEY}"
               )
             fi
+            if [[ -n "${SYSTEM_TESTS_AWS_ACCESS_KEY_ID:-}" ]]; then
+              cmd+=(
+                -e SYSTEM_TESTS_AWS_ACCESS_KEY_ID="${SYSTEM_TESTS_AWS_ACCESS_KEY_ID}"
+              )
+            fi
+            if [[ -n "${SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY_ID:-}" ]]; then
+              cmd+=(
+                -e SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY_ID="${SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY_ID}"
+              )
+            fi
             if [[ -f .env ]]; then
               cmd+=(
                 -v "${PWD}"/.env:/app/.env
