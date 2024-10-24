@@ -1,6 +1,7 @@
 'use strict'
 
 const { statSync } = require('fs')
+const { execSync } = require('child_process')
 const http = require('http')
 const pg = require('pg')
 
@@ -88,5 +89,36 @@ function initRaspEndpoints (app) {
     }
     res.send(result)
   })
+
+  app.get('/rasp/shi', (req, res) => {
+    let result
+    try {
+      result = execSync(`ls ${req.query.list_dir}`)
+    } catch (e) {
+      result = e.toString()
+
+      if (e.name === 'DatadogRaspAbortError') {
+        throw e
+      }
+    }
+
+    res.send(result)
+  })
+
+  app.post('/rasp/shi', (req, res) => {
+    let result
+    try {
+      result = execSync(`ls ${req.body.list_dir}`)
+    } catch (e) {
+      result = e.toString()
+
+      if (e.name === 'DatadogRaspAbortError') {
+        throw e
+      }
+    }
+
+    res.send(result)
+  })
 }
+
 module.exports = initRaspEndpoints
