@@ -2,14 +2,13 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
-  #- extravms_tracer
-  #- ruby_tracer
-  #- nodejs_tracer
-  #- java_tracer
-  #- python_tracer
-  #- dotnet_tracer
-  #- php_tracer
-  - test_tracer
+  - extravms_tracer
+  - ruby_tracer
+  - nodejs_tracer
+  - java_tracer
+  - python_tracer
+  - dotnet_tracer
+  - php_tracer
   - parse_results
   - before_tests
 
@@ -36,7 +35,7 @@ variables:
     AMI_UPDATE:
       description: "Set to true to force the update the AMIs used in the system-tests"
 
-.onboarding_install_extra_vms:
+onboarding_install_extra_vms:
   extends: .base_job_onboarding_system_tests
   stage: extravms_tracer
   allow_failure: true
@@ -69,8 +68,8 @@ variables:
           TEST_LIBRARY: "php"
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
-.onboarding_nodejs:
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
@@ -106,9 +105,9 @@ variables:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
-.onboarding_java:
+onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
@@ -147,9 +146,9 @@ variables:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
-.onboarding_python:
+onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
@@ -199,9 +198,9 @@ variables:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
-.onboarding_dotnet:
+onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
@@ -234,9 +233,9 @@ variables:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
-.onboarding_ruby:
+onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
@@ -269,9 +268,9 @@ variables:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
-.onboarding_php:
+onboarding_php:
   extends: .base_job_onboarding_system_tests
   stage: php_tracer
   allow_failure: true
@@ -307,37 +306,14 @@ variables:
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
-
-onboarding_simple_tests:
-  extends: .base_job_onboarding_system_tests
-  stage: test_tracer
-  allow_failure: true
-  dependencies: []
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "nodejs"
-    AMI_UPDATE: "true"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          VM: [ ubuntu24 ]
-  script:
-      - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-only-branch ${VM} --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-    #- if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"
   before_script:
     #We need authenticate on git repository
     - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
