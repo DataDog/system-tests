@@ -2416,3 +2416,13 @@ class features:
         """
         pytest.mark.features(feature_id=328)(test_object)
         return test_object
+
+    @staticmethod
+    def parametric_endpoint_parity(test_object):
+        """
+        Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=329
+        """
+        pytest.mark.features(feature_id=329)(test_object)
+        return test_object

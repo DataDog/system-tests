@@ -36,6 +36,7 @@ from ddtrace.internal.utils.version import parse_version
 
 
 spans: Dict[int, Span] = {}
+ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
 app = FastAPI(
     title="APM library test server",
@@ -53,14 +54,12 @@ os.environ["OTEL_PYTHON_CONTEXT"] = "ddcontextvars_context"
 
 
 class StartSpanArgs(BaseModel):
-    parent_id: int
     name: str
-    service: str
-    type: str
-    resource: str
-    origin: str
-    http_headers: List[Tuple[str, str]]
-    links: List[Dict]
+    parent_id: Optional[int] = None
+    service: Optional[str] = None
+    resource: Optional[str] = None
+    type: Optional[str] = None
+    http_headers: Optional[List[Tuple[str, str]]] = None
 
 
 class StartSpanReturn(BaseModel):
@@ -75,37 +74,10 @@ def trace_crash() -> None:
 
 @app.post("/trace/span/start")
 def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
-    parent: Union[None, Span, Context]
-    if args.parent_id:
-        parent = spans[args.parent_id]
-    else:
-        parent = None
-
-    if args.origin != "":
-        trace_id = parent.trace_id if parent else None
-        parent_id = parent.span_id if parent else None
-        parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=args.origin)
-
-    if args.service == "":
-        args.service = None
-
-    if len(args.http_headers) > 0:
-        headers = {k: v for k, v in args.http_headers}
-        parent = HTTPPropagator.extract(headers)
-
+    parent = spans.get(args.parent_id, ddcontexts.get(args.parent_id))
     span = ddtrace.tracer.start_span(
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
-    for link in args.links:
-        link_parent_id = link.get("parent_id", 0)
-        if link_parent_id > 0:  # we have a parent_id to create link instead
-            link_parent = spans[link_parent_id]
-            span.link_span(link_parent.context, link.get("attributes"))
-        else:
-            headers = {k: v for k, v in link["http_headers"]}
-            context = HTTPPropagator.extract(headers)
-            span.link_span(context, link.get("attributes"))
-
     spans[span.span_id] = span
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
 
@@ -281,6 +253,23 @@ def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
+class SpanInjectArgs(BaseModel):
+    http_headers: List[Tuple[str, str]]
+
+
+class SpanExtractReturn(BaseModel):
+    span_id: Optional[int]
+
+
+@app.post("/trace/span/extract_headers")
+def trace_span_extract_headers(args: SpanInjectArgs) -> SpanExtractReturn:
+    headers = {k: v for k, v in args.http_headers}
+    context = HTTPPropagator.extract(headers)
+    if context.span_id:
+        ddcontexts[context.span_id] = context
+    return SpanExtractReturn(span_id=context.span_id)
+
+
 class TraceSpansFlushArgs(BaseModel):
     pass
 
@@ -292,6 +281,8 @@ class TraceSpansFlushReturn(BaseModel):
 @app.post("/trace/span/flush")
 def trace_spans_flush(args: TraceSpansFlushArgs) -> TraceSpansFlushReturn:
     ddtrace.tracer.flush()
+    spans.clear()
+    ddcontexts.clear()
     return TraceSpansFlushReturn()
 
 
@@ -350,8 +341,13 @@ class TraceSpanAddLinkReturn(BaseModel):
 @app.post("/trace/span/add_link")
 def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
     span = spans[args.span_id]
-    linked_span = spans[args.parent_id]
-    span.link_span(linked_span.context, attributes=args.attributes)
+    if args.parent_id in spans:
+        linked_context = spans[args.parent_id].context
+    elif args.parent_id in ddcontexts:
+        linked_context = ddcontexts[args.parent_id]
+    else:
+        raise ValueError(f"Parent span {args.parent_id} not found in {spans.keys()} or {ddcontexts.keys()}")
+    span.link_span(linked_context, attributes=args.attributes)
     return TraceSpanAddLinkReturn()
 
 
@@ -554,6 +550,7 @@ def otel_flush_spans(args: OtelFlushSpansArgs):
     ddtrace.tracer.flush()
     spans.clear()
     otel_spans.clear()
+    ddcontexts.clear()
     return OtelFlushSpansReturn(success=True)
 
 

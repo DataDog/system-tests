@@ -35,80 +35,51 @@ const otelStatusCodes = {
 }
 
 const spans = new Map()
+const ddContext = new Map()
 const otelSpans = new Map()
 
-// Endpoint /trace/span/inject_headers
 app.post('/trace/span/inject_headers', (req, res) => {
   const request = req.body;
-  const span = spans[request.span_id]
-  const http_headersDict = {}
-  const http_headers = []
+  const span = spans[request.span_id];
+  const http_headersDict = {};
+  const http_headers = [];
 
-  tracer.inject(span, 'http_headers', http_headersDict)
+  tracer.inject(span, 'http_headers', http_headersDict);
   for (const [key, value] of Object.entries(http_headersDict)) {
-      http_headers.push([key, value])
+      http_headers.push([key, value]);
   }
 
   res.json({ http_headers });
 });
 
-// Additional Endpoints
+app.post('/trace/span/extract_headers', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id];
+
+  const http_headers = request.http_headers || [];
+  // Node.js HTTP headers are automatically lower-cased, simulate that here.
+  const linkHeaders = Object.fromEntries(http_headers.map(([k, v]) => [k.toLowerCase(), v]));
+  const extracted = tracer.extract('http_headers', linkHeaders);
+
+  const extractedSpanID = extracted.toSpanId();
+  ddContext[extractedSpanID] = extracted;
+
+  res.json({ span_id: extractedSpanID });
+});
+
+
 app.post('/trace/span/start', (req, res) => {
   const request = req.body;
-  let parent
-
-  if (request.parent_id) parent = spans[request.parent_id]
-
-  if (request.origin) {
-      const traceId = parent?.traceId
-      const parentId = parent?.parentId
-
-      parent = new SpanContext({
-          traceId,
-          parentId
-      })
-      parent.origin = request.origin
-  }
-
-  const http_headers = request.http_headers || []
-  // Node.js HTTP headers are automatically lower-cased, simulate that here.
-  const convertedHeaders = {}
-  for (const [key, value] of http_headers) {
-      convertedHeaders[key.toLowerCase()] = value
-  }
-
-  const extracted = tracer.extract('http_headers', convertedHeaders)
-  if (extracted !== null) parent = extracted
-
-  const tags = { service: request.service }
-  for (const [key, value] of request.span_tags) tags[key] = value
+  let parent = spans[request.parent_id] || ddContext[request.parent_id];
 
   const span = tracer.startSpan(request.name, {
+    service: request.service,
     type: request.type,
     resource: request.resource,
-    childOf: parent,
-    tags
-  })
+    childOf: parent
+  });
 
-  for (const link of request.links || []) {
-    const linkParentId = link.parent_id;
-    if (linkParentId) {
-      const linkParentSpan = spans[linkParentId];
-      span.addLink(linkParentSpan.context(), link.attributes);
-    } else {
-      const linkHeaders = link.http_headers || {};
-      const convertedLinkHeaders = {}
-      for (const [key, value] of linkHeaders) {
-        convertedLinkHeaders[key.toLowerCase()] = value
-      }
-      const linkExtracted = tracer.extract('http_headers', convertedLinkHeaders);
-      if (linkExtracted) {
-        span.addLink(linkExtracted, link.attributes);
-      }
-    }
-  }
-
-  spans[span.context().toSpanId()] = span
+  spans[span.context().toSpanId()] = span;
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
 });
 
@@ -133,6 +104,7 @@ app.post('/trace/span/flush', (req, res) => {
     res.json({});
   })
   spans.clear();
+  ddContext.clear();
 });
 
 app.post('/trace/span/set_meta', (req, res) => {
@@ -236,7 +208,6 @@ app.post('/trace/otel/end_span', (req, res) => {
 
 app.post('/trace/otel/flush', async (req, res) => {
   await tracerProvider.forceFlush()
-  spans.clear();
   otelSpans.clear();
   res.json({ success: true });
 });
