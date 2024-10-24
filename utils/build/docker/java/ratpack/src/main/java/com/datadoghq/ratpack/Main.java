@@ -11,14 +11,19 @@ import ratpack.exec.Promise;
 import ratpack.http.HttpMethod;
 import ratpack.http.Response;
 import ratpack.server.RatpackServer;
+import ratpack.jackson.Jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.InetAddress;
 import java.util.logging.LogManager;
+import java.util.Optional;
 
 import java.util.HashMap;
 import java.net.HttpURLConnection;
@@ -60,6 +65,16 @@ public class Main {
         return h;
     }
 
+    private static Optional<String> getVersion() {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+        String line = reader.readLine();
+        return Optional.ofNullable(line);
+        } catch (Exception e) {
+        return Optional.empty();
+        }
+    }
+
     private static void setRootSpanTag(final String key, final String value) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span instanceof MutableSpan) {
@@ -89,6 +104,18 @@ public class Main {
                                 } finally {
                                     span.finish();
                                 }
+                            })
+                            .get("healthcheck", ctx -> {
+                                String version = getVersion().orElse("0.0.0");
+
+                                Map<String, Object> response = new HashMap<>();
+                                Map<String, String> library = new HashMap<>();
+                                library.put("language", "java");
+                                library.put("version", version);
+                                response.put("status", "ok");
+                                response.put("library", library);
+
+                                ctx.render(Jackson.json(response));
                             })
                             .get("headers", ctx -> {
                                 Response response = ctx.getResponse();
@@ -216,6 +243,18 @@ public class Main {
                                 String json = mapper.writeValueAsString(headerMap);
 
                                 ctx.getResponse().send("application/json", json);
+                            })
+                            .get("createextraservice", ctx -> {
+                                MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                                String serviceName = qp.get("serviceName");
+                                setRootSpanTag("service", serviceName);
+                                ctx.getResponse().send("ok");
+                            })
+                            .get("set_cookie", ctx -> {
+                                final String name = ctx.getRequest().getQueryParams().get("name");
+                                final String value = ctx.getRequest().getQueryParams().get("value");
+                                ctx.getResponse().getHeaders().add("Set-Cookie", name + "=" + value);
+                                ctx.getResponse().send("text/plain", "ok");
                             });
                         iastHandlers.setup(chain);
                         raspHandlers.setup(chain);

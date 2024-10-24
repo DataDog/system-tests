@@ -12,6 +12,7 @@ if [[ -f "./.env" ]]; then
 fi
 
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK:-}}
+AGENT_BASE_IMAGE=
 
 readonly DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 readonly ALIAS_CACHE_FROM="R" #read cache
@@ -62,6 +63,7 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
+    echo -e "  ${CYAN}--agent-base-image${NC}         Optional. Base image of docker agent to use, default: datadog/agent"
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -139,11 +141,11 @@ build() {
                     echo "Build virtual env"
                     if command -v python3.12 &> /dev/null
                     then
-                        python3.12 -m venv venv
+                        python3.12 -m venv venv --copies
                     elif command -v python3.9 &> /dev/null
                     then
                         echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
-                        echo "DEPRECRATION WARNING: your using python3.9 to run system-tests."
+                        echo "DEPRECRATION WARNING: you are using python3.9 to run system-tests."
                         echo "This won't be supported soon. Install python 3.12, then run:"
                         echo "> rm -rf venv && ./build.sh -i runner"
                         echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
@@ -178,10 +180,12 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == agent ]]; then
-            if [ -f ./binaries/agent-image ]; then
-                AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
-            else
-                AGENT_BASE_IMAGE="datadog/agent"
+            if test -z "$AGENT_BASE_IMAGE"; then
+                if [ -f ./binaries/agent-image ]; then
+                    AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
+                else
+                    AGENT_BASE_IMAGE="datadog/agent"
+                fi
             fi
 
             echo "using $AGENT_BASE_IMAGE image for datadog agent"
@@ -232,14 +236,12 @@ build() {
                 .
 
             if test -f "binaries/waf_rule_set.json"; then
-                SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
-                    --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                     -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                     -t system_tests/weblog \
                     $EXTRA_DOCKER_ARGS \
@@ -252,11 +254,6 @@ build() {
             # or an arg. So we use this 2-step trick to get it.
             # If anybody has an idea to achieve this in a cleanest way ...
 
-            echo "Getting system test context and saving it in weblog image"
-            SYSTEM_TESTS_LIBRARY_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
-            SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
-            SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
-
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
@@ -264,9 +261,6 @@ build() {
                 ${DOCKER_PLATFORM_ARGS} \
                 --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
                 --build-arg SYSTEM_TESTS_WEBLOG_VARIANT="$WEBLOG_VARIANT" \
-                --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \
-                --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
-                --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                 -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
                 -t system_tests/weblog \
                 .
@@ -297,6 +291,7 @@ while [[ "$#" -gt 0 ]]; do
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
         -h|--help) print_usage; exit 0 ;;
+        --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
     shift

@@ -21,7 +21,12 @@ import java.util.HashMap;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,6 +45,36 @@ public class MyResource {
         } finally {
             span.finish();
         }
+    }
+
+    @GET
+    @Path("/healthcheck")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, Object> healthcheck() {
+        String version;
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(
+                        getClass().getClassLoader().getResourceAsStream("dd-java-agent.version"),
+                        StandardCharsets.ISO_8859_1))) {
+            String line = reader.readLine();
+            if (line == null) {
+                throw new RuntimeException("Can't get version");
+            }
+            version = line;
+        } catch (Exception e) {
+            throw new RuntimeException("Can't get version", e);
+        }
+
+        Map<String, String> library = new HashMap<>();
+        library.put("language", "java");
+        library.put("version", version);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "ok");
+        response.put("library", library);
+
+        return response;
     }
 
     @GET
@@ -261,6 +296,19 @@ public class MyResource {
         }
 
         return json;
+    }
+
+    @GET
+    @Path("/set_cookie")
+    public Response setCookie(@QueryParam("name") String name, @QueryParam("value") String value) {
+        return Response.ok().header("Set-Cookie", name + "=" + value).build();
+    }
+
+    @GET
+    @Path("/createextraservice")
+    public String createextraservice(@QueryParam("serviceName") String serviceName) {
+        setRootSpanTag("service", serviceName);
+        return "ok";
     }
 
     public static final class DistantCallResponse {

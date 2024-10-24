@@ -8,53 +8,67 @@ import json
 
 
 class _Context:
-    """ context is an helper class that exposes directly everyting about tests targets """
+    """ 
+        Context is an helper class that exposes scenario properties
+        Those properties may be used in decorators, and thus, should always exists, even if the current
+        scenario does not define them.
+    """
 
     scenario = None  # will be set by pytest_configure
 
+    def _get_scenario_property(self, name, default):
+        if hasattr(self.scenario, name):
+            return getattr(self.scenario, name)
+
+        return default
+
     @property
     def dd_site(self):
-        return self.scenario.dd_site
-
-    @property
-    def tracer_sampling_rate(self):
-        return self.scenario.tracer_sampling_rate
-
-    @property
-    def appsec_rules_file(self):
-        return self.scenario.appsec_rules_file
-
-    @property
-    def uds_socket(self):
-        return self.scenario.uds_socket
-
-    @property
-    def library(self):
-        return self.scenario.library
-
-    @property
-    def weblog_variant(self):
-        return self.scenario.weblog_variant
-
-    @property
-    def libddwaf_version(self):
-        return self.scenario.libddwaf_version
-
-    @property
-    def appsec_rules_version(self):
-        return self.scenario.appsec_rules_version
+        return self._get_scenario_property("dd_site", None)
 
     @property
     def agent_version(self):
-        return self.scenario.agent_version
+        return self._get_scenario_property("agent_version", "")
+
+    @property
+    def weblog_variant(self):
+        return self._get_scenario_property("weblog_variant", "")
 
     @property
     def uds_mode(self):
-        return self.scenario.uds_mode
+        return self._get_scenario_property("uds_mode", None)
+
+    @property
+    def uds_socket(self):
+        return self._get_scenario_property("uds_socket", None)
+
+    @property
+    def library(self):
+        return self._get_scenario_property("library", None)
+
+    @property
+    def tracer_sampling_rate(self):
+        return self._get_scenario_property("tracer_sampling_rate", None)
 
     @property
     def telemetry_heartbeat_interval(self):
-        return self.scenario.telemetry_heartbeat_interval
+        return self._get_scenario_property("telemetry_heartbeat_interval", None)
+
+    @property
+    def appsec_rules_file(self):
+        return self._get_scenario_property("appsec_rules_file", "")
+
+    @property
+    def dd_apm_inject_version(self):
+        return self._get_scenario_property("dd_apm_inject_version", "")
+
+    @property
+    def installed_language_runtime(self):
+        return self._get_scenario_property("installed_language_runtime", "")
+
+    @property
+    def k8s_cluster_agent_version(self):
+        return self._get_scenario_property("k8s_cluster_agent_version", "")
 
     @property
     def components(self):
@@ -64,13 +78,16 @@ class _Context:
     def parametrized_tests_metadata(self):
         return self.scenario.parametrized_tests_metadata
 
+    @property
+    def configuration(self):
+        return self._get_scenario_property("configuration", {})
+
     def serialize(self):
         result = {
             "agent": str(self.agent_version),
             "library": self.library.serialize(),
             "weblog_variant": self.weblog_variant,
             "sampling_rate": self.tracer_sampling_rate,
-            "libddwaf_version": str(self.libddwaf_version),
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
             "scenario": self.scenario,

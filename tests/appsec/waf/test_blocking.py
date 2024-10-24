@@ -52,10 +52,10 @@ class Test_Blocking:
     def setup_no_accept(self):
         self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="npe")
-    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="npe")
-    @bug(context.library < "python@1.16.1", reason="Bug, minify and remove new line characters")
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="APMRP-360")
+    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="APMRP-360")
+    @bug(context.library < "python@1.16.1", reason="APMRP-360")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
@@ -91,7 +91,7 @@ class Test_Blocking:
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
@@ -104,7 +104,7 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
         )
 
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
@@ -137,7 +137,7 @@ class Test_Blocking:
             },
         )
 
-    @bug(context.library < "ruby@1.12.1", reason="wrong default content-type")
+    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
@@ -216,7 +216,6 @@ class Test_Blocking_strip_response_headers:
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
 @scenarios.appsec_blocking
 @features.appsec_blocking_action
-@bug(context.library >= "java@1.20.0" and context.weblog_variant == "spring-boot-openliberty")
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""
 
@@ -238,10 +237,6 @@ class Test_CustomBlockingResponse:
     def setup_custom_redirect_wrong_status_code(self):
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v3"}, allow_redirects=False)
 
-    @bug(
-        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
-        reason="Do not check the configured redirect status code",
-    )
     def test_custom_redirect_wrong_status_code(self):
         """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
         assert self.r_cr.status_code == 303
@@ -250,7 +245,6 @@ class Test_CustomBlockingResponse:
     def setup_custom_redirect_missing_location(self):
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v4"}, allow_redirects=False)
 
-    @bug(context.library == "java", reason="Do not check the configured redirect location value")
     def test_custom_redirect_missing_location(self):
         """Block with an default page because location parameter is missing from redirect request configuration"""
         assert self.r_cr.status_code == 403

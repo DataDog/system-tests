@@ -1,22 +1,13 @@
 import json
-import re
 
-from utils import weblog, interfaces, scenarios, features, rfc, bug, context
-from utils._context.header_tag_vars import *
 from requests.structures import CaseInsensitiveDict
 
-# Python regexp that matches:
-# "GET /requestdownstream"
-# "GET /requestdownstream/"
-# "GET requestdownstream"
-# "GET requestdownstream/"
-REQUESTDOWNSTREAM_RESOURCE_PATTERN = re.compile(r"GET /?requestdownstream/?")
+from utils import weblog, interfaces, scenarios, features, rfc, bug, flaky
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
-@bug(context.library > "python@2.9.2", reason="Missing Jira ticket")
 class Test_AppSecStandalone_UpstreamPropagation:
     """APM correctly propagates AppSec events in distributing tracing."""
 
@@ -78,24 +69,16 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(
-        library="java",
-        weblog_variant="play",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
     def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -134,13 +117,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -179,13 +159,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -224,13 +201,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -264,34 +238,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(
-        library="java",
-        weblog_variant="akka-http",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="jersey-grizzly2",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="play",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -325,30 +284,16 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(
-        library="java",
-        weblog_variant="akka-http",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="jersey-grizzly2",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="play",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    @flaky(library="python", reason="APPSEC-55222")  # _dd.apm.enabled missing in metrics
     def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -391,13 +336,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -435,13 +377,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -479,13 +418,10 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -517,34 +453,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(
-        library="java",
-        weblog_variant="akka-http",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="jersey-grizzly2",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="play",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -576,34 +497,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(
-        library="java",
-        weblog_variant="akka-http",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="jersey-grizzly2",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="play",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -635,34 +541,19 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(
-        library="java",
-        weblog_variant="akka-http",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="jersey-grizzly2",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
-    @bug(
-        library="java",
-        weblog_variant="play",
-        reason="KeyError x-datadog-origin - span not available on appsec events drives into no propagation tags",
-    )
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 

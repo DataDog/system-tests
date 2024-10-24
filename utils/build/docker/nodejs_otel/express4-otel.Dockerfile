@@ -33,11 +33,7 @@ RUN npm install --save @opentelemetry/auto-instrumentations-node
 RUN npm install @opentelemetry/instrumentation-mysql2
 RUN npm install --save opentelemetry-instrumentation-mssql
 
-RUN npm list --json | jq -r '.dependencies."@opentelemetry/auto-instrumentations-node".version' > SYSTEM_TESTS_LIBRARY_VERSION
-RUN printf "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
-RUN printf "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-
 # docker startup
-RUN printf '#!/bin/bash\nnode --require @opentelemetry/auto-instrumentations-node/register app.js' > app.sh
-RUN chmod +x app.sh
+COPY utils/build/docker/nodejs/app.sh app.sh
+RUN printf 'node --require @opentelemetry/auto-instrumentations-node/register app.js' >> app.sh
 CMD ./app.sh

@@ -30,6 +30,11 @@ import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
 import okhttp3.*;
 
 public class Main {
@@ -63,6 +68,9 @@ public class Main {
                         span.finish();
                     }
                 });
+
+        router.get("/healthcheck").handler(Main::healthCheck);
+
         router.get("/headers")
                 .produces("text/plain")
                 .handler(ctx -> ctx.response()
@@ -195,6 +203,18 @@ public class Main {
                     ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
                     ctx.response().end(headersJson.encode());
                 });
+        router.get("/set_cookie")
+                .handler(ctx -> {
+                    String name = ctx.request().getParam("name");
+                    String value = ctx.request().getParam("value");
+                    ctx.response().putHeader("Set-Cookie", name + "=" + value).end("ok");
+                });
+        router.get("/createextraservice")
+                .handler(ctx -> {
+                    String serviceName = ctx.request().getParam("serviceName");
+                    setRootSpanTag("service", serviceName);
+                    ctx.response().end("ok");
+                });
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));
@@ -244,6 +264,34 @@ public class Main {
             ctx.request().formAttributes();
         } else {
             ctx.getBodyAsString();
+        }
+    }
+
+
+    private static void healthCheck(RoutingContext context) {
+        String version = getVersion().orElse("0.0.0");
+
+        Map<String, Object> response = new HashMap<>();
+        Map<String, String> library = new HashMap<>();
+        library.put("language", "java");
+        library.put("version", version);
+        response.put("status", "ok");
+        response.put("library", library);
+
+        JsonObject jsonResponse = new JsonObject(response);
+
+        context.response()
+            .putHeader("content-type", "application/json")
+            .end(jsonResponse.encode());
+    }
+
+    private static Optional<String> getVersion() {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+            String line = reader.readLine();
+            return Optional.ofNullable(line);
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
 }

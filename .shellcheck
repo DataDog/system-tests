@@ -19,6 +19,7 @@ TODO=(
   utils/build/docker/java/app.sh
   utils/build/docker/java/install_ddtrace.sh
   utils/build/docker/java/spring-boot/app.sh
+  utils/build/docker/java_otel/spring-boot/app.sh
   utils/build/docker/php/apache-mod/build.sh
   utils/build/docker/php/apache-mod/entrypoint.sh
   utils/build/docker/php/php-fpm/build.sh

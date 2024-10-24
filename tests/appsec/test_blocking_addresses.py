@@ -149,7 +149,7 @@ class Test_Blocking_request_uri:
     def setup_blocking_uri_raw(self):
         self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
 
-    @bug(context.library < "dotnet@2.50.0", reason="dotnet may include scheme, domain and port in uri.raw")
+    @bug(context.library < "dotnet@2.50.0", reason="APMRP-360")
     def test_blocking_uri_raw(self):
         interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
         assert self.rm_req_uri_raw.status_code == 403
@@ -571,7 +571,12 @@ class Test_BlockingGraphqlResolvers:
         )
 
     def test_request_block_attack(self):
-        assert self.r_attack.status_code == 403
+        assert self.r_attack.status_code == (
+            # We don't change the status code in Ruby
+            200
+            if context.library == "ruby"
+            else 403
+        )
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})
@@ -584,9 +589,7 @@ class Test_BlockingGraphqlResolvers:
                 parameters["address"] == "graphql.server.all_resolvers"
                 or parameters["address"] == "graphql.server.resolver"
             )
-            assert rule_triggered["rule"]["id"] == (
-                "block-resolvers" if parameters["address"] == "graphql.server.resolver" else "block-all-resolvers"
-            )
+            assert rule_triggered["rule"]["id"] == "block-resolvers"
             assert parameters["key_path"] == (
                 ["userByName", "name"]
                 if parameters["address"] == "graphql.server.resolver"
@@ -610,7 +613,13 @@ class Test_BlockingGraphqlResolvers:
         )
 
     def test_request_block_attack_directive(self):
-        assert self.r_attack.status_code == 403
+        # We don't change the status code
+        assert self.r_attack.status_code == (
+            # We don't change the status code in Ruby
+            200
+            if context.library == "ruby"
+            else 403
+        )
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})

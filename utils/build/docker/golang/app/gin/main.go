@@ -1,10 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
@@ -27,6 +32,26 @@ func main() {
 	r.Any("/", func(ctx *gin.Context) {
 		ctx.Writer.WriteHeader(http.StatusOK)
 	})
+	r.Any("/stats-unique", func(ctx *gin.Context) {
+		if c := ctx.Request.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				ctx.Writer.WriteHeader(code)
+				return
+			}
+		}
+		ctx.Writer.WriteHeader(http.StatusOK)
+	})
+
+	r.GET("/healthcheck", func(ctx *gin.Context) {
+		healthCheck, err := common.GetHealtchCheck()
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, err)
+		}
+
+		ctx.JSON(http.StatusOK, healthCheck)
+	})
+
 	r.Any("/waf", func(ctx *gin.Context) {
 		body, err := common.ParseBody(ctx.Request)
 		if err == nil {
@@ -56,8 +81,23 @@ func main() {
 		status, _ := strconv.Atoi(ctx.Param("status_code"))
 		span, _ := tracer.SpanFromContext(ctx.Request.Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range ctx.Request.URL.Query() {
+			for _, value := range values {
+				ctx.Writer.Header().Add(key, value)
+			}
+		}
 		ctx.Writer.WriteHeader(status)
 		ctx.Writer.Write([]byte("Value tagged"))
+		switch {
+		case ctx.Request.Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(ctx.Request.Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
+			}
+		case ctx.Request.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), ctx.Request.PostForm)
+		}
 	})
 
 	r.Any("/status", func(ctx *gin.Context) {
@@ -70,18 +110,37 @@ func main() {
 	})
 
 	r.Any("/make_distant_call", func(ctx *gin.Context) {
-		if url := ctx.Request.URL.Query().Get("url"); url != "" {
-
-			client := httptrace.WrapClient(http.DefaultClient)
-			req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
-			_, err := client.Do(req)
-
-			if err != nil {
-				log.Fatalln(err)
-				ctx.Writer.WriteHeader(500)
-			}
+		url := ctx.Request.URL.Query().Get("url")
+		if url == "" {
+			ctx.Writer.Write([]byte("OK"))
+			return
 		}
-		ctx.Writer.Write([]byte("OK"))
+
+		client := httptrace.WrapClient(http.DefaultClient)
+		req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[key] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		ctx.JSON(200, struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
 	})
 
 	r.Any("/headers/", headers)
@@ -146,6 +205,20 @@ func main() {
 			ctx.Writer.WriteHeader(500)
 		}
 		ctx.Writer.Write(content)
+	})
+
+	r.GET("/session/new", func(ctx *gin.Context) {
+		sessionID := strconv.Itoa(rand.Int())
+		ctx.SetCookie("session", sessionID, 3600, "/", "", false, true)
+	})
+
+	r.GET("/session/user", func(ctx *gin.Context) {
+		user := ctx.Query("sdk_user")
+		cookie, err := ctx.Request.Cookie("session")
+		if err != nil {
+			ctx.Writer.WriteHeader(500)
+		}
+		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))

@@ -51,7 +51,6 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
 
 
 @features.iast_sink_unvalidatedheader
-@flaky(context.library >= "dotnet@2.54.0", reason="APPSEC-54151")
 class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     """Verify Unvalidated redirect detection threw header."""
 

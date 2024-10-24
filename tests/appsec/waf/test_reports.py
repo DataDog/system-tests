@@ -4,7 +4,7 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
+from utils import weblog, context, interfaces, irrelevant, scenarios, features
 
 
 @features.support_in_app_waf_metrics_report
@@ -31,24 +31,15 @@ class Test_Monitoring:
 
             meta = span["meta"]
             for m in expected_waf_monitoring_meta_tags:
-                if m not in meta:
-                    raise Exception(f"missing span meta tag `{m}` in {meta}")
+                assert m in meta, f"missing span meta tag `{m}` in meta"
 
             metrics = span["metrics"]
             for m in expected_waf_monitoring_metrics_tags:
-                if m not in metrics:
-                    raise Exception(f"missing span metric tag `{m}` in {metrics}")
+                assert m in metrics, f"missing span metric tag `{m}` in metrics"
 
             if re.match(self.expected_version_regex, meta[expected_rules_version_tag], 0) is None:
-                raise Exception(
+                raise ValueError(
                     f"the span meta tag `{meta[expected_rules_version_tag]}` doesn't match the version regex"
-                )
-
-            if meta[expected_rules_version_tag] != str(context.appsec_rules_version):
-                raise Exception(
-                    f"the event rules version `{meta[expected_rules_version_tag]}` reported in the span tag "
-                    f"{expected_rules_version_tag} isn't equal to the weblog context version "
-                    f"`{context.appsec_rules_version}`"
                 )
 
             return True

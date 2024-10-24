@@ -119,5 +119,54 @@ namespace weblog
             PiiBase? pii = await Task.FromResult<PiiBase>(null);
             return Content($"Pii is null {pii is null}. intValue is null {intValue is null}. strValue is null {strValue is null}.");
         }
+
+        [HttpGet("exceptionreplay/simple")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplaySimple()
+        {
+            throw new System.Exception("Simple exception");
+        }
+
+        [HttpGet("exceptionreplay/recursion5")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayRecursion5(int depth = 5)
+        {
+            if (depth > 0)
+            {
+                return ExceptionReplayRecursion5(depth - 1);
+            }
+            else
+            {
+                throw new System.Exception("Recursion exception");
+            }
+        }
+
+        [HttpGet("exceptionreplay/recursion20")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayRecursion20(int depth = 20)
+        {
+            if (depth > 0)
+            {
+                return ExceptionReplayRecursion20(depth - 1);
+            }
+            else
+            {
+                throw new System.Exception("Recursion exception");
+            }
+        }
+
+        [HttpGet("exceptionreplay/inner")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayInner()
+        {
+            try
+            {
+                throw new System.Exception("Inner exception");
+            }
+            catch (System.Exception ex)
+            {
+                throw new System.Exception("Outer exception", ex);
+            }
+        }
     }
 }

@@ -3,14 +3,16 @@ from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils import scenarios, features
+from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
 class _AutoInjectNotSupportedBaseTest:
     """ Test for not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
+    @parametrize_virtual_machines()
     def test_app_working(self, virtual_machine):
         """ Test app is working."""
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
 

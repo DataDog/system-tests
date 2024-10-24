@@ -23,7 +23,7 @@ class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
     @missing_feature(library="cpp")
-    @bug(context.library <= "golang@1.37.0")
+    @bug(context.library <= "golang@1.37.0", reason="APMRP-360")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 
@@ -72,7 +72,6 @@ class Test_TraceHeaders:
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
 
-    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
     @missing_feature(
         context.library == "java" and "spring-boot" not in context.weblog_variant, reason="Missing endpoint"
     )

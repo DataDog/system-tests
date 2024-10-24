@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, bug, weblog, features
-from ..utils import BaseSinkTest
+from ..utils import BaseSinkTest, BaseTestCookieNameFilter
 
 
 @features.iast_sink_insecure_cookie
@@ -17,7 +17,7 @@ class TestInsecureCookie(BaseSinkTest):
     data = {}
     location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
-    @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
+    @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):
         super().test_secure()
 
@@ -37,3 +37,11 @@ class TestInsecureCookie(BaseSinkTest):
     @missing_feature(weblog_variant="vertx4", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+
+@features.iast_sink_insecure_cookie
+class TestInsecureCookieNameFilter(BaseTestCookieNameFilter):
+    """Test no SameSite cookie name filter."""
+
+    vulnerability_type = "INSECURE_COOKIE"
+    endpoint = "/iast/insecure-cookie/custom_cookie"

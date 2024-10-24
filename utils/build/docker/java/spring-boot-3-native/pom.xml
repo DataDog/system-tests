@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.1</version>
+        <version>3.3.4</version>
     </parent>
 
     <groupId>com.example</groupId>
@@ -15,8 +15,8 @@
     <version>3.0.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <agent.path>/app/dd-java-agent.jar</agent.path>
         <start-class>com.datadoghq.springbootnative.App</start-class>
@@ -55,7 +55,7 @@
             <version>4.0.1</version>
         </dependency>
     </dependencies>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -65,13 +65,49 @@
             <plugin>
                 <groupId>org.graalvm.buildtools</groupId>
                 <artifactId>native-maven-plugin</artifactId>
+                <version>0.10.3</version>
                 <configuration>
-                     <buildArgs>
-                        <buildArg>-J-javaagent:${agent.path}</buildArg>
-                     </buildArgs>
+                     <quickBuild>true</quickBuild>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
+    <profiles>
+        <profile>
+            <id>with-profiling</id>
+            <build>
+                <directory>with-profiling</directory>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                          <buildArgs combine.children="append">
+                            <buildArg>--enable-monitoring=jfr</buildArg>
+                            <buildArg>-J-Ddd.profiling.enabled=true</buildArg>
+                            <buildArg>-J-javaagent:${agent.path}</buildArg>
+                          </buildArgs>
+                        </configuration>
+                      </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>without-profiling</id>
+            <build>
+                <directory>without-profiling</directory>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                          <buildArgs combine.children="append">
+                            <buildArg>-J-javaagent:${agent.path}</buildArg>
+                          </buildArgs>
+                        </configuration>
+                      </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

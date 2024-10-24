@@ -8,6 +8,7 @@ logs*
 shell.nix
 __pycache__
 scenario_groups.yml
+/binaries/**/.git/config
 
 # dotnet
 **/dotnet/**/bin/

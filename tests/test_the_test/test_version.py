@@ -37,16 +37,32 @@ def test_version_comparizon():
     assert str(v) == "0.53.0+dev70.g494e6dc0"
 
 
+def test_ruby_version():
+
+    v = LibraryVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
+    assert str(v.version) == "0.53.1-appsec+180045"
+
+    v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)")
+    assert v.version == Version("1.0.1-beta1+de82857")
+
+    v = LibraryVersion("ruby", "  * datadog (2.3.0 7dbcc40)")
+    assert str(v.version) == "2.3.1-z+7dbcc40"
+
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)") == "ruby@1.0.1-z+beta1"
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)") == "ruby@1.0.1-beta1+de82857"
+
+    # very particular use case, because we hack the path for dev versions
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)") < "ruby@1.0.1"
+    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.rc1)") < "ruby@1.0.1"
+
+    assert LibraryVersion("ruby", "  * datadog (2.3.0 7dbcc40)") >= "ruby@2.3.1-dev"
+
+
 def test_library_version_comparizon():
 
     assert LibraryVersion("x", "1.31.1") < "x@1.34.1"
     assert "x@1.31.1" < LibraryVersion("x", "v1.34.1")
     assert LibraryVersion("x", "1.31.1") < LibraryVersion("x", "v1.34.1")
-
-    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)") == LibraryVersion("ruby", "1.0.0.beta1")
-    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)")
-    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)") < LibraryVersion("ruby", "1.0.0")
-    assert LibraryVersion("ruby", "  * ddtrace (1.0.0.rc1)") < LibraryVersion("ruby", "1.0.0")
 
     assert LibraryVersion("python", "1.1.0rc2.dev15+gc41d325d") >= "python@1.1.0rc2.dev"
     assert LibraryVersion("python", "1.1.0") > "python@1.1.0rc2.dev"
@@ -60,6 +76,17 @@ def test_library_version_comparizon():
 
 def test_spec():
     assert semver.Version("6.0.0-pre") in CustomSpec(">=5.0.0")
+    assert semver.Version("1.2.5-rc1") in CustomSpec(">1.2.4-rc1")
+    assert semver.Version("1.3.0-rc1") in CustomSpec(">1.2.4-rc1")
+
+    assert semver.Version("1.2.4") in CustomSpec(">1.2.3")
+    assert semver.Version("1.2.4-rc1") in CustomSpec(">1.2.3")
+    assert semver.Version("1.2.4") in CustomSpec(">1.2.4-rc1")
+
+    assert semver.Version("1.2.4-rc1") in CustomSpec("<1.2.4")
+    assert semver.Version("1.2.3") in CustomSpec("<1.2.4")
+    assert semver.Version("1.2.3") in CustomSpec("<1.2.4-rc1")
+
     assert semver.Version("3.1.2") in CustomSpec(">=5.0.0 || ^3.0.0")
     assert semver.Version("4.1.2") not in CustomSpec(">=5.0.0 || ^3.0.0")
     assert semver.Version("6.0.0") in CustomSpec(">=5.0.0 || ^3.0.0")
@@ -68,16 +95,6 @@ def test_spec():
 def test_version_serialization():
 
     assert LibraryVersion("cpp", "v1.3.1") == "cpp@1.3.1"
-
-    v = LibraryVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
-    assert v.version == Version("0.53.0-appsec.180045")
-    assert v.version == "0.53.0-appsec.180045"
-
-    v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1)")
-    assert v.version == Version("1.0.0-beta1")
-
-    v = LibraryVersion("ruby", "  * ddtrace (1.0.0.beta1 de82857)")
-    assert v.version == Version("1.0.0-beta1+de82857")
 
     v = LibraryVersion("libddwaf", "* libddwaf (1.0.14.1.0.beta1)")
     assert v.version == Version("1.0.14.1.0.beta1")

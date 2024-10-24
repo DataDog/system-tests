@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 
 
+### 2024-09 (157 PR merged)
+
+* 2024-09-23 [Remove legacy check on python 3.9](https://github.com/DataDog/system-tests/pull/3094) by @cbeauchesne
+* 2024-09-18 [Enforce JIRA ticket in bug/flaky declarations](https://github.com/DataDog/system-tests/pull/3034) by @cbeauchesne
+* 2024-09-12 [[ruby] Increment path in ruby "dev" version, and set a prerelease](https://github.com/DataDog/system-tests/pull/3022) by @cbeauchesne
+* 2024-09-12 [Removes system-tests-core form owners of manifests](https://github.com/DataDog/system-tests/pull/3018) by @cbeauchesne
+* 2024-09-06 [`-o xfail_strict=True` to force XPASS to fail](https://github.com/DataDog/system-tests/pull/2995) by @cbeauchesne
+* 2024-09-10 [Print weblog crash logs](https://github.com/DataDog/system-tests/pull/2912) by @simon-id
+
+
+### 2024-08 (102 PR merged)
+
+* 2024-08-29 [[java] Enable e2e tests on all spring-boot variants](https://github.com/DataDog/system-tests/pull/2946) by @smola
+* 2024-08-22 [[java] Use HTTP interface for parametric test](https://github.com/DataDog/system-tests/pull/2869) by @cbeauchesne
+* 2024-08-05 [parametric: adds a consistent interface for retrieving traces and spans](https://github.com/DataDog/system-tests/pull/2789) by @mabdinur
+* 2024-08-05 [[nodejs] allow mounting local dd-trace-js as weblog volume](https://github.com/DataDog/system-tests/pull/2777) by @rochdev
+
+
+### 2024-07 (166 PR merged)
+
+* 2024-07-22 [Ability to change the support state of meta struct of the agent](https://github.com/DataDog/system-tests/pull/2770) by @e-n-0
+* 2024-07-18 [Add better support for the new RC API](https://github.com/DataDog/system-tests/pull/2757) by @christophe-papazian
+* 2024-07-23 [Start containers in parallel](https://github.com/DataDog/system-tests/pull/2732) by @rochdev
+* 2024-07-10 [New Remote Config testing API](https://github.com/DataDog/system-tests/pull/2719) by @cbeauchesne
+* 2024-07-02 [OnBoarding: Host and container guardrail testing](https://github.com/DataDog/system-tests/pull/2647) by @robertomonteromiguel
+
+
 ### 2024-06 (92 PR merged)
 
 * 2024-06-26 [add pytest-split to allow splitting test running in groups](https://github.com/DataDog/system-tests/pull/2589) by @rochdev
@@ -31,7 +58,6 @@ All notable changes to this project will be documented in this file.
 
 ### 2024-03 (85 PR merged)
 
-* 2024-03-29 [Fix test that triggers false XPASS](https://github.com/DataDog/system-tests/pull/2281) by @cbeauchesne
 * 2024-03-27 [Add more ruby variants](https://github.com/DataDog/system-tests/pull/2246) by @lloeki
 * 2024-03-20 [New Ruby variant : Rails 7.1](https://github.com/DataDog/system-tests/pull/2242) by @lloeki
 * 2024-03-18 [Add OTel Interoperability System tests](https://github.com/DataDog/system-tests/pull/2128) by @PROFeNoM
@@ -49,7 +75,6 @@ All notable changes to this project will be documented in this file.
 
 ### 2024-01 (86 PR merged)
 
-* 2024-01-31 [Remove entirely the coverage decorator](https://github.com/DataDog/system-tests/pull/2091) by @cbeauchesne
 * 2024-01-29 [Check variant names in manifest validation](https://github.com/DataDog/system-tests/pull/2082) by @cbeauchesne
 * 2024-01-29 [Generate buddies on merge if needed](https://github.com/DataDog/system-tests/pull/2068) by @robertomonteromiguel
 * 2024-01-15 [Support for PHP unified client library](https://github.com/DataDog/system-tests/pull/1998) by @robertomonteromiguel
@@ -58,7 +83,6 @@ All notable changes to this project will be documented in this file.
 
 ### December 2023 (75 PR merged)
 
-* 2023-12-26 [Remove legacy coverage decorator](https://github.com/DataDog/system-tests/pull/1961) by @cbeauchesne (Testing coverage is not dependant of system-tests only, so it's now declared directly in Feature Parity Dashbaord)
 * 2023-12-27 Declare lot of features ID ([1](https://github.com/DataDog/system-tests/pull/1968), [2](https://github.com/DataDog/system-tests/pull/1952), [3](https://github.com/DataDog/system-tests/pull/1967), [4](https://github.com/DataDog/system-tests/pull/1928), [5](https://github.com/DataDog/system-tests/pull/1915), [6](https://github.com/DataDog/system-tests/pull/1910), [7](https://github.com/DataDog/system-tests/pull/1901)) by @cbeauchesne
 * 2023-12-01 [Add "features" decorator](https://github.com/DataDog/system-tests/pull/1883), and [ensure in CI that all tests has a features decorator](https://github.com/DataDog/system-tests/pull/1923) by @cbeauchesne
 * 2023-12-27 Parametric: allow to test dev version for [python](https://github.com/DataDog/system-tests/pull/1959), [java](https://github.com/DataDog/system-tests/pull/1937), [nodejs](https://github.com/DataDog/system-tests/pull/1941) and [golang](https://github.com/DataDog/system-tests/pull/1948) by @robertomonteromiguel

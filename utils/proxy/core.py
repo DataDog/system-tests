@@ -15,16 +15,25 @@ from _deserializer import deserialize
 os.umask(0)
 
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-handler.setFormatter(logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S"))
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
 
 messages_counts = defaultdict(int)
+
+
+class CustomFormatter(logging.Formatter):
+    def __init__(self, keys: list[str], *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._keys = keys
+
+    def format(self, record):
+        result = super().format(record)
+
+        for key in self._keys:
+            result = result.replace(key, "{redacted-by-system-tests-proxy}")
+
+        return result
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -36,9 +45,23 @@ class ObjectDumpEncoder(json.JSONEncoder):
 
 class _RequestLogger:
     def __init__(self) -> None:
-        self.dd_api_key = os.environ["DD_API_KEY"]
-        self.dd_application_key = os.environ.get("DD_APPLICATION_KEY")
-        self.dd_app_key = os.environ.get("DD_APP_KEY")
+        self._keys = [
+            os.environ["DD_API_KEY"],
+            os.environ.get("DD_APPLICATION_KEY"),
+            os.environ.get("DD_APP_KEY"),
+        ]
+
+        self._keys = [key for key in self._keys if key is not None]
+
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        formatter = CustomFormatter(
+            fmt="%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", datefmt="%H:%M:%S", keys=self._keys
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
         self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
 
         # request -> original port
@@ -50,7 +73,6 @@ class _RequestLogger:
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
         self.rc_api_command = None
-        self.rc_api_runtime_ids_applied = set()
 
         # mimic the old API
         self.rc_api_sequential_commands = None
@@ -58,11 +80,9 @@ class _RequestLogger:
 
     def _scrub(self, content):
         if isinstance(content, str):
-            content = content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
-            if self.dd_app_key:
-                content = content.replace(self.dd_app_key, "{redacted-by-system-tests-proxy}")
-            if self.dd_application_key:
-                content = content.replace(self.dd_application_key, "{redacted-by-system-tests-proxy}")
+            for key in self._keys:
+                content = content.replace(key, "{redacted-by-system-tests-proxy}")
+
             return content
 
         if isinstance(content, (list, set, tuple)):
@@ -93,7 +113,6 @@ class _RequestLogger:
                 if flow.request.path == "/unique_command":
                     logger.info("Store RC command to mock")
                     self.rc_api_command = flow.request.content
-                    self.rc_api_runtime_ids_applied.clear()
                     flow.response = http.Response.make(200, b"Ok")
                 elif flow.request.path == "/sequential_commands":
                     logger.info("Reset mocked RC sequential commands")
@@ -127,6 +146,10 @@ class _RequestLogger:
                     flow.request.scheme = "https"
                 elif otlp_path == "intake-metrics":
                     flow.request.host = "api." + os.environ.get("DD_SITE", "datad0g.com")
+                    flow.request.port = 443
+                    flow.request.scheme = "https"
+                elif otlp_path == "intake-logs":
+                    flow.request.host = "http-intake.logs." + os.environ.get("DD_SITE", "datad0g.com")
                     flow.request.port = 443
                     flow.request.scheme = "https"
                 else:
@@ -184,6 +207,7 @@ class _RequestLogger:
             message_count = messages_counts[interface]
             messages_counts[interface] += 1
             log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
+            export_content_files_to = f"{log_foldename}/files"
             log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
 
             data = {
@@ -204,12 +228,24 @@ class _RequestLogger:
                 },
             }
 
-            deserialize(data, key="request", content=flow.request.content, interface=interface)
+            deserialize(
+                data,
+                key="request",
+                content=flow.request.content,
+                interface=interface,
+                export_content_files_to=export_content_files_to,
+            )
 
             if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
                 data["response"] = None
             else:
-                deserialize(data, key="response", content=flow.response.content, interface=interface)
+                deserialize(
+                    data,
+                    key="response",
+                    content=flow.response.content,
+                    interface=interface,
+                    export_content_files_to=export_content_files_to,
+                )
 
             try:
                 data = self._scrub(data)
@@ -230,39 +266,31 @@ class _RequestLogger:
                 self._add_rc_capabilities_in_info_request(flow)
 
                 if flow.request.path == "/v0.7/config":
+
+                    # mimic the default response from the agent
+                    flow.response.status_code = 200
+                    flow.response.content = b"{}"
+                    flow.response.headers["Content-Type"] = "application/json"
+
                     if self.rc_api_command is not None:
                         request_content = json.loads(flow.request.content)
-                        runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
-
-                        if runtime_id in self.rc_api_runtime_ids_applied:
-                            # this runtime id has already been applied
-                            return
-
-                        logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
-
-                        flow.response.status_code = 200
+                        logger.info("    => modifying rc response")
                         flow.response.content = self.rc_api_command
 
-                        self.rc_api_runtime_ids_applied.add(runtime_id)
                     elif self.rc_api_sequential_commands is not None:
                         request_content = json.loads(flow.request.content)
                         runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
-                        logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
-                        logger.info(
-                            f"    => Overwriting /v0.7/config response #{self.rc_api_runtime_ids_request_count[runtime_id] + 1}"
-                        )
+                        nth_api_command = self.rc_api_runtime_ids_request_count[runtime_id]
+                        response = self.rc_api_sequential_commands[nth_api_command]
 
-                        if self.rc_api_runtime_ids_request_count[runtime_id] + 1 > len(self.rc_api_sequential_commands):
-                            response = {}  # default content when there isn't an RC update
-                        else:
-                            response = self.rc_api_sequential_commands[
-                                self.rc_api_runtime_ids_request_count[runtime_id]
-                            ]
+                        logger.info(f"    => Modifying RC response for runtime ID {runtime_id}")
+                        logger.info(f"    => Overwriting /v0.7/config response #{nth_api_command}")
 
-                        flow.response.status_code = 200
                         flow.response.content = json.dumps(response).encode()
+                        flow.response.headers["st-proxy-overwrite-rc-response"] = f"{nth_api_command}"
 
-                        self.rc_api_runtime_ids_request_count[runtime_id] += 1
+                        if nth_api_command + 1 < len(self.rc_api_sequential_commands):
+                            self.rc_api_runtime_ids_request_count[runtime_id] = nth_api_command + 1
 
             if self.span_meta_structs_disabled:
                 self._remove_meta_structs_support(flow)

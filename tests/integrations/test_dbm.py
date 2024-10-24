@@ -6,7 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, missing_feature
 from utils.tools import logger
 
 
@@ -97,7 +97,7 @@ class Test_Dbm:
     setup_trace_payload_disabled = weblog_trace_payload
 
     # Test Methods
-    @scenarios.appsec_disabled
+    @scenarios.everything_disabled
     def test_trace_payload_disabled(self):
         assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()
@@ -118,7 +118,8 @@ class Test_Dbm:
         for request in self.requests:
             span = self._get_db_span(request)
 
-            if span.get("meta", {}).get("db.type") == "sql-server":
+            # full mode for sql server is supported in dotnet (via the context_info)
+            if self.library_name != "dotnet" and span.get("meta", {}).get("db.type") == "sql-server":
                 self._assert_span_is_untagged(span)
             else:
                 self._assert_span_is_tagged(span)
@@ -180,6 +181,10 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_Test_Dbm_Comment):
     dddb = "system_tests_dbname"  # db name
     dddbs = "system_tests_dbname"  # db name
     ddh = "postgres"  # container name
+
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
@@ -256,6 +261,10 @@ class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
 
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
+
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
@@ -267,6 +276,10 @@ class Test_Dbm_Comment_Batch_Python_Mysqldb(_Test_Dbm_Comment):
     dddb = "mysql_dbname"  # db name
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
+
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
 
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
@@ -280,6 +293,10 @@ class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
 
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
+
 
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
@@ -291,6 +308,10 @@ class Test_Dbm_Comment_Batch_Python_Pymysql(_Test_Dbm_Comment):
     dddb = "mysql_dbname"  # db name
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
+
+    @flaky(library="python", reason="APMAPI-724")
+    def test_dbm_comment(self):
+        return super().test_dbm_comment()
 
 
 @irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")

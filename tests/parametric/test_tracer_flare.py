@@ -157,6 +157,7 @@ class TestTracerFlareV1:
         events = test_agent.wait_for_telemetry_event("app-started")
         assert len(events) > 0
 
+    @missing_feature(library="php", reason="APMLP-195")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_flare_log_level_order(self, library_env, test_agent, test_library):
         test_agent.set_remote_config(
@@ -164,6 +165,7 @@ class TestTracerFlareV1:
         )
         test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2)
 
+    @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare(self, library_env, test_agent, test_library):
@@ -171,6 +173,7 @@ class TestTracerFlareV1:
 
         assert_valid_zip(tracer_flare["flare_file"])
 
+    @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @missing_feature(
         context.library < "java@1.38.0", reason="tracer log in flare has been implemented at version 1.38.0"
@@ -197,6 +200,7 @@ class TestTracerFlareV1:
             assert_java_log_file_debug(tracer_flare["flare_file"])
         assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
 
+    @missing_feature(library="php", reason="APMLP-195")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
         task_config = {

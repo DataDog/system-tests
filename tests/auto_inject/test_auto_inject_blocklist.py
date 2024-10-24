@@ -5,6 +5,7 @@ from utils import scenarios, context, features
 from utils.tools import logger
 from utils import irrelevant
 from utils.onboarding.injection_log_parser import command_injection_skipped
+from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
 class _AutoInjectBlockListBaseTest:
@@ -16,6 +17,7 @@ class _AutoInjectBlockListBaseTest:
         "python": "DD_PYTHON_IGNORED_ARGS",
         "nodejs": "DD_NODE_IGNORED_ARGS",
         "ruby": "DD_RUBY_IGNORED_ARGS",
+        "php": "DD_PHP_IGNORED_ARGS",
     }
 
     yml_config_template = """
@@ -25,7 +27,7 @@ output_paths:
   - file:///tmp/host_injection.log
 env: dev
 config_sources: BASIC
-ignored_processes: 
+ignored_processes:
         - DD_IGNORED_PROCESSES
 ignored_arguments:
     Java:
@@ -38,6 +40,8 @@ ignored_arguments:
         - DD_NODE_IGNORED_ARGS
     Ruby:
         - DD_RUBY_IGNORED_ARGS
+    PHP:
+        - DD_PHP_IGNORED_ARGS
 """
 
     def _execute_remote_command(self, ssh_client, command, config={}, use_injection_config=False):
@@ -206,12 +210,25 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"ignored_args": "test1,test2", "command": "ruby names.rb --name pepe", "skip": False},
             {"ignored_args": "--name", "command": "ruby names.rb --name pepe", "skip": True},
         ],
+        "php": [
+            {"ignored_args": "", "command": "php index.php -a -b -c", "skip": False},
+            {"ignored_args": "-c", "command": "php index.php -a -b -c", "skip": True},
+            {"ignored_args": "", "command": "php index.php -f --custom Override", "skip": False},
+            {"ignored_args": "--custom", "command": "php index.php -f --custom Override", "skip": True},
+        ],
     }
 
     @irrelevant(
         condition="datadog-apm-inject" not in context.scenario.components
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
+    )
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+        ]
     )
     def test_builtIn_block_commands(self, virtual_machine):
         """ Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block """
@@ -227,6 +244,13 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
     )
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_builtIn_block_args(self, virtual_machine):
         """ Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
         language = context.scenario.library.library
@@ -240,6 +264,13 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         condition="datadog-apm-inject" not in context.scenario.components
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
+    )
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+        ]
     )
     def test_builtIn_instrument_args(self, virtual_machine):
         """ Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
@@ -264,8 +295,15 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or context.scenario.components["datadog-apm-inject"] < "0.12.4",
         reason="Block list not fully implemented ",
     )
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_user_ignored_args(self, virtual_machine):
-        """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
+        """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python,php) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
         language = context.scenario.library.library
         if language in self.user_args_commands:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, bug, weblog, features
-from ..utils import BaseSinkTest
+from ..utils import BaseSinkTest, BaseTestCookieNameFilter
 
 
 @features.iast_sink_samesite_cookie
@@ -17,14 +17,13 @@ class TestNoSamesiteCookie(BaseSinkTest):
     data = {}
     location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
-    @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
+    @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):
         super().test_secure()
 
     def setup_empty_cookie(self):
         self.request_empty_cookie = weblog.get("/iast/no-samesite-cookie/test_empty_cookie", data={})
 
-    @missing_feature(library="python", reason="Endpoint not implemented")
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)
 
@@ -38,3 +37,11 @@ class TestNoSamesiteCookie(BaseSinkTest):
     @missing_feature(weblog_variant="vertx4", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+
+@features.iast_sink_samesite_cookie
+class TestNoSamesiteCookieNameFilter(BaseTestCookieNameFilter):
+    """Test no SameSite cookie name filter."""
+
+    vulnerability_type = "NO_SAMESITE_COOKIE"
+    endpoint = "/iast/no-samesite-cookie/custom_cookie"
