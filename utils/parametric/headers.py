@@ -4,6 +4,6 @@ def make_single_request_and_get_inject_headers(test_library, headers):
         return {k.lower(): v for k, v in headers}
 
 
-def extract_headers_and_make_child_span(test_library, span_name, headers):
-    parent_id = test_library.extract_headers(http_headers=headers)
-    return test_library.start_span(name=span_name, parent_id=parent_id,)
+def extract_headers_and_make_child_span(test_library, name, http_headers):
+    parent_id = test_library.extract_headers(http_headers=http_headers)
+    return test_library.start_span(name=name, parent_id=parent_id,)
