@@ -152,5 +152,5 @@ wait_backend_trace_id = wait_backend_data
 def cause_and_verify_crash(runtime_id: str, vm_ip: str, vm_port: str):
     logger.info(f"Making a crash-inducing request to weblog [{vm_ip}:{vm_port}]")
     make_get_request(f"http://{vm_ip}:{vm_port}/crashme", swallow=True)
-    (status,) = _retry_request_until_timeout(functools.partial(_query_for_crash_log, runtime_id), timeout=20.0)
+    (_,) = _retry_request_until_timeout(functools.partial(_query_for_crash_log, runtime_id), timeout=20.0)
     logger.info(f"crash from runtime {runtime_id} found in the backend!")
