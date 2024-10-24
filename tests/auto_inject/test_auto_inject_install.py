@@ -8,7 +8,13 @@ from utils.virtual_machine.utils import parametrize_virtual_machines
 @features.host_auto_installation_script
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine)
 
@@ -24,7 +30,12 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
 @features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
+            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
+        ]
+    )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
@@ -34,7 +45,9 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
 @features.host_auto_installation_script_profiling
 @scenarios.host_auto_injection_install_script_profiling
 class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"}]
+    )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
@@ -44,7 +57,13 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection_ld_preload
 class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_install_after_ld_preload(self, virtual_machine):
         """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
@@ -56,7 +75,9 @@ class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
     @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[{"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"}]
+    )
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine)
 
@@ -64,7 +85,9 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
 @features.container_auto_installation_script_profiling
 @scenarios.container_auto_injection_install_script_profiling
 class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"}]
+    )
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine, profile=True)
 
@@ -76,7 +99,14 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     #  on the installer. As we can't only uninstall the injector, we are skipping
     #  the uninstall test today
     @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
     def test_install_uninstall(self, virtual_machine):
         logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
         logger.info(f"Check install for : [{virtual_machine.name}]")
@@ -91,7 +121,12 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
     @parametrize_virtual_machines(
-        bugs=[{"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"}]
+        bugs=[
+            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
     )
     def test_install(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
