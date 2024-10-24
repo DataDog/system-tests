@@ -1,0 +1,71 @@
+{
+  "snapshot_0": {
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "5f912ba7423f30b14ee451cce708e82e13827ab305793399b3352d2c8baac",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_1": {
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "5f912ba7423f30b14ee451cce708e82e13827ab305793399b3352d2c8baac",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_2": {
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "5f912ba7423f30b14ee451cce708e82e13827ab305793399b3352d2c8baac",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_3": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "5f912ba7423f30b14ee451cce708e82e13827ab305793399b3352d2c8baac",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_4": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "5f912ba7423f30b14ee451cce708e82e13827ab305793399b3352d2c8baac",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_5": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "5f912ba7423f30b14ee451cce708e82e13827ab305793399b3352d2c8baac",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_6": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "c94cf7681cb3ab676fe2b64e92717e4aed577cb9f5f6a4739e44c635",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_7": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "c94cf7681cb3ab676fe2b64e92717e4aed577cb9f5f6a4739e44c635",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_8": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "c94cf7681cb3ab676fe2b64e92717e4aed577cb9f5f6a4739e44c635",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_9": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "c94cf7681cb3ab676fe2b64e92717e4aed577cb9f5f6a4739e44c635",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_10": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "c94cf7681cb3ab676fe2b64e92717e4aed577cb9f5f6a4739e44c635",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  },
+  "snapshot_11": {
+    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.81.snapshot_id": "<scrubbed>",
+    "_dd.debug.error.exception_hash": "c94cf7681cb3ab676fe2b64e92717e4aed577cb9f5f6a4739e44c635",
+    "_dd.debug.error.exception_id": "<scrubbed>"
+  }
+}

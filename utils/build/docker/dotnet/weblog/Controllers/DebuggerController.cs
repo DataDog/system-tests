@@ -168,5 +168,27 @@ namespace weblog
                 throw new System.Exception("Outer exception", ex);
             }
         }
+
+        [HttpGet("exceptionreplay/rps")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayRockPaperScissors(string shape)
+        {
+            if (shape == "rock")
+            {
+                throw new ExceptionReplayRock();
+            }
+
+            if (shape == "paper")
+            {
+                throw new ExceptionReplayPaper();
+            }
+
+            if (shape == "scissors")
+            {
+                throw new ExceptionReplayScissors();
+            }
+
+            return Content("No exception");
+        }
     }
 }
