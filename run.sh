@@ -204,7 +204,7 @@ function run_scenario() {
                 -v "${PWD}"/.env:/app/.env
               )
             fi
-            cmd=(
+            cmd+=(
                 -v /var/run/docker.sock:/var/run/docker.sock
                 -v "${PWD}/${log_dir}":"/app/${log_dir}"
                 -e SYSTEM_TESTS_PROXY_HOST=proxy
