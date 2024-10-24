@@ -2,6 +2,7 @@ package com.datadoghq.vertx4;
 
 import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx4.iast.routes.IastSourceRouteProvider;
 import com.datadoghq.vertx4.rasp.RaspRouteProvider;
@@ -48,6 +49,7 @@ public class Main {
     }
 
     private static final OkHttpClient client = new OkHttpClient();
+    private static final CryptoExamples cryptoExamples = new CryptoExamples();
 
     public static void main(String[] args) {
         Vertx vertx = Vertx.vertx();
@@ -175,6 +177,30 @@ public class Main {
                 });
         router.get("/requestdownstream")
                 .handler(ctx -> {
+                    String url = "http://localhost:7777/returnheaders";
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            ctx.response().setStatusCode(500).end(e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                ctx.response().setStatusCode(500).end(response.message());
+                            } else {
+                                ctx.response().end(response.body().string());
+                            }
+                        }
+                    });
+                });
+        router.get("/vulnerablerequestdownstream")
+                .handler(ctx -> {
+                    cryptoExamples.insecureMd5Hashing("password");
                     String url = "http://localhost:7777/returnheaders";
                     Request request = new Request.Builder()
                             .url(url)

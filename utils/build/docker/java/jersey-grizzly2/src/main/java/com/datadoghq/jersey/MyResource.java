@@ -35,6 +35,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
 
+    private final CryptoExamples cryptoExamples = new CryptoExamples();
+
     @GET
     public String hello() {
         var tracer = GlobalTracer.get();
@@ -279,6 +281,14 @@ public class MyResource {
     @GET
     @Path("/requestdownstream")
     public String requestdownstream() {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GET
+    @Path("/vulnerablerequestdownstream")
+    public String vulnerableRequestdownstream() {
+        cryptoExamples.insecureMd5Hashing("password");
         String url = "http://localhost:7777/returnheaders";
         return Utils.sendGetRequest(url);
     }
