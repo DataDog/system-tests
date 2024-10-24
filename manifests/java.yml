@@ -730,6 +730,10 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_iast_standalone.py:
+      Test_IastSecStandalone_UpstreamPropagation:
+        '*': v1.36.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
