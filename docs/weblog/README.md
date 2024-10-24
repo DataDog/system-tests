@@ -734,6 +734,12 @@ This endpoint get a `name` and a `value` form the query string, and adds a heade
 
 This endpoint is the initial endpoint used to test session fingerprints, consequently it must initialize a new session and the web client should be able to deal with the persistence mechanism (e.g. cookies).
 
+Returns the identifier of the created session id :
+
+```text
+c377db41-b664-4e30-af57-5df2e803bec7
+```
+
 Examples:
 - `GET`: `/session/new`
 
@@ -746,3 +752,13 @@ Query parameters required in the `GET` method:
 
 Examples:
 - `GET`: `/session/user?sdk_user=sdkUser`
+
+### \[GET\] /user/me
+
+A call to `/user/me` can be done in order to get the current user id logged in the system.
+
+Expected query parameters:
+- `sdk_user`: (optional) the sdk will be used to generate a login event with the selected user
+
+Examples:
+- `GET`: `/user/me?sdk_user=sdkUser`

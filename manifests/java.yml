@@ -1,3 +1,16 @@
+refs:
+  - missing_feature_login_endpoints: &missing_feature_login_endpoints
+      '*': missing_feature (to be overridden)
+      akka-http: missing_feature (login endpoints not implemented)
+      jersey-grizzly2: missing_feature (login endpoints not implemented)
+      play: missing_feature (login endpoints not implemented)
+      ratpack: missing_feature (login endpoints not implemented)
+      resteasy-netty3: missing_feature (login endpoints not implemented)
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      spring-boot-openliberty: missing_feature (weblog returns error 500)
+      vertx3: missing_feature (login endpoints not implemented)
+      vertx4: missing_feature (login endpoints not implemented)
+
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -734,38 +747,23 @@ tests/:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_V2_Login_Events:
+        <<: *missing_feature_login_endpoints
         '*': v1.38.0
-        akka-http: missing_feature (login endpoints not implemented)
-        jersey-grizzly2: missing_feature (login endpoints not implemented)
-        play: missing_feature (login endpoints not implemented)
-        ratpack: missing_feature (login endpoints not implemented)
-        resteasy-netty3: missing_feature (login endpoints not implemented)
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
-        vertx3: missing_feature (login endpoints not implemented)
-        vertx4: missing_feature (login endpoints not implemented)
       Test_V2_Login_Events_Anon:
+        <<: *missing_feature_login_endpoints
         '*': v1.38.0
-        akka-http: missing_feature (login endpoints not implemented)
-        jersey-grizzly2: missing_feature (login endpoints not implemented)
-        play: missing_feature (login endpoints not implemented)
-        ratpack: missing_feature (login endpoints not implemented)
-        resteasy-netty3: missing_feature (login endpoints not implemented)
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
-        vertx3: missing_feature (login endpoints not implemented)
-        vertx4: missing_feature (login endpoints not implemented)
       Test_V2_Login_Events_RC:
+        <<: *missing_feature_login_endpoints
         '*': v1.38.0
-        akka-http: missing_feature (login endpoints not implemented)
-        jersey-grizzly2: missing_feature (login endpoints not implemented)
-        play: missing_feature (login endpoints not implemented)
-        ratpack: missing_feature (login endpoints not implemented)
-        resteasy-netty3: missing_feature (login endpoints not implemented)
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
-        vertx3: missing_feature (login endpoints not implemented)
-        vertx4: missing_feature (login endpoints not implemented)
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: bug (APPSEC-55498)
+      Test_Automated_Session_Tracking:
+        <<: *missing_feature_login_endpoints
+        '*': v1.39.0
+      Test_Automated_User_Blocking: bug (APPSEC-55498)
+      Test_Automated_User_Tracking:
+        <<: *missing_feature_login_endpoints
+        '*': v1.39.0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:

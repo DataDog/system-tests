@@ -28,6 +28,9 @@ import datadog.trace.api.interceptor.MutableSpan;
 
 
 import java.nio.charset.StandardCharsets;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 
@@ -73,6 +76,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Scanner;
@@ -215,6 +219,18 @@ public class App {
         EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
         tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
         return ResponseEntity.ok(request.getRequestedSessionId());
+    }
+
+    @GetMapping(value = "/user/me")
+    ResponseEntity<String> user(@RequestParam(value = "sdk_user", required = false) final String sdkUser) {
+        if (sdkUser != null) {
+            EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
+            tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+            return ResponseEntity.ok(sdkUser);
+        } else {
+            final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            return ResponseEntity.ok(authentication.getName());
+        }
     }
 
     @RequestMapping("/status")
