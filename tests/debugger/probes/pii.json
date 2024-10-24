@@ -1,5 +1,6 @@
 [
     {
+        "type": "LOG_PROBE",
         "language": "",
         "pii": "",
         "id": "log170aa-acda-4453-9111-1478a6method",
@@ -9,6 +10,7 @@
             "sourceFile": null
         },
         "evaluateAt": "EXIT",
+        "segments": [],
         "captureSnapshot": true,
         "capture": {
             "maxFieldCount": 200

@@ -69,23 +69,23 @@ public class DebuggerController {
         return "Great success number " + localValue;
     }
 
-    @GetMapping("/expression/exception")
+    @GetMapping("/expression_exception")
     public Void expressionException() {
         throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Hello from exception");
     }
 
-    @GetMapping("/expression/operators")
+    @GetMapping("/expression_operators")
     public String expressionOperators(@RequestParam int intValue, @RequestParam float floatValue, @RequestParam String strValue) {
         return "Int value " + intValue + ". Float value " + floatValue + ". String value is " + strValue + ".";
     }
 
-    @GetMapping("/expression/strings")
-    public String stringOperations(@RequestParam String strValue, @RequestParam(required = false, defaultValue = "") String emptyString, @RequestParam(required = false) String nullString) {
+    @GetMapping("/expression_strings")
+    public String ExpressionStrings(@RequestParam String strValue, @RequestParam(required = false, defaultValue = "") String emptyString, @RequestParam(required = false) String nullString) {
         return "strValue " + strValue +". emptyString " + emptyString + ". " + nullString + ".";
     }
 
-    @GetMapping("/expression/collections")
-    public String stringOperations() {
+    @GetMapping("/expression_collection_operations")
+    public String CollectionOperations() {
         CollectionFactory factory = new CollectionFactory();
 
         Object a0 = factory.getCollection(0, "array");
@@ -111,8 +111,8 @@ public class DebuggerController {
         return a0Count + "," + a1Count + "," + a5Count + "," + l0Count + "," + l1Count + "," + l5Count + "," + h0Count + "," + h1Count + "," + h5Count + ".";
     }
 
-    @GetMapping("/expression/null")
-     public String nulls(
+    @GetMapping("/expression_nulls")
+    public String ExpressionNulls(
             @RequestParam(required = false) Integer intValue,
             @RequestParam(required = false) String strValue) {
         PiiBase pii = null;
@@ -122,12 +122,12 @@ public class DebuggerController {
                 ". strValue is null " + (strValue == null) + ".";
     }
 
-    @GetMapping("/exceptionreplay/simple")
+    @GetMapping("/exceptionreplay_simple")
     public Void exceptionReplaySimple() {
         throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Simple exception");
     }
 
-    @GetMapping("/exceptionreplay/recursion5")
+    @GetMapping("/exceptionreplay_recursion5")
     public String exceptionReplayRecursion5(@RequestParam(required = false, defaultValue = "5") Integer depth) {
         if (depth > 0) {
             return exceptionReplayRecursion5(depth - 1);
@@ -136,7 +136,7 @@ public class DebuggerController {
         }
     }
 
-    @GetMapping("/exceptionreplay/recursion20")
+    @GetMapping("/exceptionreplay_recursion20")
     public String exceptionReplayRecursion20(@RequestParam(required = false, defaultValue = "20") Integer depth) {
         if (depth > 0) {
             return exceptionReplayRecursion20(depth - 1);
@@ -145,7 +145,7 @@ public class DebuggerController {
         }
     }
 
-    @GetMapping("/exceptionreplay/inner")
+    @GetMapping("/exceptionreplay_inner")
     public Void exceptionReplayInner() {
         try {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Inner exception");

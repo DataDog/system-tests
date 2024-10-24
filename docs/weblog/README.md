@@ -587,10 +587,10 @@ This endpoint will be used to validate the span decoration probe.
 #### GET /debugger/pii
 This endpoint will be used to validate Dynamic Instrumentation pii redaction feature.
 
-#### GET /expression/*
+#### GET /expression*
 These endpoints will be used to validate Dynamic Instrumentation expression language feature.
 
-#### GET /exceptionreplay/*
+#### GET /exceptionreplay*
 These endpoints will be used to validate Dynamic Instrumentation exception replay feature.
 
 ### GET /createextraservice
