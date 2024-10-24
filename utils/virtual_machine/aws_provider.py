@@ -5,8 +5,10 @@ import time
 import requests
 import tempfile
 from random import randint
+from retry import retry
 
 import paramiko
+import random
 
 from pulumi import automation as auto
 import pulumi
@@ -87,7 +89,7 @@ class AWSPulumiProvider(VmProvider):
             vm.name,
             instance_type=vm.aws_config.ami_instance_type,
             vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
-            subnet_id=vm.aws_config.aws_infra_config.subnet_id,
+            subnet_id=random.choice(vm.aws_config.aws_infra_config.subnet_id),
             key_name=self.pulumi_ssh.keypair_name,
             ami=vm.aws_config.ami_id,
             tags=self._get_ec2_tags(vm),
@@ -214,7 +216,17 @@ class AWSPulumiProvider(VmProvider):
         logger.info(f"Tags for the VM [{vm.name}]: {tags}")
         return tags
 
+    @retry(delay=10, tries=30)
     def _check_running_instances(self):
+        """ Check the number of running instances in the AWS account
+       if there are more than 500 instances, we will wait until they are destroyed """
+
+        ec2_ids = self._print_running_instances()
+        if len(ec2_ids) > 500:
+            logger.stdout(f"THERE ARE TOO MANY EC2 INSTANCES RUNNING. Waiting for the instances to be destroyed")
+            raise Exception("Too many ec2 instances running")
+
+    def _print_running_instances(self):
         """ Print the instances created by system-tests and still running in the AWS account """
 
         instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
@@ -224,6 +236,7 @@ class AWSPulumiProvider(VmProvider):
             logger.info(f"- Instance id: [{instance_id}]  status:[running] (created by other execution)")
 
         logger.info(f"Total tags: {instances.instance_tags}")
+        return instances.ids
 
     def _check_available_cached_amis(self):
         """ Print the AMI Caches availables in the AWS account and created by system-tests """
