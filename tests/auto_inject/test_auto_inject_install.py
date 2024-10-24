@@ -83,11 +83,22 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         self._test_install(virtual_machine, profile=True)
 
 
+@features.installer_auto_instrumentation
 @scenarios.container_auto_injection_install_script_crashtracking
 class TestContainerAutoInjectInstallScriptCrashTracking(base.AutoInjectBaseTest):
     @parametrize_virtual_machines()
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine, crashlog=True)
+
+
+@features.installer_auto_instrumentation
+@scenarios.container_auto_injection_install_script_crashtracking
+class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines()
+    def test_install(self, virtual_machine):
+        command_output = self.execute_command(virtual_machine, "ps aux")
+
+        logger.info("Command output: " + command_output)
 
 
 @features.installer_auto_instrumentation

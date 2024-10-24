@@ -92,7 +92,8 @@ def _query_for_crash_log(runtime_id):
             "filter": {
                 "from": time_from.isoformat(timespec="seconds"),
                 "to": time_to.isoformat(timespec="seconds"),
-                "query": f'service:instrumentation-telemetry-data (@tags.severity:crash OR severity:crash OR signum:*) @metadata.tags:"runtime-id:{runtime_id}"',
+                "query": "service:instrumentation-telemetry-data (@tags.severity:crash OR severity:crash OR signum:*)"
+                + f' @metadata.tags:"runtime-id:{runtime_id}"',
             },
         }
         logger.debug(f"Posting to {host}{path} with query: {queryJson}")
@@ -135,12 +136,12 @@ def wait_backend_data(
 ) -> Optional[str]:
     runtime_id = None
     if trace_id is not None:
-        status, runtime_id = _retry_request_until_timeout(
+        _, runtime_id = _retry_request_until_timeout(
             functools.partial(_query_for_trace_id, trace_id, validator=validator), timeout=10.0
         )
         logger.info(f"trace [{trace_id}] found in the backend!")
     if profile and runtime_id is not None:
-        (status,) = _retry_request_until_timeout(functools.partial(_query_for_profile, runtime_id))
+        (_,) = _retry_request_until_timeout(functools.partial(_query_for_profile, runtime_id))
         logger.info(f"profile for trace [{trace_id}] (runtime [{runtime_id}]) found in the backend!")
     return runtime_id
 

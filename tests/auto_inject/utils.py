@@ -62,6 +62,8 @@ class AutoInjectBaseTest:
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
+            return command_output
+
     def _test_uninstall_commands(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
     ):
