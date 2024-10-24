@@ -68,7 +68,7 @@ onboarding_install_extra_vms:
           TEST_LIBRARY: "php"
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
@@ -105,7 +105,7 @@ onboarding_nodejs:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_java:
   extends: .base_job_onboarding_system_tests
@@ -146,7 +146,7 @@ onboarding_java:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_python:
   extends: .base_job_onboarding_system_tests
@@ -198,7 +198,7 @@ onboarding_python:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
@@ -233,7 +233,7 @@ onboarding_dotnet:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_ruby:
   extends: .base_job_onboarding_system_tests
@@ -268,7 +268,7 @@ onboarding_ruby:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_php:
   extends: .base_job_onboarding_system_tests
@@ -306,15 +306,14 @@ onboarding_php:
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
-
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"
   before_script:
     #We need authenticate on git repository
     - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
@@ -370,4 +369,3 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
-

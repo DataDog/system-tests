@@ -297,6 +297,20 @@ class Intallation:
         self.remote_command = None
         self.copy_files = []
 
+    def __repr__(self):
+        """ We use this method to calculate the hash of the object (cache)"""
+        return (
+            self.id
+            + "_"
+            + (self.local_command or "")
+            + "_"
+            + (self.remote_command or "")
+            + "_"
+            + (self.local_script or "")
+            + "_"
+            + repr(self.copy_files)
+        )
+
 
 class CopyFile:
     def __init__(self, name, remote_path, local_path, git_path):
@@ -304,6 +318,16 @@ class CopyFile:
         self.local_path = local_path
         self.git_path = git_path
         self.name = name
+
+    def __repr__(self):
+        """ We use this method to calculate the hash of the object (cache)"""
+        return (
+            (self.remote_path or "")
+            + "_"
+            + (self.git_path if self.git_path else self.local_path or "")
+            + "_"
+            + self.name
+        )
 
 
 provisioner = VirtualMachineProvisioner()
