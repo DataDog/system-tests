@@ -515,9 +515,9 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking(self):
         self.rm_req_block = weblog.get(
-            f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
-            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
-            headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
+            f"/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
     @irrelevant(
@@ -531,14 +531,14 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.post(
-            "/tag_value/clean_value_3882/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            "/tag_value/clean_value_3882/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
             data={"good": "value"},
-            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
         )
         self.block_req2 = weblog.get(
-            f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
-            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
-            headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
+            f"/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
     @irrelevant(
@@ -559,9 +559,9 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking_without_path_params(self):
         self.rm_req_block = weblog.get(
-            f"/tag_value/path_param_wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
-            cookies={"foo": "qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
-            headers={"content-type": "text/plain", "client": "siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
+            f"/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+            headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
 
     def test_blocking_without_path_params(self):
@@ -571,14 +571,14 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking_before_without_path_params(self):
         self.set_req1 = weblog.post(
-            "/tag_value/clean_value_3882/200?attack=T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            "/tag_value/clean_value_3882/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
             data={"good": "value"},
-            cookies={"foo": "qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+            cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
         )
         self.block_req2 = weblog.get(
-            f"/tag_value/path_param_wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
-            cookies={"foo": "qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
-            headers={"content-type": "text/plain", "client": "siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
+            f"/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+            headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
 
     def test_blocking_before_without_path_params(self):

@@ -521,7 +521,7 @@
                 "address": "server.request.uri.raw"
               }
             ],
-            "regex": "ypMrmzrWATkLrPKLblvpRGGltBSgHWrK"
+            "regex": "malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK"
           },
           "operator": "match_regex"
         },
@@ -532,7 +532,7 @@
                 "address": "server.request.path_params"
               }
             ],
-            "regex": "cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc"
+            "regex": "malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc"
           },
           "operator": "match_regex"
         },
@@ -543,7 +543,7 @@
                 "address": "server.request.query"
               }
             ],
-            "regex": "SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ"
+            "regex": "malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ"
           },
           "operator": "match_regex"
         },
@@ -554,7 +554,7 @@
                 "address": "server.request.headers.no_cookies"
               }
             ],
-            "regex": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"
+            "regex": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"
           },
           "operator": "match_regex"
         },
@@ -565,7 +565,7 @@
                 "address": "server.request.cookies"
               }
             ],
-            "regex": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"
+            "regex": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"
           },
           "operator": "match_regex"
         }
@@ -602,7 +602,7 @@
                 "address": "server.request.uri.raw"
               }
             ],
-            "regex": "wX1GdUiWdVdoklf0pYBi5kQApO9i77tN"
+            "regex": "malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN"
           },
           "operator": "match_regex"
         },
@@ -613,7 +613,7 @@
                 "address": "server.request.query"
               }
             ],
-            "regex": "T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ"
+            "regex": "malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ"
           },
           "operator": "match_regex"
         },
@@ -624,7 +624,7 @@
                 "address": "server.request.headers.no_cookies"
               }
             ],
-            "regex": "siDzyETAdkvKahD3PxlvIqcE0fMIVywE"
+            "regex": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"
           },
           "operator": "match_regex"
         },
@@ -635,7 +635,7 @@
                 "address": "server.request.cookies"
               }
             ],
-            "regex": "qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"
+            "regex": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"
           },
           "operator": "match_regex"
         }
