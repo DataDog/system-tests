@@ -66,8 +66,6 @@ jobs:
 
       - name: Run EXTERNAL_PROCESSING scenario
         run: ./run.sh EXTERNAL_PROCESSING
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
       - name: Compress logs
         id: compress_logs
