@@ -204,19 +204,29 @@ function run_scenario() {
                 -v "${PWD}"/.env:/app/.env
               )
             fi
+            cmd=(
+                -v /var/run/docker.sock:/var/run/docker.sock
+                -v "${PWD}/${log_dir}":"/app/${log_dir}"
+                -e SYSTEM_TESTS_PROXY_HOST=proxy
+                -e SYSTEM_TESTS_WEBLOG_HOST=weblog
+                -e SYSTEM_TESTS_WEBLOG_PORT=7777
+                -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778
+                -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}"
+            )
+
+            # Loop through all environment variables for AWS_ and SYSTEM_TESTS_AWS_
+            for var in $(printenv | grep -E '^(AWS_|SYSTEM_TESTS_AWS_)'); do
+                # Extract the variable name
+                var_name=$(echo $var | cut -d '=' -f 1)
+                # Add it to the command
+                cmd+=(-e "$var_name=${!var_name}")
+            done
+
+            # Add the rest of the docker command
             cmd+=(
-              -v /var/run/docker.sock:/var/run/docker.sock
-              -v "${PWD}/${log_dir}":"/app/${log_dir}"
-              -e SYSTEM_TESTS_PROXY_HOST=proxy
-              -e SYSTEM_TESTS_WEBLOG_HOST=weblog
-              -e SYSTEM_TESTS_WEBLOG_PORT=7777
-              -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778
-              -e SYSTEM_TESTS_HOST_PROJECT_DIR="${PWD}"
-              -e SYSTEM_TESTS_AWS_ACCESS_KEY_ID="${SYSTEM_TESTS_AWS_ACCESS_KEY_ID}"
-              -e SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY="${SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY}"
-              --name system-tests-runner
-              system_tests/runner
-              venv/bin/pytest
+                --name system-tests-runner
+                system_tests/runner
+                venv/bin/pytest
             )
             ;;
         'direct')
