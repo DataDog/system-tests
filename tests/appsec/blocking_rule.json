@@ -521,7 +521,7 @@
                 "address": "server.request.uri.raw"
               }
             ],
-            "regex": "ypMrmzrWATkLrPKLblvpRGGltBSgHWrK"
+            "regex": "malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK"
           },
           "operator": "match_regex"
         },
@@ -532,7 +532,7 @@
                 "address": "server.request.path_params"
               }
             ],
-            "regex": "cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc"
+            "regex": "malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc"
           },
           "operator": "match_regex"
         },
@@ -543,7 +543,7 @@
                 "address": "server.request.query"
               }
             ],
-            "regex": "SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ"
+            "regex": "malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ"
           },
           "operator": "match_regex"
         },
@@ -554,7 +554,7 @@
                 "address": "server.request.headers.no_cookies"
               }
             ],
-            "regex": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"
+            "regex": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"
           },
           "operator": "match_regex"
         },
@@ -565,7 +565,77 @@
                 "address": "server.request.cookies"
               }
             ],
-            "regex": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"
+            "regex": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "tst-037-013",
+      "name": "Test block on multiple request addresses (without path_params)",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000013",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.method"
+              }
+            ],
+            "regex": "GET"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "regex": "malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "regex": "malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies"
+              }
+            ],
+            "regex": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"
+          },
+          "operator": "match_regex"
+        },
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.cookies"
+              }
+            ],
+            "regex": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"
           },
           "operator": "match_regex"
         }
