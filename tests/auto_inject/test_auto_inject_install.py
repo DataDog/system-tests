@@ -100,6 +100,8 @@ class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoIn
 
         logger.info("Command output: " + command_output)
 
+        assert(False)
+
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
