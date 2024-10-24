@@ -170,7 +170,15 @@ class TestTracerFlareV1:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
+        assert_valid_zip(tracer_flare["flare_file"])
 
+    @missing_feature(library="php", reason="APMLP-195")
+    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
+        log_cfg_id = _set_log_level(test_agent, "debug")
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
+        _clear_log_level(test_agent, log_cfg_id)
         assert_valid_zip(tracer_flare["flare_file"])
 
     @missing_feature(library="php", reason="APMLP-195")
@@ -187,9 +195,11 @@ class TestTracerFlareV1:
             assert_java_log_file(tracer_flare["flare_file"])
         assert_expected_files(tracer_flare["flare_file"], files, xor_sets)
 
+    @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
+    @missing_feature(context.library < "java@1.42.0", reason="config id needed to be a specific string before 1.42.0")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
+    def test_tracer_flare_content_with_debug(self, library_env, test_agent, test_library):
         log_cfg_id = _set_log_level(test_agent, "debug")
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
         _clear_log_level(test_agent, log_cfg_id)
