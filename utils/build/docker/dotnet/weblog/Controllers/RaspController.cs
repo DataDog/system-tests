@@ -68,9 +68,18 @@ namespace weblog
         [HttpGet("lfi")]
         public IActionResult lfiGet(string file)
         {
-            var result = System.IO.File.ReadAllText(file);
-            return Content(result);
+			try
+			{
+                var result = System.IO.File.ReadAllText(file);
+                return Content(result);
+			}
+			catch (System.IO.FileNotFoundException ex)
+			{
+				return Content("File not found");
+			}
         }
+        
+        // e
 
         [XmlRoot("file")]
         public class FileModel
