@@ -24,6 +24,13 @@ def index(request):
     return HttpResponse("test")
 
 
+def crashme(request):
+    import ctypes
+
+    ctypes.string_at(0)
+
+
 urlpatterns = [
     path("", index),
+    path("crashme", crashme),
 ]

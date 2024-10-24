@@ -1,6 +1,5 @@
-from utils import scenarios, features, flaky
+from utils import scenarios, features, flaky, missing_feature
 from utils.tools import logger
-from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
@@ -90,6 +89,25 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     )
     def test_install(self, virtual_machine):
         self._test_install(virtual_machine, profile=True)
+
+
+@features.installer_auto_instrumentation
+@scenarios.container_auto_injection_install_script_crashtracking
+class TestContainerAutoInjectInstallScriptCrashTracking(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines()
+    def test_install(self, virtual_machine):
+        self._test_install(virtual_machine, crashlog=True)
+
+@features.installer_auto_instrumentation
+@scenarios.container_auto_injection_install_script_crashtracking_childprocess
+class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines()
+    def test_install(self, virtual_machine):
+        command_output = self.execute_command(virtual_machine, "ps aux")
+
+        logger.info("Command output: " + command_output)
+
+        assert False
 
 
 @features.installer_auto_instrumentation
