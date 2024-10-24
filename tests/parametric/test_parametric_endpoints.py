@@ -9,6 +9,9 @@ from utils import missing_feature, irrelevant, context, scenarios, features
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_DD_Parametric_Endpoints:
+    @irrelevant(
+        library="nodejs", reason="The service and resouce name of the child span is overidden by th parent span."
+    )
     def test_start_span(self, test_agent, test_library):
         """
         Test that start_span with no arguments creates a valid span.
@@ -27,7 +30,7 @@ class Test_DD_Parametric_Endpoints:
         parent_span = find_span(trace, s1.span_id)
         assert parent_span["name"] == "parent"
         assert parent_span["resource"] == "parent"
-        assert parent_span["service"] == "" or "unnamed" in parent_span["service"]
+        assert parent_span["service"] in ["", "nodejs"]
 
         child_span = find_span(trace, s2.span_id)
         assert child_span["name"] == "child"
@@ -42,7 +45,8 @@ class Test_DD_Parametric_Endpoints:
         """
         with test_library:
             parent_id = test_library.extract_headers([["x-datadog-trace-id", "1"], ["x-datadog-parent-id", "2"]])
-            assert parent_id == 2
+            # nodejs library returns span and trace_ids as strings
+            assert int(parent_id) == 2
 
             with test_library.start_span("local_root_span", parent_id=parent_id) as s1:
                 pass
