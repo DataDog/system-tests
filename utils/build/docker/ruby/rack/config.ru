@@ -61,11 +61,14 @@ end
 # /healthcheck
 class Healthcheck
   def self.run
+    gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
+    version = gemspec.version.to_s
+    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
     response = {
       status: 'ok',
       library: {
         language: 'ruby',
-        version: defined?(Datadog::VERSION) ? Datadog::VERSION::STRING : DDTrace::VERSION::STRING
+        version: version
       }
     }
 
