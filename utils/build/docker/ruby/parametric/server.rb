@@ -572,6 +572,8 @@ class MyApp
       handle_trace_otel_set_name(req, res)
     when '/trace/otel/set_attributes'
       handle_trace_otel_set_attributes(req, res)
+    when '/trace/crash'
+      handle_trace_crash(req, res)
     else
       res.status = 404
       res.write('Not Found')
@@ -709,6 +711,15 @@ class MyApp
       http.request(request)
     end
     res.write(HttpClientRequestReturn.new.to_json)
+  end
+
+  def handle_trace_crash(_req, res)
+    STDOUT.puts "Crashing server..."
+    fork do
+      Process.kill('SEGV', Process.pid)
+    end
+
+    Process.wait2
   end
 
   def handle_trace_otel_start_span(req, res)

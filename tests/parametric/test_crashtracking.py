@@ -15,7 +15,7 @@ class Test_Crashtracking:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @bug(context.library == "ruby", reason="APMLP-273")
+    @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
 
