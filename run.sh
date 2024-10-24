@@ -217,7 +217,7 @@ function run_scenario() {
             # Loop through all environment variables for AWS_ and SYSTEM_TESTS_AWS_
             for var in $(printenv | grep -E '^(AWS_|SYSTEM_TESTS_AWS_)'); do
                 # Extract the variable name
-                var_name=$(echo $var | cut -d '=' -f 1)
+                var_name=$(echo "$var" | cut -d '=' -f 1)
                 # Add it to the command
                 cmd+=(-e "$var_name=${!var_name}")
             done
