@@ -37,6 +37,7 @@ import ratpack.http.Headers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.datadoghq.system_tests.iast.utils.Utils;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 
 import javax.sql.DataSource;
 
@@ -84,6 +85,8 @@ public class Main {
             }
         }
     }
+
+    private static final CryptoExamples cryptoExamples = new CryptoExamples();
 
     public static void main(String[] args) throws Exception {
 
@@ -226,6 +229,17 @@ public class Main {
                             })
                             .get("requestdownstream", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/returnheaders";
+                                    return Utils.sendGetRequest(url);
+                                });
+                                res.then((r) -> {
+                                    Response response = ctx.getResponse();
+                                    response.send("application/json", r);
+                                });
+                            })
+                            .get("vulnerablerequestdownstream", ctx -> {
+                                final Promise<String> res = Blocking.get(() -> {
+                                    cryptoExamples.insecureMd5Hashing("password");
                                     String url = "http://localhost:7777/returnheaders";
                                     return Utils.sendGetRequest(url);
                                 });
