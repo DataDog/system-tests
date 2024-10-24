@@ -595,10 +595,10 @@ class MyApp
              end
  
     span = Datadog::Tracing.trace(
-      start_span_args.name,
-      service: start_span_args.service.empty? ? nil : start_span_args.service,
-      resource: start_span_args.resource.empty? ? nil : start_span_args.resource,
-      type: start_span_args.type.empty? ? nil : start_span_args.type,
+      args.name,
+      service: args.service.empty? ? nil : args.service,
+      resource: args.resource.empty? ? nil : args.resource,
+      type: args.type.empty? ? nil : args.type,
       continue_from: digest,
     )
     if args.links.size > 0
