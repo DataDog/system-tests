@@ -6,9 +6,9 @@ stages:
   #- ruby_tracer
   #- nodejs_tracer
   - java_tracer
-  #- python_tracer
-  #- dotnet_tracer
-  #- php_tracer
+  - python_tracer
+  - dotnet_tracer
+  - php_tracer
   - parse_results
   - before_tests
 
