@@ -82,12 +82,12 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     def setup_exception_replay_simple(self):
         self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
 
-    @bug(library="java", reason="DEBUG-3053")
+    # @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_simple(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
         self._validate_exception_replay_snapshots(test_name="exception_replay_simple")
-        self._validate_tags(test_name="exception_replay_simple", number_of_frames=1)
+        self._validate_tags(test_name="exception_replay_simple")
 
     def setup_exception_replay_simple(self):
         self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
@@ -96,33 +96,33 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     def setup_exception_replay_recursion_5(self):
         self._setup("/debugger/exceptionreplay/recursion5", "exceptionreplayrecursion5")
 
-    @bug(library="java", reason="DEBUG-3053")
+    # @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_recursion_5(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
         self._validate_exception_replay_snapshots(test_name="exception_replay_recursion_5")
-        self._validate_tags(test_name="exception_replay_recursion_5", number_of_frames=5)
+        self._validate_tags(test_name="exception_replay_recursion_5")
 
     def setup_exception_replay_recursion_20(self):
         self._setup("/debugger/exceptionreplay/recursion20", "exceptionreplayrecursion20")
 
-    @bug(library="java", reason="DEBUG-3053")
+    # @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_recursion_20(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
         self._validate_exception_replay_snapshots(test_name="exception_replay_recursion_20")
-        self._validate_tags(test_name="exception_replay_recursion_20", number_of_frames=20)
+        self._validate_tags(test_name="exception_replay_recursion_20")
 
     ############ Inner ############
     def setup_exception_replay_inner(self):
         self._setup("/debugger/exceptionreplay/inner", "exceptionreplayinner")
 
-    @bug(library="java", reason="DEBUG-3053")
+    # @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_inner(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
         self._validate_exception_replay_snapshots(test_name="exception_replay_inner")
-        self._validate_tags(test_name="exception_replay_inner", number_of_frames=2)
+        self._validate_tags(test_name="exception_replay_inner")
 
     ############ Rock Paper Scissors ############
     def setup_exception_replay_rockpaperscissors(self):
@@ -143,12 +143,12 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
             retries += 1
 
-    @bug(library="java", reason="DEBUG-3053")
+    # @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_rockpaperscissors(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
         self._validate_exception_replay_snapshots(test_name="exception_replay_rockpaperscissors")
-        self._validate_tags(test_name="exception_replay_rockpaperscissors", number_of_frames=2)
+        self._validate_tags(test_name="exception_replay_rockpaperscissors")
 
     def __get_path(self, test_name, suffix):
         if self.tracer is None:
@@ -210,7 +210,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
         __approve(self.snapshots)
 
-    def _validate_tags(self, test_name: str, number_of_frames: int):
+    def _validate_tags(self, test_name: str):
         def __get_tags():
             snapshot_tags = {}
             debugger_tags = {}
