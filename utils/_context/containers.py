@@ -337,6 +337,17 @@ class TestedContainer:
             keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
         if os.environ.get("AWS_SECRET_ACCESS_KEY"):
             keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
+        if os.environ.get("AWS_SESSION_TOKEN"):
+            keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
+        if os.environ.get("AWS_SECURITY_TOKEN"):
+            keys.append(bytearray(os.environ["AWS_SECURITY_TOKEN"], "utf-8"))
+
+        # set by CI runner
+        if os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"):
+            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_ACCESS_KEY_ID"], "utf-8"))
+        if os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"):
+            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"], "utf-8"))
+
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
@@ -572,10 +583,7 @@ class BuddyContainer(TestedContainer):
         )
 
         self.interface = None
-        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
-        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
-        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
-        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
+        _set_aws_auth_environment(self)
 
 
 class WeblogContainer(TestedContainer):
@@ -689,10 +697,7 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
-        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
-        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
-        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
+        _set_aws_auth_environment(self)
 
         library = self.image.env["SYSTEM_TESTS_LIBRARY"]
 
@@ -799,7 +804,7 @@ class KafkaContainer(TestedContainer):
                 "KAFKA_LISTENERS": "PLAINTEXT://:9092,CONTROLLER://:9093",
                 "KAFKA_CONTROLLER_QUORUM_VOTERS": "1@kafka:9093",
                 "KAFKA_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
-                "KAFKA_CLUSTER_ID": "r4zt_wrqTRuT7W2NJsB_GA",
+                "CLUSTER_ID": "5L6g3nShT-eMCtK--X86sw",
                 "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
                 "KAFKA_INTER_BROKER_LISTENER_NAME": "PLAINTEXT",
                 "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT",
@@ -1092,3 +1097,23 @@ class ExternalProcessingContainer(TestedContainer):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
+
+
+def _set_aws_auth_environment(image):
+    # copy SYSTEM_TESTS_AWS env variables from local env to docker image
+
+    if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
+        prefix = "SYSTEM_TESTS_AWS"
+        for key, value in os.environ.items():
+            if prefix in key:
+                image.environment[key.replace("SYSTEM_TESTS_", "")] = value
+    else:
+        prefix = "AWS"
+        for key, value in os.environ.items():
+            if prefix in key:
+                image.environment[key] = value
+
+    # Set default AWS values if specific keys are not present
+    if "AWS_REGION" not in image.environment:
+        image.environment["AWS_REGION"] = "us-east-1"
+        image.environment["AWS_DEFAULT_REGION"] = "us-east-1"

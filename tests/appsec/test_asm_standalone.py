@@ -1,16 +1,8 @@
 import json
-import re
 
 from requests.structures import CaseInsensitiveDict
 
 from utils import weblog, interfaces, scenarios, features, rfc, bug, flaky
-
-# Python regexp that matches:
-# "GET /requestdownstream"
-# "GET /requestdownstream/"
-# "GET requestdownstream"
-# "GET requestdownstream/"
-REQUESTDOWNSTREAM_RESOURCE_PATTERN = re.compile(r"GET /?requestdownstream/?")
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -83,9 +75,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -128,9 +117,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -173,9 +159,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -218,9 +201,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -267,9 +247,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -317,9 +294,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -362,9 +336,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -406,9 +377,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -450,9 +418,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -497,9 +462,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -544,9 +506,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -591,9 +550,6 @@ class Test_AppSecStandalone_UpstreamPropagation:
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            if not REQUESTDOWNSTREAM_RESOURCE_PATTERN.search(span["resource"]):
-                continue
-
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 

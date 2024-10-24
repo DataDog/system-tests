@@ -7,7 +7,11 @@ require 'json'
 
 # tracer configuration of Rack integration
 
-require 'datadog/auto_instrument'
+begin
+  require 'datadog/auto_instrument'
+rescue LoadError
+  require 'ddtrace/auto_instrument'
+end
 require 'datadog/kit/appsec/events'
 
 Datadog.configure do |c|
@@ -61,7 +65,7 @@ class Healthcheck
       status: 'ok',
       library: {
         language: 'ruby',
-        version: Datadog::VERSION::STRING
+        version: defined?(Datadog::VERSION) ? Datadog::VERSION::STRING : DDTrace::VERSION::STRING
       }
     }
 
@@ -193,6 +197,37 @@ class CustomEvent
   end
 end
 
+# /requestdownstream
+class RequestDownstream
+  def self.run
+    uri = URI('http://localhost:7777/returnheaders')
+    request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new(uri)
+
+      response = http.request(request)
+    end
+
+    [200, { 'Content-Type' => 'application/json' }, [response.body]]
+  end
+end
+
+# /returnheaders
+class ReturnHeaders
+  def self.run(request)
+    request_headers = request.each_header.to_h.select do |k, _v|
+      k.start_with?('HTTP_') || k == 'CONTENT_TYPE' || k == 'CONTENT_LENGTH'
+    end
+    request_headers = request_headers.transform_keys do |k|
+      k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+    end
+
+    [200, { 'Content-Type' => 'application/json' }, [request_headers.to_json]]
+  end
+end
+
 # contains tag_value
 class TagValue
   def self.run(request)
@@ -253,6 +288,10 @@ app = proc do |env|
     UserLoginFailureEvent.run
   elsif request.path == '/custom_event'
     CustomEvent.run
+  elsif request.path == '/requestdownstream'
+    RequestDownstream.run
+  elsif request.path == '/returnheaders'
+    ReturnHeaders.run(request)
   elsif request.path.include?('tag_value')
     TagValue.run(request)
   elsif request.path.include?('/users')
