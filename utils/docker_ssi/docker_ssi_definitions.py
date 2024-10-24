@@ -145,10 +145,15 @@ TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_
 JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
 WEBSPHERE_APP = WeblogDescriptor("websphere-app", "java", [SupportedImages().WEBSPHERE_AMD64])
 JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64])
+
 UBUNTU22_PY_APP = WeblogDescriptor(
     "py-app",
     "python",
-    [SupportedImages().UBUNTU_22_ARM64.add_allowed_runtime_version(PythonRuntimeInstallableVersions.PY39)],
+    [
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            PythonRuntimeInstallableVersions.get_all_versions()
+        )
+    ],
 )
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
