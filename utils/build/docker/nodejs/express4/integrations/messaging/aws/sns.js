@@ -134,9 +134,10 @@ const snsConsume = async (queue, timeout, expectedMessage) => {
                 tracer.trace('sns.consume', span => {
                   span.setTag('queue_name', queue)
                 })
-                console.log('[SNS->SQS] Consumed the following: ' + message.Body)
+                console.log('[SNS->SQS] Successfully consumed desired message: ' + message.Body)
                 messageFound = true
                 resolve()
+                return
               }
             }
             if (!messageFound) {
