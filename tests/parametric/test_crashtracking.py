@@ -15,6 +15,8 @@ class Test_Crashtracking:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
+    # TODO: This should not be needed, but ruby does not default to true
+    @pytest.mark.parametrize("library_env", [{"DD_TELEMETRY_LOG_COLLECTION_ENABLED": "true"}])
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
 
