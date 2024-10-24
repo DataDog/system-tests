@@ -65,14 +65,7 @@ DD_SPANS = {}
 OTEL_SPANS = {}
 DD_TRACES = {}
 
-class HeaderTuple
-  attr_accessor :key, :value
-
-  def initialize(key:, value:)
-    @key = key
-    @value = value
-  end
-end
+HeaderTuple = Struct.new(:key, :value, keyword_init: true)
 
 class StartSpanArgs
   attr_accessor :parent_id, :name, :service, :type, :resource, :origin, :http_headers, :links
@@ -463,7 +456,7 @@ end
 # measures time in seconds (Float).
 def otel_correct_time(microseconds)
   if microseconds.nil? || microseconds == 0
-    nil
+    microseconds
   else
     microseconds / 1_000_000.0
   end
