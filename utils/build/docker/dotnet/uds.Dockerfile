@@ -11,7 +11,7 @@ RUN /binaries/install_ddtrace.sh
 COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
 
 RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") \
-    dotnet restore
+    dotnet restore -p:Configuration=Release
 
 # dotnet publish
 COPY utils/build/docker/dotnet/weblog/* .

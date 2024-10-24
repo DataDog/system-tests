@@ -458,7 +458,7 @@ RUN /binaries/install_ddtrace.sh
 
 # dotnet restore
 COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
-RUN dotnet restore "./ApmTestApi.csproj"
+RUN dotnet restore -p:Configuration=Release "./ApmTestApi.csproj"
 
 # dotnet publish
 COPY {dotnet_reldir} ./
@@ -472,8 +472,9 @@ WORKDIR /app
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-# Set up automatic instrumentation
-ENV CORECLR_ENABLE_PROFILING=1
+# Set up automatic instrumentation (required for OpenTelemetry tests),
+# but don't enable it globally
+ENV CORECLR_ENABLE_PROFILING=0
 ENV CORECLR_PROFILER='{{846F5F1C-F9AE-4B07-969E-05C26BC060D8}}'
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
 ENV LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so
