@@ -633,8 +633,12 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: *ref_5_25_0
-    Test_Config_IntegrationEnabled_True: *ref_5_25_0
+    Test_Config_IntegrationEnabled_False:
+      '*': *ref_5_25_0
+      nextjs: irrelevant # nextjs is not related with kafka
+    Test_Config_IntegrationEnabled_True:
+      '*': *ref_5_25_0
+      nextjs: irrelevant # nextjs is not related with kafka
     Test_Config_ObfuscationQueryStringRegexp_Configured: *ref_3_0_0
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
