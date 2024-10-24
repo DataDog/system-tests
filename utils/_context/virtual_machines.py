@@ -460,7 +460,6 @@ class Debian12amd64(_VirtualMachine):
             os_distro="deb",
             os_branch="debian",
             os_cpu="amd64",
-            default_vm=False,
             **kwargs,
         )
 
@@ -476,7 +475,6 @@ class Debian12arm64(_VirtualMachine):
             os_distro="deb",
             os_branch="debian",
             os_cpu="arm64",
-            default_vm=False,
             **kwargs,
         )
 
