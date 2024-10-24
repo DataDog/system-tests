@@ -78,8 +78,6 @@ namespace weblog
                 return Content("File not found");
             }
         }
-        
-        // e
 
         [XmlRoot("file")]
         public class FileModel
