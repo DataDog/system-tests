@@ -567,7 +567,7 @@ class Test_Suspicious_Request_Blocking:
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-013")
-    
+
     def setup_blocking_before_without_path_params(self):
         self.set_req1 = weblog.post(
             "/tag_value/clean_value_3882/200?attack=T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
