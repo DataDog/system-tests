@@ -249,7 +249,9 @@ def delete_kinesis_stream(stream_name):
         kinesis_client = _get_aws_session().client("kinesis")
         get_callable = lambda name: kinesis_client.describe_stream(StreamName=name)
         delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
-        delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException", get_callable=get_callable)
+        delete_aws_resource(
+            delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException", get_callable=get_callable
+        )
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
             logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
