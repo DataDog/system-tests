@@ -123,7 +123,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             )
 
 
-class CrossedTracingLibraryScenario(AWSIntegrationsScenario):
+class CrossedTracingLibraryScenario(EndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "CROSSED_TRACING_LIBRARIES",
@@ -132,3 +132,8 @@ class CrossedTracingLibraryScenario(AWSIntegrationsScenario):
             include_rabbitmq=True,
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
         )
+        self.unique_id = None
+
+    def configure(self, config):
+        super().configure(config)
+        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
