@@ -129,9 +129,6 @@ class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoIn
 class TestContainerAutoInjectInstallScriptCrashTracking_NoChildProcess(base.AutoInjectBaseTest):
     @parametrize_virtual_machines()
     def test_install(self, virtual_machine):
-        # First make sure everything is started
-        self._test_install(virtual_machine)
-
         command_line = self.get_commandline(virtual_machine)
 
         print(f"Commandline is {command_line}")
