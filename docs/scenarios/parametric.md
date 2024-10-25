@@ -93,7 +93,7 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k test_metrics_
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
 ### Running the tests for a custom tracer
-To run tests against custom tracers, refer to the [Binaries Documentation](../execute/binaries.md)
+To run tests against custom tracer builds, refer to the [Binaries Documentation](../execute/binaries.md)
 
 #### After Testing with a Custom Tracer:
 Note: Most of the ways to run system-tests with a custom tracer version involve modifying the binaries directory. Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it. For example for Python:
@@ -254,10 +254,11 @@ Then you should have updated proto files. This script will generate weird files,
 
 ### Architecture: How System-tests work
 Below is an overview of how the testing architecture is structured:
+
 - Shared Tests in Python: We write shared test cases using Python's pytest framework. These tests are designed to be generic and interact with the tracers through an HTTP interface.
 - HTTP Servers in Docker: For each language tracer, we build and run an HTTP server within a Docker container. These servers expose the required endpoints defined in the OpenAPI schema and handle the tracer-specific logic.
 - [Test Agent](https://github.com/DataDog/dd-apm-test-agent/) in Docker: We start a test agent in a separate Docker container. This agent collects data (such as spans and traces) submitted by the HTTP servers. It serves as a centralized point for aggregating and accessing test data.
-- Test Execution: The Python test cases use an HTTP client to communicate with the servers. The servers generate data based on the interactions, which is then sent to the test agent. The tests can query the test agent to retrieve  data (usually traces) and perform assertions to verify correct behavior.
+- Test Execution: The Python test cases use an [HTTP client](/utils/parametric/_library_client.py) to communicate with the servers. The servers generate data based on the interactions, which is then sent to the test agent. The tests can query the test agent to retrieve  data (usually traces) and perform assertions to verify correct behavior.
 
 An example of how to get a span from the test agent:
 ```python
@@ -265,6 +266,23 @@ span = find_only_span(test_agent.wait_for_num_traces(1))
 ```
 
 This architecture allows us to ensure that all tracers conform to the same interface and behavior, making it easier to maintain consistency across different languages and implementations.
+
+#### Http Server Implementations
+
+The http server implementations for each tracer can be found at the following locations:
+
+[Python](/utils/build/docker/python/parametric/apm_test_client/server.py)
+[Ruby](utils/build/docker/ruby/parametric/server.rb)
+[Php](utils/build/docker/php/parametric/server.php)
+[Nodejs](utils/build/docker/nodejs/parametric/server.js)
+[Java Datadog](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentracing/controller/OpenTracingController.java)
+[Java Otel](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentelemetry/controller/OpenTelemetryController.java)
+[Dotnet Datadog](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApi.cs)
+[Dotnet Otel](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApiOtel.cs)
+[Go Datadog](utils/build/docker/golang/parametric/main.go)
+[Go Otel](utils/build/docker/golang/parametric/otel.go)
+
+
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
 
