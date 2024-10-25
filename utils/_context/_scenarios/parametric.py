@@ -588,13 +588,11 @@ def ruby_library_factory() -> APMLibraryTestServer:
             RUN /binaries/install_ddtrace.sh
             COPY {ruby_reldir}/server.rb /app/
             RUN mkdir /parametric-tracer-logs
-            ENV DD_INSTRUMENTATION_TELEMETRY_ENABLED=true
-            ENV DD_TELEMETRY_LOG_COLLECTION_ENABLED=true
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_absolute_appdir,
         container_build_context=_get_base_directory(),
-        env={},
+        env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true", "DD_TELEMETRY_LOG_COLLECTION_ENABLED": "true"},
     )
 
 
