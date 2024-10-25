@@ -592,7 +592,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_absolute_appdir,
         container_build_context=_get_base_directory(),
-        env={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true", "DD_TELEMETRY_LOG_COLLECTION_ENABLED": "true"},
+        env={},
     )
 
 
