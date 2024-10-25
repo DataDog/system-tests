@@ -1,3 +1,4 @@
+import re
 from utils import scenarios, features, flaky, missing_feature
 from utils.tools import logger
 import tests.auto_inject.utils as base
@@ -122,6 +123,57 @@ class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoIn
         logger.info("Command output 2: " + command_output)
 
         assert result
+
+@features.installer_auto_instrumentation
+@scenarios.container_auto_injection_install_script_crashtracking_childprocess
+class TestContainerAutoInjectInstallScriptCrashTracking_NoChildProcess(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines()
+    def test_install(self, virtual_machine):
+        # First make sure everything is started
+        self._test_install(virtual_machine)
+
+        command_line = self.get_commandline(virtual_machine)
+
+        print(f"Commandline is {command_line}")
+
+        output = self.execute_command("ps ax -o pid,ppid,cmd")
+
+        # Split the output into lines, ignoring the header
+        lines = output.splitlines()[1:]
+
+        # Create a dictionary to store child-parent relationships
+        process_tree = {}
+        processes = []
+
+        # Parse the output to fill the dictionary and list
+        for line in lines:
+            match = re.match(r'\s*(\d+)\s+(\d+)\s+(.+)', line)
+            if match:
+                pid, ppid, cmd = match.groups()
+                pid, ppid = int(pid), int(ppid)
+                processes.append((pid, ppid, cmd))
+                if ppid not in process_tree:
+                    process_tree[ppid] = []
+                process_tree[ppid].append(pid)
+
+        # Find the processes with the given command line
+        target_pids = [pid for pid, _, cmd in processes if command_line in cmd]
+
+        success = True
+
+        for pid in target_pids:
+            # Check if this process has any children
+            if pid in process_tree:
+                print(f"Process {pid} ('{command_line}') has the following children:")
+                for child_pid in process_tree[pid]:
+                    # Find the command line for the child process
+                    child_cmd = next((cmd for child_pid_, _, cmd in processes if child_pid_ == child_pid), "")
+                    print(f"  PID {child_pid}: {child_cmd}")
+                    success = False
+            else:
+                print(f"Process {pid} ('{command_line}') has no children.")
+
+        assert success
 
 
 @features.installer_auto_instrumentation
