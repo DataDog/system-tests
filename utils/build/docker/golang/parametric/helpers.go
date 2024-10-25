@@ -6,6 +6,12 @@
 
 package main
 
+import (
+	"encoding/json"
+	"fmt"
+	"go.opentelemetry.io/otel/attribute"
+)
+
 type GetTraceConfigReturn struct {
 	Config map[string]string `json:"config"`
 }
@@ -102,10 +108,10 @@ type SpanLink struct {
 	//	*SpanLink_ParentId
 	//	*SpanLink_HttpHeaders
 	From       isSpanLink_From `protobuf_oneof:"from"`
-	Attributes *Attributes     `json:"attributes,omitempty"`
+	Attributes *AttributeKeyVals     `json:"attributes,omitempty"`
 }
 
-func (x *SpanLink) GetAttributes() *Attributes {
+func (x *SpanLink) GetAttributes() *AttributeKeyVals {
 	if x != nil {
 		return x.Attributes
 	}
@@ -192,11 +198,11 @@ type OtelStartSpanArgs struct {
 	Timestamp   int64                  `json:"timestamp"`
 	SpanLinks   []SpanLink             `json:"span_links"`
 	HttpHeaders []HeaderTuple `json:"http_headers"`
-	Attributes  Attributes             `json:"attributes"`
+	Attributes  AttributeKeyVals             `json:"attributes"`
 }
 
-func (x *OtelStartSpanArgs) GetAttributes() map[string]interface{}{
-	return x.Attributes.KeyVals
+func (x *OtelStartSpanArgs) GetAttributes() AttributeKeyVals{
+	return x.Attributes
 }
 
 type OtelStartSpanReturn struct {
@@ -257,14 +263,14 @@ type OtelSetNameArgs struct {
 
 type OtelSetAttributesArgs struct {
 	SpanId     uint64      `json:"span_id"`
-	Attributes *Attributes `json:"attributes"`
+	Attributes *AttributeKeyVals `json:"attributes"`
 }
 
 type OtelAddEventArgs struct {
 	SpanId     uint64      `json:"span_id"`
 	Name       string      `json:"name"`
 	Timestamp  *int64      `json:"timestamp"`
-	Attributes *Attributes `json:"attributes"`
+	Attributes *AttributeKeyVals `json:"attributes"`
 }
 
 func (x *OtelAddEventArgs) GetTimestamp() int64 {
@@ -274,7 +280,7 @@ func (x *OtelAddEventArgs) GetTimestamp() int64 {
 	return 0
 }
 
-func (x *OtelAddEventArgs) GetAttributes() *Attributes {
+func (x *OtelAddEventArgs) GetAttributes() *AttributeKeyVals {
 	if x != nil {
 		return x.Attributes
 	}
@@ -283,4 +289,47 @@ func (x *OtelAddEventArgs) GetAttributes() *Attributes {
 
 type Attributes struct {
 	KeyVals map[string]interface{} 
+}
+
+type AttributeKeyVals map[string]interface{} 
+
+func (a *AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
+	var attrs []attribute.KeyValue
+	for k, v := range *a {
+		switch t := v.(type) {
+		case bool:
+			attrs = append(attrs, attribute.Bool(k, v.(bool)))
+		case []bool:
+			attrs = append(attrs, attribute.BoolSlice(k, t))
+		case float64:
+			attrs = append(attrs, attribute.Float64(k, v.(float64)))
+		case []float64:
+			attrs = append(attrs, attribute.Float64Slice(k, t))
+		case int:
+			attrs = append(attrs, attribute.Int(k, v.(int)))
+		case []int:
+			attrs = append(attrs, attribute.IntSlice(k, t))
+		case int64:
+			attrs = append(attrs, attribute.Int64(k, t))
+		case []int64:
+			attrs = append(attrs, attribute.Int64Slice(k, t))
+		case string:
+			attrs = append(attrs, attribute.String(k, v.(string)))
+		case []string:
+			attrs = append(attrs, attribute.StringSlice(k, t))
+		}
+	}
+	return attrs
+}
+
+func (a *AttributeKeyVals) ConvertToAttributesStringified() []attribute.KeyValue {
+	var attrs []attribute.KeyValue
+	for k, v := range *a {
+		s, err := json.Marshal(v)
+		if err != nil {
+			fmt.Printf("Error converting attribute to json string: %v\n", err.Error())
+		}
+		attrs = append(attrs, attribute.String(k, string(s)))
+	}
+	return attrs
 }

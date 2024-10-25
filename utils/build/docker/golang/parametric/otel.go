@@ -10,54 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
-
-func ConvertKeyValsToAttributes(keyVals map[string]interface{}) []attribute.KeyValue {
-	var attrs []attribute.KeyValue
-	for k, v := range keyVals {
-		switch t := v.(type) {
-		case bool:
-			attrs = append(attrs, attribute.Bool(k, v.(bool)))
-		case []bool:
-			attrs = append(attrs, attribute.BoolSlice(k, t))
-		case float64:
-			attrs = append(attrs, attribute.Float64(k, v.(float64)))
-		case []float64:
-			attrs = append(attrs, attribute.Float64Slice(k, t))
-		case int:
-			attrs = append(attrs, attribute.Int(k, v.(int)))
-		case []int:
-			attrs = append(attrs, attribute.IntSlice(k, t))
-		case int64:
-			attrs = append(attrs, attribute.Int64(k, t))
-		case []int64:
-			attrs = append(attrs, attribute.Int64Slice(k, t))
-		case string:
-			attrs = append(attrs, attribute.String(k, v.(string)))
-		case []string:
-			attrs = append(attrs, attribute.StringSlice(k, t))
-		}
-	}
-	return attrs
-}
-
-func ConvertKeyValsToAttributesStringified(keyVals map[string]interface{}) []attribute.KeyValue {
-	var attrs []attribute.KeyValue
-	for k, v := range keyVals {
-		s, err := json.Marshal(v)
-		if err != nil {
-			fmt.Printf("Error converting attribute to json string: %v\n", err.Error())
-		}
-		attrs = append(attrs, attribute.String(k, string(s)))
-	}
-	return attrs
-}
 
 func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Request) {
 	var args OtelStartSpanArgs
@@ -102,7 +60,7 @@ func (s *apmClientServer) OtelStartSpan(args *OtelStartSpanArgs) (*OtelStartSpan
 	}
 	if a := args.GetAttributes(); len(a) > 0 {
 		fmt.Println("MTOFF: We have attributes:", args.GetAttributes())
-		otelOpts = append(otelOpts, otel_trace.WithAttributes(ConvertKeyValsToAttributes(a)...))
+		otelOpts = append(otelOpts, otel_trace.WithAttributes(a.ConvertToAttributes()...))
 	}
 	if len(args.HttpHeaders) > 0 {
 		headers := map[string]string{}
@@ -126,7 +84,7 @@ func (s *apmClientServer) OtelStartSpan(args *OtelStartSpanArgs) (*OtelStartSpan
 			switch from := link.From.(type) {
 			case *SpanLink_ParentId:
 				if _, ok := s.otelSpans[from.ParentId]; ok {
-					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[from.ParentId].span.SpanContext(), Attributes: ConvertKeyValsToAttributesStringified(link.GetAttributes().KeyVals)}))
+					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[from.ParentId].span.SpanContext(), Attributes: link.GetAttributes().ConvertToAttributesStringified()}))
 				}
 			case *SpanLink_HttpHeaders:
 				headers := map[string]string{}
@@ -157,7 +115,7 @@ func (s *apmClientServer) OtelStartSpan(args *OtelStartSpanArgs) (*OtelStartSpan
 				var newCtx = otel_trace.NewSpanContext(config)
 				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{
 					SpanContext: newCtx,
-					Attributes:  ConvertKeyValsToAttributesStringified(link.GetAttributes().KeyVals),
+					Attributes:  link.GetAttributes().ConvertToAttributesStringified(),
 				}))
 			}
 
@@ -238,7 +196,7 @@ func (s *apmClientServer) OtelSetAttributes(ctx context.Context, args *OtelSetAt
 		return fmt.Errorf("OtelSetAttributes call failed, span with id=%d not found", args.SpanId)
 	}
 	span := sctx.span
-	span.SetAttributes(ConvertKeyValsToAttributes(args.Attributes.KeyVals)...)
+	span.SetAttributes(args.Attributes.ConvertToAttributes()...)
 	return nil
 }
 
@@ -339,7 +297,7 @@ func (s *apmClientServer) otelAddEventHandler(w http.ResponseWriter, r *http.Req
 		opts = append(opts, otel_trace.WithTimestamp(time.UnixMicro(*args.Timestamp)))
 	}
 	if args.GetAttributes() != nil {
-		opts = append(opts, otel_trace.WithAttributes(ConvertKeyValsToAttributes(args.GetAttributes().KeyVals)...))
+		opts = append(opts, otel_trace.WithAttributes(args.Attributes.ConvertToAttributes()...))
 	}
 	span.AddEvent(args.Name, opts...)
 	w.Header().Set("Content-Type", "application/json")
