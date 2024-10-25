@@ -361,6 +361,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         http_headers: List[Tuple[str, str]],
         attributes: dict = None,
     ) -> StartSpanResponse:
+        print("MTOFF!!!!", attributes)
         resp = self._session.post(
             self._url("/trace/otel/start_span"),
             json={

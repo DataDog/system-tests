@@ -50,6 +50,8 @@ func main() {
 		log.Fatalf("failed to convert port to integer: %v", err)
 	}
 	s := newServer()
+
+	// dd-trace endpoints
 	http.HandleFunc("/trace/span/start", s.startSpanHandler)
 	http.HandleFunc("/trace/span/flush", s.flushSpansHandler)
 	http.HandleFunc("/trace/stats/flush", s.flushStatsHandler)
@@ -59,6 +61,18 @@ func main() {
 	http.HandleFunc("/trace/span/inject_headers", s.injectHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+
+	// otel-api endpoints:
+	http.HandleFunc("/trace/otel/start_span", s.otelStartSpanHandler)
+	http.HandleFunc("/trace/otel/end_span", s.otelEndSpanHandler)
+	http.HandleFunc("/trace/otel/set_attributes", s.otelSetAttributesHandler)
+	http.HandleFunc("/trace/otel/set_name", s.otelSetNameHandler)
+	http.HandleFunc("/trace/otel/flush", s.otelFlushSpansHandler)
+	http.HandleFunc("/trace/otel/is_recording", s.otelIsRecordingHandler)
+	http.HandleFunc("/trace/otel/span_context", s.otelSpanContextHandler)
+	http.HandleFunc("/trace/otel/add_event", s.otelAddEventHandler)
+	http.HandleFunc("/trace/otel/set_status", s.otelSetStatusHandler)
+
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

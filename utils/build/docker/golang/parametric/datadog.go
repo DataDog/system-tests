@@ -61,7 +61,6 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (d
 			opts = append(opts, tracer.Tag(tag.GetKey(), tag.GetValue()))
 		}
 	}
-
 	if args.GetHttpHeaders() != nil && len(args.HttpHeaders) != 0 {
 		headers := map[string]string{}
 		for _, headerTuple := range args.HttpHeaders {
