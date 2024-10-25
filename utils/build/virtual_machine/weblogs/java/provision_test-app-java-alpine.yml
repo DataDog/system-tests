@@ -6,7 +6,11 @@ lang_variant:
         os_distro: deb
         os_branch: debian
         remote-command: |
-          echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          if [ "$(. /etc/os-release && echo "$VERSION_CODENAME")" = "buster" ]; then
+            echo 'deb http://archive.debian.org/debian buster main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          else
+            echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          fi
           sudo apt update
           sudo apt -y install openjdk-11-jdk
 
