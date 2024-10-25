@@ -1,5 +1,5 @@
 weblog:
-    name: test-app-php-container-83
+    name: test-app-php-container-80
     exact_os_branches: [ubuntu24]
     install:
       - os_type: linux
@@ -15,6 +15,6 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
 
           - name: copy-php-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-container-83/Dockerfile.template
+            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-container-80/Dockerfile.template
 
         remote-command: sh create_and_run_app_container.sh

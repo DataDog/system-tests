@@ -1,0 +1,10 @@
+FROM public.ecr.aws/docker/library/alpine:3.20
+
+RUN apk add --update php81 libgcc libcurl bash
+
+RUN mkdir /app
+WORKDIR /app
+
+COPY index.php /app
+
+CMD ["/bin/sh", "-c", "env | grep DD_ ; DD_TRACE_DEBUG=1 php -v ; php -S 0.0.0.0:18080"]
