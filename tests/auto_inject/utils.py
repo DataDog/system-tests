@@ -32,13 +32,18 @@ class AutoInjectBaseTest:
         vm_port = virtual_machine.deffault_open_port
         return int(simple_request(f"http://{vm_ip}:{vm_port}/pid", swallow=False))
 
-    def crash_and_wait_for_exit(self, virtual_machine, pid) -> bool:
+    def get_commandline(self, virtual_machine) -> int:
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        return int(simple_request(f"http://{vm_ip}:{vm_port}/commandline", swallow=False))
+
+    def crash_and_wait_for_exit(self, virtual_machine, commandline) -> bool:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         logger.info(f"Making a crash-inducing request to weblog [{vm_ip}:{vm_port}]")
         make_get_request(f"http://{vm_ip}:{vm_port}/crashme", swallow=True)
         
-        output = self.execute_command(virtual_machine, f'timeout=10; elapsed=0; pid={pid}; while [ -d /proc/$pid ] && [ $elapsed -lt $timeout ]; do sleep 1; elapsed=$((elapsed + 1)); done; [ -d /proc/$pid ] && echo "success" || echo "failure"')
+        output = self.execute_command(virtual_machine, f'timeout=10; elapsed=0; while pgrep -f "{commandline}" > /dev/null && [ $elapsed -lt $timeout ]; do sleep 1; elapsed=$((elapsed + 1)); done; pgrep -f "{commandline}" > /dev/null && echo "failure" || echo "success"')
         output = output.strip()
 
         if output == "success":

@@ -1,4 +1,5 @@
 import os
+import psutil
 import signal
 import sys
 
@@ -33,9 +34,21 @@ def crashme(request):
 def pid(request):
     return HttpResponse(os.getpid())
 
+def commandline(request):
+    # Get the current process ID
+    pid = os.getpid()
+
+    # Get the process by PID
+    process = psutil.Process(pid)
+
+    # Get the command line
+    cmdline = process.cmdline()
+
+    return HttpResponse(" ".join(cmdline))
 
 urlpatterns = [
     path("", index),
     path("crashme", crashme),
     path("pid", pid),
+    path("commandline", commandline),
 ]

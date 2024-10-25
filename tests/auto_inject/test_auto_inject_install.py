@@ -106,11 +106,11 @@ class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoIn
         command_output = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Command output 1: " + command_output)
 
-        pid = self.get_pid(virtual_machine)
+        commandline = self.get_commandline(virtual_machine)
 
-        logger.info(f"Pid is {pid}")
+        logger.info(f"Commandline is {commandline}")
 
-        result = self.crash_and_wait_for_exit(virtual_machine, pid)
+        result = self.crash_and_wait_for_exit(virtual_machine, commandline)
 
         command_output = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Command output 2: " + command_output)
