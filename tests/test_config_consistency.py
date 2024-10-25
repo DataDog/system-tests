@@ -323,14 +323,6 @@ class Test_Config_UnifiedServiceTagging_Default:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
-@irrelevant(
-    context.weblog_variant != "flask-poc" and context.library == "python",
-    reason="Avoids testing with weblog apps that do not implement the kafka/produce endpoint",
-)
-@irrelevant(
-    context.weblog_variant != "rails70" and context.library == "ruby",
-    reason="Avoids testing with weblog apps that do not implement the kafka/produce endpoint",
-)
 class Test_Config_IntegrationEnabled_False:
     """ Verify behavior of integrations automatic spans """
 
@@ -351,14 +343,6 @@ class Test_Config_IntegrationEnabled_False:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
 @features.tracing_configuration_consistency
-@irrelevant(
-    context.weblog_variant != "flask-poc" and context.library == "python",
-    reason="Avoids testing with weblog apps that do not implement the kafka/produce endpoint",
-)
-@irrelevant(
-    context.weblog_variant != "rails70" and context.library == "ruby",
-    reason="Avoids testing with weblog apps that do not implement the kafka/produce endpoint",
-)
 class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
 
