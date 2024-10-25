@@ -1,6 +1,6 @@
-FROM public.ecr.aws/docker/library/alpine:3.20
+FROM public.ecr.aws/docker/library/php:8.2-alpine
 
-RUN apk add --update php82 libgcc libcurl bash
+RUN apk add --update libgcc libcurl bash
 
 RUN mkdir /app
 WORKDIR /app
