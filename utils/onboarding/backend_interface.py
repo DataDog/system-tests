@@ -141,7 +141,7 @@ def wait_backend_data(
         )
         logger.info(f"trace [{trace_id}] found in the backend!")
     if profile and runtime_id is not None:
-        (status,) = _retry_request_until_timeout(functools.partial(_query_for_profile, runtime_id))
+        _retry_request_until_timeout(functools.partial(_query_for_profile, runtime_id))
         logger.info(f"profile for trace [{trace_id}] (runtime [{runtime_id}]) found in the backend!")
     return runtime_id
 
