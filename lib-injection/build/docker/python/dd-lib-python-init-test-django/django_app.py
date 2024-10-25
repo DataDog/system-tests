@@ -30,7 +30,12 @@ def crashme(request):
     ctypes.string_at(0)
 
 
+def pid(request):
+    return HttpResponse(os.getpid())
+
+
 urlpatterns = [
     path("", index),
     path("crashme", crashme),
+    path("pid", pid),
 ]

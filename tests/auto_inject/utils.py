@@ -1,5 +1,5 @@
 from utils.tools import logger
-from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, request_weblog
+from utils.onboarding.weblog_interface import make_get_request, simple_request, warmup_weblog, request_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.backend_interface import cause_and_verify_crash
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -26,6 +26,28 @@ class AutoInjectBaseTest:
         runtime_id = wait_backend_trace_id(request_uuid, 120.0, profile=profile)
         if crashlog:
             cause_and_verify_crash(runtime_id, vm_ip, vm_port)
+
+    def get_pid(self, virtual_machine) -> int:
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        return int(simple_request(f"http://{vm_ip}:{vm_port}/pid", swallow=False))
+
+    def crash_and_wait_for_exit(self, virtual_machine, pid) -> bool:
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        logger.info(f"Making a crash-inducing request to weblog [{vm_ip}:{vm_port}]")
+        make_get_request(f"http://{vm_ip}:{vm_port}/crashme", swallow=True)
+        
+        output = self.execute_command(virtual_machine, f'timeout=10; elapsed=0; pid={pid}; while [ -d /proc/$pid ] && [ $elapsed -lt $timeout ]; do sleep 1; elapsed=$((elapsed + 1)); done; [ -d /proc/$pid ] && echo "success" || echo "failure"')
+        
+        if output == "success":
+            return True
+        
+        if output == "failure":
+            return False
+        
+        logger.error(f"Unexpected output: {output}")
+        return False
 
     def close_channel(self, channel):
         try:

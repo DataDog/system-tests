@@ -106,12 +106,16 @@ class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoIn
         command_output = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Command output 1: " + command_output)
 
-        self._test_install(virtual_machine, crashlog=True)
+        pid = self.get_pid(virtual_machine)
+
+        logger.info(f"Pid is {pid}")
+
+        result = self.crash_and_wait_for_exit(virtual_machine, pid)
 
         command_output = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Command output 2: " + command_output)
 
-        assert False
+        assert result
 
 
 @features.installer_auto_instrumentation
