@@ -11,7 +11,9 @@ from utils.parametric._library_client import Event
 from utils.parametric.spec.trace import retrieve_span_events, find_span, find_trace
 
 
+@rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
 @scenarios.parametric
+@features.span_events
 class Test_Span_Events:
     @pytest.mark.parametrize(
         "library_env",
