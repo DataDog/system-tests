@@ -38,13 +38,14 @@ def commandline(request):
     # Get the current process ID
     pid = os.getpid()
 
-    # Get the process by PID
-    process = psutil.Process(pid)
+    # Read the command line from /proc filesystem
+    with open(f"/proc/{pid}/cmdline", "r") as f:
+        cmdline = f.read()
 
-    # Get the command line
-    cmdline = process.cmdline()
+    # The command line arguments are separated by null characters, replace them with spaces
+    cmdline = cmdline.replace('\0', ' ')
 
-    return HttpResponse(" ".join(cmdline))
+    return HttpResponse(cmdline.strip())
 
 urlpatterns = [
     path("", index),
