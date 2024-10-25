@@ -103,6 +103,9 @@ class TestContainerAutoInjectInstallScriptCrashTracking(base.AutoInjectBaseTest)
 class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoInjectBaseTest):
     @parametrize_virtual_machines()
     def test_install(self, virtual_machine):
+        command_output = self.execute_command(virtual_machine, "ps aux --forest")
+        logger.info("Initial: " + command_output)
+
         # First make sure everything is started
         self._test_install(virtual_machine)
 
