@@ -573,14 +573,9 @@ def ruby_library_factory() -> APMLibraryTestServer:
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
     ruby_reldir = ruby_appdir.replace("\\", "/")
-
-    shutil.copyfile(
-        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-        os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
-    )
     return APMLibraryTestServer(
         lang="ruby",
-        protocol="grpc",
+        protocol="http",
         container_name="ruby-test-client",
         container_tag="ruby-test-client",
         container_img=f"""
@@ -590,9 +585,6 @@ def ruby_library_factory() -> APMLibraryTestServer:
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
             RUN bundle install
             RUN /binaries/install_ddtrace.sh
-            COPY {ruby_reldir}/apm_test_client.proto /app/
-            COPY {ruby_reldir}/generate_proto.sh /app/
-            RUN bash generate_proto.sh
             COPY {ruby_reldir}/server.rb /app/
             RUN mkdir /parametric-tracer-logs
             """,

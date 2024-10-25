@@ -469,7 +469,6 @@ class Test_Blocking_response_status:
         context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
         reason="Happens on a subsequent WAF run",
     )
-    @missing_feature(context.library == "ruby", reason="Not working")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_not_found(self):
         """can block on server.response.status"""
@@ -521,6 +520,10 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
+    @irrelevant(
+        context.library == "ruby" and context.weblog_variant == "rack",
+        reason="Rack don't send anything to the server.request.path_params WAF address",
+    )
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -538,6 +541,10 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
+    @irrelevant(
+        context.library == "ruby" and context.weblog_variant == "rack",
+        reason="Rack don't send anything to the server.request.path_params WAF address",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly

@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
@@ -37,6 +39,7 @@ class OpenTelemetryScenario(DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         backend_interface_timeout=20,
+        require_api_key=False,
     ) -> None:
         super().__init__(
             name,
@@ -68,6 +71,7 @@ class OpenTelemetryScenario(DockerScenario):
         self.include_collector = include_collector
         self.include_intake = include_intake
         self.backend_interface_timeout = backend_interface_timeout
+        self._require_api_key = require_api_key
 
     def configure(self, config):
 
@@ -148,6 +152,10 @@ class OpenTelemetryScenario(DockerScenario):
         interface.wait(timeout)
 
     def _check_env_vars(self):
+
+        if self._require_api_key and "DD_API_KEY" not in os.environ:
+            pytest.exit("DD_API_KEY is required for this scenario", 1)
+
         if self.include_intake:
             assert all(
                 key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")
