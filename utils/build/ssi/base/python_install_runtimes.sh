@@ -17,10 +17,10 @@ elif [ -f /etc/alpine-release ]; then
 fi
 
 if [ "$OS" = "Debian" ]; then
-    packages_install="make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev git curl llvm libncursesw5-dev xz-utils tk-dev tzdata libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
-    sudo apt-get install -y "$packages_install" || ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$packages_install"
+    apt-get update
+    ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev git curl llvm libncursesw5-dev xz-utils tk-dev tzdata libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
     curl https://pyenv.run | bash
-    echo "HOME is $HOME"
     PYENV_ROOT="$HOME/.pyenv"
     PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init -)"
