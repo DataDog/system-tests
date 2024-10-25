@@ -6,7 +6,7 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.parametric.spec.trace import AUTO_DROP_KEY
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
-from utils import scenarios, missing_feature
+from utils import scenarios, missing_feature, features, rfc
 from utils.parametric._library_client import Event
 from utils.parametric.spec.trace import retrieve_span_events, find_span, find_trace
 
