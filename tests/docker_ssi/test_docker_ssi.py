@@ -8,8 +8,8 @@ from utils.tools import logger, get_rid_from_request
 
 @scenarios.docker_ssi
 class TestDockerSSIFeatures:
-    """ Test the ssi in a simulated host injection environment (docker container + test agent) 
-    We test that the injection is performed and traces and telemetry are generated. 
+    """ Test the ssi in a simulated host injection environment (docker container + test agent)
+    We test that the injection is performed and traces and telemetry are generated.
     If the language version is not supported, we only check that we don't break the app and telemetry is generated."""
 
     _r = None
@@ -60,7 +60,7 @@ class TestDockerSSIFeatures:
         )
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
-        # There is telemetry data about the auto instrumentation. We only validate there is data
+        # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
         assert len(telemetry_autoinject_data) >= 1
         inject_success = False
@@ -69,6 +69,16 @@ class TestDockerSSIFeatures:
                 inject_success = True
                 break
         assert inject_success, "No telemetry data found for inject.success"
+
+        # There is telemetry data about the library entrypoint. We only validate there is data
+        telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject_library_entrypoint()
+        assert len(telemetry_autoinject_data) >= 1
+        inject_success = False
+        for data in telemetry_autoinject_data:
+            if data["metric"] == "library_entrypoint.complete":
+                inject_success = True
+                break
+        assert inject_success, "No telemetry data found for library_entrypoint.complete"
 
     def setup_service_name(self):
         self._setup_all()

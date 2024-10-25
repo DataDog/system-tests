@@ -62,6 +62,27 @@ class JavaRuntimeInstallableVersions:
         raise ValueError(f"Java version {version} not supported")
 
 
+class PHPRuntimeInstallableVersions:
+    """ PHP runtime versions that can be installed automatically"""
+
+    PHP74 = RuntimeInstallableVersion("PHP74", "7.4")
+    PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
+
+    @staticmethod
+    def get_all_versions():
+        return [
+            PHPRuntimeInstallableVersions.PHP74,
+            PHPRuntimeInstallableVersions.PHP83,
+        ]
+
+    @staticmethod
+    def get_version_id(version):
+        for version_check in PHPRuntimeInstallableVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f"PHP version {version} not supported")
+
+
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
 # Maybe a weblog app contains preinstalled language runtime, in this case we define the weblog without runtime version
 JETTY_APP = WeblogDescriptor(
@@ -117,5 +138,11 @@ JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_A
 WEBSPHERE_APP = WeblogDescriptor("websphere-app", "java", [SupportedImages().WEBSPHERE_AMD64])
 JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64])
 
+PHP_APP = WeblogDescriptor(
+    "php-app",
+    "php",
+    [SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(PHPRuntimeInstallableVersions.get_all_versions())],
+)
+
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP]
+ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP, PHP_APP]
