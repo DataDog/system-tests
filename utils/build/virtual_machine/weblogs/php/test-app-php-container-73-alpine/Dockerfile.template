@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/php:3.7-alpine
+FROM public.ecr.aws/docker/library/php:7.3-alpine
 
 RUN apk add --update libgcc libcurl bash
 
