@@ -301,12 +301,6 @@ onboarding_php:
             test-app-php-container-74-alpine,
             test-app-php-container-73,
             test-app-php-container-73-alpine,
-            test-app-php-container-72,
-            test-app-php-container-72-alpine,
-            test-app-php-container-71,
-            test-app-php-container-71-alpine,
-            test-app-php-container-70,
-            test-app-php-container-70-alpine,98327067
           ]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]
