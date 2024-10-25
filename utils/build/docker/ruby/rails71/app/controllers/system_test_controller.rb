@@ -1,3 +1,5 @@
+require 'json'
+
 require 'datadog/kit/appsec/events'
 require 'rdkafka'
 
@@ -9,11 +11,14 @@ class SystemTestController < ApplicationController
   end
 
   def healthcheck
+    gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
+    version = gemspec.version.to_s
+    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
     render json: { 
       status: 'ok',
       library: {
         language: 'ruby',
-        version: Datadog::VERSION::STRING
+        version: version
       }
     }
   end
@@ -243,4 +248,27 @@ class SystemTestController < ApplicationController
     render plain: "Done"
   end
 
+  def request_downstream
+    uri = URI('http://localhost:7777/returnheaders')
+    ext_request = nil
+    ext_response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      ext_request = Net::HTTP::Get.new(uri)
+
+      ext_response = http.request(ext_request)
+    end
+
+    render json: ext_response.body, content_type: 'application/json'
+  end
+
+  def return_headers
+    request_headers = request.headers.each.to_h.select do |k, _v|
+      k.start_with?('HTTP_') || k == 'CONTENT_TYPE' || k == 'CONTENT_LENGTH'
+    end
+    request_headers = request_headers.transform_keys do |k|
+      k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+    end
+    render json: JSON.generate(request_headers), content_type: 'application/json'
+  end
 end

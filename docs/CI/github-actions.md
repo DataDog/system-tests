@@ -1,9 +1,4 @@
-First of all, add two secrets:
-
-1. a valid github token in `GH_TOKEN`
-1. a valid staging API key token in `DD_API_KEY`
-
-Then, add a file in your repo named `.github/workflows/system-tests.yml`:
+Add a file in your repo named `.github/workflows/system-tests.yml`:
 
 ```yaml
 name: System Tests
@@ -22,8 +17,6 @@ jobs:
           - library: golang
             weblog-variant: net-http
       fail-fast: false
-    env:
-      DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
