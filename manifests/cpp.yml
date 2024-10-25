@@ -153,6 +153,8 @@ tests/:
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
+    test_partial_flushing.py:
+      Test_Partial_Flushing: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:

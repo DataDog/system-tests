@@ -9,7 +9,7 @@ from utils.tools import update_environ_with_local_env
 from .core import Scenario, ScenarioGroup
 from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
-from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario
+from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
@@ -46,9 +46,8 @@ class scenarios:
     performances = PerformanceScenario(
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
-
     integrations = IntegrationsScenario()
-
+    integrations_aws = AWSIntegrationsScenario()
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
@@ -86,6 +85,7 @@ class scenarios:
         },
         doc="Test profiling feature. Not included in default scenario because is quite slow",
         scenario_groups=[ScenarioGroup.PROFILING],
+        require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
     )
 
     sampling = EndToEndScenario(
@@ -401,7 +401,11 @@ class scenarios:
 
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario(
-        "APM_TRACING_E2E_OTEL", weblog_env={"DD_TRACE_OTEL_ENABLED": "true",}, backend_interface_timeout=5, doc="",
+        "APM_TRACING_E2E_OTEL",
+        weblog_env={"DD_TRACE_OTEL_ENABLED": "true",},
+        backend_interface_timeout=5,
+        require_api_key=True,
+        doc="",
     )
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
@@ -410,12 +414,13 @@ class scenarios:
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
+        require_api_key=True,
         doc="",
     )
 
-    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", doc="")
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", doc="")
+    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="")
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",

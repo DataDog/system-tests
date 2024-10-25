@@ -5,13 +5,9 @@ require "uri"
 require 'json'
 
 begin
-  require 'ddtrace/auto_instrument'
-rescue LoadError
-end
-
-begin
   require 'datadog/auto_instrument'
 rescue LoadError
+  require 'ddtrace/auto_instrument'
 end
 
 Datadog.configure do |c|
@@ -40,11 +36,14 @@ end
 get '/healthcheck' do
   content_type :json
 
+  gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
+  version = gemspec.version.to_s
+  version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
   {
     status: 'ok',
     library: {
       language: 'ruby',
-      version: Datadog::VERSION::STRING
+      version: version
     }
   }.to_json
 
@@ -195,4 +194,31 @@ get '/users' do
   Datadog::Kit::Identity.set_user(id: user_id)
 
   'Hello, user!'
+end
+
+get '/requestdownstream' do
+  content_type :json
+
+  uri = URI('http://localhost:7777/returnheaders')
+  ext_request = nil
+  ext_response = nil
+
+  Net::HTTP.start(uri.host, uri.port) do |http|
+    ext_request = Net::HTTP::Get.new(uri)
+
+    ext_response = http.request(ext_request)
+  end
+
+  ext_response.body
+end
+
+get '/returnheaders' do
+  content_type :json
+
+  # Convert headers from Rack format to browser format
+
+  headers = request.env.select { |k, v| k.start_with?('HTTP_') }
+  headers = headers.transform_keys { |k| k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-') }
+
+  headers.to_json
 end

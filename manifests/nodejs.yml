@@ -390,7 +390,7 @@ tests/:
         '*': *ref_3_19_0
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
-        '*': missing_feature (v3.19.0, but test is not implemented)
+        '*': *ref_5_24_0
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: *ref_3_6_0
@@ -577,6 +577,8 @@ tests/:
     test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
+    test_partial_flushing.py:
+      Test_Partial_Flushing: bug (APMLP-270)
     test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0

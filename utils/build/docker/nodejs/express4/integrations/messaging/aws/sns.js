@@ -129,7 +129,7 @@ const snsConsume = async (queue, timeout, expectedMessage) => {
             console.log(response.Messages)
             for (const message of response.Messages) {
               console.log(message)
-              if (message.Body === expectedMessage) {
+              if (message.Body.includes(expectedMessage)) {
               // add a manual span to make finding this trace easier when asserting on tests
                 tracer.trace('sns.consume', span => {
                   span.setTag('queue_name', queue)
@@ -142,13 +142,13 @@ const snsConsume = async (queue, timeout, expectedMessage) => {
             if (!messageFound) {
               setTimeout(() => {
                 receiveMessage()
-              }, 1000)
+              }, 50)
             }
           } else {
             console.log('[SNS->SQS] No messages received')
             setTimeout(() => {
               receiveMessage()
-            }, 1000)
+            }, 200)
           }
         } catch (error) {
           console.error('[SNS->SQS] Error while consuming messages: ', error)
