@@ -195,6 +195,7 @@ class EndToEndScenario(DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
+        require_api_key=False,
     ) -> None:
 
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END] + (scenario_groups or [])
@@ -215,6 +216,8 @@ class EndToEndScenario(DockerScenario):
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
         )
+
+        self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
             host_log_folder=self.host_log_folder, use_proxy=use_proxy, environment=agent_env
@@ -289,6 +292,9 @@ class EndToEndScenario(DockerScenario):
 
     def configure(self, config):
         super().configure(config)
+
+        if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
+            pytest.exit("DD_API_KEY is required for this scenario", 1)
 
         if config.option.force_dd_trace_debug:
             self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"

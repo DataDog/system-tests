@@ -83,13 +83,13 @@ const sqsConsume = async (queue, timeout, expectedMessage) => {
             if (!messageFound) {
               setTimeout(() => {
                 receiveMessage()
-              }, 1000)
+              }, 50)
             }
           } else {
             console.log('[SQS] No messages received')
             setTimeout(() => {
               receiveMessage()
-            }, 1000)
+            }, 200)
           }
         } catch (error) {
           console.error('[SQS] Error while consuming messages: ', error)

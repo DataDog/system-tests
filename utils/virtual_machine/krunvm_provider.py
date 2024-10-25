@@ -119,7 +119,7 @@ class KrunVmProvider(VmProvider):
             logger.info(microvm_process.after)
             self._microvm_processes.append(microvm_process)
 
-            self.install_provision(vm, container_name, None, create_cache=image_id is None)
+            self.install_provision(vm, container_name, None)
             # vm.set_ip("localhost"): Krunvm provides a special networking protocol, some apps may not work with it.
             # Instead of use a network, we can use stdin to lauch commands on the microVM
             vm.krunvm_config.stdin = self.commander._get_stdin_path(vm)
