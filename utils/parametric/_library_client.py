@@ -30,10 +30,12 @@ class Link(TypedDict):
     attributes: dict
     http_headers: List[Tuple[str, str]]
 
+
 class Event(TypedDict):
     time_unix_nano: int
     name: str
     attributes: dict
+
 
 class APMLibraryClient:
     def crash(self) -> None:
@@ -328,17 +330,10 @@ class APMLibraryClientHTTP(APMLibraryClient):
             },
         )
 
-    def span_add_event(
-        self, span_id: int, name: str, timestamp: int, attributes: dict = None
-    ):
+    def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict = None):
         self._session.post(
             self._url("/trace/span/add_event"),
-            json={
-                "span_id": span_id,
-                "name": name,
-                "timestamp": timestamp,
-                "attributes": attributes or {},
-            },
+            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes or {},},
         )
 
     def span_get_meta(self, span_id: int, key: str):
@@ -678,9 +673,7 @@ class APMLibraryClientGRPC:
         pb_events = []
         for event in events:
             pb_event = pb.SpanEvent(
-                time=event["time"],
-                name=event["name"],
-                attributes=convert_to_proto(event.get("attributes")),
+                time=event["time"], name=event["name"], attributes=convert_to_proto(event.get("attributes")),
             )
             pb_events.append(pb_event)
 
@@ -738,9 +731,7 @@ class APMLibraryClientGRPC:
         pb_events = []
         for event in events:
             pb_event = pb.SpanEvent(
-                time=event["time"],
-                name=event["name"],
-                attributes=convert_to_proto(event.get("attributes")),
+                time=event["time"], name=event["name"], attributes=convert_to_proto(event.get("attributes")),
             )
             pb_events.append(pb_event)
 
@@ -811,11 +802,7 @@ class APMLibraryClientGRPC:
         self._client.SpanAddLink(pb.SpanAddLinkArgs(span_id=span_id, span_link=pb_link,))
 
     def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict):
-        pb_event = pb.SpanEvent(
-            time=timestamp,
-            name=name,
-            attributes=convert_to_proto(attributes),
-        )
+        pb_event = pb.SpanEvent(time=timestamp, name=name, attributes=convert_to_proto(attributes),)
         self._client.SpanAddEvent(pb.SpanAddEventArgs(span_id=span_id, event=pb_event))
 
     def finish_span(self, span_id: int):

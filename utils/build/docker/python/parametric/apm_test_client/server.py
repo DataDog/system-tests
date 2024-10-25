@@ -346,17 +346,21 @@ class TraceSpanAddLinksArgs(BaseModel):
     parent_id: int
     attributes: dict
 
+
 class TraceSpanAddEventsArgs(BaseModel):
     span_id: int
     name: str
     timestamp: int
     attributes: dict
 
+
 class TraceSpanAddLinkReturn(BaseModel):
     pass
 
+
 class TraceSpanAddEventReturn(BaseModel):
     pass
+
 
 @app.post("/trace/span/add_link")
 def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
@@ -364,6 +368,7 @@ def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
     linked_span = spans[args.parent_id]
     span.link_span(linked_span.context, attributes=args.attributes)
     return TraceSpanAddLinkReturn()
+
 
 @app.post("/trace/span/add_event")
 def trace_span_add_event(args: TraceSpanAddEventsArgs) -> TraceSpanAddEventReturn:

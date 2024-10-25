@@ -13,8 +13,10 @@ from utils.parametric.spec.trace import retrieve_span_events, find_span, find_tr
 
 @scenarios.parametric
 class Test_Span_Events:
-    @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}, {"DD_TRACE_API_VERSION": "v0.5"}, {"DD_TRACE_API_VERSION": "v0.7"}])
-    @missing_feature(library="python", reason="native serialization not implemented")
+    @pytest.mark.parametrize(
+        "library_env",
+        [{"DD_TRACE_API_VERSION": "v0.4"}, {"DD_TRACE_API_VERSION": "v0.5"}, {"DD_TRACE_API_VERSION": "v0.7"}],
+    )
     def test_span_with_event(self, library_env, test_agent, test_library):
         """Test adding a span event in the v0.4, v0.5, and v0.7 format.
         The v0.5 format is not flexible enough to support the native attribute representation,
@@ -40,10 +42,13 @@ class Test_Span_Events:
         }
 
         with test_library:
-            with test_library.start_span("test", events=[
-              Event(time_unix_nano=time0, name=name0, attributes=attributes0),
-              Event(time_unix_nano=time1, name=name1, attributes=attributes1),
-            ]) as s:
+            with test_library.start_span(
+                "test",
+                events=[
+                    Event(time_unix_nano=time0, name=name0, attributes=attributes0),
+                    Event(time_unix_nano=time1, name=name1, attributes=attributes1),
+                ],
+            ) as s:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
@@ -55,6 +60,7 @@ class Test_Span_Events:
         if library_env["DD_TRACE_API_VERSION"] == "v0.5":
             span_events = json.loads(span.get("meta", {}).get("events"))
         else:
+            # DD_TRACE_API_VERSION v0.4 and v0.7
             span_events = span["span_events"]
 
         assert len(span_events) == 2

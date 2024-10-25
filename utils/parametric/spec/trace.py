@@ -248,6 +248,7 @@ def retrieve_span_links(span):
             links.append(link)
         return links
 
+
 def retrieve_span_events(span):
     if span.get("span_events") is not None:
         return span["span_events"]
