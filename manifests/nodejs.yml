@@ -636,9 +636,11 @@ tests/:
     Test_Config_IntegrationEnabled_False:
       '*': *ref_5_25_0
       nextjs: irrelevant # nextjs is not related with kafka
+      express4-typescript: irrelevant
     Test_Config_IntegrationEnabled_True:
       '*': *ref_5_25_0
       nextjs: irrelevant # nextjs is not related with kafka
+      express4-typescript: irrelevant
     Test_Config_ObfuscationQueryStringRegexp_Configured: *ref_3_0_0
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
