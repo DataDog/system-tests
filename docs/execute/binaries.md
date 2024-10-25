@@ -28,7 +28,7 @@ There are two ways for running the C++ library tests with a custom tracer:
 
 ## Golang library
 
-To test unmerged PRs locally, run the following in the utils/build/docker/golang/parametric directory:
+To test unmerged PRs locally, you'll first need to identify a git commit hash that contains your changes. Ensure that your commit has been pushed to your remote branch. Then, you can copy the latest (or most relevant) commit hash from the github UI on your open PR.
 
 ```sh
 go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
