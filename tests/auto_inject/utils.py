@@ -43,18 +43,17 @@ class AutoInjectBaseTest:
         logger.info(f"Making a crash-inducing request to weblog [{vm_ip}:{vm_port}]")
         make_get_request(f"http://{vm_ip}:{vm_port}/crashme", swallow=True)
         
-        output = self.execute_command(virtual_machine, f'timeout=20; elapsed=0; while pgrep -f "{commandline}" > /dev/null && [ $elapsed -lt $timeout ]; do sleep 1; elapsed=$((elapsed + 1)); done; pgrep -f "{commandline}" > /dev/null && echo "failure" || echo "success"')
+        output = self.execute_command(virtual_machine, f'timeout=20; elapsed=0; while pgrep -f "{commandline}" > /dev/null && [ $elapsed -lt $timeout ]; do sleep 1; elapsed=$((elapsed + 1)); done; pgrep -f "{commandline}" && echo "failure" || echo "success"')
         output = output.strip()
 
         if output == "success":
             return True
-        
-        if output == "failure":
-            output2 = self.execute_command(virtual_machine, f'pgrep -f "{commandline}"')
-            logger.error(f"Failure, output: {output2}")
-            return False
-        
+
         logger.error(f"Unexpected output: {output}")
+
+        output2 = self.execute_command(virtual_machine, f'pgrep -f "{commandline}"')
+        logger.error(f"Failure, output: {output2}")
+
         return False
 
     def close_channel(self, channel):
