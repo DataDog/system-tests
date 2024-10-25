@@ -92,7 +92,8 @@ def _query_for_crash_log(runtime_id):
             "filter": {
                 "from": time_from.isoformat(timespec="seconds"),
                 "to": time_to.isoformat(timespec="seconds"),
-                "query": f'service:instrumentation-telemetry-data (@tags.severity:crash OR severity:crash OR signum:*) @metadata.tags:"runtime-id:{runtime_id}"',
+                "query": "service:instrumentation-telemetry-data (@tags.severity:crash OR severity:crash OR signum:*) "
+                f'@metadata.tags:"runtime-id:{runtime_id}"',
             },
         }
         logger.debug(f"Posting to {host}{path} with query: {queryJson}")
@@ -135,7 +136,7 @@ def wait_backend_data(
 ) -> Optional[str]:
     runtime_id = None
     if trace_id is not None:
-        status, runtime_id = _retry_request_until_timeout(
+        _, runtime_id = _retry_request_until_timeout(
             functools.partial(_query_for_trace_id, trace_id, validator=validator), timeout=10.0
         )
         logger.info(f"trace [{trace_id}] found in the backend!")
@@ -151,5 +152,5 @@ wait_backend_trace_id = wait_backend_data
 def cause_and_verify_crash(runtime_id: str, vm_ip: str, vm_port: str):
     logger.info(f"Making a crash-inducing request to weblog [{vm_ip}:{vm_port}]")
     make_get_request(f"http://{vm_ip}:{vm_port}/crashme", swallow=True)
-    (status,) = _retry_request_until_timeout(functools.partial(_query_for_crash_log, runtime_id), timeout=20.0)
+    _retry_request_until_timeout(functools.partial(_query_for_crash_log, runtime_id), timeout=20.0)
     logger.info(f"crash from runtime {runtime_id} found in the backend!")
