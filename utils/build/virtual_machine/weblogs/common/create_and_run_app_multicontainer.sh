@@ -12,11 +12,8 @@ sudo systemctl start docker # Start docker service if it's not started
 #if we don't remove it, the dotnet restore will try to restore the system-tests folder
 sudo rm -rf system-tests || true
 
-#Build app python 3_12
-sudo docker build --no-cache -t system-tests/python_3_12  -f Dockerfile.python_3_12 .
-
-#Build app python 3_11
-sudo docker build --no-cache -t system-tests/python_3_11  -f Dockerfile.python_3_11 .
+#Build apps
+sudo docker-compose -f docker-compose.yml build  --parallel
 
 #Build reverse proxy
 sudo docker build -t reverseproxy:latest -f Dockerfile.reverseproxy .
@@ -29,11 +26,11 @@ then
     echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_app.env
 fi
-sudo -E docker-compose -f docker-compose-reverseproxy.yaml up -d
+sudo -E docker-compose -f docker-compose.yml up -d --wait --wait-timeout 60
 
 echo "..:: RUNNING DOCKER SERVICES ::.." 
-sudo docker-compose -f docker-compose-reverseproxy.yaml ps
+sudo docker-compose -f docker-compose.yml ps
 
 echo "..:: WEBLOG APP OUTPUT ::.."
-sudo docker-compose -f docker-compose-reverseproxy.yaml logs
+sudo docker-compose -f docker-compose.yml logs
 echo "RUN DONE"

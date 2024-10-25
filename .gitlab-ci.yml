@@ -173,21 +173,8 @@ onboarding_python:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [
             test-app-python,
-            test-app-python-container,
-            test-app-python-alpine,
-            test-app-python-alpine-libgcc,
-            test-app-python-container-3.7,
-            test-app-python-container-3.8,
-            test-app-python-container-3.9,
-            test-app-python-container-3.10,
-            test-app-python-container-3.11,
-            test-app-python-container-3.12,
-            test-app-python-container-3.7-alpine,
-            test-app-python-container-3.8-alpine,
-            test-app-python-container-3.9-alpine,
-            test-app-python-container-3.10-alpine,
-            test-app-python-container-3.11-alpine,
-            test-app-python-container-3.12-alpine,
+            test-app-python-multicontainer,
+            test-app-python-multialpine
           ]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]

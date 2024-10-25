@@ -21,22 +21,29 @@ class AutoInjectBaseTest:
         vm_logger(context.scenario.name, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
-        request_uuid = None
+        request_uuids = []
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
             logger.info(
                 f"We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
             )
-            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
+            request_uuids.append(make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port))
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
             wait_for_port(vm_port, vm_ip, 80.0)
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
-            warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-            logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
-            request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
+            responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+            if responseJson is not None:
+                logger.info(f"There is a multicontainer app: {responseJson}")
+                for app in responseJson["apps"]:
+                    logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
+                    request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
+            else:
+                logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
+                request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}/"))
 
-        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, 120.0, profile=profile)
+        for request_uuid in request_uuids:
+            logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
+            wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
     def close_channel(self, channel):
         try:
@@ -99,16 +106,27 @@ class AutoInjectBaseTest:
         self.execute_command(virtual_machine, start_weblog_command)
         logger.info(f"[Uninstall {virtual_machine.name}] Start app done")
 
+        request_uuids = []
         wait_for_port(vm_port, vm_ip, 40.0)
-        warmup_weblog(weblog_url)
-        request_uuid = make_get_request(weblog_url)
-        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
+        responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+        if responseJson is not None:
+            logger.info(f"There is a multicontainer app: {responseJson}")
+            for app in responseJson["apps"]:
+                logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
+                request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
+        else:
+            logger.info(f"Making a request to weblog [weblog_url]")
+            request_uuids.append(make_get_request(weblog_url))
+
         try:
-            wait_backend_trace_id(request_uuid, 10.0)
-            raise AssertionError("The weblog application is instrumented after uninstall DD software")
+            for request_uuid in request_uuids:
+                logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
+                wait_backend_trace_id(request_uuid, 10.0)
+                raise AssertionError("The weblog application is instrumented after uninstall DD software")
         except TimeoutError:
             # OK there are no traces, the weblog app is not instrumented
             pass
+
         # Kill the app before restore the installation
         logger.info(f"[Uninstall {virtual_machine.name}] Stop app before restore")
         self.execute_command(virtual_machine, stop_weblog_command)
