@@ -24,9 +24,7 @@ func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	fmt.Println("MTOFF: ARGS!!!", args.Attributes)
-
-	result, err := s.OtelStartSpan(&args)
+	result, err := s.OtelStartSpan(args)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -38,7 +36,7 @@ func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (s *apmClientServer) OtelStartSpan(args *OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
+func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanReturn, error) {
 	if s.tracer == nil {
 		s.tracer = s.tp.Tracer("")
 	}
@@ -58,13 +56,12 @@ func (s *apmClientServer) OtelStartSpan(args *OtelStartSpanArgs) (*OtelStartSpan
 		tm := time.UnixMicro(t)
 		otelOpts = append(otelOpts, otel_trace.WithTimestamp(tm))
 	}
-	if a := args.GetAttributes(); len(a) > 0 {
-		fmt.Println("MTOFF: We have attributes:", args.GetAttributes())
+	if a := args.Attributes; len(a) > 0 {
 		otelOpts = append(otelOpts, otel_trace.WithAttributes(a.ConvertToAttributes()...))
 	}
-	if len(args.HttpHeaders) > 0 {
+	if h := args.HttpHeaders; len(h) > 0 {
 		headers := map[string]string{}
-		for _, headerTuple := range args.HttpHeaders {
+		for _, headerTuple := range h {
 			k := headerTuple.GetKey()
 			v := headerTuple.GetValue()
 			if k != "" && v != "" {
@@ -73,7 +70,7 @@ func (s *apmClientServer) OtelStartSpan(args *OtelStartSpanArgs) (*OtelStartSpan
 		}
 		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
 		if err != nil {
-			fmt.Println("failed in StartSpan", err, args.HttpHeaders)
+			fmt.Println("failed to extract span context from headers:", err, args.HttpHeaders)
 		} else {
 			ddOpts = append(ddOpts, tracer.ChildOf(sctx))
 		}
@@ -118,20 +115,25 @@ func (s *apmClientServer) OtelStartSpan(args *OtelStartSpanArgs) (*OtelStartSpan
 					Attributes:  link.GetAttributes().ConvertToAttributesStringified(),
 				}))
 			}
-
 		}
 	}
 
 	ctx, span := s.tracer.Start(ddotel.ContextWithStartOptions(pCtx, ddOpts...), args.Name, otelOpts...)
-	hexSpanId := hex2int(span.SpanContext().SpanID().String())
+	hexSpanId, err := hex2int(span.SpanContext().SpanID().String())
+	if err != nil {
+		return OtelStartSpanReturn{}, err
+	}
 	s.otelSpans[hexSpanId] = spanContext{
 		span: span,
 		ctx:  ctx,
 	}
-
-	return &OtelStartSpanReturn{
+	hexTid, err := hex2int(span.SpanContext().TraceID().String())
+	if err != nil {
+		return OtelStartSpanReturn{}, err
+	}
+	return OtelStartSpanReturn{
 		SpanId:  hexSpanId,
-		TraceId: hex2int(span.SpanContext().TraceID().String()),
+		TraceId: hexTid,
 	}, nil
 }
 
@@ -146,7 +148,7 @@ func (s *apmClientServer) otelEndSpanHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err := s.OtelEndSpan(&args)
+	err := s.OtelEndSpan(args)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -156,11 +158,10 @@ func (s *apmClientServer) otelEndSpanHandler(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *apmClientServer) OtelEndSpan(args *OtelEndSpanArgs) error {
+func (s *apmClientServer) OtelEndSpan(args OtelEndSpanArgs) error {
 	sctx, ok := s.otelSpans[args.Id]
 	if !ok {
-		fmt.Printf("OtelEndSpan call failed, span with id=%d not found", args.Id)
-		return fmt.Errorf("span with id=%d not found", args.Id)
+		return fmt.Errorf("OtelEndSpan call failed, span with id=%d not found", args.Id)
 	}
 
 	endOpts := []otel_trace.SpanEndOption{}
@@ -180,7 +181,7 @@ func (s *apmClientServer) otelSetAttributesHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err := s.OtelSetAttributes(context.Background(), &args)
+	err := s.OtelSetAttributes(args)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -190,7 +191,7 @@ func (s *apmClientServer) otelSetAttributesHandler(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *apmClientServer) OtelSetAttributes(ctx context.Context, args *OtelSetAttributesArgs) error {
+func (s *apmClientServer) OtelSetAttributes(args OtelSetAttributesArgs) error {
 	sctx, ok := s.otelSpans[args.SpanId]
 	if !ok {
 		return fmt.Errorf("OtelSetAttributes call failed, span with id=%d not found", args.SpanId)
@@ -210,6 +211,7 @@ func (s *apmClientServer) otelSetNameHandler(w http.ResponseWriter, r *http.Requ
 	sctx, ok := s.otelSpans[args.SpanId]
 	if !ok {
 		http.Error(w, fmt.Sprintf("OtelSetName call failed, span with id=%d not found", args.SpanId), http.StatusInternalServerError)
+		return
 	}
 	sctx.span.SetName(args.Name)
 
@@ -232,11 +234,11 @@ func (s *apmClientServer) otelFlushSpansHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (s *apmClientServer) otelFlushTraceStatsHandler(w http.ResponseWriter, _ *http.Request) {
-	s.otelSpans = make(map[uint64]spanContext)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-}
+// func (s *apmClientServer) otelFlushTraceStatsHandler(w http.ResponseWriter, _ *http.Request) {
+// 	s.otelSpans = make(map[uint64]spanContext)
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusOK)
+// }
 
 func (s *apmClientServer) otelIsRecordingHandler(w http.ResponseWriter, r *http.Request) {
 	var args OtelIsRecordingArgs
@@ -331,7 +333,7 @@ func (s *apmClientServer) otelSetStatusHandler(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 }
 
-func hex2int(hexStr string) uint64 {
+func hex2int(hexStr string) (uint64, error) {
 	// remove 0x suffix if found in the input string
 	cleaned := strings.Replace(hexStr, "0x", "", -1)
 	if len(cleaned) > 16 {
@@ -342,7 +344,7 @@ func hex2int(hexStr string) uint64 {
 	// base 16 for hexadecimal
 	result, err := strconv.ParseUint(cleaned, 16, 64)
 	if err != nil {
-		fmt.Printf("Converting hex string to uint64 failed, hex string : %s\n", hexStr)
+		return 0, fmt.Errorf("Converting hex string to uint64 failed, hex string : %s\n", hexStr)
 	}
-	return result
+	return result, nil
 }

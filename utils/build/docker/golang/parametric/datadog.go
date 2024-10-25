@@ -42,26 +42,25 @@ func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Reques
 
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (ddtrace.Span, error) {
 	var opts []tracer.StartSpanOption
-	if args.GetParentId() > 0 {
-		parent := s.spans[*args.ParentId]
+	if p := args.ParentId; p > 0 {
+		parent := s.spans[p]
 		opts = append(opts, tracer.ChildOf(parent.Context()))
 	}
-	if args.Resource != nil {
-		opts = append(opts, tracer.ResourceName(*args.Resource))
+	if r := args.Resource; r != "" {
+		opts = append(opts, tracer.ResourceName(r))
 	}
-	if args.Service != nil {
-		opts = append(opts, tracer.ServiceName(*args.Service))
+	if s := args.Service; s != "" {
+		opts = append(opts, tracer.ServiceName(s))
 	}
-	if args.Type != nil {
-		opts = append(opts, tracer.SpanType(*args.Type))
+	if t := args.Type; t != "" {
+		opts = append(opts, tracer.SpanType(t))
 	}
-
-	if args.GetSpanTags() != nil && len(args.SpanTags) != 0 {
+	if len(args.SpanTags) != 0 {
 		for _, tag := range args.SpanTags {
-			opts = append(opts, tracer.Tag(tag.GetKey(), tag.GetValue()))
+			opts = append(opts, tracer.Tag(tag.Key(), tag.Value()))
 		}
 	}
-	if args.GetHttpHeaders() != nil && len(args.HttpHeaders) != 0 {
+	if len(args.HttpHeaders) != 0 {
 		headers := map[string]string{}
 		for _, headerTuple := range args.HttpHeaders {
 			k := headerTuple.GetKey()
@@ -79,8 +78,8 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (d
 		}
 	}
 	span := tracer.StartSpan(args.Name, opts...)
-	if args.GetOrigin() != "" {
-		span.SetTag("_dd.origin", *args.Origin)
+	if o := args.Origin; o != "" {
+		span.SetTag("_dd.origin", o)
 	}
 	s.spans[span.Context().SpanID()] = span
 	return span, nil
@@ -141,7 +140,6 @@ func (s *apmClientServer) finishSpanHandler(w http.ResponseWriter, r *http.Reque
 	span.Finish()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(struct{}{})
 }
 
 func (s *apmClientServer) flushSpansHandler(w http.ResponseWriter, r *http.Request) {
@@ -189,7 +187,7 @@ func (s *apmClientServer) injectHeadersHandler(w http.ResponseWriter, r *http.Re
 		distr = append(distr, []string{k, v})
 	}
 
-	response := InjectHeadersReturn{&distr}
+	response := InjectHeadersReturn{distr}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

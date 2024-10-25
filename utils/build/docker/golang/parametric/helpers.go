@@ -18,86 +18,30 @@ type GetTraceConfigReturn struct {
 
 type StartSpanArgs struct {
 	Name        string                  `json:"name,omitempty"`
-	Service     *string                 `json:"service,omitempty"`
-	ParentId    *uint64                 `json:"parent_id,omitempty"`
-	Resource    *string                 `json:"resource,omitempty"`
-	Type        *string                 `json:"type,omitempty"`
-	Origin      *string                 `json:"origin,omitempty"`
-	HttpHeaders []*HeaderTuple `json:"http_headers,omitempty"`
+	Service     string                 `json:"service,omitempty"`
+	ParentId    uint64                 `json:"parent_id,omitempty"`
+	Resource    string                 `json:"resource,omitempty"`
+	Type        string                 `json:"type,omitempty"`
+	Origin      string                 `json:"origin,omitempty"`
+	HttpHeaders []HeaderTuple `json:"http_headers,omitempty"`
 	SpanTags    []TagTuple          `json:"span_tags,omitempty"`
 	SpanLinks   []*SpanLink             `json:"span_links,omitempty"`
 }
 
 type TagTuple []string
 
-func (x *TagTuple) GetKey() string {
+func (x TagTuple) Key() string {
 	if x != nil {
-		return (*x)[0]
+		return x[0]
 	}
 	return ""
 }
 
-func (x *TagTuple) GetValue() string {
+func (x TagTuple) Value() string {
 	if x != nil {
-		return (*x)[1]
+		return x[1]
 	}
 	return ""
-}
-
-func (x *StartSpanArgs) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *StartSpanArgs) GetService() string {
-	if x != nil && x.Service != nil {
-		return *x.Service
-	}
-	return ""
-}
-
-func (x *StartSpanArgs) GetParentId() uint64 {
-	if x != nil && x.ParentId != nil {
-		return *x.ParentId
-	}
-	return 0
-}
-
-func (x *StartSpanArgs) GetResource() string {
-	if x != nil && x.Resource != nil {
-		return *x.Resource
-	}
-	return ""
-}
-
-func (x *StartSpanArgs) GetType() string {
-	if x != nil && x.Type != nil {
-		return *x.Type
-	}
-	return ""
-}
-
-func (x *StartSpanArgs) GetOrigin() string {
-	if x != nil && x.Origin != nil {
-		return *x.Origin
-	}
-	return ""
-}
-
-func (x *StartSpanArgs) GetHttpHeaders() []*HeaderTuple {
-	if x != nil {
-		return x.HttpHeaders
-	}
-	return nil
-}
-
-func (x *StartSpanArgs) GetSpanTags() []TagTuple {
-	if x != nil {
-		return x.SpanTags
-	}
-	return nil
 }
 
 type DistributedHTTPHeaders [][]string
@@ -108,10 +52,10 @@ type SpanLink struct {
 	//	*SpanLink_ParentId
 	//	*SpanLink_HttpHeaders
 	From       isSpanLink_From `protobuf_oneof:"from"`
-	Attributes *AttributeKeyVals     `json:"attributes,omitempty"`
+	Attributes AttributeKeyVals     `json:"attributes,omitempty"`
 }
 
-func (x *SpanLink) GetAttributes() *AttributeKeyVals {
+func (x *SpanLink) GetAttributes() AttributeKeyVals {
 	if x != nil {
 		return x.Attributes
 	}
@@ -163,7 +107,7 @@ type InjectHeadersArgs struct {
 }
 
 type InjectHeadersReturn struct {
-	HttpHeaders *DistributedHTTPHeaders `json:"http_headers"`
+	HttpHeaders DistributedHTTPHeaders `json:"http_headers"`
 }
 
 type FinishSpanArgs struct {
@@ -199,10 +143,6 @@ type OtelStartSpanArgs struct {
 	SpanLinks   []SpanLink             `json:"span_links"`
 	HttpHeaders []HeaderTuple `json:"http_headers"`
 	Attributes  AttributeKeyVals             `json:"attributes"`
-}
-
-func (x *OtelStartSpanArgs) GetAttributes() AttributeKeyVals{
-	return x.Attributes
 }
 
 type OtelStartSpanReturn struct {
@@ -293,9 +233,9 @@ type Attributes struct {
 
 type AttributeKeyVals map[string]interface{} 
 
-func (a *AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
+func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 	var attrs []attribute.KeyValue
-	for k, v := range *a {
+	for k, v := range a {
 		switch t := v.(type) {
 		case bool:
 			attrs = append(attrs, attribute.Bool(k, v.(bool)))
@@ -322,9 +262,9 @@ func (a *AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 	return attrs
 }
 
-func (a *AttributeKeyVals) ConvertToAttributesStringified() []attribute.KeyValue {
+func (a AttributeKeyVals) ConvertToAttributesStringified() []attribute.KeyValue {
 	var attrs []attribute.KeyValue
-	for k, v := range *a {
+	for k, v := range a {
 		s, err := json.Marshal(v)
 		if err != nil {
 			fmt.Printf("Error converting attribute to json string: %v\n", err.Error())
