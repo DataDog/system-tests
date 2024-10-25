@@ -11,11 +11,14 @@ class SystemTestController < ApplicationController
   end
 
   def healthcheck
+    gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
+    version = gemspec.version.to_s
+    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
     render json: { 
       status: 'ok',
       library: {
         language: 'ruby',
-        version: Datadog::VERSION::STRING
+        version: version
       }
     }
   end
