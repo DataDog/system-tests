@@ -39,7 +39,8 @@ class AutoInjectBaseTest:
         make_get_request(f"http://{vm_ip}:{vm_port}/crashme", swallow=True)
         
         output = self.execute_command(virtual_machine, f'timeout=10; elapsed=0; pid={pid}; while [ -d /proc/$pid ] && [ $elapsed -lt $timeout ]; do sleep 1; elapsed=$((elapsed + 1)); done; [ -d /proc/$pid ] && echo "success" || echo "failure"')
-        
+        output = output.strip()
+
         if output == "success":
             return True
         
