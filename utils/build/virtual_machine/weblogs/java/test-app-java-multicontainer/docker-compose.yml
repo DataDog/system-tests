@@ -8,6 +8,8 @@ services:
       build:
           context: .
           dockerfile: Dockerfile.reverseproxy
+      healthcheck:
+        test: "curl -f http://localhost:8080"
   java_11:
       env_file: "scenario_app.env"
       image: system-tests/java_11:latest
@@ -15,6 +17,8 @@ services:
       build:
           context: .
           dockerfile: Dockerfile.jdk11
+      healthcheck:
+        test: "curl -f http://localhost:18080"
 
   java_15:
       env_file: "scenario_app.env"
@@ -23,6 +27,8 @@ services:
       build:
           context: .
           dockerfile: Dockerfile.jdk15
+      healthcheck:
+        test: "curl -f http://localhost:18080"
 
   java_11_alpine:
       env_file: "scenario_app.env"
@@ -31,6 +37,8 @@ services:
       build:
           context: .
           dockerfile: Dockerfile.jdk11-alpine
+      healthcheck:
+        test: "curl -f http://localhost:18080"
 
   java_15_alpine:
       env_file: "scenario_app.env"
@@ -39,6 +47,8 @@ services:
       build:
           context: .
           dockerfile: Dockerfile.jdk15-alpine
+      healthcheck:
+        test: "curl -f http://localhost:18080"
 
   java_21_alpine:
       env_file: "scenario_app.env"
@@ -47,3 +57,5 @@ services:
       build:
           context: .
           dockerfile: Dockerfile.jdk21-alpine
+      healthcheck:
+        test: "curl -f http://localhost:18080"

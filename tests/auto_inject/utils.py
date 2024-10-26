@@ -20,7 +20,7 @@ class AutoInjectBaseTest:
         vm_port = virtual_machine.deffault_open_port
         header = "----------------------------------------------------------------------"
         vm_logger(context.scenario.name, virtual_machine.name).info(
-            f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
+            f"{header} \n {header}  \n  Launching the install for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
         request_uuids = []
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
@@ -161,7 +161,7 @@ class AutoInjectBaseTest:
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
             #   On older Docker versions, the network recreation can hang. The solution is to restart Docker.
             #   https://github.com/docker-archive/classicswarm/issues/1931
-            start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up"
+            start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up --wait --wait-timeout 120"
 
         install_command = "sudo datadog-installer apm instrument"
         uninstall_command = "sudo datadog-installer apm uninstrument"
