@@ -15,8 +15,10 @@ sudo rm -rf system-tests || true
 #Build apps
 sudo docker-compose -f docker-compose.yml build  --parallel
 
-#Build reverse proxy
-sudo docker build -t reverseproxy:latest -f Dockerfile.reverseproxy .
+if [ -f docker-compose-agent-prod.yml ]; then
+    # Agent may be installed in a different way
+    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait --wait-timeout 120
+fi
 
 #Env variables set on the scenario definition. Write to file and load  
 if [ ! -f scenario_app.env ]

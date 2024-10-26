@@ -1,6 +1,5 @@
 weblog:
     name: test-app-python-multialpine
-    exact_os_branches: [ubuntu24]
     install: 
       - os_type: linux
         copy_files:

@@ -1,4 +1,5 @@
 import os
+import time
 import pytest
 import paramiko
 from utils.tools import logger
@@ -35,8 +36,10 @@ class AutoInjectBaseTest:
             if responseJson is not None:
                 logger.info(f"There is a multicontainer app: {responseJson}")
                 for app in responseJson["apps"]:
+                    warmup_weblog(f"http://{vm_ip}:{vm_port}{app['url']}")
                     logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
                     request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
+                    time.sleep(1)
             else:
                 logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
                 request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}/"))

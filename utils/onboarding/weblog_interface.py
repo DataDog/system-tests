@@ -1,8 +1,8 @@
 import time
 from random import randint
 import os
-import requests
 import json
+import requests
 from utils.tools import logger
 
 
@@ -31,10 +31,11 @@ def warmup_weblog(app_url):
                     logger.info(f"Weblog response: {json_res}")
                     if "app_type" in json_res and json_res["app_type"] == "multicontainer":
                         return json_res
-                    else:
-                        logger.info(f"Weblog is not multicontainer, response: {json_res}")
-            break
-        except Exception as e:
+                    logger.info(f"Weblog is not multicontainer, response: {json_res}")
+                break
+            else:
+                time.sleep(2)
+        except Exception:
             time.sleep(5)
     return None
 
