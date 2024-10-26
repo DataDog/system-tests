@@ -149,7 +149,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python", "golang"):
+        if library in ("nodejs", "python", "golang", "ruby"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -583,6 +583,7 @@ def ruby_library_factory() -> APMLibraryTestServer:
             WORKDIR /app
             COPY {ruby_reldir} .
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
+            COPY {ruby_reldir}/system_tests_library_version.sh system_tests_library_version.sh
             RUN bundle install
             RUN /binaries/install_ddtrace.sh
             COPY {ruby_reldir}/server.rb /app/
