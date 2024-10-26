@@ -1,6 +1,6 @@
 FROM public.ecr.aws/docker/library/alpine:latest
 RUN apk --no-cache add openjdk11 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash curl
 
 COPY jetty-distribution-9.4.56.v20240826.tar.gz .
 RUN tar -xf jetty-distribution-9.4.56.v20240826.tar.gz -C /opt/

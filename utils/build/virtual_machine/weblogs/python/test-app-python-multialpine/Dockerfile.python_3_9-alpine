@@ -1,5 +1,6 @@
 FROM public.ecr.aws/docker/library/python:3.9-alpine
 
+RUN apk add --no-cache curl
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE django_app
 WORKDIR /src
