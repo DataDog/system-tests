@@ -338,7 +338,7 @@ class AmazonLinux2023arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2023_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0a515c154e76934f7", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0a515c154e76934f7", ami_instance_type="t4g.medium", user="ec2-user"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
             krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/amazonlinux_datadog:2023"),
