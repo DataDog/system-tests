@@ -33,8 +33,7 @@ def warmup_weblog(app_url):
                         return json_res
                     logger.info(f"Weblog is not multicontainer, response: {json_res}")
                 break
-            else:
-                time.sleep(2)
+            time.sleep(2)
         except Exception:
             time.sleep(5)
     return None
