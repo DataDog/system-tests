@@ -140,16 +140,14 @@ public abstract class ApmTestApi
             span.Type = type.ToString();
         }
 
-        // if (parsedDictionary.TryGetValue("span_tags", out var tagsToken))
-        // {
-        //     foreach (var tag in (Newtonsoft.Json.Linq.JArray)tagsToken)
-        //     {
-        //         var key = (string)tag[0]!;
-        //         var value = (string?)tag[1];
+        if (parsedDictionary.TryGetValue("tags", out var tagsToken) && tagsToken is not null)
+        {
 
-        //         span.SetTag(key, value);
-        //     }
-        // }
+            foreach (var kv in (Newtonsoft.Json.Linq.JObject)tagsToken)
+            {
+                span.SetTag(kv.Key, (string)kv.Value);
+            }
+        }
 
         Spans[span.SpanId] = span;
 

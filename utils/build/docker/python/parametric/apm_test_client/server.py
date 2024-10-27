@@ -3,7 +3,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Union
+from typing import Any
 
 import os
 from fastapi import FastAPI
@@ -59,7 +59,7 @@ class StartSpanArgs(BaseModel):
     service: Optional[str] = None
     resource: Optional[str] = None
     type: Optional[str] = None
-    http_headers: Optional[List[Tuple[str, str]]] = None
+    tags: Dict[str, Any] = None
 
 
 class StartSpanReturn(BaseModel):
@@ -78,6 +78,8 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
     span = ddtrace.tracer.start_span(
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
+    # TODO: add tags to tracer.start_span
+    span.set_tags(args.tags or {})
     spans[span.span_id] = span
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
 

@@ -2,7 +2,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
+from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict, Any
 
 from docker.models.containers import Container
 import grpc
@@ -39,7 +39,13 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def trace_start_span(
-        self, name: str, service: str, resource: str, parent_id: int, typestr: str, http_headers: List[Tuple[str, str]],
+        self,
+        name: str,
+        service: Optional[str] = None,
+        resource: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        typestr: Optional[str] = None,
+        tags: Optional[List[Tuple[str, str]]] = None,
     ) -> StartSpanResponse:
         raise NotImplementedError
 
@@ -221,11 +227,11 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def trace_start_span(
         self,
         name: str,
-        service: str,
-        resource: str,
-        parent_id: int,
-        typestr: str,
-        http_headers: Optional[List[Tuple[str, str]]],
+        service: Optional[str] = None,
+        resource: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        typestr: Optional[str] = None,
+        tags: Optional[Dict[str, Any]] = None,
     ):
         resp = self._session.post(
             self._url("/trace/span/start"),
@@ -235,7 +241,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
                 "resource": resource,
                 "parent_id": parent_id,
                 "type": typestr,
-                "http_headers": http_headers,
+                "tags": tags,
             },
         )
 
@@ -852,15 +858,10 @@ class APMLibrary:
         resource: Optional[str] = None,
         parent_id: Optional[str] = None,
         typestr: Optional[str] = None,
-        http_headers: Optional[List[Tuple[str, str]]] = None,
+        tags: Optional[Dict[str, Any]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
-            name=name,
-            service=service,
-            resource=resource,
-            parent_id=parent_id,
-            typestr=typestr,
-            http_headers=http_headers if http_headers is not None else [],
+            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags,
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span

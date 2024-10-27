@@ -68,7 +68,7 @@ DD_DIGEST = {}
 HeaderTuple = Struct.new(:key, :value, keyword_init: true)
 
 class StartSpanArgs
-  attr_accessor :parent_id, :name, :service, :type, :resource, :origin, :http_headers, :links
+  attr_accessor :parent_id, :name, :service, :type, :resource, :tags
 
   def initialize(params)
     @parent_id = params['parent_id']
@@ -76,9 +76,7 @@ class StartSpanArgs
     @service = params['service']
     @type = params['type']
     @resource = params['resource']
-    @origin = params['origin']
-    @http_headers = params['http_headers']
-    @links = params['links']
+    @tags = params['tags']
   end
 end
 
@@ -176,20 +174,20 @@ end
 class SpanExtractArgs
   attr_accessor :http_headers
 
-  def initialize(http_headers)
-    @http_headers = http_headers
-  end
-
-  def to_json(*_args)
-    { http_headers: @http_headers }.to_json
+  def initialize(params)
+    @http_headers = params["http_headers"]
   end
 end
 
 class SpanExtractReturn
   attr_accessor :span_id
 
-  def initialize(params)
-    @span_id = params['span_id']
+  def initialize(span_id)
+    @span_id = span_id
+  end
+
+  def to_json(*_args)
+    { span_id: @span_id }.to_json
   end
 end
 
@@ -497,26 +495,27 @@ def parse_dd_link(link)
 end
 
 def get_digest(span_id)
-  return nil if span_id.nil?
-
-  if DD_SPANS.key?(span_id)
+  if span_id.nil?
+    nil
+  elsif DD_SPANS.key?(span_id)
     span = DD_SPANS[span_id]
     raise "Span id #{span_id} not found in span list: #{DD_SPANS}" if span.nil?
     digest = DD_DIGEST[span.trace_id]
     raise "Span id #{span_id} not found in span list: #{DD_DIGEST}" if digest.nil?
-    digest.merge!(
+    digest.merge(
       span_id: span.id,
       span_name: span.name,
       span_resource: span.resource,
       span_service: span.service,
       span_type: span.type,
-      span_remote: False,
+      span_remote: false,
     )
+  else
+    DD_DIGEST.each do |_, digest|
+      return digest if digest.span_id == span_id
+    end
+    raise "Span id #{span_id} not found in spans: #{DD_SPANS} or digests: #{DD_DIGEST}"
   end
-  DD_DIGEST.each do |_, value|
-    return value if value.span_id == span_id
-  end
-  raise "Span id #{span_id} not found in spans: #{DD_SPANS} or digests: #{DD_DIGEST}"
 end
 
 def parse_otel_link(link)
@@ -620,6 +619,7 @@ class MyApp
       service: args.service,
       resource: args.resource,
       type: args.type,
+      tags: args.tags,
       continue_from: get_digest(args.parent_id),
     )
     DD_SPANS[span.id] = span
@@ -668,13 +668,12 @@ class MyApp
 
   def handle_trace_span_inject_headers(req, res)
     args = SpanInjectArgs.new(JSON.parse(req.body.read))
-    find_span(args.span_id)
+    digest = get_digest(args.span_id)
     env = {}
     if Datadog::Tracing::Contrib::HTTP.respond_to?(:inject)
-      Datadog::Tracing::Contrib::HTTP.inject(Datadog::Tracing.active_trace.to_digest, env)
+      Datadog::Tracing::Contrib::HTTP.inject(digest, env)
     else
-      Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest,
-                                                                            env)
+      Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.inject!(digest, env)
     end
 
     res.write(SpanInjectReturn.new(env.to_a).to_json)
@@ -682,13 +681,14 @@ class MyApp
 
   def handle_trace_span_extract_headers(req, res)
     args = SpanExtractArgs.new(JSON.parse(req.body.read))
-
     digest = extract_http_headers(args.http_headers)
+    print "Extracted digest: #{digest}\n"
     unless digest.nil?
       DD_DIGEST[digest.trace_id] = digest
+      print "Extracted digest: #{digest.span_id}, trace id: #{digest.trace_id}\n"
     end
 
-    res.write(SpanExtractReturn.new(digest.span_id).to_json)
+    res.write(SpanExtractReturn.new(digest&.span_id).to_json)
   end
 
   def handle_trace_span_flush(_req, res)

@@ -20,7 +20,9 @@ class Test_DD_Parametric_Endpoints:
             with test_library.start_span("parent") as s1:
                 pass
 
-            with test_library.start_span("child", "myservice", "myresource", s1.span_id, "web") as s2:
+            with test_library.start_span(
+                "child", "myservice", "myresource", s1.span_id, "web", {"hello": "monkeys", "num": "1"}
+            ) as s2:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
@@ -30,7 +32,7 @@ class Test_DD_Parametric_Endpoints:
         parent_span = find_span(trace, s1.span_id)
         assert parent_span["name"] == "parent"
         assert parent_span["resource"] == "parent"
-        assert parent_span["service"] in ["", "nodejs", "ApmTestApi"]
+        assert parent_span["service"] in ["", "nodejs", "ApmTestApi", "server"]
 
         child_span = find_span(trace, s2.span_id)
         assert child_span["name"] == "child"
@@ -39,6 +41,8 @@ class Test_DD_Parametric_Endpoints:
         # nodejs and dotnet libraries returns span and trace_ids as strings
         assert child_span["parent_id"] == int(s1.span_id)
         assert child_span["type"] == "web"
+        assert child_span["meta"]["hello"] == "monkeys"
+        assert child_span["meta"]["num"] == "1"
 
     def test_extract_headers(self, test_agent, test_library):
         """

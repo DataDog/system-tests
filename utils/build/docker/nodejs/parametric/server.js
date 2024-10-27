@@ -78,6 +78,8 @@ app.post('/trace/span/start', (req, res) => {
     resource: request.resource,
     childOf: parent
   });
+  // TODO: add support for initiqalizing span with tags
+  if (request.tags) for (const [key, value] of request.tags) span.setTag(key, value);
 
   spans[span.context().toSpanId()] = span;
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
