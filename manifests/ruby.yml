@@ -267,7 +267,7 @@ tests/:
       test_kafka.py:
         Test_Kafka:
           "*": irrelevant
-          rails70: missing_feature (ruby-kafka integration does not set the kafka topic on spans)
+          rails70: missing_feature (ruby-kafka does not set the kafka topic on spans)
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
@@ -422,7 +422,7 @@ tests/:
       '*': irrelevant (endpoint not implemented)
       rails70: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (enviornment variable is not supported)
+    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:

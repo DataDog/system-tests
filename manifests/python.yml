@@ -790,14 +790,14 @@ tests/:
     Test_Config_ClientTagQueryString_Configured: v2.15.0
     Test_Config_ClientTagQueryString_Empty: v2.12.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (xpassing but should fail, this enviornment variable is not supported)
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (xpassing but should fail, this environment variable is not supported)
     Test_Config_HttpServerErrorStatuses_Default: v2.12.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.15.0
     Test_Config_IntegrationEnabled_False:
-      '*': irrelevant (endpoint not implemented)
+      '*': irrelevant (kafka endpoint is not implemented)
       flask-poc: v2.0.0
     Test_Config_IntegrationEnabled_True:
-      '*': irrelevant (endpoint not implemented)
+      '*': irrelevant (kafka endpoint is not implemented)
       flask-poc: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
