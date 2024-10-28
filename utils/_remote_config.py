@@ -13,6 +13,7 @@ from typing import Optional
 
 import requests
 
+from utils._weblog import weblog
 from utils._context.core import context
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
@@ -112,6 +113,8 @@ def send_state(
                 return True
 
     _post("/unique_command", raw_payload)
+    if context.library == "php":
+        weblog.get("await_probes.php")
     library.wait_for(remote_config_applied, timeout=30)
     # ensure the library has enough time to apply the config to all subprocesses
     time.sleep(2)
@@ -216,6 +219,8 @@ def build_debugger_command(probes: list, version: int):
             if probe["where"]["typeName"] == "ACTUAL_TYPE_NAME":
                 if library_name == "dotnet":
                     probe["where"]["typeName"] = "weblog.DebuggerController"
+                elif library_name == "php":
+                    probe["where"]["typeName"] = "DebuggerController"
                 elif library_name == "java":
                     probe["where"]["typeName"] = "DebuggerController"
                     probe["where"]["methodName"] = (
@@ -229,6 +234,8 @@ def build_debugger_command(probes: list, version: int):
             elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                 if library_name == "dotnet":
                     probe["where"]["sourceFile"] = "DebuggerController.cs"
+                elif library_name == "php":
+                    probe["where"]["sourceFile"] = "debugger.php"
                 elif library_name == "java":
                     probe["where"]["sourceFile"] = "DebuggerController.java"
                 elif library_name == "python":

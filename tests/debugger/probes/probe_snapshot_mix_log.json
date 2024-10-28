@@ -1,7 +1,7 @@
 [
     {
+        "type": "LOG_PROBE",
         "language": "",
-        "type": "",
         "id": "logfb5a-1974-4cdb-b1dd-77dba2method",
         "captureSnapshot": true,
         "where": {
@@ -9,11 +9,12 @@
             "methodName": "MixProbe",
             "sourceFile": null
         },
+        "segments": [],
         "evaluateAt": "EXIT"
     },
     {
+        "type": "LOG_PROBE",
         "language": "",
-        "type": "",
         "id": "logfb5a-1974-4cdb-b1dd-77dba2f1line",
         "captureSnapshot": true,
         "where": {
@@ -22,6 +23,7 @@
             "lines": [
                 "52"
             ]
-        }
+        },
+        "segments": []
     }
 ]

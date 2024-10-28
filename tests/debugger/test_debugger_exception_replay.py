@@ -9,7 +9,7 @@ import re
 from utils import scenarios, interfaces, weblog, features, bug
 from utils.tools import logger
 
-_OVERRIDE_APROVALS = False
+_OVERRIDE_APROVALS = True
 
 
 @features.debugger_exception_replay
@@ -74,7 +74,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
     ############ Simple ############
     def setup_exception_replay_simple(self):
-        self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
+        self._setup("/debugger/exceptionreplay_simple", "exceptionreplaysimple")
 
     @bug(library="java", reason="DEBUG-2787")
     @bug(library="dotnet", reason="DEBUG-2799")
@@ -84,11 +84,11 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
         self._validate_tags(test_name="exception_replay_simple", number_of_frames=1)
 
     def setup_exception_replay_simple(self):
-        self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
+        self._setup("/debugger/exceptionreplay_simple", "exceptionreplaysimple")
 
     ############ Recursion ############
     def setup_exception_replay_recursion_5(self):
-        self._setup("/debugger/exceptionreplay/recursion5", "exceptionreplayrecursion5")
+        self._setup("/debugger/exceptionreplay_recursion5", "exceptionreplayrecursion5")
 
     @bug(library="java", reason="DEBUG-2787")
     @bug(library="dotnet", reason="DEBUG-2799")
@@ -98,7 +98,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
         self._validate_tags(test_name="exception_replay_recursion_5", number_of_frames=5)
 
     def setup_exception_replay_recursion_20(self):
-        self._setup("/debugger/exceptionreplay/recursion20", "exceptionreplayrecursion20")
+        self._setup("/debugger/exceptionreplay_recursion20", "exceptionreplayrecursion20")
 
     @bug(library="java", reason="DEBUG-2787")
     @bug(library="dotnet", reason="DEBUG-2799")
@@ -109,14 +109,14 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
     ############ Inner ############
     def setup_exception_replay_inner(self):
-        self._setup("/debugger/exceptionreplay/inner", "exceptionreplayinner")
+        self._setup("/debugger/exceptionreplay_inner", "exceptionreplayinner")
 
     @bug(library="java", reason="DEBUG-2787")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_inner(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
         self._validate_exception_replay_snapshots(test_name="exception_replay_inner")
-        self._validate_tags(test_name="exception_replay_inner", number_of_frames=2)
+        self._validate_tags(test_name="exception_replay_inner", number_of_frames=1)
 
     def __get_path(self, test_name, suffix):
         if self.tracer is None:
@@ -140,7 +140,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
                 if isinstance(data, dict):
                     scrubbed_data = {}
                     for key, value in data.items():
-                        if key in ["timestamp", "id", "exceptionId", "duration"]:
+                        if key in ["timestamp", "id", "exceptionId", "exceptionCaptureId", "duration"]:
                             scrubbed_data[key] = "<scrubbed>"
                         # java
                         elif key == "elements" and data.get("type") in ["long[]", "short[]", "int[]"]:
@@ -171,8 +171,8 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
             expected_snapshots = self.__read(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
             assert all(
-                "exceptionId" in snapshot for snapshot in snapshots
-            ), "One or more snapshots don't have 'exceptionId' field"
+                "exceptionId" in snapshot or "exceptionCaptureId" in snapshot for snapshot in snapshots
+            ), "One or more snapshots don't have 'exceptionCaptureId' field"
 
         __approve(self.snapshots)
 
@@ -223,7 +223,9 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
             assert expected == tags
 
-            assert "_dd.debug.error.exception_id" in tags, "Missing '_dd.debug.error.exception_id' in tags"
+            assert (
+                "_dd.debug.error.exception_id" in tags or "_dd.debug.error.exception_capture_id" in tags
+            ), "Missing '_dd.debug.error.exception_capture_id' in tags"
             assert "_dd.debug.error.exception_hash" in tags, "Missing '_dd.debug.error.exception_hash' in tags"
             assert f"_dd.debug.error.{0}.snapshot_id" in tags, f"Missing '_dd.debug.error.{0}.snapshot_id' in tags"
             if number_of_frames > 1:

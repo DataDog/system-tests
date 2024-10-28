@@ -1,7 +1,7 @@
 [
     {
+        "type": "LOG_PROBE",
         "language": "",
-        "type": "",
         "id": "log170aa-acda-4453-9111-1478a697line",
         "where": {
             "typeName": null,
@@ -9,11 +9,12 @@
             "lines": [
                 "20"
             ]
-        }
+        },
+        "segments": []
     },
     {
+        "type": "SPAN_DECORATION_PROBE",
         "language": "",
-        "type": "",
         "id": "decor0aa-acda-4453-9111-1478a697line",
         "targetSpan": "ACTIVE",
         "decorations": [

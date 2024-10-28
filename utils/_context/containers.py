@@ -166,6 +166,7 @@ class TestedContainer:
             # auto_remove=True,
             detach=True,
             network=_NETWORK_NAME,
+            ulimits=[docker.types.Ulimit(name="core", soft=1_000_000_000, hard=1_000_000_000)],
             **self.kwargs,
         )
 

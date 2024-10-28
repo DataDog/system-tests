@@ -1,7 +1,7 @@
 [
     {
+        "type": "SPAN_DECORATION_PROBE",
         "language": "",
-        "type": "",
         "id": "decorcf2-meth-45cf-9f39-591received",
         "targetSpan": "ACTIVE",
         "decorations": [
@@ -29,8 +29,8 @@
         "evaluateAt": "EXIT"
     },
     {
+        "type": "SPAN_DECORATION_PROBE",
         "language": "",
-        "type": "",
         "id": "decorcf2-meth-45cf-9f39-59installed",
         "targetSpan": "ACTIVE",
         "decorations": [
@@ -58,8 +58,8 @@
         "evaluateAt": "EXIT"
     },
     {
+        "type": "SPAN_DECORATION_PROBE",
         "language": "",
-        "type": "",
         "id": "decorcf2-line-45cf-9f39-59installed",
         "targetSpan": "ACTIVE",
         "decorations": [

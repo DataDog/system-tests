@@ -1,0 +1,202 @@
+[
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exception_capture_id": "<scrubbed>",
+    "exception_hash": "7262e893d52a8efc",
+    "frame_index": 0,
+    "captures": {
+      "return": {
+        "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "0"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursion5",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exception_capture_id": "<scrubbed>",
+    "exception_hash": "7262e893d52a8efc",
+    "frame_index": 1,
+    "captures": {
+      "return": {
+        "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "1"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursion5",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exception_capture_id": "<scrubbed>",
+    "exception_hash": "7262e893d52a8efc",
+    "frame_index": 2,
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "depth": {
+            "type": "int",
+            "value": "2"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursion5",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exception_capture_id": "<scrubbed>",
+    "exception_hash": "7262e893d52a8efc",
+    "frame_index": 3,
+    "captures": {
+      "return": {
+        "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "3"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursion5",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exception_capture_id": "<scrubbed>",
+    "exception_hash": "7262e893d52a8efc",
+    "frame_index": 4,
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "depth": {
+            "type": "int",
+            "value": "4"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursion5",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exception_capture_id": "<scrubbed>",
+    "exception_hash": "7262e893d52a8efc",
+    "frame_index": 5,
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursion5",
+        "type": "DebuggerController"
+      }
+    }
+  }
+]
