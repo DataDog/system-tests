@@ -161,7 +161,7 @@ class AWSPulumiProvider(VmProvider):
                     owners=["self"],
                     most_recent=True,
                 )
-                logger.info(
+                logger.stdout(
                     f"We found an existing AMI  name:[{ami_recent.name}], ID:[{ami_recent.id}], status:[{ami_recent.state}], expiration:[{ami_recent.deprecation_time}], created:[{ami_recent.creation_date}]"
                 )
                 cached_amis.append(ami_recent)
@@ -181,14 +181,16 @@ class AWSPulumiProvider(VmProvider):
                 # The final name it's the vm.get_cache_name() + "-somethingaddedbyaws"
                 if vm.name in cached_ami.name:
                     if str(cached_ami.state) != "available":
-                        logger.info(
+                        logger.stdout(
                             f"We found an existing cache AMI for vm [{vm.name}] but we can no use it because the current status is {cached_ami.state}"
                         )
-                        logger.info("We are not going to create a new AMI and we are not going to use it")
+                        logger.stdout(
+                            "We are not going to create a new AMI and we are not going to use it (skip cache mode)"
+                        )
                         vm.datadog_config.update_cache = False
                         vm.datadog_config.skip_cache = True
                     else:
-                        logger.info(
+                        logger.stdout(
                             f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] to cached AMI ID [{cached_ami.id}]"
                         )
                         vm.aws_config.ami_id = cached_ami.id
@@ -265,7 +267,7 @@ class AWSCommander(Commander):
         """ Create a cache : Create an AMI from the server current status."""
         ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
-        logger.info(f"Creating AMI with name [{ami_name}] from instance ")
+        logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
         # Expiration date for the ami
         # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
         task_dep = aws.ec2.AmiFromInstance(
