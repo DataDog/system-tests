@@ -8,8 +8,10 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"weblog/internal/rasp"
@@ -285,9 +287,23 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		for range c {
+			srv.Shutdown(context.Background())
+			return
+		}
+	}()
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
-	http.ListenAndServe(":7777", mux)
+	srv.ListenAndServe()
 }
 
 func headers(w http.ResponseWriter, r *http.Request) {

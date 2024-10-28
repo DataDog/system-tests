@@ -13,4 +13,4 @@ Before running the assertions, the system-tests will stop the weblog application
 
 It is possible to use explicit flushing instead of the default delay.
 To do so, implement an endpoint in your weblog `GET /flush`, that when called, will force the flushing of all library data.
-You then need to add your library to the list of supported explicity flushing in: TODO LINK, and finally you can set your library delay to 0.
+You then need to add your library to the list of supported explicitly flushing in: TODO LINK, and finally you can set your library delay to 0.

@@ -1,8 +1,13 @@
 package main
 
 import (
-	"net/http"
+	"context"
 	"encoding/json"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"weblog/gqlgen/graph"
 	"weblog/internal/common"
 
@@ -55,7 +60,21 @@ func main() {
 		w.Write(jsonData)
 	})
 
+	httpSrv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		for range c {
+			httpSrv.Shutdown(context.Background())
+			return
+		}
+	}()
+
 	common.InitDatadog()
 
-	panic(http.ListenAndServe(":7777", mux))
+	panic(httpSrv.ListenAndServe())
 }

@@ -1,8 +1,13 @@
 package main
 
 import (
-	"net/http"
+	"context"
 	"encoding/json"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"weblog/internal/common"
 
 	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/graph-gophers/graphql-go"
@@ -66,9 +71,23 @@ func main() {
 		w.Write(jsonData)
 	})
 
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		for range c {
+			srv.Shutdown(context.Background())
+			return
+		}
+	}()
+
 	common.InitDatadog()
 
-	panic(http.ListenAndServe(":7777", mux))
+	panic(srv.ListenAndServe())
 }
 
 type query struct{}

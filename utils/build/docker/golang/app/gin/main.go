@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
@@ -225,9 +228,23 @@ func main() {
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
 
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: r,
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		for range c {
+			srv.Shutdown(context.Background())
+			return
+		}
+	}()
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
-	http.ListenAndServe(":7777", r)
+	srv.ListenAndServe()
 }
 
 func ginHandleFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {

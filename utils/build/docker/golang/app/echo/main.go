@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
@@ -248,6 +251,15 @@ func main() {
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		for range c {
+			r.Shutdown(context.Background())
+			return
+		}
+	}()
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()

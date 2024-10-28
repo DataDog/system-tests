@@ -11,8 +11,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"weblog/internal/common"
@@ -41,6 +43,7 @@ import (
 func main() {
 	ddtracer.Start()
 	defer ddtracer.Stop()
+
 	mux := httptrace.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -539,9 +542,23 @@ func main() {
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		for range c {
+			srv.Shutdown(context.Background())
+			return
+		}
+	}()
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
-	http.ListenAndServe(":7777", mux)
+	srv.ListenAndServe()
 }
 
 type carrier map[string]string
