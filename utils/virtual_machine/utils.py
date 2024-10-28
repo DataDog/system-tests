@@ -22,7 +22,10 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
         raise TypeError(f"Typo in {bugs}'s decorator, you forgot parenthesis. Please use `@decorator()`")
 
     def decorator(func):
+        # We group the parameters/vms. We want to execute in same worker the tests for one machine. We need to control the test order for each machine.
+        # https://github.com/pytest-dev/pytest-xdist/issues/58
         parameters = []
+        count = 0
         for vm in getattr(context.scenario, "required_vms", []):
             bug_found = False
             if bugs:
@@ -35,17 +38,35 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
                         and (not "library" in bug or context.library == bug["library"])
                     ):
                         if "reason" in bug and is_jira_ticket(bug["reason"]):
-                            parameters.append(pytest.param(vm, marks=pytest.mark.xfail(reason=f"bug: {bug['reason']}")))
+                            parameters.append(
+                                pytest.param(
+                                    vm,
+                                    marks=[
+                                        pytest.mark.xfail(reason=f"bug: {bug['reason']}"),
+                                        pytest.mark.xdist_group(f"group{count}"),
+                                    ],
+                                )
+                            )
                             bug_found = True
                             break
                         else:
                             raise ValueError(f"Invalid bug reason for {vm.name} {bug}. Please use a valid JIRA ticket.")
 
             if bug_found == False:
-                parameters.append(vm)
+                parameters.append(pytest.param(vm, marks=pytest.mark.xdist_group(f"group{count}")))
+            count += 1
 
         return pytest.mark.parametrize(
             "virtual_machine", parameters, ids=getattr(context.scenario, "required_vm_names", [])
         )(func)
 
     return decorator
+
+
+myparam = ["server1", "server2"]
+myparam_grouped = [pytest.param(m, marks=pytest.mark.xdist_group(f"group{i}")) for i, m in enumerate(myparam)]
+
+
+@pytest.fixture(scope="session", params=myparam_grouped)
+def param_session(request) -> str:
+    return request.param

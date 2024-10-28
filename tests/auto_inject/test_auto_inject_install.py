@@ -56,7 +56,24 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection_ld_preload
-class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
+class TestHostAutoInjectManualLdPreload_DEPRECATED(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines(
+        bugs=[
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+        ]
+    )
+    def test_install_after_ld_preload(self, virtual_machine):
+        """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+
+@features.installer_auto_instrumentation
+@scenarios.chaos_installer_auto_injection
+class TestAutoInjectManualLdPreload(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
         bugs=[
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},

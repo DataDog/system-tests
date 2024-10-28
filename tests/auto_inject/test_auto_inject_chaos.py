@@ -9,7 +9,7 @@ from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
 @features.installer_auto_instrumentation
-@scenarios.installer_host_auto_injection_chaos
+@scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(base.AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
         """ Test break the installation and restore it.
@@ -93,3 +93,9 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
         logger.info(f"Success test_remove_ld_preload for : [{virtual_machine.name}]")
+
+
+@features.installer_auto_instrumentation
+@scenarios.installer_host_auto_injection_chaos
+class TestAutoInjectChaos_DEPRECATED(TestAutoInjectChaos):
+    pass
