@@ -913,8 +913,6 @@ class Test_Otel_Span_Methods:
         event3 = events[2]
         assert event3.get("name") == "third_event"
         assert 999 <= event3.get("time_unix_nano") <= 1001  # reduce the precision tested
-        print("MTOFF")
-        print(event3["attributes"])
         assert event3["attributes"].get("int_val") == 1
         assert event3["attributes"].get("string_val") == "2"
         assert event3["attributes"].get("int_array")[0] == 3

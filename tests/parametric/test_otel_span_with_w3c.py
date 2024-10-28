@@ -41,8 +41,6 @@ class Test_Otel_Span_With_W3c:
         root_span = find_only_span(test_agent.wait_for_num_traces(1))
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
-        print("MTOFF")
-        print(root_span["meta"])
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration_ns
 

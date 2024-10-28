@@ -24,8 +24,6 @@ func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	fmt.Println("MTOFF: otelStartSpanHandler, args is ", args)
-
 	result, err := s.OtelStartSpan(args)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -34,7 +32,6 @@ func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Re
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(result); err != nil {
-		fmt.Println("MTOFF: json encoder failed")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
