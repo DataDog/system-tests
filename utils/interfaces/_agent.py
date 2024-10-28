@@ -141,3 +141,21 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")
+
+    def get_stats(self, resource=""):
+        """Attempts to fetch the stats the agent will submit to the backend.
+
+        When a valid request is given, then we filter the stats to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        for data in self.get_data(path_filters="/api/v0.2/stats"):
+            client_stats_payloads = data["request"]["content"]["Stats"]
+
+            for client_stats_payload in client_stats_payloads:
+                for client_stats_buckets in client_stats_payload["Stats"]:
+                    for client_grouped_stat in client_stats_buckets["Stats"]:
+                        if resource == "":
+                            yield client_grouped_stat
+                        elif client_grouped_stat["Resource"] == resource:
+                            yield client_grouped_stat

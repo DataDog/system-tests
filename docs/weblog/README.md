@@ -6,7 +6,7 @@ A weblog is a web app that system uses to test the library. It mimics what would
 
 ## Disclaimer
 
-This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contains mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
+This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contain mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
 
 **You are strongly encouraged to help others by submitting corrections when you notice issues with this document.**
 
@@ -175,6 +175,22 @@ must set the appropriate tag in the span to `tainted_value` and return a respons
 
 The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on reponse status code or response header content.
 
+### GET /iast/insecure-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/insecure-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except Secure, to detect only the INSECURE_COOKIE vulnerability.
+
+### POST /iast/insecure-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except Secure, to detect only the INSECURE_COOKIE vulnerability.
+
+### GET /iast/insecure-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without Secure flag, INSECURE_COOKIE vulnerability shouldn't be detected.
+
 ### GET /iast/insecure_hashing/deduplicate
 
 Parameterless endpoint. This endpoint contains a vulnerable souce code line (weak hash) in a loop with at least two iterations.
@@ -196,6 +212,38 @@ The endpoint executes a unique operation of String hashing with unsecure MD5 alg
 ### GET /iast/hardcoded_secrets/test_insecure
 
 Parameterless endpoint. This endpoint contains a hardcoded secret. The declaration of the hardcoded secret should be sufficient to trigger the vulnerability, so returning it in the response is optional.
+
+### GET /iast/no-httponly-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/no-httponly-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except HttpOnly, to detect only the NO_HTTPONLY_COOKIE vulnerability.
+
+### GET /iast/no-httponly-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without HttpOnly flag, NO_HTTPONLY_COOKIE vulnerability shouldn't be detected.
+
+### POST /iast/no-httponly-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except HttpOnly, to detect only the NO_HTTPONLY_COOKIE vulnerability.
+
+### GET /iast/no-samesite-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/no-samesite-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
+
+### GET /iast/no-samesite-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without SameSite=Strict flag, NO_SAMESITE_COOKIE vulnerability shouldn't be detected.
+
+### POST /iast/no-samesite-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
 
 ### \[GET, POST\] /iast/source/*
 
@@ -638,6 +686,11 @@ distributed tracing propagation headers.
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
 
+### \[GET\] /stats-unique
+The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message, default to 200 OK.
+This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
+stats generating tests.
+
 ### GET /healthcheck
 
 Returns a JSON dict, with those values :
@@ -647,9 +700,7 @@ Returns a JSON dict, with those values :
     "status": "ok",
     "library": {
       "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
-      "version": "1.2.3",  // version of the library
-      "libddwaf_version": "4.5.6"  // version of libddwaf,
-      "appsec_event_rules_version": "7.8.9"  // version of appsec event rules
+      "version": "1.2.3"  // version of the library
     }
   }
 ```
@@ -678,3 +729,20 @@ Examples:
 ### \[GET\] /set_cookie
 
 This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response
+
+### \[GET\] /session/new
+
+This endpoint is the initial endpoint used to test session fingerprints, consequently it must initialize a new session and the web client should be able to deal with the persistence mechanism (e.g. cookies).
+
+Examples:
+- `GET`: `/session/new`
+
+### \[GET\] /session/user
+
+Once a session has been established, a new call to `/session/user` must be made in order to generate a session fingerprint with the session id provided by the web client (e.g. cookie) and the user id provided as a parameter.
+
+Query parameters required in the `GET` method:
+- `sdk_user`: user id used in the WAF login event triggered during the execution of the request.
+
+Examples:
+- `GET`: `/session/user?sdk_user=sdkUser`

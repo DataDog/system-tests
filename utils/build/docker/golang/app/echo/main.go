@@ -1,10 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
@@ -35,12 +40,32 @@ func main() {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err)
 		}
-		
+
 		return c.JSON(http.StatusOK, healthCheck)
 	})
 
 	r.Any("/*", func(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
+	})
+
+	r.Any("/status", func(c echo.Context) error {
+		rCode := 200
+		if codeStr := c.Request().URL.Query().Get("code"); codeStr != "" {
+			if code, err := strconv.Atoi(codeStr); err == nil {
+				rCode = code
+			}
+		}
+		return c.NoContent(rCode)
+	})
+
+	r.Any("/stats-unique", func(c echo.Context) error {
+		rCode := 200
+		if codeStr := c.Request().URL.Query().Get("code"); codeStr != "" {
+			if code, err := strconv.Atoi(codeStr); err == nil {
+				rCode = code
+			}
+		}
+		return c.NoContent(rCode)
 	})
 
 	r.Any("/waf", waf)
@@ -68,6 +93,22 @@ func main() {
 		status, _ := strconv.Atoi(c.Param("status_code"))
 		span, _ := tracer.SpanFromContext(c.Request().Context())
 		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range c.QueryParams() {
+			for _, value := range values {
+				c.Response().Header().Add(key, value)
+			}
+		}
+
+		switch {
+		case c.Request().Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(c.Request().Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(c.Request().Context(), bodyMap)
+			}
+		case c.Request().ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(c.Request().Context(), c.Request().PostForm)
+		}
 		return c.String(status, "Value tagged")
 	})
 
@@ -82,18 +123,36 @@ func main() {
 	})
 
 	r.Any("/make_distant_call", func(c echo.Context) error {
-		if url := c.Request().URL.Query().Get("url"); url != "" {
-
-			client := httptrace.WrapClient(http.DefaultClient)
-			req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
-			_, err := client.Do(req)
-
-			if err != nil {
-				log.Fatalln(err)
-				return c.String(500, "KO")
-			}
+		url := c.Request().URL.Query().Get("url")
+		if url == "" {
+			return c.String(200, "OK")
 		}
-		return c.String(200, "OK")
+
+		client := httptrace.WrapClient(http.DefaultClient)
+		req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[key] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		return c.JSON(200, struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
 	})
 
 	r.Any("/headers/", headers)
@@ -162,6 +221,28 @@ func main() {
 		}
 
 		return ctx.String(http.StatusOK, string(content))
+	})
+
+	r.GET("/session/new", func(ctx echo.Context) error {
+		sessionID := strconv.Itoa(rand.Int())
+		ctx.SetCookie(&http.Cookie{
+			Name:     "session",
+			Value:    sessionID,
+			MaxAge:   3600,
+			Secure:   true,
+			HttpOnly: true,
+		})
+		return ctx.NoContent(200)
+	})
+
+	r.GET("/session/user", func(ctx echo.Context) error {
+		user := ctx.Request().URL.Query().Get("sdk_user")
+		cookie, err := ctx.Request().Cookie("session")
+		if err != nil {
+			return ctx.String(500, "no session cookie")
+		}
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		return ctx.NoContent(200)
 	})
 
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))

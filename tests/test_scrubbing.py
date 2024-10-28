@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-from utils import bug, context, interfaces, rfc, weblog, missing_feature, features
+from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios
 from utils.tools import logger
 
 
@@ -104,9 +104,11 @@ class Test_EnvVar:
     """ Environnement variables are not leaked """
 
     def test_library(self):
+        assert scenarios.default.weblog_container.environment.get("SOME_SECRET_ENV") == "leaked-env-var"
         interfaces.library.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
 
     def test_agent(self):
+        assert scenarios.default.agent_container.environment.get("SOME_SECRET_ENV") == "leaked-env-var"
         interfaces.agent.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
 
     def test_logs(self):

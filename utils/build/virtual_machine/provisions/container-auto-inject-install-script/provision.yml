@@ -5,10 +5,12 @@ init-environment: !include utils/build/virtual_machine/provisions/auto-inject/au
 tested_components:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
 
-#Mandatory: Steps to install provision 
+#Mandatory: Steps to install provision
 provision_steps:
   - init-config #Very first machine actions, like disable auto updates
   - prepare-docker #Prepare the docker environment
+  - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
+  - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
   - install-agent #Install the agent (allways latest release)
   - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
 
@@ -20,6 +22,14 @@ init-config:
 prepare-docker:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/auto-inject_prepare_docker.yml
+
+amazon-ecr-credential-helper:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/docker/amazon-ecr-credential-helper.yml
+
+patch-docker-daemon:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/docker/patch-docker-daemon.yml
 
 install-agent:
   install:

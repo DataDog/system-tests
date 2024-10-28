@@ -24,7 +24,6 @@ ENV DD_TRACE_HEADER_TAGS=user-agent
 ENV DD_DATA_STREAMS_ENABLED=true
 ENV PORT=7777
 ENV HOSTNAME=0.0.0.0
-ENV DD_TRACE_DEBUG=true
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf './node_modules/.bin/next start' >> app.sh
 ENV NODE_OPTIONS="--require dd-trace/init.js"

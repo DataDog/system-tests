@@ -4,11 +4,14 @@ set -e
 # shellcheck disable=SC2035
 sudo chmod -R 755 *
 
-echo "START Java APP"
-./gradlew build
+echo "Start Java app"
 
-sudo cp build/libs/k8s-lib-injection-app-0.0.1-SNAPSHOT.jar /home/datadog
+JETTY_VERSION=9.4.56.v20240826
+JETTY_CLASSPATH="/opt/jetty-distribution-$JETTY_VERSION/lib/*:/opt/jetty-distribution-$JETTY_VERSION/lib/annotations/*:/opt/jetty-distribution-$JETTY_VERSION/lib/apache-jsp/*:/opt/jetty-distribution-$JETTY_VERSION//lib/logging/*:/opt/jetty-distribution-$JETTY_VERSION//lib/ext/*:."
+
+./compile_app.sh 5985
+
 sudo chmod 755 create_and_run_app_service.sh
-./create_and_run_app_service.sh "java -Dserver.port=5985 -jar k8s-lib-injection-app-0.0.1-SNAPSHOT.jar"
+./create_and_run_app_service.sh "java -cp $JETTY_CLASSPATH JettyServletMain"
 
-echo "RUN Java DONE"
+echo " Java app started DONE"

@@ -9,12 +9,14 @@ import sys
 import http.client
 import urllib.request
 
+import boto3
 import django
 import requests
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from moto import mock_aws
 import urllib3
 from iast import (
     weak_cipher,
@@ -66,22 +68,10 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 @csrf_exempt
 def healthcheck(request):
-    with open(ddtrace.appsec.__path__[0] + "/rules.json", encoding="utf-8") as f:
-        data = json.load(f)
-
-    if "metadata" not in data:
-        appsec_event_rules_version = "1.2.5"
-    else:
-        appsec_event_rules_version = data["metadata"]["rules_version"]
 
     result = {
         "status": "ok",
-        "library": {
-            "language": "python",
-            "version": ddtrace.__version__,
-            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
-            "appsec_event_rules_version": appsec_event_rules_version,
-        },
+        "library": {"language": "python", "version": ddtrace.__version__,},
     }
 
     return HttpResponse(json.dumps(result), content_type="application/json")
@@ -254,6 +244,10 @@ def status_code(request, *args, **kwargs):
     return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
 
 
+def stats_unique(request, *args, **kwargs):
+    return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
+
+
 def identify(request):
     set_user(
         tracer,
@@ -327,7 +321,7 @@ def view_weak_cipher_secure(request):
 
 def view_insecure_cookies_insecure(request):
     res = HttpResponse("OK")
-    res.set_cookie("insecure", "cookie", secure=False)
+    res.set_cookie("insecure", "cookie", secure=False, httponly=True, samesite="Strict")
     return res
 
 
@@ -339,7 +333,7 @@ def view_insecure_cookies_secure(request):
 
 def view_insecure_cookies_empty(request):
     res = HttpResponse("OK")
-    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    res.set_cookie("insecure", "", secure=False, httponly=True, samesite="Strict")
     return res
 
 
@@ -375,7 +369,7 @@ def view_nosamesite_cookies_secure(request):
 
 def view_nosamesite_cookies_empty(request):
     res = HttpResponse("OK")
-    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    res.set_cookie("insecure", "", secure=True, httponly=True, samesite="None")
     return res
 
 
@@ -704,6 +698,23 @@ def create_extra_service(request):
     return HttpResponse("OK")
 
 
+def s3_put_object(request):
+    bucket = request.GET.get("bucket")
+    key = request.GET.get("key")
+    body = request.GET.get("key")
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=bucket)
+        response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+
+    return JsonResponse(result)
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -725,6 +736,7 @@ urlpatterns = [
     path("createextraservice", create_extra_service),
     path("headers", headers),
     path("status", status_code),
+    path("stats-unique", stats_unique),
     path("identify", identify),
     path("users", users),
     path("identify-propagate", identify_propagate),
@@ -770,4 +782,5 @@ urlpatterns = [
     path("login", login),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
+    path("mock_s3/put_object", s3_put_object),
 ]

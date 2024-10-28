@@ -149,7 +149,7 @@ class Test_Blocking_request_uri:
     def setup_blocking_uri_raw(self):
         self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
 
-    @bug(context.library < "dotnet@2.50.0", reason="dotnet may include scheme, domain and port in uri.raw")
+    @bug(context.library < "dotnet@2.50.0", reason="APMRP-360")
     def test_blocking_uri_raw(self):
         interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
         assert self.rm_req_uri_raw.status_code == 403
@@ -469,7 +469,6 @@ class Test_Blocking_response_status:
         context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
         reason="Happens on a subsequent WAF run",
     )
-    @missing_feature(context.library == "ruby", reason="Not working")
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_not_found(self):
         """can block on server.response.status"""
@@ -516,11 +515,15 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking(self):
         self.rm_req_block = weblog.get(
-            f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
-            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
-            headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
+            f"/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
+    @irrelevant(
+        context.library == "ruby" and context.weblog_variant == "rack",
+        reason="Rack don't send anything to the server.request.path_params WAF address",
+    )
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -528,25 +531,66 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.post(
-            "/tag_value/clean_value_3882/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            "/tag_value/clean_value_3882/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
             data={"good": "value"},
-            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
         )
         self.block_req2 = weblog.get(
-            f"/tag_value/cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
-            cookies={"foo": "PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
-            headers={"content-type": "text/plain", "client": "kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
+            f"/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
+            headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
+    @irrelevant(
+        context.library == "ruby" and context.weblog_variant == "rack",
+        reason="Rack don't send anything to the server.request.path_params WAF address",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
         interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3882"))
+
         """Test that blocked requests are blocked before being processed"""
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-012")
+        interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
+
+    def setup_blocking_without_path_params(self):
+        self.rm_req_block = weblog.get(
+            f"/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+            headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
+        )
+
+    def test_blocking_without_path_params(self):
+        """Test if requests that should be blocked are blocked"""
+        assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-013")
+
+    def setup_blocking_before_without_path_params(self):
+        self.set_req1 = weblog.post(
+            "/tag_value/clean_value_3882/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            data={"good": "value"},
+            cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+        )
+        self.block_req2 = weblog.get(
+            f"/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
+            headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
+        )
+
+    def test_blocking_before_without_path_params(self):
+        """Test that blocked requests are blocked before being processed"""
+        # first request should not block and must set the tag in span accordingly
+        assert self.set_req1.status_code == 200
+        assert self.set_req1.text == "Value tagged"
+        interfaces.library.validate_spans(self.set_req1, _assert_custom_event_tag_presence("clean_value_3882"))
+
+        """Test that blocked requests are blocked before being processed"""
+        assert self.block_req2.status_code == 403
+        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-013")
         interfaces.library.validate_spans(self.block_req2, _assert_custom_event_tag_absence())
 
 

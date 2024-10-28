@@ -141,52 +141,6 @@ class Test_Cookies:
     # Cookies rules has been removed in rules version 1.2.7. Test on cookies are now done on custom rules scenario.
     # Once we have rules with cookie back in the default rules set, we can re-use this class to validated this feature
 
-    def setup_cookies(self):
-        self.r_cookies = weblog.get("/waf/", cookies={"attack": ".htaccess"})
-
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_cookies(self):
-        """Appsec WAF detects attackes in cookies"""
-        interfaces.library.assert_waf_attack(self.r_cookies, pattern=".htaccess", address="server.request.cookies")
-
-    def setup_cookies_with_semicolon(self):
-        self.r_cwsc_1 = weblog.get("/waf", cookies={"value": "%3Bshutdown--"})
-        self.r_cwsc_2 = weblog.get("/waf", cookies={"key": ".cookie-%3Bdomain="})
-
-    @irrelevant(
-        library="java",
-        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
-        "encoded to represent disallowed octets",
-    )
-    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_cookies_with_semicolon(self):
-        """Cookie with pattern containing a semicolon"""
-        interfaces.library.assert_waf_attack(self.r_cwsc_1, pattern=";shutdown--", address="server.request.cookies")
-        interfaces.library.assert_waf_attack(
-            self.r_cwsc_2, pattern=".cookie-;domain=", address="server.request.cookies"
-        )
-
-    def setup_cookies_with_spaces(self):
-        self.r_cws = weblog.get("/waf/", cookies={"x-attack": "var_dump ()"})
-
-    @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_cookies_with_spaces(self):
-        """Cookie with pattern containing a space"""
-        interfaces.library.assert_waf_attack(self.r_cws, pattern="var_dump ()", address="server.request.cookies")
-
-    def setup_cookies_with_special_chars2(self):
-        self.r_cwsc2 = weblog.get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
-
-    @irrelevant(library="golang", reason="not handled by the Go standard cookie parser")
-    @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
-    @bug(context.library < "java@0.96.0")
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_cookies_with_special_chars2(self):
-        """Other cookies patterns"""
-        interfaces.library.assert_waf_attack(self.r_cwsc2, pattern='o:4:"x":5:{d}', address="server.request.cookies")
-
     def setup_cookies_custom_rules(self):
         self.r_ccr = weblog.get("/waf/", cookies={"attack": ".htaccess"})
 
@@ -225,7 +179,7 @@ class Test_Cookies:
 
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
-    @bug(context.library < "java@0.96.0")
+    @bug(context.library < "java@0.96.0", reason="APMRP-360")
     @scenarios.appsec_custom_rules
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
@@ -245,7 +199,7 @@ class Test_BodyRaw:
         interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
 
 
-@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
 @features.appsec_request_blocking
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
@@ -263,16 +217,14 @@ class Test_BodyUrlEncoded:
         self.r_value = weblog.post("/waf", data={"value": '<vmlframe src="xss">'})
 
     @bug(
-        context.library < "java@1.2.0",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583",
     )
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
 @features.appsec_request_blocking
 class Test_BodyJson:
     """Appsec supports <JSON encoded body>"""
@@ -307,7 +259,7 @@ class Test_BodyJson:
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@bug(context.library == "nodejs@2.8.0", reason="Capability to read body content is broken")
+@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
 @features.appsec_request_blocking
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""
@@ -325,7 +277,10 @@ class Test_BodyXml:
         self.r_attr_1 = self.weblog_post("/waf", data='<string attack="var_dump ()" />')
         self.r_attr_2 = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
 
-    @bug(context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"))
+    @bug(
+        context.library <= "java@1.39.1" and context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"),
+        reason="APMRP-360",
+    )
     def test_xml_attr_value(self):
         interfaces.library.assert_waf_attack(self.r_attr_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_attr_2, address="server.request.body", value=self.ATTACK)
@@ -334,7 +289,10 @@ class Test_BodyXml:
         self.r_content_1 = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         self.r_content_2 = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
 
-    @bug(context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"))
+    @bug(
+        context.library <= "java@1.39.1" and context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"),
+        reason="APMRP-360",
+    )
     def test_xml_content(self):
         interfaces.library.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
@@ -348,9 +306,7 @@ class Test_ResponseStatus:
         self.r = weblog.get("/mysql")
 
     @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
+        library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583",
     )
     def test_basic(self):
         """AppSec reports 404 responses"""

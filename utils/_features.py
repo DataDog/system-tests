@@ -15,6 +15,14 @@ class features:
     """
 
     @staticmethod
+    def not_reported(test_object):
+        """
+        Use this fake feature to not report a test to feature parity dashboard
+        """
+        pytest.mark.features(feature_id=-1)(test_object)
+        return test_object
+
+    @staticmethod
     def add_metadata_globally_to_all_spans_dd_tags(test_object):
         """
         Add Metadata globally to all spans (DD_TAGS)
@@ -76,6 +84,8 @@ class features:
 
         if "uds" in context.weblog_variant:
             pytest.mark.features(feature_id=6)(test_object)
+        else:
+            pytest.mark.features(feature_id=-1)(test_object)
 
         return test_object
 
@@ -2395,4 +2405,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=326
         """
         pytest.mark.features(feature_id=326)(test_object)
+        return test_object
+
+    @staticmethod
+    def serverless_span_pointers(test_object):
+        """
+        Serverless : Span Pointers are correctly incorporated in spans
+
+        https://feature-parity.us1.prod.dog/#/?feature=328
+        """
+        pytest.mark.features(feature_id=328)(test_object)
         return test_object

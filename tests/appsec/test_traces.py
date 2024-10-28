@@ -10,7 +10,7 @@ from utils.tools import nested_lookup
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 
-@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -98,7 +98,7 @@ class Test_AppSecEventSpanTags:
             missing_response_headers = set(required_response_headers) - set(span.get("meta", {}).keys())
             assert not missing_response_headers, f"Missing response headers: {missing_response_headers}"
 
-    @bug(context.library < "java@0.93.0")
+    @bug(context.library < "java@0.93.0", reason="APMRP-360")
     def test_root_span_coherence(self):
         """Appsec tags are not on span where type is not web, http or rpc"""
         valid_appsec_span_types = ["web", "http", "rpc"]
@@ -151,32 +151,6 @@ class Test_AppSecObfuscator:
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
         interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags, success_by_default=True)
 
-    def setup_appsec_obfuscator_cookies(self):
-        cookies = {"Bearer": self.SECRET_VALUE_WITH_SENSITIVE_KEY, "Good": self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY}
-        self.r_cookies = weblog.get("/waf/", cookies=cookies)
-
-    @missing_feature(library="java")
-    @irrelevant(context.appsec_rules_version >= "1.2.7", reason="cookies were disabled for the time being")
-    def test_appsec_obfuscator_cookies(self):
-        """
-        Specific obfuscation test for the cookies which often contain sensitive data and are
-        expected to be properly obfuscated on sensitive cookies only.
-        """
-        # Validate that the AppSec events do not contain the following secret value.
-        # Note that this value must contain an attack pattern in order to be part of the security event data
-        # that is expected to be obfuscated.
-
-        def validate_appsec_span_tags(span, appsec_data):
-            assert not nested_lookup(
-                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
-            assert nested_lookup(
-                self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY, appsec_data, exact_match=True
-            ), "Could not find the non-sensitive cookie data"
-
-        interfaces.library.assert_waf_attack(self.r_cookies, address="server.request.cookies")
-        interfaces.library.validate_appsec(self.r_cookies, validate_appsec_span_tags, success_by_default=True)
-
     def setup_appsec_obfuscator_value(self):
         sensitive_raw_payload = r"""{
             "activeTab":"39612314-1890-45f7-8075-c793325c1d70",'
@@ -210,7 +184,7 @@ class Test_AppSecObfuscator:
             params={"payload": sensitive_raw_payload},
         )
 
-    @missing_feature(library="java")
+    @missing_feature(context.library < "java@1.39.0", reason="APPSEC-54498")
     def test_appsec_obfuscator_value(self):
         """Obfuscation test of a matching rule parameter value containing a sensitive keyword."""
         # Validate that the AppSec event do not contain VALUE_WITH_SECRET value.

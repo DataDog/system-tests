@@ -15,7 +15,7 @@ from utils._context._scenarios import scenarios
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
-from utils._decorators import released
+from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -37,6 +37,9 @@ def pytest_addoption(parser):
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
 
+    parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
+    parser.addoption("--force-dd-iast-debug", action="store_true", help="Set DD_IAST_DEBUG_ENABLED to true")
+
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
@@ -44,6 +47,13 @@ def pytest_addoption(parser):
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
+    parser.addoption(
+        "--vm-default-vms",
+        type=str,
+        action="store",
+        help="True launch vms marked as default, False launch only no default vm. All launch all vms",
+        default="True",
+    )
 
     # Docker ssi scenarios
     parser.addoption("--ssi-weblog", type=str, action="store", help="Set docker ssi weblog")
@@ -81,6 +91,12 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
 
+    if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
+        config.option.force_dd_trace_debug = True
+
+    if not config.option.force_dd_iast_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_IAST_DEBUG") == "true":
+        config.option.force_dd_iast_debug = True
+
     # handle options that can be filled by environ
     if not config.option.report_environment and "SYSTEM_TESTS_REPORT_ENVIRONMENT" in os.environ:
         config.option.report_environment = os.environ["SYSTEM_TESTS_REPORT_ENVIRONMENT"]
@@ -95,13 +111,15 @@ def pytest_configure(config):
             break
 
     if context.scenario is None:
-        pytest.exit(f"Scenario {config.option.scenario} does not exists", 1)
+        pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
 
     context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
+
+    configure_decorators(config)
 
 
 # Called at the very begening
@@ -300,7 +318,7 @@ def pytest_collection_finish(session: pytest.Session):
         if not item.instance:  # item is a method bounded to a class
             continue
 
-        # the test metohd name is like test_xxxx
+        # the test method name is like test_xxxx
         # we replace the test_ by setup_, and call it if it exists
 
         setup_method_name = f"setup_{item.name[5:]}"
@@ -398,6 +416,8 @@ def pytest_sessionfinish(session, exitstatus):
 
 def export_feature_parity_dashboard(session, data):
 
+    tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
+
     result = {
         "runUrl": session.config.option.report_run_url or "https://github.com/DataDog/system-tests",
         "runDate": data["created"],
@@ -408,8 +428,9 @@ def export_feature_parity_dashboard(session, data):
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
         ],
+        "configuration": context.configuration,
         "scenario": context.scenario.name,
-        "tests": [convert_test_to_feature_parity_model(test) for test in data["tests"]],
+        "tests": [test for test in tests if test is not None],
     }
     context.scenario.customize_feature_parity_dashboard(result)
     with open(f"{context.scenario.host_log_folder}/feature_parity.json", "w", encoding="utf-8") as f:
@@ -426,7 +447,8 @@ def convert_test_to_feature_parity_model(test):
         "features": test["metadata"]["features"],
     }
 
-    return result
+    # exclude features.not_reported
+    return result if -1 not in result["features"] else None
 
 
 ## Fixtures corners

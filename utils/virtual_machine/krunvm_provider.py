@@ -45,7 +45,7 @@ class KrunVmProvider(VmProvider):
         """ Check if there is an image for one test. Also check if we are using the env var to force the iamge creation"""
         image_id = None
         # Configure name
-        image_name = vm.get_cache_name() + "_" + context.scenario.name
+        image_name = vm.get_cache_name()
         image_name = image_name.lower()
         image_id = "localhost/" + image_name
 
@@ -119,7 +119,7 @@ class KrunVmProvider(VmProvider):
             logger.info(microvm_process.after)
             self._microvm_processes.append(microvm_process)
 
-            self.install_provision(vm, container_name, None, create_cache=image_id is None)
+            self.install_provision(vm, container_name, None)
             # vm.set_ip("localhost"): Krunvm provides a special networking protocol, some apps may not work with it.
             # Instead of use a network, we can use stdin to lauch commands on the microVM
             vm.krunvm_config.stdin = self.commander._get_stdin_path(vm)
@@ -158,7 +158,7 @@ class KrunVmCommander(Commander):
         # First we need to wait for cacheable commands to be processed
         self.wait_until_commands_processed(vm, timeout=600)
 
-        cache_image_name = vm.get_cache_name() + "_" + context.scenario.name
+        cache_image_name = vm.get_cache_name()
         cache_image_name = cache_image_name.lower()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.info(f"Creating cached image with name [{cache_image_name}] from [{vm.name}] and container [{server}]")

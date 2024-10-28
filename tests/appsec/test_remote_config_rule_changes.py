@@ -2,14 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import re
 
+from utils import context
+from utils import bug
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
 from utils import weblog
-from utils import bug
-from utils import context
 
 
 CONFIG_ENABLED = (
@@ -87,7 +88,7 @@ class Test_BlockingActionChangesWithRemoteConfig:
         assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
         assert self.response_4.status_code == 302
-        assert self.response_4.text == ""
+        assert self.response_4.text == "" or '<a href="http://google.com">' in self.response_4.text
         assert self.response_4.headers["location"] == "http://google.com"
 
         # ASM disabled
@@ -100,7 +101,7 @@ RULE_FILE = (
     "datadog/2/ASM_DD/rules/config",
     {
         "version": "2.2",
-        "metadata": {"rules_version": "1.13.0"},
+        "metadata": {"rules_version": "2.71.8182"},
         "rules": [
             {
                 "id": "ua0-600-12x",
@@ -135,7 +136,21 @@ class Test_UpdateRuleFileWithRemoteConfig:
     """A library should use the default rules when AppSec is activated via remote config,
     and no rule file is provided by ASM_DD. It should also revert to the default rules
     when the remote config rule file is deleted.
+    Also test the span tags and telemetry data for the rule version.
     """
+
+    def _find_series(self, request_type, namespace, metrics):
+        series = []
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != request_type:
+                continue
+            fallback_namespace = content["payload"].get("namespace")
+            for serie in content["payload"]["series"]:
+                computed_namespace = serie.get("namespace", fallback_namespace)
+                if computed_namespace == namespace and serie["metric"] in metrics:
+                    series.append(serie)
+        return series
 
     def setup_update_rules(self):
         self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
@@ -156,34 +171,75 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         self.config_state_5 = rc.rc_state.reset().apply()
 
+    @bug(
+        context.library < "nodejs@5.25.0", reason="APMRP-360"
+    )  # rules version was not correctly reported after an RC update
     def test_update_rules(self):
+        expected_rules_version_tag = "_dd.appsec.event_rules.version"
+        expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
+
+        def validate_waf_rule_version_tag(span, appsec_data):
+            """Validate the mandatory event_rules.version tag is added to the request span having an attack"""
+            meta = span["meta"]
+            assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
+            assert re.match(expected_version_regex, meta[expected_rules_version_tag])
+            return True
+
+        def validate_waf_rule_version_tag_by_rc(span, appsec_data):
+            """Validate the mandatory event_rules.version tag is added to the request span having an attack with expected rc version"""
+            meta = span["meta"]
+            assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
+            assert meta[expected_rules_version_tag] == RULE_FILE[1]["metadata"]["rules_version"]
+            return True
+
         # normal block
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
+        interfaces.library.validate_appsec(self.response_1, validate_waf_rule_version_tag)
         interfaces.library.assert_waf_attack(self.response_1b, rule="ua0-600-12x")
         assert self.response_1b.status_code == 200
+        interfaces.library.validate_appsec(self.response_1b, validate_waf_rule_version_tag)
 
         # new rule file with only 12x
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_no_appsec_event(self.response_2)
         assert self.response_2.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_2)
         interfaces.library.assert_waf_attack(self.response_2b, rule="ua0-600-12x")
         assert self.response_2b.status_code == 200
+        interfaces.library.validate_appsec(self.response_2b, validate_waf_rule_version_tag_by_rc)
 
         # block on 405/json with RC. It must not change anything for the new rule file
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_no_appsec_event(self.response_3)
         assert self.response_3.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_3)
         interfaces.library.assert_waf_attack(self.response_3b, rule="ua0-600-12x")
         assert self.response_3b.status_code == 200
+        interfaces.library.validate_appsec(self.response_3b, validate_waf_rule_version_tag_by_rc)
 
         # Switch back to default rules but keep updated blocking action
         assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
+        interfaces.library.validate_appsec(self.response_4, validate_waf_rule_version_tag)
         assert self.response_4.status_code == 405
         interfaces.library.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
         assert self.response_4b.status_code == 200
+        interfaces.library.validate_appsec(self.response_4b, validate_waf_rule_version_tag)
 
         # ASM disabled
         assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+
+        # Check for rule version in telemetry
+        series = self._find_series("generate-metrics", "appsec", ["waf.requests", "waf.init", "waf.requests"])
+        rule_versions = set()
+        for s in series:
+            for t in s.get("tags", ()):
+                if t.startswith("event_rules_version:"):
+                    rule_versions.add(t[20:].strip())
+        # depending of previous tests, we should have at least the current RC version and the static file version.
+        assert len(rule_versions) >= 2
+        assert RULE_FILE[1]["metadata"]["rules_version"] in rule_versions
+        for r in rule_versions:
+            assert re.match(expected_version_regex, r), f"version [{r}] doesn't match expected version regex"

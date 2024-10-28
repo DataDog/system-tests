@@ -6,7 +6,6 @@ from pathlib import Path
 from subprocess import run
 import time
 from functools import lru_cache
-import platform
 from threading import RLock, Thread
 
 import docker
@@ -19,6 +18,8 @@ from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
+
+_FAKE_DD_API_KEY = "fakekey"
 
 
 @lru_cache
@@ -65,6 +66,7 @@ def create_inject_volume():
 
 
 class TestedContainer:
+    _container: Container
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
@@ -95,7 +97,6 @@ class TestedContainer:
 
         self.environment = environment or {}
         self.kwargs = kwargs
-        self._container = None
         self.depends_on: list[TestedContainer] = []
         self._starting_lock = RLock()
         self._starting_thread = None
@@ -329,27 +330,34 @@ class TestedContainer:
         TAIL_LIMIT = 50
         SEP = "=" * 30
 
-        keys = [
-            bytearray(os.environ["DD_API_KEY"], "utf-8"),
-        ]
-        if "DD_APP_KEY" in os.environ:
+        keys = []
+        if os.environ.get("DD_API_KEY"):
+            keys.append(bytearray(os.environ["DD_API_KEY"], "utf-8"))
+        if os.environ.get("DD_APP_KEY"):
             keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
-        if "AWS_ACCESS_KEY_ID" in os.environ:
+        if os.environ.get("AWS_ACCESS_KEY_ID"):
             keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
-        if "AWS_SECRET_ACCESS_KEY" in os.environ:
+        if os.environ.get("AWS_SECRET_ACCESS_KEY"):
             keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
+        if os.environ.get("AWS_SESSION_TOKEN"):
+            keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
+        if os.environ.get("AWS_SECURITY_TOKEN"):
+            keys.append(bytearray(os.environ["AWS_SECURITY_TOKEN"], "utf-8"))
+
+        # set by CI runner
+        if os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"):
+            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_ACCESS_KEY_ID"], "utf-8"))
+        if os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"):
+            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"], "utf-8"))
 
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
         )
-
         for output_name, output in data:
             filename = f"{self.log_folder_path}/{output_name}.log"
-
             for key in keys:
-                output = output.replace(key, b"***")
-
+                output = output.replace(key, b"<redacted>")
             with open(filename, "wb") as f:
                 f.write(output)
 
@@ -371,7 +379,7 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except Exception:
+            except Exception as e:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
@@ -469,7 +477,7 @@ class ProxyContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
-                "DD_API_KEY": os.environ.get("DD_API_KEY"),
+                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
@@ -486,16 +494,19 @@ class ProxyContainer(TestedContainer):
 
 
 class AgentContainer(TestedContainer):
-    def __init__(self, host_log_folder, use_proxy=True) -> None:
+    def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
 
-        environment = {
-            "DD_ENV": "system-tests",
-            "DD_HOSTNAME": "test",
-            "DD_SITE": self.dd_site,
-            "DD_APM_RECEIVER_PORT": self.agent_port,
-            "DD_DOGSTATSD_PORT": "8125",
-            "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
-        }
+        environment = environment or {}
+        environment.update(
+            {
+                "DD_ENV": "system-tests",
+                "DD_HOSTNAME": "test",
+                "DD_SITE": self.dd_site,
+                "DD_APM_RECEIVER_PORT": self.agent_port,
+                "DD_DOGSTATSD_PORT": "8125",
+                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+            }
+        )
 
         if use_proxy:
             environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
@@ -515,7 +526,7 @@ class AgentContainer(TestedContainer):
             local_image_only=True,
         )
 
-        self.agent_version = None
+        self.agent_version = ""
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         try:
@@ -528,14 +539,6 @@ class AgentContainer(TestedContainer):
             return [
                 "datadog/agent:latest",
             ]
-
-    def configure(self, replay):
-        super().configure(replay)
-
-        if "DD_API_KEY" not in os.environ:
-            raise ValueError("DD_API_KEY is missing in env, please add it.")
-
-        self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
     def post_start(self):
         with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
@@ -575,10 +578,7 @@ class BuddyContainer(TestedContainer):
         )
 
         self.interface = None
-        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
-        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
-        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
-        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
+        _set_aws_auth_environment(self)
 
 
 class WeblogContainer(TestedContainer):
@@ -591,15 +591,15 @@ class WeblogContainer(TestedContainer):
         appsec_enabled=True,
         additional_trace_header_tags=(),
         use_proxy=True,
+        volumes=None,
     ) -> None:
 
         from utils import weblog
 
         self.port = weblog.port
 
-        volumes = {
-            f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},
-        }
+        volumes = {} if volumes is None else volumes
+        volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
         try:
             with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
@@ -621,7 +621,7 @@ class WeblogContainer(TestedContainer):
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
             healthcheck={
-                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}",
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
                 "retries": 60,
             },
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
@@ -634,8 +634,6 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self.libddwaf_version = None
-        self.appsec_rules_version = None
         self._library: LibraryVersion = None
 
         # Basic env set for all scenarios
@@ -694,37 +692,13 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
-            self.libddwaf_version = LibraryVersion("libddwaf", libddwaf_version).version
+        _set_aws_auth_environment(self)
 
-        appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
+        library = self.image.env["SYSTEM_TESTS_LIBRARY"]
 
-        self.environment["AWS_ACCESS_KEY_ID"] = os.environ.get("AWS_ACCESS_KEY_ID", "")
-        self.environment["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
-        self.environment["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "")
-        self.environment["AWS_REGION"] = os.environ.get("AWS_REGION", "")
-
-        self._library = LibraryVersion(
-            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
-        )
-
-        # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python", "golang"):
-            self.healthcheck = {
-                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
-                "retries": 60,
-            }
-
-        if self.library in ("cpp", "dotnet", "java", "python"):
+        if library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
-
-            if self.library == "python":
-                # activating debug log on python causes a huge amount of logs, making the network
-                # stack fails a lot randomly
-                self.environment["DD_TRACE_DEBUG"] = "false"
-
-        elif self.library in ("golang", "nodejs", "php", "ruby"):
+        elif library in ("golang", "nodejs", "php", "ruby"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
         else:
             self.environment["DD_TRACE_HEADER_TAGS"] = ""
@@ -742,27 +716,16 @@ class WeblogContainer(TestedContainer):
 
         logger.debug(f"Docker host is {weblog.domain}")
 
-        # new way of getting info from the weblog. Only working for nodejs and python right now
-        # https://github.com/DataDog/system-tests/issues/2799
-        if self.library in ("nodejs", "python", "golang"):
-            with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
-                data = json.load(f)
-                lib = data["library"]
+        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
 
-            self._library = LibraryVersion(lib["language"], lib["version"])
-            if "libddwaf_version" in lib:
-                self.libddwaf_version = LibraryVersion("libddwaf", lib["libddwaf_version"]).version
-
-            if self.appsec_rules_version == "0.0.0" and "appsec_event_rules_version" in lib:
-                self.appsec_rules_version = LibraryVersion("appsec_rules", lib["appsec_event_rules_version"]).version
+        self._library = LibraryVersion(lib["language"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
 
-        if self.libddwaf_version:
-            logger.stdout(f"libddwaf: {self.libddwaf_version}")
-
         if self.appsec_rules_file:
-            logger.stdout(f"AppSec rules version: {self.appsec_rules_version}")
+            logger.stdout("Using a custom appsec rules file")
 
         if self.uds_mode:
             logger.stdout(f"UDS socket: {self.uds_socket}")
@@ -836,7 +799,7 @@ class KafkaContainer(TestedContainer):
                 "KAFKA_LISTENERS": "PLAINTEXT://:9092,CONTROLLER://:9093",
                 "KAFKA_CONTROLLER_QUORUM_VOTERS": "1@kafka:9093",
                 "KAFKA_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
-                "KAFKA_CLUSTER_ID": "r4zt_wrqTRuT7W2NJsB_GA",
+                "CLUSTER_ID": "5L6g3nShT-eMCtK--X86sw",
                 "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
                 "KAFKA_INTER_BROKER_LISTENER_NAME": "PLAINTEXT",
                 "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT",
@@ -917,22 +880,22 @@ class MySqlContainer(SqlDbTestedContainer):
         )
 
 
-class SqlServerContainer(SqlDbTestedContainer):
+class MsSqlServerContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.data_mssql = f"./{host_log_folder}/data-mssql"
-        healthcheck = {}
-        if not platform.processor().startswith("arm"):
-            # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
-            # see https://hub.docker.com/_/microsoft-azure-sql-edge
+
+        healthcheck = {
             # XXX: Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
-            healthcheck = {
-                "test": '/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
-                "retries": 20,
-            }
+            # -C : trust self signed certificates
+            "test": '/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -C',
+            "retries": 20,
+        }
 
         super().__init__(
-            image_name="mcr.microsoft.com/azure-sql-edge:latest",
+            image_name="mcr.microsoft.com/mssql/server:2022-latest",
             name="mssql",
+            cap_add=["SYS_PTRACE"],
+            user="root",
             environment={"ACCEPT_EULA": "1", "MSSQL_SA_PASSWORD": "yourStrong(!)Password"},
             allow_old_container=True,
             host_log_folder=host_log_folder,
@@ -949,7 +912,7 @@ class SqlServerContainer(SqlDbTestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
+        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
 
         if "DOCKER_HOST" in os.environ:
@@ -1064,7 +1027,7 @@ class DockerSSIContainer(TestedContainer):
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
             host_log_folder=host_log_folder,
-            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080)},
+            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
             allow_old_container=False,
             environment={"DD_DEBUG": "true", "DD_TRACE_SAMPLE_RATE": 1, "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5"},
@@ -1075,3 +1038,77 @@ class DockerSSIContainer(TestedContainer):
         """Get env variables from the container """
         env = self.image.env | self.environment
         return env.get(env_var)
+
+
+class DummyServerContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="jasonrm/dummy-server:latest",
+            name="http-app",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+        )
+
+
+class EnvoyContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+
+        from utils import weblog
+
+        super().__init__(
+            image_name="envoyproxy/envoy:v1.31-latest",
+            name="envoy",
+            host_log_folder=host_log_folder,
+            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
+            ports={"80": ("127.0.0.1", weblog.port)},
+            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
+        )
+
+
+class ExternalProcessingContainer(TestedContainer):
+    library: LibraryVersion
+
+    def __init__(self, host_log_folder) -> None:
+        try:
+            with open("binaries/golang-service-extensions-callout-image", "r", encoding="utf-8") as f:
+                image = f.read().strip()
+        except FileNotFoundError:
+            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
+
+        super().__init__(
+            image_name=image,
+            name="extproc",
+            host_log_folder=host_log_folder,
+            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126,},
+            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
+        )
+
+    def post_start(self):
+        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        self.library = LibraryVersion(lib["language"], lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Image: {self.image.name}")
+
+
+def _set_aws_auth_environment(image):
+    # copy SYSTEM_TESTS_AWS env variables from local env to docker image
+
+    if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
+        prefix = "SYSTEM_TESTS_AWS"
+        for key, value in os.environ.items():
+            if prefix in key:
+                image.environment[key.replace("SYSTEM_TESTS_", "")] = value
+    else:
+        prefix = "AWS"
+        for key, value in os.environ.items():
+            if prefix in key:
+                image.environment[key] = value
+
+    # Set default AWS values if specific keys are not present
+    if "AWS_REGION" not in image.environment:
+        image.environment["AWS_REGION"] = "us-east-1"
+        image.environment["AWS_DEFAULT_REGION"] = "us-east-1"

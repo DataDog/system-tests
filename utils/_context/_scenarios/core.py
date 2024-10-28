@@ -22,6 +22,8 @@ class ScenarioGroup(Enum):
     SAMPLING = "sampling"
     ONBOARDING = "onboarding"
     DOCKER_SSI = "docker-ssi"
+    ESSENTIALS = "essentials"
+    EXTERNAL_PROCESSING = "external-processing"
 
 
 VALID_GITHUB_WORKFLOWS = {
@@ -33,6 +35,7 @@ VALID_GITHUB_WORKFLOWS = {
     "parametric",
     "testthetest",
     "dockerssi",
+    "externalprocessing",
 }
 
 
