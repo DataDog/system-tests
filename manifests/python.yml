@@ -784,6 +784,11 @@ tests/:
             django-poc: v2.14.0
             flask-poc: v2.14.0
             python3.12: v2.14.0
+          Test_CopyObject:
+            '*': missing_feature
+            django-poc: v2.15.0-dev
+            flask-poc: v2.15.0-dev
+            python3.12: v2.15.0-dev
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

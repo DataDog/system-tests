@@ -1339,3 +1339,21 @@ def s3_put_object():
         result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
 
     return jsonify(result)
+
+
+@app.route("/mock_s3/copy_object", methods=["GET", "POST", "OPTIONS"])
+def s3_copy_object():
+
+    bucket = flask_request.args.get("bucket")
+    key = flask_request.args.get("key")
+    copy_source = flask_request.args.get("copy_source")
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        response = conn.Bucket(bucket).copy_object(Bucket=bucket, Key=key, CopySource=copy_source)
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response["CopyObjectResult"]["ETag"].replace('"', ""),}}
+
+    return jsonify(result)
