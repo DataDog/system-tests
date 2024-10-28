@@ -654,7 +654,7 @@ tests/:
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': irrelevant
-        flask-poc: v1.20.3
+        flask-poc: v2.16.0
       Test_DsmKinesis:
         '*': irrelevant
         flask-poc: v2.8.0
