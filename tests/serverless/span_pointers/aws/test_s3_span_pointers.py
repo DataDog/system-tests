@@ -54,7 +54,10 @@ class Test_CopyObject:
     def setup_main(self):
         weblog.get("/mock_s3/put_object", params={"bucket": "mybucket", "key": "my-key"})
 
-        self.r = weblog.get("/mock_s3/copy_object", params={"bucket": "mybucket", "key": "my-key-copy", "copy_source": "/mybucket/my-key"})
+        self.r = weblog.get(
+            "/mock_s3/copy_object",
+            params={"bucket": "mybucket", "key": "my-key-copy", "copy_source": "/mybucket/my-key"},
+        )
 
     def test_main(self):
         _validate_s3_object_pointer(self.r)
