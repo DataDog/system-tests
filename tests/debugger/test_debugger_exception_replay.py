@@ -82,7 +82,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     def setup_exception_replay_simple(self):
         self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
 
-    # @bug(library="java", reason="DEBUG-3053")
+    @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_simple(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
@@ -96,7 +96,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     def setup_exception_replay_recursion_5(self):
         self._setup("/debugger/exceptionreplay/recursion5", "exceptionreplayrecursion5")
 
-    # @bug(library="java", reason="DEBUG-3053")
+    @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_recursion_5(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
@@ -106,7 +106,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     def setup_exception_replay_recursion_20(self):
         self._setup("/debugger/exceptionreplay/recursion20", "exceptionreplayrecursion20")
 
-    # @bug(library="java", reason="DEBUG-3053")
+    @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_recursion_20(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
@@ -117,7 +117,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
     def setup_exception_replay_inner(self):
         self._setup("/debugger/exceptionreplay/inner", "exceptionreplayinner")
 
-    # @bug(library="java", reason="DEBUG-3053")
+    @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_inner(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
@@ -143,7 +143,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
             retries += 1
 
-    # @bug(library="java", reason="DEBUG-3053")
+    @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
     def test_exception_replay_rockpaperscissors(self):
         self.assert_all_weblog_responses_ok(expected_code=500)
