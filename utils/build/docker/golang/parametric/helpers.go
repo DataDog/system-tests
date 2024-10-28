@@ -51,7 +51,8 @@ type SpanLink struct {
 	//
 	//	*SpanLink_ParentId
 	//	*SpanLink_HttpHeaders
-	From       isSpanLink_From `protobuf_oneof:"from"`
+	ParentId   *uint64 `json:"parent_id"`
+	HttpHeaders []HeaderTuple `json:"http_headers"`
 	Attributes AttributeKeyVals     `json:"attributes,omitempty"`
 }
 
@@ -140,7 +141,7 @@ type OtelStartSpanArgs struct {
 	Resource    string                 `json:"resource"`
 	Type        string                 `json:"type"`
 	Timestamp   int64                  `json:"timestamp"`
-	SpanLinks   []SpanLink             `json:"span_links"`
+	SpanLinks   []SpanLink             `json:"links"`
 	HttpHeaders []HeaderTuple `json:"http_headers"`
 	Attributes  AttributeKeyVals             `json:"attributes"`
 }
@@ -227,11 +228,7 @@ func (x *OtelAddEventArgs) GetAttributes() *AttributeKeyVals {
 	return nil
 }
 
-type Attributes struct {
-	KeyVals map[string]interface{} 
-}
-
-type AttributeKeyVals map[string]interface{} 
+type AttributeKeyVals map[string]interface{}
 
 func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 	var attrs []attribute.KeyValue
@@ -239,24 +236,63 @@ func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 		switch t := v.(type) {
 		case bool:
 			attrs = append(attrs, attribute.Bool(k, v.(bool)))
-		case []bool:
-			attrs = append(attrs, attribute.BoolSlice(k, t))
 		case float64:
 			attrs = append(attrs, attribute.Float64(k, v.(float64)))
-		case []float64:
-			attrs = append(attrs, attribute.Float64Slice(k, t))
 		case int:
 			attrs = append(attrs, attribute.Int(k, v.(int)))
-		case []int:
-			attrs = append(attrs, attribute.IntSlice(k, t))
 		case int64:
 			attrs = append(attrs, attribute.Int64(k, t))
-		case []int64:
-			attrs = append(attrs, attribute.Int64Slice(k, t))
 		case string:
 			attrs = append(attrs, attribute.String(k, v.(string)))
-		case []string:
-			attrs = append(attrs, attribute.StringSlice(k, t))
+		case []interface{}:
+			if len(t) > 0 {
+				switch tt := t[0].(type) {
+				case bool:
+					len := len(t)
+					boolSlice := make([]bool, len)
+					boolSlice[0] = tt
+					for i := 1; i < len; i++ {
+						boolSlice[i] = t[i].(bool)
+					}
+					attrs = append(attrs, attribute.BoolSlice(k, boolSlice))
+				case float64:
+					len := len(t)
+					floatSlice := make([]float64, len)
+					floatSlice[0] = tt
+					for i := 1; i < len; i++ {
+						floatSlice[i] = t[i].(float64)
+					}
+					attrs = append(attrs, attribute.Float64Slice(k, floatSlice))
+				case int:
+					len := len(t)
+					intSlice := make([]int, len)
+					intSlice[0] = tt
+					for i := 1; i < len; i++ {
+						intSlice[i] = t[i].(int)
+					}
+					attrs = append(attrs, attribute.IntSlice(k, intSlice))
+				case int64:
+					len := len(t)
+					int64Slice := make([]int64, len)
+					int64Slice[0] = tt
+					for i := 1; i < len; i++ {
+						int64Slice[i] = t[i].(int64)
+					}
+					attrs = append(attrs, attribute.Int64Slice(k, int64Slice))
+				case string:
+					len := len(t)
+					stringSlice := make([]string, len)
+					stringSlice[0] = tt
+					for i := 1; i < len; i++ {
+						stringSlice[i] = t[i].(string)
+					}
+					attrs = append(attrs, attribute.StringSlice(k, stringSlice))
+				default:
+					fmt.Printf("Attribute %v has unsupported type%T; dropping\n", k, v)
+				}
+			}
+		default:
+			fmt.Printf("Attribute %v has unsupported type%T; dropping\n", k, v)
 		}
 	}
 	return attrs

@@ -24,6 +24,8 @@ func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	fmt.Println("MTOFF: otelStartSpanHandler, args is ", args)
+
 	result, err := s.OtelStartSpan(args)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -32,6 +34,7 @@ func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Re
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(result); err != nil {
+		fmt.Println("MTOFF: json encoder failed")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -78,14 +81,13 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 
 	if links := args.SpanLinks; links != nil {
 		for _, link := range links {
-			switch from := link.From.(type) {
-			case *SpanLink_ParentId:
-				if _, ok := s.otelSpans[from.ParentId]; ok {
-					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[from.ParentId].span.SpanContext(), Attributes: link.GetAttributes().ConvertToAttributesStringified()}))
+			if p := link.ParentId; p != nil {
+				if _, ok := s.otelSpans[*p]; ok {
+					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[*p].span.SpanContext(), Attributes: link.GetAttributes().ConvertToAttributesStringified()}))
 				}
-			case *SpanLink_HttpHeaders:
+			} else if h := link.HttpHeaders; h != nil {
 				headers := map[string]string{}
-				for _, headerTuple := range *from.HttpHeaders {
+				for _, headerTuple := range h {
 					k := headerTuple.GetKey()
 					v := headerTuple.GetValue()
 					if k != "" && v != "" {
