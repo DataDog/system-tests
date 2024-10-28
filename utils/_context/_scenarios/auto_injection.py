@@ -361,7 +361,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_oraclelinux_8_8_arm64=False,
             include_oraclelinux_7_9_amd64=False,
             include_debian_12_amd64=True,
-            include_debian_12_arm64=True,
+            include_debian_12_arm64=False,  # Disabled due to INPLAT-134
             include_almalinux_8_amd64=False,
             include_almalinux_8_arm64=False,
             include_almalinux_9_amd64=False,
