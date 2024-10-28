@@ -732,12 +732,21 @@ def s3_put_object(request):
 
 
 def s3_copy_object(request):
+    original_bucket = request.GET.get("original_bucket")
+    original_key = request.GET.get("original_key")
+    copy_source = f"/{original_bucket}/{original_key}"
+    body = request.GET.get("original_key")
+
     bucket = request.GET.get("bucket")
     key = request.GET.get("key")
-    copy_source = request.GET.get("copy_source")
 
     with mock_aws():
         conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=original_bucket)
+        conn.Bucket(original_bucket).put_object(Bucket=original_bucket, Key=original_key, Body=body.encode("utf-8"))
+
+        if bucket != original_bucket:
+            conn.create_bucket(Bucket=bucket)
         response = conn.Bucket(bucket).copy_object(Bucket=bucket, Key=key, CopySource=copy_source)
 
         # boto adds double quotes to the ETag
