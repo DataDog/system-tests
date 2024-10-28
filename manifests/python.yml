@@ -379,7 +379,9 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: flaky (APPSEC-55222)
+      Test_AppSecStandalone_UpstreamPropagation:
+        '*': v2.12.3
+        uwsgi-poc: flaky (APPSEC-55222)
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
