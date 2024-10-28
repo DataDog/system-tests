@@ -277,6 +277,7 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 
 @features.datastreams_monitoring_support_for_sqs
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
@@ -334,6 +335,7 @@ class Test_DsmSQS:
 
 
 @features.datastreams_monitoring_support_for_sns
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
@@ -397,6 +399,7 @@ class Test_DsmSNS:
 
 
 @features.datastreams_monitoring_support_for_kinesis
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
