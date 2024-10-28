@@ -96,7 +96,7 @@ function remappedSpanKind($spanKind) {
 }
 
 /** @var \DDTrace\SpanData $closed_spans */
-$closed_spans = $spans = [];
+$closed_spans = $spans = $spanTotraceID = [];
 /** @var Span[] $otelSpans */
 $otelSpans = [];
 /** @var ScopeInterface[] $scopes */
@@ -105,55 +105,31 @@ $scopes = [];
 $activeSpan = null;
 
 $router = new Router($server, $logger, $errorHandler);
-$router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan) {
+$router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$closed_spans, &$spanTotraceID) {
     if ($parent = arg($req, 'parent_id')) {
-        \DDTrace\switch_stack($spans[$parent]);
-        \DDTrace\create_stack();
+        // foreach ($closed_spans as $key => $value) {
+        //     // $arr[3] will be updated with each value from $arr...
+        //     echo sprintf("pxx:%d, key:%d span_id:%s\n", $parent, $key, $value->id);
+        // }
+        if ($closed_spans[$parent]) {
+            \DDTrace\switch_stack($closed_spans[$parent]);
+            \DDTrace\set_distributed_tracing_context($spanTotraceID[$parent], strval($parent)); #, $closed_spans[$parent]->origin, $closed_spans[$parent]->propagated_tags);
+            echo sprintf("pxx:%d, pxx2:%d stored_tid:%s, currtid: %s\n", $parent, $closed_spans[$parent]->id, $spanTotraceID[$parent], \DDTrace\trace_id());
+        } else if ($spans[$parent]) {
+            \DDTrace\switch_stack($spans[$parent]);
+            \DDTrace\create_stack();
+        } else {
+            throw new Exception(sprintf("Parent span %d not found in open, closed or propagated spans" , $parent));
+        }
         $span = \DDTrace\start_span();
+        echo sprintf("pxx:%d, curr_sid:%d tid:%s\n", $parent, $span->id, \DDTrace\trace_id());
     } else {
         $span = \DDTrace\start_trace_span();
-    }
-    $link_from_headers = null;
-    $links = [];
-    if ($span_links = arg($req, 'links')) {
-        foreach ($span_links as $span_link) {
-            if ($parent = $span_link["parent_id"]) {
-                $links[] = $link = $spans[$parent]->getLink();
-                if (isset($span_link["attributes"])) {
-                    $link->attributes += $span_link["attributes"];
-                }
-            } else {
-                $link_from_headers = $span_link;
-                $headers_link = &$links[];
-            }
-        }
-    }
-    if ($headers = arg($req, 'http_headers')) {
-        $headers = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $headers));
-        $callback = function ($headername) use ($headers) {
-            return $headers[$headername] ?? null;
-        };
-        if ($link_from_headers) {
-            $headers_link = \DDTrace\SpanLink::fromHeaders($callback);
-            if (isset($link_from_headers["attributes"])) {
-                $headers_link->attributes += $link_from_headers["attributes"];
-            }
-            var_dump($headers_link->samplingPriority);
-            \DDTrace\set_priority_sampling($headers_link->samplingPriority);
-            $span->meta += $headers_link->extractedAttributes;
-        } else {
-            \DDTrace\consume_distributed_tracing_headers($callback);
-        }
-    }
-    if ($origin = arg($req, 'origin')) {
-        $context = \DDTrace\current_context();
-        \DDTrace\set_distributed_tracing_context($context["trace_id"], $context["distributed_tracing_parent_id"] ?? 0, $origin);
     }
     $span->name = arg($req, 'name');
     $span->service = arg($req, 'service');
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
-    $span->links = $links;
 
     if (\dd_trace_env_config("DD_TRACE_ENABLED")) {
         $spanId = $span->id;
@@ -164,10 +140,11 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
     }
 
     $spans[$spanId] = $span;
+    $spanTotraceID[$spanId] = \DDTrace\trace_id();
     $activeSpan = $span;
     return jsonResponse([
         "span_id" => $spanId,
-        "trace_id" => \DDTrace\trace_id(),
+        "trace_id" => $spanTotraceID[$spanId],
     ]);
 }));
 $router->addRoute('POST', '/trace/span/inject_headers', new ClosureRequestHandler(function (Request $req) use (&$spans) {
@@ -176,6 +153,23 @@ $router->addRoute('POST', '/trace/span/inject_headers', new ClosureRequestHandle
     $headers = \DDTrace\generate_distributed_tracing_headers();
     return jsonResponse(["http_headers" => array_map(null, array_keys($headers), $headers)]);
 }));
+// $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+//     $headers = arg($req, 'http_headers');
+//     $headers = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $headers));
+//     $callback = function ($headername) use ($headers) {
+//         return $headers[$headername] ?? null;
+//     };
+//     \DDTrace\switch_stack(null);
+//     \DDTrace\create_stack();
+//     \DDTrace\consume_distributed_tracing_headers($callback);
+
+//     $context = \DDTrace\create_stack();
+//     if ($context["span_id"]) {
+//         $closed_spans[$context["span_id"]] = $active_stack;
+//     }
+//     set_distributed_tracing_context("0", "0")
+//     return jsonResponse(["span_id" => $context["span_id"]]);
+// }));
 $router->addRoute('POST', '/trace/span/set_resource', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
     $span->resource = arg($req, 'resource');

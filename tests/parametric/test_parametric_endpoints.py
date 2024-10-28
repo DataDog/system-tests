@@ -12,7 +12,7 @@ class Test_DD_Parametric_Endpoints:
     @irrelevant(
         library="nodejs", reason="The service and resouce name of the child span is overidden by th parent span."
     )
-    def test_start_span(self, test_agent, test_library):
+    def test_start_spanxx(self, test_agent, test_library):
         """
         Test that start_span with no arguments creates a valid span.
         """
