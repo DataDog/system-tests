@@ -153,4 +153,21 @@ public class DebuggerController {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Outer exception", ex);
         }
     }
+
+    @GetMapping("exceptionreplay/rps")
+    public String exceptionReplayRockPaperScissors(@RequestParam(required = false, defaultValue = "20") String shape) throws Exception {
+        if (shape.equals("rock")) {
+            throw new ExceptionReplayRock();
+        }
+
+        if (shape.equals("paper")) {
+            throw new ExceptionReplayPaper();
+        }
+
+        if (shape.equals("scissors")) {
+            throw new ExceptionReplayScissors();
+        }
+
+        return "No exception";
+    }
 }
