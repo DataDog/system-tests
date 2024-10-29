@@ -1,6 +1,5 @@
-FROM public.ecr.aws/docker/library/alpine:latest
+FROM public.ecr.aws/docker/library/node:22.11.0-alpine
 
-RUN apk add --update nodejs=22.11.0 npm=10.9.0
 RUN apk add --no-cache bash curl
 RUN addgroup -S node && adduser -S node -G node
 
