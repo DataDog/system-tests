@@ -653,6 +653,22 @@ def login(request):
     return HttpResponse("login failure", status=401)
 
 
+MAGIC_SESSION_KEY = "random_session_id"
+
+
+def session_new(request):
+    response = HttpResponse("OK")
+    response.set_cookie("session_id", MAGIC_SESSION_KEY)
+    return response
+
+
+def session_user(request):
+    user = request.GET.get("sdk_user", "")
+    if user and request.COOKIES.get("session_id", "") == MAGIC_SESSION_KEY:
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+    return HttpResponse("OK")
+
+
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
@@ -780,6 +796,8 @@ urlpatterns = [
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
     path("login", login),
+    path("session/new", session_new),
+    path("session/user", session_user),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
     path("mock_s3/put_object", s3_put_object),
