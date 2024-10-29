@@ -465,11 +465,11 @@ tests/:
       Test_UserLoginSuccessEvent:
         '*': v2.10.0
     test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint: v2.11.0.dev
-      Test_Fingerprinting_Endpoint_Capability: v2.11.0.dev
-      Test_Fingerprinting_Header_And_Network: v2.11.0.dev
-      Test_Fingerprinting_Header_Capability: v2.11.0.dev
-      Test_Fingerprinting_Network_Capability: v2.11.0.dev
+      Test_Fingerprinting_Endpoint: v2.11.0
+      Test_Fingerprinting_Endpoint_Capability: v2.11.0
+      Test_Fingerprinting_Header_And_Network: v2.11.0
+      Test_Fingerprinting_Header_Capability: v2.11.0
+      Test_Fingerprinting_Network_Capability: v2.11.0
       Test_Fingerprinting_Session: v2.17.0.dev
       Test_Fingerprinting_Session_Capability: v2.17.0.dev
     test_identify.py:
