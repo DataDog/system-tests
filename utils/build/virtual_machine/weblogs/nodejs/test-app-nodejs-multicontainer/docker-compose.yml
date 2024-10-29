@@ -72,7 +72,7 @@ services:
         healthcheck:
             test: "node health"
 
-    node__18_alpine:
+    node_18_alpine:
         env_file: "scenario_app.env"
         image: system-tests/node_18_alpine:latest
         restart: always
