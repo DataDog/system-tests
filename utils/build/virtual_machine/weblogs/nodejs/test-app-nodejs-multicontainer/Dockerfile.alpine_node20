@@ -1,7 +1,7 @@
 FROM public.ecr.aws/docker/library/alpine:latest
 
 RUN apk add --update nodejs=20.18.0 npm=10.8.2
-RUjN apk add --no-cache bash curl
+RUN apk add --no-cache bash curl
 RUN addgroup -S node && adduser -S node -G node
 
 USER node
