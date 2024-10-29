@@ -499,6 +499,7 @@ tests/:
     span_pointers/:
       aws/:
         test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
           Test_PutObject: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v1.60.0
