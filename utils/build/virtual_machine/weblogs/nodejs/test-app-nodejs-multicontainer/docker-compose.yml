@@ -20,7 +20,7 @@ services:
             context: .
             dockerfile: Dockerfile.node16
         healthcheck:
-            test: "curl -f http://localhost:18080"
+            test: "curl -f http://localhost:18081"
 
     node_18:
         env_file: "scenario_app.env"
