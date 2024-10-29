@@ -7,7 +7,6 @@ import subprocess
 import sys
 import typing
 
-import boto3
 import fastapi
 from fastapi import Cookie
 from fastapi import FastAPI
@@ -22,7 +21,6 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
-from moto import mock_aws
 import psycopg2
 from pydantic import BaseModel
 import requests
@@ -394,7 +392,10 @@ def _sink_point(table="user", id="1"):  # noqa: A002
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except psycopg2.errors.UndefinedColumn:
+        pass
 
 
 def _sink_point_path_traversal(tainted_str="user"):
@@ -454,7 +455,7 @@ async def view_iast_source_parametername_get(request: Request):
 
 @app.post("/iast/source/parametername/test", response_class=PlainTextResponse)
 async def view_iast_source_parametername_post(request: Request):
-    json_body = await request.json()
+    json_body = await request.form()
     param = [key for key in json_body if key == "user"]
     if param:
         _sink_point(id=param[0])
@@ -466,7 +467,7 @@ async def view_iast_source_parametername_post(request: Request):
 @app.post("/iast/source/parameter/test", response_class=PlainTextResponse)
 async def view_iast_source_parameter(request: Request, table: typing.Optional[str] = None):
     if table is None:
-        json_body = await request.json()
+        json_body = await request.form()
         table = json_body.get("table")
     _sink_point(table=table)
     return "OK"
@@ -474,7 +475,11 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
 
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
 async def view_iast_path_traversal_insecure(path: typing.Annotated[str, Form()]):
-    os.mkdir(path)
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+
     return "OK"
 
 
@@ -584,10 +589,13 @@ def track_custom_event():
 
 @app.post("/iast/sqli/test_secure", response_class=PlainTextResponse)
 async def view_sqli_secure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
-    sql = "SELECT * FROM users WHERE username=? AND password=?"
+    sql = "SELECT * FROM users WHERE username=%s AND password=%s"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql, (username, password))
+    try:
+        cursor.execute(sql, (username, password))
+    except psycopg2.errors.UndefinedTable:
+        pass
     return "OK"
 
 
@@ -596,7 +604,10 @@ async def view_sqli_insecure(username: typing.Annotated[str, Form()], password: 
     sql = "SELECT * FROM users WHERE username='" + username + "' AND password='" + password + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except psycopg2.errors.UndefinedTable:
+        pass
     return "OK"
 
 
@@ -619,7 +630,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     parsed_url = urlparse(str(url))
 
     if parsed_url.hostname not in allowed_domains:
-        return "Forbidden", 403
+        return PlainTextResponse("Forbidden", status_code=403)
     try:
         result = requests.get(parsed_url.geturl())
     except Exception:
@@ -681,6 +692,13 @@ def test_nosamesite_insecure_cookie():
 def test_nosamesite_secure_cookie():
     resp = PlainTextResponse("OK")
     resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="strict")
+    return resp
+
+
+@app.get("/iast/no-samesite-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="none")
     return resp
 
 
@@ -764,35 +782,3 @@ def return_headers(request: Request):
     for key, value in request.headers.items():
         headers[key] = value
     return JSONResponse(headers)
-
-
-@app.get("/mock_s3/put_object", response_class=JSONResponse)
-@app.post("/mock_s3/put_object", response_class=JSONResponse)
-@app.options("/mock_s3/put_object", response_class=JSONResponse)
-def s3_put_object(bucket: str, key: str):
-    body = key
-
-    e: typing.Optional[Exception] = None
-
-    for _ in range(3):
-        # NOTE: there is something strange in the way that boto3 and moto
-        # interact with fastapi. The first time that we run this code,
-        # something isn't quite completely wrapped or instantiated. So we add a
-        # retry. Would be nice not to have to worry about s3 at all.
-        try:
-            with mock_aws():
-                conn = boto3.resource("s3", region_name="us-east-1")
-                conn.create_bucket(Bucket=bucket)
-                response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
-
-                # boto adds double quotes to the ETag
-                # so we need to remove them to match what would have done AWS
-                result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
-
-            return JSONResponse(result)
-        except Exception as e:
-            print(e)
-
-    if e is None:
-        raise Exception("no exception but no return either")
-    raise e

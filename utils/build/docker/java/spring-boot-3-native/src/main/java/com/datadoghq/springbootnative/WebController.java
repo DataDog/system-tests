@@ -11,12 +11,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +30,36 @@ public class WebController {
   @RequestMapping("/")
   String home() {
     return "Hello World!";
+  }
+
+  @RequestMapping("/healthcheck")
+  Map<String, Object> healtchcheck() {
+
+      String version;
+      ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+      try (final BufferedReader reader =
+          new BufferedReader(
+              new InputStreamReader(
+                  cl.getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+          String line = reader.readLine();
+          if (line == null) {
+              throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+          }
+          version = line;
+      } catch (Exception e) {
+          throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+      }
+
+      Map<String, String> library = new HashMap<>();
+      library.put("language", "java");
+      library.put("version", version);
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("status", "ok");
+      response.put("library", library);
+
+      return response;
   }
 
   @GetMapping("/headers")

@@ -11,14 +11,19 @@ import ratpack.exec.Promise;
 import ratpack.http.HttpMethod;
 import ratpack.http.Response;
 import ratpack.server.RatpackServer;
+import ratpack.jackson.Jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.InetAddress;
 import java.util.logging.LogManager;
+import java.util.Optional;
 
 import java.util.HashMap;
 import java.net.HttpURLConnection;
@@ -32,6 +37,7 @@ import ratpack.http.Headers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.datadoghq.system_tests.iast.utils.Utils;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 
 import javax.sql.DataSource;
 
@@ -60,6 +66,16 @@ public class Main {
         return h;
     }
 
+    private static Optional<String> getVersion() {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+        String line = reader.readLine();
+        return Optional.ofNullable(line);
+        } catch (Exception e) {
+        return Optional.empty();
+        }
+    }
+
     private static void setRootSpanTag(final String key, final String value) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span instanceof MutableSpan) {
@@ -69,6 +85,8 @@ public class Main {
             }
         }
     }
+
+    private static final CryptoExamples cryptoExamples = new CryptoExamples();
 
     public static void main(String[] args) throws Exception {
 
@@ -89,6 +107,18 @@ public class Main {
                                 } finally {
                                     span.finish();
                                 }
+                            })
+                            .get("healthcheck", ctx -> {
+                                String version = getVersion().orElse("0.0.0");
+
+                                Map<String, Object> response = new HashMap<>();
+                                Map<String, String> library = new HashMap<>();
+                                library.put("language", "java");
+                                library.put("version", version);
+                                response.put("status", "ok");
+                                response.put("library", library);
+
+                                ctx.render(Jackson.json(response));
                             })
                             .get("headers", ctx -> {
                                 Response response = ctx.getResponse();
@@ -199,6 +229,17 @@ public class Main {
                             })
                             .get("requestdownstream", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/returnheaders";
+                                    return Utils.sendGetRequest(url);
+                                });
+                                res.then((r) -> {
+                                    Response response = ctx.getResponse();
+                                    response.send("application/json", r);
+                                });
+                            })
+                            .get("vulnerablerequestdownstream", ctx -> {
+                                final Promise<String> res = Blocking.get(() -> {
+                                    cryptoExamples.insecureMd5Hashing("password");
                                     String url = "http://localhost:7777/returnheaders";
                                     return Utils.sendGetRequest(url);
                                 });

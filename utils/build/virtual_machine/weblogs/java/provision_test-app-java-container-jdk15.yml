@@ -17,11 +17,15 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
+        os_branch: amazon_linux2
+        remote-command: sudo yum -y install java-11-amazon-corretto-headless
+        
+      - os_type: linux
+        os_distro: rpm
         remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
 
 weblog:
     name: test-app-java-container-jdk15
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2]
     install:
       - os_type: linux
         copy_files:

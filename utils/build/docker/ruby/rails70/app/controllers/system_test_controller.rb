@@ -1,5 +1,7 @@
+require 'json'
+
 require 'datadog/kit/appsec/events'
-require 'rdkafka'
+require 'kafka'
 
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -9,11 +11,14 @@ class SystemTestController < ApplicationController
   end
 
   def healthcheck
+    gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
+    version = gemspec.version.to_s
+    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
     render json: { 
       status: 'ok',
       library: {
         language: 'ruby',
-        version: Datadog::VERSION::STRING
+        version: version
       }
     }
   end
@@ -182,65 +187,67 @@ class SystemTestController < ApplicationController
 
 
   def kafka_produce
-    config = {
-      :"bootstrap.servers" => "kafka:9092",
-      :"client.id" => "system-tests-client-producer",
-      :"group.id" => "system-tests-group",
-    }
-    topic = request.params["topic"]
-    producer = Rdkafka::Config.new(config).producer
-    stop = false
-    while stop == false
-      delivery_handles = []
-      begin
-        Datadog::Tracing.trace('kafka_produce') do |span|
-          delivery_handles << producer.produce(
-            topic:   topic,
-            payload: "Hello, world!",
-          )
-          # This has to be done manually for now, because ruby does not add the topic
-          # to the span at all
-          span.set_tag("span.kind", "producer")
-          span.set_tag("kafka.topic", topic)
-          stop = true
-        end
-      rescue Rdkafka::BaseError
-      end
-      delivery_handles.each(&:wait)
+    kafka = Kafka.new(
+      seed_brokers: ["kafka:9092"],
+      client_id: "system-tests-client-producer",
+    )
+    producer = kafka.producer
+    topic = request.params["topic"] || "DistributedTracing"
+    begin
+      producer.produce(
+        "Hello, world!",
+        topic:   topic,
+      )
+      producer.deliver_messages
+      producer.shutdown
+    rescue Exception => e
+      puts "An error has occurred while consuming messages from Kafka: #{e}"
     end
-    producer.close
-
     render plain: "Done"
   end
 
 
   def kafka_consume
-    config = {
-      :"bootstrap.servers" => "kafka:9092",
-      :"client.id" => "system-tests-client-consumer",
-      :"group.id" => "system-tests-group",
-      :"auto.offset.reset" => "earliest",
-    }
-    topic = request.params["topic"]
-    consumer = Rdkafka::Config.new(config).consumer
-    consumer.subscribe(topic)
+    kafka = Kafka.new(
+      seed_brokers: ["kafka:9092"],
+      client_id: "system-tests-client-consumer",
+      socket_timeout: 20,
+    )
+    topic = request.params["topic"] || "DistributedTracing"
     begin
-      consumer.each do |message|
+      kafka.each_message(topic: topic) do |message|
         if not message.nil?
-          Datadog::Tracing.trace('kafka_consume') do |span|
-            span.set_tag("span.kind", "consumer")
-            span.set_tag("kafka.topic", topic)
-          end
+          puts "Received message: #{message.value}"
           break
         end
       end
     rescue Exception => e
       puts "An error has occurred while consuming messages from Kafka: #{e}"
-    ensure
-      consumer.close
     end
-
     render plain: "Done"
   end
 
+  def request_downstream
+    uri = URI('http://localhost:7777/returnheaders')
+    ext_request = nil
+    ext_response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      ext_request = Net::HTTP::Get.new(uri)
+
+      ext_response = http.request(ext_request)
+    end
+
+    render json: ext_response.body, content_type: 'application/json'
+  end
+
+  def return_headers
+    request_headers = request.headers.each.to_h.select do |k, _v|
+      k.start_with?('HTTP_') || k == 'CONTENT_TYPE' || k == 'CONTENT_LENGTH'
+    end
+    request_headers = request_headers.transform_keys do |k|
+      k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+    end
+    render json: JSON.generate(request_headers), content_type: 'application/json'
+  end
 end

@@ -483,7 +483,9 @@ tests/:
           spring-boot-payara: bug (APPSEC-54966)
           vertx3: missing_feature (Requires parsed body instrumentation)
           vertx4: missing_feature (Requires parsed body instrumentation)
-        Test_Sqli_Capability: missing_feature
+        Test_Sqli_Capability:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -514,30 +516,96 @@ tests/:
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
       test_ssrf.py:
         Test_Ssrf_BodyJson:
-          '*': missing_feature (missing endpoint)
-          spring-boot: 'v1.39.0'
+          '*': v1.39.0
+          akka-http: missing_feature (Requires parsed body instrumentation)
+          jersey-grizzly2: missing_feature (missing endpoint)
+          play: missing_feature (missing endpoint)
+          ratpack: missing_feature (missing endpoint)
+          resteasy-netty3: missing_feature (missing endpoint)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-54966)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Ssrf_BodyUrlEncoded:
-          '*': missing_feature (missing endpoint)
-          spring-boot: 'v1.39.0'
+          '*': v1.39.0
+          akka-http: missing_feature (Requires parsed body instrumentation)
+          jersey-grizzly2: missing_feature (missing endpoint)
+          play: missing_feature (missing endpoint)
+          ratpack: missing_feature (missing endpoint)
+          resteasy-netty3: missing_feature (missing endpoint)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-54966)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
         Test_Ssrf_BodyXml:
-          '*': missing_feature (missing endpoint)
-          spring-boot: 'v1.39.0'
-        Test_Ssrf_Capability: missing_feature
+          '*': v1.39.0
+          akka-http: missing_feature (Requires parsed body instrumentation)
+          jersey-grizzly2: missing_feature (missing endpoint)
+          play: missing_feature (missing endpoint)
+          ratpack: missing_feature (missing endpoint)
+          resteasy-netty3: missing_feature (missing endpoint)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-54966)
+          vertx3: missing_feature (Requires parsed body instrumentation)
+          vertx4: missing_feature (Requires parsed body instrumentation)
+        Test_Ssrf_Capability:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Ssrf_Mandatory_SpanTags:
-          '*': missing_feature (missing endpoint)
-          spring-boot: 'v1.39.0'
+          '*': v1.39.0
+          akka-http: missing_feature (missing endpoint)
+          jersey-grizzly2: missing_feature (missing endpoint)
+          play: missing_feature (missing endpoint)
+          ratpack: missing_feature (missing endpoint)
+          resteasy-netty3: missing_feature (missing endpoint)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-54966)
+          vertx3: missing_feature (missing endpoint)
+          vertx4: missing_feature (missing endpoint)
         Test_Ssrf_Optional_SpanTags:
-          '*': missing_feature (missing endpoint)
-          spring-boot: 'v1.39.0'
+          '*': v1.39.0
+          akka-http: missing_feature (missing endpoint)
+          jersey-grizzly2: missing_feature (missing endpoint)
+          play: missing_feature (missing endpoint)
+          ratpack: missing_feature (missing endpoint)
+          resteasy-netty3: missing_feature (missing endpoint)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-54966)
+          vertx3: missing_feature (missing endpoint)
+          vertx4: missing_feature (missing endpoint)
         Test_Ssrf_StackTrace:
-          '*': missing_feature (missing endpoint)
-          spring-boot: 'v1.39.0'
+          '*': v1.39.0
+          akka-http: missing_feature (missing endpoint)
+          jersey-grizzly2: missing_feature (missing endpoint)
+          play: missing_feature (missing endpoint)
+          ratpack: missing_feature (missing endpoint)
+          resteasy-netty3: missing_feature (missing endpoint)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-54966)
+          vertx3: missing_feature (missing endpoint)
+          vertx4: missing_feature (missing endpoint)
         Test_Ssrf_Telemetry:
-          '*': missing_feature (missing endpoint)
-          spring-boot: 'v1.39.0'
+          '*': v1.39.0
+          akka-http: missing_feature (missing endpoint)
+          jersey-grizzly2: missing_feature (missing endpoint)
+          play: missing_feature (missing endpoint)
+          ratpack: missing_feature (missing endpoint)
+          resteasy-netty3: missing_feature (missing endpoint)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-54966)
+          vertx3: missing_feature (missing endpoint)
+          vertx4: missing_feature (missing endpoint)
         Test_Ssrf_UrlQuery:
-          '*': missing_feature (missing endpoint)
-          spring-boot: 'v1.39.0'
+          '*': v1.39.0
+          akka-http: missing_feature (missing endpoint)
+          jersey-grizzly2: missing_feature (missing endpoint)
+          play: missing_feature (missing endpoint)
+          ratpack: missing_feature (missing endpoint)
+          resteasy-netty3: missing_feature (missing endpoint)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-54966)
+          vertx3: missing_feature (missing endpoint)
+          vertx4: missing_feature (missing endpoint)
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -724,6 +792,9 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
+        '*': v1.36.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_IastStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_automated_login_events.py:
@@ -955,14 +1026,34 @@ tests/:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Header_And_Network:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
-      Test_Fingerprinting_Session: missing_feature
-      Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Header_Capability:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Network_Capability:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Session:
+        '*': v1.40.0
+        akka-http: missing_feature (endpoint not implemented)
+        jersey-grizzly2: missing_feature (endpoint not implemented)
+        play: missing_feature (endpoint not implemented)
+        ratpack: missing_feature (endpoint not implemented)
+        resteasy-netty3: missing_feature (endpoint not implemented)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: missing_feature (missing addresses)
+        spring-boot-undertow: missing_feature (missing addresses)
+        spring-boot-wildfly: missing_feature (missing addresses)
+        vertx3: missing_feature (endpoint not implemented)
+        vertx4: missing_feature (endpoint not implemented)
+      Test_Fingerprinting_Session_Capability:
+        '*': v1.40.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_identify.py:
       Test_Basic: missing_feature
     test_ip_blocking_full_denylist.py:
@@ -987,7 +1078,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
-      Test_UpdateRuleFileWithRemoteConfig: missing_feature
+      Test_UpdateRuleFileWithRemoteConfig: bug (APPSEC-55323)
     test_reports.py:
       Test_AttackTimestamp:
         akka-http: v1.22.0
@@ -1287,8 +1378,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

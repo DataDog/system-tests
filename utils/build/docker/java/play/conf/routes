@@ -1,4 +1,5 @@
 GET  /                         controllers.AppSecController.index
+GET  /healthcheck              controllers.AppSecController.healthcheck
 GET  /headers                  controllers.AppSecController.headers
 GET  /tag_value/:value/:code   controllers.AppSecController.tagValue(value: String, code: Int)
 POST /tag_value/:value/:code   controllers.AppSecController.tagValuePost(value: String, code: Int)
@@ -17,5 +18,6 @@ POST /rasp/sqli                controllers.RaspController.sqli
 GET  /rasp/lfi                controllers.RaspController.lfi
 POST /rasp/lfi                controllers.RaspController.lfi
 GET  /requestdownstream        controllers.AppSecController.requestdownstream
+GET  /vulnerablerequestdownstream        controllers.AppSecController.vulnerableRequestdownstream
 GET  /returnheaders            controllers.AppSecController.returnheaders
 GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)

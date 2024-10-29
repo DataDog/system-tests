@@ -2238,6 +2238,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_standalone(test_object):
+        """
+        Iast Standalone Billing
+
+        https://feature-parity.us1.prod.dog/#/?feature=319
+        """
+        pytest.mark.features(feature_id=319)(test_object)
+        return test_object
+
+    @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """
         Profiling works when enabled through the agent installer script in Host environments
@@ -2410,7 +2420,7 @@ class features:
     @staticmethod
     def serverless_span_pointers(test_object):
         """
-        Serverless : span_links is correctly reported
+        Serverless : Span Pointers are correctly incorporated in spans
 
         https://feature-parity.us1.prod.dog/#/?feature=328
         """

@@ -19,6 +19,9 @@ const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
 
+const multer = require('multer')
+const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
+
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
@@ -46,6 +49,10 @@ app.get('/healthcheck', (req, res) => {
       version: require('dd-trace/package.json').version
     }
   })
+})
+
+app.post('/waf', uploadToMemory.single('foo'), (req, res) => {
+  res.send('Hello\n')
 })
 
 app.all(['/waf', '/waf/*'], (req, res) => {
@@ -341,17 +348,17 @@ app.get('/load_dependency', (req, res) => {
   res.send('Loaded a dependency')
 })
 
-app.all('/tag_value/:tag/:status', (req, res) => {
+app.all('/tag_value/:tag_value/:status_code', (req, res) => {
   require('dd-trace/packages/dd-trace/src/plugins/util/web')
-    .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag)
+    .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag_value)
 
   for (const [k, v] of Object.entries(req.query)) {
     res.set(k, v)
   }
 
-  res.status(req.params.status || 200)
+  res.status(req.params.status_code || 200)
 
-  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+  if (req.params.tag_value.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body })
   } else {
     res.send('Value tagged')

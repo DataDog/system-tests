@@ -137,11 +137,11 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
   parametric/:
     test_config_consistency.py:
-      Test_Config_RateLimit: missing_feature
-      Test_Config_TraceAgentURL: missing_feature
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_RateLimit: v1.1.0
+      Test_Config_TraceAgentURL: v1.1.0
+      Test_Config_TraceEnabled: v1.1.0
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: v1.1.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
     test_headers_baggage.py:
@@ -153,6 +153,8 @@ tests/:
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
+    test_partial_flushing.py:
+      Test_Partial_Flushing: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -172,8 +174,10 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

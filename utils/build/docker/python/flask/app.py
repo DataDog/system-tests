@@ -179,14 +179,9 @@ def hello_world():
 
 @app.route("/healthcheck")
 def healthcheck():
-
     return {
         "status": "ok",
-        "library": {
-            "language": "python",
-            "version": ddtrace.__version__,
-            "libddwaf_version": ddtrace.appsec._ddwaf.ddwaf_get_version().decode(),
-        },
+        "library": {"language": "python", "version": ddtrace.__version__,},
     }
 
 
@@ -965,7 +960,7 @@ def view_iast_source_parametername_get():
 
 @app.route("/iast/source/parametername/test", methods=["POST"])
 def view_iast_source_parametername_post():
-    param = [key for key in flask_request.json.keys() if key == "user"]
+    param = [key for key in flask_request.form.keys() if key == "user"]
     _sink_point_sqli(id=param[0])
     return Response("OK")
 
@@ -975,7 +970,7 @@ def view_iast_source_parameter():
     if flask_request.args:
         table = flask_request.args.get("table")
     else:
-        table = flask_request.json.get("table")
+        table = flask_request.form.get("table")
     _sink_point_sqli(table=table)
     return Response("OK")
 

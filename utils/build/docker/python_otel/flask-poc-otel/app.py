@@ -9,6 +9,8 @@ from flask import Flask, Response, jsonify
 from flask import request
 from flask import request as flask_request
 
+from opentelemetry.distro.version import __version__ as otel_version
+
 from integrations.db.mssql import executeMssqlOperation
 from integrations.db.mysqldb import executeMysqlOperation
 from integrations.db.postgres import executePostgresOperation
@@ -19,6 +21,15 @@ app = Flask(__name__)
 @app.route("/")
 def hello_world():
     return "Hello, World!\\n"
+
+
+@app.route("/healthcheck")
+def healthcheck():
+
+    return {
+        "status": "ok",
+        "library": {"language": "python_otel", "version": otel_version,},
+    }
 
 
 @app.route("/db", methods=["GET", "POST", "OPTIONS"])
