@@ -250,9 +250,12 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
-    def rc_requests(self):
+    def rc_requests(self, post_only=False):
         reqs = self.requests()
-        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and r["method"] == "POST"]
+        if post_only:
+            rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and r["method"] == "POST"]
+        else:
+            rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
         for r in rc_reqs:
             r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
         return rc_reqs
@@ -401,13 +404,18 @@ class _TestAgentAPI:
         raise AssertionError("Telemetry event %r not found" % event_name)
 
     def wait_for_rc_apply_state(
-        self, product: str, state: remoteconfig.APPLY_STATUS, clear: bool = False, wait_loops: int = 100
+        self,
+        product: str,
+        state: remoteconfig.APPLY_STATUS,
+        clear: bool = False,
+        wait_loops: int = 100,
+        post_only: bool = False,
     ):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         for i in range(wait_loops):
             try:
-                rc_reqs = self.rc_requests()
+                rc_reqs = self.rc_requests(post_only)
             except requests.exceptions.RequestException:
                 pass
             else:
