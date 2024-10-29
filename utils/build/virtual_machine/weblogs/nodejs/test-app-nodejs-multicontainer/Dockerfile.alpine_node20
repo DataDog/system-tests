@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/node:20.18-alpine
+FROM public.ecr.aws/docker/library/node:20-alpine
 
 RUN apk add --no-cache bash curl
 RUN addgroup -S node && adduser -S node -G node
