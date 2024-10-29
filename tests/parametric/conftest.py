@@ -540,6 +540,7 @@ def test_agent(
                     Stop the agent on port {test_agent_port} and try again."""
                     pytest.fail(message, pytrace=False)
 
+                logger.info("Test agent is ready")
                 break
         else:
             with open(test_agent_log_file.name) as f:

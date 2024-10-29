@@ -382,6 +382,7 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
         uwsgi-poc: flaky (APPSEC-55222)
+      Test_IastStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -656,7 +657,7 @@ tests/:
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': irrelevant
-        flask-poc: v1.20.3
+        flask-poc: v2.16.0
       Test_DsmKinesis:
         '*': irrelevant
         flask-poc: v2.8.0
