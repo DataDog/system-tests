@@ -29,7 +29,7 @@ weblog:
           - name: copy-node22-alpine-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node22-alpine
           - name: copy-nodejs-alpine-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.alpine
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node-alpine
           - name: copy-reverseproxy-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.reverseproxy
           - name: copy-reverseproxy-conf

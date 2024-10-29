@@ -108,6 +108,6 @@ services:
         restart: always
         build:
             context: .
-            dockerfile: Dockerfile.alpine
+            dockerfile: Dockerfile.node-alpine
         healthcheck:
             test: "node health"
