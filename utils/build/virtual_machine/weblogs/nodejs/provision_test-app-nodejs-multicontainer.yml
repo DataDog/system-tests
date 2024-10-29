@@ -1,6 +1,7 @@
 weblog:
     name: test-app-nodejs-multicontainer
-    install: 
+    exact_os_branches: [ubuntu24]
+    install:
       - os_type: linux
         copy_files:
           - name: copy-multicontainer-run-script
@@ -11,8 +12,16 @@ weblog:
             local_path: lib-injection/build/docker/nodejs/sample-app
           - name: copy-node18-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node18
-          - name: copy-nodesj-alpine-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.alpine
+          - name: copy-node20-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node20
+          - name: copy-node22-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node22
+          - name: copy-nodesj-alpine-node18-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.alpine_node18
+          - name: copy-nodesj-alpine-node20-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.alpine_node20
+          - name: copy-nodesj-alpine-node22-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.alpine_node22
           - name: copy-reverseproxy-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.reverseproxy
           - name: copy-reverseproxy-conf

@@ -10,11 +10,11 @@ services:
             context: .
             dockerfile: Dockerfile.reverseproxy
         healthcheck:
-            test: "curl -f http://localhost:8080"  
+            test: "curl -f http://localhost:8080"
 
-    node_18:
+    node18:
         env_file: "scenario_app.env"
-        image: system-tests/node_18:latest
+        image: system-tests/node18:latest
         restart: always
         build:
             context: .
@@ -22,12 +22,52 @@ services:
         healthcheck:
             test: "curl -f http://localhost:18080"
 
-    node_alpine:
+    alpine_node18:
         env_file: "scenario_app.env"
-        image: system-tests/node_alpine:latest
+        image: system-tests/alpine_node18:latest
         restart: always
         build:
             context: .
-            dockerfile: Dockerfile.alpine
+            dockerfile: Dockerfile.alpine_node18
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+
+    node20:
+        env_file: "scenario_app.env"
+        image: system-tests/node20:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node20
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+
+    alpine_node20:
+        env_file: "scenario_app.env"
+        image: system-tests/alpine_node20:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.alpine_node20
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+
+    node22:
+        env_file: "scenario_app.env"
+        image: system-tests/node22:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node22
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+
+    alpine_node22:
+        env_file: "scenario_app.env"
+        image: system-tests/alpine_node22:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.alpine_node22
         healthcheck:
             test: "curl -f http://localhost:18080"

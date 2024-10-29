@@ -1,6 +1,6 @@
 weblog:
     name: test-app-python-multicontainer
-    install: 
+    install:
       - os_type: linux
         copy_files:
           - name: copy-multicontainer-run-script
