@@ -142,13 +142,13 @@ const snsConsume = async (queue, timeout, expectedMessage) => {
             if (!messageFound) {
               setTimeout(() => {
                 receiveMessage()
-              }, 1000)
+              }, 50)
             }
           } else {
             console.log('[SNS->SQS] No messages received')
             setTimeout(() => {
               receiveMessage()
-            }, 1000)
+            }, 200)
           }
         } catch (error) {
           console.error('[SNS->SQS] Error while consuming messages: ', error)

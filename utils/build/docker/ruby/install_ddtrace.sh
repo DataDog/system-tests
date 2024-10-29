@@ -48,7 +48,3 @@ fi
 bundle config set --local without test development
 
 bundle install
-
-bundle info $GEM_NAME | grep -m 1 $GEM_NAME > SYSTEM_TESTS_LIBRARY_VERSION
-
-echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"

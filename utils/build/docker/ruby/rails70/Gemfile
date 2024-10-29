@@ -28,7 +28,7 @@ gem "stimulus-rails"
 gem "jbuilder"
 
 # Talk with Kafka for propagation tests
-gem "rdkafka"
+gem "ruby-kafka"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"

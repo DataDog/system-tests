@@ -10,7 +10,7 @@ from utils.onboarding.debug_vm import extract_logs_to_file
 class AWSInfraConfig:
     def __init__(self) -> None:
         # Mandatory parameters
-        self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID")
+        self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID", "").split(",")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
         self.iam_instance_profile = os.getenv("ONBOARDING_AWS_INFRA_IAM_INSTANCE_PROFILE")
 
@@ -29,6 +29,10 @@ class DataDogConfig:
         self.installer_versions["library"] = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
         self.installer_versions["agent"] = os.getenv("DD_INSTALLER_AGENT_VERSION")
         self.installer_versions["injector"] = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
+
+        # Cached properties
+        self.skip_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
+        self.update_cache = os.getenv("AMI_UPDATE", "False").lower() == "true"
 
         # if None in (self.dd_api_key, self.dd_app_key):
         #    logger.warn("Datadog agent is not configured correctly for auto-injection testing")
@@ -163,15 +167,33 @@ class _VirtualMachine:
         extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
-        vm_cached_name = f"{self.name}_"
+        """ Generate a unique name for the  cache.
+        use: vm name + provision name + weblog id + hash of the cacheable installations 
+        We geneate the hash from cacheable steps content. If we modify the step scripts 
+        the hash will change and the cache will be regenerated.
+        If we use the AWS provider: The AWS AMI is limited to 128 characters, so we need to keep the name short
+        """
+        # Cache prefix (no encoded)
+        cached_name = (
+            f"{self.name}_{self.get_provision().provision_name}_{self.get_provision().weblog_installation.id}_"
+        )
+        # Cache suffix. All cacheable steps encoded
+        vm_cached_name = ""
         if self.get_provision().lang_variant_installation:
-            vm_cached_name += f"{self.get_provision().lang_variant_installation.id}_"
-        vm_cached_installations = ""
+            vm_cached_name += f"{self.get_provision().lang_variant_installation}_"
         for installation in self.get_provision().installations:
             if installation.cache:
-                vm_cached_installations += f"{installation.id}_"
-        vm_cached_installations = hashlib.shake_128(vm_cached_installations.encode("utf-8")).hexdigest(4)
-        return vm_cached_name + vm_cached_installations + "_" + self.get_provision().provision_name
+                vm_cached_name += f"{installation}_"
+
+        full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
+
+        if len(full_cache_name) >= 120:
+            # There is a limit of 128 characters for the AMI name. 119 + 9 characters added by the aws
+            # for now encoding provision_name is enough to keep the name short
+            provision_name = hashlib.shake_128(self.get_provision().provision_name.encode("utf-8")).hexdigest(4)
+            cached_name = f"{self.name}_{provision_name}_{self.get_provision().weblog_installation.id}_"
+            full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
+        return full_cache_name
 
     def get_command_environment(self):
         """ This environment will be injected as environment variables for all launched remote commands """
@@ -239,7 +261,7 @@ class Ubuntu22arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_22_arm64",
-            aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.small", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.medium", user="ubuntu"),
             vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64",),
             krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/ubuntu_datadog:22"),
             os_type="linux",
@@ -285,7 +307,7 @@ class AmazonLinux2arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2_arm64",
-            aws_config=_AWSConfig(ami_id="ami-024e548e5cf8ed98b", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-024e548e5cf8ed98b", ami_instance_type="t4g.medium", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -316,7 +338,7 @@ class AmazonLinux2023arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Amazon_Linux_2023_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0a515c154e76934f7", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0a515c154e76934f7", ami_instance_type="t4g.medium", user="ec2-user"),
             # vagrant_config=_VagrantConfig(box_name="generic-a64/alma9"),
             vagrant_config=None,
             krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/amazonlinux_datadog:2023"),
@@ -366,7 +388,7 @@ class OracleLinux92arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "OracleLinux_9_2_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0d1bcd0124ba74024", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0d1bcd0124ba74024", ami_instance_type="t4g.medium", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -399,7 +421,7 @@ class OracleLinux88arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "OracleLinux_8_8_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0463a0d7ecd42cc89", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0463a0d7ecd42cc89", ami_instance_type="t4g.medium", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -448,7 +470,7 @@ class Debian12arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Debian_12_arm64",
-            aws_config=_AWSConfig(ami_id="ami-031399937db27e013", ami_instance_type="t4g.small", user="admin"),
+            aws_config=_AWSConfig(ami_id="ami-031399937db27e013", ami_instance_type="t4g.medium", user="admin"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -517,7 +539,7 @@ class AlmaLinux9arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "AlmaLinux_9_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0ba8fa4bea636d73f", ami_instance_type="t4g.small", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-0ba8fa4bea636d73f", ami_instance_type="t4g.medium", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -549,7 +571,7 @@ class Ubuntu24arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_24_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0e879a1b306fffb22", ami_instance_type="t4g.small", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-0e879a1b306fffb22", ami_instance_type="t4g.medium", user="ubuntu"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -582,7 +604,7 @@ class Ubuntu20arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_20_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0ccf50ab09c6df2d4", ami_instance_type="t4g.small", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-0ccf50ab09c6df2d4", ami_instance_type="t4g.medium", user="ubuntu"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -599,7 +621,7 @@ class Ubuntu21arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_21_arm64",
-            aws_config=_AWSConfig(ami_id="ami-05712368b95488c7b", ami_instance_type="t4g.small", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-05712368b95488c7b", ami_instance_type="t4g.medium", user="ubuntu"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -632,7 +654,7 @@ class Ubuntu23_04_arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_23_04_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0093a09a926ddbe35", ami_instance_type="t4g.small", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-0093a09a926ddbe35", ami_instance_type="t4g.medium", user="ubuntu"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -664,7 +686,7 @@ class Ubuntu23_10_arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_23_10_arm64",
-            aws_config=_AWSConfig(ami_id="ami-0b41986f4597707d2", ami_instance_type="t4g.small", user="ubuntu"),
+            aws_config=_AWSConfig(ami_id="ami-0b41986f4597707d2", ami_instance_type="t4g.medium", user="ubuntu"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
