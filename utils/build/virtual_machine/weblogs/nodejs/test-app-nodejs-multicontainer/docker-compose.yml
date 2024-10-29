@@ -10,7 +10,17 @@ services:
             context: .
             dockerfile: Dockerfile.reverseproxy
         healthcheck:
-            test: "curl -f http://localhost:8080"  
+            test: "curl -f http://localhost:8080"
+
+    node_16:
+        env_file: "scenario_app.env"
+        image: system-tests/node_16:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node16
+        healthcheck:
+            test: "curl -f http://localhost:18080"
 
     node_18:
         env_file: "scenario_app.env"
@@ -19,6 +29,36 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.node18
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+
+    node_20:
+        env_file: "scenario_app.env"
+        image: system-tests/node_20:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node20
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+
+    node_22:
+        env_file: "scenario_app.env"
+        image: system-tests/node_22:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node22
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+
+    node:
+        env_file: "scenario_app.env"
+        image: system-tests/node:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node
         healthcheck:
             test: "curl -f http://localhost:18080"
 
