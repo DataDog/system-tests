@@ -277,7 +277,7 @@ onboarding_php:
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-container-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-multicontainer, test-app-php-multialpine]
