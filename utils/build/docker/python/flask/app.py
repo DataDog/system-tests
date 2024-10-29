@@ -1345,8 +1345,12 @@ def s3_put_object():
 def s3_copy_object():
     original_bucket = flask_request.args.get("original_bucket")
     original_key = flask_request.args.get("original_key")
-    copy_source = f"/{original_bucket}/{original_key}"
     body: str = flask_request.args.get("original_key")
+
+    copy_source = {
+        "Bucket": original_bucket,
+        "Key": original_key,
+    }
 
     bucket = flask_request.args.get("bucket")
     key = flask_request.args.get("key")
@@ -1358,7 +1362,7 @@ def s3_copy_object():
 
         if bucket != original_bucket:
             conn.create_bucket(Bucket=bucket)
-        response = conn.Bucket(bucket).copy_object(Bucket=bucket, Key=key, CopySource=copy_source)
+        response = conn.Bucket(bucket).copy(CopySource=copy_source, Key=key)
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS

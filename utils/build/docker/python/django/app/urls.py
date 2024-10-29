@@ -734,8 +734,12 @@ def s3_put_object(request):
 def s3_copy_object(request):
     original_bucket = request.GET.get("original_bucket")
     original_key = request.GET.get("original_key")
-    copy_source = f"/{original_bucket}/{original_key}"
     body = request.GET.get("original_key")
+
+    copy_source = {
+        "Bucket": original_bucket,
+        "Key": original_key,
+    }
 
     bucket = request.GET.get("bucket")
     key = request.GET.get("key")
@@ -747,7 +751,7 @@ def s3_copy_object(request):
 
         if bucket != original_bucket:
             conn.create_bucket(Bucket=bucket)
-        response = conn.Bucket(bucket).copy_object(Bucket=bucket, Key=key, CopySource=copy_source)
+        response = conn.Bucket(bucket).copy(CopySource=copy_source, Key=key)
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS
