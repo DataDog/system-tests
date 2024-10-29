@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant
+from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug
 
 
 @scenarios.default
@@ -80,13 +80,23 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 class Test_Config_ObfuscationQueryStringRegexp_Empty:
     """ Verify behavior when set to empty string """
 
-    def setup_query_string_obfuscation_empty(self):
-        self.r = weblog.get("/?application_key=123")
+    def setup_query_string_obfuscation_empty_client(self):
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
-    def test_query_string_obfuscation_empty(self):
-        interfaces.library.add_span_tag_validation(
-            self.r, tags={"http.url": r"^.*/\?application_key=123$"}, value_as_regular_expression=True,
-        )
+    @bug(context.library == "java", reason="APMAPI-770")
+    def test_query_string_obfuscation_empty_client(self):
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span = _get_span_by_tags(spans, tags={"http.url": "http://weblog:7777/?key=monkey"})
+        assert client_span, "\n".join([str(s) for s in spans])
+
+    def setup_query_string_obfuscation_empty_server(self):
+        self.r = weblog.get("/?application_key=value")
+
+    @bug(context.library == "python", reason="APMAPI-772")
+    def test_query_string_obfuscation_empty_server(self):
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
+        assert client_span, "\n".join([str(s) for s in spans])
 
 
 @scenarios.tracing_config_nondefault
@@ -321,17 +331,13 @@ class Test_Config_IntegrationEnabled_False:
 
     def test_kafka_integration_enabled_false(self):
         assert self.r.status_code == 200
-
-        nonKafkaSpans = []
-        kafkaSpans = []
-        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
-            if span.get("name") != "kafka.produce":
-                nonKafkaSpans.append(span)
-            else:
-                kafkaSpans.append(span)
-
-        assert len(nonKafkaSpans) > 0
-        assert len(kafkaSpans) == 0
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert spans, "No spans found in trace"
+        # Ruby kafka integration generates a span with the name "kafka.producer.*",
+        # unlike python/dotnet/etc. which generates a "kafka.produce" span
+        assert (
+            list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == []
+        ), f"kafka.produce span was found in trace: {spans}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -345,14 +351,10 @@ class Test_Config_IntegrationEnabled_True:
 
     def test_kafka_integration_enabled_true(self):
         assert self.r.status_code == 200
-
-        nonKafkaSpans = []
-        kafkaSpans = []
-        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
-            if span.get("name") != "kafka.produce":
-                nonKafkaSpans.append(span)
-            else:
-                kafkaSpans.append(span)
-
-        assert len(nonKafkaSpans) > 0
-        assert len(kafkaSpans) > 0
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert spans, "No spans found in trace"
+        # Ruby kafka integration generates a span with the name "kafka.producer.*",
+        # unlike python/dotnet/etc. which generates a "kafka.produce" span
+        assert list(
+            filter(lambda span: "kafka.produce" in span.get("name"), spans)
+        ), f"No kafka.produce span found in trace: {spans}"
