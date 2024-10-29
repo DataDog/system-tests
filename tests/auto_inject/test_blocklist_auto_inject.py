@@ -1,7 +1,7 @@
 import uuid
 from scp import SCPClient
 
-from utils import scenarios, context, features
+from utils import scenarios, context, features, irrelevant
 from utils.tools import logger
 from utils.onboarding.injection_log_parser import command_injection_skipped
 from utils.virtual_machine.utils import parametrize_virtual_machines
@@ -231,6 +231,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
+    @irrelevant(condition="container" in context.weblog_variant or "alpine" in context.weblog_variant)
     def test_builtIn_block_commands(self, virtual_machine):
         """ Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block """
         logger.info(f"[{virtual_machine.get_ip()}] Executing commands that should be blocked")
@@ -246,6 +247,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
+    @irrelevant(condition="container" in context.weblog_variant or "alpine" in context.weblog_variant)
     def test_builtIn_block_args(self, virtual_machine):
         """ Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
         language = context.scenario.library.library
@@ -262,6 +264,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
+    @irrelevant(condition="container" in context.weblog_variant or "alpine" in context.weblog_variant)
     def test_builtIn_instrument_args(self, virtual_machine):
         """ Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
         language = context.scenario.library.library
@@ -287,6 +290,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
+    @irrelevant(condition="container" in context.weblog_variant or "alpine" in context.weblog_variant)
     def test_user_ignored_args(self, virtual_machine):
         """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python,php) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
         logger.info(f"[{virtual_machine.get_ip()}] Testing args ignored by user")
