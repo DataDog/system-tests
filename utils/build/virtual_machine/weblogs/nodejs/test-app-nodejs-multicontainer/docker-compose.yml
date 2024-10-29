@@ -62,6 +62,46 @@ services:
         healthcheck:
             test: "node health"
 
+    node_16_alpine:
+        env_file: "scenario_app.env"
+        image: system-tests/node_16_alpine:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node16-alpine
+        healthcheck:
+            test: "node health"
+
+    node__18_alpine:
+        env_file: "scenario_app.env"
+        image: system-tests/node_18_alpine:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node18-alpine
+        healthcheck:
+            test: "node health"
+
+    node_20_alpine:
+        env_file: "scenario_app.env"
+        image: system-tests/node_20_alpine:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node20-alpine
+        healthcheck:
+            test: "node health"
+
+    node_22_alpine:
+        env_file: "scenario_app.env"
+        image: system-tests/node_22_alpine:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node22-alpine
+        healthcheck:
+            test: "node health"
+
     node_alpine:
         env_file: "scenario_app.env"
         image: system-tests/node_alpine:latest
@@ -70,4 +110,4 @@ services:
             context: .
             dockerfile: Dockerfile.alpine
         healthcheck:
-            test: "curl -f http://localhost:18080"
+            test: "node health"

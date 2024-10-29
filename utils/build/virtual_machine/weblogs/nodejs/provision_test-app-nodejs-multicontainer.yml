@@ -18,8 +18,16 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node20
           - name: copy-node22-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node22
-          - name: copy-node-app-dockerfile
+          - name: copy-nodejs-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node
+          - name: copy-node16-alpine-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node16-alpine
+          - name: copy-node18-alpine-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node18-alpine
+          - name: copy-node20-alpine-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node20-alpine
+          - name: copy-node22-alpine-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node22-alpine
           - name: copy-nodejs-alpine-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.alpine
           - name: copy-reverseproxy-dockerfile
