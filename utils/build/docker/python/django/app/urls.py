@@ -751,7 +751,7 @@ def s3_copy_object(request):
 
         if bucket != original_bucket:
             conn.create_bucket(Bucket=bucket)
-        response = conn.Bucket(bucket).copy(CopySource=copy_source, Key=key)
+        response = conn.Object(bucket, key).copy_from(CopySource=copy_source)
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS

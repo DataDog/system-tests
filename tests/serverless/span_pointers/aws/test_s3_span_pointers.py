@@ -9,7 +9,7 @@ from tests.serverless.span_pointers.utils import (
 )
 
 
-def _validate_s3_object_pointer(r):
+def _validate_s3_object_pointer(r, resource):
     assert r.status_code == 200
 
     response_content = json.loads(r.text)
@@ -24,6 +24,7 @@ def _validate_s3_object_pointer(r):
     interfaces.library.validate_spans(
         r,
         validator=make_single_span_link_validator(
+            resource=resource,
             pointer_kind="aws.s3.object",
             pointer_direction=POINTER_DIRECTION_DOWNSTREAM,
             pointer_hash=standard_hashing_function([bucket, key, etag]),
@@ -39,13 +40,13 @@ class Test_PutObject:
         self.r = weblog.get("/mock_s3/put_object", params={"bucket": "mybucket", "key": "my-key"})
 
     def test_main(self):
-        _validate_s3_object_pointer(self.r)
+        _validate_s3_object_pointer(self.r, resource="s3.putobject")
 
     def setup_non_ascii(self):
         self.r_non_ascii = weblog.get("/mock_s3/put_object", params={"bucket": "mybucket", "key": "some-key.你好"})
 
     def test_non_ascii(self):
-        _validate_s3_object_pointer(self.r_non_ascii)
+        _validate_s3_object_pointer(self.r_non_ascii, resource="s3.putobject")
 
 
 @rfc("https://github.com/DataDog/dd-span-pointer-rules")
@@ -63,4 +64,4 @@ class Test_CopyObject:
         )
 
     def test_main(self):
-        _validate_s3_object_pointer(self.r)
+        _validate_s3_object_pointer(self.r, resource="s3.copyobject")

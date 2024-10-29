@@ -26,7 +26,7 @@ def standard_hashing_function(elements: list[bytes]) -> PointerHash:
 
 
 def make_single_span_link_validator(
-    pointer_kind: str, pointer_direction: str, pointer_hash: PointerHash,
+    resource: str, pointer_kind: str, pointer_direction: str, pointer_hash: PointerHash,
 ):
     """
     Make a validator function for use with interfaces.library.validate_spans.
@@ -36,7 +36,15 @@ def make_single_span_link_validator(
     """
 
     def validator(span):
+        print(span)
+
         if "span_links" not in span:
+            return
+
+        if "resource" not in span:
+            return
+
+        if span["resource"] != resource:
             return
 
         found_matching = False
