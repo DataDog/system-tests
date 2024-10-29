@@ -70,39 +70,29 @@ class LibraryVersion:
 
         self.library = library
 
-        ruby_version_from_bundle_info = False
         if version:
             version = version.strip()
 
             if library == "ruby":
-                # small cleanup of the version string
-                if version.startswith("* ddtrace"):
-                    version = re.sub(r"\* *ddtrace *\((.*)\)", r"\1", version)
-                    ruby_version_from_bundle_info = True
-                if version.startswith("* datadog"):
-                    version = re.sub(r"\* *datadog *\((.*)\)", r"\1", version)
-                    ruby_version_from_bundle_info = True
+                # ruby version pattern can be like
 
-                if ruby_version_from_bundle_info:
-                    # ruby version pattern can be like
+                # 2.0.0.rc1 b908262
+                # 2.0.0 b908262
+                # 2.0.0.rc1
+                #   rc1 is a pre-release, so we need to add a - sign
+                #   b908262 is a build metadata, so we need to add a + sign
 
-                    # 2.0.0.rc1 b908262
-                    # 2.0.0 b908262
-                    # 2.0.0.rc1
-                    #   rc1 is a pre-release, so we need to add a - sign
-                    #   b908262 is a build metadata, so we need to add a + sign
+                # => adding + and - signs in the good places
 
-                    # => adding + and - signs in the good places
-
-                    base = r"\d+\.\d+\.\d+"
-                    prerelease = r"[\w\d+]+"
-                    build = r"[a-f0-9]+"
-                    if re.match(fr"{base}[\. ]{prerelease}[\. ]{build}", version):
-                        version = re.sub(fr"({base})[\. ]({prerelease})[\. ]({build})", r"\1-\2+\3", version)
-                    elif re.match(fr"{base}[\. ]{build}", version):
-                        version = re.sub(rf"({base})[\. ]({build})", r"\1+\2", version)
-                    elif re.match(fr"{base}[\. ]{prerelease}", version):
-                        version = re.sub(rf"({base})[\. ]({prerelease})", r"\1-\2", version)
+                base = r"\d+\.\d+\.\d+"
+                prerelease = r"[\w\d+]+"
+                build = r"[a-f0-9]+"
+                if re.match(fr"{base}[\. ]{prerelease}[\. ]{build}", version):
+                    version = re.sub(fr"({base})[\. ]({prerelease})[\. ]({build})", r"\1-\2+\3", version)
+                elif re.match(fr"{base}[\. ]{build}", version):
+                    version = re.sub(rf"({base})[\. ]({build})", r"\1+\2", version)
+                elif re.match(fr"{base}[\. ]{prerelease}", version):
+                    version = re.sub(rf"({base})[\. ]({prerelease})", r"\1-\2", version)
 
             elif library == "libddwaf":
                 if version.startswith("* libddwaf"):
@@ -120,11 +110,11 @@ class LibraryVersion:
 
             self.version = Version(version)
 
-            if library == "ruby" and ruby_version_from_bundle_info:
+            if library == "ruby":
                 if len(self.version.build) != 0 or len(self.version.prerelease) != 0:
-                    # we are not in a released version, and the version is coing from bundle list
+                    # we are not in a released version
 
-                    # dd-trace-rb main branch expose a version lower than the last release, so hack it:
+                    # dd-trace-rb main branch expose a version equal to the last release, so hack it:
                     # * add 1 to minor version
                     # * and set z as prerelease if not prerelease is set, becasue z will be after any other prerelease
 

@@ -1,3 +1,4 @@
+import os
 import pytest
 
 from watchdog.observers.polling import PollingObserver
@@ -175,6 +176,7 @@ class EndToEndScenario(DockerScenario):
         scenario_groups=None,
         weblog_env=None,
         weblog_volumes=None,
+        agent_env=None,
         tracer_sampling_rate=None,
         appsec_rules=None,
         appsec_enabled=True,
@@ -193,6 +195,7 @@ class EndToEndScenario(DockerScenario):
         include_mysql_db=False,
         include_sqlserver=False,
         include_buddies=False,
+        require_api_key=False,
     ) -> None:
 
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END] + (scenario_groups or [])
@@ -214,7 +217,11 @@ class EndToEndScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
         )
 
-        self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=use_proxy)
+        self._require_api_key = require_api_key
+
+        self.agent_container = AgentContainer(
+            host_log_folder=self.host_log_folder, use_proxy=use_proxy, environment=agent_env
+        )
 
         if self.use_proxy:
             self.agent_container.depends_on.append(self.proxy_container)
@@ -286,8 +293,15 @@ class EndToEndScenario(DockerScenario):
     def configure(self, config):
         super().configure(config)
 
+        if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
+            pytest.exit("DD_API_KEY is required for this scenario", 1)
+
         if config.option.force_dd_trace_debug:
             self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
+
+        if config.option.force_dd_iast_debug:
+            self.weblog_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
+            self.weblog_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
 
         interfaces.agent.configure(self.host_log_folder, self.replay)
         interfaces.library.configure(self.host_log_folder, self.replay)
@@ -299,17 +313,19 @@ class EndToEndScenario(DockerScenario):
             container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.host_log_folder, self.replay)
 
+        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+
         if self.library_interface_timeout is None:
-            if self.weblog_container.library == "java":
+            if library == "java":
                 self.library_interface_timeout = 25
-            elif self.weblog_container.library.library in ("golang",):
+            elif library in ("golang",):
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("nodejs", "ruby"):
+            elif library in ("nodejs", "ruby"):
                 self.library_interface_timeout = 0
-            elif self.weblog_container.library.library in ("php",):
+            elif library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
-            elif self.weblog_container.library.library in ("python",):
+            elif library in ("python",):
                 self.library_interface_timeout = 5
             else:
                 self.library_interface_timeout = 40
