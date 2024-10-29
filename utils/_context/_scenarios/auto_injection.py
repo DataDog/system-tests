@@ -1,5 +1,4 @@
 import os
-import re
 import json
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
@@ -313,8 +312,8 @@ class _VirtualMachineScenario(Scenario):
             for test in result["tests"]:
                 if vm.name in test["description"]:
                     new_test = test.copy()
-                    new_test["description"] = re.sub("[\[].*?[\]]", "", new_test["description"])
-                    new_test["path"] = re.sub("[\[].*?[\]]", "", new_test["path"])
+                    new_test["description"] = new_test["description"].split("[", 1)[0]
+                    new_test["path"] = new_test["path"].split("[", 1)[0]
                     new_result["tests"].append(new_test)
             with open(f"{self.host_log_folder}/{vm.name}_feature_parity.json", "w", encoding="utf-8") as f:
                 json.dump(new_result, f, indent=2)
@@ -349,7 +348,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_ubuntu_23_10_arm64=True,
             include_ubuntu_24_amd64=True,
             include_ubuntu_24_arm64=True,
-            include_ubuntu_18_amd64=True,
+            include_ubuntu_18_amd64=False,
             include_amazon_linux_2_amd64=True,
             include_amazon_linux_2_arm64=True,
             include_amazon_linux_2023_amd64=True,
