@@ -61,12 +61,3 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
         )(func)
 
     return decorator
-
-
-myparam = ["server1", "server2"]
-myparam_grouped = [pytest.param(m, marks=pytest.mark.xdist_group(f"group{i}")) for i, m in enumerate(myparam)]
-
-
-@pytest.fixture(scope="session", params=myparam_grouped)
-def param_session(request) -> str:
-    return request.param
