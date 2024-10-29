@@ -52,9 +52,7 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
-    @irrelevant(
-        context.library in ["python", "java", "nodejs", "dotnet"], reason="New behavior with cluster id not merged yet."
-    )
+    @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -92,8 +90,12 @@ class Test_DsmKafka:
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_out"]
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default")).get(
+            "edge_tags_out", language_hashes.get("default")["edge_tags_out"]
+        )
+        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default")).get(
+            "edge_tags_in", language_hashes.get("default")["edge_tags_in"]
+        )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
@@ -277,6 +279,7 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 
 @features.datastreams_monitoring_support_for_sqs
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
@@ -334,6 +337,7 @@ class Test_DsmSQS:
 
 
 @features.datastreams_monitoring_support_for_sns
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
@@ -397,6 +401,7 @@ class Test_DsmSNS:
 
 
 @features.datastreams_monitoring_support_for_kinesis
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """

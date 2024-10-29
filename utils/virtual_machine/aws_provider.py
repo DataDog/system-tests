@@ -5,8 +5,10 @@ import time
 import requests
 import tempfile
 from random import randint
+from retry import retry
 
 import paramiko
+import random
 
 from pulumi import automation as auto
 import pulumi
@@ -87,7 +89,7 @@ class AWSPulumiProvider(VmProvider):
             vm.name,
             instance_type=vm.aws_config.ami_instance_type,
             vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
-            subnet_id=vm.aws_config.aws_infra_config.subnet_id,
+            subnet_id=random.choice(vm.aws_config.aws_infra_config.subnet_id),
             key_name=self.pulumi_ssh.keypair_name,
             ami=vm.aws_config.ami_id,
             tags=self._get_ec2_tags(vm),
@@ -159,7 +161,7 @@ class AWSPulumiProvider(VmProvider):
                     owners=["self"],
                     most_recent=True,
                 )
-                logger.info(
+                logger.stdout(
                     f"We found an existing AMI  name:[{ami_recent.name}], ID:[{ami_recent.id}], status:[{ami_recent.state}], expiration:[{ami_recent.deprecation_time}], created:[{ami_recent.creation_date}]"
                 )
                 cached_amis.append(ami_recent)
@@ -179,14 +181,16 @@ class AWSPulumiProvider(VmProvider):
                 # The final name it's the vm.get_cache_name() + "-somethingaddedbyaws"
                 if vm.name in cached_ami.name:
                     if str(cached_ami.state) != "available":
-                        logger.info(
+                        logger.stdout(
                             f"We found an existing cache AMI for vm [{vm.name}] but we can no use it because the current status is {cached_ami.state}"
                         )
-                        logger.info("We are not going to create a new AMI and we are not going to use it")
+                        logger.stdout(
+                            "We are not going to create a new AMI and we are not going to use it (skip cache mode)"
+                        )
                         vm.datadog_config.update_cache = False
                         vm.datadog_config.skip_cache = True
                     else:
-                        logger.info(
+                        logger.stdout(
                             f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] to cached AMI ID [{cached_ami.id}]"
                         )
                         vm.aws_config.ami_id = cached_ami.id
@@ -214,7 +218,17 @@ class AWSPulumiProvider(VmProvider):
         logger.info(f"Tags for the VM [{vm.name}]: {tags}")
         return tags
 
+    @retry(delay=10, tries=30)
     def _check_running_instances(self):
+        """ Check the number of running instances in the AWS account
+       if there are more than 500 instances, we will wait until they are destroyed """
+
+        ec2_ids = self._print_running_instances()
+        if len(ec2_ids) > 500:
+            logger.stdout(f"THERE ARE TOO MANY EC2 INSTANCES RUNNING. Waiting for the instances to be destroyed")
+            raise Exception("Too many ec2 instances running")
+
+    def _print_running_instances(self):
         """ Print the instances created by system-tests and still running in the AWS account """
 
         instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
@@ -224,6 +238,7 @@ class AWSPulumiProvider(VmProvider):
             logger.info(f"- Instance id: [{instance_id}]  status:[running] (created by other execution)")
 
         logger.info(f"Total tags: {instances.instance_tags}")
+        return instances.ids
 
     def _check_available_cached_amis(self):
         """ Print the AMI Caches availables in the AWS account and created by system-tests """
@@ -252,7 +267,7 @@ class AWSCommander(Commander):
         """ Create a cache : Create an AMI from the server current status."""
         ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
-        logger.info(f"Creating AMI with name [{ami_name}] from instance ")
+        logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
         # Expiration date for the ami
         # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
         task_dep = aws.ec2.AmiFromInstance(

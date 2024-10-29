@@ -25,6 +25,7 @@
     "ldapjs": "2.0.0",
     "mongodb": "^6.1.0",
     "mssql": "^9.1.0",
+    "multer": "^1.4.5-lts.1",
     "mysql2": "^3.5.0",
     "passport": "^0.6.0",
     "passport-http": "^0.3.0",
