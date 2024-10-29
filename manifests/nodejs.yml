@@ -354,6 +354,7 @@ tests/:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
+      Test_IastStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events:
         '*': *ref_4_4_0
