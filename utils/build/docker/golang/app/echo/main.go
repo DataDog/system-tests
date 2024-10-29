@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"math/rand"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
@@ -252,18 +254,24 @@ func main() {
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGTERM)
+	common.InitDatadog()
+	go grpc.ListenAndServe()
 	go func() {
-		for range c {
-			r.Shutdown(context.Background())
-			return
+		if err := r.Start(":7777"); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
 		}
 	}()
 
-	common.InitDatadog()
-	go grpc.ListenAndServe()
-	r.Start(":7777")
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := r.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
+
 }
 
 func echoHandleFunc(handlerFunc http.HandlerFunc) echo.HandlerFunc {

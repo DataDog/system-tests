@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"weblog/gqlgen/graph"
 	"weblog/internal/common"
@@ -64,17 +67,20 @@ func main() {
 		Addr:    ":7777",
 		Handler: mux,
 	}
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGTERM)
+	common.InitDatadog()
 	go func() {
-		for range c {
-			httpSrv.Shutdown(context.Background())
-			return
+		if err := httpSrv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
 		}
 	}()
 
-	common.InitDatadog()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
 
-	panic(httpSrv.ListenAndServe())
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := httpSrv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
 }

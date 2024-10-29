@@ -547,18 +547,23 @@ func main() {
 		Handler: mux,
 	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGTERM)
+	common.InitDatadog()
+	go grpc.ListenAndServe()
 	go func() {
-		for range c {
-			srv.Shutdown(context.Background())
-			return
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
 		}
 	}()
 
-	common.InitDatadog()
-	go grpc.ListenAndServe()
-	srv.ListenAndServe()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
 }
 
 type carrier map[string]string
