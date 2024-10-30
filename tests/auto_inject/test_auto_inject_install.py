@@ -56,7 +56,7 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection_ld_preload
-class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
+class TestHostAutoInjectManualLdPreload_DEPRECATED(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
         bugs=[
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
