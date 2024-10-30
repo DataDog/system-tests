@@ -60,6 +60,12 @@ class TestDockerSSIFeatures:
         )
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
+    @features.ssi_guardrails
+    @bug(
+        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        reason="APMON-1490",
+    )
+    def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
         assert len(telemetry_autoinject_data) >= 1
