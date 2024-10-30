@@ -321,7 +321,7 @@ onboarding_stats_results:
         echo "---------------------"
         echo "Number of ec2 created"
         echo "---------------------"
-        wc -l logs*/vms_desc.log
+        wc -l reports/logs*/vms_desc.log
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
