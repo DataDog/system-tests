@@ -20,10 +20,14 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import scala.util.{Failure, Success, Try}
+import com.datadoghq.system_tests.iast.utils.CryptoExamples
 
 @Singleton
 class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient, mat: Materializer)
                                 (implicit ec: ExecutionContext) extends AbstractController(cc) {
+
+  private val cryptoExamples = new CryptoExamples()
+
   def index = Action {
     val span = tracer.buildSpan("test-span").start
     span.setTag("test-tag", "my value")
@@ -182,6 +186,17 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   }
 
   def requestdownstream =  Action.async {
+    var url = "http://localhost:7777/returnheaders"
+    val remoteReq: WSRequest = ws.url(url).withMethod("GET")
+    val ahcRequest: AHCRequest = remoteReq.asInstanceOf[AhcWSRequest].underlying.buildRequest()
+    executeAHCRequest(ahcRequest).map { resp: StandaloneAhcWSResponse =>
+      resp.bodyAsSource.runWith(Sink.ignore[ByteString]())(mat)
+      Results.Ok(resp.body)
+    }
+  }
+
+  def vulnerableRequestdownstream =  Action.async {
+    cryptoExamples.insecureMd5Hashing("password")
     var url = "http://localhost:7777/returnheaders"
     val remoteReq: WSRequest = ws.url(url).withMethod("GET")
     val ahcRequest: AHCRequest = remoteReq.asInstanceOf[AhcWSRequest].underlying.buildRequest()

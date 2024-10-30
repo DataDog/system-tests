@@ -143,6 +143,7 @@ def trace_config() -> TraceConfigReturn:
             "dd_env": config.env,
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
+            "dd_trace_agent_url": config._trace_agent_url,
         }
     )
 

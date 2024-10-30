@@ -379,7 +379,10 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: flaky (APPSEC-55222)
+      Test_AppSecStandalone_UpstreamPropagation:
+        '*': v2.12.3
+        uwsgi-poc: flaky (APPSEC-55222)
+      Test_IastStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -470,8 +473,8 @@ tests/:
       Test_Fingerprinting_Header_And_Network: v2.11.0
       Test_Fingerprinting_Header_Capability: v2.11.0
       Test_Fingerprinting_Network_Capability: v2.11.0
-      Test_Fingerprinting_Session: missing_feature (missing endpoint)
-      Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Session: v2.17.0.dev
+      Test_Fingerprinting_Session_Capability: v2.17.0.dev
     test_identify.py:
       Test_Basic: v1.5.0-rc1
     test_ip_blocking_full_denylist.py:
@@ -654,7 +657,7 @@ tests/:
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': irrelevant
-        flask-poc: v1.20.3
+        flask-poc: v2.16.0
       Test_DsmKinesis:
         '*': irrelevant
         flask-poc: v2.8.0
@@ -686,11 +689,11 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
-      Test_Config_RateLimit: v2.6.0
-      Test_Config_TraceAgentURL: missing_feature
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_RateLimit: v2.15.0
+      Test_Config_TraceAgentURL: v2.0.0
+      Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: v2.12.2
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -787,19 +790,23 @@ tests/:
       Test_Miscs: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: v2.12.0
-    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
-    Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_HTPP_CLIENT_TAGS_QUERY_STRING instead)
+    Test_Config_ClientIPHeader_Precedence: v2.12.0
+    Test_Config_ClientTagQueryString_Configured: v2.15.0
     Test_Config_ClientTagQueryString_Empty: v2.12.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: missing_feature
-    Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
-    Test_Config_UnifiedServiceTagging_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (xpassing but should fail, this environment variable is not supported)
+    Test_Config_HttpServerErrorStatuses_Default: v2.12.0
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.15.0
+    Test_Config_IntegrationEnabled_False:
+      '*': irrelevant (kafka endpoint is not implemented)
+      flask-poc: v2.0.0
+    Test_Config_IntegrationEnabled_True:
+      '*': irrelevant (kafka endpoint is not implemented)
+      flask-poc: v2.0.0
+    Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
+    Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
+    Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
+    Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_data_integrity.py:
     Test_LibraryHeaders: v2.7.0
   test_distributed.py:

@@ -7,12 +7,19 @@ from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
 from docker.models.containers import Container
 import grpc
 import pytest
+from _pytest.outcomes import Failed
 import requests
 
 from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
 from utils.parametric.spec.otel_trace import OtelSpanContext, convert_to_proto
 from utils.tools import logger
+
+
+def _fail(message):
+    """ Used to mak a test as failed """
+    logger.error(message)
+    raise Failed(message, pytrace=False) from None
 
 
 class StartSpanResponse(TypedDict):
@@ -202,11 +209,23 @@ class APMLibraryClientHTTP(APMLibraryClient):
             except Exception:
                 self.container.reload()
                 if self.container.status != "running":
-                    message = f"Container {self.container.name} status is {self.container.status}"
-                    raise RuntimeError(message)
+                    self._print_logs()
+                    message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
+                    _fail(message)
+
+            logger.debug(f"Wait for {delay}s for the HTTP library to be ready")
             time.sleep(delay)
         else:
-            raise RuntimeError(f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start")
+            self._print_logs()
+            message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
+            _fail(message)
+
+    def _print_logs(self):
+        try:
+            logs = self.container.logs().decode("utf-8")
+            logger.debug(f"Logs from container {self.container.name}:\n\n{logs}")
+        except Exception:
+            logger.error(f"Failed to get logs from container {self.container.name}")
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)

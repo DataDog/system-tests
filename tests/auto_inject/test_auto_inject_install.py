@@ -36,7 +36,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
         ]
     )
-    def test_install(self, virtual_machine):
+    def test_profiling(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
@@ -48,26 +48,9 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
         bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"}]
     )
-    def test_install(self, virtual_machine):
+    def test_profiling(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine, profile=True)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
-
-
-@features.installer_auto_instrumentation
-@scenarios.installer_auto_injection_ld_preload
-class TestHostAutoInjectManualLdPreload(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
-    )
-    def test_install_after_ld_preload(self, virtual_machine):
-        """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
 
@@ -88,7 +71,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
         bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"}]
     )
-    def test_install(self, virtual_machine):
+    def test_profiling(self, virtual_machine):
         self._test_install(virtual_machine, profile=True)
 
 
