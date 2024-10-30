@@ -98,14 +98,6 @@ ignored_arguments:
 
 
 @features.host_user_managed_block_list
-@scenarios.installer_auto_injection_block_list
-class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
-    def test_deprecated(self):
-        logger.info("Test deprecated")
-        pass
-
-
-@features.host_user_managed_block_list
 @scenarios.installer_auto_injection
 class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
 
