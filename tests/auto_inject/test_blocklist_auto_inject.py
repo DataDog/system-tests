@@ -300,6 +300,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+            {"library": "ruby", "reason": "INPLAT-153"},
         ]
     )
     @irrelevant(
