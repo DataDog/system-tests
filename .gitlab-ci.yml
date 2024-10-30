@@ -64,7 +64,7 @@ onboarding_install_extra_vms:
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
           TEST_LIBRARY: "ruby"
         - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83,test-app-php-container-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83,test-app-php-alpine]
           TEST_LIBRARY: "php"
   script:
       - ./build.sh -i runner
