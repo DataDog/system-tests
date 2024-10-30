@@ -1,28 +1,17 @@
 import json
 import pytest
 
-from utils.parametric.spec.trace import ORIGIN
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
-from utils.parametric.spec.trace import AUTO_DROP_KEY
-from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import scenarios, missing_feature, features, rfc
 from utils.parametric._library_client import Event
-from utils.parametric.spec.trace import retrieve_span_events, find_span, find_trace
+from utils.parametric.spec.trace import find_span, find_trace
 
 
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
 @scenarios.parametric
 @features.span_events
 class Test_Span_Events:
-    @pytest.mark.parametrize(
-        "library_env",
-        [{"DD_TRACE_API_VERSION": "v0.4"}, {"DD_TRACE_API_VERSION": "v0.5"}, {"DD_TRACE_API_VERSION": "v0.7"}],
-    )
-    def test_span_with_event(self, library_env, test_agent, test_library):
-        """Test adding a span event in the v0.4, v0.5, and v0.7 format.
-        The v0.5 format is not flexible enough to support the native attribute representation,
-        thus attributes serialized as span tags.
+    def _test_span_with_event(self, library_env, test_agent, test_library, retrieve_events):
+        """Test adding a span event, with attributes, to an active span.
         """
         time0 = 1234567890
         name0 = "event_name"
@@ -59,11 +48,7 @@ class Test_Span_Events:
         assert len(trace) == 1
         span = find_span(trace, s.span_id)
 
-        if library_env["DD_TRACE_API_VERSION"] == "v0.5":
-            span_events = json.loads(span.get("meta", {}).get("events"))
-        else:
-            # DD_TRACE_API_VERSION v0.4 and v0.7
-            span_events = span["span_events"]
+        span_events = retrieve_events(span)
 
         assert len(span_events) == 2
 
@@ -85,3 +70,35 @@ class Test_Span_Events:
         assert event["attributes"].get("double") == 0.0
         assert isinstance(event["attributes"].get("double"), float)
         assert event["attributes"].get("array") == [5, 6]
+
+    @pytest.mark.parametrize(
+        "library_env", [{"DD_TRACE_API_VERSION": "v0.4"}, {"DD_TRACE_API_VERSION": "v0.7"}],
+    )
+    def test_span_with_event(self, library_env, test_agent, test_library):
+        """Test adding a span event in the v0.4 and v0.5, which support the native attribute representation.
+        """
+
+        self._test_span_with_event(library_env, test_agent, test_library, lambda span: span["span_events"])
+
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
+    def test_span_with_event_v05(self, library_env, test_agent, test_library):
+        """Test adding a span event in the v0.5 format, which does not support the native attribute representation.
+        Thus span events are serialized as span tags.
+        """
+
+        self._test_span_with_event(
+            library_env, test_agent, test_library, lambda span: json.loads(span.get("meta", {}).get("events"))
+        )
+
+    #     @pytest.mark.parametrize("agent_config", [{"SPAN_EVENTS_FLAG": "False"}]) # TODO: How to change the agent config?
+    @pytest.mark.parametrize(
+        "library_env", [{"DD_TRACE_API_VERSION": "v0.4"}, {"DD_TRACE_API_VERSION": "v0.7"}],
+    )
+    def test_span_with_event_old_agent(self, library_env, test_agent, test_library):
+        """Test adding a span event when the agent does not support
+        the native attribute representation, but the tracer does.
+        """
+
+        self._test_span_with_event(
+            library_env, test_agent, test_library, lambda span: json.loads(span.get("meta", {}).get("events"))
+        )

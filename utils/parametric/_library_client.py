@@ -1,4 +1,5 @@
 # pylint: disable=E1101
+# pylint: disable=too-many-lines
 import contextlib
 import time
 import urllib.parse
