@@ -49,10 +49,10 @@ onboarding_install_extra_vms:
   parallel:
       matrix:
         - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container,test-app-nodejs-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-multicontainer]
           TEST_LIBRARY: "nodejs"
         - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer]
           TEST_LIBRARY: "java"
         - ONBOARDING_FILTER_ENV: [prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-python,test-app-python-container,test-app-python-alpine]
@@ -68,7 +68,7 @@ onboarding_install_extra_vms:
           TEST_LIBRARY: "php"
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
@@ -84,15 +84,15 @@ onboarding_nodejs:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT, HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-container,test-app-nodejs-alpine]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
+          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container,test-app-nodejs-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-multicontainer]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16]
@@ -105,7 +105,7 @@ onboarding_nodejs:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_java:
   extends: .base_job_onboarding_system_tests
@@ -122,21 +122,21 @@ onboarding_java:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT, HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine,test-app-java-buildpack]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer]
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer]
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine,test-app-java-buildpack,test-app-java-alpine-jdk15,test-app-java-alpine-jdk21]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer,test-app-java-buildpack]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-container-jdk15,test-app-java-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer]
           SCENARIO: [SIMPLE_AUTO_INJECTION_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
@@ -146,7 +146,7 @@ onboarding_java:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_python:
   extends: .base_job_onboarding_system_tests
@@ -173,21 +173,8 @@ onboarding_python:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [
             test-app-python,
-            test-app-python-container,
-            test-app-python-alpine,
-            test-app-python-alpine-libgcc,
-            test-app-python-container-3.7,
-            test-app-python-container-3.8,
-            test-app-python-container-3.9,
-            test-app-python-container-3.10,
-            test-app-python-container-3.11,
-            test-app-python-container-3.12,
-            test-app-python-container-3.7-alpine,
-            test-app-python-container-3.8-alpine,
-            test-app-python-container-3.9-alpine,
-            test-app-python-container-3.10-alpine,
-            test-app-python-container-3.11-alpine,
-            test-app-python-container-3.12-alpine,
+            test-app-python-multicontainer,
+            test-app-python-multialpine
           ]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -198,7 +185,7 @@ onboarding_python:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
@@ -215,16 +202,16 @@ onboarding_dotnet:
       matrix:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
+          SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
           SCENARIO: [INSTALLER_AUTO_INJECTION_LD_PRELOAD]
@@ -233,7 +220,7 @@ onboarding_dotnet:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_ruby:
   extends: .base_job_onboarding_system_tests
@@ -268,7 +255,7 @@ onboarding_ruby:
           SCENARIO: [INSTALLER_HOST_AUTO_INJECTION_CHAOS]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_php:
   extends: .base_job_onboarding_system_tests
@@ -290,10 +277,10 @@ onboarding_php:
           ONBOARDING_FILTER_WEBLOG: [test-shell-script]
           SCENARIO: [INSTALLER_AUTO_INJECTION_BLOCK_LIST]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-container-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83,test-app-php-container-alpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-multicontainer, test-app-php-multialpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-php]
@@ -306,15 +293,14 @@ onboarding_php:
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws
-
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
   stage: parse_results
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"
   before_script:
     #We need authenticate on git repository
     - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
@@ -370,4 +356,3 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
-

@@ -258,6 +258,7 @@ class _Test_SNS:
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy

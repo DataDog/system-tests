@@ -149,7 +149,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python", "golang"):
+        if library in ("nodejs", "python", "golang", "ruby"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -573,14 +573,9 @@ def ruby_library_factory() -> APMLibraryTestServer:
     ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
     ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
     ruby_reldir = ruby_appdir.replace("\\", "/")
-
-    shutil.copyfile(
-        os.path.join(_get_base_directory(), "utils", "parametric", "protos", "apm_test_client.proto"),
-        os.path.join(ruby_absolute_appdir, "apm_test_client.proto"),
-    )
     return APMLibraryTestServer(
         lang="ruby",
-        protocol="grpc",
+        protocol="http",
         container_name="ruby-test-client",
         container_tag="ruby-test-client",
         container_img=f"""
@@ -588,11 +583,9 @@ def ruby_library_factory() -> APMLibraryTestServer:
             WORKDIR /app
             COPY {ruby_reldir} .
             COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
+            COPY {ruby_reldir}/system_tests_library_version.sh system_tests_library_version.sh
             RUN bundle install
             RUN /binaries/install_ddtrace.sh
-            COPY {ruby_reldir}/apm_test_client.proto /app/
-            COPY {ruby_reldir}/generate_proto.sh /app/
-            RUN bash generate_proto.sh
             COPY {ruby_reldir}/server.rb /app/
             RUN mkdir /parametric-tracer-logs
             """,

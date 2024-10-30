@@ -695,6 +695,13 @@ def test_nosamesite_secure_cookie():
     return resp
 
 
+@app.get("/iast/no-samesite-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="none")
+    return resp
+
+
 @app.get("/iast/weak_randomness/test_insecure", response_class=PlainTextResponse)
 def test_weak_randomness_insecure():
     _ = random.randint(1, 100)

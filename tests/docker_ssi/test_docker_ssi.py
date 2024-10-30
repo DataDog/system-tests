@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces
+from utils import scenarios, features, context, irrelevant, bug, interfaces, missing_feature
 from utils import weblog
 from utils.tools import logger, get_rid_from_request
 
@@ -60,7 +60,16 @@ class TestDockerSSIFeatures:
         )
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
-        # There is telemetry data about the auto instrumentation. We only validate there is data
+    @features.ssi_guardrails
+    @bug(
+        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        reason="APMON-1490",
+    )
+    @missing_feature(library="java", reason="INPLAT-11")
+    @missing_feature(library="python", reason="INPLAT-11")
+    @missing_feature(library="ruby", reason="INPLAT-11")
+    def test_telemetry(self):
+        # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
         assert len(telemetry_autoinject_data) >= 1
         inject_success = False
@@ -69,6 +78,16 @@ class TestDockerSSIFeatures:
                 inject_success = True
                 break
         assert inject_success, "No telemetry data found for inject.success"
+
+        # There is telemetry data about the library entrypoint. We only validate there is data
+        telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject_library_entrypoint()
+        assert len(telemetry_autoinject_data) >= 1
+        inject_success = False
+        for data in telemetry_autoinject_data:
+            if data["metric"] == "library_entrypoint.complete":
+                inject_success = True
+                break
+        assert inject_success, "No telemetry data found for library_entrypoint.complete"
 
     def setup_service_name(self):
         self._setup_all()
