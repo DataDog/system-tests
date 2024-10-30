@@ -83,9 +83,9 @@ class DockerSSIScenario(Scenario):
         self.ssi_image_builder.build_weblog()
 
         # Folder for messages from the test agent
-        self._create_log_subfolder(f"interfaces/test_agent")
+        self._create_log_subfolder("interfaces/test_agent")
         # Socket folder for the communication between the test agent and the weblog
-        self._create_log_subfolder(f"interfaces/test_agent_socket")
+        self._create_log_subfolder("interfaces/test_agent_socket")
 
         # Extract version of the components that we are testing.
         json_tested_component = self.ssi_image_builder.tested_components()
@@ -96,8 +96,8 @@ class DockerSSIScenario(Scenario):
             try:
                 container.configure(self.replay)
             except Exception as e:
-                logger.error(f"Failed to configure container ", e)
-                logger.stdout(f"ERROR configuring container. check log file for more details")
+                logger.error("Failed to configure container ", e)
+                logger.stdout("ERROR configuring container. check log file for more details")
 
     def get_warmups(self):
         warmups = super().get_warmups()
@@ -240,8 +240,8 @@ class DockerSSIImageBuilder:
         )
 
     def build_lang_deps_image(self):
-        """ Build the lang image. Install the language runtime on the base image. 
-        We also install some linux deps for the ssi installer 
+        """ Build the lang image. Install the language runtime on the base image.
+        We also install some linux deps for the ssi installer
         If there is not runtime installation requirement, we install only the linux deps
         Base lang contains the scrit to install the runtime and the script to install dependencies """
         dockerfile_template = None
@@ -302,7 +302,7 @@ class DockerSSIImageBuilder:
             raise e
 
     def build_weblog_image(self, ssi_installer_docker_tag):
-        """ Build the final weblog image. Uses base ssi installer image, install 
+        """ Build the final weblog image. Uses base ssi installer image, install
         the full ssi (to perform the auto inject) and build the weblog image """
 
         weblog_docker_tag = "weblog-injection:latest"
@@ -322,7 +322,9 @@ class DockerSSIImageBuilder:
                 buildargs={"DD_LANG": self._library, "BASE_IMAGE": ssi_installer_docker_tag},
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
-            logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
+            logger.stdout(
+                f"0000[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}]."
+            )
             # Build the weblog image
             self._weblog_docker_image, build_logs = get_docker_client().images.build(
                 path=".",
@@ -332,8 +334,9 @@ class DockerSSIImageBuilder:
                 nocache=self._force_build or self.should_push_base_images,
                 buildargs={"BASE_IMAGE": self.ssi_all_docker_tag},
             )
+            logger.info("Weblog build done 000000000!")
             self.print_docker_build_logs(weblog_docker_tag, build_logs)
-            logger.info(f"Weblog build done!")
+            logger.info("Weblog build done!")
         except BuildError as e:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
@@ -341,7 +344,7 @@ class DockerSSIImageBuilder:
             raise e
 
     def tested_components(self):
-        """ Extract weblog versions of lang runtime, agent, installer, tracer. 
+        """ Extract weblog versions of lang runtime, agent, installer, tracer.
         Also extracts the weblog url env variable
         Return json with the data"""
         logger.info("Weblog extract tested components")
@@ -359,6 +362,7 @@ class DockerSSIImageBuilder:
         vm_logger(scenario_name, "docker_build").info("***************************************************************")
 
         for chunk in build_logs:
+            logger.debug("chunk")
             if "stream" in chunk:
                 for line in chunk["stream"].splitlines():
                     vm_logger(scenario_name, "docker_build").info(line)

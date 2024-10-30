@@ -1,9 +1,8 @@
 import uuid
 from scp import SCPClient
 
-from utils import scenarios, context, features
+from utils import scenarios, context, features, irrelevant
 from utils.tools import logger
-from utils import irrelevant
 from utils.onboarding.injection_log_parser import command_injection_skipped
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
@@ -49,7 +48,7 @@ ignored_arguments:
 
         unique_log_name = f"host_injection_{uuid.uuid4()}.log"
 
-        command_with_config = f"DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/var/log/datadog_weblog/{unique_log_name} {command}"
+        command_with_config = f"DD_APM_INSTRUMENTATION_DEBUG=TRUE DD_APM_INSTRUMENTATION_OUTPUT_PATHS=/var/log/datadog_weblog/{unique_log_name} {command}"
         if use_injection_config:
             # Use yml template and replace the key DD_<lang>_IGNORED_ARGS with the value of the config
             test_conf_content = self.yml_config_template
@@ -65,7 +64,7 @@ ignored_arguments:
 
             # Write as local file and the copy by scp to user home. by ssh copy the file to /etc/datadog-agent/inject
             file_name = f"host_config_{uuid.uuid4()}.yml"
-            temp_file_path = scenarios.installer_auto_injection_block_list.host_log_folder + "/" + file_name
+            temp_file_path = context.scenario.host_log_folder + "/" + file_name
             with open(temp_file_path, "w") as host_config_file:
                 host_config_file.write(test_conf_content)
             SCPClient(ssh_client.get_transport()).put(temp_file_path, file_name)
@@ -82,8 +81,7 @@ ignored_arguments:
                 command_with_config = f"{key}='{config[key]}' {command_with_config}"
 
         logger.info(f"Executing command: [{command_with_config}] associated with log file: [{unique_log_name}]")
-
-        log_local_path = scenarios.installer_auto_injection_block_list.host_log_folder + f"/{unique_log_name}"
+        log_local_path = context.scenario.host_log_folder + f"/{unique_log_name}"
 
         _, stdout, stderr = ssh_client.exec_command(command_with_config)
         logger.info("Command output:")
@@ -92,15 +90,15 @@ ignored_arguments:
         logger.info(stderr.readlines())
 
         scp = SCPClient(ssh_client.get_transport())
-
         scp.get(
             remote_path=f"/var/log/datadog_weblog/{unique_log_name}", local_path=log_local_path,
         )
+
         return log_local_path
 
 
 @features.host_user_managed_block_list
-@scenarios.installer_auto_injection_block_list
+@scenarios.installer_auto_injection
 class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
 
     buildIn_args_commands_block = {
@@ -218,11 +216,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         ],
     }
 
-    @irrelevant(
-        condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] < "0.12.4",
-        reason="Block list not fully implemented ",
-    )
     @parametrize_virtual_machines(
         bugs=[
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
@@ -230,26 +223,30 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
     )
+    @irrelevant(
+        condition="container" in context.weblog_variant
+        or "alpine" in context.weblog_variant
+        or "buildpack" in context.weblog_variant
+    )
     def test_builtIn_block_commands(self, virtual_machine):
         """ Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block """
-
+        logger.info(f"[{virtual_machine.get_ip()}] Executing commands that should be blocked")
         ssh_client = virtual_machine.ssh_config.get_ssh_connection()
-
         for command in self.buildIn_commands_not_injected:
             local_log_file = self._execute_remote_command(ssh_client, command)
             assert command_injection_skipped(command, local_log_file), f"The command {command} was instrumented!"
 
-    @irrelevant(
-        condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] < "0.12.4",
-        reason="Block list not fully implemented ",
-    )
     @parametrize_virtual_machines(
         bugs=[
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
+    )
+    @irrelevant(
+        condition="container" in context.weblog_variant
+        or "alpine" in context.weblog_variant
+        or "buildpack" in context.weblog_variant
     )
     def test_builtIn_block_args(self, virtual_machine):
         """ Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
@@ -260,17 +257,17 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
                 local_log_file = self._execute_remote_command(ssh_client, command)
                 assert command_injection_skipped(command, local_log_file), f"The command {command} was instrumented!"
 
-    @irrelevant(
-        condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] < "0.12.4",
-        reason="Block list not fully implemented ",
-    )
     @parametrize_virtual_machines(
         bugs=[
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
         ]
+    )
+    @irrelevant(
+        condition="container" in context.weblog_variant
+        or "alpine" in context.weblog_variant
+        or "buildpack" in context.weblog_variant
     )
     def test_builtIn_instrument_args(self, virtual_machine):
         """ Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
@@ -290,20 +287,22 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         stdout.channel.set_combine_stderr(True)
         output = stdout.readlines()
 
-    @irrelevant(
-        condition="datadog-apm-inject" not in context.scenario.components
-        or context.scenario.components["datadog-apm-inject"] < "0.12.4",
-        reason="Block list not fully implemented ",
-    )
     @parametrize_virtual_machines(
         bugs=[
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+            {"library": "ruby", "reason": "INPLAT-153"},
         ]
+    )
+    @irrelevant(
+        condition="container" in context.weblog_variant
+        or "alpine" in context.weblog_variant
+        or "buildpack" in context.weblog_variant
     )
     def test_user_ignored_args(self, virtual_machine):
         """ Check that we are not instrumenting the lang commands (java,ruby,dotnet,python,php) that match with args set by DD_<LANG>_IGNORED_ARGS env variable"""
+        logger.info(f"[{virtual_machine.get_ip()}] Testing args ignored by user")
         language = context.scenario.library.library
         if language in self.user_args_commands:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()

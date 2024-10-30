@@ -6,7 +6,7 @@ import json
 
 def get_github_matrix(library):
     """ Matrix that will be used in the github workflow """
-    # We can call this function from a script on at runtime
+    # We can call this function from a script or at runtime
     try:
         from utils.docker_ssi.docker_ssi_definitions import ALL_WEBLOGS
     except ImportError:
@@ -38,7 +38,7 @@ def _configure_github_runner(weblog_matrix):
 
 def main():
     if not os.getenv("TEST_LIBRARY"):
-        raise ValueError("TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby")
+        raise ValueError("TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby,php")
     github_matrix = get_github_matrix(os.getenv("TEST_LIBRARY"))
     print(json.dumps(github_matrix))
 
