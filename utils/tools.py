@@ -71,6 +71,9 @@ logging.Logger.stdout = stdout
 def get_logger(name="tests", use_stdout=False):
     result = logging.getLogger(name)
 
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+
     if use_stdout:
         stdout_handler = logging.StreamHandler(sys.stdout)
         stdout_handler.setLevel(logging.DEBUG)
