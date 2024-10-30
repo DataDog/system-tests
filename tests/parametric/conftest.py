@@ -133,6 +133,12 @@ class _TestAgentAPI:
         )
         assert resp.status_code == 202
 
+    def set_trace_delay(self, delay):
+        resp = self._session.post(
+            self._url("/test/settings"), json={"trace_request_delay": delay},
+        )
+        assert resp.status_code == 202
+
     def raw_telemetry(self, clear=False, **kwargs):
         raw_reqs = self.requests()
         reqs = []
