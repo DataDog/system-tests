@@ -245,15 +245,15 @@ func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 	for k, v := range a {
 		switch t := v.(type) {
 		case bool:
-			attrs = append(attrs, attribute.Bool(k, v.(bool)))
+			attrs = append(attrs, attribute.Bool(k, t))
 		case float64:
-			attrs = append(attrs, attribute.Float64(k, v.(float64)))
+			attrs = append(attrs, attribute.Float64(k, t))
 		case int:
-			attrs = append(attrs, attribute.Int(k, v.(int)))
+			attrs = append(attrs, attribute.Int(k, t))
 		case int64:
 			attrs = append(attrs, attribute.Int64(k, t))
 		case string:
-			attrs = append(attrs, attribute.String(k, v.(string)))
+			attrs = append(attrs, attribute.String(k, t))
 		case []interface{}:
 			if len(t) > 0 {
 				switch tt := t[0].(type) {
