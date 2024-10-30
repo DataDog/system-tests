@@ -9,7 +9,7 @@ weblog:
           - name: copy-docker-compose-file
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multialpine/docker-compose.yml
           - name: copy-ruby-app
-            local_path: lib-injection/build/docker/ruby/dd-lib-ruby-init-test-rails
+            local_path: lib-injection/build/docker/ruby
           - name: copy-ruby3_4-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multialpine/Dockerfile.ruby_3_4-alpine
           - name: copy-ruby3_3-app-dockerfile
