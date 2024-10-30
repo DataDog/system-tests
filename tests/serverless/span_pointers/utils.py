@@ -36,8 +36,6 @@ def make_single_span_link_validator(
     """
 
     def validator(span):
-        print(span)
-
         if "span_links" not in span:
             return
 
