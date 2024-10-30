@@ -165,7 +165,7 @@ class Test_DsmRabbitmq:
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        edge_tags_in = language_hashes.get("default")["edge_tags_in"]
         edge_tags_out = language_hashes.get("default")["edge_tags_out"]
 
         DsmHelper.assert_checkpoint_presence(
