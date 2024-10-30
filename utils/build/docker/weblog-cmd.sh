@@ -15,4 +15,4 @@ echo "Configuration script executed from: ${PWD}"
 BASEDIR=$(dirname $0)
 echo "Configuration script location: ${BASEDIR}"
 
-./app.sh
+exec ./app.sh
