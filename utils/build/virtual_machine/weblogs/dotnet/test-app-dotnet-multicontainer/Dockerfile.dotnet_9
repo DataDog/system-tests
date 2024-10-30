@@ -8,6 +8,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 COPY MinimalWebApp.csproj .
+RUN sed -i "s/net7.0/net9.0/g" MinimalWebApp.csproj
 RUN dotnet restore
 COPY . .
 RUN dotnet build -c Release
