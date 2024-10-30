@@ -91,6 +91,7 @@ class _Context:
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
             "scenario": self.scenario,
+            "runtime_version": self.installed_language_runtime,
         }
         # TODO all components inside of components node
         result |= self.components
