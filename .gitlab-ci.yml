@@ -9,6 +9,7 @@ stages:
   - python_tracer
   - dotnet_tracer
   - php_tracer
+  - stats_results
   - parse_results
   - before_tests
 
@@ -256,6 +257,30 @@ onboarding_php:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
+
+onboarding_stats_results:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  stage: stats_results
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+      - |
+        echo "---------------------"
+        echo "Caches/AMIs created"
+        echo "---------------------"
+        for folder in reports/logs*/ ; do
+          for filename in ./cache_created.log; do
+            if [ -e ${filename} ]
+            then
+             cat ${filename}
+            fi
+          done
+        done
+        echo "---------------------"
+        echo "Number of ec2 created"
+        echo "---------------------"
+        wc -l reports/logs*/vms_desc.log
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
