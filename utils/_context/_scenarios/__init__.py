@@ -575,31 +575,9 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
-        "INSTALLER_HOST_AUTO_INJECTION_CHAOS",
-        doc="DEPRECATED Installer auto injection scenario with chaos (deleting installation folders, files)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
-    installer_auto_injection_block_list = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION_BLOCK_LIST",
-        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
-    installer_auto_injection_ld_preload = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION_LD_PRELOAD",
-        "DEPRECATED Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
-        vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
