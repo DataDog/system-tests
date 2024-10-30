@@ -5,7 +5,7 @@ ARG RUNTIME="bullseye-slim"
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /app
 COPY MinimalWebApp.csproj .
 RUN sed -i "s/net7.0/net6.0/g" MinimalWebApp.csproj
