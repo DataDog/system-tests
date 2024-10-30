@@ -252,10 +252,11 @@ class _TestAgentAPI:
 
     def rc_requests(self, post_only=False):
         reqs = self.requests()
-        if post_only:
-            rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and r["method"] == "POST"]
-        else:
-            rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        rc_reqs = (
+            [r for r in reqs if r["url"].endswith("/v0.7/config") and r["method"] == "POST"]
+            if post_only
+            else [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        )
         for r in rc_reqs:
             r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
         return rc_reqs
