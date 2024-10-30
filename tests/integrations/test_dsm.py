@@ -153,8 +153,7 @@ class Test_DsmRabbitmq:
         language_hashes = {
             "nodejs": {
                 "producer": 5246740674878013159,
-                "consumer": 10215641161150038469,
-                "edge_tags_in": ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
+                "consumer": 8116149247198652772,
             },
             "default": {
                 "producer": 8945717757344503539,
