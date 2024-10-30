@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, weblog, features
-from ..utils import BaseSinkTest, BaseSinkTestWithoutTelemetry, BaseTestCookieNameFilter
+from utils import context, missing_feature, bug, weblog, features, rfc
+from ..utils import BaseSinkTest, BaseTestCookieNameFilter, validate_stack_traces
 
 
 @features.iast_sink_http_only_cookie
@@ -45,3 +45,17 @@ class TestNoHttponlyCookieNameFilter(BaseTestCookieNameFilter):
 
     vulnerability_type = "NO_HTTPONLY_COOKIE"
     endpoint = "/iast/no-httponly-cookie/custom_cookie"
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class TestNoHttponlyCookie_StackTrace:
+    """Validate stack trace generation """
+
+    def setup_stack_trace(self):
+        self.r = weblog.get("/iast/no-httponly-cookie/test_insecure")
+
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)

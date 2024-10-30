@@ -363,6 +363,18 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    iast_deduplication = EndToEndScenario(
+        "IAST_DEDUPLICATION",
+        weblog_env={
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DETECTION_MODE": "DEFAULT",
+            "DD_IAST_DEDUPLICATION_ENABLED": "true",
+            "DD_IAST_REQUEST_SAMPLING": "100",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
