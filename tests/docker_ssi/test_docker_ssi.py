@@ -1,4 +1,3 @@
-import time
 from urllib.parse import urlparse
 
 from utils import scenarios, features, context, irrelevant, bug, interfaces, missing_feature
@@ -32,6 +31,7 @@ class TestDockerSSIFeatures:
     @bug(
         condition="centos-7" in context.weblog_variant and context.library == "java", reason="APMON-1490",
     )
+    @bug(condition=context.library == "python", reason="INPLAT-11")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
