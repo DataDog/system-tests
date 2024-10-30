@@ -216,7 +216,7 @@ onboarding_ruby:
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
+          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container,test-app-ruby-multicontainer,test-app-ruby-multialpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
