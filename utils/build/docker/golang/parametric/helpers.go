@@ -79,23 +79,33 @@ func (*SpanLink_ParentId) isSpanLink_From() {}
 
 func (*SpanLink_HttpHeaders) isSpanLink_From() {}
 
-type HeaderTuple struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+// type HeaderTuple struct {
+// 	Key   string `json:"key"`
+// 	Value string `json:"value"`
+// }
+
+// func (x *HeaderTuple) GetKey() string {
+// 	if x != nil {
+// 		return x.Key
+// 	}
+// 	return ""
+// }
+
+// func (x *HeaderTuple) GetValue() string {
+// 	if x != nil {
+// 		return x.Value
+// 	}
+// 	return ""
+// }
+
+type HeaderTuple []string
+
+func (x HeaderTuple) GetKey() string {
+	return x[0]
 }
 
-func (x *HeaderTuple) GetKey() string {
-	if x != nil {
-		return x.Key
-	}
-	return ""
-}
-
-func (x *HeaderTuple) GetValue() string {
-	if x != nil {
-		return x.Value
-	}
-	return ""
+func (x HeaderTuple) GetValue() string {
+	return x[1]
 }
 
 type StartSpanReturn struct {
