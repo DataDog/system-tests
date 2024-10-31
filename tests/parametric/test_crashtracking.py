@@ -31,7 +31,7 @@ class Test_Crashtracking:
             if event["request_type"] == "logs":
                 assert self.is_crash_report(test_library, event) is False
 
-    @bug(library="java", reason="Java does not currently enforce the timeout")
+    @bug(library="java", reason="APMLP-302")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_telemetry_timeout(self, test_agent, test_library, apm_test_server):
         test_agent.set_trace_delay(60)
