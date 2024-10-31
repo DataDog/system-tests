@@ -108,7 +108,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoChildProcess(base.Auto
 
         print(f"Commandline is {command_line}")
 
-        output = self.execute_command("ps ax -o pid,ppid,cmd")
+        output = self.execute_command(virtual_machine, "ps ax -o pid,ppid,cmd")
 
         # Split the output into lines, ignoring the header
         lines = output.splitlines()[1:]
