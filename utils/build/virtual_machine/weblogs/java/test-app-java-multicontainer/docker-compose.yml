@@ -22,6 +22,8 @@ services:
 
   java_11:
       env_file: "scenario_app.env"
+      environment:
+        DD_TRACE_DEBUG: "true"
       image: system-tests/java_11:latest
       restart: always
       build:
