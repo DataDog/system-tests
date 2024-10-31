@@ -330,8 +330,7 @@ tests/:
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
       Test_Config_UnifiedServiceTagging: v3.3.0
-    test_crashtracking.py:
-      Test_Crashtracking: v3.2.0
+    test_crashtracking.py: v3.2.0
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v2.53.2
