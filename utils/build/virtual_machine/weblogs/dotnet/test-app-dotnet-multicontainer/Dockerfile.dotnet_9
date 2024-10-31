@@ -12,6 +12,9 @@ RUN sed -i "s/net7.0/net9.0/g" MinimalWebApp.csproj
 RUN cat MinimalWebApp.csproj
 RUN dotnet restore
 COPY . .
+RUN cat MinimalWebApp.csproj
+RUN sed -i "s/net7.0/net9.0/g" MinimalWebApp.csproj
+RUN cat MinimalWebApp.csproj
 RUN dotnet build -c Release
 
 FROM build AS publish
