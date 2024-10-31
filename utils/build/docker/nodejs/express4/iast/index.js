@@ -7,6 +7,7 @@ const crypto = require('crypto')
 const { execSync } = require('child_process')
 const https = require('https')
 const { MongoClient } = require('mongodb')
+const pug = require('pug')
 const mongoSanitize = require('express-mongo-sanitize')
 const ldap = require('../integrations/ldap')
 
@@ -362,6 +363,18 @@ function initRoutes (app, tracer) {
     // eslint-disable-next-line no-eval
     eval('1+2')
     res.send('OK')
+  })
+
+  app.post('/iast/template_injection/test_insecure', (req, res) => {
+    const fn = pug.compile(req.body.template)
+    const html = fn()
+    res.send(`OK:${html}`)
+  })
+
+  app.post('/iast/template_injection/test_secure', (req, res) => {
+    const fn = pug.compile('p Hello!')
+    const html = fn()
+    res.send(`OK:${html}`)
   })
 
   require('./sources')(app, tracer)
