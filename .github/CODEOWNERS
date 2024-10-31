@@ -18,6 +18,7 @@
 /tests/telemetry_intake/ @DataDog/apm-sdk-api @DataDog/system-tests-core
 /tests/test_telemetry.py @DataDog/libdatadog-telemetry @DataDog/apm-sdk-api @DataDog/system-tests-core
 /tests/serverless @DataDog/serverless @DataDog/system-tests-core
+/tests/external_processing/ @DataDog/asm-libraries @DataDog/system-tests-core
 
 /manifests/cpp.yml @DataDog/dd-trace-cpp
 /manifests/dotnet.yml @DataDog/apm-dotnet @DataDog/asm-dotnet

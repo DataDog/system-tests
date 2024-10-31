@@ -1219,10 +1219,12 @@ class ExternalProcessingContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment={
                 "DD_APPSEC_ENABLED": "true",
+                "DD_SERVICE": "service_test",
                 "DD_AGENT_HOST": "proxy",
                 "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+                "DD_APPSEC_WAF_TIMEOUT": "1s",
             },
-            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10},
+            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
         )
 
     def post_start(self):
