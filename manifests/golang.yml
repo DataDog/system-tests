@@ -127,6 +127,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_libddwaf.py: missing_feature
       test_shi.py: irrelevant (there is no equivalent to system(3) in go)
       test_sqli.py:
         Test_Sqli_BodyJson: v1.66.0
