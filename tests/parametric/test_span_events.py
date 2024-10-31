@@ -102,3 +102,44 @@ class Test_Span_Events:
         self._test_span_with_event(
             library_env, test_agent, test_library, lambda span: json.loads(span.get("meta", {}).get("events"))
         )
+
+    @pytest.mark.parametrize(
+        "library_env", [{"DD_TRACE_API_VERSION": "v0.4"}],
+    )
+    def test_span_with_invalid_event_attributes(self, library_env, test_agent, test_library, retrieve_events):
+        """Test adding a span event, with invalid attributes, to an active span.
+        Span events with invalid attributes should be discarded.
+        """
+
+        with test_library:
+            with test_library.start_span(
+                "test",
+                events=[
+                    Event(time_unix_nano=123, name="name", attributes={
+            "int": 1,
+            "invalid_arr1": [1, "a"], # Heterogeneous arrays are invalid
+            "invalid_arr2": [[1]], # Nested arrays are invalid
+            "invalid_int1": 2<<65, # Integers outside of a 64-bit (signed) are invalid
+            "invalid_int2": -2<<65, # Integers outside of a 64-bit (signed) are invalid
+            "string": "bar",
+        })
+                ],
+            ) as s:
+                pass
+
+        traces = test_agent.wait_for_num_traces(1)
+
+        trace = find_trace(traces, s.trace_id)
+        assert len(trace) == 1
+        span = find_span(trace, s.span_id)
+
+        span_events = span["span_events"]
+
+        assert len(span_events) == 1
+
+        event = span_events[0]
+        assert event["name"] == "name"
+
+        assert len(event["attributes"]) == 2
+        assert event["attributes"].get("string") == "bar"
+        assert event["attributes"].get("int") == 1
