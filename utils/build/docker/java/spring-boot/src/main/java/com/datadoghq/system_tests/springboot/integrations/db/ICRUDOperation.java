@@ -2,22 +2,22 @@ package com.datadoghq.system_tests.springboot.integrations.db;
 
 public interface ICRUDOperation {
 
-    public void createSampleData();
+    void createSampleData();
 
-    public void createTableData();
+    void createTableData();
 
-    public void createProcedureData();
+    void createProcedureData();
 
-    public void select();
+    void select();
 
-    public void update();
+    void update();
 
-    public void insert();
+    void insert();
 
-    public void delete();
+    void delete();
 
-    public void callProcedure();
+    void callProcedure();
 
-    public void selectError();
+    void selectError();
 
 }

@@ -1,17 +1,33 @@
 package com.datadoghq.system_tests.springboot.integrations.db.mssql;
 
-import com.datadoghq.system_tests.springboot.integrations.db.ICRUDOperation;
 import com.datadoghq.system_tests.springboot.integrations.db.BaseCRUDOperation;
-
-import java.sql.Connection;
-import java.sql.Statement;
-import java.sql.ResultSet;
 import java.sql.CallableStatement;
-import java.sql.PreparedStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class MssqlCRUDOperation extends BaseCRUDOperation {
     public MssqlCRUDOperation() {
         super(new MssqlConnection());
+    }
+
+    static class MssqlConnection implements IDBConnector {
+        public Connection getConnection()
+                throws SQLException, ClassNotFoundException {
+            String dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+            String dbName = "master";
+            String serverName="mssql";
+            String dbUsername = "SA";
+            String dbPassword = "yourStrong(!)Password";
+            String url = "jdbc:sqlserver://" +serverName + ":1433;DatabaseName=" + dbName + ";trustServerCertificate=true";
+
+            Class.forName(dbDriver);
+            Connection con = DriverManager.getConnection(url,
+                    dbUsername,
+                    dbPassword);
+            return con;
+        }
     }
 
     @Override

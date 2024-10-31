@@ -1,17 +1,33 @@
 package com.datadoghq.system_tests.springboot.integrations.db.postgres;
 
-import com.datadoghq.system_tests.springboot.integrations.db.ICRUDOperation;
 import com.datadoghq.system_tests.springboot.integrations.db.BaseCRUDOperation;
-import java.sql.Connection;
-import java.sql.Statement;
-import java.sql.ResultSet;
 import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class PostgresCRUDOperation extends BaseCRUDOperation {
   public PostgresCRUDOperation() {
     super(new PostgresConnection());
   }
 
+  static class PostgresConnection implements IDBConnector {
+    public Connection getConnection()
+            throws SQLException, ClassNotFoundException {
+      String dbDriver = "org.postgresql.Driver";
+      String dbURL = "jdbc:postgresql://postgres:5433/";
+      String dbName = "system_tests_dbname";
+      String dbUsername = "system_tests_user";
+      String dbPassword = "system_tests";
+
+      Class.forName(dbDriver);
+      Connection con = DriverManager.getConnection(dbURL + dbName,
+              dbUsername,
+              dbPassword);
+      return con;
+    }
+  }
 
   @Override
   public void createProcedureData() {
