@@ -848,6 +848,23 @@ class APMLibraryClientGRPC:
             "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
         }
 
+    def container_exec_run(self, command: str) -> tuple[bool, str]:
+        try:
+            code, (stdout, _) = self.container.exec_run(command, demux=True)
+            if code is None:
+                success = False
+                message = "Exit code from command in the parametric app container is None"
+            elif stdout is None:
+                success = False
+                message = "Stdout from command in the parametric app container is None"
+            else:
+                success = True
+                message = stdout.decode()
+        except BaseException:
+            return False, "Encountered an issue running command in the parametric app container"
+
+        return success, message
+
 
 class APMLibrary:
     def __init__(self, client: APMLibraryClient, lang):
