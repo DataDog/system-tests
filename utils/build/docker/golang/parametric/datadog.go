@@ -210,7 +210,6 @@ func (s *apmClientServer) spanSetErrorHandler(w http.ResponseWriter, r *http.Req
 	span.SetTag("error.type", args.Type)
 	span.SetTag("error.stack", args.Stack)
 
-	// Respond with an empty JSON object
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
@@ -300,7 +299,6 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 	// Prepare the response
 	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled)}
 
-	// Set response header
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
