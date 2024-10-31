@@ -3,5 +3,5 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "articles#index"
-  get 'trace/crash', controller: 'datadog', action: :crash
+  get 'crashme', controller: 'datadog', action: :crash
 end
