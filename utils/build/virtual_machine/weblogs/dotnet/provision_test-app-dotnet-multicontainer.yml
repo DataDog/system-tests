@@ -9,8 +9,6 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multicontainer/docker-compose.yml
           - name: copy-dotnet-app
             local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
-          - name: copy-dotnet_9-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multicontainer/Dockerfile.dotnet_9
           - name: copy-dotnet_8-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multicontainer/Dockerfile.dotnet_8
           - name: copy-dotnet_6-app-dockerfile

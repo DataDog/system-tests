@@ -9,8 +9,6 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/docker-compose.yml
           - name: copy-dotnet-app
             local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
-          - name: copy-dotnet_9-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/Dockerfile.dotnet_9-alpine
           - name: copy-dotnet_8-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/Dockerfile.dotnet_8-alpine
           - name: copy-dotnet_6-app-dockerfile
