@@ -9,8 +9,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR /app
 COPY MinimalWebApp.csproj .
 RUN sed -i "s/net7.0/net8.0/g" MinimalWebApp.csproj
+RUN cat MinimalWebApp.csproj
 RUN dotnet restore
 COPY . .
+RUN sed -i "s/net7.0/net8.0/g" MinimalWebApp.csproj
+RUN cat MinimalWebApp.csproj
 RUN dotnet build -c Release
 
 FROM build AS publish
