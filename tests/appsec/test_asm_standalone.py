@@ -71,7 +71,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
-        #check that the appsec/iast product is available for the tracer to avoid false positives
+        # check that the appsec/iast product is available for the tracer to avoid false positives
         self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
         spans_checked = 0
@@ -116,7 +116,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
-        #check that the appsec/iast product is available for the tracer to avoid false positives
+        # check that the appsec/iast product is available for the tracer to avoid false positives
         self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
         spans_checked = 0
@@ -161,7 +161,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
-        #check that the appsec/iast product is available for the tracer to avoid false positives
+        # check that the appsec/iast product is available for the tracer to avoid false positives
         self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
         spans_checked = 0
@@ -206,7 +206,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
-        #check that the appsec/iast product is available for the tracer to avoid false positives
+        # check that the appsec/iast product is available for the tracer to avoid false positives
         self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
         spans_checked = 0
@@ -338,7 +338,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
-        #check that the appsec/iast product is available for the tracer to avoid false positives
+        # check that the appsec/iast product is available for the tracer to avoid false positives
         self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
         spans_checked = 0
@@ -382,7 +382,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
-        #check that the appsec/iast product is available for the tracer to avoid false positives
+        # check that the appsec/iast product is available for the tracer to avoid false positives
         self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
         spans_checked = 0
@@ -426,7 +426,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
-        #check that the appsec/iast product is available for the tracer to avoid false positives
+        # check that the appsec/iast product is available for the tracer to avoid false positives
         self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
         spans_checked = 0
