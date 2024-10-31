@@ -1,5 +1,8 @@
+import contextlib
 import dataclasses
-from typing import Dict, List, Literal, Union
+import socket
+import time
+from typing import Dict, List, Literal, Union, Generator, TextIO
 
 import json
 import glob
@@ -7,12 +10,12 @@ from functools import lru_cache
 import os
 import shutil
 import subprocess
-import time
 
 import pytest
+from _pytest.outcomes import Failed
 import psutil
 import docker
-from docker.errors import DockerException, APIError
+from docker.errors import DockerException
 from docker.models.containers import Container
 from docker.models.networks import Network
 
@@ -20,6 +23,12 @@ from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
 from .core import Scenario, ScenarioGroup
+
+
+def _fail(message):
+    """ Used to mak a test as failed """
+    logger.error(message)
+    raise Failed(message, pytrace=False) from None
 
 
 # Max timeout in seconds to keep a container running
@@ -188,6 +197,7 @@ class ParametricScenario(Scenario):
         """ some network may still exists from previous unfinished sessions """
         logger.info("Removing unused network")
         _get_client().networks.prune()
+        logger.info("Removing unused network done")
 
     @property
     def library(self):
@@ -274,6 +284,7 @@ class ParametricScenario(Scenario):
 
         raise ValueError(f"Unexpected worker_id: {worker_id}")
 
+    @contextlib.contextmanager
     def docker_run(
         self,
         image: str,
@@ -284,7 +295,8 @@ class ParametricScenario(Scenario):
         host_port: int,
         container_port: int,
         command: List[str],
-    ) -> Container:
+        log_file: TextIO,
+    ) -> Generator[Container, None, None]:
 
         # Convert volumes to the format expected by the docker-py API
         fixed_volumes = {}
@@ -296,34 +308,49 @@ class ParametricScenario(Scenario):
             else:
                 raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
 
-        logger.debug(f"Run container {name} from image {image}")
+        logger.info(f"Run container {name} from image {image} with host port {host_port}")
 
-        attempt = 3
-        while attempt > 0:
-            try:
-                container: Container = _get_client().containers.run(
-                    image,
-                    name=name,
-                    environment=env,
-                    volumes=fixed_volumes,
-                    network=network,
-                    ports={f"{container_port}/tcp": host_port},  # let docker choose an host port
-                    command=command,
-                    detach=True,
-                )
-                return container
-            except APIError:
-                logger.exception(f"Failed to run container {name}, retrying...")
+        try:
+            container: Container = _get_client().containers.run(
+                image,
+                name=name,
+                environment=env,
+                volumes=fixed_volumes,
+                network=network,
+                ports={f"{container_port}/tcp": host_port},
+                command=command,
+                detach=True,
+            )
+            logger.debug(f"Container {name} successfully started")
+        except Exception as e:
+            _log_open_port_informations(host_port)
 
-                # at this point, even if it failed to start, the container may exists!
-                for container in _get_client().containers.list(filters={"name": name}, all=True):
-                    container.remove(force=True)
+            # at this point, even if it failed to start, the container may exists!
+            for container in _get_client().containers.list(filters={"name": name}, all=True):
+                container.remove(force=True)
 
-                time.sleep(0.5)  # give some to time to docker daemon to free resources
-                attempt -= 1
+            _fail(f"Failed to run container {name}: {e}")
 
-        _log_open_port_informations(host_port)
-        raise RuntimeError(f"Failed to run container {name}, please see logs")
+        try:
+            yield container
+        finally:
+            logger.info(f"Stopping {name}")
+            container.stop(timeout=1)
+            logs = container.logs()
+            log_file.write(logs.decode("utf-8"))
+            log_file.flush()
+            container.remove(force=True)
+
+            while not _is_port_free(host_port):
+                logger.info(f"Waiting for port {host_port} to be free...")
+                time.sleep(1)
+
+
+def _is_port_free(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(1)
+        result = sock.connect_ex(("localhost", port))
+        return result != 0
 
 
 def _get_base_directory():
