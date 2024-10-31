@@ -712,10 +712,7 @@ class MyApp
 
   def handle_trace_crash(_req, res)
     STDOUT.puts "Crashing server..."
-    fork do
-      Process.kill('SEGV', Process.pid)
-    end
-
+    Process.kill('SEGV', Process.pid)
     Process.wait2
   end
 
