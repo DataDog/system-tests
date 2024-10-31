@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
@@ -98,7 +97,6 @@ func (s *apmClientServer) spanSetMetaHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	span.SetTag(args.Key, args.Value)
-	time.Sleep(2 * time.Second)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -235,9 +233,9 @@ type Config struct {
 	RateLimit              string            `json:"sample_rate_limit"`
 }
 
-// // Log is a custom logger that extracts & parses the JSON configuration from the log message
-// // This is done to allow for the testing of tracer configuration using the startup logs as it seems
-// // to be the most simple way to do so
+// Log is a custom logger that extracts & parses the JSON configuration from the log message
+// This is done to allow for the testing of tracer configuration using the startup logs as it seems
+// to be the most simple way to do so
 func (l *CustomLogger) Log(logMessage string) {
 	re := regexp.MustCompile(`DATADOG TRACER CONFIGURATION (\{.*\})`)
 	matches := re.FindStringSubmatch(logMessage)
@@ -294,7 +292,7 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 	tracer.Start(tracer.WithLogger(log))
 
 	tracerEnabled := "true"
-	// Check if globalConfig is empty
+	// If globalConfig is empty, then startup log wasn't generated -- tracer must be disabled
 	if len(log.globalConfig) == 0 {
 		tracerEnabled = "false"
 	}
