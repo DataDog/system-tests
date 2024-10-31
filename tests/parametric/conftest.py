@@ -529,7 +529,7 @@ def test_library(
     test_agent_port: str,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
-    test_server_log_file: TextIO
+    test_server_log_file: TextIO,
 ) -> Generator[APMLibrary, None, None]:
 
     env = {
@@ -567,7 +567,9 @@ def test_library(
             raise RuntimeError("Internal error, no port has been assigned", 1)
 
         if apm_test_server.protocol == "grpc":
-            client = APMLibraryClientGRPC(f"localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container)
+            client = APMLibraryClientGRPC(
+                f"localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container
+            )
         elif apm_test_server.protocol == "http":
             client = APMLibraryClientHTTP(
                 f"http://localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container

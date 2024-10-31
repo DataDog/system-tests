@@ -310,6 +310,17 @@ class ParametricScenario(Scenario):
 
         logger.info(f"Run container {name} from image {image} with host port {host_port}")
 
+        for _ in range(10):
+            if _is_port_free(host_port):
+                break
+
+            logger.info(f"Waiting for port {host_port} to be free...")
+            time.sleep(1)
+
+        if not _is_port_free(host_port):
+            _log_open_port_informations(host_port)
+            _fail(f"Port {host_port} is already in use")
+
         try:
             container: Container = _get_client().containers.run(
                 image,
@@ -323,8 +334,6 @@ class ParametricScenario(Scenario):
             )
             logger.debug(f"Container {name} successfully started")
         except Exception as e:
-            _log_open_port_informations(host_port)
-
             # at this point, even if it failed to start, the container may exists!
             for container in _get_client().containers.list(filters={"name": name}, all=True):
                 container.remove(force=True)
@@ -340,10 +349,6 @@ class ParametricScenario(Scenario):
             log_file.write(logs.decode("utf-8"))
             log_file.flush()
             container.remove(force=True)
-
-            while not _is_port_free(host_port):
-                logger.info(f"Waiting for port {host_port} to be free...")
-                time.sleep(1)
 
 
 def _is_port_free(port):
