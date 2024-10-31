@@ -45,7 +45,6 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
 class Test_Library_Tracestats:
     @enable_tracestats()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
-    @missing_feature(context.library == "golang", reason="go sends an empty stats aggregation")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
