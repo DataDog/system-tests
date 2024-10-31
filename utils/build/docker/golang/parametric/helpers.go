@@ -9,6 +9,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"go.opentelemetry.io/otel/attribute"
 )
 
@@ -166,15 +167,20 @@ func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 	for k, v := range a {
 		switch t := v.(type) {
 		case bool:
-			attrs = append(attrs, attribute.Bool(k, v.(bool)))
-		case float64:
-			attrs = append(attrs, attribute.Float64(k, v.(float64)))
+			attrs = append(attrs, attribute.Bool(k, t))
 		case int:
-			attrs = append(attrs, attribute.Int(k, v.(int)))
+			attrs = append(attrs, attribute.Int(k, t))
 		case int64:
 			attrs = append(attrs, attribute.Int64(k, t))
+		case float64:
+			// By default, all numbers are converted to float64 when using json.Decode, even numbers that are technically ints. This additional check allows tests like test_otel_set_attribute_remapping_httpresponsestatuscode to pass.
+			if i, ok := float64ToInt(t); ok {
+				attrs = append(attrs, attribute.Int(k, i))
+			} else {
+				attrs = append(attrs, attribute.Float64(k, t))
+			}
 		case string:
-			attrs = append(attrs, attribute.String(k, v.(string)))
+			attrs = append(attrs, attribute.String(k, t))
 		case []interface{}:
 			if len(t) > 0 {
 				switch tt := t[0].(type) {
@@ -186,14 +192,6 @@ func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 						boolSlice[i] = t[i].(bool)
 					}
 					attrs = append(attrs, attribute.BoolSlice(k, boolSlice))
-				case float64:
-					len := len(t)
-					floatSlice := make([]float64, len)
-					floatSlice[0] = tt
-					for i := 1; i < len; i++ {
-						floatSlice[i] = t[i].(float64)
-					}
-					attrs = append(attrs, attribute.Float64Slice(k, floatSlice))
 				case int:
 					len := len(t)
 					intSlice := make([]int, len)
@@ -210,6 +208,14 @@ func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 						int64Slice[i] = t[i].(int64)
 					}
 					attrs = append(attrs, attribute.Int64Slice(k, int64Slice))
+				case float64:
+					len := len(t)
+					floatSlice := make([]float64, len)
+					floatSlice[0] = tt
+					for i := 1; i < len; i++ {
+						floatSlice[i] = t[i].(float64)
+					}
+					attrs = append(attrs, attribute.Float64Slice(k, floatSlice))
 				case string:
 					len := len(t)
 					stringSlice := make([]string, len)
@@ -239,4 +245,13 @@ func (a AttributeKeyVals) ConvertToAttributesStringified() []attribute.KeyValue 
 		attrs = append(attrs, attribute.String(k, string(s)))
 	}
 	return attrs
+}
+
+// float64ToInt checks if a float64 can be converted to an int without losing precision. If yes, then the converted int is returned along with true. If not, 0 is returned along with false
+func float64ToInt(f float64) (int, bool) {
+	// Check if the float is an integer
+	if f == math.Floor(f) {
+		return int(f), true // Convert to int if it's an integer
+	}
+	return 0, false
 }

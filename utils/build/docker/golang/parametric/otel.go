@@ -233,12 +233,6 @@ func (s *apmClientServer) otelFlushSpansHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
-// func (s *apmClientServer) otelFlushTraceStatsHandler(w http.ResponseWriter, _ *http.Request) {
-// 	s.otelSpans = make(map[uint64]spanContext)
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// }
-
 func (s *apmClientServer) otelIsRecordingHandler(w http.ResponseWriter, r *http.Request) {
 	var args OtelIsRecordingArgs
 	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
@@ -343,7 +337,7 @@ func hex2int(hexStr string) (uint64, error) {
 	// base 16 for hexadecimal
 	result, err := strconv.ParseUint(cleaned, 16, 64)
 	if err != nil {
-		return 0, fmt.Errorf("Converting hex string to uint64 failed, hex string : %s\n", hexStr)
+		return 0, fmt.Errorf("converting hex string to uint64 failed, hex string : %s", hexStr)
 	}
 	return result, nil
 }
