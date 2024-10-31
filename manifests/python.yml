@@ -212,8 +212,8 @@ tests/:
         Test_Lfi_Capability: v2.11.0
         Test_Lfi_Mandatory_SpanTags: v2.10.0
         Test_Lfi_Optional_SpanTags: v2.10.0
-        Test_Lfi_Rules_Version: missing_feature
         Test_Lfi_RC_CustomAction: v2.14.0
+        Test_Lfi_Rules_Version: missing_feature
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0

@@ -3,7 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features
-from tests.appsec.rasp.utils import (find_series, validate_metric_tag_version)
+from tests.appsec.rasp.utils import find_series, validate_metric_tag_version
+
 
 @features.rasp_local_file_inclusion
 @features.rasp_sql_injection

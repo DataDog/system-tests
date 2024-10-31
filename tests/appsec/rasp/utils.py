@@ -93,8 +93,8 @@ def validate_metric(name, type, metric):
     )
 
 
-def validate_metric_tag_version (tag_prefix, min_version, metric):
-    for tag in metric['tags']:
+def validate_metric_tag_version(tag_prefix, min_version, metric):
+    for tag in metric["tags"]:
         if tag.startswith(tag_prefix + ":"):
             version_str = tag.split(":")[1]
             current_version = list(map(int, version_str.split(".")))
@@ -140,6 +140,7 @@ class RC_CONSTANTS:
         "datadog/2/ASM_DD/rules/config",
         _load_file("./tests/appsec/rasp/rasp_ruleset.json"),
     )
+
 
 class Base_Rules_Version:
     """Test libddwaf version"""

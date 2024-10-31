@@ -314,6 +314,7 @@ tests/:
         Test_Ssrf_Capability: *ref_5_23_0
         Test_Ssrf_Mandatory_SpanTags: *ref_5_18_0
         Test_Ssrf_Optional_SpanTags: *ref_5_18_0
+        Test_Ssrf_Rules_Version: *ref_5_25_0
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
           nextjs: missing_feature
