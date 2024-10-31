@@ -36,7 +36,6 @@ lang_variant:
       - os_type: linux
         os_distro: deb
         os_branch: ubuntu23
-        os_cpu: arm64
         remote-command: |
           sudo apt-get update
           sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
