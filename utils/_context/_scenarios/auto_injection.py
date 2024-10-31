@@ -191,10 +191,12 @@ class _VirtualMachineScenario(Scenario):
         self._weblog = config.option.vm_weblog
         self._check_test_environment()
         self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
-        only_default_vms = config.option.vm_default_vms
-        logger.info(f"Default vms policy: {only_default_vms}")
-        if only_default_vms not in ["All", "True", "False"]:
-            raise ValueError(f"Invalid value for --vm-default-vms: {only_default_vms}. Use 'All', 'True' or 'False'")
+        self.only_default_vms = config.option.vm_default_vms
+        logger.info(f"Default vms policy: {self.only_default_vms}")
+        if self.only_default_vms not in ["All", "True", "False"]:
+            raise ValueError(
+                f"Invalid value for --vm-default-vms: {self.only_default_vms}. Use 'All', 'True' or 'False'"
+            )
 
         provisioner.remove_unsupported_machines(
             self._library.library,
@@ -203,7 +205,7 @@ class _VirtualMachineScenario(Scenario):
             self.vm_provider_id,
             config.option.vm_only_branch,
             config.option.vm_skip_branches,
-            only_default_vms,
+            self.only_default_vms,
         )
         for vm in self.required_vms:
             logger.info(f"Adding provision for {vm.name}")
@@ -295,6 +297,13 @@ class _VirtualMachineScenario(Scenario):
     @property
     def configuration(self):
         return self._os_configurations
+
+    @property
+    def host_log_folder(self):
+        # We override the default log folder name.
+        # We are splitting the vms in two groups: default and non-default
+        # We launch both groups in the same pipeline we need to use different log folders
+        return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}_{self.only_default_vms}"
 
     def customize_feature_parity_dashboard(self, result):
 
