@@ -2,9 +2,9 @@
 Test configuration consistency for features across supported APM SDKs.
 """
 import pytest
-from utils import scenarios, features, context, bug, missing_feature
+from utils import scenarios, features, context, bug
 from utils.parametric.spec.trace import find_span_in_traces
-import re
+from urllib.parse import urlparse
 
 parametrize = pytest.mark.parametrize
 
@@ -29,9 +29,8 @@ class Test_Config_TraceEnabled:
         with test_library:
             with test_library.start_span("allowed"):
                 pass
-        test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
+        assert test_agent.wait_for_num_traces(
+            num=1
         ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
 
     @enable_tracing_disabled()
@@ -40,11 +39,9 @@ class Test_Config_TraceEnabled:
         with test_library:
             with test_library.start_span("allowed"):
                 pass
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "wait_for_num_traces raises an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec, so we expect to see an exception
+        with pytest.raises(ValueError) as e:
+            test_agent.wait_for_num_traces(num=1)
+        assert e.match(".*traces not available from test agent, got 0.*")
 
 
 @scenarios.parametric
@@ -125,6 +122,7 @@ class Test_Config_UnifiedServiceTagging:
 @features.tracing_configuration_consistency
 class Test_Config_TraceAgentURL:
     # DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
+    @bug(context.library == "golang", reason="APMAPI-390")
     @parametrize(
         "library_env",
         [
@@ -138,13 +136,10 @@ class Test_Config_TraceAgentURL:
     def test_dd_trace_agent_unix_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
-        if context.library == "golang":
-            match = re.match(r"^http://uds__var_run_datadog_apm.socket/.*", resp["dd_trace_agent_url"])
-            assert match is not None, "trace_agent_url does not match expected pattern"
-        else:
-            assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "unix"
+        assert url.path == "/var/run/datadog/apm.socket"
 
     # The DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
     @parametrize(
@@ -154,14 +149,11 @@ class Test_Config_TraceAgentURL:
     def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
-        # Go tracer reports `<url>/<protocol>/traces` as agent_url in startup log, so use a regex to match the expected suffix
-        if context.library == "golang":
-            match = re.match(r"^http://random-host:9999/.*", resp["dd_trace_agent_url"])
-            assert match is not None, "trace_agent_url does not match expected pattern"
-        else:
-            assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "http"
+        assert url.hostname == "random-host"
+        assert url.port == 9999
 
 
 @scenarios.parametric
@@ -191,8 +183,6 @@ class Test_Config_RateLimit:
         assert trace_0_sampling_priority == 2
         assert trace_1_sampling_priority == -1
 
-    # DD_TRACE_RATE_LIMIT should have no effect if DD_TRACE_SAMPLE_RATE or DD_TRACE_SAMPLING_RULES is not set
-    @missing_feature(context.library == "python", reason="Not implemented")
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
     def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
         with test_library:

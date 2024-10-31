@@ -165,6 +165,7 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_IastStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
@@ -294,6 +295,8 @@ tests/:
         Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
         Test_Otel_Tracer: v0.94.0
+    test_partial_flushing.py:
+      Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature

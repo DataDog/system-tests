@@ -5,13 +5,9 @@ require "uri"
 require 'json'
 
 begin
-  require 'ddtrace/auto_instrument'
-rescue LoadError
-end
-
-begin
   require 'datadog/auto_instrument'
 rescue LoadError
+  require 'ddtrace/auto_instrument'
 end
 
 Datadog.configure do |c|
@@ -40,11 +36,14 @@ end
 get '/healthcheck' do
   content_type :json
 
+  gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
+  version = gemspec.version.to_s
+  version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
   {
     status: 'ok',
     library: {
       language: 'ruby',
-      version: Datadog::VERSION::STRING
+      version: version
     }
   }.to_json
 

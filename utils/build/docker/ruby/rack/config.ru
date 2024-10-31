@@ -7,7 +7,11 @@ require 'json'
 
 # tracer configuration of Rack integration
 
-require 'datadog/auto_instrument'
+begin
+  require 'datadog/auto_instrument'
+rescue LoadError
+  require 'ddtrace/auto_instrument'
+end
 require 'datadog/kit/appsec/events'
 
 Datadog.configure do |c|
@@ -57,11 +61,14 @@ end
 # /healthcheck
 class Healthcheck
   def self.run
+    gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
+    version = gemspec.version.to_s
+    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
     response = {
       status: 'ok',
       library: {
         language: 'ruby',
-        version: Datadog::VERSION::STRING
+        version: version
       }
     }
 

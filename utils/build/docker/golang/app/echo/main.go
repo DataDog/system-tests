@@ -1,14 +1,19 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
@@ -251,7 +256,22 @@ func main() {
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()
-	r.Start(":7777")
+	go func() {
+		if err := r.Start(":7777"); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := r.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
+
 }
 
 func echoHandleFunc(handlerFunc http.HandlerFunc) echo.HandlerFunc {

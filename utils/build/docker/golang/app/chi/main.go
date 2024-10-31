@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"weblog/internal/rasp"
@@ -285,9 +288,28 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
-	http.ListenAndServe(":7777", mux)
+	go func() {
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
 }
 
 func headers(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,7 @@
 # Weblog
 
 A weblog is a web app that system uses to test the library. It mimics what would be a real instrumented HTTP application. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different endpoints.
+Weblog implementations are located in `utils/docker/`.
 
 > Note: a separate document describes [GraphQL Weblog](./graphql_weblog.md).
 

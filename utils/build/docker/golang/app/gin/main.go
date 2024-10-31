@@ -1,14 +1,19 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"weblog/internal/common"
 	"weblog/internal/grpc"
@@ -225,9 +230,28 @@ func main() {
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
 
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: r,
+	}
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
-	http.ListenAndServe(":7777", r)
+	go func() {
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
 }
 
 func ginHandleFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {
