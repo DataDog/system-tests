@@ -512,8 +512,6 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
-# "disable" rate limiting by default by setting it to a large value
-ENV DD_TRACE_RATE_LIMIT=10000000
 
 COPY --from=build /app/out /app
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION

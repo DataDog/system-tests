@@ -268,6 +268,8 @@ class AWSCommander(Commander):
         ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
+        vm_logger(context.scenario.name, "cache_created").info(f"[{context.scenario.name}] - [{{ami_name}}]")
+
         # Expiration date for the ami
         # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
         task_dep = aws.ec2.AmiFromInstance(

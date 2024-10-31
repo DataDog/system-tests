@@ -28,7 +28,8 @@ There are two ways for running the C++ library tests with a custom tracer:
 
 ## Golang library
 
-1. To test unmerged PRs locally, run the following in the utils/build/docker/golang/parametric directory:
+To test unmerged PRs locally, you'll first need to identify a git commit hash that contains your changes. Ensure that your commit has been pushed to your remote branch. Then, you can capture the latest (or most relevant) commit hash from the github UI on your open PR.
+Then, use the commit hash to run the following commands inside of the system-tests/utils/build/docker/golang/parametric directory:
 
 ```sh
 go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
@@ -39,7 +40,7 @@ go mod tidy
     * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
     * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
 
-2. Clone the dd-trace-go repo inside `binaries`
+* When running a test on a specific commit_hash, make sure to use the full hash.
 
 ## Java library
 
@@ -85,9 +86,7 @@ TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sa
   - You can download those from the `build_packages/package extension` job artifacts, from a CI run of your branch.
 - Copy it in the binaries folder
 
-##Then run the tests
-
-From the repo root folder:
+Then run the tests from the repo root folder:
 
 - `./build.sh -i runner`
 - `TEST_LIBRARY=php ./run.sh PARAMETRIC` or `TEST_LIBRARY=php ./run.sh PARAMETRIC -k <my_test>`
