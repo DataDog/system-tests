@@ -12,16 +12,6 @@ services:
         healthcheck:
             test: "curl -f http://localhost:8080"
 
-    dotnet_9:
-        env_file: "scenario_app.env"
-        image: system-tests/dotnet_9:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.dotnet_9
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
     dotnet_8:
         env_file: "scenario_app.env"
         image: system-tests/dotnet_8:latest
