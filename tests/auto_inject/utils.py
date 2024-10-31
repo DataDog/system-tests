@@ -27,6 +27,11 @@ class AutoInjectBaseTest:
         if crashlog:
             cause_and_verify_crash(runtime_id, vm_ip, vm_port)
 
+    def warmup(self, virtual_machine):
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+
     def get_pid(self, virtual_machine) -> int:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
