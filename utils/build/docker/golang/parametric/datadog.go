@@ -63,8 +63,8 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (d
 	if len(args.HttpHeaders) != 0 {
 		headers := map[string]string{}
 		for _, headerTuple := range args.HttpHeaders {
-			k := headerTuple.GetKey()
-			v := headerTuple.GetValue()
+			k := headerTuple.Key()
+			v := headerTuple.Value()
 			if k != "" && v != "" {
 				headers[k] = v
 			}
@@ -182,7 +182,7 @@ func (s *apmClientServer) injectHeadersHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var distr DistributedHTTPHeaders
+	var distr []Tuple
 	for k, v := range headers {
 		distr = append(distr, []string{k, v})
 	}

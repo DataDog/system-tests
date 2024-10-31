@@ -62,8 +62,8 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 	if h := args.HttpHeaders; len(h) > 0 {
 		headers := map[string]string{}
 		for _, headerTuple := range h {
-			k := headerTuple.GetKey()
-			v := headerTuple.GetValue()
+			k := headerTuple.Key()
+			v := headerTuple.Value()
 			if k != "" && v != "" {
 				headers[k] = v
 			}
@@ -78,15 +78,15 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 
 	if links := args.SpanLinks; links != nil {
 		for _, link := range links {
-			if p := link.ParentId; p != nil {
-				if _, ok := s.otelSpans[*p]; ok {
-					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[*p].span.SpanContext(), Attributes: link.GetAttributes().ConvertToAttributesStringified()}))
+			if p := link.ParentId; p != 0 {
+				if _, ok := s.otelSpans[p]; ok {
+					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[p].span.SpanContext(), Attributes: link.Attributes.ConvertToAttributesStringified()}))
 				}
 			} else if h := link.HttpHeaders; h != nil {
 				headers := map[string]string{}
 				for _, headerTuple := range h {
-					k := headerTuple.GetKey()
-					v := headerTuple.GetValue()
+					k := headerTuple.Key()
+					v := headerTuple.Value()
 					if k != "" && v != "" {
 						headers[k] = v
 					}
@@ -111,7 +111,7 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 				var newCtx = otel_trace.NewSpanContext(config)
 				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{
 					SpanContext: newCtx,
-					Attributes:  link.GetAttributes().ConvertToAttributesStringified(),
+					Attributes:  link.Attributes.ConvertToAttributesStringified(),
 				}))
 			}
 		}
@@ -164,7 +164,7 @@ func (s *apmClientServer) OtelEndSpan(args OtelEndSpanArgs) error {
 	}
 
 	endOpts := []otel_trace.SpanEndOption{}
-	if t := args.GetTimestamp(); t != 0 {
+	if t := args.Timestamp; t != 0 {
 		tm := time.UnixMicro(t)
 		endOpts = append(endOpts, otel_trace.WithTimestamp(tm))
 	}
@@ -293,11 +293,11 @@ func (s *apmClientServer) otelAddEventHandler(w http.ResponseWriter, r *http.Req
 	}
 	span := sctx.span
 	opts := []otel_trace.EventOption{}
-	if args.Timestamp != nil {
+	if args.Timestamp != 0 {
 		// args.Timestamp is represented in microseconds
-		opts = append(opts, otel_trace.WithTimestamp(time.UnixMicro(*args.Timestamp)))
+		opts = append(opts, otel_trace.WithTimestamp(time.UnixMicro(args.Timestamp)))
 	}
-	if args.GetAttributes() != nil {
+	if args.Attributes != nil {
 		opts = append(opts, otel_trace.WithAttributes(args.Attributes.ConvertToAttributes()...))
 	}
 	span.AddEvent(args.Name, opts...)

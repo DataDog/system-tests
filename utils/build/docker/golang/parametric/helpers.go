@@ -23,88 +23,30 @@ type StartSpanArgs struct {
 	Resource    string                 `json:"resource,omitempty"`
 	Type        string                 `json:"type,omitempty"`
 	Origin      string                 `json:"origin,omitempty"`
-	HttpHeaders []HeaderTuple `json:"http_headers,omitempty"`
-	SpanTags    []TagTuple          `json:"span_tags,omitempty"`
-	SpanLinks   []*SpanLink             `json:"span_links,omitempty"`
+	HttpHeaders []Tuple `json:"http_headers,omitempty"`
+	SpanTags    []Tuple          `json:"span_tags,omitempty"`
+	SpanLinks   []SpanLink             `json:"span_links,omitempty"`
 }
 
-type TagTuple []string
-
-func (x TagTuple) Key() string {
-	if x != nil {
-		return x[0]
-	}
-	return ""
-}
-
-func (x TagTuple) Value() string {
-	if x != nil {
-		return x[1]
-	}
-	return ""
-}
-
-type DistributedHTTPHeaders [][]string
+type Tuple []string
 
 type SpanLink struct {
-	// Types that are assignable to From:
-	//
-	//	*SpanLink_ParentId
-	//	*SpanLink_HttpHeaders
-	ParentId   *uint64 `json:"parent_id"`
-	HttpHeaders []HeaderTuple `json:"http_headers"`
+	ParentId   uint64 `json:"parent_id"`
+	HttpHeaders []Tuple `json:"http_headers"`
 	Attributes AttributeKeyVals     `json:"attributes,omitempty"`
 }
 
-func (x *SpanLink) GetAttributes() AttributeKeyVals {
-	if x != nil {
-		return x.Attributes
+func (x Tuple) Key() string {
+	if len(x) == 0 {
+		return ""
 	}
-	return nil
-}
-
-type isSpanLink_From interface {
-	isSpanLink_From()
-}
-
-type SpanLink_ParentId struct {
-	ParentId uint64 `protobuf:"varint,1,opt,name=parent_id,json=parentId,proto3,oneof"`
-}
-
-type SpanLink_HttpHeaders struct {
-	HttpHeaders *[]HeaderTuple `protobuf:"bytes,2,opt,name=http_headers,json=httpHeaders,proto3,oneof"`
-}
-
-func (*SpanLink_ParentId) isSpanLink_From() {}
-
-func (*SpanLink_HttpHeaders) isSpanLink_From() {}
-
-// type HeaderTuple struct {
-// 	Key   string `json:"key"`
-// 	Value string `json:"value"`
-// }
-
-// func (x *HeaderTuple) GetKey() string {
-// 	if x != nil {
-// 		return x.Key
-// 	}
-// 	return ""
-// }
-
-// func (x *HeaderTuple) GetValue() string {
-// 	if x != nil {
-// 		return x.Value
-// 	}
-// 	return ""
-// }
-
-type HeaderTuple []string
-
-func (x HeaderTuple) GetKey() string {
 	return x[0]
 }
 
-func (x HeaderTuple) GetValue() string {
+func (x Tuple) Value() string {
+	if len(x) < 2 {
+		return ""
+	}
 	return x[1]
 }
 
@@ -118,7 +60,7 @@ type InjectHeadersArgs struct {
 }
 
 type InjectHeadersReturn struct {
-	HttpHeaders DistributedHTTPHeaders `json:"http_headers"`
+	HttpHeaders []Tuple `json:"http_headers"`
 }
 
 type FinishSpanArgs struct {
@@ -138,9 +80,9 @@ type SpanSetMetricArgs struct {
 }
 type SpanSetErrorArgs struct {
 	SpanId  uint64  `json:"span_id"`
-	Type    *string `json:"type"`
-	Message *string `json:"message"`
-	Stack   *string `json:"stack"`
+	Type    string `json:"type"`
+	Message string `json:"message"`
+	Stack   string `json:"stack"`
 }
 
 type OtelStartSpanArgs struct {
@@ -152,7 +94,7 @@ type OtelStartSpanArgs struct {
 	Type        string                 `json:"type"`
 	Timestamp   int64                  `json:"timestamp"`
 	SpanLinks   []SpanLink             `json:"links"`
-	HttpHeaders []HeaderTuple `json:"http_headers"`
+	HttpHeaders []Tuple `json:"http_headers"`
 	Attributes  AttributeKeyVals             `json:"attributes"`
 }
 
@@ -163,14 +105,7 @@ type OtelStartSpanReturn struct {
 
 type OtelEndSpanArgs struct {
 	Id        uint64 `json:"id"`
-	Timestamp *int64 `json:"timestamp,omitempty"`
-}
-
-func (x *OtelEndSpanArgs) GetTimestamp() int64 {
-	if x != nil && x.Timestamp != nil {
-		return *x.Timestamp
-	}
-	return 0
+	Timestamp int64 `json:"timestamp"`
 }
 
 type OtelFlushSpansArgs struct {
@@ -214,28 +149,14 @@ type OtelSetNameArgs struct {
 
 type OtelSetAttributesArgs struct {
 	SpanId     uint64      `json:"span_id"`
-	Attributes *AttributeKeyVals `json:"attributes"`
+	Attributes AttributeKeyVals `json:"attributes"`
 }
 
 type OtelAddEventArgs struct {
 	SpanId     uint64      `json:"span_id"`
 	Name       string      `json:"name"`
-	Timestamp  *int64      `json:"timestamp"`
-	Attributes *AttributeKeyVals `json:"attributes"`
-}
-
-func (x *OtelAddEventArgs) GetTimestamp() int64 {
-	if x != nil && x.Timestamp != nil {
-		return *x.Timestamp
-	}
-	return 0
-}
-
-func (x *OtelAddEventArgs) GetAttributes() *AttributeKeyVals {
-	if x != nil {
-		return x.Attributes
-	}
-	return nil
+	Timestamp  int64      `json:"timestamp"`
+	Attributes AttributeKeyVals `json:"attributes"`
 }
 
 type AttributeKeyVals map[string]interface{}
@@ -245,15 +166,15 @@ func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 	for k, v := range a {
 		switch t := v.(type) {
 		case bool:
-			attrs = append(attrs, attribute.Bool(k, t))
+			attrs = append(attrs, attribute.Bool(k, v.(bool)))
 		case float64:
-			attrs = append(attrs, attribute.Float64(k, t))
+			attrs = append(attrs, attribute.Float64(k, v.(float64)))
 		case int:
-			attrs = append(attrs, attribute.Int(k, t))
+			attrs = append(attrs, attribute.Int(k, v.(int)))
 		case int64:
 			attrs = append(attrs, attribute.Int64(k, t))
 		case string:
-			attrs = append(attrs, attribute.String(k, t))
+			attrs = append(attrs, attribute.String(k, v.(string)))
 		case []interface{}:
 			if len(t) > 0 {
 				switch tt := t[0].(type) {
