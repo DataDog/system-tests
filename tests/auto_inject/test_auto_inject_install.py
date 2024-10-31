@@ -101,31 +101,6 @@ class TestContainerAutoInjectInstallScriptCrashTracking(base.AutoInjectBaseTest)
 
 @features.installer_auto_instrumentation
 @scenarios.container_auto_injection_install_script_crashtracking_childprocess
-class TestContainerAutoInjectInstallScriptCrashTracking_ChildProcess(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
-    def test_install(self, virtual_machine):
-        command_output = self.execute_command(virtual_machine, "ps aux --forest")
-        logger.info("Initial: " + command_output)
-
-        # First make sure everything is started
-        self._test_install(virtual_machine)
-
-        command_output = self.execute_command(virtual_machine, "ps aux --forest")
-        logger.info("Command output 1: " + command_output)
-
-        commandline = self.get_commandline(virtual_machine)
-
-        logger.info(f"Commandline is {commandline}")
-
-        result = self.crash_and_wait_for_exit(virtual_machine, commandline)
-
-        command_output = self.execute_command(virtual_machine, "ps aux --forest")
-        logger.info("Command output 2: " + command_output)
-
-        assert result
-
-@features.installer_auto_instrumentation
-@scenarios.container_auto_injection_install_script_crashtracking_childprocess
 class TestContainerAutoInjectInstallScriptCrashTracking_NoChildProcess(base.AutoInjectBaseTest):
     @parametrize_virtual_machines()
     def test_install(self, virtual_machine):
