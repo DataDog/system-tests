@@ -16,7 +16,6 @@ class AutoInjectBaseTest:
         """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
             After starting application we can see application HTTP requests traces in the backend.
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
-        print(self.execute_command(virtual_machine, "docker ps -a"))
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         header = "----------------------------------------------------------------------"
