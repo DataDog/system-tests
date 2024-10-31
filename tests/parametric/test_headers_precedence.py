@@ -507,11 +507,13 @@ class Test_Headers_Precedence:
             headers1 = make_single_request_and_get_inject_headers(test_library, [])
 
             # 2) Only tracecontext headers
+            print("MTOFF: header2")
             headers2 = make_single_request_and_get_inject_headers(
                 test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
+            print("MTOFF: header3")
             headers3 = make_single_request_and_get_inject_headers(
                 test_library,
                 [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
