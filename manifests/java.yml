@@ -443,6 +443,7 @@ tests/:
         Test_Lfi_Optional_SpanTags:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Lfi_Rules_Version: missing_feature
         Test_Lfi_RC_CustomAction: missing_feature (APPSEC-54930)
         Test_Lfi_StackTrace:
           '*': v1.40.0
@@ -490,6 +491,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
+        Test_Sqli_Rules_Version: missing_feature
         Test_Sqli_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -567,6 +569,7 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
+        Test_Ssrf_Rules_Version: missing_feature
         Test_Ssrf_StackTrace:
           '*': v1.39.0
           akka-http: missing_feature (APPSEC-55781)

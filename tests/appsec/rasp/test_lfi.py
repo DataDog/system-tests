@@ -10,7 +10,9 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
+    validate_metric_tag_version,
     RC_CONSTANTS,
+    Base_Rules_Version,
 )
 
 
@@ -259,3 +261,10 @@ class Test_Lfi_Capability:
 
     def test_lfi_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_LFI)
+
+
+@features.rasp_local_file_inclusion
+class Test_Lfi_Rules_Version(Base_Rules_Version):
+    """Test lfi min rules version"""
+
+    min_version = "1.13.3"
