@@ -132,7 +132,7 @@ onboarding_java:
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --force-dd-trace-debug
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 
 onboarding_python:
   extends: .base_job_onboarding_system_tests
