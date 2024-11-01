@@ -12,16 +12,6 @@ services:
         healthcheck:
             test: "curl -f http://localhost:8080"
 
-    node_16:
-        env_file: "scenario_app.env"
-        image: system-tests/node_16:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node16
-        healthcheck:
-            test: "node health"
-
     node_18:
         env_file: "scenario_app.env"
         image: system-tests/node_18:latest
@@ -59,16 +49,6 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.node
-        healthcheck:
-            test: "node health"
-
-    node_16_alpine:
-        env_file: "scenario_app.env"
-        image: system-tests/node_16_alpine:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.node16-alpine
         healthcheck:
             test: "node health"
 
