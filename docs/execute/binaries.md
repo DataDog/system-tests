@@ -1,6 +1,6 @@
-By default, system tests will build a [weblog](../edit/weblog.md) image that ships the production version of all components.
+By default, system tests will build a [weblog](../edit/weblog.md) image that ships the latest production version of the specified tracer language library.
 
-But, obviously, testing validated versions of components is not really interesting, we need to have a way to install a specific version of at least one component. Here is recipes for each components:
+But we often want to run system tests against unmerged changes. The general approach is to identify the git commit hash that contains your changes and use this commit has to download a targeted build of the tracer. Note: ensure that the commit has been pushed to a remote branch first, and when taking the commit hash, ensure it is the full hash. You can identify the commit hash using `git log` or from the github UI.
 
 
 ## Agent
@@ -28,8 +28,12 @@ There are two ways for running the C++ library tests with a custom tracer:
 
 ## Golang library
 
-To test unmerged PRs locally, you'll first need to identify a git commit hash that contains your changes. Ensure that your commit has been pushed to your remote branch. Then, you can capture the latest (or most relevant) commit hash from the github UI on your open PR.
-Then, use the commit hash to run the following commands inside of the system-tests/utils/build/docker/golang/parametric directory:
+For "regular" system tests (weblog), create a file `golang-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog via `go get`. Content example:
+    * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
+    * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
+    * `gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>` Test un-merged changes
+
+For parametric tests, run the following commands inside of the system-tests/utils/build/docker/golang/parametric directory:
 
 ```sh
 go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
@@ -40,7 +44,6 @@ go mod tidy
     * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
     * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
 
-* When running a test on a specific commit_hash, make sure to use the full hash.
 
 ## Java library
 
