@@ -16,13 +16,12 @@ else
     sudo tar -xf jetty-distribution-$JETTY_VERSION.tar.gz -C /opt/
 fi
 
-rm -rf /home/datadog/jetty-classpath
-mkdir /home/datadog/jetty-classpath
+mkdir -p /opt/jetty-classpath
 
-find /opt/jetty-distribution-$JETTY_VERSION/lib -iname '*.jar' -exec cp \{\} /home/datadog/jetty-classpath/ \;
+find /opt/jetty-distribution-$JETTY_VERSION/lib -iname '*.jar' -exec cp \{\} /opt/jetty-classpath/ \;
 
 # Causes ClassNotFound exceptions https://github.com/jetty/jetty.project/issues/4746
-rm /home/datadog/jetty-classpath/jetty-jaspi*
+rm /opt/jetty-classpath/jetty-jaspi*
 
 ls /home/datadog/jetty-classpath
 FILE=JettyServletMain.class
@@ -30,7 +29,7 @@ if [ -f "$FILE" ]; then
     echo "App already compiled."
 else 
     sudo sed -i "s/18080/$PORT/g" JettyServletMain.java
-    javac -cp "/home/datadog/jetty-classpath/*:." JettyServletMain.java
+    javac -cp "/opt/jetty-classpath/*:." JettyServletMain.java
     sudo cp JettyServletMain.class /home/datadog
 fi
 

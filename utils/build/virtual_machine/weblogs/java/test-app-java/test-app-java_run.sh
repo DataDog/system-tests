@@ -10,7 +10,7 @@ echo "Start Java app"
 
 sudo chmod 755 create_and_run_app_service.sh
 
-JETTY_CLASSPATH="/home/datadog/jetty-classpath/*:."
+JETTY_CLASSPATH="/opt/jetty-classpath/*:."
 ./create_and_run_app_service.sh "java -cp $JETTY_CLASSPATH JettyServletMain"
 
 echo " Java app started DONE"
