@@ -5,6 +5,7 @@ set -e
 sudo chmod -R 755 *
 
 echo "Compiling Java app"
+set -x
 JETTY_VERSION=9.4.56.v20240826
 JETTY_FILE="jetty-distribution-$JETTY_VERSION.tar.gz"
 PORT=$1
@@ -24,6 +25,7 @@ find /opt/jetty-distribution-$JETTY_VERSION/lib -iname '*.jar' -exec cp \{\} jet
 # Causes ClassNotFound exceptions https://github.com/jetty/jetty.project/issues/4746
 rm jetty-classpath/jetty-jaspi*
 
+ls jetty-classpath
 FILE=JettyServletMain.class
 if [ -f "$FILE" ]; then
     echo "App already compiled."
