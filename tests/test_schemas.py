@@ -44,7 +44,6 @@ class Test_library:
     def test_library_diagnostics_content(self):
         interfaces.library.assert_schema_point("/debugger/v1/diagnostics", "$[].content")
 
-    @bug(context.library == "python", reason="DEBUG-2743")
     def test_library_schema_debugger(self):
         interfaces.library.assert_schema_point("/debugger/v1/input", "$[].dd.span_id")
         interfaces.library.assert_schema_point("/debugger/v1/input", "$[].dd.trace_id")
