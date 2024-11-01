@@ -1,4 +1,5 @@
 #!/bin/bash
 set -e
 
-java -cp "jetty-classpath/*:." JettyServletMain
+JETTY_CLASSPATH="/home/datadog/jetty-classpath/*:."
+java -cp "$JETTY_CLASSPATH" JettyServletMain
