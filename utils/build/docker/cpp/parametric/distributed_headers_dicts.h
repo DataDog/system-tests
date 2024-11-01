@@ -6,7 +6,7 @@
 #include <datadog/dict_reader.h>
 #include <datadog/dict_writer.h>
 
-#include "test_proto3_optional/apm_test_client.pb.h"
+// #include "test_proto3_optional/apm_test_client.pb.h"
 
 class DistributedHTTPHeadersReader : public datadog::tracing::DictReader {
   const DistributedHTTPHeaders& headers_;

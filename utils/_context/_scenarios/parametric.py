@@ -601,7 +601,10 @@ def cpp_library_factory() -> APMLibraryTestServer:
     dockerfile_content = f"""
 FROM datadog/docker-library:dd-trace-cpp-ci AS build
 
-RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
+RUN add-apt-repository ppa:pistache+team/stable
+# Install dependencies for building with Pistache
+RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq libpistache-dev
+
 WORKDIR /usr/app
 COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
 RUN sh /binaries/install_ddtrace.sh
