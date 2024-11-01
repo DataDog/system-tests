@@ -16,12 +16,12 @@ else
     sudo tar -xf jetty-distribution-$JETTY_VERSION.tar.gz -C /opt/
 fi
 
-mkdir -p /opt/jetty-classpath
+sudo mkdir -p /opt/jetty-classpath
 
-find /opt/jetty-distribution-$JETTY_VERSION/lib -iname '*.jar' -exec cp \{\} /opt/jetty-classpath/ \;
+find /opt/jetty-distribution-$JETTY_VERSION/lib -iname '*.jar' -exec sudo cp \{\} /opt/jetty-classpath/ \;
 
 # Causes ClassNotFound exceptions https://github.com/jetty/jetty.project/issues/4746
-rm /opt/jetty-classpath/jetty-jaspi*
+sudo rm /opt/jetty-classpath/jetty-jaspi*
 
 ls /home/datadog/jetty-classpath
 FILE=JettyServletMain.class
