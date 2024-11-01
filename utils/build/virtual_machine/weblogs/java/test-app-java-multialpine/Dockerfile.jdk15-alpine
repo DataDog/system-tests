@@ -1,5 +1,5 @@
 FROM public.ecr.aws/docker/library/alpine:3.18
-RUN apk add openjdk15-jdk 
+RUN apk --no-cache add openjdk15-jdk
 RUN apk add --no-cache bash curl
 
 COPY jetty-distribution-9.4.56.v20240826.tar.gz .

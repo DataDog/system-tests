@@ -1,5 +1,5 @@
 FROM public.ecr.aws/docker/library/alpine:latest
-RUN apk --no-cache add openjdk11 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+RUN apk --no-cache add openjdk11
 RUN apk add --no-cache bash curl
 
 COPY jetty-distribution-9.4.56.v20240826.tar.gz .
@@ -8,7 +8,3 @@ COPY JettyServletMain.class /usr/local/app/
 COPY run_app.sh /usr/local/app/
 WORKDIR /usr/local/app/
 ENTRYPOINT ["/usr/local/app/run_app.sh"]
-
-
-
-
