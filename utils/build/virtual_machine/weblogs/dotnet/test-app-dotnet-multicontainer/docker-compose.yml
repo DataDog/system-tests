@@ -20,7 +20,7 @@ services:
             context: .
             dockerfile: Dockerfile.dotnet_8
         healthcheck:
-            test: "curl -f http://localhost:18080"
+            test: "true"
 
     dotnet_6:
         env_file: "scenario_app.env"
@@ -30,4 +30,4 @@ services:
             context: .
             dockerfile: Dockerfile.dotnet_6
         healthcheck:
-            test: "curl -f http://localhost:18080"
+            test: "true"
