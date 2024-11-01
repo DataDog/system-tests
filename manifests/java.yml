@@ -1394,17 +1394,25 @@ tests/:
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: missing_feature
     Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
-    Test_Config_ClientTagQueryString_Configured: v1.42.0
-    Test_Config_ClientTagQueryString_Empty: v1.42.0
+    Test_Config_ClientTagQueryString_Configured:
+      '*': v1.42.0
+      'vertx3': irrelevant (endpoint not implemented)
+      'vertx4': irrelevant (endpoint not implemented)
+    Test_Config_ClientTagQueryString_Empty:
+      '*': v1.42.0
+      'vertx3': irrelevant (endpoint not implemented)
+      'vertx4': irrelevant (endpoint not implemented)
     Test_Config_HttpClientErrorStatuses_Default:
-      '*': irrelevant
+      '*': irrelevant (500 error)
       spring-boot: v1.41.1
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
-      '*': irrelevant
+      '*': irrelevant (500 error)
       spring-boot: v1.41.1
-    Test_Config_HttpServerErrorStatuses_Default: v1.41.1
+    Test_Config_HttpServerErrorStatuses_Default:
+      '*': v1.41.1
+      spring-boot-openliberty: irrelevant
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
-      '*': irrelevant
+      '*': irrelevant (500 error)
       spring-boot: v1.41.1
     Test_Config_IntegrationEnabled_False:
       '*': irrelevant (kafka endpoints are not implemented)
