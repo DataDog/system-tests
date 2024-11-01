@@ -1403,7 +1403,7 @@ tests/:
     Test_Config_IntegrationEnabled_False:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
-    Test_Config_IntegrationEnabled_True: 
+    Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
