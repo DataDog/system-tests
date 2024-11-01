@@ -1,5 +1,5 @@
 weblog:
-    name: test-app-nodejs-multicontainer
+    name: test-app-nodejs-latest
     exact_os_branches: [ubuntu24]
     install: 
       - os_type: linux
@@ -7,15 +7,15 @@ weblog:
           - name: copy-multicontainer-run-script
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-latest/docker-compose.yml
           - name: copy-nodejs-app
             local_path: lib-injection/build/docker/nodejs/sample-app
           - name: copy-nodejs-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-latest/Dockerfile.node
           - name: copy-nodejs-alpine-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node-alpine
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-latest/Dockerfile.node-alpine
           - name: copy-reverseproxy-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.reverseproxy
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-latest/Dockerfile.reverseproxy
           - name: copy-reverseproxy-conf
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/nginx.conf
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-latest/nginx.conf
         remote-command: sh create_and_run_app_multicontainer.sh
