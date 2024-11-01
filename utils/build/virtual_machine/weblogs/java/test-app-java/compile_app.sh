@@ -16,7 +16,7 @@ else
     sudo tar -xf jetty-distribution-$JETTY_VERSION.tar.gz -C /opt/
 fi
 
-rmdir -rf jetty-classpath
+rm -rf jetty-classpath
 mkdir jetty-classpath
 
 find /opt/jetty-distribution-$JETTY_VERSION/lib -iname '*.jar' -exec cp \{\} jetty-classpath/ \;
