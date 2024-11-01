@@ -1400,8 +1400,12 @@ tests/:
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.41.1
     Test_Config_HttpServerErrorStatuses_Default: v1.41.1
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.41.1
-    Test_Config_IntegrationEnabled_False: v1.42.0
-    Test_Config_IntegrationEnabled_True: v1.42.0
+    Test_Config_IntegrationEnabled_False:
+      '*': irrelevant (kafka endpoints are not implemented)
+      spring-boot: v1.42.0
+    Test_Config_IntegrationEnabled_True: 
+      '*': irrelevant (kafka endpoints are not implemented)
+      spring-boot: v1.42.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
     Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
