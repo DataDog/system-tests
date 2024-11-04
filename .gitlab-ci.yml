@@ -345,7 +345,8 @@ generate_system_tests_images:
   when: manual
 
 docker_ssi_simple_tests:
-  extends: .base_job_onboarding_system_tests
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:38475891
+  tags: [ "runner:docker" ]
   stage: docker_ssi
   allow_failure: true
   dependencies: []
@@ -355,6 +356,8 @@ docker_ssi_simple_tests:
     - when: manual
   variables:
     TEST_LIBRARY: "java"
+  before_script:
+    - export GITHUB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.gh-token --with-decryption --query "Parameter.Value" --out text)
   script:
       - ./build.sh -i runner
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 669783387624.dkr.ecr.us-east-1.amazonaws.com
