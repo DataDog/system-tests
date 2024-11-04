@@ -162,12 +162,6 @@ library. Deleting the image will force a rebuild which will resolve the issue.
 docker image rm <library>-test-library
 ```
 
-### Port conflict on 50052
-
-If there is a port conflict with an existing process on the local machine then the default port `50052` can be
-overridden using `APM_LIBRARY_SERVER_PORT`.
-
-
 ### Disable build kit
 
 If logs like
@@ -265,6 +259,8 @@ span = find_only_span(test_agent.wait_for_num_traces(1))
 ```
 
 This architecture allows us to ensure that all tracers conform to the same interface and behavior, making it easier to maintain consistency across different languages and implementations.
+
+![image](https://github.com/user-attachments/assets/fc144fc1-95aa-4d50-97c5-cda8fdbcefef)
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
 
