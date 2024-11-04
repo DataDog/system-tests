@@ -256,7 +256,7 @@ tests/:
           nextjs: missing_feature
         Test_Shi_BodyXml: missing_feature
         Test_Shi_Capability: *ref_5_25_0
-        Test_Sqli_Mandatory_SpanTags: *ref_5_25_0
+        Test_Shi_Mandatory_SpanTags: *ref_5_25_0
         Test_Shi_Optional_SpanTags: *ref_5_25_0
         Test_Shi_StackTrace:
           '*': *ref_5_25_0
