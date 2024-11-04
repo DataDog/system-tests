@@ -13,17 +13,17 @@ on:
         type: string
       scenarios_groups:
         description: "Comma-separated list of scenarios groups to run"
-        default: ''
+        default: ""
         required: false
         type: string
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
-        default: ''
+        default: ""
         required: false
         type: string
       ci_environment:
         description: "Which CI environment is running the tests, used for FPD"
-        default: 'custom'
+        default: "custom"
         required: false
         type: string
       build_python_base_images:
@@ -42,12 +42,12 @@ on:
         required: false
         type: boolean
       build_lib_injection_app_images:
-          description: "Shall we build and push k8s lib injection weblog images"
-          default: false
-          required: false
-          type: boolean
-      push_to_feature_parity_dashbaord:
-        description: "Shall we push results to Feature Parity Dashbaord"
+        description: "Shall we build and push k8s lib injection weblog images"
+        default: false
+        required: false
+        type: boolean
+      push_to_feature_parity_dashboard:
+        description: "Shall we push results to Feature Parity Dashboard"
         default: false
         required: false
         type: boolean
