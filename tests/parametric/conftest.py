@@ -135,7 +135,6 @@ class _TestAgentAPI:
         )
         assert resp.status_code == 202
 
-
     def get_remote_config(self):
         resp = self._session.get(self._url("/v0.7/config"),)
         resp_json = resp.json()
@@ -223,11 +222,9 @@ class _TestAgentAPI:
         }
         return json.dumps(remote_config_payload)
 
-
     def set_trace_delay(self, delay):
         resp = self._session.post(self._url("/test/settings"), json={"trace_request_delay": delay})
         assert resp.status_code == 202
-
 
     def raw_telemetry(self, clear=False, **kwargs):
         raw_reqs = self.requests()
