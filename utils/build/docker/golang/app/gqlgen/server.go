@@ -1,8 +1,16 @@
 package main
 
 import (
-	"net/http"
+	"context"
 	"encoding/json"
+	"errors"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"weblog/gqlgen/graph"
 	"weblog/internal/common"
 
@@ -55,7 +63,24 @@ func main() {
 		w.Write(jsonData)
 	})
 
+	httpSrv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
 	common.InitDatadog()
+	go func() {
+		if err := httpSrv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
 
-	panic(http.ListenAndServe(":7777", mux))
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := httpSrv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
 }

@@ -151,11 +151,7 @@ class Test_DsmRabbitmq:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         language_hashes = {
-            "nodejs": {
-                "producer": 5246740674878013159,
-                "consumer": 10215641161150038469,
-                "edge_tags_in": ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
-            },
+            "nodejs": {"producer": 5246740674878013159, "consumer": 8116149247198652772,},
             "default": {
                 "producer": 8945717757344503539,
                 "consumer": 247866491670975357,
@@ -166,7 +162,7 @@ class Test_DsmRabbitmq:
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        edge_tags_in = language_hashes.get("default")["edge_tags_in"]
         edge_tags_out = language_hashes.get("default")["edge_tags_out"]
 
         DsmHelper.assert_checkpoint_presence(
