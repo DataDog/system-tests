@@ -95,6 +95,8 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         assert output == ""
 
+        assert False
+
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
 class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
