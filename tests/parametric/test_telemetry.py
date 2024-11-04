@@ -160,17 +160,36 @@ class Test_Consistent_Configs:
         )
         assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == True
         assert configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == "\d{3}-\d{2}-\d{4}"
-        
-    # these settings are not supported by the nodejs sdk
-        if context.library != "nodejs":
-            assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
-            assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES").get("value") == "200-250"
-            assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES").get("value") == "250-200"
-            assert (
-                configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING").get("value") == False
-            )  # No telemetry received, tested with Python and Java(also tried: DD_HTTP_CLIENT_TAG_QUERY_STRING)
         assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER").get("value") == "random-header-name"
 
+    @pytest.mark.parametrize(
+            "library_env",
+            [
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                    "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory",
+                    "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-250",
+                    "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "250-200",
+                    "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
+                }
+            ],
+        )
+    @missing_feature(context.library <= "nodejs", reason="These settings are not supported by the Nodejs sdk")
+    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
+    def test_library_settings_2(self, library_env, test_agent, test_library):
+        with test_library.start_span("test"):
+            pass
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        configuration = event["payload"]["configuration"]
+        configuration_by_name = {item["name"]: item for item in configuration}
+        
+        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
+        assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES").get("value") == "200-250"
+        assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES").get("value") == "250-200"
+        assert (
+            configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING").get("value") == False
+        )  # No telemetry received, tested with Python and Java(also tried: DD_HTTP_CLIENT_TAG_QUERY_STRING)
 
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
