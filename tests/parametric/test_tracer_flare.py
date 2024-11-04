@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios, features, missing_feature
+from utils import rfc, scenarios, features, missing_feature, context, bug
 
 parametrize = pytest.mark.parametrize
 
@@ -116,6 +116,7 @@ class TestTracerFlareV1:
         assert len(events) > 0
 
     @missing_feature(library="php", reason="APMLP-195")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_flare_log_level_order(self, library_env, test_agent, test_library):
         test_agent.set_remote_config(
@@ -125,6 +126,7 @@ class TestTracerFlareV1:
 
     @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
@@ -133,6 +135,7 @@ class TestTracerFlareV1:
 
     @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
         log_cfg_id = _set_log_level(test_agent, "debug")
@@ -144,6 +147,7 @@ class TestTracerFlareV1:
         assert_valid_zip(tracer_flare["flare_file"])
 
     @missing_feature(library="php", reason="APMLP-195")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
         task_config = {
