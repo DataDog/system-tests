@@ -143,6 +143,7 @@ class Test_DsmRabbitmq:
         reason="Dotnet calculates 3168906112866048140 as producer hash by using 'routing_key:True' in edge tags, with 'True' capitalized, resulting in different hash.",
     )
     @flaky(library="python", reason="APMAPI-724")
+    @missing_feature(context.library <= "nodejs@5.24.0")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
