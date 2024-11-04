@@ -357,6 +357,6 @@ docker_ssi_simple_tests:
     TEST_LIBRARY: "java"
   script:
       - ./build.sh -i runner
-      - aws-vault exec sso-agent-qa-account-admin -- aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 669783387624.dkr.ecr.us-east-1.amazonaws.com
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 669783387624.dkr.ecr.us-east-1.amazonaws.com
       - $ echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
       - ./run.sh DOCKER_SSI --ssi-weblog jetty-app --ssi-library java --ssi-base-image ubuntu:22.04 --ssi-arch linux/amd64 --ssi-installable-runtime 22.0.2-zulu
