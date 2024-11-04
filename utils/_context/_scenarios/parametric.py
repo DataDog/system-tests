@@ -129,7 +129,7 @@ class ParametricScenario(Scenario):
         elif "TEST_LIBRARY" in os.environ:
             library = os.getenv("TEST_LIBRARY")
         else:
-            raise ValueError("No library specified, please set -L option")
+            pytest.exit("No library specified, please set -L option", 1)
 
         # get tracer version info building and executing the ddtracer-version.docker file
 
