@@ -7,6 +7,7 @@ from typing import Union
 
 import os
 from fastapi import FastAPI
+import opentelemetry.trace
 from pydantic import BaseModel
 
 import opentelemetry
@@ -37,6 +38,10 @@ from ddtrace.internal.utils.version import parse_version
 
 spans: Dict[int, Span] = {}
 otel_spans: Dict[int, OtelSpan] = {}
+# Store the active span for each tracer in an array to allow for easy global access
+# FastAPI resets the contextvar containing the active span after each request
+active_ddspan = [None]
+active_otel_span = [None]
 app = FastAPI(
     title="APM library test server",
     description="""
@@ -46,10 +51,8 @@ Implement the API specified below to enable your library to run all of the share
 """,
 )
 
+# Ensures the Datadog and OpenTelemetry tracers are interoperable
 opentelemetry.trace.set_tracer_provider(TracerProvider())
-# Replaces the default otel api runtime context with DDRuntimeContext
-# https://github.com/open-telemetry/opentelemetry-python/blob/v1.16.0/opentelemetry-api/src/opentelemetry/context/__init__.py#L53
-os.environ["OTEL_PYTHON_CONTEXT"] = "ddcontextvars_context"
 
 
 class StartSpanArgs(BaseModel):
@@ -61,6 +64,7 @@ class StartSpanArgs(BaseModel):
     origin: str
     http_headers: List[Tuple[str, str]]
     links: List[Dict]
+    span_tags: List[Tuple[str, str]]
 
 
 class StartSpanReturn(BaseModel):
@@ -106,7 +110,11 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
             context = HTTPPropagator.extract(headers)
             span.link_span(context, link.get("attributes"))
 
+    for k, v in args.span_tags:
+        span.set_tag(k, v)
+
     spans[span.span_id] = span
+    active_ddspan[0] = ddtrace.tracer.current_span()
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
 
 
@@ -148,6 +156,7 @@ def trace_config() -> TraceConfigReturn:
 def trace_span_finish(args: SpanFinishArgs) -> SpanFinishReturn:
     span = spans[args.span_id]
     span.finish()
+    active_ddspan[0] = span._parent
     return SpanFinishReturn()
 
 
@@ -210,6 +219,22 @@ def trace_span_set_meta(args: SpanSetMetaArgs) -> SpanSetMetaReturn:
     span = spans[args.span_id]
     span.set_tag(args.key, args.value)
     return SpanSetMetaReturn()
+
+
+class SpanSetResourceArgs(BaseModel):
+    span_id: int
+    resource: str
+
+
+class SpanSetResourceReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/span/set_resource")
+def trace_span_set_resouce(args: SpanSetResourceArgs) -> SpanSetResourceReturn:
+    span = spans[args.span_id]
+    span.resource = args.resource
+    return SpanSetResourceReturn()
 
 
 @app.post("/trace/span/set_baggage")
@@ -356,6 +381,21 @@ def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
     return TraceSpanAddLinkReturn()
 
 
+class TraceSpanCurrentReturn(BaseModel):
+    span_id: int
+    trace_id: int
+
+
+@app.get("/trace/span/current")
+def trace_span_current() -> TraceSpanCurrentReturn:
+    span_id = 0
+    trace_id = 0
+    if active_ddspan[0]:
+        span_id = active_ddspan[0].span_id
+        trace_id = active_ddspan[0].trace_id
+    return TraceSpanCurrentReturn(span_id=span_id, trace_id=trace_id)
+
+
 class HttpClientRequestArgs(BaseModel):
     method: str
     url: str
@@ -450,10 +490,13 @@ def otel_start_span(args: OtelStartSpanArgs):
             )
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
 
-    otel_span = otel_tracer.start_span(
+    # parametric tests expect span kind to be 0 for internal, 1 for server, 2 for client, ....
+    # while parametric tests set 0 for unset, 1 internal, 2 for server, 3 for client, ....
+    span_kind_int = max(0, args.span_kind - 1)
+    with otel_tracer.start_as_current_span(
         args.name,
         context=set_span_in_context(parent_span),
-        kind=SpanKind(args.span_kind),
+        kind=SpanKind(span_kind_int),
         attributes=args.attributes,
         links=links,
         # parametric tests expect timestamps to be set in microseconds (required by go)
@@ -461,7 +504,11 @@ def otel_start_span(args: OtelStartSpanArgs):
         start_time=args.timestamp * 1e3 if args.timestamp else None,
         record_exception=True,
         set_status_on_exception=True,
-    )
+        end_on_exit=False,
+    ) as otel_span:
+        # Store the active span for easy global access. This active span should be equal to the newly created span.
+        active_otel_span[0] = opentelemetry.trace.get_current_span()
+        active_ddspan[0] = ddtrace.tracer.current_span()
 
     ctx = otel_span.get_span_context()
     otel_spans[ctx.span_id] = otel_span
@@ -538,8 +585,27 @@ def otel_end_span(args: OtelEndSpanArgs):
     if st is not None:
         # convert timestamp from microseconds to nanoseconds
         st = st * 1e3
+
+    active_ddspan[0] = span._ddspan._parent
+    active_otel_span[0] = otel_spans.get(active_ddspan[0].span_id) if active_ddspan[0] else None
     span.end(st)
     return OtelEndSpanReturn()
+
+
+class OtelCurrentSpanReturn(BaseModel):
+    span_id: int
+    trace_id: int
+
+
+@app.get("/trace/otel/current_span")
+def otel_current_span():
+    trace_id = 0
+    span_id = 0
+    if active_otel_span[0]:
+        ctx = active_otel_span[0].get_span_context()
+        trace_id = ctx.trace_id
+        span_id = ctx.span_id
+    return OtelCurrentSpanReturn(trace_id=trace_id, span_id=span_id)
 
 
 class OtelFlushSpansArgs(BaseModel):
