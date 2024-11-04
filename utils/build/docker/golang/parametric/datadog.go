@@ -71,7 +71,7 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (d
 
 		sctx, err := tracer.Extract(tracer.TextMapCarrier(headers))
 		if err != nil {
-			fmt.Println("failed in StartSpan", err, headers)
+			fmt.Printf("No trace context extracted from headers %v: %v\n", err, headers)
 		} else {
 			opts = append(opts, tracer.ChildOf(sctx))
 		}
@@ -180,12 +180,12 @@ func (s *apmClientServer) injectHeadersHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var distr []Tuple
+	distr := make([]Tuple, len(headers))
 	for k, v := range headers {
 		distr = append(distr, []string{k, v})
 	}
 
-	response := InjectHeadersReturn{distr}
+	response := InjectHeadersReturn{HttpHeaders: distr}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
