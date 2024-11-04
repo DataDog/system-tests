@@ -3,7 +3,7 @@ import json
 import pytest
 
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
-from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER
+from utils.dd_constants import SpanKind
 from utils.parametric.spec.trace import find_trace, find_root_span, retrieve_span_links
 
 # this global mark applies to all tests in this file.

@@ -1,4 +1,4 @@
-# pylint: disable=E1101
+# pylint: disable=E1101,C0302
 import contextlib
 import time
 import urllib.parse
@@ -10,9 +10,10 @@ import pytest
 from _pytest.outcomes import Failed
 import requests
 
+from utils.dd_constants import SpanKind, StatusCode
 from utils.parametric.protos import apm_test_client_pb2 as pb
 from utils.parametric.protos import apm_test_client_pb2_grpc
-from utils.parametric.spec.otel_trace import OtelSpanContext, convert_to_proto
+from utils.dd_constants import OtelSpanContext, convert_to_proto
 from utils.tools import logger
 
 
@@ -39,6 +40,9 @@ class Link(TypedDict):
 
 
 class APMLibraryClient:
+    def wait(self, timeout, url) -> None:
+        raise NotImplementedError
+
     def crash(self) -> None:
         raise NotImplementedError
 
@@ -63,7 +67,7 @@ class APMLibraryClient:
         self,
         name: str,
         timestamp: int,
-        span_kind: int,
+        span_kind: SpanKind,
         parent_id: int,
         links: List[Link],
         http_headers: List[Tuple[str, str]],
@@ -98,7 +102,7 @@ class APMLibraryClient:
     def otel_set_name(self, span_id: int, name: str) -> None:
         raise NotImplementedError
 
-    def otel_set_status(self, span_id: int, code: int, description: str) -> None:
+    def otel_set_status(self, span_id: int, code: StatusCode, description: str) -> None:
         raise NotImplementedError
 
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict) -> None:
@@ -160,16 +164,13 @@ class APMLibraryClient:
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         raise NotImplementedError
 
-    def trace_flush(self) -> None:
-        raise NotImplementedError
-
-    def trace_stop(self) -> None:
+    def trace_flush(self) -> bool:
         raise NotImplementedError
 
     def otel_flush(self, timeout: int) -> bool:
         raise NotImplementedError
 
-    def otel_set_bagage(self, span_id: int, key: str, value: str) -> None:
+    def otel_set_baggage(self, span_id: int, key: str, value: str) -> None:
         raise NotImplementedError
 
     def http_request(self, method: str, url: str, headers: List[Tuple[str, str]]) -> None:
@@ -186,13 +187,13 @@ class APMLibraryClientHTTP(APMLibraryClient):
         self.container = container
 
         # wait for server to start
-        self._wait(timeout)
+        self.wait(timeout, "/non-existent-endpoint-to-ping-until-the-server-starts")
 
-    def _wait(self, timeout):
+    def wait(self, timeout, url):
         delay = 0.01
         for _ in range(int(timeout / delay)):
             try:
-                resp = self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts"))
+                resp = self._session.get(self._url(url))
                 if resp.status_code == 404:
                     break
             except Exception:
@@ -207,7 +208,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         else:
             self._print_logs()
             message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
-            _fail(message)
+            raise RuntimeError(message)
 
     def _print_logs(self):
         try:
@@ -255,6 +256,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
         links: Optional[List[Link]],
         tags: Optional[List[Tuple[str, str]]],
     ):
+        # Avoid using http_headers, links, and origin when creating a span in the parametric apps.
+        # Alternative endpoints will be provided to set these values. This will be documented in a future PR.
         resp = self._session.post(
             self._url("/trace/span/start"),
             json={
@@ -326,6 +329,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def span_add_link(
         self, span_id: int, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None
     ):
+        # Avoid using http_headers when creating a span link in the parametric apps
+        # Alternative endpoints will be provided to set these values. This will be documented in a future PR.
         self._session.post(
             self._url("/trace/span/add_link"),
             json={
@@ -364,15 +369,17 @@ class APMLibraryClientHTTP(APMLibraryClient):
         # so server.xx do not have to
         return resp.json()["http_headers"]
 
-    def trace_flush(self) -> None:
-        self._session.post(self._url("/trace/span/flush"), json={})
-        self._session.post(self._url("/trace/stats/flush"), json={})
+    def trace_flush(self) -> bool:
+        return (
+            self._session.post(self._url("/trace/span/flush"), json={}).status_code < 300
+            and self._session.post(self._url("/trace/stats/flush"), json={}).status_code < 300
+        )
 
     def otel_trace_start_span(
         self,
         name: str,
         timestamp: int,
-        span_kind: int,
+        span_kind: SpanKind,
         parent_id: int,
         links: List[Link],
         http_headers: List[Tuple[str, str]],
@@ -383,7 +390,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
             json={
                 "name": name,
                 "timestamp": timestamp,
-                "span_kind": span_kind,
+                "span_kind": span_kind.name,
                 "parent_id": parent_id,
                 "links": links,
                 "http_headers": http_headers,
@@ -394,29 +401,8 @@ class APMLibraryClientHTTP(APMLibraryClient):
         # and others with bignum trace_ids and uint64 span_ids (ex: python). We should standardize this.
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
-    def otel_current_span(self) -> Union[SpanResponse, None]:
-        resp = self._session.get(self._url("/trace/otel/current_span"), json={})
-        if not resp:
-            return None
-
-        resp_json = resp.json()
-        return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
-
-    def otel_get_attribute(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
-    def otel_get_name(self, span_id: int):
-        resp = self._session.post(self._url("/trace/otel/get_name"), json={"span_id": span_id,},)
-        return resp.json()["name"]
-
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
         self._session.post(self._url("/trace/otel/end_span"), json={"id": span_id, "timestamp": timestamp})
-
-    def otel_get_links(self, span_id: int):
-        resp_json = self._session.post(self._url("/trace/otel/get_links"), json={"span_id": span_id}).json()
-
-        return resp_json["links"]
 
     def otel_set_attributes(self, span_id: int, attributes) -> None:
         self._session.post(self._url("/trace/otel/set_attributes"), json={"span_id": span_id, "attributes": attributes})
@@ -424,9 +410,9 @@ class APMLibraryClientHTTP(APMLibraryClient):
     def otel_set_name(self, span_id: int, name: str) -> None:
         self._session.post(self._url("/trace/otel/set_name"), json={"span_id": span_id, "name": name})
 
-    def otel_set_status(self, span_id: int, code: int, description: str) -> None:
+    def otel_set_status(self, span_id: int, code: StatusCode, description: str) -> None:
         self._session.post(
-            self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code, "description": description}
+            self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code.value, "description": description}
         )
 
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
@@ -459,7 +445,7 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout}).json()
         return resp["success"]
 
-    def otel_set_bagage(self, span_id: int, key: str, value: str) -> None:
+    def otel_set_baggage(self, span_id: int, key: str, value: str) -> None:
         resp = self._session.post(
             self._url("/trace/otel/otel_set_baggage"), json={"span_id": span_id, "key": key, "value": value}
         )
@@ -492,6 +478,30 @@ class APMLibraryClientHTTP(APMLibraryClient):
             "dd_trace_agent_url": config_dict.get("dd_trace_agent_url", None),
             "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
         }
+
+    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
+    ### The parametric apps will not expose endpoints for retrieving span data ###
+    ### Span data will be retrieved from the agent ###
+
+    def otel_current_span(self) -> Union[SpanResponse, None]:
+        resp = self._session.get(self._url("/trace/otel/current_span"), json={})
+        if not resp:
+            return None
+
+        resp_json = resp.json()
+        return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
+
+    def otel_get_attribute(self, span_id: int, key: str):
+        resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,},)
+        return resp.json()["value"]
+
+    def otel_get_name(self, span_id: int):
+        resp = self._session.post(self._url("/trace/otel/get_name"), json={"span_id": span_id,},)
+        return resp.json()["name"]
+
+    def otel_get_links(self, span_id: int):
+        resp_json = self._session.post(self._url("/trace/otel/get_links"), json={"span_id": span_id}).json()
+        return resp_json["links"]
 
 
 class _TestSpan:
@@ -530,6 +540,13 @@ class _TestSpan:
     def add_link(self, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None):
         self._client.span_add_link(self.span_id, parent_id, attributes, http_headers)
 
+    def finish(self):
+        self._client.finish_span(self.span_id)
+
+    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
+    ### The parametric apps will not expose endpoints for retrieving span data ###
+    ### Span data will be retrieved from the agent ###
+
     def get_name(self):
         return self._client.span_get_name(self.span_id)
 
@@ -541,9 +558,6 @@ class _TestSpan:
 
     def get_metric(self, key: str):
         return self._client.span_get_metric(self.span_id, key)
-
-    def finish(self):
-        self._client.finish_span(self.span_id)
 
 
 class _TestOtelSpan:
@@ -563,8 +577,8 @@ class _TestOtelSpan:
     def set_name(self, name):
         self._client.otel_set_name(self.span_id, name)
 
-    def set_status(self, code, description):
-        self._client.otel_set_status(self.span_id, code, description)
+    def set_status(self, code: StatusCode, description: str):
+        self._client.otel_set_status(self.span_id, code.value, description)
 
     def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
         self._client.otel_add_event(self.span_id, name, timestamp, attributes)
@@ -582,9 +596,11 @@ class _TestOtelSpan:
         return self._client.otel_get_span_context(self.span_id)
 
     def set_baggage(self, key: str, value: str):
-        self._client.otel_set_bagage(self.span_id, key, value)
+        self._client.otel_set_baggage(self.span_id, key, value)
 
-    # SDK methods
+    ### Do not use the below methods in parametric tests, they will be removed in a future PR ####
+    ### The parametric apps will not expose endpoints for retrieving span data ###
+    ### Span data will be retrieved from the agent ###
 
     def get_attribute(self, key: str):
         return self._client.otel_get_attribute(self.span_id, key)
@@ -599,18 +615,18 @@ class _TestOtelSpan:
 class APMLibraryClientGRPC:
     def __init__(self, url: str, timeout: int, container: Container):
         self.container = container
+        self.channel = grpc.insecure_channel(url)
+        self.wait(timeout, "")
+        client = apm_test_client_pb2_grpc.APMClientStub(self.channel)
+        self._client = client
 
-        channel = grpc.insecure_channel(url)
+    def wait(self, timeout, url) -> None:
         try:
-            grpc.channel_ready_future(channel).result(timeout=timeout)
+            grpc.channel_ready_future(self.channel).result(timeout=timeout)
         except grpc.FutureTimeoutError as e:
             logger.error("gRPC timeout, stopping test.")
             self._log_container_stdout()
-
-            raise RuntimeError(f"Container {container.name} did not respond to gRPC request") from e
-
-        client = apm_test_client_pb2_grpc.APMClientStub(channel)
-        self._client = client
+            raise RuntimeError(f"Container {self.container.name} did not respond to gRPC request") from e
 
     def __enter__(self) -> "APMLibrary":
         return self
@@ -686,7 +702,7 @@ class APMLibraryClientGRPC:
         self,
         name: str,
         timestamp: int,
-        span_kind: int,
+        span_kind: SpanKind,
         parent_id: int,
         links: List[Link],
         http_headers: List[Tuple[str, str]],
@@ -712,7 +728,7 @@ class APMLibraryClientGRPC:
             pb.OtelStartSpanArgs(
                 name=name,
                 timestamp=timestamp,
-                span_kind=span_kind,
+                span_kind=span_kind.name,
                 parent_id=parent_id,
                 span_links=pb_links,
                 attributes=convert_to_proto(attributes),
@@ -724,9 +740,11 @@ class APMLibraryClientGRPC:
             "trace_id": resp.trace_id,
         }
 
-    def trace_flush(self):
+    def trace_flush(self) -> bool:
         self._client.FlushSpans(pb.FlushSpansArgs())
         self._client.FlushTraceStats(pb.FlushTraceStatsArgs())
+        # GRPC endpoint a grpc.RpcError exception if the call fails
+        return True
 
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         resp = self._client.InjectHeaders(pb.InjectHeadersArgs(span_id=span_id,))
@@ -797,8 +815,8 @@ class APMLibraryClientGRPC:
     def otel_set_baggage(self, span_id: int, key: str, value: str):
         return self._client.OtelSetBaggage(pb.OtelSetBaggageArgs(span_id=span_id, key=key, value=value)).value
 
-    def otel_set_status(self, span_id: int, code: int, description: str):
-        self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code, description=description))
+    def otel_set_status(self, span_id: int, code: StatusCode, description: str):
+        self._client.OtelSetStatus(pb.OtelSetStatusArgs(span_id=span_id, code=code.value, description=description))
 
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes):
         self._client.OtelAddEvent(
@@ -918,7 +936,7 @@ class APMLibrary:
         self,
         name: str,
         timestamp: int = 0,
-        span_kind: int = 0,
+        span_kind: SpanKind = SpanKind.UNSPECIFIED,
         parent_id: int = 0,
         links: Optional[List[Link]] = None,
         attributes: dict = None,
@@ -941,23 +959,11 @@ class APMLibrary:
             "trace_id": resp["trace_id"],
         }
 
-    def current_span(self) -> Union[_TestSpan, None]:
-        resp = self._client.current_span()
-        if resp is None:
-            return None
-        return _TestSpan(self._client, resp["span_id"], resp["trace_id"])
-
-    def flush(self):
-        self._client.trace_flush()
+    def flush(self) -> bool:
+        return self._client.trace_flush()
 
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
-
-    def otel_current_span(self) -> Union[_TestOtelSpan, None]:
-        resp = self._client.otel_current_span()
-        if resp is None:
-            return None
-        return _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
 
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
@@ -966,7 +972,15 @@ class APMLibrary:
         return self._client.trace_inject_headers(span_id)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
-        return self._client.otel_set_bagage(span_id, key, value)
+        return self._client.otel_set_baggage(span_id, key, value)
+
+    def finish_span(self, span_id: int) -> None:
+        self._client.finish_span(span_id)
+
+    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        return self._client.get_tracer_config()
+
+    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
 
     def http_client_request(
         self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",
@@ -974,8 +988,21 @@ class APMLibrary:
         """Do an HTTP request with the given method and headers."""
         return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)
 
-    def finish_span(self, span_id: int) -> None:
-        self._client.finish_span(span_id)
+    def current_span(self) -> Union[_TestSpan, None]:
+        resp = self._client.current_span()
+        if resp is None:
+            return None
+        return _TestSpan(self._client, resp["span_id"], resp["trace_id"])
 
-    def get_tracer_config(self) -> Dict[str, Optional[str]]:
-        return self._client.get_tracer_config()
+    def otel_current_span(self) -> Union[_TestOtelSpan, None]:
+        resp = self._client.otel_current_span()
+        if resp is None:
+            return None
+        return _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
+
+    def is_alive(self) -> bool:
+        try:
+            self._client.wait(0.1, "/non-existent-endpoint")
+            return True
+        except RuntimeError:
+            return False

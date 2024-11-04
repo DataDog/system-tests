@@ -49,9 +49,6 @@ allow_no_feature_nodes = [
 allow_no_jira_ticket_for_bugs = [
     "tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span.test_datadog_otel_span",
     "tests/appsec/iast/source/test_body.py::TestRequestBody.test_source_reported",
-    "tests/appsec/iast/source/test_parameter_name.py::TestParameterName.test_source_get_reported",
-    "tests/appsec/iast/source/test_parameter_name.py::TestParameterName.test_source_post_reported",
-    "tests/appsec/iast/source/test_parameter_name.py::TestParameterName.test_source_reported",
     "tests/appsec/iast/source/test_parameter_value.py::TestParameterValue.test_source_post_reported",
     "tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method.test_blocking_before",
     "tests/appsec/test_rate_limiter.py::Test_Main.test_main",
