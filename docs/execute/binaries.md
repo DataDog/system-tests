@@ -28,7 +28,9 @@ There are two ways for running the C++ library tests with a custom tracer:
 
 ## Golang library
 
-For "regular" system tests (weblog), create a file `golang-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog via `go get`. Content example:
+For "regular" system tests (weblog), create a file `golang-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog via `go get`. 
+
+* Content example:
     * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
     * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
     * `gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>` Test un-merged changes
