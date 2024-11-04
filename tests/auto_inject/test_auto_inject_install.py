@@ -98,6 +98,19 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         print(f'Result: {output}')
 
+        output2 = self.execute_command(virtual_machine, "ps -o pid,ppid,state,cmd")
+        print(f'Output2: {output2}')
+
+        output3 = self.execute_command(virtual_machine, "ps -o pid,ppid,state,cmd | grep ' Z '")
+        output3 = output.strip()
+
+        print(f'Output3: {output3}')
+
+        output4 = self.execute_command(virtual_machine, "ps -o pid,ppid,state,cmd | sed -n '/ Z /p'")
+        output4 = output.strip()
+
+        print(f'Output4: {output4}')
+
         command_output = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Final: " + command_output)
         assert output == ""
