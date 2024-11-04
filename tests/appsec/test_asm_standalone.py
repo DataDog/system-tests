@@ -59,7 +59,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         except (KeyError, AssertionError) as e:
             return False
 
-    def setup_check_product_is_enabled_decorator(func):
+    def setup_check_product_is_enabled(func):
         def wrapper(self):
             headers = {}
             if self.tested_product is "appsec":
@@ -71,7 +71,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
         return wrapper
 
-    def test_check_product_is_enabled_decorator(func):
+    def test_check_product_is_enabled(func):
         def wrapper(self):
             product_enabled = False
             for data, trace, span in interfaces.library.get_spans(request=self.check_r):
@@ -85,7 +85,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
         return wrapper
 
-    @setup_check_product_is_enabled_decorator
+    @setup_check_product_is_enabled
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -100,7 +100,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled_decorator
+    @test_check_product_is_enabled
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -129,7 +129,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
-    @setup_check_product_is_enabled_decorator
+    @setup_check_product_is_enabled
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -144,7 +144,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled_decorator
+    @test_check_product_is_enabled
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -173,7 +173,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
-    @setup_check_product_is_enabled_decorator
+    @setup_check_product_is_enabled
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -188,7 +188,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled_decorator
+    @test_check_product_is_enabled
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -217,7 +217,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
-    @setup_check_product_is_enabled_decorator
+    @setup_check_product_is_enabled
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -232,7 +232,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled_decorator
+    @test_check_product_is_enabled
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -348,7 +348,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    @setup_check_product_is_enabled_decorator
+    @setup_check_product_is_enabled
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -363,7 +363,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled_decorator
+    @test_check_product_is_enabled
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -391,7 +391,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["0", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    @setup_check_product_is_enabled_decorator
+    @setup_check_product_is_enabled
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -406,7 +406,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled_decorator
+    @test_check_product_is_enabled
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -434,7 +434,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["1", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    @setup_check_product_is_enabled_decorator
+    @setup_check_product_is_enabled
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -449,7 +449,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled_decorator
+    @test_check_product_is_enabled
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
