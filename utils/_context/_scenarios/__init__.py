@@ -14,7 +14,7 @@ from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario
+from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
@@ -612,7 +612,7 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
+    simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
         "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={

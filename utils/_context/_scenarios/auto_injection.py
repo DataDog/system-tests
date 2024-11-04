@@ -389,3 +389,36 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_fedora_37_arm64=False,
             scenario_groups=scenario_groups,
         )
+
+
+class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
+    """ As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution 
+    Until we fix the performance problems on the AWS architecture and speed up the tests"""
+
+    def __init__(
+        self,
+        name,
+        doc,
+        vm_provision="installer-auto-inject",
+        agent_env=None,
+        app_env=None,
+        scenario_groups=None,
+        github_workflow=None,
+    ) -> None:
+        super().__init__(
+            name,
+            vm_provision=vm_provision,
+            agent_env=agent_env,
+            app_env=app_env,
+            doc=doc,
+            github_workflow=github_workflow,
+            include_ubuntu_22_amd64=True,
+            include_ubuntu_22_arm64=True,
+            include_amazon_linux_2_amd64=True,
+            include_amazon_linux_2_arm64=True,
+            include_amazon_linux_2023_amd64=True,
+            include_amazon_linux_2023_arm64=True,
+            include_redhat_8_amd64=True,
+            include_redhat_8_arm64=True,
+            scenario_groups=scenario_groups,
+        )
