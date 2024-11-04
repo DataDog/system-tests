@@ -102,7 +102,7 @@ class _VirtualMachineScenario(Scenario):
         self.agent_env = agent_env
         # Variables that will populate for the app installation
         self.app_env = app_env
-
+        self.only_default_vms = ""
         if include_ubuntu_20_amd64:
             self.required_vms.append(Ubuntu20amd64())
         if include_ubuntu_20_arm64:
@@ -177,6 +177,13 @@ class _VirtualMachineScenario(Scenario):
         logger.terminal.write_sep("=", "Installed components", bold=True)
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
+
+    def pytest_configure(self, config):
+        """ The only_default_vms is a flag that will be used to split the vms in two groups: default and non-default.
+        We need this value in the log folder name. We need to override the pytest_configure method to set the value
+        before create the log folder."""
+        self.only_default_vms = config.option.vm_default_vms
+        super().pytest_configure(config)
 
     def configure(self, config):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
