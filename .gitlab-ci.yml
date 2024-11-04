@@ -12,6 +12,7 @@ stages:
   - stats_results
   - parse_results
   - before_tests
+  - docker_ssi
 
 .base_job_onboarding_system_tests:
   extends: .base_job_onboarding
@@ -345,7 +346,7 @@ generate_system_tests_images:
 
 docker_ssi_simple_tests:
   extends: .base_job_onboarding_system_tests
-  stage: test_tracer
+  stage: docker_ssi
   allow_failure: true
   dependencies: []
   rules:
