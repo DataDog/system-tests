@@ -233,7 +233,7 @@ class Test_Parametric_DDSpan_Add_Link:
 
 @irrelevant(
     "DO NOT USE  /trace/span/http_client_request endpoint in parametric tests. "
-    "This endpoint will be removed in a future PR.Instead use the make_distinct_call weblog endpoint."
+    "This endpoint will be removed in a future PR. Instead use the make_distinct_call weblog endpoint."
 )
 @scenarios.parametric
 @features.parametric_endpoint_parity
@@ -313,7 +313,7 @@ class Test_Parametric_DDTrace_Crash:
 class Test_Parametric_DDTrace_Current_Span:
     def test_current_span(self, test_agent, test_library):
         """
-        Validates that /trace/span/current_span runs the current Datadog span.
+        Validates that /trace/span/current_span returns the active Datadog span.
 
         Supported Parameters:
         Supported Return Values:
@@ -472,7 +472,7 @@ class Test_Parametric_DDTrace_Baggage:
 class Test_Parametric_OtelSpan_Start_Finish:
     def test_span_start_and_finish(self, test_agent, test_library):
         """
-        Validates the /trace/otel/start_span API creates a new span:
+        Validates that the /trace/otel/start_span API creates a new span and that the /trace/otel/end_span API finishes a span and sends it to the agent.
 
         Supported Parameters:
         - name: str
@@ -487,8 +487,6 @@ class Test_Parametric_OtelSpan_Start_Finish:
 
         - span_id: Union[int, str]
         - trace_id: Union[int, str]
-
-        Validates the /trace/otel/end_span API finishes a span and sends it to the agent.
         """
         with test_library:
             with test_library.otel_start_span("otel_start_span_parent") as s1:
@@ -528,7 +526,7 @@ class Test_Parametric_OtelSpan_Start_Finish:
 class Test_Parametric_OtelSpan_Set_Attribute:
     def test_otel_set_attribute(self, test_agent, test_library):
         """
-        Validates that /traces/otel/end_span API finishes a span and sends it to the agent.
+        Validates that /traces/otel/set_attributes API sets the corresponding attributes on a span.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -536,7 +534,7 @@ class Test_Parametric_OtelSpan_Set_Attribute:
         Supported Return Values:
         """
         with test_library:
-            with test_library.otel_start_span("otel_get_attribute") as s1:
+            with test_library.otel_start_span("otel_set_attribute") as s1:
                 s1.set_attribute("key", "value")
                 s1.end_span()
 
@@ -573,7 +571,7 @@ class Test_Parametric_OtelSpan_Set_Status:
 class Test_Parametric_OtelSpan_Set_Name:
     def test_otelspan_set_name(self, test_agent, test_library):
         """
-        Validates that /trace/otel/set_name sets a name on a span.
+        Validates that /trace/otel/set_name sets the resource name on a span.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -640,6 +638,7 @@ class Test_Parametric_OtelSpan_Events:
         events = json.loads(span["meta"]["events"])
         assert len(events) == 1
         assert events[0]["name"].lower() in ["exception", "error"]
+        assert events[0]["attributes"]["error.key"] == "value"
 
 
 @scenarios.parametric

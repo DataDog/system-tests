@@ -83,16 +83,7 @@ class APMLibraryClient:
     def otel_current_span(self) -> Union[SpanResponse, None]:
         raise NotImplementedError
 
-    def otel_get_attribute(self, span_id: int, key: str):
-        raise NotImplementedError
-
-    def otel_get_name(self, span_id: int):
-        raise NotImplementedError
-
     def otel_end_span(self, span_id: int, timestamp: int) -> None:
-        raise NotImplementedError
-
-    def otel_get_links(self, span_id: int) -> List[Link]:
         raise NotImplementedError
 
     def otel_set_attributes(self, span_id: int, attributes: dict) -> None:
@@ -148,18 +139,6 @@ class APMLibraryClient:
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         raise NotImplementedError
 
-    def span_get_name(self, span_id: int):
-        raise NotImplementedError
-
-    def span_get_resource(self, span_id: int):
-        raise NotImplementedError
-
-    def span_get_meta(self, span_id: int, key: str):
-        raise NotImplementedError
-
-    def span_get_metric(self, span_id: int, key: str):
-        raise NotImplementedError
-
     def trace_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         raise NotImplementedError
 
@@ -176,6 +155,29 @@ class APMLibraryClient:
         raise NotImplementedError
 
     def get_tracer_config(self) -> Dict[str, Optional[str]]:
+        raise NotImplementedError
+
+    # Remove the methods below in a future PR
+
+    def span_get_name(self, span_id: int):
+        raise NotImplementedError
+
+    def span_get_resource(self, span_id: int):
+        raise NotImplementedError
+
+    def span_get_meta(self, span_id: int, key: str):
+        raise NotImplementedError
+
+    def span_get_metric(self, span_id: int, key: str):
+        raise NotImplementedError
+
+    def otel_get_attribute(self, span_id: int, key: str):
+        raise NotImplementedError
+
+    def otel_get_name(self, span_id: int):
+        raise NotImplementedError
+
+    def otel_get_links(self, span_id: int) -> List[Link]:
         raise NotImplementedError
 
 
@@ -341,14 +343,6 @@ class APMLibraryClientHTTP(APMLibraryClient):
             },
         )
 
-    def span_get_meta(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
-    def span_get_metric(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
     def span_get_baggage(self, span_id: int, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key,},)
         resp = resp.json()
@@ -358,10 +352,6 @@ class APMLibraryClientHTTP(APMLibraryClient):
         resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
         resp = resp.json()
         return resp["baggage"]
-
-    def span_get_resource(self, span_id: int):
-        resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,},)
-        return resp.json()["resource"]
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
@@ -479,10 +469,6 @@ class APMLibraryClientHTTP(APMLibraryClient):
             "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
         }
 
-    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
-    ### The parametric apps will not expose endpoints for retrieving span data ###
-    ### Span data will be retrieved from the agent ###
-
     def otel_current_span(self) -> Union[SpanResponse, None]:
         resp = self._session.get(self._url("/trace/otel/current_span"), json={})
         if not resp:
@@ -490,6 +476,22 @@ class APMLibraryClientHTTP(APMLibraryClient):
 
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
+
+    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
+    ### The parametric apps will not expose endpoints for retrieving span data ###
+    ### Span data will be retrieved from the agent ###
+
+    def span_get_resource(self, span_id: int):
+        resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,},)
+        return resp.json()["resource"]
+
+    def span_get_meta(self, span_id: int, key: str):
+        resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,},)
+        return resp.json()["value"]
+
+    def span_get_metric(self, span_id: int, key: str):
+        resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,},)
+        return resp.json()["value"]
 
     def otel_get_attribute(self, span_id: int, key: str):
         resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,},)

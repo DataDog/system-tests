@@ -1344,13 +1344,10 @@ tests/:
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
-      # app is still running after the crash endpoint is called
-      Test_Parametric_DDTrace_Crash: bug (APMAPI-778)
-      # Fails to retreive the current span after a span has finished
-      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)
+      Test_Parametric_DDTrace_Crash: bug (APMAPI-778) # The crash endpoint does not kill the application
+      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778) # Fails to retreive the current span after a span has finished
       Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
-      # current span endpoint does not return DataDog spans created by the otel api
-      Test_Parametric_Otel_Current_Span: bug (APMAPI-778)
+      Test_Parametric_Otel_Current_Span: bug (APMAPI-778) # Current span endpoint does not return DataDog spans created by the otel api
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature

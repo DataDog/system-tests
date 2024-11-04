@@ -156,12 +156,10 @@ tests/:
       Test_Otel_Span_With_Baggage: missing_feature
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
-      # The expected error status is not set
-      Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778)
+      Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778)  # The expected error status is not set
       Test_Parametric_DDSpan_Set_Metric: missing_feature (No method available for directly setting a span metric)
       Test_Parametric_DDSpan_Set_Resource: missing_feature (resource endpoint is not implemented)
-      # Cpp parametric app does not support creating a child span from a finished span
-      Test_Parametric_DDSpan_Start: bug (APMAPI-778)
+      Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # Cpp parametric app does not support creating a child span from a finished span
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Config: missing_feature (config endpoint is not implemented)
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
