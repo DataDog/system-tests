@@ -56,6 +56,11 @@ class AsmStandalone_UpstreamPropagation_Base:
         except (KeyError, AssertionError) as e:
             return False
 
+    @staticmethod
+    def check_feature_is_enabled(span):
+        meta = span["meta"]
+        assert "_dd.iast.json" in meta or "_dd.appsec.json", "No asm event in root span"
+
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -71,9 +76,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
-        # check that the appsec/iast product is available for the tracer to avoid false positives
-        self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
-
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -81,6 +83,8 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
+            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -116,9 +120,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
-        # check that the appsec/iast product is available for the tracer to avoid false positives
-        self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
-
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -126,6 +127,8 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
+            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -161,9 +164,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
-        # check that the appsec/iast product is available for the tracer to avoid false positives
-        self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
-
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -171,6 +171,8 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
+            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -206,9 +208,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
-        # check that the appsec/iast product is available for the tracer to avoid false positives
-        self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
-
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -216,6 +215,8 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
+            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -338,9 +339,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
-        # check that the appsec/iast product is available for the tracer to avoid false positives
-        self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
-
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
@@ -348,6 +346,8 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
+            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -382,9 +382,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
-        # check that the appsec/iast product is available for the tracer to avoid false positives
-        self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
-
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
@@ -392,6 +389,8 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
+            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -426,9 +425,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
-        # check that the appsec/iast product is available for the tracer to avoid false positives
-        self.test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
-
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
@@ -436,6 +432,8 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+
+            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
