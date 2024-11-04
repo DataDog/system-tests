@@ -3,7 +3,9 @@
 This module provides one unit test for each parametric endpoint.
 The results of these unit tests are reported to the feature parity dashboard.
 Parametric endpoints that are not tested in this file are not yet supported.
-Avoid using these endpoints in the parametric tests.
+Avoid using those endpoints in the parametric tests.
+When in doubt refer to the python implementation as the source of truth:
+https://github.com/DataDog/system-tests/pull/3345/files.
 """
 import json
 import pytest
@@ -25,7 +27,6 @@ class Test_Parametric_DDSpan_Start:
         Validates the /trace/span/start API creates a new span:
 
         Supported Parameters:
-        - span_id: int
         - name: str
         - service: Optional[str]
         - resource: Optional[str]
@@ -41,6 +42,7 @@ class Test_Parametric_DDSpan_Start:
             with test_library.start_span("parent") as s1:
                 pass
 
+            # To test proper parenting behavior
             with test_library.start_span(
                 "child", "myservice", "myresource", s1.span_id, "web", tags=[("hello", "monkeys"), ("num", "1")],
             ) as s2:
@@ -76,9 +78,8 @@ class Test_Parametric_DDSpan_Finish:
         Supported Return Values:
         """
         with test_library:
-            # Avoids calling start_span_generator.__exit__() since this method manually finishes the span.
-            start_span_generator = test_library.start_span("span")
-            s1 = start_span_generator.__enter__()
+            # Avoids calling test_library.start_span.__exit__() since this method calls span.finish()
+            s1 = test_library.start_span("span").__enter__()
             with pytest.raises(ValueError) as e:
                 test_agent.wait_for_num_traces(num=1)
             assert e.match(".*traces not available from test agent, got 0.*")
@@ -340,7 +341,7 @@ class Test_Parametric_DDTrace_Current_Span:
 
     def test_current_span_from_otel(self, test_agent, test_library):
         """
-        Validates that /trace/span/current_span the current Datadog span when the span was created by the OTEL API.
+        Validates that /trace/span/current_span can return the Datadog span that was created by the OTEL API.
 
         Supported Parameters:
         Supported Return Values:

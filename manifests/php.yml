@@ -298,7 +298,7 @@ tests/:
     test_parametric_endpoints.py:
       # Adding spans links by parent id does not work as expected
       Test_Parametric_DDSpan_Add_Link: bug (APMAPI-778)
-      # Starting a span with a parent id does not work as expected
+      # Cpp parametric app does not support creating a child span from a finished span
       Test_Parametric_DDSpan_Start: bug (APMAPI-778)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)
