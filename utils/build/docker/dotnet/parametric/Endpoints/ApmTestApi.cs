@@ -200,12 +200,16 @@ public abstract class ApmTestApi
 
     private static async Task SpanSetError(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
+        var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
+        parsedDictionary!.TryGetValue("span_id", out var id);
+
+        var span = Spans[Convert.ToUInt64(id)];
         span.Error = true;
 
-        var type = await FindBodyKeyValueAsync(request, "type");
-        var message = await FindBodyKeyValueAsync(request, "message");
-        var stack = await FindBodyKeyValueAsync(request, "stack");
+        parsedDictionary.TryGetValue("type", out var type);
+        parsedDictionary.TryGetValue("message", out var message);
+        parsedDictionary.TryGetValue("stack", out var stack);
 
         if (!string.IsNullOrEmpty(type))
         {

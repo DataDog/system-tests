@@ -496,7 +496,7 @@ ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 ENV DD_TRACE_Grpc_ENABLED=false
 ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
-ENV DD_TRACE_OTEL_ENABLED=false
+ENV DD_TRACE_OTEL_ENABLED=true
 
 
 COPY --from=build /app/out /app
