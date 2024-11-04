@@ -74,10 +74,17 @@ class AsmStandalone_UpstreamPropagation_Base:
     def test_check_product_is_enabled(func):
         def wrapper(self):
             product_enabled = False
+            tags = "_dd.iast.json" if self.tested_product == "iast" else "_dd.appsec.json"
+            meta_struct_key = "vulnerability" if self.tested_product == "iast" else "appsec"
             for data, trace, span in interfaces.library.get_spans(request=self.check_r):
+                # Check if the product is enabled in meta
                 meta = span["meta"]
-                tags = "_dd.iast.json" if self.tested_product == "iast" else "_dd.appsec.json"
                 if tags in meta:
+                    product_enabled = True
+                    break
+                # Check if the product is enabled in meta_struct
+                meta_struct = span["meta_struct"]
+                if meta_struct and meta_struct.get(meta_struct_key):
                     product_enabled = True
                     break
             assert product_enabled, f"{self.tested_product} is not available"
