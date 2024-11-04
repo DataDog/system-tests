@@ -93,20 +93,20 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         print(f"Response is {response}")
 
-        output = self.execute_command(virtual_machine, "ps aux -o pid,ppid,state,cmd | awk '$3 == \"Z\" { print $0 }'")
+        output = self.execute_command(virtual_machine, "ps ax -o pid,ppid,state,cmd | awk '$3 == \"Z\" { print $0 }'")
         output = output.strip()
 
         print(f'Result: {output}')
 
-        output2 = self.execute_command(virtual_machine, "ps aux -o pid,ppid,state,cmd")
+        output2 = self.execute_command(virtual_machine, "ps ax -o pid,ppid,state,cmd")
         print(f'Output2: {output2}')
 
-        output3 = self.execute_command(virtual_machine, "ps aux -o pid,ppid,state,cmd | grep ' Z '")
+        output3 = self.execute_command(virtual_machine, "ps ax -o pid,ppid,state,cmd | grep ' Z '")
         output3 = output.strip()
 
         print(f'Output3: {output3}')
 
-        output4 = self.execute_command(virtual_machine, "ps aux -o pid,ppid,state,cmd | sed -n '/ Z /p'")
+        output4 = self.execute_command(virtual_machine, "ps ax -o pid,ppid,state,cmd | sed -n '/ Z /p'")
         output4 = output.strip()
 
         print(f'Output4: {output4}')
