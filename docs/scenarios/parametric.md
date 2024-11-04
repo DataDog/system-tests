@@ -202,9 +202,7 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 We have transitioned to using an HTTP interface, replacing the legacy GRPC interface. To view the available HTTP endpoints , follow these steps:
 
-1. ```
-./utils/scripts/parametric/run_reference_http.sh
-```
+1. `./utils/scripts/parametric/run_reference_http.sh`
 
 2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
 
