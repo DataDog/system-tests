@@ -846,6 +846,7 @@ class TestDynamicConfigSamplingRules:
     @bug(library="cpp", reason="unknown")
     @bug(library="ruby", reason="To be investigated")
     @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
+    @bug(library="python", reason="APMAPI-857")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""

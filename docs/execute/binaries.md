@@ -49,6 +49,8 @@ go mod tidy
 
 Follow these steps to run Parametric tests with a custom Java Tracer version:
 
+To run a custom Tracer version from a local branch:
+
 1. Clone the repo and checkout to the branch you'd like to test:
 ```bash
 git clone git@github.com:DataDog/dd-trace-java.git
@@ -73,6 +75,12 @@ Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy
 TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
 ```
 
+To run a custom tracer version from a remote branch:
+
+1. Find your remote branch on Github and navigate to the `ci/circleci: build_lib` test.
+2. Open the details of the test in CircleCi and click on the `Artifacts` tab.
+3. Download the `libs/dd-java-agent-*-SNAPSHOT.jar` and `libs/dd-trace-api-*-SNAPSHOT.jar` and move them into the `system-tests/binaries/` folder.
+4. Follow Step 4 from above to run the Parametric tests.
 ## NodeJS library
 
 1. Create a file `nodejs-load-from-npm` in `binaries/`, the content will be installed by `npm install`. Content example:
