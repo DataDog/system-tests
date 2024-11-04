@@ -775,8 +775,10 @@ class Test_Headers_Tracecontext:
         with test_library:
             with test_library.start_span(name="new_span") as span:
                 headers = test_library.inject_headers(span.span_id)
+
             tracestate_headers = list(filter(lambda h: h[0].lower() == "tracestate", headers))
             assert len(tracestate_headers) == 1
+
             tracestate = tracestate_headers[0][1]
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert "p:{:016x}".format(int(span.span_id)) in tracestate
