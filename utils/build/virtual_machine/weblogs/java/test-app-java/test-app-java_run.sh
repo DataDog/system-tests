@@ -7,6 +7,8 @@ sudo chmod -R 755 *
 echo "Start Java app"
 
 ./compile_app.sh 5985
+sudo mkdir -p /opt/jetty-classpath
+sudo cp -r jetty-classpath/. /opt/jetty-classpath
 
 sudo chmod 755 create_and_run_app_service.sh
 
