@@ -174,7 +174,7 @@ class Test_Consistent_Configs:
             }
         ],
     )
-    @missing_feature(context.library <= "nodejs", reason="These settings are not supported by the Nodejs sdk")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     def test_library_settings_2(self, library_env, test_agent, test_library):
