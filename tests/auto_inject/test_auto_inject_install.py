@@ -86,6 +86,9 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         print(f"Commandline is {command_line}")
 
+        command_output = self.execute_command(virtual_machine, "ps aux --forest")
+        logger.info("Initial: " + command_output)
+
         response = self.fork_and_crash(virtual_machine)
 
         print(f"Response is {response}")
@@ -95,7 +98,11 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         print(f'Result: {output}')
 
+        command_output = self.execute_command(virtual_machine, "ps aux --forest")
+        logger.info("Final: " + command_output)
         assert output == ""
+        print(f'Test succeeded :(')
+        assert False
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
