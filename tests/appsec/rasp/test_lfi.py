@@ -10,7 +10,6 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
-    validate_metric_tag_version,
     RC_CONSTANTS,
     Base_Rules_Version,
 )
