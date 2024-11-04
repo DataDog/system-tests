@@ -1,5 +1,6 @@
+import contextlib
 import dataclasses
-from typing import Dict, List, Literal, Union
+from typing import Dict, List, Literal, Union, Generator, TextIO
 
 import json
 import glob
@@ -7,12 +8,11 @@ from functools import lru_cache
 import os
 import shutil
 import subprocess
-import time
 
 import pytest
-import psutil
+from _pytest.outcomes import Failed
 import docker
-from docker.errors import DockerException, APIError
+from docker.errors import DockerException
 from docker.models.containers import Container
 from docker.models.networks import Network
 
@@ -20,6 +20,12 @@ from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 
 from .core import Scenario, ScenarioGroup
+
+
+def _fail(message):
+    """ Used to mak a test as failed """
+    logger.error(message)
+    raise Failed(message, pytrace=False) from None
 
 
 # Max timeout in seconds to keep a container running
@@ -65,7 +71,7 @@ class APMLibraryTestServer:
     container_build_dir: str
     container_build_context: str = "."
 
-    container_port: str = int(os.getenv("APM_LIBRARY_SERVER_PORT", "50052"))
+    container_port: int = 8080
     host_port: int = None  # Will be assigned by get_host_port()
 
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
@@ -75,7 +81,7 @@ class APMLibraryTestServer:
 
 
 class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.17.0"
+    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0"
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -123,7 +129,7 @@ class ParametricScenario(Scenario):
         elif "TEST_LIBRARY" in os.environ:
             library = os.getenv("TEST_LIBRARY")
         else:
-            raise ValueError("No library specified, please set -L option")
+            pytest.exit("No library specified, please set -L option", 1)
 
         # get tracer version info building and executing the ddtracer-version.docker file
 
@@ -188,6 +194,7 @@ class ParametricScenario(Scenario):
         """ some network may still exists from previous unfinished sessions """
         logger.info("Removing unused network")
         _get_client().networks.prune()
+        logger.info("Removing unused network done")
 
     @property
     def library(self):
@@ -274,6 +281,7 @@ class ParametricScenario(Scenario):
 
         raise ValueError(f"Unexpected worker_id: {worker_id}")
 
+    @contextlib.contextmanager
     def docker_run(
         self,
         image: str,
@@ -284,7 +292,8 @@ class ParametricScenario(Scenario):
         host_port: int,
         container_port: int,
         command: List[str],
-    ) -> Container:
+        log_file: TextIO,
+    ) -> Generator[Container, None, None]:
 
         # Convert volumes to the format expected by the docker-py API
         fixed_volumes = {}
@@ -296,34 +305,36 @@ class ParametricScenario(Scenario):
             else:
                 raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
 
-        logger.debug(f"Run container {name} from image {image}")
+        logger.info(f"Run container {name} from image {image} with host port {host_port}")
 
-        attempt = 3
-        while attempt > 0:
-            try:
-                container: Container = _get_client().containers.run(
-                    image,
-                    name=name,
-                    environment=env,
-                    volumes=fixed_volumes,
-                    network=network,
-                    ports={f"{container_port}/tcp": host_port},  # let docker choose an host port
-                    command=command,
-                    detach=True,
-                )
-                return container
-            except APIError:
-                logger.exception(f"Failed to run container {name}, retrying...")
+        try:
+            container: Container = _get_client().containers.run(
+                image,
+                name=name,
+                environment=env,
+                volumes=fixed_volumes,
+                network=network,
+                ports={f"{container_port}/tcp": host_port},
+                command=command,
+                detach=True,
+            )
+            logger.debug(f"Container {name} successfully started")
+        except Exception as e:
+            # at this point, even if it failed to start, the container may exists!
+            for container in _get_client().containers.list(filters={"name": name}, all=True):
+                container.remove(force=True)
 
-                # at this point, even if it failed to start, the container may exists!
-                for container in _get_client().containers.list(filters={"name": name}, all=True):
-                    container.remove(force=True)
+            _fail(f"Failed to run container {name}: {e}")
 
-                time.sleep(0.5)  # give some to time to docker daemon to free resources
-                attempt -= 1
-
-        _log_open_port_informations(host_port)
-        raise RuntimeError(f"Failed to run container {name}, please see logs")
+        try:
+            yield container
+        finally:
+            logger.info(f"Stopping {name}")
+            container.stop(timeout=1)
+            logs = container.logs()
+            log_file.write(logs.decode("utf-8"))
+            log_file.flush()
+            container.remove(force=True)
 
 
 def _get_base_directory():
@@ -485,8 +496,6 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
-# "disable" rate limiting by default by setting it to a large value
-ENV DD_TRACE_RATE_LIMIT=10000000
 
 COPY --from=build /app/out /app
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
@@ -629,19 +638,3 @@ RUN mkdir /parametric-tracer-logs
         container_build_context=_get_base_directory(),
         env={},
     )
-
-
-def _log_open_port_informations(port):
-
-    p: psutil.Process
-
-    for p in psutil.process_iter():
-        try:
-            connections = p.connections()
-        except:
-            connections = []
-
-        for c in connections:
-            if c.status == "LISTEN" and c.laddr.port == port:
-                logger.error(f"Port {port} is already in use by process {p.pid} {p.name()} {p.cmdline()}")
-                return
