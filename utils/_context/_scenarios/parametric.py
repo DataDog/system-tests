@@ -504,7 +504,7 @@ ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 ENV DD_TRACE_Grpc_ENABLED=false
 ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
-ENV DD_TRACE_OTEL_ENABLED=false
+ENV DD_TRACE_OTEL_ENABLED=true
 
 # copy custom tool used to get library version (built above)
 COPY utils/build/docker/dotnet/parametric/system_tests_library_version.sh ./
