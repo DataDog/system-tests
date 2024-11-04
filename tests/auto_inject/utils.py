@@ -42,6 +42,11 @@ class AutoInjectBaseTest:
         vm_port = virtual_machine.deffault_open_port
         return simple_request(f"http://{vm_ip}:{vm_port}/commandline", swallow=False)
 
+    def fork_and_crash(self, virtual_machine) -> int:
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        return simple_request(f"http://{vm_ip}:{vm_port}/fork_and_crash", swallow=False)
+
     def crash_and_wait_for_exit(self, virtual_machine, commandline) -> bool:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port

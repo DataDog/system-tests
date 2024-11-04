@@ -29,6 +29,16 @@ def crashme(request):
 
     ctypes.string_at(0)
 
+def fork_and_crash(request):
+    pid = os.fork()
+    if pid > 0:
+        # Parent process
+        _, status = os.waitpid(pid, 0)  # Wait for the child process to exit
+        return HttpResponse(f"Child process {pid} exited with status {status}")
+    elif pid == 0:
+        # Child process
+        crashme(request)
+        return HttpResponse("Nobody should see this")
 
 def pid(request):
     return HttpResponse(os.getpid())
@@ -49,6 +59,7 @@ def commandline(request):
 urlpatterns = [
     path("", index),
     path("crashme", crashme),
+    path("fork_and_crash", fork_and_crash),
     path("pid", pid),
     path("commandline", commandline),
 ]

@@ -150,6 +150,27 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoChildProcess(base.Auto
 
         assert success
 
+@features.installer_auto_instrumentation
+@scenarios.container_auto_injection_install_script_crashtracking_childprocess
+class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines()
+    def test_install(self, virtual_machine):
+        self.warmup(virtual_machine)
+
+        command_line = self.get_commandline(virtual_machine)
+
+        print(f"Commandline is {command_line}")
+
+        response = self.fork_and_crash(virtual_machine)
+
+        print(f"Response is {response}")
+
+        output = self.execute_command(virtual_machine, "ps -o pid,ppid,state,cmd | awk '$3 == \"Z\" { print $0 }'")
+        output = output.strip()
+
+        print(f'Result: {output}')
+
+        assert output == ""
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
