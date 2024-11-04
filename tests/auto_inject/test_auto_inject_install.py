@@ -82,12 +82,16 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
     def test_install(self, virtual_machine):
         self.warmup(virtual_machine)
 
-        response = self.fork_and_crash(virtual_machine)
+        process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+        logger.info("Initial process tree: " + process_tree)
 
-        print(f"Response is {response}")
+        self.fork_and_crash(virtual_machine)
 
         output = self.execute_command(virtual_machine, "ps ax -o pid,ppid,state,cmd | awk '$3 == \"Z\" { print $0 }'")
         output = output.strip()
+
+        process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+        logger.info("Final process tree: " + process_tree)
 
         assert output == ""
 
