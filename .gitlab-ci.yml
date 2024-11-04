@@ -187,7 +187,7 @@ onboarding_dotnet:
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container,test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
