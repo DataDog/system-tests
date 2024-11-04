@@ -23,7 +23,6 @@ find /opt/jetty-distribution-$JETTY_VERSION/lib -iname '*.jar' -exec sudo cp \{\
 # Causes ClassNotFound exceptions https://github.com/jetty/jetty.project/issues/4746
 sudo rm /opt/jetty-classpath/jetty-jaspi*
 
-ls /home/datadog/jetty-classpath
 FILE=JettyServletMain.class
 if [ -f "$FILE" ]; then
     echo "App already compiled."
