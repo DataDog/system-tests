@@ -684,6 +684,10 @@ This endpoint is used to validate DSM context extraction works correctly when pr
 This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning it's value (the headers received) to inspect them, looking for
 distributed tracing propagation headers.
 
+### \[GET\] /vulnerablerequestdownstream
+
+Similar to `/requestdownstream`. This is used to test standalone IAST downstream propagation. It should call `/returnheaders` and returning return the resulting json data structure from `/returnheaders` in its response.
+
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
 
@@ -748,7 +752,6 @@ Query parameters required in the `GET` method:
 Examples:
 - `GET`: `/session/user?sdk_user=sdkUser`
 
-
 ### \[GET\] /mock_s3/put_object
 
 This endpoint is used to test the s3 integration. It creates a bucket if
@@ -790,3 +793,4 @@ stripped (accounting for a quirk in the boto3 library).
 
 Examples:
 - `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
+
