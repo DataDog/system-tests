@@ -201,7 +201,7 @@ tests/:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.55.0
-      Test_IastStandalone_UpstreamPropagation: missing_feature
+      Test_IastStandalone_UpstreamPropagation: v2.55.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
