@@ -28,6 +28,9 @@ class AsmStandalone_UpstreamPropagation_Base:
     # Enpoint that triggers an ASM event and a downstream request
     requestdownstreamUrl = "/requestdownstream"
 
+    # Tested product
+    tested_product = None
+
     # Return a boolean indicating if the test passed
     @staticmethod
     def _assert_tags(first_trace, span, obj, expected_tags):
@@ -56,11 +59,33 @@ class AsmStandalone_UpstreamPropagation_Base:
         except (KeyError, AssertionError) as e:
             return False
 
-    @staticmethod
-    def check_feature_is_enabled(span):
-        meta = span["meta"]
-        assert "_dd.iast.json" in meta or "_dd.appsec.json", "No asm event in root span"
+    def setup_check_product_is_enabled_decorator(func):
+        def wrapper(self):
+            headers = {}
+            if self.tested_product is "appsec":
+                headers = {
+                    "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
+                }
+            self.check_r = weblog.get(self.requestdownstreamUrl, headers=headers,)
+            func(self)
 
+        return wrapper
+
+    def test_check_product_is_enabled_decorator(func):
+        def wrapper(self):
+            product_enabled = False
+            for data, trace, span in interfaces.library.get_spans(request=self.check_r):
+                meta = span["meta"]
+                tags = "_dd.iast.json" if self.tested_product == "iast" else "_dd.appsec.json"
+                if tags in meta:
+                    product_enabled = True
+                    break
+            assert product_enabled, f"{self.tested_product} is not available"
+            func(self)
+
+        return wrapper
+
+    @setup_check_product_is_enabled_decorator
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -75,6 +100,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
+    @test_check_product_is_enabled_decorator
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -83,8 +109,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
-
-            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -105,6 +129,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
+    @setup_check_product_is_enabled_decorator
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -119,6 +144,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
+    @test_check_product_is_enabled_decorator
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -127,8 +153,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
-
-            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -149,6 +173,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
+    @setup_check_product_is_enabled_decorator
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -163,6 +188,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
+    @test_check_product_is_enabled_decorator
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -171,8 +197,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
-
-            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -193,6 +217,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
+    @setup_check_product_is_enabled_decorator
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -207,6 +232,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
+    @test_check_product_is_enabled_decorator
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -215,8 +241,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
-
-            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -324,6 +348,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
+    @setup_check_product_is_enabled_decorator
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -338,6 +363,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
+    @test_check_product_is_enabled_decorator
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -346,8 +372,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
-
-            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -367,6 +391,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["0", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
+    @setup_check_product_is_enabled_decorator
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -381,6 +406,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
+    @test_check_product_is_enabled_decorator
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -389,8 +415,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
-
-            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -410,6 +434,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["1", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
+    @setup_check_product_is_enabled_decorator
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
@@ -424,6 +449,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
+    @test_check_product_is_enabled_decorator
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -432,8 +458,6 @@ class AsmStandalone_UpstreamPropagation_Base:
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
-
-            self.check_feature_is_enabled(span)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -585,6 +609,8 @@ class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagatio
 
     requestdownstreamUrl = "/requestdownstream"
 
+    tested_product = "appsec"
+
     @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
     @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
     @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
@@ -623,6 +649,8 @@ class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_
     """IAST correctly propagates AppSec events in distributing tracing."""
 
     requestdownstreamUrl = "/vulnerablerequestdownstream"
+
+    tested_product = "iast"
 
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
