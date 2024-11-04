@@ -472,7 +472,7 @@ def test_agent(
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
 
-    host_port = scenarios.parametric.get_host_port(worker_id, 50000)
+    host_port = scenarios.parametric.get_host_port(worker_id, 4600)
 
     with scenarios.parametric.docker_run(
         image=scenarios.parametric.TEST_AGENT_IMAGE,
@@ -546,7 +546,7 @@ def test_library(
             test_server_env[k] = v
     env.update(test_server_env)
 
-    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 51000)
+    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
 
     with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,
