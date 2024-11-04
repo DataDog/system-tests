@@ -160,6 +160,8 @@ class Test_Consistent_Configs:
         )
         assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == True
         assert configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == "\d{3}-\d{2}-\d{4}"
+        
+    # these settings are not supported by the nodejs sdk
         if context.library != "nodejs":
             assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
             assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES").get("value") == "200-250"
