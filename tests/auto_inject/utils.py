@@ -3,7 +3,7 @@ import time
 import pytest
 import paramiko
 from utils.tools import logger
-from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
+from utils.onboarding.weblog_interface import make_get_request, simple_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
@@ -52,6 +52,21 @@ class AutoInjectBaseTest:
             # Not clear if this fix this issue
             time.sleep(1)
 
+    def warmup(self, virtual_machine):
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+
+    def get_commandline(self, virtual_machine) -> int:
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        return simple_request(f"http://{vm_ip}:{vm_port}/commandline", swallow=False)
+
+    def fork_and_crash(self, virtual_machine) -> int:
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        return simple_request(f"http://{vm_ip}:{vm_port}/fork_and_crash", swallow=False)
+
     def close_channel(self, channel):
         try:
             if not channel.eof_received:
@@ -59,7 +74,7 @@ class AutoInjectBaseTest:
         except Exception as e:
             logger.error(f"Error closing the channel: {e}")
 
-    def execute_command(self, virtual_machine, command):
+    def execute_command(self, virtual_machine, command) -> str:
         # Env for the command
         prefix_env = ""
         for key, value in virtual_machine.get_command_environment().items():
@@ -86,6 +101,8 @@ class AutoInjectBaseTest:
             vm_logger(context.scenario.name, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
+
+            return command_output
 
     def _test_uninstall_commands(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
