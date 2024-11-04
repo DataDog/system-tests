@@ -1,7 +1,5 @@
 import contextlib
 import dataclasses
-import socket
-import time
 from typing import Dict, List, Literal, Union, Generator, TextIO
 
 import json
@@ -13,7 +11,6 @@ import subprocess
 
 import pytest
 from _pytest.outcomes import Failed
-import psutil
 import docker
 from docker.errors import DockerException
 from docker.models.containers import Container
@@ -310,17 +307,6 @@ class ParametricScenario(Scenario):
 
         logger.info(f"Run container {name} from image {image} with host port {host_port}")
 
-        for _ in range(10):
-            if _is_port_free(host_port):
-                break
-
-            logger.info(f"Waiting for port {host_port} to be free...")
-            time.sleep(1)
-
-        if not _is_port_free(host_port):
-            _log_open_port_informations(host_port)
-            _fail(f"Port {host_port} is already in use")
-
         try:
             container: Container = _get_client().containers.run(
                 image,
@@ -349,13 +335,6 @@ class ParametricScenario(Scenario):
             log_file.write(logs.decode("utf-8"))
             log_file.flush()
             container.remove(force=True)
-
-
-def _is_port_free(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.settimeout(1)
-        result = sock.connect_ex(("localhost", port))
-        return result != 0
 
 
 def _get_base_directory():
@@ -659,19 +638,3 @@ RUN mkdir /parametric-tracer-logs
         container_build_context=_get_base_directory(),
         env={},
     )
-
-
-def _log_open_port_informations(port):
-
-    p: psutil.Process
-
-    for p in psutil.process_iter():
-        try:
-            connections = p.connections()
-        except:
-            connections = []
-
-        for c in connections:
-            if c.status == "LISTEN" and c.laddr.port == port:
-                logger.error(f"Port {port} is already in use by process {p.pid} {p.name()} {p.cmdline()}")
-                return
