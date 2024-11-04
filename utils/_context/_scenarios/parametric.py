@@ -74,7 +74,7 @@ class APMLibraryTestServer:
     container_build_dir: str
     container_build_context: str = "."
 
-    container_port: str = int(os.getenv("APM_LIBRARY_SERVER_PORT", "50052"))
+    container_port: int = 8080
     host_port: int = None  # Will be assigned by get_host_port()
 
     env: Dict[str, str] = dataclasses.field(default_factory=dict)

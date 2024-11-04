@@ -162,12 +162,6 @@ library. Deleting the image will force a rebuild which will resolve the issue.
 docker image rm <library>-test-library
 ```
 
-### Port conflict on 50052
-
-If there is a port conflict with an existing process on the local machine then the default port `50052` can be
-overridden using `APM_LIBRARY_SERVER_PORT`.
-
-
 ### Disable build kit
 
 If logs like
