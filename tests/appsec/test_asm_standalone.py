@@ -71,7 +71,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
         return wrapper
 
-    def test_check_product_is_enabled(func):
+    def check_product_is_enabled(func):
         def wrapper(self):
             product_enabled = False
             tags = "_dd.iast.json" if self.tested_product == "iast" else "_dd.appsec.json"
@@ -107,7 +107,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled
+    @check_product_is_enabled
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -151,7 +151,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled
+    @check_product_is_enabled
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -195,7 +195,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled
+    @check_product_is_enabled
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -239,7 +239,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled
+    @check_product_is_enabled
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
@@ -370,7 +370,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled
+    @check_product_is_enabled
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -413,7 +413,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled
+    @check_product_is_enabled
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -456,7 +456,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @test_check_product_is_enabled
+    @check_product_is_enabled
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
