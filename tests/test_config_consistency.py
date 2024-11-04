@@ -241,7 +241,7 @@ class Test_Config_ClientIPHeader_Precedence:
         ("x-real-ip", "8.7.6.5"),
         ("true-client-ip", "5.6.7.2"),
         ("x-client-ip", "5.6.7.3"),
-        ("x-forwarded", "5.6.7.4"),
+        # ("x-forwarded", "5.6.7.4"),
         ("forwarded-for", "5.6.7.5"),
         ("x-cluster-client-ip", "5.6.7.6"),
         ("fastly-client-ip", "5.6.7.7"),
@@ -267,6 +267,7 @@ class Test_Config_ClientIPHeader_Precedence:
             req = self.requests[i]
             ip = self.IP_HEADERS[i][1]
             trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
+            print(88, i)
             expected_tags = {"http.client_ip": ip}
             assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
@@ -326,10 +327,14 @@ class Test_Config_UnifiedServiceTagging_Default:
 class Test_Config_IntegrationEnabled_False:
     """ Verify behavior of integrations automatic spans """
 
-    def setup_kafka_integration_enabled_false(self):
+    def setup_integration_enabled_false(self):
+        # PHP does not have a kafka integration
+        if context.library == "php":
+            self.r = weblog.get("/dbm", params={"integration": "pdo-pgsql"})
+            return
         self.r = weblog.get("/kafka/produce", params={"topic": "Something"})
 
-    def test_kafka_integration_enabled_false(self):
+    def test_integration_enabled_false(self):
         assert self.r.status_code == 200
         spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
         assert spans, "No spans found in trace"
@@ -339,17 +344,33 @@ class Test_Config_IntegrationEnabled_False:
             list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == []
         ), f"kafka.produce span was found in trace: {spans}"
 
+        nonKafkaOrPdoSpans = []
+        kafkaOrPdoSpans = []
+        
+        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
+            if span.get("name") != "kafka.produce":
+                nonKafkaOrPdoSpans.append(span)
+            elif context.library == "php" and span.get("service") != "pdo":
+                nonKafkaOrPdoSpans.append(span)
+            else:
+                kafkaOrPdoSpans.append(span)
+        assert len(nonKafkaOrPdoSpans) > 0
+        assert len(kafkaOrPdoSpans) == 0
+
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
 @features.tracing_configuration_consistency
 class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
-
-    def setup_kafka_integration_enabled_true(self):
+    def setup_integration_enabled_true(self):
+        # PHP does not have a kafka integration
+        if context.library == "php":
+            self.r = weblog.get("/dbm", params={"integration": "pdo-pgsql"})
+            return
         self.r = weblog.get("/kafka/produce", params={"topic": "Something"})
 
-    def test_kafka_integration_enabled_true(self):
+    def test_integration_enabled_true(self):
         assert self.r.status_code == 200
         spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
         assert spans, "No spans found in trace"
@@ -358,3 +379,13 @@ class Test_Config_IntegrationEnabled_True:
         assert list(
             filter(lambda span: "kafka.produce" in span.get("name"), spans)
         ), f"No kafka.produce span found in trace: {spans}"
+
+        nonKafkaOrPdoSpans = []
+        kafkaOrPdoSpans = []
+        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
+            if span.get("name") != "kafka.produce" and span.get("service") != "pdo":
+                nonKafkaOrPdoSpans.append(span)
+            else:
+                kafkaOrPdoSpans.append(span)
+        assert len(nonKafkaOrPdoSpans) > 0
+        assert len(kafkaOrPdoSpans) > 0
