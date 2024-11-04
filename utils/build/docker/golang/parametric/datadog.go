@@ -180,7 +180,7 @@ func (s *apmClientServer) injectHeadersHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	distr := make([]Tuple, len(headers))
+	distr := []Tuple{}
 	for k, v := range headers {
 		distr = append(distr, []string{k, v})
 	}
