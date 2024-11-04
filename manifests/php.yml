@@ -295,6 +295,24 @@ tests/:
         Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
         Test_Otel_Tracer: v0.94.0
+    test_parametric_endpoints.py:
+      # Adding spans links by parent id does not work as expected
+      Test_Parametric_DDSpan_Add_Link: bug (APMAPI-778)
+      # Starting a span with a parent id does not work as expected
+      Test_Parametric_DDSpan_Start: bug (APMAPI-778)
+      Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
+      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)
+      Test_Parametric_DDTrace_Flush: missing_feature (flush parametric endpoint is not implemented, this can introduce flakiness in all tests)
+      # Tests below are failing due to the otel_start_span endpoint consistently returning 500s, the root cause is unknown
+      Test_Parametric_OtelSpan_Events: bug (APMAPI-778)
+      Test_Parametric_OtelSpan_Is_Recording: bug (APMAPI-778)
+      Test_Parametric_OtelSpan_Set_Attribute: bug (APMAPI-778)
+      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)
+      Test_Parametric_OtelSpan_Set_Status: bug (APMAPI-778)
+      Test_Parametric_OtelSpan_Start_Finish: bug (APMAPI-778)
+      Test_Parametric_Otel_Baggage: bug (APMAPI-778)
+      Test_Parametric_Otel_Current_Span: bug (APMAPI-778)
+      Test_Parametric_Otel_Trace_Flush: bug (APMAPI-778)
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
