@@ -1,4 +1,3 @@
-import time
 from urllib.parse import urlparse
 
 from utils import scenarios, features, context, irrelevant, bug, interfaces
@@ -8,8 +7,8 @@ from utils.tools import logger, get_rid_from_request
 
 @scenarios.docker_ssi
 class TestDockerSSIFeatures:
-    """ Test the ssi in a simulated host injection environment (docker container + test agent) 
-    We test that the injection is performed and traces and telemetry are generated. 
+    """ Test the ssi in a simulated host injection environment (docker container + test agent)
+    We test that the injection is performed and traces and telemetry are generated.
     If the language version is not supported, we only check that we don't break the app and telemetry is generated."""
 
     _r = None
@@ -45,6 +44,13 @@ class TestDockerSSIFeatures:
         # There is telemetry data related with the runtime-id
         telemetry_data = interfaces.test_agent.get_telemetry_for_runtime(traces_for_request["meta"]["runtime-id"])
         assert telemetry_data, "No telemetry data found"
+
+        parsed_url = urlparse(context.scenario.weblog_url)
+        TestDockerSSIFeatures._r = weblog.request(
+            "GET", parsed_url.path + "/crashme", domain=parsed_url.hostname, port=parsed_url.port
+        )
+        crash_log = interfaces.test_agent.get_crashlog_for_runtime(traces_for_request["meta"]["runtime-id"])
+        assert crash_log, "No crash log found"
 
     def setup_install_weblog_running(self):
         self._setup_all()
