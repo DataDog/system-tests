@@ -241,7 +241,7 @@ class Test_Config_ClientIPHeader_Precedence:
         ("x-real-ip", "8.7.6.5"),
         ("true-client-ip", "5.6.7.2"),
         ("x-client-ip", "5.6.7.3"),
-        ("x-forwarded", "for=5.6.7.4"), # Note: APPSEC is currently discussing the correct values for this header
+        ("x-forwarded", "for=5.6.7.4"),  # Note: APPSEC is currently discussing the correct values for this header
         ("forwarded-for", "5.6.7.5"),
         ("x-cluster-client-ip", "5.6.7.6"),
         ("fastly-client-ip", "5.6.7.7"),
@@ -364,6 +364,7 @@ class Test_Config_IntegrationEnabled_False:
 @features.tracing_configuration_consistency
 class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
+
     def setup_integration_enabled_true(self):
         # PHP does not have a kafka integration
         if context.library == "php":
