@@ -1,13 +1,19 @@
 package com.datadoghq.system_tests.springboot.integrations.db;
 
-import com.datadoghq.system_tests.springboot.integrations.db.ICRUDOperation;
-import java.sql.Connection;
-import java.sql.Statement;
-import java.sql.ResultSet;
 import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class BaseCRUDOperation implements ICRUDOperation {
-  private IDBConnector connector;
+
+  public interface IDBConnector {
+    Connection getConnection()
+            throws SQLException, ClassNotFoundException;
+  }
+
+  private final IDBConnector connector;
 
   public BaseCRUDOperation(IDBConnector connector) {
     this.connector = connector;
