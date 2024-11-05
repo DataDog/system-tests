@@ -48,6 +48,6 @@ RUN bundle install
 # Set entrypoint
 ENTRYPOINT ["/bin/bash", "-c"]
 
-ENV DD_DD_CRASHTRACKING_ENABLED true
+ENV DD_CRASHTRACKING_ENABLED true
 
 CMD ["bin/rails server -b 0.0.0.0 -p 18080"]
