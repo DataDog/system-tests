@@ -57,10 +57,10 @@ class AutoInjectBaseTest:
         vm_port = virtual_machine.deffault_open_port
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
 
-    def get_commandline(self, virtual_machine) -> int:
+    def get_child_pids(self, virtual_machine) -> int:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
-        return simple_request(f"http://{vm_ip}:{vm_port}/commandline", swallow=False)
+        return simple_request(f"http://{vm_ip}:{vm_port}/child_pids", swallow=False)
 
     def fork_and_crash(self, virtual_machine) -> int:
         vm_ip = virtual_machine.get_ip()

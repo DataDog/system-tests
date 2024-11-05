@@ -1,5 +1,6 @@
 import os
 import signal
+import subprocess
 import sys
 
 from django.http import HttpResponse
@@ -42,19 +43,18 @@ def fork_and_crash(request):
         return HttpResponse("Nobody should see this")
 
 
-def commandline(request):
-    with open(f"/proc/self/cmdline", "r") as f:
-        cmdline = f.read()
+def child_pids(request):
+    current_pid = os.getpid()
+    ps_command = ["ps", "--ppid", str(current_pid), "--no-headers"]
 
-    # The command line arguments are separated by null characters, replace them with spaces
-    cmdline = cmdline.replace("\0", " ")
+    result = subprocess.run(ps_command, capture_output=True, text=True, check=True)
 
-    return HttpResponse(cmdline.strip())
+    return HttpResponse(result.stdout)
 
 
 urlpatterns = [
     path("", index),
     path("crashme", crashme),
     path("fork_and_crash", fork_and_crash),
-    path("commandline", commandline),
+    path("child_pids", child_pids),
 ]

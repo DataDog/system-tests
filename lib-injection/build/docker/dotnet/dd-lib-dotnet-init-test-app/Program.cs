@@ -35,16 +35,30 @@ static string ForkAndCrash(HttpRequest request)
     }
 }
 
-static string GetCommandLine(HttpRequest request)
+static string GetChildPids(HttpRequest request)
 {
-    var commandLine = File.ReadAllText("/proc/self/cmdline");
+    var currentPid = Environment.ProcessId;
 
-    // The command line arguments are separated by null characters, replace them with spaces
-    return commandLine.Replace("\0", " ");
+    var psCommand = $"ps --ppid {currentPid} --no-headers";
+
+    var startInfo = new ProcessStartInfo
+    {
+        FileName = "/bin/bash",
+        Arguments = $"-c \"{psCommand}\"",
+        RedirectStandardOutput = true,
+        UseShellExecute = false,
+        CreateNoWindow = true
+    };
+
+    using var process = Process.Start(startInfo)!;
+    var output = process.StandardOutput.ReadToEnd();
+    process.WaitForExit();
+
+    return output;
 }
 
 app.MapGet("/", () => "Hello World!");
 app.MapGet("/fork_and_crash", ForkAndCrash);
-app.MapGet("/commandline", GetCommandLine);
+app.MapGet("/child_pids", GetChildPids);
 
 app.Run();

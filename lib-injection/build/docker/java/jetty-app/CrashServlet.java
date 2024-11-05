@@ -22,8 +22,8 @@ public class CrashServlet extends HttpServlet {
 
         if (requestURI.equals("/fork_and_crash")) {
             handleForkAndCrash(req, resp);
-        } else if (requestURI.equals("/commandline")) {
-            handleCommandLine(req, resp);
+        } else {
+            handleChildPids(req, resp);
         } else {
             // Return 404 if the endpoint is not recognized
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -40,16 +40,44 @@ public class CrashServlet extends HttpServlet {
         resp.getWriter().println(result);
     }
 
-    private void handleCommandLine(HttpServletRequest req, HttpServletResponse resp)
+    private void handleChildPids(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        String commandLine = new String(Files.readAllBytes(Paths.get("/proc/self/cmdline")));
+                try {
+        long currentPid = ProcessHandle.current().pid();
+        String command = String.format("ps --ppid %d --no-headers", currentPid);
 
-        // The command line arguments are separated by null characters, replace them with spaces
-        String readableCommandLine = commandLine.replace("\0", " ");
+        ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", command);
+        processBuilder.redirectErrorStream(true);
+        Process process = processBuilder.start();
+
+        // Capture the output
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        StringBuilder output = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            output.append(line).append("\n");
+        }
+
+        int exitCode = process.waitFor();
+
+        if (exitCode == 0) {
+            resp.setContentType("text/plain");
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().println(output.toString());
+        } else {
+            resp.setContentType("text/plain");
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().println("Command failed with exit code: " + exitCode + "\n" + output.toString());
+        }
 
         resp.setContentType("text/plain");
         resp.setStatus(HttpServletResponse.SC_OK);
-        resp.getWriter().println(readableCommandLine);
+        resp.getWriter().println(ProcessHandle.current().pid());
+        } catch (InterruptedException e) {
+            resp.setContentType("text/plain");
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().println("Interrupted");
+        }
     }
 
     private static String forkAndCrash()

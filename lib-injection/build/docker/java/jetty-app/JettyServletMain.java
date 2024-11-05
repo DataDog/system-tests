@@ -36,7 +36,7 @@ public class JettyServletMain {
     webAppContext.setResourceBase(webAppDir.toURI().toString());
 
     webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/fork_and_crash");
-    webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/commandline");
+    webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/child_pids");
 
     // Start the server!
     server.start();

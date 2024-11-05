@@ -4,5 +4,5 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "articles#index"
   get 'fork_and_crash', controller: 'datadog', action: :fork_and_crash
-  get 'commandline', controller: 'datadog', action: :commandline
+  get 'child_pids', controller: 'datadog', action: :child_pids
 end
