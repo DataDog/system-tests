@@ -86,9 +86,8 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         process_tree = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Initial process tree: " + process_tree)
 
-        child_pids = self.get_child_pids(virtual_machine).strip()
-
-        assert child_pids == ""
+        child_pids = self.get_child_pids(virtual_machine)
+        assert all(pid.strip() == "" for pid in child_pids)
 
         self.fork_and_crash(virtual_machine)
 

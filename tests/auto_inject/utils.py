@@ -57,15 +57,37 @@ class AutoInjectBaseTest:
         vm_port = virtual_machine.deffault_open_port
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
 
-    def get_child_pids(self, virtual_machine) -> int:
-        vm_ip = virtual_machine.get_ip()
-        vm_port = virtual_machine.deffault_open_port
-        return simple_request(f"http://{vm_ip}:{vm_port}/child_pids", swallow=False)
+    def get_child_pids(self, virtual_machine) -> list:
+        return self.broadcast_request(virtual_machine, "child_pids")
 
-    def fork_and_crash(self, virtual_machine) -> int:
+    def fork_and_crash(self, virtual_machine) -> list:
+        return self.broadcast_request(virtual_machine, "fork_and_crash")
+
+    def broadcast_request(virtual_machine, path) -> list:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
-        return simple_request(f"http://{vm_ip}:{vm_port}/fork_and_crash", swallow=False)
+        base_url = f"http://{vm_ip}:{vm_port}/"
+        response = simple_request(base_url)
+
+        try:
+            response_json = response.json()
+            logger.info(f"There is a multicontainer app: {response_json}")
+            endpoints = response_json.get("apps", [])
+            responses = []
+
+            for app in endpoints:
+                endpoint_url = f"{base_url}{app['url']}/{path}"
+                endpoint_response = simple_request(endpoint_url)
+                responses.append(endpoint_response.text)
+
+            return responses
+        except ValueError:
+            # If the response is not JSON, treat it as a single endpoint
+            logger.info(f"Single container app detected at {base_url}")
+            single_endpoint_url = f"{base_url}{path}"
+            single_response = simple_request(single_endpoint_url)
+            single_response.raise_for_status()
+            return [single_response.text]
 
     def close_channel(self, channel):
         try:
