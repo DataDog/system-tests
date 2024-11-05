@@ -265,6 +265,9 @@ class _VirtualMachineScenario(Scenario):
                     self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
                 if key.startswith("datadog-apm-library-") and self._tested_components[key]:
                     self._library.version = self._tested_components[key]
+                    # We store without the lang sufix
+                    self._tested_components["datadog-apm-library"] = self._tested_components[key]
+                    del self._tested_components[key]
 
             # Extract vm name (os) and arch
             # TODO fix os name
