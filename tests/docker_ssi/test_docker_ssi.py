@@ -48,7 +48,7 @@ class TestDockerSSIFeatures:
 
         parsed_url = urlparse(context.scenario.weblog_url)
         TestDockerSSIFeatures._r = weblog.request(
-            "GET", parsed_url.path + "/crashme", domain=parsed_url.hostname, port=parsed_url.port
+            "GET", parsed_url.path + "crashme", domain=parsed_url.hostname, port=parsed_url.port
         )
         crash_log = interfaces.test_agent.get_crashlog_for_runtime(traces_for_request["meta"]["runtime-id"])
         assert crash_log, "No crash log found"
