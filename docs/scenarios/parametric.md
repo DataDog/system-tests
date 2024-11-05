@@ -198,54 +198,16 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 ### Shared Interface
 
-#### HTTP
-
-We have transitioned to using an HTTP interface, replacing the legacy GRPC interface. To view the available HTTP endpoints , follow these steps:
+To view the available HTTP endpoints , follow these steps:
 
 1. `./utils/scripts/parametric/run_reference_http.sh`
-
 2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
-
 3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
 
-#### Legacy GRPC
-**Important:** The legacy GRPC interface will be **deprecated** and no longer in use. All tests will be migrated to use the HTTP interface.
-
-Previously, we used a shared GRPC interface to enable shared testing across different tracers. Each tracer would implement the GRPC interface server, allowing shared tests to be run against the  libraries. The GRPC service definition included methods like StartSpan, FinishSpan, SpanSetMeta, and others, which facilitated span and trace operations.
-
-#### Updating protos for GRPC (will be deprecated)
-
-In order to update the `parametric/protos`, these steps must be followed.
-
-1. Create a virtual environment and activate it:
-```bash
-python3.12 -m venv .venv && source .venv/bin/activate
-```
-
-2. Install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Install `grpcio-tools` (make sure grpcaio is the same version):
-```bash
-pip install grpcio-tools==1.60.1
-```
-
-4. Change directory to `utils/parametric`:
-```console
-cd utils/parametric
-```
-
-5. Run the script to generate the proto files:
-```bash
-./generate_protos.sh
-```
-
-Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
-
 ### Architecture: How System-tests work
+
 Below is an overview of how the testing architecture is structured:
+
 - Shared Tests in Python: We write shared test cases using Python's pytest framework. These tests are designed to be generic and interact with the tracers through an HTTP interface.
 - HTTP Servers in Docker: For each language tracer, we build and run an HTTP server within a Docker container. These servers expose the required endpoints defined in the OpenAPI schema and handle the tracer-specific logic.
 - [Test Agent](https://github.com/DataDog/dd-apm-test-agent/) in Docker: We start a test agent in a separate Docker container. This agent collects data (such as spans and traces) submitted by the HTTP servers. It serves as a centralized point for aggregating and accessing test data.
