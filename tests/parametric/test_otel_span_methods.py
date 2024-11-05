@@ -907,7 +907,7 @@ class Test_Otel_Span_Methods:
 
         event2 = events[1]
         assert event2.get("name") == "second_event"
-        assert event2.get("time_unix_nano") // 100000 == event2_timestamp_ns // 100000  # reduce the precision tested
+        assert abs(event2.get("time_unix_nano") - event2_timestamp_ns) < 100000  # reduce the precision tested
         assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]

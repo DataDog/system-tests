@@ -342,10 +342,10 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: bug (To be confirmed, theorical version is v2.0.0)
+      TestDynamicConfigHeaderTags: bug (APMAPI-867)  # theorical version is v2.0.0
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: bug (to be investigated, theorical version is v1.13.0)
+      TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:
@@ -401,6 +401,7 @@ tests/:
     span_pointers/:
       aws/:
         test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
           Test_PutObject: missing_feature
   stats/:
     test_miscs.py:

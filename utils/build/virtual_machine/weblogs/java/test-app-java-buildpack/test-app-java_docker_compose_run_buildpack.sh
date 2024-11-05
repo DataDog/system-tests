@@ -39,6 +39,7 @@ then
     echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_app.env
 fi
+echo "SERVER_PORT=18080" >> scenario_app.env
 sudo -E docker-compose -f docker-compose.yml up -d test-app
 
 echo "**************** RUNNING DOCKER SERVICES *****************" 

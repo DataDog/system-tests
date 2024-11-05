@@ -11,7 +11,6 @@ import hashlib
 from typing import Dict, Generator, List, TextIO, TypedDict, Optional, Any
 import urllib.parse
 
-from docker.models.containers import Container
 import requests
 import pytest
 
@@ -19,9 +18,7 @@ from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
-from utils.parametric._library_client import APMLibraryClientGRPC
-from utils.parametric._library_client import APMLibraryClientHTTP
-from utils.parametric._library_client import APMLibrary
+from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
 from utils import context, scenarios
 from utils.tools import logger
@@ -481,44 +478,6 @@ class _TestAgentAPI:
         raise AssertionError("No tracer-flare received")
 
 
-@contextlib.contextmanager
-def docker_run(
-    image: str,
-    name: str,
-    cmd: List[str],
-    env: Dict[str, str],
-    volumes: Dict[str, str],
-    host_port: int,
-    container_port: int,
-    log_file: TextIO,
-    network_name: str,
-) -> Generator[Container, None, None]:
-
-    # Run the docker container
-    logger.info(f"Starting {name}")
-
-    container = scenarios.parametric.docker_run(
-        image,
-        name=name,
-        env=env,
-        volumes=volumes,
-        network=network_name,
-        host_port=host_port,
-        container_port=container_port,
-        command=cmd,
-    )
-
-    try:
-        yield container
-    finally:
-        logger.info(f"Stopping {name}")
-        container.stop(timeout=1)
-        logs = container.logs()
-        log_file.write(logs.decode("utf-8"))
-        log_file.flush()
-        container.remove(force=True)
-
-
 @pytest.fixture(scope="session")
 def docker() -> str:
     """Fixture to ensure docker is ready to use on the system."""
@@ -609,28 +568,27 @@ def test_agent(
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
 
-    host_port = scenarios.parametric.get_host_port(worker_id, 50000)
+    host_port = scenarios.parametric.get_host_port(worker_id, 4600)
 
-    with docker_run(
+    with scenarios.parametric.docker_run(
         image=scenarios.parametric.TEST_AGENT_IMAGE,
         name=test_agent_container_name,
-        cmd=[],
+        command=[],
         env=env,
         volumes={f"{os.getcwd()}/snapshots": "/snapshots"},
         host_port=host_port,
         container_port=test_agent_port,
         log_file=test_agent_log_file,
-        network_name=docker_network,
+        network=docker_network,
     ):
-        logger.debug(f"Test agent {test_agent_container_name} started on host port {host_port}")
 
         client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", pytest_request=request)
         time.sleep(0.2)  # intial wait time, the trace agent takes 200ms to start
         for _ in range(100):
             try:
                 resp = client.info()
-            except:
-                logger.debug("Wait for 0.1s for the test agent to be ready")
+            except Exception as e:
+                logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
                 time.sleep(0.1)
             else:
                 if resp["version"] != "test":
@@ -641,8 +599,7 @@ def test_agent(
                 logger.info("Test agent is ready")
                 break
         else:
-            with open(test_agent_log_file.name) as f:
-                logger.error(f"Could not connect to test agent: {f.read()}")
+            logger.error("Could not connect to test agent")
             pytest.fail(
                 f"Could not connect to test agent, check the log file {test_agent_log_file.name}.", pytrace=False
             )
@@ -662,14 +619,15 @@ def test_agent(
 
 
 @pytest.fixture
-def test_server(
+def test_library(
     worker_id: str,
     docker_network: str,
     test_agent_port: str,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
-):
+) -> Generator[APMLibrary, None, None]:
+
     env = {
         "DD_TRACE_DEBUG": "true",
         "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
@@ -684,38 +642,29 @@ def test_server(
             test_server_env[k] = v
     env.update(test_server_env)
 
-    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 51000)
+    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
 
-    with docker_run(
+    with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,
         name=apm_test_server.container_name,
-        cmd=apm_test_server.container_cmd,
+        command=apm_test_server.container_cmd,
         env=env,
         host_port=apm_test_server.host_port,
         container_port=apm_test_server.container_port,
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
-        network_name=docker_network,
+        network=docker_network,
     ) as container:
-        logger.debug(f"Test server {apm_test_server.container_name} started on host port {apm_test_server.host_port}")
         apm_test_server.container = container
-        yield apm_test_server
 
+        test_server_timeout = 60
 
-@pytest.fixture
-def test_library(test_server: APMLibraryTestServer) -> Generator[APMLibrary, None, None]:
-    test_server_timeout = 60
+        if apm_test_server.host_port is None:
+            raise RuntimeError("Internal error, no port has been assigned", 1)
 
-    if test_server.host_port is None:
-        raise RuntimeError("Internal error, no port has been assigned", 1)
-
-    if test_server.protocol == "grpc":
-        client = APMLibraryClientGRPC(f"localhost:{test_server.host_port}", test_server_timeout, test_server.container)
-    elif test_server.protocol == "http":
-        client = APMLibraryClientHTTP(
-            f"http://localhost:{test_server.host_port}", test_server_timeout, test_server.container
+        client = APMLibraryClient(
+            f"http://localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container
         )
-    else:
-        raise ValueError(f"Interface {test_server.protocol} not supported")
-    tracer = APMLibrary(client, test_server.lang)
-    yield tracer
+
+        tracer = APMLibrary(client, apm_test_server.lang)
+        yield tracer

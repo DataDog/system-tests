@@ -30,14 +30,14 @@ weblog:
         copy_files:
 
           - name: copy-docker-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-alpine/Dockerfile.alpine
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk11-alpine
             remote_path: Dockerfile.template
 
           - name: copy-container-run-script
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/jetty-app
@@ -49,5 +49,5 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java/run_app.sh
 
         remote-command: |
-          sh compile_app.sh 8080
+          sh compile_app.sh 18080
           sh create_and_run_app_container.sh
