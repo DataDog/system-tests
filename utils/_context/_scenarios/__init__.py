@@ -343,7 +343,7 @@ class scenarios:
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
-            "DD_IAST_REQUEST_SAMPLING": "100"
+            "DD_IAST_REQUEST_SAMPLING": "100",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
