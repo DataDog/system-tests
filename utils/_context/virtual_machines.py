@@ -5,6 +5,7 @@ import hashlib
 from utils.tools import logger
 from utils import context
 from utils.onboarding.debug_vm import extract_logs_to_file
+from utils.virtual_machine.utils import nginx_parser
 
 
 class AWSInfraConfig:
@@ -84,6 +85,14 @@ class _SSHConfig:
         return ssh
 
 
+class _DeployedWeblog:
+    def __init__(self, weblog_name, runtime_version=None, app_type=None, app_context_url="/") -> None:
+        self.weblog_name = weblog_name
+        self.runtime_version = runtime_version
+        self.app_type = app_type
+        self.app_context_url = app_context_url
+
+
 class _VirtualMachine:
     def __init__(
         self,
@@ -114,6 +123,58 @@ class _VirtualMachine:
         self.agent_env = None
         self.app_env = None
         self.default_vm = default_vm
+        self.deployed_weblogs = None
+
+    def get_current_deployed_weblog(self):
+        """ At this point we have only one weblog deployed in the VM. """
+
+        if len(self.deployed_weblogs) > 1:
+            raise ValueError("This VM has multiple weblogs deployed.")
+        return self.deployed_weblogs[0]
+
+    def get_deployed_weblogs(self):
+        """ Usually we have only one weblog deployed in the VM. But in some cases(multicontainer) we can have multiple weblogs deployed."""
+        if self.deployed_weblogs == None:
+            self.deployed_weblogs = []
+            # App on Host
+            if (
+                self.get_provision().lang_variant_installation
+                and self.get_provision().lang_variant_installation.version
+            ):
+                self.deployed_weblogs = [
+                    _DeployedWeblog(
+                        weblog_name=self.get_provision().weblog_installation.id,
+                        runtime_version=self.get_provision().lang_variant_installation.version,
+                        app_type="host",
+                        app_context_url="/",
+                    )
+                ]
+            # App on Container/Alpine
+            elif self.get_provision().weblog_installation and self.get_provision().weblog_installation.version:
+                self.deployed_weblogs = [
+                    _DeployedWeblog(
+                        weblog_name=self.get_provision().weblog_installation.id,
+                        runtime_version=self.get_provision().weblog_installation.version,
+                        app_type="container"
+                        if "container" in self.get_provision().weblog_installation.id
+                        else "alpine",
+                        app_context_url="/",
+                    )
+                ]
+            # Multicontainer app
+            elif self.get_provision().weblog_installation and self.get_provision().weblog_installation.nginx_config:
+                apps_json = nginx_parser(self.get_provision().weblog_installation.nginx_config)
+                logger.debug(f"Multicontainer/multialpine apps definition: {apps_json}")
+                for app in apps_json:
+                    self.deployed_weblogs.append(
+                        _DeployedWeblog(
+                            weblog_name=self.get_provision().weblog_installation.id,
+                            runtime_version=app["runtime"],
+                            app_type=app["type"],
+                            app_context_url=app["url"],
+                        )
+                    )
+        return self.deployed_weblogs
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip

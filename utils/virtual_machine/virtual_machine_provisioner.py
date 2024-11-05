@@ -203,6 +203,7 @@ class VirtualMachineProvisioner:
         installation.id = lang_variant["name"]
         installation.cache = lang_variant["cache"] if "cache" in lang_variant else False
         installation.populate_env = lang_variant["populate_env"] if "populate_env" in lang_variant else True
+        installation.version = lang_variant["version"] if "version" in lang_variant else None
         return installation
 
     def _get_weblog_provision(
@@ -224,6 +225,8 @@ class VirtualMachineProvisioner:
             use_git=ci_commit_branch is not None,
         )
         installation.id = weblog["name"]
+        installation.nginx_config = weblog["nginx_config"] if "nginx_config" in weblog else None
+        installation.version = weblog["runtime_version"] if "runtime_version" in weblog else None
         return installation
 
     def _get_installation(
@@ -295,6 +298,8 @@ class Intallation:
         self.local_command = None
         self.local_script = None
         self.remote_command = None
+        self.version = None
+        self.nginx_config = None
         self.copy_files = []
 
     def __repr__(self):
