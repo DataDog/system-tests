@@ -1,3 +1,5 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -22,7 +24,7 @@ public class CrashServlet extends HttpServlet {
 
         if (requestURI.equals("/fork_and_crash")) {
             handleForkAndCrash(req, resp);
-        } else {
+        } else if (requestURI.equals("/child_pids")) {
             handleChildPids(req, resp);
         } else {
             // Return 404 if the endpoint is not recognized
