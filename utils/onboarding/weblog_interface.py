@@ -24,7 +24,7 @@ def simple_request(app_url, swallow: bool = False) -> str:
     try:
         return requests.get(
             app_url,
-            timeout=30,
+            timeout=120,
         ).text
     except Exception as e:
         if not swallow:
