@@ -139,6 +139,7 @@ def trace_config() -> TraceConfigReturn:
             "dd_env": config.env,
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
+            "dd_trace_agent_url": config._trace_agent_url,
         }
     )
 
@@ -389,10 +390,10 @@ class OtelStartSpanArgs(BaseModel):
     name: str
     parent_id: int
     span_kind: int
-    service: str = ""  # Not used but defined in protos/apm-test-client.protos
-    resource: str = ""  # Not used but defined in protos/apm-test-client.protos
-    type: str = ""  # Not used but defined in protos/apm-test-client.protos
-    links: List[Dict] = []  # Not used but defined in protos/apm-test-client.protos
+    service: str = ""
+    resource: str = ""
+    type: str = ""
+    links: List[Dict] = []
     timestamp: int
     http_headers: List[Tuple[str, str]]
     attributes: dict

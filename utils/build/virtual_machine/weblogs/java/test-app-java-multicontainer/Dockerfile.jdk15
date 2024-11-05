@@ -1,0 +1,7 @@
+FROM public.ecr.aws/docker/library/openjdk:15
+
+COPY jetty-classpath/. /opt/jetty-classpath
+COPY JettyServletMain.class /usr/local/app/
+COPY run_app.sh /usr/local/app/
+WORKDIR /usr/local/app/
+ENTRYPOINT ["/usr/local/app/run_app.sh"]

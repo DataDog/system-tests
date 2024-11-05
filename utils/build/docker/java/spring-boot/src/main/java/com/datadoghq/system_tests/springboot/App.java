@@ -28,6 +28,7 @@ import datadog.trace.api.interceptor.MutableSpan;
 
 
 import java.nio.charset.StandardCharsets;
+import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
 
@@ -105,6 +106,8 @@ import java.util.Set;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
@@ -112,9 +115,11 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 
 
 @RestController
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
 @ComponentScan(basePackages = {"com.datadoghq.system_tests.springboot"})
 public class App {
+
+    private final CryptoExamples cryptoExamples = new CryptoExamples();
 
     CassandraConnector cassandra;
     MongoClient mongoClient;
@@ -1083,6 +1088,13 @@ public class App {
 
     @GetMapping(value = "/requestdownstream")
     public String requestdownstream(HttpServletResponse response) throws IOException {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GetMapping(value = "/vulnerablerequestdownstream")
+    public String vulnerableRequestdownstream(HttpServletResponse response) throws IOException {
+        cryptoExamples.insecureMd5Hashing("password");
         String url = "http://localhost:7777/returnheaders";
         return Utils.sendGetRequest(url);
     }

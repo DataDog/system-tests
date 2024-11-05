@@ -22,7 +22,7 @@ ENV DD_TRACE_HEADER_TAGS='user-agent'
 
 RUN go build -v -tags appsec -o weblog ./graph-gophers
 
-RUN echo "#!/bin/bash\n./weblog" > app.sh
+RUN echo "#!/bin/bash\nexec ./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 

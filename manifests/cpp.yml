@@ -142,6 +142,7 @@ tests/:
       Test_Config_TraceEnabled: v1.1.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.1.0
+    test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
     test_headers_baggage.py:
@@ -177,6 +178,7 @@ tests/:
     span_pointers/:
       aws/:
         test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
           Test_PutObject: missing_feature
   stats/:
     test_miscs.py:

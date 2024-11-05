@@ -77,3 +77,15 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
             if str(series["metric"]).startswith("inject.")
         ]
         return injection_metrics
+
+    def get_telemetry_for_autoinject_library_entrypoint(self):
+        logger.debug("Try to find telemetry data related to the library entrypoint")
+        injection_metrics = []
+        injection_metrics += [
+            series
+            for t in self._data_telemetry_list
+            if t["request_type"] == "generate-metrics"
+            for series in t["payload"]["series"]
+            if str(series["metric"]).startswith("library_entrypoint.")
+        ]
+        return injection_metrics

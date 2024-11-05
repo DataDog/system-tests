@@ -13,7 +13,7 @@ from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario
+from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
@@ -334,6 +334,18 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    iast_standalone = EndToEndScenario(
+        "IAST_STANDALONE",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DETECTION_MODE": "FULL",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
@@ -562,13 +574,6 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
-        "INSTALLER_HOST_AUTO_INJECTION_CHAOS",
-        doc="Installer auto injection scenario with chaos (deleting installation folders, files)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
@@ -576,22 +581,15 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    installer_auto_injection_block_list = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION_BLOCK_LIST",
-        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
-    installer_auto_injection_ld_preload = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION_LD_PRELOAD",
-        "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
+    chaos_installer_auto_injection = InstallerAutoInjectionScenario(
+        "CHAOS_INSTALLER_AUTO_INJECTION",
+        " Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries. Perform chaos testing",
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
 
-    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
+    simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
         "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={

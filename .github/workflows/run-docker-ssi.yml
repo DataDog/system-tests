@@ -15,7 +15,7 @@ on:
 
 jobs:
   docker-ssi-check-injection:
-    if: inputs.library == 'java'
+    if: ${{ inputs.library == 'java' || inputs.library == 'php' || inputs.library == 'python' }}
     strategy:
       matrix: ${{ fromJson(inputs.weblogs) }}
       fail-fast: false
