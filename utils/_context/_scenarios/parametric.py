@@ -358,7 +358,6 @@ COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
-# Ensure Datadog Span Parenting is always used (even when otel support is disabled)
 """,
         container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
