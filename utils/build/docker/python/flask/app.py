@@ -1377,7 +1377,7 @@ def s3_multipart_upload():
     bucket = flask_request.args.get("bucket")
     key = flask_request.args.get("key")
     body_base: str = flask_request.args.get("key")
-    body = (body_base + 'x' * 15_000_000).encode('utf-8')  # 15MB of padding
+    body = (body_base + "x" * 15_000_000).encode("utf-8")  # 15MB of padding
 
     split_index = len(body) // 2
     body_part_1 = body[:split_index]
