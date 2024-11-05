@@ -2432,7 +2432,7 @@ class features:
         """
         Enforces standardized behaviors for configurations across the tracing libraries.
 
-        https://feature-parity.us1.prod.dog/#/?feature=329
+        https://feature-parity.us1.prod.dog/#/?feature=339
         """
-        pytest.mark.features(feature_id=329)(test_object)
+        pytest.mark.features(feature_id=339)(test_object)
         return test_object
