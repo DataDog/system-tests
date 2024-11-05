@@ -15,7 +15,7 @@ from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import find_only_span
-from utils import irrelevant, scenarios, features, context
+from utils import irrelevant, bug, scenarios, features, context
 from utils.parametric._library_client import Link
 
 
@@ -617,6 +617,7 @@ class Test_Parametric_OtelSpan_Events:
         assert events[0]["attributes"]["key"] == "value"
 
     @irrelevant(context.library == "golang", reason="OTEL does not expose an API for recording exceptions")
+    @bug(library="nodejs", reason="APMAPI-778")  # doees not set attributes on the exception event
     def test_record_exception(self, test_agent, test_library):
         """
         Validates that /trace/otel/record_exception adds an exception event to a span.
