@@ -564,14 +564,6 @@ class APMLibrary:
     def get_tracer_config(self) -> Dict[str, Optional[str]]:
         return self._client.get_tracer_config()
 
-    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
-
-    def http_client_request(
-        self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",
-    ):
-        """Do an HTTP request with the given method and headers."""
-        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)
-
     def current_span(self) -> Union[_TestSpan, None]:
         resp = self._client.current_span()
         if resp is None:
@@ -590,3 +582,11 @@ class APMLibrary:
             return True
         except (RuntimeError, Failed):
             return False
+
+    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
+
+    def http_client_request(
+        self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",
+    ):
+        """Do an HTTP request with the given method and headers."""
+        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)
