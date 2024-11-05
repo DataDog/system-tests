@@ -17,15 +17,42 @@ public class CrashServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // Check which endpoint is being accessed by looking at the request URI
+        String requestURI = req.getRequestURI();
+
+        if (requestURI.equals("/fork_and_crash")) {
+            handleForkAndCrash(req, resp);
+        } else if (requestURI.equals("/commandline")) {
+            handleCommandLine(req, resp);
+        } else {
+            // Return 404 if the endpoint is not recognized
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.getWriter().println("Unknown endpoint");
+        }
+    }
+
+    private void handleForkAndCrash(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
         String result = forkAndCrash();
 
         resp.setContentType("text/plain");
         resp.setStatus(HttpServletResponse.SC_OK);
-
         resp.getWriter().println(result);
     }
 
-    public static String forkAndCrash()
+    private void handleCommandLine(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        String commandLine = new String(Files.readAllBytes(Paths.get("/proc/self/cmdline")));
+
+        // The command line arguments are separated by null characters, replace them with spaces
+        String readableCommandLine = commandLine.replace("\0", " ");
+
+        resp.setContentType("text/plain");
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.getWriter().println(readableCommandLine);
+    }
+
+    private static String forkAndCrash()
       throws IOException {
         try {
           String commandLine = new String(Files.readAllBytes(Paths.get("/proc/self/cmdline")));

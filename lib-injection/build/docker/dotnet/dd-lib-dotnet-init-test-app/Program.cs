@@ -35,7 +35,16 @@ static string ForkAndCrash(HttpRequest request)
     }
 }
 
+static string GetCommandLine(HttpRequest request)
+{
+    var commandLine = File.ReadAllText("/proc/self/cmdline");
+
+    // The command line arguments are separated by null characters, replace them with spaces
+    return commandLine.Replace("\0", " ");
+}
+
 app.MapGet("/", () => "Hello World!");
 app.MapGet("/fork_and_crash", ForkAndCrash);
+app.MapGet("/commandline", GetCommandLine);
 
 app.Run();

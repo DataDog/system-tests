@@ -1,3 +1,4 @@
+import re
 from utils import scenarios, features, flaky
 from utils.tools import logger
 from utils import scenarios, features
@@ -85,6 +86,10 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         process_tree = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Initial process tree: " + process_tree)
 
+        child_pids = self.find_child_processes(virtual_machine)
+
+        assert len(child_pids) == 0
+
         self.fork_and_crash(virtual_machine)
 
         output = self.execute_command(virtual_machine, "ps ax -o pid,ppid,state,cmd | awk '$3 == \"Z\" { print $0 }'")
@@ -94,6 +99,43 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         logger.info("Final process tree: " + process_tree)
 
         assert output == ""
+
+    def find_child_processes(self, virtual_machine) -> list:
+        command_line = self.get_commandline(virtual_machine)
+        output = self.execute_command(virtual_machine, "ps ax -o pid,ppid,cmd")
+
+        # Split the output into lines, ignoring the header
+        lines = output.splitlines()[1:]
+        
+        # Create a dictionary to store child-parent relationships
+        process_tree = {}
+        processes = []
+
+        # Parse the output to fill the dictionary and list
+        for line in lines:
+            match = re.match(r'\s*(\d+)\s+(\d+)\s+(.+)', line)
+            if match:
+                pid, ppid, cmd = match.groups()
+                pid, ppid = int(pid), int(ppid)
+                processes.append((pid, ppid, cmd))
+                if ppid not in process_tree:
+                    process_tree[ppid] = []
+                process_tree[ppid].append(pid)
+
+        # Find the processes with the given command line
+        target_pids = [pid for pid, _, cmd in processes if command_line in cmd]
+
+        child_pids = []
+
+        for pid in target_pids:
+            # Check if this process has any children
+            if pid in process_tree:
+                for child_pid in process_tree[pid]:
+                    # Find the command line for the child process
+                    child_cmd = next((cmd for child_pid_, _, cmd in processes if child_pid_ == child_pid), "")
+                    child_pids.append(child_pid)
+
+        return child_pids
 
 
 @features.installer_auto_instrumentation

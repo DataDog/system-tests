@@ -43,11 +43,7 @@ def fork_and_crash(request):
 
 
 def commandline(request):
-    # Get the current process ID
-    pid = os.getpid()
-
-    # Read the command line from /proc filesystem
-    with open(f"/proc/{pid}/cmdline", "r") as f:
+    with open(f"/proc/self/cmdline", "r") as f:
         cmdline = f.read()
 
     # The command line arguments are separated by null characters, replace them with spaces
