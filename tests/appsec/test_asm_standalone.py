@@ -62,7 +62,7 @@ class AsmStandalone_UpstreamPropagation_Base:
     def setup_check_product_is_enabled(func):
         def wrapper(self):
             headers = {}
-            if self.tested_product is "appsec":
+            if self.tested_product == "appsec":
                 headers = {
                     "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
                 }
