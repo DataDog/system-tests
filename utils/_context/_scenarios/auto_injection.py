@@ -33,8 +33,7 @@ from utils._context.virtual_machines import (
     AlmaLinux8arm64,
     AlmaLinux9amd64,
     AlmaLinux9arm64,
-    RedHat79amd64,
-    RedHat79arm64,
+    RedHat7_9amd64,
     RedHat86amd64,
     RedHat86arm64,
     Fedora36amd64,
@@ -83,8 +82,7 @@ class _VirtualMachineScenario(Scenario):
         include_almalinux_8_arm64=False,
         include_almalinux_9_amd64=False,
         include_almalinux_9_arm64=False,
-        include_redhat_79_amd64=False,
-        include_redhat_79_arm64=False,
+        include_redhat_7_9_amd64=False,
         include_redhat_8_amd64=False,
         include_redhat_8_arm64=False,
         include_fedora_36_amd64=False,
@@ -164,10 +162,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AlmaLinux9amd64())
         if include_almalinux_9_arm64:
             self.required_vms.append(AlmaLinux9arm64())
-        if include_redhat_79_amd64:
-            self.required_vms.append(RedHat79amd64())
-        if include_redhat_79_arm64:
-            self.required_vms.append(RedHat79arm64())
+        if include_redhat_7_9_amd64:
+            self.required_vms.append(RedHat7_9amd64())
         if include_redhat_8_amd64:
             self.required_vms.append(RedHat86amd64())
         if include_redhat_8_arm64:
@@ -375,8 +371,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_almalinux_8_arm64=False,
             include_almalinux_9_amd64=False,
             include_almalinux_9_arm64=False,
-            include_redhat_79_amd64=True,
-            include_redhat_79_arm64=True,
+            include_redhat_7_9_amd64=True,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
             include_fedora_36_amd64=False,
@@ -414,6 +409,7 @@ class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
             include_amazon_linux_2_arm64=True,
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
+            include_redhat_7_9_amd64=True,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
             scenario_groups=scenario_groups,
