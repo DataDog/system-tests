@@ -151,7 +151,7 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
     }
     $span->name = arg($req, 'name');
     $service = arg($req, 'service');
-    $span->service = (!is_null($service) && $service !== '') ? $service : $span->service;
+    $span->service = !is_null($service) && $service !== '' ? $service : $span->service;
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
     $span->links = $links;
