@@ -103,13 +103,23 @@ $otelSpans = [];
 $scopes = [];
 /** @var ?\DDTrace\SpanData $span */
 $activeSpan = null;
+/** @var array[] $closedSpansDistributedTracingHeaders */
+$closedSpansDistributedTracingHeaders = [];
 
 $router = new Router($server, $logger, $errorHandler);
-$router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan) {
+$router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$closedSpansDistributedTracingHeaders) {
     if ($parent = arg($req, 'parent_id')) {
-        \DDTrace\switch_stack($spans[$parent]);
-        \DDTrace\create_stack();
-        $span = \DDTrace\start_span();
+        if (isset($spans[$parent])) {
+            \DDTrace\switch_stack($spans[$parent]);
+            \DDTrace\create_stack();
+            $span = \DDTrace\start_span();
+        } elseif (isset($closedSpansDistributedTracingHeaders[$parent])) {
+            $span = \DDTrace\start_span();
+            $distributedTracingHeaders = $closedSpansDistributedTracingHeaders[$parent];
+            \DDTrace\consume_distributed_tracing_headers($distributedTracingHeaders);
+        } else {
+            $span = \DDTrace\start_trace_span();
+        }
     } else {
         $span = \DDTrace\start_trace_span();
     }
@@ -154,6 +164,13 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
     $span->links = $links;
+
+    if ($tags = arg($req, 'span_tags')) {
+        foreach ($tags as $tag) { // [ 0 => [tag, value], 1 => [tag, value], ... ]
+            list($key, $value) = $tag;
+            $span->meta[$key] = $value;
+        }
+    }
 
     if (\dd_trace_env_config("DD_TRACE_ENABLED")) {
         $spanId = $span->id;
@@ -240,7 +257,7 @@ $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(func
     $span->links[] = $link;
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans, &$activeSpan) {
+$router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans, &$activeSpan, &$closedSpansDistributedTracingHeaders) {
     $span_id = arg($req, 'span_id');
 
     if (!isset($spans[$span_id])) {
@@ -249,6 +266,7 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
 
     $span = $spans[$span_id];
     \DDTrace\switch_stack($span);
+    $closedSpansDistributedTracingHeaders[$span_id] = \DDTrace\generate_distributed_tracing_headers();
     \DDTrace\close_span();
     $closed_spans[$span_id] = $span;
     unset($spans[$span_id]);
