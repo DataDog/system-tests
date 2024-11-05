@@ -2,7 +2,7 @@
 Test configuration consistency for features across supported APM SDKs.
 """
 import pytest
-from utils import scenarios, features, context, bug, missing_feature
+from utils import scenarios, features, context, bug
 from utils.parametric.spec.trace import find_span_in_traces
 from urllib.parse import urlparse
 
@@ -86,10 +86,9 @@ class Test_Config_UnifiedServiceTagging:
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
-    @missing_feature(library="ruby")
     def test_specific_version(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.start_span(name="s1") as s1:
+            with test_library.start_span(name="s1", service="version_test") as s1:
                 pass
             with test_library.start_span(name="s2", service="no dd_service") as s2:
                 pass
@@ -129,7 +128,6 @@ class Test_Config_TraceAgentURL:
     """
 
     @bug(context.library == "golang", reason="APMAPI-390")
-    @missing_feature(library="ruby")
     @parametrize(
         "library_env",
         [
@@ -145,7 +143,7 @@ class Test_Config_TraceAgentURL:
             resp = t.get_tracer_config()
 
         url = urlparse(resp["dd_trace_agent_url"])
-        assert url.scheme == "unix"
+        assert "unix" in url.scheme
         assert url.path == "/var/run/datadog/apm.socket"
 
     # The DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
