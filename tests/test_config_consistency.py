@@ -346,7 +346,7 @@ class Test_Config_IntegrationEnabled_False:
 
         nonKafkaOrPdoSpans = []
         kafkaOrPdoSpans = []
-        
+
         for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
             if span.get("name") != "kafka.produce":
                 nonKafkaOrPdoSpans.append(span)
