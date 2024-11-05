@@ -178,13 +178,6 @@ class _VirtualMachineScenario(Scenario):
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
 
-    def pytest_configure(self, config):
-        """ The only_default_vms is a flag that will be used to split the vms in two groups: default and non-default.
-        We need this value in the log folder name. We need to override the pytest_configure method to set the value
-        before create the log folder."""
-        self.only_default_vms = config.option.vm_default_vms
-        super().pytest_configure(config)
-
     def configure(self, config):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
         from utils.virtual_machine.virtual_machine_provisioner import provisioner
@@ -304,13 +297,6 @@ class _VirtualMachineScenario(Scenario):
     @property
     def configuration(self):
         return self._os_configurations
-
-    @property
-    def host_log_folder(self):
-        # We override the default log folder name.
-        # We are splitting the vms in two groups: default and non-default
-        # We launch both groups in the same pipeline we need to use different log folders
-        return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}_{self.only_default_vms}"
 
     def customize_feature_parity_dashboard(self, result):
 
