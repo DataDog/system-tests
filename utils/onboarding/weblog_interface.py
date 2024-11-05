@@ -3,6 +3,7 @@ from random import randint
 import os
 import json
 import requests
+from typing import List
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.tools import logger
 
