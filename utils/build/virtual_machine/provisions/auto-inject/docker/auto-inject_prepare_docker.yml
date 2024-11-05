@@ -73,7 +73,7 @@
             sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
-      os_branch: redhat_8_6
+      os_branch: redhat
       remote-command: |
             sudo yum remove podman buildah -y || true
             sudo yum install -y yum-utils
