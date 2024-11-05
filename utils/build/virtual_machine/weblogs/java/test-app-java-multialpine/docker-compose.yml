@@ -10,52 +10,52 @@ services:
           dockerfile: Dockerfile.reverseproxy
       healthcheck:
         test: "curl -f http://localhost:8080"
-  java_8:
+  java_8_alpine:
       env_file: "scenario_app.env"
-      image: system-tests/java_8:latest
+      image: system-tests/java_8_alpine:latest
       restart: always
       build:
           context: .
-          dockerfile: Dockerfile.jdk8
+          dockerfile: Dockerfile.jdk8-alpine
       healthcheck:
         test: "curl -f http://localhost:18080"
 
-  java_11:
+  java_11_alpine:
       env_file: "scenario_app.env"
-      image: system-tests/java_11:latest
+      image: system-tests/java_11_alpine:latest
       restart: always
       build:
           context: .
-          dockerfile: Dockerfile.jdk11
+          dockerfile: Dockerfile.jdk11-alpine
       healthcheck:
         test: "curl -f http://localhost:18080"
 
-  java_15:
+  java_15_alpine:
       env_file: "scenario_app.env"
-      image: system-tests/java_15:latest
+      image: system-tests/java_15_alpine:latest
       restart: always
       build:
           context: .
-          dockerfile: Dockerfile.jdk15
+          dockerfile: Dockerfile.jdk15-alpine
       healthcheck:
         test: "curl -f http://localhost:18080"
 
-  java_17:
+  java_17_alpine:
       env_file: "scenario_app.env"
-      image: system-tests/java_17:latest
+      image: system-tests/java_17_alpine:latest
       restart: always
       build:
           context: .
-          dockerfile: Dockerfile.jdk17
+          dockerfile: Dockerfile.jdk17-alpine
       healthcheck:
         test: "curl -f http://localhost:18080"
 
-  java_21:
-    env_file: "scenario_app.env"
-    image: system-tests/java_21:latest
-    restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile.jdk21
-    healthcheck:
-      test: "curl -f http://localhost:18080"
+  java_21_alpine:
+      env_file: "scenario_app.env"
+      image: system-tests/java_21_alpine:latest
+      restart: always
+      build:
+          context: .
+          dockerfile: Dockerfile.jdk21-alpine
+      healthcheck:
+        test: "curl -f http://localhost:18080"
