@@ -42,13 +42,13 @@ class APMLibraryClient:
         self.container = container
 
         # wait for server to start
-        self.wait(timeout, "/non-existent-endpoint-to-ping-until-the-server-starts")
+        self.wait(timeout)
 
-    def wait(self, timeout, url):
+    def wait(self, timeout):
         delay = 0.01
         for _ in range(int(timeout / delay)):
             try:
-                resp = self._session.get(self._url(url))
+                resp = self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts"))
                 if resp.status_code == 404:
                     break
             except Exception:
@@ -63,7 +63,7 @@ class APMLibraryClient:
         else:
             self._print_logs()
             message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
-            raise RuntimeError(message)
+            _fail(message)
 
     def _print_logs(self):
         try:
@@ -136,7 +136,6 @@ class APMLibraryClient:
 
     def current_span(self) -> Union[SpanResponse, None]:
         resp_json = self._session.get(self._url("/trace/span/current")).json()
-        print(f"current_span response: {resp_json}")
         if not resp_json:
             return None
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
@@ -586,7 +585,7 @@ class APMLibrary:
 
     def is_alive(self) -> bool:
         try:
-            self._client.wait(0.03, "/non-existent-endpoint")
+            self._client.wait(0.03)
             return True
         except (RuntimeError, Failed):
             return False
