@@ -63,7 +63,7 @@ class AutoInjectBaseTest:
     def fork_and_crash(self, virtual_machine) -> list:
         return self.broadcast_request(virtual_machine, "fork_and_crash")
 
-    def broadcast_request(virtual_machine, path) -> list:
+    def broadcast_request(self, virtual_machine, path) -> list:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         base_url = f"http://{vm_ip}:{vm_port}/"
