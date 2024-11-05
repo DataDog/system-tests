@@ -22,10 +22,7 @@ def make_get_request(app_url):
 
 def simple_request(app_url, swallow: bool = False) -> str:
     try:
-        return requests.get(
-            app_url,
-            timeout=120,
-        ).text
+        return requests.get(app_url, timeout=120,).text
     except Exception as e:
         if not swallow:
             raise

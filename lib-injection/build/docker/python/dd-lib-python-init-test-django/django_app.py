@@ -23,10 +23,12 @@ ALLOWED_HOSTS = ["*"]
 def index(request):
     return HttpResponse("test")
 
+
 def crashme(request):
     import ctypes
 
     ctypes.string_at(0)
+
 
 def fork_and_crash(request):
     pid = os.fork()
@@ -39,6 +41,7 @@ def fork_and_crash(request):
         crashme(request)
         return HttpResponse("Nobody should see this")
 
+
 def commandline(request):
     # Get the current process ID
     pid = os.getpid()
@@ -48,13 +51,14 @@ def commandline(request):
         cmdline = f.read()
 
     # The command line arguments are separated by null characters, replace them with spaces
-    cmdline = cmdline.replace('\0', ' ')
+    cmdline = cmdline.replace("\0", " ")
 
     return HttpResponse(cmdline.strip())
+
 
 urlpatterns = [
     path("", index),
     path("crashme", crashme),
     path("fork_and_crash", fork_and_crash),
-    path("commandline", commandline),    
+    path("commandline", commandline),
 ]
