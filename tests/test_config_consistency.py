@@ -241,7 +241,7 @@ class Test_Config_ClientIPHeader_Precedence:
         ("x-real-ip", "8.7.6.5"),
         ("true-client-ip", "5.6.7.2"),
         ("x-client-ip", "5.6.7.3"),
-        # ("x-forwarded", "5.6.7.4"),
+        ("x-forwarded", "5.6.7.4"),
         ("forwarded-for", "5.6.7.5"),
         ("x-cluster-client-ip", "5.6.7.6"),
         ("fastly-client-ip", "5.6.7.7"),
