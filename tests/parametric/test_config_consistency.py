@@ -98,10 +98,10 @@ class Test_Config_UnifiedServiceTagging:
         assert len(traces) == 2
 
         span1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
-        span2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
         assert span1["service"] == "version_test"
         assert span1["meta"]["version"] == "5.2.0"
 
+        span2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
         assert span2["service"] == "no dd_service"
         assert "version" not in span2["meta"]
 
