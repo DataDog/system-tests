@@ -241,7 +241,7 @@ class Test_Config_ClientIPHeader_Precedence:
         ("x-real-ip", "8.7.6.5"),
         ("true-client-ip", "5.6.7.2"),
         ("x-client-ip", "5.6.7.3"),
-        ("x-forwarded", "5.6.7.4"),
+        ("x-forwarded", "for=5.6.7.4"),
         ("forwarded-for", "5.6.7.5"),
         ("x-cluster-client-ip", "5.6.7.6"),
         ("fastly-client-ip", "5.6.7.7"),
@@ -267,7 +267,8 @@ class Test_Config_ClientIPHeader_Precedence:
             req = self.requests[i]
             ip = self.IP_HEADERS[i][1]
             trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
-            print(88, i)
+            if ip.startswith("for="):
+                ip = ip[4:]
             expected_tags = {"http.client_ip": ip}
             assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
