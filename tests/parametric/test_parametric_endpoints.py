@@ -1,11 +1,11 @@
 # TODO(mabdinur): Move this file to tests/test_the_test/
 """
-This module provides one unit test for each parametric endpoint.
+This module provides simple unit tests for each parametric endpoint.
 The results of these unit tests are reported to the feature parity dashboard.
 Parametric endpoints that are not tested in this file are not yet supported.
 Avoid using those endpoints in the parametric tests.
-When in doubt refer to the python implementation as the source of truth:
-https://github.com/DataDog/system-tests/pull/3345/files.
+When in doubt refer to the python implementation as the source of truth via
+the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/scenarios/parametric.md#shared-interface
 """
 import json
 import pytest
@@ -24,7 +24,7 @@ from utils.parametric._library_client import Link
 class Test_Parametric_DDSpan_Start:
     def test_start_span(self, test_agent, test_library):
         """
-        Validates the /trace/span/start API creates a new span:
+        Validates that /trace/span/start creates a new span.
 
         Supported Parameters:
         - name: str
@@ -71,7 +71,7 @@ class Test_Parametric_DDSpan_Start:
 class Test_Parametric_DDSpan_Finish:
     def test_span_finish(self, test_agent, test_library):
         """
-        Validates that /traces/span/finish API finishes a span and sends it to the agent.
+        Validates that /trace/span/finish finishes a span and sends it to the agent.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -94,7 +94,7 @@ class Test_Parametric_DDSpan_Finish:
 class Test_Parametric_Inject_Headers:
     def test_inject_headers(self, test_agent, test_library):
         """
-        Validates that /trace/span/inject_headers generates distributed tracing headers from a span.
+        Validates that /trace/span/inject_headers generates distributed tracing headers from span data.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -113,7 +113,7 @@ class Test_Parametric_Inject_Headers:
 class Test_Parametric_DDSpan_Set_Meta:
     def test_set_meta(self, test_agent, test_library):
         """
-        Validates that /trace/span/set_meta sets a meta key value pair on a span.
+        Validates that /trace/span/set_meta sets a key value pair on a span.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -136,7 +136,7 @@ class Test_Parametric_DDSpan_Set_Meta:
 class Test_Parametric_DDSpan_Set_Metric:
     def test_set_metric(self, test_agent, test_library):
         """
-        Validates that /trace/span/set_meta sets a metric key value pair on a span.
+        Validates that /trace/span/set_metric sets a metric on a span.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -159,7 +159,7 @@ class Test_Parametric_DDSpan_Set_Metric:
 class Test_Parametric_DDSpan_Set_Error:
     def test_set_error(self, test_agent, test_library):
         """
-        Validates that /trace/span/set_error sets an error on a span.
+        Validates that /trace/span/error sets an error on a span.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -207,7 +207,7 @@ class Test_Parametric_DDSpan_Set_Resource:
 class Test_Parametric_DDSpan_Add_Link:
     def test_add_link(self, test_agent, test_library):
         """
-        Validates that /trace/span/add_link adds a link to a span.
+        Validates that /trace/span/add_link adds a spanlink to a span.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -232,7 +232,7 @@ class Test_Parametric_DDSpan_Add_Link:
 
 
 @irrelevant(
-    "DO NOT USE  /trace/span/http_client_request endpoint in parametric tests. "
+    "DO NOT USE /http/client/request in parametric tests. "
     "This endpoint will be removed in a future PR. Instead use the make_distinct_call weblog endpoint."
 )
 @scenarios.parametric
@@ -240,7 +240,7 @@ class Test_Parametric_DDSpan_Add_Link:
 class Test_Parametric_DDTrace_Http_Client_Request:
     def test_http_client_request(self, test_agent, test_library, test_agent_hostname, test_agent_port):
         """
-        Validates that /trace/span/http_client_request creates a span for an outgoing http request.
+        Validates that /http/client/request creates a span with http request metadata.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -255,6 +255,7 @@ class Test_Parametric_DDTrace_Http_Client_Request:
             method="GET",
             url=f"http://{test_agent_hostname}:{test_agent_port}",
             headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2")],
+            body=b"test-body",
         )
         trace = test_agent.wait_for_num_traces(num=1)
         span = find_only_span(trace)
@@ -264,11 +265,9 @@ class Test_Parametric_DDTrace_Http_Client_Request:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Config:
-    """Provides documentation and tests for the parametric endpoints that execute Tracer level operations."""
-
     def test_config(self, test_agent, test_library):
         """
-        Validates that /trace/config returns a set of configuration of the tracer. This list is expected to
+        Validates that /trace/config returns a list of tracer configurations. This list is expected to
         grow over time.
 
         Supported Parameters:
@@ -302,6 +301,9 @@ class Test_Parametric_DDTrace_Crash:
     def test_crash(self, test_agent, test_library):
         """
         Validates that /trace/crash crashes the current process.
+
+        Supported Parameters:
+        Supported Return Values:
         """
         assert test_library.is_alive()
         test_library.crash()
@@ -313,7 +315,7 @@ class Test_Parametric_DDTrace_Crash:
 class Test_Parametric_DDTrace_Current_Span:
     def test_current_span(self, test_agent, test_library):
         """
-        Validates that /trace/span/current_span returns the active Datadog span.
+        Validates that /trace/span/current returns the active Datadog span.
 
         Supported Parameters:
         Supported Return Values:
@@ -341,7 +343,7 @@ class Test_Parametric_DDTrace_Current_Span:
 
     def test_current_span_from_otel(self, test_agent, test_library):
         """
-        Validates that /trace/span/current_span can return the Datadog span that was created by the OTEL API.
+        Validates that /trace/span/current can return the Datadog span that was created by the OTEL API.
 
         Supported Parameters:
         Supported Return Values:
@@ -362,28 +364,28 @@ class Test_Parametric_DDTrace_Current_Span:
 class Test_Parametric_DDTrace_Flush:
     def test_flush(self, test_agent, test_library):
         """
-        Validates that /trace/span/flush /trace/stats/flush endpoints are implemented and return a successful status code.
-        If these endpoint is not implemented, spans/stats will not be flushed when the test_library contextmanager exits.
-        Traces data may or may not be received by the agent in time for validation. This can introduce flakiness in tests.
+        Validates that /trace/span/flush and /trace/stats/flush endpoints are implemented and return successful status codes.
+        If these endpoint are not implemented, spans and/or stats will not be flushed when the test_library contextmanager exits.
+        Trace data may or may not be received by the agent in time for validation. This can introduce flakiness in tests.
 
         Supported Parameters:
         Supported Return Values:
-        - trace_flush_status_code: int
-        - stats_flush_status_code: int
+        - success: bool
         """
-        # Here we are avoiding using the __exit__() operation on the contextmanager
-        # and instead manually finishing and flushing the span.
-        s1 = test_library.start_span("span").__enter__()
-        s1.finish()
+        with test_library.start_span("test_flush"):
+            pass
         assert test_library.flush()
 
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
+@pytest.mark.parametrize(
+    "library_env", [{"DD_TRACE_PROPAGATION_HTTP_BAGGAGE_ENABLED": "true"}],
+)
 class Test_Parametric_DDTrace_Baggage:
     def test_set_baggage(self, test_agent, test_library):
         """
-        Validates that /trace/span/set_baggage sets a baggage item on a span.
+        Validates that /trace/span/set_baggage sets a baggage item.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -392,7 +394,7 @@ class Test_Parametric_DDTrace_Baggage:
         Supported Return Values:
         """
         with test_library:
-            with test_library.start_span("span") as s1:
+            with test_library.start_span("test_set_baggage") as s1:
                 s1.set_baggage("key", "value")
 
             headers = test_library.inject_headers(s1.span_id)
@@ -400,15 +402,16 @@ class Test_Parametric_DDTrace_Baggage:
 
     def test_get_baggage(self, test_agent, test_library):
         """
-        Validates that /trace/span/get_baggage gets a baggage item from a span.
+        Validates that /trace/span/get_baggage gets a baggage item.
 
         Supported Parameters:
         - span_id: Union[int, str]
         - key: str
         Supported Return Values:
+        - value: str
         """
         with test_library:
-            with test_library.start_span("span") as s1:
+            with test_library.start_span("test_get_baggage") as s1:
                 s1.set_baggage("key", "value")
 
                 baggage = s1.get_baggage("key")
@@ -416,7 +419,7 @@ class Test_Parametric_DDTrace_Baggage:
 
     def test_get_all_baggage(self, test_agent, test_library):
         """
-        Validates that /trace/span/get_all_baggage gets all baggage items from a span.
+        Validates that /trace/span/get_all_baggage gets all baggage items.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -424,7 +427,7 @@ class Test_Parametric_DDTrace_Baggage:
         - baggage: Dict[str, str]
         """
         with test_library:
-            with test_library.start_span("span") as s1:
+            with test_library.start_span("test_get_all_baggage") as s1:
                 s1.set_baggage("key1", "value")
                 s1.set_baggage("key2", "value")
 
@@ -434,7 +437,7 @@ class Test_Parametric_DDTrace_Baggage:
 
     def test_remove_baggage(self, test_agent, test_library):
         """
-        Validates that /trace/span/remove_baggage removes a baggage item from a span.
+        Validates that /trace/span/remove_baggage removes a baggage item.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -442,8 +445,12 @@ class Test_Parametric_DDTrace_Baggage:
         Supported Return Values:
         """
         with test_library:
-            with test_library.start_span("span") as s1:
+            with test_library.start_span("test_remove_baggage") as s1:
+                # Set baggage
                 s1.set_baggage("key", "value")
+                headers = test_library.inject_headers(s1.span_id)
+                assert any("baggage" in header for header in headers)
+                # Remove baggage
                 s1.remove_baggage("key")
 
             headers = test_library.inject_headers(s1.span_id)
@@ -458,9 +465,13 @@ class Test_Parametric_DDTrace_Baggage:
         Supported Return Values:
         """
         with test_library:
-            with test_library.start_span("span") as s1:
+            with test_library.start_span("test_remove_baggage") as s1:
+                # Set baggage
                 s1.set_baggage("key1", "value")
                 s1.set_baggage("key2", "value")
+                # Remove all baggage
+                headers = test_library.inject_headers(s1.span_id)
+                assert any("baggage" in header for header in headers)
                 s1.remove_all_baggage()
 
             headers = test_library.inject_headers(s1.span_id)
@@ -472,7 +483,7 @@ class Test_Parametric_DDTrace_Baggage:
 class Test_Parametric_OtelSpan_Start_Finish:
     def test_span_start_and_finish(self, test_agent, test_library):
         """
-        Validates that the /trace/otel/start_span API creates a new span and that the /trace/otel/end_span API finishes a span and sends it to the agent.
+        Validates that the /trace/otel/start_span creates a new span and that the /trace/otel/end_span finishes a span and sends it to the agent.
 
         Supported Parameters:
         - name: str
@@ -481,10 +492,7 @@ class Test_Parametric_OtelSpan_Start_Finish:
         - parent_id: Optional[Union[int, str]]
         - attributes: Optional[Dict[str, str]]
         - links: Optional[List[Link]]
-
-
         Supported Return Values:
-
         - span_id: Union[int, str]
         - trace_id: Union[int, str]
         """
@@ -526,7 +534,7 @@ class Test_Parametric_OtelSpan_Start_Finish:
 class Test_Parametric_OtelSpan_Set_Attribute:
     def test_otel_set_attribute(self, test_agent, test_library):
         """
-        Validates that /traces/otel/set_attributes API sets the corresponding attributes on a span.
+        Validates that /trace/otel/set_attributes sets a key value pair on a span.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -655,7 +663,7 @@ class Test_Parametric_OtelSpan_Is_Recording:
         - is_recording: bool
         """
         with test_library.otel_start_span("otel_is_recording") as s1:
-            assert s1.is_recording() == True
+            assert s1.is_recording()
             s1.end_span()
 
 
@@ -664,7 +672,7 @@ class Test_Parametric_OtelSpan_Is_Recording:
 class Test_Parametric_Otel_Baggage:
     def test_set_baggage(self, test_agent, test_library):
         """
-        Validates that /trace/otel/otel_set_baggage sets a baggage item on a span.
+        Validates that /trace/otel/otel_set_baggage sets a baggage item.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -717,9 +725,7 @@ class Test_Parametric_Otel_Current_Span:
 class Test_Parametric_Otel_Trace_Flush:
     def test_flush(self, test_agent, test_library):
         """
-        Validates that /trace/span/flush /trace/stats/flush endpoints are implemented and return a successful status code.
-        If these endpoint is not implemented, spans/stats will not be flushed when the test_library contextmanager exits.
-        Traces data may or may not be received by the agent in time for validation. This can introduce flakiness in tests.
+        Validates that /trace/otel/flush flushes all finished spans.
 
         Supported Parameters:
         - timeout_sec: int
@@ -728,6 +734,6 @@ class Test_Parametric_Otel_Trace_Flush:
         """
         # Here we are avoiding using the __exit__() operation on the contextmanager
         # and instead manually finishing and flushing the span.
-        s1 = test_library.otel_start_span("span").__enter__()
-        s1.end_span()
+        with test_library.otel_start_span("test_otel_flush") as s1:
+            s1.end_span()
         assert test_library.otel_flush(timeout_sec=5)

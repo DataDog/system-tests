@@ -114,6 +114,7 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
         span.set_tag(k, v)
 
     spans[span.span_id] = span
+    # Access the active span from the tracer, this allows us to test tracer's context management
     active_ddspan[0] = ddtrace.tracer.current_span()
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
 

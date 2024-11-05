@@ -202,7 +202,7 @@ class APMLibraryClient:
         resp = resp.json()
         return resp["baggage"]
 
-    def span_get_all_baggage(self, span_id: int):
+    def span_get_all_baggage(self, span_id: int) -> dict:
         resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
         resp = resp.json()
         return resp["baggage"]

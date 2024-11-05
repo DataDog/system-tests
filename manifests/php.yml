@@ -299,10 +299,10 @@ tests/:
       Test_Parametric_DDSpan_Add_Link: bug (APMAPI-778)  # Adding spans links by parent id does not work as expected
       Test_Parametric_DDSpan_Start: bug (APMAPI-778) # Does not support creating a child span from a finished span
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
-      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778) # current span endpoint should return span and trace id of zero if no span is active
-      Test_Parametric_DDTrace_Flush: missing_feature (flush parametric endpoint is not implemented, this can introduce flakiness in all tests)
+      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778) # current span endpoint should return span and trace id of zero if no span is "active"
+      Test_Parametric_DDTrace_Flush: missing_feature (flush endpoint is not implemented, the lack of this feature introduce flakiness in all tests)
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
-      Test_Parametric_Otel_Current_Span: bug (APMAPI-778) # otel current span endpoint should return span and trace id of zero if no span is active
+      Test_Parametric_Otel_Current_Span: bug (APMAPI-778) # otel current span endpoint should return a span and trace id of zero if no span is "active"
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
