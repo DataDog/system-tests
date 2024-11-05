@@ -42,9 +42,9 @@ class APMLibraryClient:
         self.container = container
 
         # wait for server to start
-        self.wait(timeout)
+        self.wait(timeout, True)
 
-    def wait(self, timeout):
+    def wait(self, timeout, reload):
         delay = 0.01
         for _ in range(int(timeout / delay)):
             try:
@@ -52,7 +52,8 @@ class APMLibraryClient:
                 if resp.status_code == 404:
                     break
             except Exception:
-                self.container.reload()
+                if reload:
+                    self.container.reload()
                 if self.container.status != "running":
                     self._print_logs()
                     message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
@@ -585,7 +586,7 @@ class APMLibrary:
 
     def is_alive(self) -> bool:
         try:
-            self._client.wait(0.03)
+            self._client.wait(0.03, False)
             return True
         except (RuntimeError, Failed):
             return False
