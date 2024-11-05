@@ -16,9 +16,7 @@ from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
-from utils.parametric._library_client import APMLibraryClientGRPC
-from utils.parametric._library_client import APMLibraryClientHTTP
-from utils.parametric._library_client import APMLibrary
+from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
 from utils import context, scenarios
 from utils.tools import logger
@@ -571,15 +569,9 @@ def test_library(
         if apm_test_server.host_port is None:
             raise RuntimeError("Internal error, no port has been assigned", 1)
 
-        if apm_test_server.protocol == "grpc":
-            client = APMLibraryClientGRPC(
-                f"localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container
-            )
-        elif apm_test_server.protocol == "http":
-            client = APMLibraryClientHTTP(
-                f"http://localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container
-            )
-        else:
-            raise ValueError(f"Interface {apm_test_server.protocol} not supported")
+        client = APMLibraryClient(
+            f"http://localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container
+        )
+
         tracer = APMLibrary(client, apm_test_server.lang)
         yield tracer

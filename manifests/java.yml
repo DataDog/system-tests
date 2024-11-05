@@ -1319,11 +1319,11 @@ tests/:
       TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
-      Test_Config_RateLimit: missing_feature
-      Test_Config_TraceAgentURL: missing_feature
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_RateLimit: v1.41.1
+      Test_Config_TraceAgentURL: v1.41.1
+      Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: v1.41.1
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
@@ -1388,6 +1388,7 @@ tests/:
     span_pointers/:
       aws/:
         test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
           Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
@@ -1401,18 +1402,36 @@ tests/:
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: missing_feature
     Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
-    Test_Config_ClientTagQueryString_Configured: missing_feature (endpoints return 404, but in theory should work)
-    Test_Config_ClientTagQueryString_Empty: missing_feature (incorrect default value)
-    Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: missing_feature
-    Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_ClientTagQueryString_Configured:
+      '*': v1.42.0
+      'vertx3': irrelevant (endpoint not implemented)
+      'vertx4': irrelevant (endpoint not implemented)
+    Test_Config_ClientTagQueryString_Empty:
+      '*': v1.42.0
+      'vertx3': irrelevant (endpoint not implemented)
+      'vertx4': irrelevant (endpoint not implemented)
+    Test_Config_HttpClientErrorStatuses_Default:
+      '*': irrelevant (500 error)
+      spring-boot: v1.41.1
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
+      '*': irrelevant (500 error)
+      spring-boot: v1.41.1
+    Test_Config_HttpServerErrorStatuses_Default:
+      '*': v1.41.1
+      spring-boot-openliberty: irrelevant
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
+      '*': irrelevant (500 error)
+      spring-boot: v1.41.1
+    Test_Config_IntegrationEnabled_False:
+      '*': irrelevant (kafka endpoints are not implemented)
+      spring-boot: v1.42.0
+    Test_Config_IntegrationEnabled_True:
+      '*': irrelevant (kafka endpoints are not implemented)
+      spring-boot: v1.42.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
-    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
-    Test_Config_UnifiedServiceTagging_Default: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
+    Test_Config_UnifiedServiceTagging_Default: v1.39.0
   test_data_integrity.py:
     Test_LibraryHeaders: v1.29.0
   test_distributed.py:
