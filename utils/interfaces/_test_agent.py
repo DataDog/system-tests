@@ -61,7 +61,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         assert runtime_id is not None, "Runtime ID not found"
         telemetry_msgs = []
         for data_received in self._data_telemetry_list:
-            if "log" in data_received["request_type"] and data_received["runtime_id"] == runtime_id:
+            if data_received["request_type"] == "logs" and data_received["runtime_id"] == runtime_id:
                 telemetry_msgs.append(data_received)
 
         return telemetry_msgs
