@@ -65,3 +65,19 @@ class Test_CopyObject:
 
     def test_main(self):
         _validate_s3_object_pointer(self.r, resource="s3.copyobject")
+
+
+@rfc("https://github.com/DataDog/dd-span-pointer-rules")
+@features.serverless_span_pointers
+class Test_MultipartUpload:
+    def setup_main(self):
+        self.r = weblog.get(
+            "/mock_s3/multipart_upload",
+            params={
+                "bucket": "mybucket",
+                "key": "my-key",
+            },
+        )
+
+    def test_main(self):
+        _validate_s3_object_pointer(self.r, resource="s3.completemultipartupload")
