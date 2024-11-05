@@ -1,9 +1,11 @@
+import json
 import os
+import requests
 import time
 import pytest
 import paramiko
 from utils.tools import logger
-from utils.onboarding.weblog_interface import make_get_request, simple_request, warmup_weblog, make_internal_get_request
+from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
@@ -67,26 +69,26 @@ class AutoInjectBaseTest:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         base_url = f"http://{vm_ip}:{vm_port}/"
-        response = simple_request(base_url)
+        response = requests.get(base_url, timeout=30)
 
-        try:
+        if "application/json" in response.headers["content-type"]:
             response_json = response.json()
+
             logger.info(f"There is a multicontainer app: {response_json}")
             endpoints = response_json.get("apps", [])
             responses = []
 
             for app in endpoints:
                 endpoint_url = f"{base_url}{app['url']}/{path}"
-                endpoint_response = simple_request(endpoint_url)
+                endpoint_response = requests.get(endpoint_url, timeout=120)
                 responses.append(endpoint_response.text)
 
             return responses
-        except ValueError:
+        else:
             # If the response is not JSON, treat it as a single endpoint
             logger.info(f"Single container app detected at {base_url}")
             single_endpoint_url = f"{base_url}{path}"
-            single_response = simple_request(single_endpoint_url)
-            single_response.raise_for_status()
+            single_response = requests.get(single_endpoint_url, timeout=120)
             return [single_response.text]
 
     def close_channel(self, channel):

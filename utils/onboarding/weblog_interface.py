@@ -20,17 +20,6 @@ def make_get_request(app_url):
     return generated_uuid
 
 
-def simple_request(app_url, swallow: bool = False) -> str:
-    try:
-        return requests.get(app_url, timeout=120,).text
-    except Exception as e:
-        if not swallow:
-            raise
-
-        logger.warning(e)
-    return ""
-
-
 def warmup_weblog(app_url):
     for _ in range(15):
         try:
