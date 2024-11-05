@@ -134,14 +134,8 @@ class Test_DsmRabbitmq:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @bug(
-        library="java",
-        reason="Java calculates 16129003365833597547 as producer hash by not using 'routing_key:true' in edge tags.",
-    )
-    @bug(
-        library="dotnet",
-        reason="Dotnet calculates 3168906112866048140 as producer hash by using 'routing_key:True' in edge tags, with 'True' capitalized, resulting in different hash.",
-    )
+    @bug(library="java", reason="APMAPI-840")
+    @bug(library="dotnet", reason="APMAPI-841")
     @flaky(library="python", reason="APMAPI-724")
     @missing_feature(context.library <= "nodejs@5.24.0")
     def test_dsm_rabbitmq(self):
