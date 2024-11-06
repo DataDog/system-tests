@@ -47,7 +47,7 @@ onboarding_nodejs:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "nodejs")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
       when: always
     - when: manual
   variables:
@@ -79,7 +79,7 @@ onboarding_java:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "java")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
       when: always
     - when: manual
   variables:
@@ -111,7 +111,7 @@ onboarding_python:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "python")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
       when: always
     - when: manual
   variables:
@@ -144,7 +144,7 @@ onboarding_dotnet:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "dotnet")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
       when: always
     - when: manual
   variables:
@@ -173,7 +173,7 @@ onboarding_ruby:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "ruby")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
       when: always
     - when: manual
   variables:
@@ -202,7 +202,7 @@ onboarding_php:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "php")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
       when: always
     - when: manual
   variables:
