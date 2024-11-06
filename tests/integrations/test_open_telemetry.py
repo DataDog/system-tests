@@ -103,8 +103,8 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         # A human readable version of the stack trace
         assert span["meta"]["error.stack"].strip()
 
-    @bug(library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
-    @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
+    @bug(library="python_otel", reason="OTEL-940")
+    @bug(library="nodejs_otel", reason="OTEL-940")
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():
@@ -194,7 +194,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     def test_db_connection_string(self):
         super().test_db_connection_string()
 
-    @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
+    @bug(library="nodejs_otel", reason="OTEL-940")
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():

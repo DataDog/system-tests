@@ -2,6 +2,7 @@ package com.datadoghq.vertx3;
 
 import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
@@ -30,6 +31,11 @@ import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
 import okhttp3.*;
 
 public class Main {
@@ -44,6 +50,7 @@ public class Main {
     }
 
     private static final OkHttpClient client = new OkHttpClient();
+    private static final CryptoExamples cryptoExamples = new CryptoExamples();
 
     public static void main(String[] args) {
         Vertx vertx = Vertx.vertx();
@@ -63,6 +70,9 @@ public class Main {
                         span.finish();
                     }
                 });
+
+        router.get("/healthcheck").handler(Main::healthCheck);
+
         router.get("/headers")
                 .produces("text/plain")
                 .handler(ctx -> ctx.response()
@@ -189,11 +199,47 @@ public class Main {
                         }
                     });
                 });
+        router.get("/vulnerablerequestdownstream")
+                .handler(ctx -> {
+                    cryptoExamples.insecureMd5Hashing("password");
+                    String url = "http://localhost:7777/returnheaders";
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            ctx.response().setStatusCode(500).end(e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                ctx.response().setStatusCode(500).end(response.message());
+                            } else {
+                                ctx.response().end(response.body().string());
+                            }
+                        }
+                    });
+                });
         router.get("/returnheaders")
                 .handler(ctx -> {
                     JsonObject headersJson = new JsonObject();
                     ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
                     ctx.response().end(headersJson.encode());
+                });
+        router.get("/set_cookie")
+                .handler(ctx -> {
+                    String name = ctx.request().getParam("name");
+                    String value = ctx.request().getParam("value");
+                    ctx.response().putHeader("Set-Cookie", name + "=" + value).end("ok");
+                });
+        router.get("/createextraservice")
+                .handler(ctx -> {
+                    String serviceName = ctx.request().getParam("serviceName");
+                    setRootSpanTag("service", serviceName);
+                    ctx.response().end("ok");
                 });
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
@@ -244,6 +290,34 @@ public class Main {
             ctx.request().formAttributes();
         } else {
             ctx.getBodyAsString();
+        }
+    }
+
+
+    private static void healthCheck(RoutingContext context) {
+        String version = getVersion().orElse("0.0.0");
+
+        Map<String, Object> response = new HashMap<>();
+        Map<String, String> library = new HashMap<>();
+        library.put("language", "java");
+        library.put("version", version);
+        response.put("status", "ok");
+        response.put("library", library);
+
+        JsonObject jsonResponse = new JsonObject(response);
+
+        context.response()
+            .putHeader("content-type", "application/json")
+            .end(jsonResponse.encode());
+    }
+
+    private static Optional<String> getVersion() {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+            String line = reader.readLine();
+            return Optional.ofNullable(line);
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
 }

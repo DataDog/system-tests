@@ -4,7 +4,7 @@
 
 import tests.debugger.utils as base
 
-from utils import scenarios, features, remote_config as rc
+from utils import scenarios, features, remote_config as rc, bug, context
 
 
 @features.debugger
@@ -27,6 +27,7 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
+    @bug(context.library == "python@2.16.0", reason="APMRP-360")
     def test_probe_status_log(self):
         self._assert()
 
@@ -36,6 +37,7 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
+    @bug(context.library == "python@2.16.0", reason="APMRP-360")
     def test_probe_status_metric(self):
         self._assert()
 
@@ -54,6 +56,7 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
+    @bug(context.library == "python@2.16.0", reason="APMRP-360")
     def test_probe_status_spandecoration(self):
         self._assert()
 
@@ -85,7 +88,7 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
         errors = []
         probe_map = base.get_probes_map(base.read_diagnostic_data())
 
-        assert probe_map, "Probes were not receieved"
+        assert probe_map, "Probes were not received"
 
         for expected_id, expected_status in expected_probes.items():
             error_message = _check_probe_status(expected_id, expected_status, probe_map)

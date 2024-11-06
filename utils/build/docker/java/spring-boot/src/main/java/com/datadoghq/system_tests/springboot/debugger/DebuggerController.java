@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 // The `debugger` feature allows attachment to specific lines of code.
-// Due to differences in line numbering between `dotnet` and `java`,
+// Due to differences in line numbering between libraries,
 // 'dummy lines' are used to standardize this functionality.
 // Dummy line
 
@@ -50,7 +50,7 @@ public class DebuggerController {
     @GetMapping("/mix/{arg}/{intArg}")
     public String mixProbe(@PathVariable String arg, @PathVariable int intArg) {
         intMixLocal = intArg * arg.length();
-        return "Span Decoration Probe " + intMixLocal;
+        return "Mixed result " + intMixLocal;
     }
 
     @GetMapping("/pii")
@@ -120,5 +120,54 @@ public class DebuggerController {
         return "Pii is null " + (pii == null) +
                 ". intValue is null " + (intValue == null) +
                 ". strValue is null " + (strValue == null) + ".";
+    }
+
+    @GetMapping("/exceptionreplay/simple")
+    public Void exceptionReplaySimple() {
+        throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Simple exception");
+    }
+
+    @GetMapping("/exceptionreplay/recursion5")
+    public String exceptionReplayRecursion5(@RequestParam(required = false, defaultValue = "5") Integer depth) {
+        if (depth > 0) {
+            return exceptionReplayRecursion5(depth - 1);
+        } else {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Recursion exception");
+        }
+    }
+
+    @GetMapping("/exceptionreplay/recursion20")
+    public String exceptionReplayRecursion20(@RequestParam(required = false, defaultValue = "20") Integer depth) {
+        if (depth > 0) {
+            return exceptionReplayRecursion20(depth - 1);
+        } else {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Recursion exception");
+        }
+    }
+
+    @GetMapping("/exceptionreplay/inner")
+    public Void exceptionReplayInner() {
+        try {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Inner exception");
+        } catch (ResponseStatusException ex) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Outer exception", ex);
+        }
+    }
+
+    @GetMapping("exceptionreplay/rps")
+    public String exceptionReplayRockPaperScissors(@RequestParam(required = false, defaultValue = "20") String shape) throws Exception {
+        if (shape.equals("rock")) {
+            throw new ExceptionReplayRock();
+        }
+
+        if (shape.equals("paper")) {
+            throw new ExceptionReplayPaper();
+        }
+
+        if (shape.equals("scissors")) {
+            throw new ExceptionReplayScissors();
+        }
+
+        return "No exception";
     }
 }

@@ -340,10 +340,11 @@ function main() {
         activate_venv
     fi
 
-    python_version=$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')
-    if [ "$python_version" -lt "312" ]; then
+    local python_version
+    python_version="$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')"
+    if [[ "$python_version" -lt "312" ]]; then
         echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
-        echo "DEPRECRATION WARNING: your using python3.9 to run system-tests."
+        echo "DEPRECRATION WARNING: you're using python ${python_version} to run system-tests."
         echo "This won't be supported soon. Please install python3.12, then run:"
         echo "> rm -rf venv && ./build.sh -i runner"
         echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
@@ -385,6 +386,11 @@ function main() {
                 scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
                 unset "scenarios[${i}]"
                 ;;
+
+            APPSEC_DISABLED)
+                scenarios+=(EVERYTHING_DISABLED)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 
@@ -418,6 +424,11 @@ function main() {
         if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
         fi
+        if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
+            pytest_numprocesses=6
+            #https://pytest-xdist.readthedocs.io/en/latest/distribution.html
+            pytest_args+=( '--dist' 'loadgroup' )
+        fi
     done
 
     case "${pytest_numprocesses}" in
@@ -429,7 +440,6 @@ function main() {
     esac
 
     ## run tests
-
     if [[ "${verbosity}" -gt 0 ]]; then
         echo "plan:"
         echo "  mode: ${run_mode}"

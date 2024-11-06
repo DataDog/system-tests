@@ -1,9 +1,4 @@
-First of all, add two secrets:
-
-1. a valid github token in `GH_TOKEN`
-1. a valid staging API key token in `DD_API_KEY`
-
-Then, add a file in your repo named `.github/workflows/system-tests.yml`:
+Add a file in your repo named `.github/workflows/system-tests.yml`:
 
 ```yaml
 name: System Tests
@@ -22,16 +17,12 @@ jobs:
           - library: golang
             weblog-variant: net-http
       fail-fast: false
-    env:
-      TEST_LIBRARY: ${{ matrix.library }}
-      WEBLOG_VARIANT: ${{ matrix.weblog-variant }}
-      DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
-          token: ${{ secrets.GH_TOKEN }}
+          persist_credentials: false
 
       - name: Get component binary
         # you need to copy a valid binary of your component inside binaries/ folder.
@@ -39,7 +30,7 @@ jobs:
         run: <...>
 
       - name: Build
-        run: ./build.sh
+        run: ./build.sh ${{ matrix.library }} -w ${{ matrix.weblog-variant }}
 
       - name: Run
         run: ./run.sh

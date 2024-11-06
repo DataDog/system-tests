@@ -5,7 +5,6 @@
 from utils import context, weblog, interfaces, missing_feature, bug, features
 
 
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
 @features.threats_alpha_preview
 class Test_Basic:
     """ Detect attacks on raw URI and headers with default rules """
@@ -22,12 +21,12 @@ class Test_Basic:
         self.r_headers_1 = weblog.get("/waf/", headers={"MyHeader": "../../../secret.txt"})
         self.r_headers_2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+    @bug(context.library == "python@1.1.0", reason="APMRP-360")
     def test_headers(self):
         """ Via server.request.headers.no_cookies """
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         address = "server.request.headers.no_cookies"
-        pattern = "/../" if context.appsec_rules_version < "1.2.6" else "../"
+        pattern = "../"
         interfaces.library.assert_waf_attack(self.r_headers_1, pattern=pattern, address=address)
         interfaces.library.assert_waf_attack(self.r_headers_2, pattern="Arachni/v", address=address)
 
@@ -41,6 +40,6 @@ class Test_Basic:
         # on server.request.headers.no_cookies and then retry it with the cookies
         # to validate that cookies are properly excluded from server.request.headers.no_cookies.
         address = "server.request.headers.no_cookies"
-        pattern = "/../" if context.appsec_rules_version < "1.2.6" else "../"
+        pattern = "../"
         interfaces.library.assert_waf_attack(self.r_headers_1, pattern=pattern, address=address)
         interfaces.library.assert_no_appsec_event(self.r_headers_2)

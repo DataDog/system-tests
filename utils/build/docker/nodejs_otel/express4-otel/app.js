@@ -19,6 +19,19 @@ app.get("/", (req, res) => {
 });
 
 
+app.get("/healthcheck", (req, res) => {
+  var otel_data = JSON.parse(fs.readFileSync('node_modules/@opentelemetry/auto-instrumentations-node/package.json', 'utf8'));
+
+  res.json({
+    status: 'ok',
+    library: {
+      language: 'nodejs_otel',
+      version: otel_data.version
+    }
+  })
+});
+
+
 app.get('/db', async (req, res) => {
   console.log("Service: " + req.query.service)
   console.log("Operation: " + req.query.operation)

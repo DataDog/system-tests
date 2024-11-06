@@ -1,25 +1,31 @@
-import subprocess, datetime, os, time, signal
+import subprocess, datetime, os, time, signal, shlex
 from utils.tools import logger
 from utils import context
 from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
 from retry import retry
 
 
-def execute_command(command, timeout=None, logfile=None):
+def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
     """call shell-command and either return its output or kill it
   if it doesn't normally exit within timeout seconds and return None"""
     applied_timeout = 90
     if timeout is not None:
         applied_timeout = timeout
 
-    logger.debug(f"Launching Command: {command} ")
+    logger.debug(f"Launching Command: {_clean_secrets(command)} ")
     command_out_redirect = subprocess.PIPE
     if logfile:
         command_out_redirect = open(logfile, "w")
+
+    if not subprocess_env:
+        subprocess_env = os.environ.copy()
+
     output = ""
     try:
         start = datetime.datetime.now()
-        process = subprocess.Popen(command.split(), stdout=command_out_redirect, stderr=command_out_redirect)
+        process = subprocess.Popen(
+            shlex.split(command), stdout=command_out_redirect, stderr=command_out_redirect, env=subprocess_env
+        )
 
         while process.poll() is None:
             time.sleep(0.1)
@@ -32,21 +38,31 @@ def execute_command(command, timeout=None, logfile=None):
                     return None
                 else:
                     # if we specify a timeout, we raise an exception
-                    raise Exception(f"Command: {command} timed out after {applied_timeout} seconds")
+                    raise Exception(f"Command: {_clean_secrets(command)} timed out after {applied_timeout} seconds")
 
         if not logfile:
             output = process.stdout.read()
-            logger.debug(f"Command: {command} \n {output}")
+            output = str(output, "utf-8")
+            logger.debug(f"Command: {_clean_secrets(command)} \n {_clean_secrets(output)}")
             if process.returncode != 0:
                 output_error = process.stderr.read()
-                logger.debug(f"Command: {command} \n {output_error}")
-                raise Exception(f"Error executing command: {command} \n {output}")
+                logger.debug(f"Command: {_clean_secrets(command)} \n {_clean_secrets(output_error)}")
+                raise Exception(f"Error executing command: {_clean_secrets(command)} \n {_clean_secrets(output)}")
 
     except Exception as ex:
-        logger.error(f"Error executing command: {command} \n {ex}")
+        logger.error(f"Error executing command: {_clean_secrets(command)} \n {ex}")
         raise ex
 
     return output
+
+
+def _clean_secrets(data_to_clean):
+    """ Clean secrets from the output."""
+    if context.scenario.api_key and context.scenario.app_key:
+        data_to_clean = data_to_clean.replace(context.scenario.api_key, "DD_API_KEY").replace(
+            context.scenario.app_key, "DD_APP_KEY"
+        )
+    return data_to_clean
 
 
 @retry(delay=1, tries=5)
@@ -69,9 +85,7 @@ def helm_add_repo(name, url, k8s_kind_cluster, update=False):
 
 
 @retry(delay=1, tries=5)
-def helm_install_chart(
-    k8s_kind_cluster, name, chart, set_dict={}, value_file=None, prefix_library_init_image=None, upgrade=False
-):
+def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, upgrade=False):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -79,8 +93,6 @@ def helm_install_chart(
             value_data = file.read()
 
         value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_kind_cluster.cluster_name))
-        if prefix_library_init_image:
-            value_data = value_data.replace("$$PREFIX_INIT_IMAGE$$", prefix_library_init_image)
 
         custom_value_file = f"{context.scenario.host_log_folder}/{k8s_kind_cluster.cluster_name}_help_values.yaml"
 
@@ -112,3 +124,10 @@ def path_clusterrole(k8s_kind_cluster):
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
         execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
+
+
+def kubectl_apply(k8s_kind_cluster, file):
+    """ Apply template in a cluster."""
+    with KubectlLock():
+        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
+        execute_command("kubectl apply -f " + file)

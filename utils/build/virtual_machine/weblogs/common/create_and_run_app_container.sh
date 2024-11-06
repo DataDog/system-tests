@@ -11,13 +11,16 @@ cp Dockerfile.template Dockerfile || true
 
 sudo systemctl start docker # Start docker service if it's not started
 
+#workaround. Remove the system-tests cloned folder. The sources are copied to current home folder
+#if we don't remove it, the dotnet restore will try to restore the system-tests folder
+sudo rm -rf system-tests || true
+
 #The parameter RUNTIME is used only for dotnet
 sudo docker build --no-cache --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
 
 if [ -f docker-compose-agent-prod.yml ]; then
     # Agent may be installed in a different way
-    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
-    sleep 30
+    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait --wait-timeout 120
 fi
 #Env variables set on the scenario definition. Write to file and load  
 if [ ! -f scenario_app.env ]

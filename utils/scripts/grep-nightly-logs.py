@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import re
 
 import requests
 
@@ -85,8 +86,16 @@ def main(
                 )
                 content = response.content.decode("utf-8")
 
-                if log_pattern in content:
-                    logging.info(f"    ✅ Found pattern in {job_name} -> {job['html_url']}")
+                steps = re.split(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z ##\[group\]", content)
+
+                for step in steps:
+                    if log_pattern in step:
+                        first_line = step.split("\n", 1)[0]
+                        logging.info(
+                            f"    ✅ Found in https://api.github.com/repos/{repo_slug}/actions/jobs/{job_id}/logs"
+                        )
+                        logging.info(f"        Name : {job_name}")
+                        logging.info(f"        Step : {first_line}")
 
 
 if __name__ == "__main__":
@@ -97,7 +106,17 @@ if __name__ == "__main__":
         help="One of the supported Datadog languages",
         choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
     )
+    parser.add_argument(
+        "--repo-slug",
+        "-r",
+        type=str,
+        help="repository slug in the format owner/repo",
+        default="DataDog/system-tests-dashboard",
+    )
+    parser.add_argument(
+        "--workflow-file", "-w", type=str, help="Yml file name for the nightly workflow", default="nightly.yml",
+    )
     parser.add_argument("pattern", type=str, help="Exact pattern to search for in the logs")
     args = parser.parse_args()
 
-    main(language=args.language, log_pattern=args.pattern)
+    main(language=args.language, log_pattern=args.pattern, repo_slug=args.repo_slug, workflow_file=args.workflow_file)

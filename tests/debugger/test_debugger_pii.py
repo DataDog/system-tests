@@ -143,6 +143,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
 
     @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
     @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
+    @bug(context.library == "python@2.16.0", reason="APMRP-360")
     def test_pii_redaction_full(self):
         self._test(REDACTED_KEYS, REDACTED_TYPES)
 
@@ -185,13 +186,13 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
 
-            if content is not None:
-                for content in content:
-                    debugger = content["debugger"]
+            if content:
+                for item in content:
+                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
 
-                    if "snapshot" in debugger:
+                    if snapshot:
                         for field_name in should_redact_field_names:
-                            fields = debugger["snapshot"]["captures"]["return"]["locals"]["pii"]["fields"]
+                            fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
 
                             if field_name in fields:
                                 not_found.remove(field_name)
@@ -217,13 +218,13 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
 
-            if content is not None:
-                for content in content:
-                    debugger = content["debugger"]
+            if content:
+                for item in content:
+                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
 
-                    if "snapshot" in debugger:
+                    if snapshot:
                         for type_name in should_redact_types:
-                            type_info = debugger["snapshot"]["captures"]["return"]["locals"][type_name]
+                            type_info = snapshot["captures"]["return"]["locals"][type_name]
 
                             if "fields" in type_info:
                                 not_redacted.append(type_name)

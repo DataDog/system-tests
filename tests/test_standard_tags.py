@@ -32,6 +32,7 @@ class Test_StandardTagsMethod:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.security_events_metadata
+# Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
 
@@ -288,7 +289,7 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_vendor(self):
         self._setup_without_attack()
 
-    @bug(library="golang", reason="missing cf-connecting-ipv6")
+    @bug(context.library < "golang@1.69.0", reason="APMRP-360")
     @bug(
         context.library < "java@1.11.0", reason="not supported, see https://github.com/DataDog/dd-trace-java/pull/4878"
     )
@@ -316,7 +317,9 @@ class Test_StandardTagsClientIp:
     @missing_feature(
         context.library < "java@1.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )
-    @missing_feature(library="golang", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(
+        context.library < "golang@1.69.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
+    )
     @missing_feature(
         context.library < "nodejs@4.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )

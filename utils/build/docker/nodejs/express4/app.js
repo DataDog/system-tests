@@ -10,6 +10,7 @@ const app = require('express')()
 const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
+const crypto = require('crypto')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
@@ -18,6 +19,9 @@ const { spawnSync } = require('child_process')
 const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
+
+const multer = require('multer')
+const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
 
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
@@ -39,18 +43,17 @@ app.get('/', (req, res) => {
 })
 
 app.get('/healthcheck', (req, res) => {
-  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
-  const maybeRequire = name => { try { return require(name) } catch (e) {} }
-
   res.json({
     status: 'ok',
     library: {
       language: 'nodejs',
-      version: require('dd-trace/package.json').version,
-      libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
-      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
+      version: require('dd-trace/package.json').version
     }
   })
+})
+
+app.post('/waf', uploadToMemory.single('foo'), (req, res) => {
+  res.send('Hello\n')
 })
 
 app.all(['/waf', '/waf/*'], (req, res) => {
@@ -217,9 +220,10 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
-  console.log('sqs produce')
+  const message = req.query.message
+  console.log(`[SQS] Produce: ${message}`)
 
-  sqsProduce(queue)
+  sqsProduce(queue, message)
     .then(() => {
       res.status(200).send('[SQS] produce ok')
     })
@@ -231,10 +235,11 @@ app.get('/sqs/produce', (req, res) => {
 
 app.get('/sqs/consume', (req, res) => {
   const queue = req.query.queue
+  const message = req.query.message
   const timeout = parseInt(req.query.timeout) ?? 5
-  console.log('sqs consume')
+  console.log(`[SQS] Consume, Expected: ${message}`)
 
-  sqsConsume(queue, timeout * 1000)
+  sqsConsume(queue, timeout * 1000, message)
     .then(() => {
       res.status(200).send('[SQS] consume ok')
     })
@@ -247,8 +252,10 @@ app.get('/sqs/consume', (req, res) => {
 app.get('/sns/produce', (req, res) => {
   const queue = req.query.queue
   const topic = req.query.topic
+  const message = req.query.message
+  console.log(`[SNS->SQS] Produce: ${message}`)
 
-  snsPublish(queue, topic)
+  snsPublish(queue, topic, message)
     .then(() => {
       res.status(200).send('[SNS] publish ok')
     })
@@ -261,8 +268,10 @@ app.get('/sns/produce', (req, res) => {
 app.get('/sns/consume', (req, res) => {
   const queue = req.query.queue
   const timeout = parseInt(req.query.timeout) ?? 5
+  const message = req.query.message
+  console.log(`[SNS->SQS] Consume, Expected: ${message}`)
 
-  snsConsume(queue, timeout * 1000)
+  snsConsume(queue, timeout * 1000, message)
     .then(() => {
       res.status(200).send('[SNS->SQS] consume ok')
     })
@@ -274,8 +283,10 @@ app.get('/sns/consume', (req, res) => {
 
 app.get('/kinesis/produce', (req, res) => {
   const stream = req.query.stream
+  const message = req.query.message
+  console.log(`[Kinesis] Produce: ${message}`)
 
-  kinesisProduce(stream, null, '1', null)
+  kinesisProduce(stream, message, '1', null)
     .then(() => {
       res.status(200).send('[Kinesis] publish ok')
     })
@@ -288,8 +299,10 @@ app.get('/kinesis/produce', (req, res) => {
 app.get('/kinesis/consume', (req, res) => {
   const stream = req.query.stream
   const timeout = parseInt(req.query.timeout) ?? 5
+  const message = req.query.message
+  console.log(`[Kinesis] Consume, Expected: ${message}`)
 
-  kinesisConsume(stream, timeout * 1000)
+  kinesisConsume(stream, timeout * 1000, message)
     .then(() => {
       res.status(200).send('[Kinesis] consume ok')
     })
@@ -336,17 +349,17 @@ app.get('/load_dependency', (req, res) => {
   res.send('Loaded a dependency')
 })
 
-app.all('/tag_value/:tag/:status', (req, res) => {
+app.all('/tag_value/:tag_value/:status_code', (req, res) => {
   require('dd-trace/packages/dd-trace/src/plugins/util/web')
-    .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag)
+    .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag_value)
 
   for (const [k, v] of Object.entries(req.query)) {
     res.set(k, v)
   }
 
-  res.status(req.params.status || 200)
+  res.status(req.params.status_code || 200)
 
-  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+  if (req.params.tag_value.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body })
   } else {
     res.send('Value tagged')
@@ -445,8 +458,26 @@ app.get('/requestdownstream', async (req, res) => {
   }
 })
 
+app.get('/vulnerablerequestdownstream', async (req, res) => {
+  try {
+    crypto.createHash('md5').update('password').digest('hex')
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return res.json(resFetch.data)
+  } catch (e) {
+    return res.status(500).send(e)
+  }
+})
+
 app.get('/returnheaders', (req, res) => {
   res.json({ ...req.headers })
+})
+
+app.get('/set_cookie', (req, res) => {
+  const name = req.query.name
+  const value = req.query.value
+
+  res.header('Set-Cookie', `${name}=${value}`)
+  res.send('OK')
 })
 
 require('./rasp')(app)

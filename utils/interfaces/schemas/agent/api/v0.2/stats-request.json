@@ -1,4 +1,41 @@
 {
-    "$id": "/agent/api/v0.2/stats-request.json",
-    "type": "object"
-  }
+  "$id": "/agent/api/v0.2/stats-request.json",
+  "type": "object",
+  "properties": {
+    "Stats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Stats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Start": { "type": "integer" },
+                "Duration": { "type": "integer" },
+                "Stats": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Service": { "type": "string" },
+                      "Name": { "type": "string" },
+                      "Resource": { "type": "string" }
+                    },
+                    "required": ["Service", "Name", "Resource"]
+                  }
+                }
+              },
+              "required": ["Start", "Duration", "Stats"]
+            }
+          }
+        },
+        "required": ["Stats"]
+      }
+    }
+  },
+  "required": [
+    "Stats"
+  ]
+}

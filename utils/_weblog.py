@@ -52,6 +52,7 @@ class HttpRequest:
         self.headers = CaseInsensitiveDict(data.get("headers", {}))
         self.method = data["method"]
         self.url = data["url"]
+        self.params = data["params"]
 
     def __repr__(self) -> str:
         return f"HttpRequest(method:{self.method}, url:{self.url}, headers:{self.headers})"
@@ -64,6 +65,7 @@ class HttpResponse:
         self.status_code = data["status_code"]
         self.headers = CaseInsensitiveDict(data.get("headers", {}))
         self.text = data["text"]
+        self.cookies = data["cookies"]
 
     def serialize(self) -> dict:
         return self._data | {"__class__": "HttpResponse"}
@@ -141,6 +143,7 @@ class _Weblog:
             "status_code": None,
             "headers": {},
             "text": None,
+            "cookies": None,
         }
 
         timeout = kwargs.pop("timeout", 5)
@@ -150,10 +153,12 @@ class _Weblog:
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")
 
-            r = requests.Session().send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
+            s = requests.Session()
+            r = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
             response_data["status_code"] = r.status_code
             response_data["headers"] = r.headers
             response_data["text"] = r.text
+            response_data["cookies"] = requests.utils.dict_from_cookiejar(s.cookies)
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")

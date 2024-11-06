@@ -1,9 +1,9 @@
-FROM datadog/system-tests:django-poc.base-v2
+FROM datadog/system-tests:django-poc.base-v4
 
 WORKDIR /app
 
 
-COPY utils/build/docker/python/install_ddtrace.sh utils/build/docker/python/get_appsec_rules_version.py binaries* /binaries/
+COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 COPY utils/build/docker/python/django /app

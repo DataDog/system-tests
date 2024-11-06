@@ -15,6 +15,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
     tracer = None
 
     def _setup(self, probes, request_path):
+        self.installed_ids = set()
         self.expected_probe_ids = base.extract_probe_ids(probes)
 
         Test_Debugger_Expression_Language.version += 1
@@ -23,13 +24,10 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.weblog_responses = [weblog.get(request_path)]
 
-    def _assert(self, resposnses_ok: bool = True):
+    def _assert(self, expected_code: int = 200):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
-
-        if resposnses_ok:
-            self.assert_all_weblog_responses_ok()
-
+        self.assert_all_weblog_responses_ok(expected_code)
         self._validate_expression_language_messages(self.message_map)
 
     def setup_expression_language_access_variables(self):
@@ -82,7 +80,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/exception")
 
     def test_expression_language_access_exception(self):
-        self._assert(resposnses_ok=False)
+        self._assert(expected_code=500)
 
     def setup_expression_language_comparison_operators(self):
         message_map, probes = self._create_expression_probes(
@@ -141,9 +139,8 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
-    @bug(library="dotnet", reason="DEBUG-2524")
     def test_expression_language_comparison_operators(self):
-        self._assert(resposnses_ok=False)
+        self._assert()
 
     def setup_expression_language_instance_of(self):
         message_map, probes = self._create_expression_probes(
@@ -471,7 +468,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         for request in agent_logs_endpoint_requests:
             content = request["request"]["content"]
 
-            if content is not None:
+            if content:
                 for content in content:
                     probe_id = content["debugger"]["snapshot"]["probe"]["id"]
 

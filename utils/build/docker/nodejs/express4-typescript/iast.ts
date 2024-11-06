@@ -127,13 +127,18 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/insecure-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('insecure', 'cookie')
+    res.cookie('insecure', 'cookie', { httpOnly: true, sameSite: true })
     res.send('OK')
   })
 
   app.get('/iast/insecure-cookie/test_secure', (req: Request, res: Response): void => {
     res.setHeader('set-cookie', 'secure=cookie; Secure; HttpOnly; SameSite=Strict')
     res.cookie('secure2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
+  app.post('/iast/insecure-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { httpOnly: true, sameSite: true })
     res.send('OK')
   })
 
@@ -145,13 +150,18 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/no-httponly-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('no-httponly', 'cookie')
+    res.cookie('no-httponly', 'cookie', { secure: true, sameSite: true })
     res.send('OK')
   })
 
   app.get('/iast/no-httponly-cookie/test_secure', (req: Request, res: Response): void => {
     res.setHeader('set-cookie', 'httponly=cookie; Secure;HttpOnly;SameSite=Strict;')
     res.cookie('httponly2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
+  app.post('/iast/no-httponly-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { secure: true, sameSite: true })
     res.send('OK')
   })
 
@@ -163,13 +173,18 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/no-samesite-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('nosamesite', 'cookie')
+    res.cookie('nosamesite', 'cookie', { secure: true, httpOnly: true })
     res.send('OK')
   })
 
   app.get('/iast/no-samesite-cookie/test_secure', (req: Request, res: Response): void => {
     res.setHeader('set-cookie', 'samesite=cookie; Secure; HttpOnly; SameSite=Strict')
     res.cookie('samesite2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
+  app.post('/iast/no-samesite-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { secure: true, httpOnly: true })
     res.send('OK')
   })
 
@@ -337,7 +352,11 @@ function initSinkRoutes (app: Express): void {
 
 function initSourceRoutes (app: Express): void {
   app.post('/iast/source/body/test', (req: Request, res: Response): void => {
-    readFileSync(req.body.name)
+    try {
+      readFileSync(req.body.name)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -346,7 +365,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.headers).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -355,7 +378,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.headers).forEach((key: string): void => {
       vulnParam += req.headers[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -364,7 +391,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.query).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -373,7 +404,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.body).forEach((key: string): void => {
       vulnParam += req.body[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -382,7 +417,20 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.query).forEach((key: string): void => {
       vulnParam += req.query[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
+    res.send('OK')
+  })
+
+  app.get('/iast/source/path_parameter/test/:table', (req: Request, res: Response): void => {
+    try {
+      readFileSync(req.params.table)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -391,7 +439,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.cookies).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -400,7 +452,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.cookies).forEach((key: string): void => {
       vulnParam += req.cookies[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -415,6 +471,20 @@ function initSourceRoutes (app: Express): void {
     })
   }
 
+
+  async function getKafkaConsumer (kafka: any, topic: string, groupId: string) {
+    const consumer = kafka.consumer({
+      groupId,
+      heartbeatInterval: 10000, // should be lower than sessionTimeout
+      sessionTimeout: 60000
+    })
+
+    await consumer.connect()
+    await consumer.subscribe({ topic, fromBeginning: true })
+
+    return consumer
+  }
+
   app.get('/iast/source/kafkavalue/test', (req: Request, res: Response): void => {
     const kafka = getKafka()
     const topic = 'dsm-system-tests-queue'
@@ -422,15 +492,6 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({
-        groupId: 'testgroup2',
-        heartbeatInterval: 10000, // should be lower than sessionTimeout
-        sessionTimeout: 60000
-      })
-
-      await consumer.connect()
-      await consumer.subscribe({ topic, fromBeginning: false })
-
       const deferred: {
         resolve?: Function,
         reject?: Function
@@ -441,17 +502,19 @@ function initSourceRoutes (app: Express): void {
         deferred.reject = reject
       })
 
+      consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-value')
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
-          const vulnValue = message.value.toString()
-          try {
-            readFileSync(vulnValue)
-          } catch {
-            // do nothing
-          }
+          if (!message.value) return
 
-          // in some occasions we consume messages from dsm tests
+          const vulnValue = message.value.toString()
           if (vulnValue === 'hello value!') {
+            try {
+              readFileSync(vulnValue)
+            } catch {
+              // do nothing
+            }
+
             deferred.resolve?.()
           }
         }
@@ -492,15 +555,6 @@ function initSourceRoutes (app: Express): void {
 
     let consumer: any
     const doKafkaOperations = async () => {
-      consumer = kafka.consumer({
-        groupId: 'testgroup2',
-        heartbeatInterval: 10000, // should be lower than sessionTimeout
-        sessionTimeout: 60000
-      })
-
-      await consumer.connect()
-      await consumer.subscribe({ topic, fromBeginning: false })
-
       const deferred: {
         resolve?: Function,
         reject?: Function
@@ -511,19 +565,19 @@ function initSourceRoutes (app: Express): void {
         deferred.reject = reject
       })
 
+      consumer = await getKafkaConsumer(kafka, topic, 'testgroup-iast-ts-key')
       await consumer.run({
         eachMessage: async ({ message }: { message: any }) => {
-          // in some occasions we consume messages from dsm tests
           if (!message.key) return
 
           const vulnKey = message.key.toString()
-          try {
-            readFileSync(vulnKey)
-          } catch {
-            // do nothing
-          }
-
           if (vulnKey === 'hello key!') {
+            try {
+              readFileSync(vulnKey)
+            } catch {
+              // do nothing
+            }
+
             deferred.resolve?.()
           }
         }

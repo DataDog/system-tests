@@ -1,6 +1,7 @@
 .idea
 .env
 .envrc
+.direnv
 __pycache__
 binaries/*
 !binaries/README.md
@@ -63,3 +64,7 @@ node_modules/
 *.swp
 
 utils/build/docker/*/parametric/Dockerfile
+
+# debugger
+/tests/debugger/approvals/*received*
+.aider*

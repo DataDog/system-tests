@@ -16,15 +16,53 @@ import java.util
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
+import scala.util.{Failure, Success, Try}
+import com.datadoghq.system_tests.iast.utils.CryptoExamples
 
 @Singleton
 class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient, mat: Materializer)
                                 (implicit ec: ExecutionContext) extends AbstractController(cc) {
+
+  private val cryptoExamples = new CryptoExamples()
+
   def index = Action {
     val span = tracer.buildSpan("test-span").start
     span.setTag("test-tag", "my value")
     withSpan(span) {
       Results.Ok("Hello world!")
+    }
+  }
+
+  def healthcheck = Action {
+    val version: String = getVersion match {
+      case Success(v) => v
+      case Failure(_) => "0.0.0"
+    }
+
+    // Créer l'objet JSON pour la réponse
+    val response = Json.obj(
+      "status" -> "ok",
+      "library" -> Json.obj(
+        "language" -> "java",
+        "version" -> version
+      )
+    )
+
+    Ok(response)
+  }
+
+  // Méthode pour lire la version du fichier
+  private def getVersion: Try[String] = {
+    Try {
+      val source = Option(getClass.getClassLoader.getResourceAsStream("dd-java-agent.version"))
+        .getOrElse(throw new RuntimeException("File not found"))
+      val reader = new BufferedReader(new InputStreamReader(source, StandardCharsets.ISO_8859_1))
+      val version = reader.readLine()
+      reader.close()
+      version
     }
   }
 
@@ -157,9 +195,31 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     }
   }
 
+  def vulnerableRequestdownstream =  Action.async {
+    cryptoExamples.insecureMd5Hashing("password")
+    var url = "http://localhost:7777/returnheaders"
+    val remoteReq: WSRequest = ws.url(url).withMethod("GET")
+    val ahcRequest: AHCRequest = remoteReq.asInstanceOf[AhcWSRequest].underlying.buildRequest()
+    executeAHCRequest(ahcRequest).map { resp: StandaloneAhcWSResponse =>
+      resp.bodyAsSource.runWith(Sink.ignore[ByteString]())(mat)
+      Results.Ok(resp.body)
+    }
+  }
+
   def returnheaders = Action { request =>
     val headers = request.headers.headers.toMap
     Ok(Json.toJson(headers))
+  }
+
+  def createextraservice(serviceName: String) = Action { request =>
+    setRootSpanTag("service", serviceName)
+    Results.Ok("ok")
+  }
+
+  def setCookie(name: Option[String], value: Option[String]) = Action { request =>
+    val cookieName = name.getOrElse("defaultName")
+    val cookieValue = value.getOrElse("defaultValue")
+    Results.Ok("ok").withCookies(Cookie(cookieName, cookieValue))
   }
 
   case class DistantCallResponse(

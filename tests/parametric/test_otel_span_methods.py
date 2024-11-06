@@ -104,9 +104,9 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
     @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
     @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
+    @missing_feature(context.library < "php@1.1.0", reason="Implemented in 1.2.0")
     @irrelevant(context.library == "golang", reason="Does not support automatic status code remapping to meta")
     @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
-    @irrelevant(context.library == "php", reason="Does not support automatic status code remapping to meta")
     def test_otel_set_attribute_remapping_httpstatuscode(self, test_agent, test_library):
         """
             - May 2024 update to OTel API RFC requires implementations to remap
@@ -410,7 +410,7 @@ class Test_Otel_Span_Methods:
         assert span.get("name") == "internal"
         assert span.get("resource") == "ok_span"
 
-    @bug(context.library < "ruby@2.2.0", reason="Older versions do not generate datadog spans with the correct ids")
+    @bug(context.library < "ruby@2.2.0", reason="APMRP-360")
     def test_otel_get_span_context(self, test_agent, test_library):
         """
             This test verifies retrieving the span context of a span
@@ -564,7 +564,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @bug(context.library == "ruby", reason="opentelemetry propagator truncates 128bit trace_ids to 64bits")
+    @bug(context.library < "ruby@2.3.1-dev", reason="APMRP-360")
     @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
     def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
         """Properly inject w3c distributed tracing information into span links.
@@ -867,8 +867,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(
         context.library != "golang@1.66.0-dev" and context.library < "golang@1.67.0", reason="Implemented in v1.67.0"
     )
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -907,7 +907,7 @@ class Test_Otel_Span_Methods:
 
         event2 = events[1]
         assert event2.get("name") == "second_event"
-        assert event2.get("time_unix_nano") // 100000 == event2_timestamp_ns // 100000  # reduce the precision tested
+        assert abs(event2.get("time_unix_nano") - event2_timestamp_ns) < 100000  # reduce the precision tested
         assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]
@@ -921,8 +921,8 @@ class Test_Otel_Span_Methods:
         assert event3["attributes"].get("string_array")[1] == "6"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -942,8 +942,8 @@ class Test_Otel_Span_Methods:
         assert "error" not in root_span or root_span["error"] == 0
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -984,12 +984,15 @@ class Test_Otel_Span_Methods:
         assert event3.get("time_unix_nano") > event2.get("time_unix_nano")
 
         assert root_span["error"] == 1
-        assert "error.type" in root_span["meta"]
         assert "error.stack" in root_span["meta"]
+        # For PHP we set only the error.stack tag on the meta to not interfere with the defined semantics of the PHP tracer
+        # https://github.com/DataDog/dd-trace-php/pull/2754#discussion_r1704232289
+        if context.library != "php":
+            assert "error.type" in root_span["meta"]
 
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -1026,8 +1029,42 @@ class Test_Otel_Span_Methods:
         event3 = events[2]
         assert event3["attributes"].get("exception.message") == "message override"
 
-        error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
-        assert error_message == "message override"
+        # For PHP we set only the error.stack tag on the meta to not interfere with the defined semantics of the PHP tracer
+        # https://github.com/DataDog/dd-trace-php/pull/2754#discussion_r1704232289
+        if context.library != "php":
+            error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
+            assert error_message == "message override"
+
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(
+        context.library == "php", reason="Not supported: DD only sets error.stack to not break tracer semantics"
+    )
+    @missing_feature(context.library == "dotnet")
+    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
+    @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
+    def test_otel_record_exception_sets_all_error_tracking_tags(self, test_agent, test_library):
+        """
+            Tests the Span.RecordException API (requires Span.AddEvent API support)
+            and its serialization into the Datadog error tags and the 'events' tag
+        """
+        with test_library:
+            with test_library.otel_start_span("operation") as span:
+                span.set_status(OTEL_ERROR_CODE, "error_desc")
+                span.record_exception(
+                    message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
+                )
+                span.end_span()
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        root_span = find_span(trace, span.span_id)
+
+        assert root_span["error"] == 1
+        assert "error.stack" in root_span["meta"]
+        assert "error.message" in root_span["meta"]
+        assert "error.type" in root_span["meta"]
 
 
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):

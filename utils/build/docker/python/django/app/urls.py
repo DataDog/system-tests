@@ -9,12 +9,14 @@ import sys
 import http.client
 import urllib.request
 
+import boto3
 import django
 import requests
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from moto import mock_aws
 import urllib3
 from iast import (
     weak_cipher,
@@ -25,6 +27,7 @@ from iast import (
     weak_hash_secure_algorithm,
 )
 
+import ddtrace
 from ddtrace import Pin, tracer, patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
@@ -64,6 +67,17 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 
 @csrf_exempt
+def healthcheck(request):
+
+    result = {
+        "status": "ok",
+        "library": {"language": "python", "version": ddtrace.__version__,},
+    }
+
+    return HttpResponse(json.dumps(result), content_type="application/json")
+
+
+@csrf_exempt
 def waf(request, *args, **kwargs):
     if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
@@ -95,6 +109,13 @@ def request_downstream(request, *args, **kwargs):
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http.request("GET", "http://localhost:7777/returnheaders")
     return HttpResponse(response.data)
+
+
+@csrf_exempt
+def set_cookie(request):
+    res = HttpResponse("OK")
+    res.headers["Set-Cookie"] = f"{request.GET.get('name')}={request.GET.get('value')}"
+    return res
 
 
 ### BEGIN EXPLOIT PREVENTION
@@ -223,6 +244,10 @@ def status_code(request, *args, **kwargs):
     return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
 
 
+def stats_unique(request, *args, **kwargs):
+    return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
+
+
 def identify(request):
     set_user(
         tracer,
@@ -296,7 +321,7 @@ def view_weak_cipher_secure(request):
 
 def view_insecure_cookies_insecure(request):
     res = HttpResponse("OK")
-    res.set_cookie("insecure", "cookie", secure=False)
+    res.set_cookie("insecure", "cookie", secure=False, httponly=True, samesite="Strict")
     return res
 
 
@@ -308,7 +333,7 @@ def view_insecure_cookies_secure(request):
 
 def view_insecure_cookies_empty(request):
     res = HttpResponse("OK")
-    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    res.set_cookie("insecure", "", secure=False, httponly=True, samesite="Strict")
     return res
 
 
@@ -344,7 +369,7 @@ def view_nosamesite_cookies_secure(request):
 
 def view_nosamesite_cookies_empty(request):
     res = HttpResponse("OK")
-    res.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
+    res.set_cookie("insecure", "", secure=True, httponly=True, samesite="None")
     return res
 
 
@@ -476,8 +501,7 @@ def view_iast_source_body(request):
     import json
 
     table = json.loads(request.body).get("name")
-    user = json.loads(request.body).get("value")
-    _sink_point_sqli(table=table, id=user)
+    _sink_point_sqli(table=table)
     return HttpResponse("OK")
 
 
@@ -524,6 +548,21 @@ def view_iast_source_parameter(request):
     elif request.method == "POST":
         table = request.POST.get("table")
         _sink_point_sqli(table=table[0])
+
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_source_path(request):
+    table = request.path_info
+    _sink_point_sqli(table=table[0])
+
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def view_iast_source_path_parameter(request, table):
+    _sink_point_sqli(table=table)
 
     return HttpResponse("OK")
 
@@ -614,6 +653,22 @@ def login(request):
     return HttpResponse("login failure", status=401)
 
 
+MAGIC_SESSION_KEY = "random_session_id"
+
+
+def session_new(request):
+    response = HttpResponse("OK")
+    response.set_cookie("session_id", MAGIC_SESSION_KEY)
+    return response
+
+
+def session_user(request):
+    user = request.GET.get("sdk_user", "")
+    if user and request.COOKIES.get("session_id", "") == MAGIC_SESSION_KEY:
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+    return HttpResponse("OK")
+
+
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
@@ -659,9 +714,56 @@ def create_extra_service(request):
     return HttpResponse("OK")
 
 
+def s3_put_object(request):
+    bucket = request.GET.get("bucket")
+    key = request.GET.get("key")
+    body = request.GET.get("key")
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=bucket)
+        response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+
+    return JsonResponse(result)
+
+
+def s3_copy_object(request):
+    original_bucket = request.GET.get("original_bucket")
+    original_key = request.GET.get("original_key")
+    body = request.GET.get("original_key")
+
+    copy_source = {
+        "Bucket": original_bucket,
+        "Key": original_key,
+    }
+
+    bucket = request.GET.get("bucket")
+    key = request.GET.get("key")
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=original_bucket)
+        conn.Bucket(original_bucket).put_object(Bucket=original_bucket, Key=original_key, Body=body.encode("utf-8"))
+
+        if bucket != original_bucket:
+            conn.create_bucket(Bucket=bucket)
+        response = conn.Object(bucket, key).copy_from(CopySource=copy_source)
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response["CopyObjectResult"]["ETag"].replace('"', ""),}}
+
+    return JsonResponse(result)
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
+    path("healthcheck", healthcheck),
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
@@ -669,6 +771,7 @@ urlpatterns = [
     path("requestdownstream/", request_downstream),
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
+    path("set_cookie", set_cookie),
     path("rasp/lfi", rasp_lfi),
     path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),
@@ -678,6 +781,7 @@ urlpatterns = [
     path("createextraservice", create_extra_service),
     path("headers", headers),
     path("status", status_code),
+    path("stats-unique", stats_unique),
     path("identify", identify),
     path("users", users),
     path("identify-propagate", identify_propagate),
@@ -713,12 +817,18 @@ urlpatterns = [
     path("iast/source/header/test", view_iast_source_header_value),
     path("iast/source/parametername/test", view_iast_source_parametername),
     path("iast/source/parameter/test", view_iast_source_parameter),
+    path("iast/source/path/test", view_iast_source_path),
+    path("iast/source/path_parameter/test/<str:table>", view_iast_source_path_parameter),
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
     path("login", login),
+    path("session/new", session_new),
+    path("session/user", session_user),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
+    path("mock_s3/put_object", s3_put_object),
+    path("mock_s3/copy_object", s3_copy_object),
 ]

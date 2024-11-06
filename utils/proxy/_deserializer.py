@@ -6,6 +6,7 @@ import base64
 import gzip
 import json
 import logging
+from hashlib import md5
 import traceback
 
 import msgpack
@@ -94,7 +95,7 @@ def deserialize_dd_appsec_s_meta(payload):
         return json.loads(payload)
 
 
-def deserialize_http_message(path, message, content: bytes, interface, key):
+def deserialize_http_message(path, message, content: bytes, interface, key, export_content_files_to: str):
     def json_load():
         if not content:
             return None
@@ -185,15 +186,40 @@ def deserialize_http_message(path, message, content: bytes, interface, key):
             except UnicodeDecodeError:
                 item["content"] = part.content
 
-            decoded.append(item)
+            if headers.get("Content-Type", "").lower().startswith("application/json"):
+                item["content"] = json.loads(item["content"])
 
-        if path == "/debugger/v1/diagnostics":
-            for item in decoded:
-                if "content" in item:
-                    try:
-                        item["content"] = json.loads(item["content"])
-                    except:
-                        pass
+            elif headers.get("Content-Type", "") == "application/octet-stream":
+                content_disposition = headers.get("Content-Disposition", "")
+
+                if not content_disposition.startswith("form-data"):
+                    item["system-tests-error"] = "Unknown content-disposition, please contact #apm-shared-testing"
+                    item["content"] = None
+
+                else:
+                    meta_data = {}
+
+                    for part in content_disposition.split(";"):
+                        if "=" in part:
+                            key, value = part.split("=", 1)
+                            meta_data[key.strip()] = value.strip()
+
+                    if "filename" not in meta_data:
+                        item[
+                            "system-tests-error"
+                        ] = "Filename not found in content-disposition, please contact #apm-shared-testing"
+                    else:
+                        filename = meta_data["filename"].strip('"')
+                        file_path = f"{export_content_files_to}/{md5(item['content']).hexdigest()}_{filename}"
+
+                        with open(file_path, "wb") as f:
+                            f.write(item["content"])
+
+                        item["system-tests-information"] = "File exported to a separated file"
+                        item["system-tests-file-path"] = file_path
+                        del item["content"]
+
+            decoded.append(item)
 
         return decoded
 
@@ -254,10 +280,12 @@ def _convert_bytes_values(item, path=""):
             _convert_bytes_values(value, f"{path}[]")
 
 
-def deserialize(data, key, content, interface):
+def deserialize(data, key, content, interface, export_content_files_to: str):
 
     try:
-        data[key]["content"] = deserialize_http_message(data["path"], data[key], content, interface, key)
+        data[key]["content"] = deserialize_http_message(
+            data["path"], data[key], content, interface, key, export_content_files_to
+        )
     except:
         logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)
         data[key]["raw_content"] = str(content)

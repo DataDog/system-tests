@@ -2,221 +2,24 @@ import os
 import json
 
 import pytest
-from utils._context.library_version import LibraryVersion
 
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils.tools import update_environ_with_local_env
 
-from utils._context.containers import (
-    create_network,
-    # SqlDbTestedContainer,
-    APMTestAgentContainer,
-    WeblogInjectionInitContainer,
-    MountInjectionVolume,
-    create_inject_volume,
-    TestedContainer,
-)
-from utils.tools import logger, update_environ_with_local_env
-
-from .core import Scenario, ScenarioGroup, DockerScenario, EndToEndScenario
+from .core import Scenario, ScenarioGroup
+from .default import DefaultScenario
+from .endtoend import DockerScenario, EndToEndScenario
+from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario
+from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
+from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
+from .docker_ssi import DockerSSIScenario
+from .external_processing import ExternalProcessingScenario
 
 update_environ_with_local_env()
-
-
-class _KubernetesScenario(Scenario):
-    """ DEPRECATED: Replaced by Kubernetes Scenario. 
-        Scenario that tests kubernetes lib injection"""
-
-    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
-
-    def configure(self, config):
-        super().configure(config)
-
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
-        assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
-        assert (
-            "DOCKER_IMAGE_TAG" in os.environ
-        ), "DOCKER_IMAGE_TAG is not set. Select tag for the lang inject init image: latest, local, latest_snapshot or a specific version"
-        assert (
-            "DOCKER_REGISTRY_IMAGES_PATH" in os.environ
-        ), "DOCKER_REGISTRY_IMAGES_PATH is not set. IE: ghcr.io/datadog"
-
-        prefix_library_injection_init_image, library_injection_init_image = self._get_library_injection_init_image()
-        library_injection_test_app_image = self._get_library_injection_test_app_image()
-
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
-        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
-        self._weblog_variant_image = library_injection_test_app_image
-        self._prefix_library_init_image = prefix_library_injection_init_image
-        self._library_init_image = library_injection_init_image
-        self._library_init_image_tag = os.getenv("DOCKER_IMAGE_TAG")
-
-        logger.stdout("K8s Lib Injection environment:")
-        logger.stdout(f"Library: {self._library}")
-        logger.stdout(f"Weblog variant: {self._weblog_variant}")
-        logger.stdout(f"Weblog variant image: {self._weblog_variant_image}")
-        logger.stdout(f"Library init image: {self._library_init_image}")
-        logger.stdout(f"Library init image tag: {self._library_init_image_tag}")
-
-    def _get_library_injection_test_app_image(self):
-        docker_registry_images_path = os.getenv("DOCKER_REGISTRY_IMAGES_PATH")
-        library_injection_test_app_image = os.environ.get("LIBRARY_INJECTION_TEST_APP_IMAGE", None)
-        if not library_injection_test_app_image:
-            app_docker_image_repo = f"{docker_registry_images_path}/system-tests/{os.getenv('WEBLOG_VARIANT')}"
-            if "DOCKER_IMAGE_WEBLOG_TAG" in os.environ:
-                library_injection_test_app_image = (
-                    f"{app_docker_image_repo}:{os.environ.get('DOCKER_IMAGE_WEBLOG_TAG')}"
-                )
-            else:
-                library_injection_test_app_image = f"{app_docker_image_repo}:latest"
-        return library_injection_test_app_image
-
-    def _get_library_injection_init_image(self):
-        test_library = os.getenv("TEST_LIBRARY")
-        init_image_repo_alias = test_library
-        init_image_alias = test_library
-        if test_library == "nodejs":
-            init_image_repo_alias = "js"
-            init_image_alias = "js"
-        elif test_library == "python":
-            init_image_repo_alias = "py"
-        elif test_library == "ruby":
-            init_image_repo_alias = "rb"
-
-        docker_image_tag = os.getenv("DOCKER_IMAGE_TAG")
-        docker_registry_images_path = os.getenv("DOCKER_REGISTRY_IMAGES_PATH")
-
-        init_docker_image_repo = ""
-        prefix_init_docker_image_repo = ""
-        if docker_image_tag == "latest":
-            # Release version are published in docker.io
-            init_docker_image_repo = f"docker.io/datadog/dd-lib-{init_image_alias}-init"
-            prefix_init_docker_image_repo = f"docker.io/datadog"
-        elif docker_image_tag == "local":
-            # Docker hub doesn't allow multi level repo paths
-            # TODO review this
-            init_docker_image_repo = f"{docker_registry_images_path}/dd-lib-{init_image_alias}-init"
-            prefix_init_docker_image_repo = f"{docker_registry_images_path}"
-        else:
-            init_docker_image_repo = (
-                f"{docker_registry_images_path}/dd-trace-{init_image_repo_alias}/dd-lib-{init_image_alias}-init"
-            )
-            prefix_init_docker_image_repo = f"{docker_registry_images_path}/dd-trace-{init_image_repo_alias}"
-
-        library_injection_init_image = f"{init_docker_image_repo}:{docker_image_tag}"
-        return prefix_init_docker_image_repo, library_injection_init_image
-
-    @property
-    def library(self):
-        return self._library
-
-    @property
-    def weblog_variant(self):
-        return self._weblog_variant
-
-
-class KubernetesScenario(Scenario):
-    """ Scenario that tests kubernetes lib injection """
-
-    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
-
-    def configure(self, config):
-        super().configure(config)
-
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
-        assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
-        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE is not set. The init image to be tested is not set"
-        assert (
-            "LIBRARY_INJECTION_TEST_APP_IMAGE" in os.environ
-        ), "LIBRARY_INJECTION_TEST_APP_IMAGE is not set. The test app image to be tested is not set"
-
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
-        self._weblog_variant = os.getenv("WEBLOG_VARIANT")
-        self._weblog_variant_image = os.getenv("LIBRARY_INJECTION_TEST_APP_IMAGE")
-        self._library_init_image = os.getenv("LIB_INIT_IMAGE")
-
-        logger.stdout("K8s Lib Injection environment:")
-        logger.stdout(f"Library: {self._library}")
-        logger.stdout(f"Weblog variant: {self._weblog_variant}")
-        logger.stdout(f"Weblog variant image: {self._weblog_variant_image}")
-        logger.stdout(f"Library init image: {self._library_init_image}")
-
-        logger.info("K8s Lib Injection environment configured")
-
-    @property
-    def library(self):
-        return self._library
-
-    @property
-    def weblog_variant(self):
-        return self._weblog_variant
-
-
-class WeblogInjectionScenario(Scenario):
-    """Scenario that runs APM test agent """
-
-    def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
-
-        self._mount_injection_volume = MountInjectionVolume(
-            host_log_folder=self.host_log_folder, name="volume-injector"
-        )
-        self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
-
-        self._required_containers: list(TestedContainer) = []
-        self._required_containers.append(self._mount_injection_volume)
-        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
-        self._required_containers.append(self._weblog_injection)
-
-    def configure(self, config):
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
-
-        assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
-        self._lib_init_image = os.getenv("LIB_INIT_IMAGE")
-
-        self._mount_injection_volume._lib_init_image(self._lib_init_image)
-        self._weblog_injection.set_environment_for_library(self.library)
-
-        super().configure(config)
-
-        for container in self._required_containers:
-            container.configure(self.replay)
-
-    def _get_warmups(self):
-        warmups = super()._get_warmups()
-
-        warmups.append(create_network)
-        warmups.append(create_inject_volume)
-        for container in self._required_containers:
-            warmups.append(container.start)
-
-        return warmups
-
-    def pytest_sessionfinish(self, session):
-        self.close_targets()
-
-    def close_targets(self):
-        for container in reversed(self._required_containers):
-            try:
-                container.remove()
-                logger.info(f"Removing container {container}")
-            except:
-                logger.exception(f"Failed to remove container {container}")
-
-    @property
-    def library(self):
-        return self._library
-
-    @property
-    def lib_init_image(self):
-        return self._lib_init_image
 
 
 class scenarios:
@@ -237,58 +40,15 @@ class scenarios:
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
 
-    default = EndToEndScenario(
-        "DEFAULT",
-        weblog_env={
-            "DD_DBM_PROPAGATION_MODE": "service",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
-            "DD_TRACE_FEATURES": "discovery",
-        },
-        include_postgres_db=True,
-        doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
-    )
+    default = DefaultScenario("DEFAULT")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
-
-    integrations = EndToEndScenario(
-        "INTEGRATIONS",
-        weblog_env={
-            "DD_DBM_PROPAGATION_MODE": "full",
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-            "AWS_ACCESS_KEY_ID": "my-access-key",
-            "AWS_SECRET_ACCESS_KEY": "my-access-key",
-        },
-        include_postgres_db=True,
-        include_cassandra_db=True,
-        include_mongo_db=True,
-        include_kafka=True,
-        include_rabbitmq=True,
-        include_mysql_db=True,
-        include_sqlserver=True,
-        include_elasticmq=True,
-        include_localstack=True,
-        doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC],
-    )
-
-    crossed_tracing_libraries = EndToEndScenario(
-        "CROSSED_TRACING_LIBRARIES",
-        weblog_env={
-            "DD_TRACE_API_VERSION": "v0.4",
-            "AWS_ACCESS_KEY_ID": "my-access-key",
-            "AWS_SECRET_ACCESS_KEY": "my-access-key",
-        },
-        include_kafka=True,
-        include_buddies=True,
-        include_elasticmq=True,
-        include_localstack=True,
-        include_rabbitmq=True,
-        doc="Spawns a buddy for each supported language of APM",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS],
-    )
+    integrations = IntegrationsScenario()
+    integrations_aws = AWSIntegrationsScenario()
+    crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
         "OTEL_INTEGRATIONS",
@@ -318,11 +78,14 @@ class scenarios:
             "DD_PROFILING_ENABLED": "true",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_PROFILING_START_DELAY": "1",
+            # Used within Spring Boot native tests to test profiling without affecting tracing scenarios
+            "USE_NATIVE_PROFILING": "presence",
             # Reduce noise
             "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
         },
         doc="Test profiling feature. Not included in default scenario because is quite slow",
         scenario_groups=[ScenarioGroup.PROFILING],
+        require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
     )
 
     sampling = EndToEndScenario(
@@ -399,7 +162,7 @@ class scenarios:
         "APPSEC_BLOCKING",
         appsec_rules="/appsec_blocking_rule.json",
         doc="Misc tests for appsec blocking",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
@@ -414,8 +177,8 @@ class scenarios:
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_disabled = EndToEndScenario(
-        "APPSEC_DISABLED",
+    everything_disabled = EndToEndScenario(
+        "EVERYTHING_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
         appsec_enabled=False,
         include_postgres_db=True,
@@ -439,7 +202,7 @@ class scenarios:
     )
     appsec_rate_limiter = EndToEndScenario(
         "APPSEC_RATE_LIMITER",
-        weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1"},
+        weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1", "RAILS_MAX_THREADS": "1"},
         doc="Tests with a low rate trace limit for Appsec",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -491,7 +254,6 @@ class scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
             "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
@@ -510,7 +272,7 @@ class scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -519,7 +281,6 @@ class scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
@@ -534,11 +295,7 @@ class scenarios:
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_TRACE_DEBUG": "false",
-        },
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true",},
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
@@ -578,14 +335,27 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    iast_standalone = EndToEndScenario(
+        "IAST_STANDALONE",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DETECTION_MODE": "FULL",
+            "DD_IAST_DEDUPLICATION_ENABLED": "false",
+            "DD_IAST_REQUEST_SAMPLING": "100",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",},
-        library_interface_timeout=20,
+        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -595,18 +365,15 @@ class scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
         },
-        library_interface_timeout=20,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None, "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",},
-        library_interface_timeout=20,
+        weblog_env={"DD_APPSEC_RULES": None,},
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
@@ -621,12 +388,7 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
-        },
-        library_interface_timeout=20,
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -638,17 +400,13 @@ class scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
-        library_interface_timeout=20,
         doc="",
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         rc_api_enabled=True,
-        weblog_env={"DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",},
-        library_interface_timeout=20,
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -657,7 +415,11 @@ class scenarios:
 
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario(
-        "APM_TRACING_E2E_OTEL", weblog_env={"DD_TRACE_OTEL_ENABLED": "true",}, backend_interface_timeout=5, doc="",
+        "APM_TRACING_E2E_OTEL",
+        weblog_env={"DD_TRACE_OTEL_ENABLED": "true",},
+        backend_interface_timeout=5,
+        require_api_key=True,
+        doc="",
     )
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
@@ -666,12 +428,13 @@ class scenarios:
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
+        require_api_key=True,
         doc="",
     )
 
-    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", doc="")
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", include_intake=False, doc="")
+    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="")
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
@@ -684,6 +447,39 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
+    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="",)
+
+    tracing_config_nondefault = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT",
+        weblog_env={
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            # disable ASM to test non asm client ip tagging
+            "DD_APPSEC_ENABLED": "false",
+            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
+            "DD_SERVICE": "service_test",
+            "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
+        },
+        include_kafka=True,
+        doc="",
+        scenario_groups=[ScenarioGroup.ESSENTIALS],
+    )
+
+    tracing_config_nondefault_2 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_2",
+        weblog_env={
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
+            "DD_TRACE_KAFKA_ENABLED": "true",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+        },
+        include_kafka=True,
+        doc="Test tracer configuration when a collection of non-default settings are applied",
+    )
+    tracing_config_nondefault_3 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
+    )
+
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
     debugger_probes_status = EndToEndScenario(
@@ -694,9 +490,7 @@ class scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
-        library_interface_timeout=5,
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
@@ -734,7 +528,7 @@ class scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
         },
         library_interface_timeout=5,
@@ -751,6 +545,20 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_exception_replay = EndToEndScenario(
+        "DEBUGGER_EXCEPTION_REPLAY",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_EXCEPTION_REPLAY_ENABLED": "true",
+            "DD_EXCEPTION_DEBUGGING_ENABLED": "true",
+        },
+        library_interface_timeout=5,
+        doc="Check exception replay",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
     fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
@@ -759,38 +567,32 @@ class scenarios:
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     installer_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION", doc="Installer auto injection scenario", scenario_groups=[ScenarioGroup.ONBOARDING]
-    )
-
-    installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
-        "INSTALLER_HOST_AUTO_INJECTION_CHAOS",
-        doc="Installer auto injection scenario with chaos (deleting installation folders, files)",
+        "INSTALLER_AUTO_INJECTION",
+        doc="Installer auto injection scenario",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
-    installer_auto_injection_block_list = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION_BLOCK_LIST",
-        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    installer_auto_injection_ld_preload = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION_LD_PRELOAD",
-        "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
+    chaos_installer_auto_injection = InstallerAutoInjectionScenario(
+        "CHAOS_INSTALLER_AUTO_INJECTION",
+        " Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries. Perform chaos testing",
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
-    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
+    simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
         "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
@@ -799,6 +601,7 @@ class scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
@@ -807,6 +610,7 @@ class scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -816,6 +620,7 @@ class scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -823,6 +628,7 @@ class scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     container_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -830,6 +636,7 @@ class scenarios:
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
     local_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -837,87 +644,22 @@ class scenarios:
         "Tobe executed locally with krunvm. Installs all the software fron agent installation script, and the replace the apm-library with the uploaded tar file from binaries",
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
     )
 
-    ##DEPRECATED SCENARIOS: Delete after migration of tracer pipelines + auto_inject pipelines
-
-    # Replaced by SIMPLE_INSTALLER_AUTO_INJECTION
-    simple_host_auto_injection = InstallerAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION",
-        "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-    simple_container_auto_injection = InstallerAutoInjectionScenario(
-        "SIMPLE_CONTAINER_AUTO_INJECTION",
-        "DEPRECATED: Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    # Replaced by SIMPLE_AUTO_INJECTION_PROFILING
-    simple_host_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_HOST_AUTO_INJECTION_PROFILING",
-        "DEPRECATED: Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-    simple_container_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_CONTAINER_AUTO_INJECTION_PROFILING",
-        "DEPRECATED: Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    # Replaced by INSTALLER_AUTO_INJECTION
-    host_auto_injection = InstallerAutoInjectionScenario(
-        "HOST_AUTO_INJECTION",
-        doc="DEPRECATED: Installer auto injection scenario",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-    container_auto_injection = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION",
-        doc="DEPRECATED: Installer auto injection scenario",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    # Replaced by INSTALLER_AUTO_INJECTION_BLOCK_LIST
-    host_auto_injection_block_list = InstallerAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_BLOCK_LIST",
-        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    # Replaced by INSTALLER_NOT_SUPPORTED_AUTO_INJECTION
-    container_not_supported_auto_injection = InstallerAutoInjectionScenario(
-        "CONTAINER_NOT_SUPPORTED_AUTO_INJECTION",
-        "Onboarding host Single Step Instrumentation scenario for not supported languages",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-    )
-
-    # K8s LIB INJECTION SCENARIOS
-    k8s_lib_injection_basic = _KubernetesScenario(
-        "K8S_LIB_INJECTION_BASIC",
-        doc=" Kubernetes Instrumentation basic scenario. DEPRECATED",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-    k8s_library_injection_full = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_FULL",
-        doc=" Kubernetes Instrumentation complete scenario.",
+    k8s_library_injection_basic = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_BASIC",
+        doc=" Kubernetes Instrumentation basic scenario",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
 
-    k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC", doc=" Kubernetes Instrumentation basic scenario"
+    k8s_library_injection_profiling = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_PROFILING",
+        doc=" Kubernetes auto instrumentation, profiling activation",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
-
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",
@@ -932,6 +674,12 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
 
+    docker_ssi = DockerSSIScenario(
+        "DOCKER_SSI",
+        doc="Validates the installer and the ssi on a docker environment",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.DOCKER_SSI],
+    )
+
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
         weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
@@ -940,6 +688,8 @@ class scenarios:
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
+
+    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
 
 
 def get_all_scenarios() -> list[Scenario]:

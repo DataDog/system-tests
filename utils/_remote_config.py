@@ -119,9 +119,45 @@ def send_state(
     return current_states
 
 
-def send_sequential_commands(commands: list[dict]) -> None:
+def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = True) -> None:
     """DEPRECATED"""
+
+    if len(commands) == 0:
+        raise ValueError("No commands to send")
+
     _post("/sequential_commands", commands)
+
+    if not wait_for_all_command:
+        return
+
+    counts_by_runtime_id = {}
+
+    def all_payload_sent(data):
+        if data["path"] == "/v0.7/config":
+
+            # wait for N successful responses, +1 for the ACK request from the lib
+            for count in counts_by_runtime_id.values():
+                if count >= len(commands):
+                    return True
+
+            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
+
+            if runtime_id not in counts_by_runtime_id:
+                counts_by_runtime_id[runtime_id] = 0
+
+            for name, value in data["response"]["headers"]:
+                if name == "st-proxy-overwrite-rc-response":
+                    counts_by_runtime_id[runtime_id] = int(value) + 1
+                    logger.debug(f"Response {int(value) + 1}/{len(commands)} for {runtime_id}")
+                    break
+
+            return False
+
+    rc_poll_interval = 5  # seconds
+    extra_timeout = 10  # give more room for startup
+    timeout = len(commands) * rc_poll_interval + extra_timeout
+    logger.debug(f"Waiting for {timeout}s to see {len(commands)} responses")
+    library.wait_for(all_payload_sent, timeout=timeout)
 
 
 def build_debugger_command(probes: list, version: int):
@@ -185,14 +221,24 @@ def build_debugger_command(probes: list, version: int):
                     probe["where"]["methodName"] = (
                         probe["where"]["methodName"][0].lower() + probe["where"]["methodName"][1:]
                     )
+                elif library_name == "python":
+                    probe["where"]["typeName"] = "debugger_controller"
+                    probe["where"]["methodName"] = re.sub(
+                        r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
+                    ).lower()
             elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                 if library_name == "dotnet":
                     probe["where"]["sourceFile"] = "DebuggerController.cs"
                 elif library_name == "java":
                     probe["where"]["sourceFile"] = "DebuggerController.java"
+                elif library_name == "python":
+                    probe["where"]["sourceFile"] = "debugger_controller.py"
 
-            probe_64 = _json_to_base64(probe)
+            logger.debug(f"RC probe is:\n{json.dumps(probe, indent=2)}")
             probe_type = _get_probe_type(probe["id"])
+            probe["type"] = re.sub(r"(?<!^)(?=[A-Z])", "_", probe_type).upper()
+            probe_64 = _json_to_base64(probe)
+
             path = "datadog/2/LIVE_DEBUGGING/" + probe_type + "_" + probe["id"] + "/config"
 
             target["hashes"]["sha256"] = _sha256(probe_64)

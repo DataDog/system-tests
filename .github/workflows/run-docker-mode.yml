@@ -20,6 +20,8 @@ jobs:
           - name: proxy
             internal: datadog/system-tests:proxy-v1
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     name: Build (${{ matrix.image.name }})
     steps:
       - name: Checkout
@@ -98,6 +100,8 @@ jobs:
           # - rails70
           - rails71
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     name: Build (${{ matrix.app }})
     steps:
       - name: Checkout
@@ -268,8 +272,6 @@ jobs:
           docker image list
       - name: Run scenario
         run: ./run.sh ++docker ${{ matrix.scenario }}
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
       - name: Archive logs
         uses: actions/upload-artifact@v4
         if: ${{ always() }}
@@ -315,7 +317,3 @@ jobs:
           pattern: system-tests-${{ matrix.library }}-${{ matrix.app }}-*-logs-gha${{ github.run_id }}-g${{ github.sha }}
           merge-multiple: true
           path: .
-      - name: Print fancy log report
-        run: |
-          find logs*
-          python utils/scripts/markdown_logs.py >> $GITHUB_STEP_SUMMARY

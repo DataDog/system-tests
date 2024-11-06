@@ -5,11 +5,15 @@ import { Request, Response } from "express";
 const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
 const { promisify } = require('util')
-const app = require('express')();
-const axios = require('axios');
+const app = require('express')()
+const axios = require('axios')
 const passport = require('passport')
 const { Kafka } = require("kafkajs")
-const { spawnSync } = require('child_process');
+const { spawnSync } = require('child_process')
+const crypto = require('crypto')
+
+const multer = require('multer')
+const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
 
 const iast = require('./iast')
 
@@ -31,19 +35,19 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.get('/healthcheck', (req: Request, res: Response) => {
-  const rulesPath = process.env.DD_APPSEC_RULES || 'dd-trace/packages/dd-trace/src/appsec/recommended.json'
-  const maybeRequire = (name: string) => { try { return require(name) } catch (e) {} }
-
   res.json({
     status: 'ok',
     library: {
       language: 'nodejs',
-      version: require('dd-trace/package.json').version,
-      libddwaf_version: require('dd-trace/node_modules/@datadog/native-appsec/package.json').libddwaf_version,
-      appsec_event_rules_version: maybeRequire(rulesPath)?.metadata.rules_version
+      version: require('dd-trace/package.json').version
     }
   });
 })
+
+app.post('/waf', uploadToMemory.single('foo'), (req: Request, res: Response) => {
+  res.send('Hello\n')
+})
+
 
 app.all(['/waf', '/waf/*'], (req: Request, res: Response) => {
   res.send('Hello\n');
@@ -204,16 +208,17 @@ app.get('/load_dependency', (req: Request, res: Response) => {
   res.send("Loaded a dependency")
 });
 
-app.all('/tag_value/:tag/:status', (req: Request, res: Response) => {
-  require('dd-trace/packages/dd-trace/src/plugins/util/web').root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag);
+app.all('/tag_value/:tag_value/:status_code', (req: Request, res: Response) => {
+  require('dd-trace/packages/dd-trace/src/plugins/util/web')
+    .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag_value);
 
   for (const [k, v] of Object.entries(req.query)) {
     res.set(k, v && v.toString());
   }
 
-  res.status(parseInt(req.params.status) || 200)
+  res.status(parseInt(req.params.status_code) || 200)
 
-  if (req.params?.tag?.startsWith?.('payload_in_response_body') && req.method === 'POST') {
+  if (req.params.tag_value.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body });
   } else {
     res.send('Value tagged');
@@ -286,6 +291,24 @@ app.get('/requestdownstream', async (req: Request, res: Response) => {
 
 app.get('/returnheaders', (req: Request, res: Response) => {
   res.json({ ...req.headers })
+})
+
+app.get('/vulnerablerequestdownstream', async (req: Request, res: Response) => {
+  try {
+    crypto.createHash('md5').update('password').digest('hex')
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return res.json(resFetch.data)
+  } catch (e) {
+    return res.status(500).send(e)
+  }
+})
+
+app.get('/set_cookie', (req: Request, res: Response) => {
+  const name = req.query['name']
+  const value = req.query['value']
+
+  res.header('Set-Cookie', `${name}=${value}`)
+  res.send('OK')
 })
 
 require('./rasp')(app)

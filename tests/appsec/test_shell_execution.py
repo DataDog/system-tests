@@ -7,7 +7,7 @@ from utils import bug, context, interfaces, weblog, features, irrelevant, rfc
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
 @features.appsec_shell_execution_tracing
-@bug(context.library < "java@1.29.0", reason="https://datadoghq.atlassian.net/browse/APPSEC-10243")
+@bug(context.library < "java@1.29.0", reason="APPSEC-10243")
 class Test_ShellExecution:
     """Test shell execution tracing"""
 
@@ -66,8 +66,8 @@ class Test_ShellExecution:
         context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    @bug(library="java", reason="Truncation method not aligned with the RFC")
-    @bug(library="php", reason="Truncation method not aligned with the RFC")
+    @bug(library="java", reason="APPSEC-55672")
+    @bug(library="php", reason="APPSEC-55673")
     def test_truncate_1st_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"
@@ -85,7 +85,7 @@ class Test_ShellExecution:
         context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    @bug(library="java", reason="Truncation method not aligned with the RFC")
+    @bug(library="java", reason="APPSEC-55672")
     def test_truncate_blank_2nd_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"

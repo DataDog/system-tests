@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, bug, weblog, features
-from ..utils import BaseSinkTest
+from ..utils import BaseSinkTest, BaseSinkTestWithoutTelemetry, BaseTestCookieNameFilter
 
 
 @features.iast_sink_http_only_cookie
@@ -17,7 +17,7 @@ class TestNoHttponlyCookie(BaseSinkTest):
     data = {}
     location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
 
-    @bug(context.library < "java@1.18.3", reason="Incorrect handling of HttpOnly flag")
+    @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):
         super().test_secure()
 
@@ -37,3 +37,11 @@ class TestNoHttponlyCookie(BaseSinkTest):
     @missing_feature(weblog_variant="vertx4", reason="Metric not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+
+@features.iast_sink_http_only_cookie
+class TestNoHttponlyCookieNameFilter(BaseTestCookieNameFilter):
+    """Test no HttpOnly cookie name filter."""
+
+    vulnerability_type = "NO_HTTPONLY_COOKIE"
+    endpoint = "/iast/no-httponly-cookie/custom_cookie"

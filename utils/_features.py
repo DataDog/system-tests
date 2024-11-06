@@ -15,6 +15,14 @@ class features:
     """
 
     @staticmethod
+    def not_reported(test_object):
+        """
+        Use this fake feature to not report a test to feature parity dashboard
+        """
+        pytest.mark.features(feature_id=-1)(test_object)
+        return test_object
+
+    @staticmethod
     def add_metadata_globally_to_all_spans_dd_tags(test_object):
         """
         Add Metadata globally to all spans (DD_TAGS)
@@ -76,6 +84,8 @@ class features:
 
         if "uds" in context.weblog_variant:
             pytest.mark.features(feature_id=6)(test_object)
+        else:
+            pytest.mark.features(feature_id=-1)(test_object)
 
         return test_object
 
@@ -2228,6 +2238,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_standalone(test_object):
+        """
+        Iast Standalone Billing
+
+        https://feature-parity.us1.prod.dog/#/?feature=319
+        """
+        pytest.mark.features(feature_id=319)(test_object)
+        return test_object
+
+    @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """
         Profiling works when enabled through the agent installer script in Host environments
@@ -2278,6 +2298,16 @@ class features:
         return test_object
 
     @staticmethod
+    def datastreams_monitoring_support_for_manual_checkpoints(test_object):
+        """
+        Ensure DSM Manual Checkpointing API is satisfied
+
+        https://feature-parity.us1.prod.dog/#/?feature=327
+        """
+        pytest.mark.features(feature_id=327)(test_object)
+        return test_object
+
+    @staticmethod
     def suspicious_attacker_blocking(test_object):
         """
         Threats: request blocking on suspicious attacker
@@ -2318,6 +2348,16 @@ class features:
         return test_object
 
     @staticmethod
+    def crashtracking(test_object):
+        """
+        Crashtracking
+
+        https://feature-parity.us1.prod.dog/#/?feature=317
+        """
+        pytest.mark.features(feature_id=317)(test_object)
+        return test_object
+
+    @staticmethod
     def rasp_shell_injection(test_object):
         """
         Appsec RASP rule : shell injection
@@ -2325,4 +2365,64 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=318
         """
         pytest.mark.features(feature_id=318)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_exception_replay(test_object):
+        """
+        Exception replay
+
+        https://feature-parity.us1.prod.dog/#/?feature=321
+        """
+        pytest.mark.features(feature_id=321)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_source_path_parameter(test_object):
+        """
+        IAST Source: URI
+
+        https://feature-parity.us1.prod.dog/#/?feature=324
+        """
+        pytest.mark.features(feature_id=324)(test_object)
+        return test_object
+
+    @staticmethod
+    def tracing_configuration_consistency(test_object):
+        """
+        Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=325
+        """
+        pytest.mark.features(feature_id=325)(test_object)
+        return test_object
+
+    @staticmethod
+    def ssi_guardrails(test_object):
+        """
+        Docker ssi guardrails
+
+        https://feature-parity.us1.prod.dog/#/?feature=322
+        """
+        pytest.mark.features(feature_id=322)(test_object)
+        return test_object
+
+    @staticmethod
+    def ssi_service_naming(test_object):
+        """
+        Docker ssi service naming feature
+
+        https://feature-parity.us1.prod.dog/#/?feature=326
+        """
+        pytest.mark.features(feature_id=326)(test_object)
+        return test_object
+
+    @staticmethod
+    def serverless_span_pointers(test_object):
+        """
+        Serverless : Span Pointers are correctly incorporated in spans
+
+        https://feature-parity.us1.prod.dog/#/?feature=328
+        """
+        pytest.mark.features(feature_id=328)(test_object)
         return test_object
