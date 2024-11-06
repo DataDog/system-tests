@@ -341,22 +341,13 @@ class Test_Config_IntegrationEnabled_False:
         assert spans, "No spans found in trace"
         # Ruby kafka integration generates a span with the name "kafka.producer.*",
         # unlike python/dotnet/etc. which generates a "kafka.produce" span
-        assert (
-            list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == []
-        ), f"kafka.produce span was found in trace: {spans}"
-
-        nonKafkaOrPdoSpans = []
-        kafkaOrPdoSpans = []
-
-        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
-            if span.get("name") != "kafka.produce":
-                nonKafkaOrPdoSpans.append(span)
-            elif context.library == "php" and span.get("service") != "pdo":
-                nonKafkaOrPdoSpans.append(span)
-            else:
-                kafkaOrPdoSpans.append(span)
-        assert len(nonKafkaOrPdoSpans) > 0
-        assert len(kafkaOrPdoSpans) == 0
+        if context.library == "php":
+            assert (list(filter(lambda span: "pdo" in span.get("service"), spans))  == []
+            ), f"PDO span was found in trace: {spans}"
+        else:
+            assert (
+                list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == []
+            ), f"kafka.produce span was found in trace: {spans}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -376,18 +367,14 @@ class Test_Config_IntegrationEnabled_True:
         assert self.r.status_code == 200
         spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
         assert spans, "No spans found in trace"
-        # Ruby kafka integration generates a span with the name "kafka.producer.*",
-        # unlike python/dotnet/etc. which generates a "kafka.produce" span
-        assert list(
-            filter(lambda span: "kafka.produce" in span.get("name"), spans)
-        ), f"No kafka.produce span found in trace: {spans}"
-
-        nonKafkaOrPdoSpans = []
-        kafkaOrPdoSpans = []
-        for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
-            if span.get("name") != "kafka.produce" and span.get("service") != "pdo":
-                nonKafkaOrPdoSpans.append(span)
-            else:
-                kafkaOrPdoSpans.append(span)
-        assert len(nonKafkaOrPdoSpans) > 0
-        assert len(kafkaOrPdoSpans) > 0
+        # PHP uses the pdo integration
+        if context.library == "php":
+            assert list(
+                filter(lambda span: "pdo" in span.get("service"), spans)
+            ), f"No PDO span found in trace: {spans}"
+        else:
+            # Ruby kafka integration generates a span with the name "kafka.producer.*",
+            # unlike python/dotnet/etc. which generates a "kafka.produce" span
+            assert list(
+                filter(lambda span: "kafka.produce" in span.get("name"), spans)
+            ), f"No kafka.produce span found in trace: {spans}"
