@@ -33,7 +33,7 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-container/Dockerfile.jdk11
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multicontainer/Dockerfile.jdk11
             remote_path: Dockerfile.template
 
           - name: copy-docker-compose-file
