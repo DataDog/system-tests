@@ -1,4 +1,3 @@
-# TODO(mabdinur): Move this file to tests/test_the_test/
 """
 This module provides simple unit tests for each parametric endpoint.
 The results of these unit tests are reported to the feature parity dashboard.
