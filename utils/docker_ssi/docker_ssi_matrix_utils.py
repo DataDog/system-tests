@@ -1,4 +1,5 @@
 from utils.docker_ssi.docker_ssi_definitions import (
+    DotnetRuntimeInstallableVersions,
     JavaRuntimeInstallableVersions,
     PHPRuntimeInstallableVersions,
     PythonRuntimeInstallableVersions,
@@ -16,5 +17,7 @@ def resolve_runtime_version(library, runtime):
         return PythonRuntimeInstallableVersions.get_version_id(runtime)
     elif library == "ruby":
         return RubyRuntimeInstallableVersions.get_version_id(runtime)
+    elif library == "dotnet":
+        return DotnetRuntimeInstallableVersions.get_version_id(runtime)
 
     raise ValueError(f"Library {library} not supported")
