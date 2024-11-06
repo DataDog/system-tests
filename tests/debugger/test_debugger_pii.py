@@ -173,8 +173,8 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
 
     @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
     @bug(
-        weblog_variant="uds" and context.library == "dotnet@2.50.0", reason="bug with UDS protocol on this version",
-    )
+        context.weblog_variant == "uds" and context.library == "dotnet@2.50.0", reason="APMRP-360",
+    )  # bug with UDS protocol on this version
     def test_pii_redaction_dotnet_2_50(self):
         self._test(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)
 
