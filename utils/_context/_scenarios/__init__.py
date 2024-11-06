@@ -473,6 +473,7 @@ class scenarios:
             "DD_TRACE_KAFKA_ENABLED": "true",
             "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
         },
         include_kafka=True,
         include_postgres_db=True,
