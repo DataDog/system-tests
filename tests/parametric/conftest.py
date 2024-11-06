@@ -634,13 +634,14 @@ def test_library(
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.container_port,
+        "DD_TRACE_OTEL_ENABLED": "true",
     }
-    test_server_env = {}
     for k, v in apm_test_server.env.items():
-        # Don't set `None` env vars.
+        # Don't set env vars with a value of None
         if v is not None:
-            test_server_env[k] = v
-    env.update(test_server_env)
+            env[k] = v
+        elif k in env:
+            del env[k]
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
 
