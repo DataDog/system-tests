@@ -201,7 +201,7 @@ onboarding_ruby:
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
+          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-multicontainer,test-app-ruby-multialpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
