@@ -1,5 +1,6 @@
 weblog:
     name: test-app-nodejs-container
+    excluded_os_names: [ RedHat_7_9_amd64]
     install: 
       - os_type: linux
         copy_files:
