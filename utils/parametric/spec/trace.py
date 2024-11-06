@@ -250,8 +250,11 @@ def retrieve_span_links(span):
 
 
 def id_to_int(value: Union[str, int]) -> int:
-    """Convert a string to base 10."""
+    """Convert an id from hex or a base 10 string to an integer."""
     try:
+        # This is a best effort to convert hex span/trace id to an integer.
+        # This is temporary solution until all parametric applications return trace/span ids
+        # as stringified integers (ids will be stringified to workaround percision issues in some languages)
         return int(value)
     except ValueError:
         return int(value, 16)
