@@ -402,6 +402,7 @@ tests/:
       aws/:
         test_s3_span_pointers.py:
           Test_CopyObject: missing_feature
+          Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
