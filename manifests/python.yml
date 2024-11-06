@@ -784,6 +784,11 @@ tests/:
             django-poc: v2.15.0
             flask-poc: v2.15.0
             python3.12: v2.15.0
+          Test_MultipartUpload:
+            '*': missing_feature
+            django-poc: v2.15.0
+            flask-poc: v2.15.0
+            python3.12: v2.15.0
           Test_PutObject:
             '*': missing_feature
             django-poc: v2.14.0
