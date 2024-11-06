@@ -42,17 +42,15 @@ class APMLibraryClient:
         self.container = container
 
         # wait for server to start
-        self.wait(timeout)
+        self._wait(timeout)
 
-    def wait(self, timeout):
+    def _wait(self, timeout):
         delay = 0.01
         for _ in range(int(timeout / delay)):
             try:
-                resp = self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts"))
-                if resp.status_code == 404:
+                if self.is_alive():
                     break
             except Exception:
-                self.container.reload()
                 if self.container.status != "running":
                     self._print_logs()
                     message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
@@ -64,6 +62,14 @@ class APMLibraryClient:
             self._print_logs()
             message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
             _fail(message)
+
+    def is_alive(self) -> bool:
+        self.container.reload()
+        return (
+            self.container.status == "running"
+            and self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
+            == 404
+        )
 
     def _print_logs(self):
         try:
@@ -577,9 +583,8 @@ class APMLibrary:
 
     def is_alive(self) -> bool:
         try:
-            self._client.wait(0.03)
-            return True
-        except Failed:
+            return self._client.is_alive()
+        except Exception:
             return False
 
     ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
