@@ -601,6 +601,9 @@ class WeblogContainer(TestedContainer):
         volumes = {} if volumes is None else volumes
         volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
+        # get the default environment, and overload it with values defined in the scenario
+        environment = self._get_default_env(tracer_sampling_rate, use_proxy, appsec_enabled) | (environment or {})
+
         try:
             with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
                 path = f.read().strip(" \r\n")
@@ -615,7 +618,7 @@ class WeblogContainer(TestedContainer):
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
-            environment=environment or {},
+            environment=environment,
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
@@ -636,22 +639,49 @@ class WeblogContainer(TestedContainer):
         self.weblog_variant = ""
         self._library: LibraryVersion = None
 
-        # Basic env set for all scenarios
-        self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
+    def _get_default_env(self, tracer_sampling_rate, use_proxy, appsec_enabled: bool):
+        environment = {}
+
+        # Datadog setup
+        environment["DD_SERVICE"] = "weblog"
+        environment["DD_VERSION"] = "1.0.0"
+        environment["DD_TAGS"] = "key1:val1,key2:val2"
+        environment["DD_ENV"] = "system-tests"
+        environment["DD_TRACE_LOG_DIRECTORY"] = "/var/log/system-tests"
+
+        # telemetry conf
+        environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
+        environment["DD_TELEMETRY_METRICS_ENABLED"] = "true"
+
+        # Python lib has different env var until we enable Telemetry Metrics by default
+        environment["DD_TELEMETRY_METRICS_INTERVAL_SECONDS"] = self.telemetry_heartbeat_interval
+        environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"
 
         if appsec_enabled:
-            self.environment["DD_APPSEC_ENABLED"] = "true"
+            environment["DD_APPSEC_ENABLED"] = "true"
+            environment["DD_IAST_ENABLED"] = "true"
+
+            # Python lib has Code Security debug env var
+            environment["_DD_IAST_DEBUG"] = "true"
+            environment["DD_IAST_REQUEST_SAMPLING"] = "100"
+            environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
+            environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
+
+            environment["DD_APPSEC_WAF_TIMEOUT"] = 10000000  # 10 seconds
+            environment["DD_APPSEC_TRACE_RATE_LIMIT"] = 10000
 
         if tracer_sampling_rate:
-            self.environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+            environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
 
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
-            self.environment["DD_AGENT_HOST"] = "proxy"
-            self.environment["DD_TRACE_AGENT_PORT"] = 8126
+            environment["DD_AGENT_HOST"] = "proxy"
+            environment["DD_TRACE_AGENT_PORT"] = 8126
         else:
-            self.environment["DD_AGENT_HOST"] = "agent"
-            self.environment["DD_TRACE_AGENT_PORT"] = 8127
+            environment["DD_AGENT_HOST"] = "agent"
+            environment["DD_TRACE_AGENT_PORT"] = 8127
+
+        return environment
 
     @staticmethod
     def _get_image_list_from_dockerfile(dockerfile) -> list[str]:
