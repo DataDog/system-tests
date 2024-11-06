@@ -5,7 +5,8 @@ FROM eclipse-temurin:8 as agent
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-FROM ghcr.io/graalvm/native-image-community:21.0.0 as build
+# FROM ghcr.io/graalvm/native-image-community:21.0.0 as build
+FROM container-registry.oracle.com/graalvm/native-image:21 as build
 
 # Install maven
 RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz --output /opt/maven.tar.gz && \
@@ -24,7 +25,9 @@ COPY --from=agent /dd-tracer/dd-java-agent.jar .
 
 # Build native application
 RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,with-profiling native:compile
+RUN native-image-inspect /app/with-profiling/myproject > /app/with-profiling/report.json
 RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,without-profiling native:compile
+RUN native-image-inspect /app/without-profiling/myproject > /app/without-profiling/report.json
 
 FROM ubuntu
 
@@ -33,7 +36,9 @@ RUN apt-get update && apt-get install -y curl
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /app/with-profiling/myproject ./with-profiling/
+COPY --from=build /app/with-profiling/report.json ./with-profiling/
 COPY --from=build /app/without-profiling/myproject ./without-profiling/
+COPY --from=build /app/without-profiling/report.json ./without-profiling/
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
