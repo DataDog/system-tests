@@ -325,8 +325,8 @@ tests/:
       TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
-      Test_Config_RateLimit: missing_feature
-      Test_Config_TraceAgentURL: missing_feature
+      Test_Config_RateLimit: v3.4.1
+      Test_Config_TraceAgentURL: v3.4.1
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
       Test_Config_UnifiedServiceTagging: v3.3.0
@@ -351,6 +351,16 @@ tests/:
       Test_Otel_Span_With_W3c: v2.42.0
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
+    test_parametric_endpoints.py:
+      Test_Parametric_DDSpan_Add_Link: missing_feature (add_link parametric endpoint is not implemented)
+      Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778) # Set error endpoint does not set the error.type tag on spans
+      Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource parametric endpoint is not implemented)
+      Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
+      Test_Parametric_DDTrace_Current_Span: missing_feature (otel current span endpoint is not implemented)
+      Test_Parametric_OtelSpan_Is_Recording: bug (APMAPI-778) # parametric endpoint attempts to retrieve spans by the `id` instead of `span_id`
+      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # updates the operation name of the span not the resource name
+      Test_Parametric_Otel_Baggage: missing_feature (otel baggage endpoints are not implemented)
+      Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint are not implemented)
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -383,13 +393,15 @@ tests/:
     span_pointers/:
       aws/:
         test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
+          Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientIPHeader_Configured: missing_feature (Not actually passing telemetry test so disabling until I do)
-    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
+    Test_Config_ClientIPHeader_Configured: v3.4.1
+    Test_Config_ClientIPHeader_Precedence: v3.4.1
     Test_Config_ClientTagQueryString_Configured: missing_feature (configuration DNE)
     Test_Config_ClientTagQueryString_Empty: missing_feature (Not actually passing telemetry test so disabling until I do)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
@@ -398,8 +410,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature (Need to update the casing of the integration to Upper case)
     Test_Config_IntegrationEnabled_True: missing_feature (Need to update the casing of the integration to Upper case)
-    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
+    Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:

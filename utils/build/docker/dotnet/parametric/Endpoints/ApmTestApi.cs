@@ -295,6 +295,8 @@ public abstract class ApmTestApi
             { "dd_trace_debug", debugEnabled ? "true" : "false" },
             { "dd_trace_otel_enabled", isOtelEnabled.ToString().ToLowerInvariant() },
             { "dd_log_level", null },
+            { "dd_trace_agent_url", tracerSettings.AgentUri },
+            { "dd_trace_rate_limit", tracerSettings.MaxTracesSubmittedPerSecond.ToString() },
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
         };
 

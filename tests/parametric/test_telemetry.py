@@ -9,7 +9,7 @@ import uuid
 
 import pytest
 
-from utils import context, scenarios, rfc, features, missing_feature
+from utils import context, scenarios, rfc, features, missing_feature, bug
 
 
 telemetry_name_mapping = {
@@ -68,6 +68,7 @@ class Test_Defaults:
         ],
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
@@ -141,6 +142,7 @@ class Test_Consistent_Configs:
         ],
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
@@ -193,6 +195,7 @@ class Test_Environment:
         ],
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.start_span("test"):
             pass
@@ -337,6 +340,7 @@ class Test_Environment:
                 "OTEL_RESOURCE_ATTRIBUTES": "foo",
                 "OTEL_PROPAGATORS": "foo",
                 "OTEL_LOGS_EXPORTER": "foo",
+                "DD_TRACE_OTEL_ENABLED": None,
                 "OTEL_SDK_DISABLED": "foo",
             }
         ],
@@ -403,6 +407,7 @@ class Test_TelemetryInstallSignature:
             },
         ],
     )
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     def test_telemetry_event_propagated(self, library_env, test_agent, test_library):
         """Ensure the installation ID is included in the app-started telemetry event.
 
@@ -449,6 +454,7 @@ class Test_TelemetryInstallSignature:
             )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     def test_telemetry_event_not_propagated(self, library_env, test_agent, test_library):
         """
         When instrumentation data is not propagated to the library
@@ -544,6 +550,7 @@ class Test_TelemetrySCAEnvVar:
     @missing_feature(
         context.library <= "python@2.16.0", reason="Converts boolean values to strings",
     )
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     def test_telemetry_sca_enabled_propagated(
         self, library_env, specific_libraries_support, outcome_value, test_agent, test_library
     ):
@@ -566,6 +573,7 @@ class Test_TelemetrySCAEnvVar:
         context.library <= "python@2.16.0",
         reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used",
     )
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
 

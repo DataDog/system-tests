@@ -426,6 +426,8 @@ function main() {
         fi
         if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
             pytest_numprocesses=6
+            #https://pytest-xdist.readthedocs.io/en/latest/distribution.html
+            pytest_args+=( '--dist' 'loadgroup' )
         fi
     done
 
@@ -438,7 +440,6 @@ function main() {
     esac
 
     ## run tests
-
     if [[ "${verbosity}" -gt 0 ]]; then
         echo "plan:"
         echo "  mode: ${run_mode}"

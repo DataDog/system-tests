@@ -1,6 +1,7 @@
 # Weblog
 
 A weblog is a web app that system uses to test the library. It mimics what would be a real instrumented HTTP application. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different endpoints.
+Weblog implementations are located in `utils/docker/`.
 
 > Note: a separate document describes [GraphQL Weblog](./graphql_weblog.md).
 
@@ -746,3 +747,46 @@ Query parameters required in the `GET` method:
 
 Examples:
 - `GET`: `/session/user?sdk_user=sdkUser`
+
+
+### \[GET\] /mock_s3/put_object
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `bucket` query parameter and puts an object at the `key`
+query parameter. The body of the object is just the bytes of the key, encoded
+with utf-8. Returns a result object with an `object` JSON object field containing the
+`e_tag` field with the ETag of the uploaded object. The `e_tag` field has any
+extra double-quotes stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/put_object?bucket=somebucket&key=somekey`
+
+
+### \[GET\] /mock_s3/copy_object
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `original_bucket` query parameter and puts an object at
+the `original_key` query parameter. The body of the object is just the bytes of
+the key, encoded with utf-8. The method then creates another `bucket` if
+necessary and copies the object into the `key` location. Returns a result
+object with an `object` JSON object field containing the `e_tag` field with the
+ETag of the copied object. The `e_tag` field has any extra double-quotes
+stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
+
+
+### \[GET\] /mock_s3/multipart_upload
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `bucket` query parameter and puts an object at the `key`
+query parameter. The body of the object is just the bytes of the key, encoded
+with utf-8, duplicated enough times to make two multipart uploads. Returns a
+result object with an `object` JSON object field containing the `e_tag` field
+with the ETag of the uploaded object returned by the final
+CompleteMultipartUpload call. The `e_tag` field has any extra double-quotes
+stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`

@@ -69,8 +69,9 @@ enabled=0
 EOF
     yum install -y which zip unzip wget
 elif [ "$OS" = "Debian" ]; then
+    export DEBIAN_FRONTEND=noninteractive
     apt-get update
-    apt-get install --yes curl zip unzip wget
+    apt-get install --yes curl zip unzip wget git software-properties-common php-cli
 elif [ "$OS" =  "Alpine" ]; then
     apk add -U curl bash
 else

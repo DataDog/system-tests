@@ -28,6 +28,9 @@ class AsmStandalone_UpstreamPropagation_Base:
     # Enpoint that triggers an ASM event and a downstream request
     requestdownstreamUrl = "/requestdownstream"
 
+    # Tested product
+    tested_product = None
+
     # Return a boolean indicating if the test passed
     @staticmethod
     def _assert_tags(first_trace, span, obj, expected_tags):
@@ -56,7 +59,34 @@ class AsmStandalone_UpstreamPropagation_Base:
         except (KeyError, AssertionError) as e:
             return False
 
+    @staticmethod
+    def assert_product_is_enabled(request, product):
+        product_enabled = False
+        tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
+        meta_struct_key = "vulnerability" if product == "iast" else "appsec"
+        for data, trace, span in interfaces.library.get_spans(request=request):
+            # Check if the product is enabled in meta
+            meta = span["meta"]
+            if tags in meta:
+                product_enabled = True
+                break
+            # Check if the product is enabled in meta_struct
+            meta_struct = span["meta_struct"]
+            if meta_struct and meta_struct.get(meta_struct_key):
+                product_enabled = True
+                break
+        assert product_enabled, f"{product} is not available"
+
+    def setup_product_is_enabled(self):
+        headers = {}
+        if self.tested_product == "appsec":
+            headers = {
+                "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
+            }
+        self.check_r = weblog.get(self.requestdownstreamUrl, headers=headers)
+
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -71,6 +101,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -99,6 +130,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -113,6 +145,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -141,6 +174,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -155,6 +189,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -183,6 +218,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -197,6 +233,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -312,6 +349,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -326,6 +364,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
@@ -353,6 +392,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -367,6 +407,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
@@ -394,6 +435,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -408,6 +450,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
@@ -566,6 +609,8 @@ class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagatio
 
     requestdownstreamUrl = "/requestdownstream"
 
+    tested_product = "appsec"
+
     @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
     @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
     @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
@@ -604,6 +649,8 @@ class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_
     """IAST correctly propagates AppSec events in distributing tracing."""
 
     requestdownstreamUrl = "/vulnerablerequestdownstream"
+
+    tested_product = "iast"
 
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
