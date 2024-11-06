@@ -2,6 +2,7 @@ import os
 import yaml
 from yamlinclude import YamlIncludeConstructor
 from utils.tools import logger
+from utils.virtual_machine.utils import nginx_parser
 
 
 class VirtualMachineProvisioner:
@@ -275,6 +276,14 @@ class VirtualMachineProvisioner:
         return installation
 
 
+class _DeployedWeblog:
+    def __init__(self, weblog_name, runtime_version=None, app_type=None, app_context_url="/") -> None:
+        self.weblog_name = weblog_name
+        self.runtime_version = runtime_version
+        self.app_type = app_type
+        self.app_context_url = app_context_url
+
+
 class Provision:
     """ Contains all the information about the provision that it will be launched on the vm 1"""
 
@@ -286,6 +295,46 @@ class Provision:
         self.weblog_installation = None
         self.tested_components_installation = None
         self.vm_logs_installation = None
+        self.deployed_weblogs = []
+
+    def get_deployed_weblogs(self):
+        """ Usually we have only one weblog deployed in the VM. But in some cases(multicontainer) we can have multiple weblogs deployed."""
+        if not self.deployed_weblogs:
+
+            # App on Container/Alpine
+            if self.weblog_installation and self.weblog_installation.version:
+                self.deployed_weblogs = [
+                    _DeployedWeblog(
+                        weblog_name=self.weblog_installation.id,
+                        runtime_version=self.weblog_installation.version,
+                        app_type="container" if "container" in self.weblog_installation.id else "alpine",
+                        app_context_url="/",
+                    )
+                ]
+            # Multicontainer app
+            elif self.weblog_installation and self.weblog_installation.nginx_config:
+                apps_json = nginx_parser(self.weblog_installation.nginx_config)
+                logger.debug(f"Multicontainer/multialpine apps definition: {apps_json}")
+                for app in apps_json:
+                    self.deployed_weblogs.append(
+                        _DeployedWeblog(
+                            weblog_name=self.weblog_installation.id,
+                            runtime_version=app["runtime"],
+                            app_type=app["type"],
+                            app_context_url=app["url"],
+                        )
+                    )
+            # App on Host
+            elif self.lang_variant_installation and self.lang_variant_installation.version:
+                self.deployed_weblogs = [
+                    _DeployedWeblog(
+                        weblog_name=self.weblog_installation.id,
+                        runtime_version=self.lang_variant_installation.version,
+                        app_type="host",
+                        app_context_url="/",
+                    )
+                ]
+        return self.deployed_weblogs
 
 
 class Intallation:

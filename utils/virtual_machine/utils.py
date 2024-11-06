@@ -2,7 +2,6 @@ import pytest
 from utils import context
 from utils._decorators import is_jira_ticket
 from copy import deepcopy
-from utils.tools import logger
 
 
 def parametrize_virtual_machines(bugs: list[dict] = None):
@@ -71,15 +70,15 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
 def get_tested_apps_vms():
     """ This method is a workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
     This means, if I have a multicontainer app with 3 containers (runtimes) running on 1 vm, I will have 3 machines with the same configuration but with different runtimes.
+    NOTE: On AWS we only run 1 vm. We duplicate the vms for test isolation.
     """
     vms_by_runtime = []
     vms_by_runtime_ids = []
     for vm in getattr(context.scenario, "required_vms", []):
-        deployed_weblogs = vm.get_deployed_weblogs()
+        deployed_weblogs = vm.get_provision().get_deployed_weblogs()
         for weblog in deployed_weblogs:
             vm_by_runtime = deepcopy(vm)
-            vm_by_runtime.get_deployed_weblogs().clear()
-            vm_by_runtime.get_deployed_weblogs().append(weblog)
+            vm_by_runtime.set_current_deployed_weblog(weblog)
             vms_by_runtime.append(vm_by_runtime)
             vms_by_runtime_ids.append(f"{vm.name}_{weblog.runtime_version}_{weblog.app_type}")
     return vms_by_runtime, vms_by_runtime_ids
