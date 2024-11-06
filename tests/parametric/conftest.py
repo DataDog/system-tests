@@ -6,10 +6,11 @@ import shutil
 import json
 import subprocess
 import time
-from typing import Dict, Generator, List, TextIO, TypedDict
+import datetime
+import hashlib
+from typing import Dict, Generator, List, TextIO, TypedDict, Optional, Any
 import urllib.parse
 
-from docker.models.containers import Container
 import requests
 import pytest
 
@@ -17,9 +18,7 @@ from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
-from utils.parametric._library_client import APMLibraryClientGRPC
-from utils.parametric._library_client import APMLibraryClientHTTP
-from utils.parametric._library_client import APMLibrary
+from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
 from utils import context, scenarios
 from utils.tools import logger
@@ -133,6 +132,97 @@ class _TestAgentAPI:
         )
         assert resp.status_code == 202
 
+    def get_remote_config(self):
+        resp = self._session.get(self._url("/v0.7/config"),)
+        resp_json = resp.json()
+        list = []
+        if resp_json and resp_json["target_files"]:
+            target_files = resp_json["target_files"]
+            for target in target_files:
+                path = target["path"]
+                msg = json.loads(str(base64.b64decode(target["raw"]), encoding="utf-8"))
+                dict = {"path": path, "msg": msg}
+                list.append(dict)
+        return list
+
+    def add_remote_config(self, path, payload):
+        current_rc = self.get_remote_config()
+        current_rc.append({"path": path, "msg": payload})
+        remote_config_payload = self._build_config_path_response(current_rc)
+        resp = self._session.post(self._url("/test/session/responses/config"), remote_config_payload,)
+        assert resp.status_code == 202
+
+    @staticmethod
+    def _build_config_path_response(config: List):
+        expires_date = datetime.datetime.strftime(
+            datetime.datetime.now() + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
+        )
+        roots = [
+            str(
+                base64.b64encode(
+                    bytes(
+                        json.dumps(
+                            {
+                                "signatures": [],
+                                "signed": {
+                                    "_type": "root",
+                                    "consistent_snapshot": True,
+                                    "expires": "1986-12-11T00:00:00Z",
+                                    "keys": {},
+                                    "roles": {},
+                                    "spec_version": "1.0",
+                                    "version": 2,
+                                },
+                            }
+                        ),
+                        encoding="utf-8",
+                    )
+                ),
+                encoding="utf-8",
+            )
+        ]
+
+        client_configs = []
+        target_files = []
+        targets_tmp = {}
+        for dict in config:
+            client_configs.append(dict["path"])
+            dict["msg_enc"] = bytes(json.dumps(dict["msg"]), encoding="utf-8")
+            tf = {
+                "path": dict["path"],
+                "raw": str(base64.b64encode(dict["msg_enc"]), encoding="utf-8"),
+            }
+            target_files.append(tf)
+            targets_tmp[dict["path"]] = {
+                "custom": {"c": [""], "v": 0},
+                "hashes": {"sha256": hashlib.sha256(dict["msg_enc"]).hexdigest()},
+                "length": len(dict["msg_enc"]),
+            }
+
+        data = {
+            "signatures": [{"keyid": "", "sig": ""}],
+            "signed": {
+                "_type": "targets",
+                "custom": {"opaque_backend_state": ""},
+                "expires": expires_date,
+                "spec_version": "1.0.0",
+                "targets": targets_tmp,
+            },
+            "version": 0,
+        }
+        targets = str(base64.b64encode(bytes(json.dumps(data), encoding="utf-8")), encoding="utf-8")
+        remote_config_payload = {
+            "roots": roots,
+            "targets": targets,
+            "target_files": target_files,
+            "client_configs": client_configs,
+        }
+        return json.dumps(remote_config_payload)
+
+    def set_trace_delay(self, delay):
+        resp = self._session.post(self._url("/test/settings"), json={"trace_request_delay": delay})
+        assert resp.status_code == 202
+
     def raw_telemetry(self, clear=False, **kwargs):
         raw_reqs = self.requests()
         reqs = []
@@ -161,9 +251,9 @@ class _TestAgentAPI:
         self._write_log("requests", json)
         return json
 
-    def rc_requests(self):
+    def rc_requests(self, post_only=False):
         reqs = self.requests()
-        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config")]
+        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not (post_only) or r["method"] == "POST")]
         for r in rc_reqs:
             r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
         return rc_reqs
@@ -312,13 +402,18 @@ class _TestAgentAPI:
         raise AssertionError("Telemetry event %r not found" % event_name)
 
     def wait_for_rc_apply_state(
-        self, product: str, state: remoteconfig.APPLY_STATUS, clear: bool = False, wait_loops: int = 100
+        self,
+        product: str,
+        state: remoteconfig.APPLY_STATUS,
+        clear: bool = False,
+        wait_loops: int = 100,
+        post_only: bool = False,
     ):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         for i in range(wait_loops):
             try:
-                rc_reqs = self.rc_requests()
+                rc_reqs = self.rc_requests(post_only)
             except requests.exceptions.RequestException:
                 pass
             else:
@@ -381,44 +476,6 @@ class _TestAgentAPI:
                         return tracer_flare
             time.sleep(0.01)
         raise AssertionError("No tracer-flare received")
-
-
-@contextlib.contextmanager
-def docker_run(
-    image: str,
-    name: str,
-    cmd: List[str],
-    env: Dict[str, str],
-    volumes: Dict[str, str],
-    host_port: int,
-    container_port: int,
-    log_file: TextIO,
-    network_name: str,
-) -> Generator[Container, None, None]:
-
-    # Run the docker container
-    logger.info(f"Starting {name}")
-
-    container = scenarios.parametric.docker_run(
-        image,
-        name=name,
-        env=env,
-        volumes=volumes,
-        network=network_name,
-        host_port=host_port,
-        container_port=container_port,
-        command=cmd,
-    )
-
-    try:
-        yield container
-    finally:
-        logger.info(f"Stopping {name}")
-        container.stop(timeout=1)
-        logs = container.logs()
-        log_file.write(logs.decode("utf-8"))
-        log_file.flush()
-        container.remove(force=True)
 
 
 @pytest.fixture(scope="session")
@@ -511,28 +568,27 @@ def test_agent(
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
 
-    host_port = scenarios.parametric.get_host_port(worker_id, 50000)
+    host_port = scenarios.parametric.get_host_port(worker_id, 4600)
 
-    with docker_run(
+    with scenarios.parametric.docker_run(
         image=scenarios.parametric.TEST_AGENT_IMAGE,
         name=test_agent_container_name,
-        cmd=[],
+        command=[],
         env=env,
         volumes={f"{os.getcwd()}/snapshots": "/snapshots"},
         host_port=host_port,
         container_port=test_agent_port,
         log_file=test_agent_log_file,
-        network_name=docker_network,
+        network=docker_network,
     ):
-        logger.debug(f"Test agent {test_agent_container_name} started on host port {host_port}")
 
         client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", pytest_request=request)
         time.sleep(0.2)  # intial wait time, the trace agent takes 200ms to start
         for _ in range(100):
             try:
                 resp = client.info()
-            except:
-                logger.debug("Wait for 0.1s for the test agent to be ready")
+            except Exception as e:
+                logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
                 time.sleep(0.1)
             else:
                 if resp["version"] != "test":
@@ -540,10 +596,10 @@ def test_agent(
                     Stop the agent on port {test_agent_port} and try again."""
                     pytest.fail(message, pytrace=False)
 
+                logger.info("Test agent is ready")
                 break
         else:
-            with open(test_agent_log_file.name) as f:
-                logger.error(f"Could not connect to test agent: {f.read()}")
+            logger.error("Could not connect to test agent")
             pytest.fail(
                 f"Could not connect to test agent, check the log file {test_agent_log_file.name}.", pytrace=False
             )
@@ -563,14 +619,15 @@ def test_agent(
 
 
 @pytest.fixture
-def test_server(
+def test_library(
     worker_id: str,
     docker_network: str,
     test_agent_port: str,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
-):
+) -> Generator[APMLibrary, None, None]:
+
     env = {
         "DD_TRACE_DEBUG": "true",
         "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
@@ -585,38 +642,29 @@ def test_server(
             test_server_env[k] = v
     env.update(test_server_env)
 
-    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 51000)
+    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
 
-    with docker_run(
+    with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,
         name=apm_test_server.container_name,
-        cmd=apm_test_server.container_cmd,
+        command=apm_test_server.container_cmd,
         env=env,
         host_port=apm_test_server.host_port,
         container_port=apm_test_server.container_port,
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
-        network_name=docker_network,
+        network=docker_network,
     ) as container:
-        logger.debug(f"Test server {apm_test_server.container_name} started on host port {apm_test_server.host_port}")
         apm_test_server.container = container
-        yield apm_test_server
 
+        test_server_timeout = 60
 
-@pytest.fixture
-def test_library(test_server: APMLibraryTestServer) -> Generator[APMLibrary, None, None]:
-    test_server_timeout = 60
+        if apm_test_server.host_port is None:
+            raise RuntimeError("Internal error, no port has been assigned", 1)
 
-    if test_server.host_port is None:
-        raise RuntimeError("Internal error, no port has been assigned", 1)
-
-    if test_server.protocol == "grpc":
-        client = APMLibraryClientGRPC(f"localhost:{test_server.host_port}", test_server_timeout, test_server.container)
-    elif test_server.protocol == "http":
-        client = APMLibraryClientHTTP(
-            f"http://localhost:{test_server.host_port}", test_server_timeout, test_server.container
+        client = APMLibraryClient(
+            f"http://localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container
         )
-    else:
-        raise ValueError(f"Interface {test_server.protocol} not supported")
-    tracer = APMLibrary(client, test_server.lang)
-    yield tracer
+
+        tracer = APMLibrary(client, apm_test_server.lang)
+        yield tracer

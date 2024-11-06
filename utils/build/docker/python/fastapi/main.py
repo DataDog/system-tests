@@ -578,6 +578,24 @@ async def login(request: Request):
     return PlainTextResponse("login failure", status_code=401)
 
 
+MAGIC_SESSION_KEY = "random_session_id"
+
+
+@app.get("/session/new")
+async def session_new(request: Request):
+    response = PlainTextResponse("OK")
+    response.set_cookie(key="session_id", value=MAGIC_SESSION_KEY)
+    return response
+
+
+@app.get("/session/user")
+async def session_user(request: Request):
+    user = request.query_params.get("sdk_user", "")
+    if user and request.cookies.get("session_id", "") == MAGIC_SESSION_KEY:
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+    return PlainTextResponse("OK")
+
+
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
@@ -692,6 +710,13 @@ def test_nosamesite_insecure_cookie():
 def test_nosamesite_secure_cookie():
     resp = PlainTextResponse("OK")
     resp.set_cookie(key="secure3", value="value", secure=True, httponly=True, samesite="strict")
+    return resp
+
+
+@app.get("/iast/no-samesite-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="none")
     return resp
 
 

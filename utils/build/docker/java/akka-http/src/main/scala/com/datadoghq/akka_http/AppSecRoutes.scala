@@ -16,6 +16,7 @@ import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
 import scala.concurrent.duration._
 import com.datadoghq.system_tests.iast.utils.Utils;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import scala.concurrent.blocking
 
 import java.util
@@ -23,6 +24,9 @@ import scala.concurrent.Future
 import scala.xml.{Elem, XML}
 
 object AppSecRoutes {
+
+  private val cryptoExamples = new CryptoExamples()
+
   val route: Route =
     path("") {
       get {
@@ -173,6 +177,14 @@ object AppSecRoutes {
             var json = Utils.sendGetRequest(url);
             complete(json)
           }
+      } ~
+      path("vulnerablerequestdownstream") {
+        blocking {
+          cryptoExamples.insecureMd5Hashing("password")
+          var url = "http://localhost:7777/returnheaders";
+          var json = Utils.sendGetRequest(url);
+          complete(json)
+        }
       } ~
       path("returnheaders") {
         get {

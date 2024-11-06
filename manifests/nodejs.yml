@@ -373,6 +373,7 @@ tests/:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
+      Test_IastStandalone_UpstreamPropagation: *ref_5_18_0
     test_automated_login_events.py:
       Test_Login_Events:
         '*': *ref_4_4_0
@@ -391,7 +392,9 @@ tests/:
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         nextjs: missing_feature
-      Test_Blocking_request_body_multipart: missing_feature
+      Test_Blocking_request_body_multipart:
+        '*': *ref_5_25_0
+        nextjs: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
         nextjs: missing_feature
@@ -546,7 +549,7 @@ tests/:
         express4: *ref_5_6_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
-        '*': *ref_4_4_0
+        '*': *ref_5_25_0
         nextjs: missing_feature (missing endpoint)
       Test_DsmKinesis:
         '*': irrelevant
@@ -582,6 +585,7 @@ tests/:
       Test_Config_TraceEnabled: missing_feature
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: missing_feature
+    test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: *ref_5_16_0
@@ -632,6 +636,8 @@ tests/:
     span_pointers/:
       aws/:
         test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
+          Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
