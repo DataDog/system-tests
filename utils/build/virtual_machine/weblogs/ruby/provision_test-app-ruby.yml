@@ -40,7 +40,7 @@ weblog:
     # fedora are excluded because they do not provide the right Ruby versions
     # TODO oracle_linux and alma_linux. Failed when we run the app. Related with how we install Ruby
     #Ubuntu_18_amd64, ubuntu 20: installation fails
-    excluded_os_branches: [ubuntu18_amd64,ubuntu20_amd64, ubuntu20_arm64, oracle_linux, alma_linux, fedora]
+    excluded_os_branches: [ubuntu18_amd64,ubuntu20_amd64, ubuntu20_arm64, oracle_linux, alma_linux, fedora, debian]
     install:
       - os_type: linux
 

@@ -62,8 +62,6 @@ def _get_client() -> docker.DockerClient:
 class APMLibraryTestServer:
     # The library of the interface.
     lang: str
-    # The interface that this test server implements.
-    protocol: Union[Literal["grpc"], Literal["http"]]
     container_name: str
     container_tag: str
     container_img: str
@@ -129,7 +127,7 @@ class ParametricScenario(Scenario):
         elif "TEST_LIBRARY" in os.environ:
             library = os.getenv("TEST_LIBRARY")
         else:
-            raise ValueError("No library specified, please set -L option")
+            pytest.exit("No library specified, please set -L option", 1)
 
         # get tracer version info building and executing the ddtracer-version.docker file
 
@@ -348,7 +346,6 @@ def python_library_factory() -> APMLibraryTestServer:
     python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     return APMLibraryTestServer(
         lang="python",
-        protocol="http",
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
@@ -360,7 +357,7 @@ COPY utils/build/docker/python/parametric/system_tests_library_version.sh system
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
-ENV DD_PATCH_MODULES="fastapi:false"
+ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 """,
         container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
@@ -385,7 +382,6 @@ def node_library_factory() -> APMLibraryTestServer:
 
     return APMLibraryTestServer(
         lang="nodejs",
-        protocol="http",
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
@@ -421,7 +417,6 @@ def golang_library_factory():
     golang_reldir = golang_appdir.replace("\\", "/")
     return APMLibraryTestServer(
         lang="golang",
-        protocol="grpc",
         container_name="go-test-library",
         container_tag="go122-test-library",
         container_img=f"""
@@ -454,7 +449,6 @@ def dotnet_library_factory():
     dotnet_reldir = dotnet_appdir.replace("\\", "/")
     server = APMLibraryTestServer(
         lang="dotnet",
-        protocol="http",
         container_name="dotnet-test-api",
         container_tag="dotnet8_0-test-api",
         container_img=f"""
@@ -522,7 +516,6 @@ def java_library_factory():
     # TODO : use official install_ddtrace.sh
     return APMLibraryTestServer(
         lang="java",
-        protocol="http",
         container_name="java-test-client",
         container_tag="java-test-client",
         container_img=f"""
@@ -549,7 +542,6 @@ def php_library_factory() -> APMLibraryTestServer:
     php_reldir = php_appdir.replace("\\", "/")
     return APMLibraryTestServer(
         lang="php",
-        protocol="http",
         container_name="php-test-library",
         container_tag="php-test-library",
         container_img=f"""
@@ -584,7 +576,6 @@ def ruby_library_factory() -> APMLibraryTestServer:
     ruby_reldir = ruby_appdir.replace("\\", "/")
     return APMLibraryTestServer(
         lang="ruby",
-        protocol="http",
         container_name="ruby-test-client",
         container_tag="ruby-test-client",
         container_img=f"""
@@ -629,7 +620,6 @@ RUN mkdir /parametric-tracer-logs
 
     return APMLibraryTestServer(
         lang="cpp",
-        protocol="http",
         container_name="cpp-test-client",
         container_tag="cpp-test-client",
         container_img=dockerfile_content,
