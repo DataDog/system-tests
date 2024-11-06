@@ -42,9 +42,9 @@ class APMLibraryClient:
         self.container = container
 
         # wait for server to start
-        self.wait(timeout, True)
+        self.wait(timeout)
 
-    def wait(self, timeout, reload):
+    def wait(self, timeout):
         delay = 0.01
         for _ in range(int(timeout / delay)):
             try:
@@ -52,8 +52,7 @@ class APMLibraryClient:
                 if resp.status_code == 404:
                     break
             except Exception:
-                if reload:
-                    self.container.reload()
+                self.container.reload()
                 if self.container.status != "running":
                     self._print_logs()
                     message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
@@ -578,9 +577,9 @@ class APMLibrary:
 
     def is_alive(self) -> bool:
         try:
-            self._client.wait(0.03, False)
+            self._client.wait(0.03)
             return True
-        except (RuntimeError, Failed):
+        except Failed:
             return False
 
     ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
