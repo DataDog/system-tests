@@ -1,9 +1,7 @@
 import time
 from random import randint
 import os
-import json
 import requests
-from utils.tools import logger
 
 
 def make_get_request(app_url):
