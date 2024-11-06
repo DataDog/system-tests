@@ -342,7 +342,8 @@ class Test_Config_IntegrationEnabled_False:
         # Ruby kafka integration generates a span with the name "kafka.producer.*",
         # unlike python/dotnet/etc. which generates a "kafka.produce" span
         if context.library == "php":
-            assert (list(filter(lambda span: "pdo" in span.get("service"), spans))  == []
+            assert (
+                list(filter(lambda span: "pdo" in span.get("service"), spans)) == []
             ), f"PDO span was found in trace: {spans}"
         else:
             assert (
