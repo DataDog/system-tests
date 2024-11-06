@@ -2,6 +2,7 @@ from utils.docker_ssi.docker_ssi_definitions import (
     JavaRuntimeInstallableVersions,
     PHPRuntimeInstallableVersions,
     PythonRuntimeInstallableVersions,
+    RubyRuntimeInstallableVersions,
 )
 
 
@@ -13,5 +14,7 @@ def resolve_runtime_version(library, runtime):
         return PHPRuntimeInstallableVersions.get_version_id(runtime)
     elif library == "python":
         return PythonRuntimeInstallableVersions.get_version_id(runtime)
+    elif library == "ruby":
+        return RubyRuntimeInstallableVersions.get_version_id(runtime)
 
     raise ValueError(f"Library {library} not supported")
