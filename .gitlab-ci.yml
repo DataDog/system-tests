@@ -35,8 +35,7 @@ variables:
     AMI_UPDATE:
       description: "Set to true to force the update the AMIs used in the system-tests"
     ONBOARDING_FILTER_ENV: "prod"
-    ONLY_TEST_LIBRARY:
-      description: "Set to the library you want to test"
+    ONLY_TEST_LIBRARY: ""
     DD_INSTALLER_LIBRARY_VERSION:
       description: "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
     DD_INSTALLER_INJECTOR_VERSION:
@@ -48,7 +47,7 @@ onboarding_nodejs:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "nodejs")
       when: always
     - when: manual
   variables:
@@ -80,7 +79,7 @@ onboarding_java:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "java")
       when: always
     - when: manual
   variables:
@@ -112,7 +111,7 @@ onboarding_python:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "python")
       when: always
     - when: manual
   variables:
@@ -145,7 +144,7 @@ onboarding_dotnet:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "dotnet")
       when: always
     - when: manual
   variables:
@@ -174,7 +173,7 @@ onboarding_ruby:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "ruby")
       when: always
     - when: manual
   variables:
@@ -203,7 +202,7 @@ onboarding_php:
   allow_failure: true
   dependencies: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && (ONLY_TEST_LIBRARY == "" || ONLY_TEST_LIBRARY == "php")
       when: always
     - when: manual
   variables:
