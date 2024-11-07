@@ -57,7 +57,7 @@ onboarding_nodejs:
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-multicontainer]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -68,6 +68,10 @@ onboarding_nodejs:
           ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True"]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
@@ -94,7 +98,7 @@ onboarding_java:
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer,test-app-java-multialpine,test-app-java-buildpack,test-app-java-container]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine,test-app-java-buildpack]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -105,6 +109,10 @@ onboarding_java:
           ONBOARDING_FILTER_WEBLOG: [test-app-java]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True"]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
@@ -133,14 +141,18 @@ onboarding_python:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [
             test-app-python,
-            test-app-python-multicontainer,
-            test-app-python-multialpine
+            test-app-python-container,
+            test-app-python-alpine
           ]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True","False"]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
   script:
       - ./build.sh -i runner
@@ -168,12 +180,16 @@ onboarding_dotnet:
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True","False"]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
   script:
       - ./build.sh -i runner
@@ -201,13 +217,17 @@ onboarding_ruby:
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-multicontainer,test-app-ruby-multialpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
+      #  - ONBOARDING_FILTER_ENV: [dev, prod]
+      #    ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer,test-app-ruby-multialpine]
+      #    SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+      #    DEFAULT_VMS: ["True","False"]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
@@ -234,7 +254,7 @@ onboarding_php:
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-multicontainer, test-app-php-multialpine]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-container-83, test-app-php-alpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_ENV: [dev, prod]
@@ -244,6 +264,10 @@ onboarding_php:
         - ONBOARDING_FILTER_ENV: [dev, prod]
           ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+          DEFAULT_VMS: ["True","False"]
+        - ONBOARDING_FILTER_ENV: [dev, prod]
+          ONBOARDING_FILTER_WEBLOG: [test-app-php-multicontainer, test-app-php-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
   script:
       - ./build.sh -i runner

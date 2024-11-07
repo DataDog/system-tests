@@ -60,7 +60,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     2,
                     Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
                 ],
-                ["Accessing duration", "\d+(\.\d+)?", Dsl("ref", "@duration"),],
+                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration"),],
             ],
         )
 

@@ -15,10 +15,9 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         After breaking the installation, we can restart the app
         After restores the installation, the app should be working and sending traces to the backend."""
 
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         weblog_url = f"http://{vm_ip}:{vm_port}/"
-
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         weblog_start_command = "sudo systemctl start test-app.service"
         if context.scenario.library.library in ["ruby", "python", "dotnet"]:

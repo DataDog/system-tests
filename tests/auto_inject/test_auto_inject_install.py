@@ -112,6 +112,10 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         ]
     )
     def test_install(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        logger.info(
+            f"Launching test_install for : [{virtual_machine.name}] [{virtual_machine.get_current_deployed_weblog().runtime_version}]..."
+        )
         self._test_install(virtual_machine)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+        logger.info(
+            f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_current_deployed_weblog().runtime_version}]"
+        )

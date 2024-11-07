@@ -25,6 +25,7 @@ lang_variant:
 
 weblog:
     name: test-app-java-alpine
+    runtime_version: 11
     install:
       - os_type: linux
         copy_files:
