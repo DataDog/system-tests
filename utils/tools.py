@@ -65,7 +65,7 @@ def stdout(self, message, *args, **kws):
             print(message)
 
 
-logging.Logger.stdout = stdout
+logging.Logger.stdout = stdout  # type: ignore
 
 
 def get_logger(name="tests", use_stdout=False):

@@ -77,8 +77,8 @@ class V06StatsAggr(TypedDict):
     TopLevelHits: int
     Duration: int
     Errors: int
-    OkSummary: BaseDDSketch
-    ErrorSummary: BaseDDSketch
+    OkSummary: Optional[BaseDDSketch]
+    ErrorSummary: Optional[BaseDDSketch]
 
 
 class V06StatsBucket(TypedDict):

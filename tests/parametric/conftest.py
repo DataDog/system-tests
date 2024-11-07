@@ -46,10 +46,7 @@ class AgentRequest(TypedDict):
 
 
 class AgentRequestV06Stats(AgentRequest):
-    method: str
-    url: str
-    headers: Dict[str, str]
-    body: V06StatsPayload
+    body: V06StatsPayload  # type: ignore
 
 
 def pytest_configure(config):
@@ -92,7 +89,7 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.fixture
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
-    log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
+    log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"  # type: ignore
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
@@ -103,11 +100,11 @@ def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, No
 
 
 class _TestAgentAPI:
-    def __init__(self, base_url: str, pytest_request: None):
+    def __init__(self, base_url: str, pytest_request):
         self._base_url = base_url
         self._session = requests.Session()
         self._pytest_request = pytest_request
-        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
+        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"  # type: ignore
         os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
 
     def _url(self, path: str) -> str:
@@ -460,7 +457,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
-    def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
+    def wait_for_tracer_flare(self, case_id: Optional[str] = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -479,7 +476,7 @@ class _TestAgentAPI:
 
 
 @pytest.fixture(scope="session")
-def docker() -> str:
+def docker() -> Optional[str]:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
     r = subprocess.run(
@@ -521,7 +518,7 @@ def test_agent_port() -> int:
 
 @pytest.fixture
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
-    log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
+    log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"  # type: ignore
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
@@ -649,7 +646,7 @@ def test_library(
         image=apm_test_server.container_tag,
         name=apm_test_server.container_name,
         command=apm_test_server.container_cmd,
-        env=env,
+        env=env,  # type: ignore
         host_port=apm_test_server.host_port,
         container_port=apm_test_server.container_port,
         volumes=apm_test_server.volumes,

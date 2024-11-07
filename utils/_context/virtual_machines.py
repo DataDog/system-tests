@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+from typing import Dict, Any
 
 from utils.tools import logger
 from utils import context
@@ -109,7 +110,7 @@ class _VirtualMachine:
         self.os_branch = os_branch
         self.os_cpu = os_cpu
         self._vm_provision = None
-        self.tested_components = {}
+        self.tested_components: Dict[str, Any] = {}
         self.deffault_open_port = 5985
         self.agent_env = None
         self.app_env = None

@@ -1,5 +1,5 @@
 import os
-import yaml
+import yaml  # type: ignore
 from yamlinclude import YamlIncludeConstructor
 from utils.tools import logger
 

@@ -1,6 +1,7 @@
 import inspect
 import os
 import re
+from typing import Optional
 
 import pytest
 import semantic_version as semver
@@ -111,7 +112,7 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def missing_feature(condition: bool = None, library=None, weblog_variant=None, reason=None):
+def missing_feature(condition: Optional[bool] = None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as missing"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)

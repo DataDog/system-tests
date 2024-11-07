@@ -38,11 +38,32 @@ source venv/bin/activate
 
 echo "Checking Python files..."
 if [ "$COMMAND" == "fix" ]; then
-  black .
+  black --quiet .
 else
-  black --check --diff .
+  black --quiet --check --diff .
 fi
-pylint utils  # pylint does not have a fix mode
+
+echo "Running mypy type checks..."
+if ! mypy tests/parametric utils/parametric; then
+  echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running pylint checks..."
+if ! pylint utils; then
+  echo "Pylint checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+# echo "Running mypy type checks..."
+# if [ "$COMMAND" == "fix" ]; then
+#   mypy tests/parametric utils/parametric || { echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"; exit 1; }
+# else
+#   mypy --check tests/parametric utils/parametric || { echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"; exit 1; }
+# fi
+
+# # Run pylint only if mypy succeeded
+# pylint utils  # pylint does not have a fix mode
 
 # not py, as it's handled by black
 INCLUDE_EXTENSIONS=("*.md" "*.yml" "*.yaml" "*.sh" "*.cs" "*.Dockerfile" "*.java" "*.sql" "*.ts" "*.js" "*.php")

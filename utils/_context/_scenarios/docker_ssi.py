@@ -3,6 +3,7 @@ import time
 
 import docker
 from docker.errors import BuildError
+from typing import Dict, Any
 
 from utils import context, interfaces
 from utils._context.library_version import LibraryVersion, Version
@@ -32,7 +33,7 @@ class DockerSSIScenario(Scenario):
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
-        self._tested_components = {}
+        self._tested_components: Dict[str, Any] = {}
 
     def configure(self, config):
         assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby"

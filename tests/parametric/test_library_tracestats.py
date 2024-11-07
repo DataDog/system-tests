@@ -19,10 +19,9 @@ parametrize = pytest.mark.parametrize
 
 def _human_stats(stats: V06StatsAggr) -> str:
     """Return human-readable stats for debugging stat aggregations."""
-    copy = stats.copy()
-    del copy["ErrorSummary"]
-    del copy["OkSummary"]
-    return str(copy)
+    # Create a copy excluding 'ErrorSummary' and 'OkSummary' since TypedDicts don't allow delete
+    filtered_copy = {k: v for k, v in stats.items() if k not in {"ErrorSummary", "OkSummary"}}
+    return str(filtered_copy)
 
 
 def enable_tracestats(sample_rate: Optional[float] = None) -> Any:

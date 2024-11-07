@@ -63,11 +63,11 @@ def send_state(
 
     """
 
-    assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
+    assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"  # type: ignore
 
     client_configs = raw_payload.get("client_configs", [])
 
-    current_states = {}
+    current_states: dict[Any, Any] = {}
     version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
@@ -130,7 +130,7 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
     if not wait_for_all_command:
         return
 
-    counts_by_runtime_id = {}
+    counts_by_runtime_id: dict[Any, Any] = {}
 
     def all_payload_sent(data):
         if data["path"] == "/v0.7/config":
@@ -161,7 +161,7 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
 
 
 def build_debugger_command(probes: list, version: int):
-    library_name = context.scenario.library.library
+    library_name = context.scenario.library.library  # type: ignore
 
     def _json_to_base64(json_object):
         json_string = json.dumps(json_object).encode("utf-8")
@@ -241,15 +241,15 @@ def build_debugger_command(probes: list, version: int):
 
             path = "datadog/2/LIVE_DEBUGGING/" + probe_type + "_" + probe["id"] + "/config"
 
-            target["hashes"]["sha256"] = _sha256(probe_64)
+            target["hashes"]["sha256"] = _sha256(probe_64)  # type: ignore
             target["length"] = len(json.dumps(probe).encode("utf-8"))
-            signed["signed"]["targets"][path] = target
+            signed["signed"]["targets"][path] = target  # type: ignore
 
             target_file["path"] = path
             target_file["raw"] = probe_64
 
-            rcm["target_files"].append(target_file)
-            rcm["client_configs"].append(path)
+            rcm["target_files"].append(target_file)  # type: ignore
+            rcm["client_configs"].append(path)  # type: ignore
 
         rcm["targets"] = _json_to_base64(signed)
     return rcm
@@ -283,8 +283,8 @@ class ClientConfig:
             self.raw_sha256 = hashlib.sha256(base64.b64decode(self.raw)).hexdigest()
         else:
             stored_config = self._store.get(path, None)
-            self.raw_length = stored_config.raw_length
-            self.raw_sha256 = stored_config.raw_sha256
+            self.raw_length = stored_config.raw_length  # type: ignore
+            self.raw_sha256 = stored_config.raw_sha256  # type: ignore
 
     @property
     def raw_deserialized(self):

@@ -5,7 +5,7 @@ import time
 import requests
 import tempfile
 from random import randint
-from retry import retry
+from retry import retry  # type: ignore
 
 import paramiko
 import random

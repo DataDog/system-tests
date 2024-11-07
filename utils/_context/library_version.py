@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from collections import defaultdict
+from typing import Any, DefaultDict, Set
 import re
 import semantic_version as version_module
 
@@ -52,7 +53,7 @@ class Version(version_module.Version):
 
 
 class LibraryVersion:
-    known_versions = defaultdict(set)
+    known_versions: DefaultDict[Any, Set[str]] = defaultdict(set)
 
     def add_known_version(self, version, library=None):
         library = self.library if library is None else library

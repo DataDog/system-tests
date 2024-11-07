@@ -2,7 +2,7 @@ import os
 import json
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
-
+from typing import Any, List, Dict
 
 from utils._context.virtual_machines import (
     Ubuntu20amd64,
@@ -95,9 +95,9 @@ class _VirtualMachineScenario(Scenario):
         self.vm_provision_name = vm_provision
         self.vm_provider_id = "vagrant"
         self.vm_provider = None
-        self.required_vms = []
-        self.required_vm_names = []
-        self._tested_components = {}
+        self.required_vms: List[Any] = []
+        self.required_vm_names: List[Any] = []
+        self._tested_components: Dict[str, Any] = {}
         # Variables that will populate for the agent installation
         self.agent_env = agent_env
         # Variables that will populate for the app installation

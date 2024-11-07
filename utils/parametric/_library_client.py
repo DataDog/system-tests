@@ -2,7 +2,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
+from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict, Any
 
 from docker.models.containers import Container
 import pytest
@@ -188,7 +188,11 @@ class APMLibraryClient:
         )
 
     def span_add_link(
-        self, span_id: int, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None
+        self,
+        span_id: int,
+        parent_id: int,
+        attributes: Optional[dict[Any, Any]] = None,
+        http_headers: Optional[List[Tuple[str, str]]] = None,
     ):
         # Avoid using http_headers when creating a span link in the parametric apps
         # Alternative endpoints will be provided to set these values. This will be documented in a future PR.
@@ -232,7 +236,7 @@ class APMLibraryClient:
         parent_id: int,
         links: List[Link],
         http_headers: List[Tuple[str, str]],
-        attributes: dict = None,
+        attributes: Optional[dict[Any, Any]] = None,
     ) -> StartSpanResponse:
         resp = self._session.post(
             self._url("/trace/otel/start_span"),
@@ -264,7 +268,7 @@ class APMLibraryClient:
             self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code, "description": description}
         )
 
-    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
+    def otel_add_event(self, span_id: int, name: str, timestamp: Optional[int], attributes) -> None:
         self._session.post(
             self._url("/trace/otel/add_event"),
             json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes},
@@ -398,7 +402,12 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None):
+    def add_link(
+        self,
+        parent_id: int,
+        attributes: Optional[dict[Any, Any]] = None,
+        http_headers: Optional[List[Tuple[str, str]]] = None,
+    ):
         self._client.span_add_link(self.span_id, parent_id, attributes, http_headers)
 
     def finish(self):
@@ -528,7 +537,7 @@ class APMLibrary:
         span_kind: int = 0,
         parent_id: int = 0,
         links: Optional[List[Link]] = None,
-        attributes: dict = None,
+        attributes: Optional[dict[Any, Any]] = None,
         http_headers: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(
@@ -543,10 +552,11 @@ class APMLibrary:
         span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
 
-        return {
-            "span_id": resp["span_id"],
-            "trace_id": resp["trace_id"],
-        }
+        # this method does not return anything
+        # return {
+        #     "span_id": resp["span_id"],
+        #     "trace_id": resp["trace_id"],
+        # }
 
     def flush(self) -> bool:
         return self._client.trace_flush()
@@ -590,7 +600,11 @@ class APMLibrary:
     ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
 
     def http_client_request(
-        self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",
+        self,
+        url: str,
+        method: str = "GET",
+        headers: Optional[List[Tuple[str, str]]] = None,
+        body: Optional[bytes] = b"",
     ):
         """Do an HTTP request with the given method and headers."""
-        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)
+        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body or b"")

@@ -1,6 +1,6 @@
 import contextlib
 import dataclasses
-from typing import Dict, List, Literal, Union, Generator, TextIO
+from typing import Dict, List, Literal, Union, Generator, TextIO, Optional
 
 import json
 import glob
@@ -70,7 +70,7 @@ class APMLibraryTestServer:
     container_build_context: str = "."
 
     container_port: int = 8080
-    host_port: int = None  # Will be assigned by get_host_port()
+    host_port: Optional[int] = None  # Will be assigned by get_host_port()
 
     env: Dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: Dict[str, str] = dataclasses.field(default_factory=dict)
@@ -202,7 +202,7 @@ class ParametricScenario(Scenario):
     def weblog_variant(self):
         return f"parametric-{self.library.library}"
 
-    def _build_apm_test_server_image(self) -> str:
+    def _build_apm_test_server_image(self) -> Optional[str]:
 
         logger.stdout("Build tested container...")
 
@@ -221,7 +221,11 @@ class ParametricScenario(Scenario):
         with open(log_path, "w+", encoding="utf-8") as log_file:
 
             # Build the container
+            # Check if Docker is found, otherwise raise an error
             docker = shutil.which("docker")
+            if docker is None:
+                raise EnvironmentError("Docker executable not found.")
+
             root_path = ".."
             cmd = [
                 docker,
@@ -254,13 +258,14 @@ class ParametricScenario(Scenario):
                 check=False,
             )
 
-            failure_text: str = None
+            failure_text: Optional[str] = None
             if p.returncode != 0:
                 log_file.seek(0)
                 failure_text = "".join(log_file.readlines())
                 pytest.exit(f"Failed to build the container: {failure_text}", 1)
 
             logger.debug("Build tested container finished")
+            return None
 
     def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"

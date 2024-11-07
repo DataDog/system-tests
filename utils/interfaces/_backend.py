@@ -7,6 +7,7 @@
 import json
 import os
 import time
+from typing import Optional
 
 import requests
 
@@ -97,7 +98,11 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         return traces
 
     def assert_otlp_trace_exist(
-        self, request: requests.Request, dd_trace_id: str, dd_api_key: str = None, dd_app_key: str = None
+        self,
+        request: requests.Request,
+        dd_trace_id: str,
+        dd_api_key: Optional[str] = None,
+        dd_app_key: Optional[str] = None,
     ) -> dict:
         """Attempts to fetch from the backend, ALL the traces that the OpenTelemetry SDKs sent to Datadog
         during the execution of the given request.

@@ -7,6 +7,7 @@ from subprocess import run
 import time
 from functools import lru_cache
 from threading import RLock, Thread
+from typing import Optional
 
 import docker
 from docker.errors import APIError, DockerException
@@ -93,7 +94,7 @@ class TestedContainer:
         # None: container did not tried to start yet, or hasn't be started for another reason
         # False: container is not healthy
         # True: container is healthy
-        self.healthy = None
+        self.healthy: Optional[bool] = None
 
         self.environment = environment or {}
         self.kwargs = kwargs
@@ -634,7 +635,7 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self._library: LibraryVersion = None
+        self._library: Optional[LibraryVersion] = None
 
         # Basic env set for all scenarios
         self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
@@ -735,7 +736,7 @@ class WeblogContainer(TestedContainer):
         self.stdout_interface.init_patterns(self.library)
 
     @property
-    def library(self) -> LibraryVersion:
+    def library(self) -> Optional[LibraryVersion]:
         return self._library
 
     @property

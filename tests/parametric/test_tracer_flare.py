@@ -11,6 +11,7 @@ from uuid import uuid4
 import pytest
 
 from utils import rfc, scenarios, features, missing_feature, context, bug
+from typing import Optional
 
 
 parametrize = pytest.mark.parametrize
@@ -69,7 +70,7 @@ def _java_tracer_flare_filenames() -> Set:
     }
 
 
-def _set_log_level(test_agent, log_level: str) -> int:
+def _set_log_level(test_agent, log_level: str) -> str:
     """Helper to create the appropriate "flare-log-level" config in RC for a given log-level.
     """
     cfg_id = uuid4().hex
