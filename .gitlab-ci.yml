@@ -177,7 +177,7 @@ onboarding_dotnet:
           DEFAULT_VMS: ["True","False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch redhat
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_ruby:
   extends: .base_job_onboarding_system_tests
@@ -210,7 +210,7 @@ onboarding_ruby:
           DEFAULT_VMS: ["True","False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch redhat
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_php:
   extends: .base_job_onboarding_system_tests
