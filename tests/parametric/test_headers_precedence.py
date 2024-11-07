@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext, TRACECONTEXT_FLAGS_SET
-from utils.parametric.spec.trace import find_only_span, find_span, find_trace, retrieve_span_links, find_span_in_traces
+from utils.parametric.spec.trace import retrieve_span_links, find_span_in_traces
 from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
 
@@ -640,7 +640,7 @@ class Test_Headers_Precedence:
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
-    @missing_feature(context.library < "java@v1.43.0", reason="not implemented yet")
+    @missing_feature(context.library < "java@v1.43.0", reason="span links attributes field added in 1.43.0")
     @missing_feature(context.library == "ruby", reason="not_implemented yet")
     @missing_feature(context.library == "cpp", reason="not_implemented yet")
     @missing_feature(context.library == "dotnet", reason="not_implemented yet")
@@ -789,7 +789,7 @@ class Test_Headers_Precedence:
         assert span5["trace_id"] == 6
         assert span5.get("span_links") == None
 
-    @missing_feature(context.library < "java@v1.43.0", reason="not implemented yet")
+    @missing_feature(context.library < "java@v1.43.0", reason="span links attributes field added in 1.43.0")
     @missing_feature(context.library == "ruby", reason="not_implemented yet")
     @missing_feature(context.library == "cpp", reason="not_implemented yet")
     @missing_feature(context.library == "dotnet", reason="not_implemented yet")
@@ -801,7 +801,7 @@ class Test_Headers_Precedence:
         self, test_agent, test_library
     ):
         """
-        Ensure the last parent id tag is set according to the W3C phase 3 spec
+        This test is the same as above, but tests the precedence of tracecontext over datadog and b3multi
         """
         with test_library:
             # Trace ids with the three styles do not match
@@ -852,7 +852,7 @@ class Test_Headers_Precedence:
         self, test_agent, test_library
     ):
         """
-        Ensure the last parent id tag is set according to the W3C phase 3 spec
+        Ensure the flags and tracestate fields are properly set in the span links
         """
         with test_library:
             # Trace ids with the three styles do not match
