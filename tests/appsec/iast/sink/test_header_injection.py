@@ -28,6 +28,24 @@ class TestHeaderInjection(BaseSinkTest):
 
 
 @features.iast_sink_header_injection
+class TestHeaderInjectionExclusionAccessControlAllow(BaseTestHeaderInjectionReflectedExclusion):
+    """Verify Header injection Access-Control-Allow-* reflexion exclusion"""
+
+    origin_header = "x-custom-header"
+    reflected_header = "access-control-allow-origin"
+    headers = {"x-custom-header": "allowed-origin"}
+
+
+@features.iast_sink_header_injection
+class TestHeaderInjectionExclusionContentEncoding(BaseTestHeaderInjectionReflectedExclusion):
+    """Verify Header injection Content-Encoding reflexion exclusion"""
+
+    origin_header = "accept-encoding"
+    reflected_header = "content-encoding"
+    headers = {"accept-encoding": "foo, bar"}
+
+
+@features.iast_sink_header_injection
 class TestHeaderInjectionExclusionPragma(BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Pragma reflexion exclusion"""
 
@@ -43,21 +61,3 @@ class TestHeaderInjectionExclusionTransferEncoding(BaseTestHeaderInjectionReflec
     origin_header = "accept-encoding"
     reflected_header = "transfer-encoding"
     headers = {"accept-encoding": "foo, bar"}
-
-
-@features.iast_sink_header_injection
-class TestHeaderInjectionExclusionContentEncoding(BaseTestHeaderInjectionReflectedExclusion):
-    """Verify Header injection Content-Encoding reflexion exclusion"""
-
-    origin_header = "accept-encoding"
-    reflected_header = "content-encoding"
-    headers = {"accept-encoding": "foo, bar"}
-
-
-@features.iast_sink_header_injection
-class TestHeaderInjectionExclusionAccessControlAllow(BaseTestHeaderInjectionReflectedExclusion):
-    """Verify Header injection Access-Control-Allow-* reflexion exclusion"""
-
-    origin_header = "x-custom-header"
-    reflected_header = "access-control-allow-origin"
-    headers = {"x-custom-header": "allowed-origin"}
