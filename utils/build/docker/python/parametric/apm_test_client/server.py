@@ -1,4 +1,4 @@
-import signal
+import ctypes
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -74,7 +74,7 @@ class StartSpanReturn(BaseModel):
 
 @app.get("/trace/crash")
 def trace_crash() -> None:
-    os.kill(os.getpid(), signal.SIGSEGV.value)
+    ctypes.string_at(0)
 
 
 @app.post("/trace/span/start")
