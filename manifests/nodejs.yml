@@ -247,7 +247,26 @@ tests/:
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           nextjs: missing_feature
-      test_shi.py: missing_feature
+      test_shi.py:
+        Test_Shi_BodyJson:
+          '*': *ref_5_25_0
+          nextjs: missing_feature
+        Test_Shi_BodyUrlEncoded:
+          '*': *ref_5_25_0
+          nextjs: missing_feature
+        Test_Shi_BodyXml: missing_feature
+        Test_Shi_Capability: *ref_5_25_0
+        Test_Shi_Mandatory_SpanTags: *ref_5_25_0
+        Test_Shi_Optional_SpanTags: *ref_5_25_0
+        Test_Shi_StackTrace:
+          '*': *ref_5_25_0
+          nextjs: missing_feature
+        Test_Shi_Telemetry:
+          '*': *ref_5_25_0
+          nextjs: missing_feature
+        Test_Shi_UrlQuery:
+          '*': *ref_5_25_0
+          nextjs: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': *ref_5_23_0
@@ -579,7 +598,6 @@ tests/:
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v5.11.0 #implemented in v5.11.0, v4.35.0, &v3.56.0
-    test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
     test_parametric_endpoints.py:

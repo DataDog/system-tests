@@ -336,34 +336,6 @@ class APMLibraryClient:
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
-    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
-    ### The parametric apps will not expose endpoints for retrieving span data ###
-    ### Span data will be retrieved from the agent ###
-
-    def span_get_resource(self, span_id: int):
-        resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,},)
-        return resp.json()["resource"]
-
-    def span_get_meta(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
-    def span_get_metric(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
-    def otel_get_attribute(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
-    def otel_get_name(self, span_id: int):
-        resp = self._session.post(self._url("/trace/otel/get_name"), json={"span_id": span_id,},)
-        return resp.json()["name"]
-
-    def otel_get_links(self, span_id: int):
-        resp_json = self._session.post(self._url("/trace/otel/get_links"), json={"span_id": span_id}).json()
-        return resp_json["links"]
-
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int, parent_id: int = 0):
@@ -403,22 +375,6 @@ class _TestSpan:
 
     def finish(self):
         self._client.finish_span(self.span_id)
-
-    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
-    ### The parametric apps will not expose endpoints for retrieving span data ###
-    ### Span data will be retrieved from the agent ###
-
-    def get_name(self):
-        return self._client.span_get_name(self.span_id)
-
-    def get_resource(self):
-        return self._client.span_get_resource(self.span_id)
-
-    def get_meta(self, key: str):
-        return self._client.span_get_meta(self.span_id, key)
-
-    def get_metric(self, key: str):
-        return self._client.span_get_metric(self.span_id, key)
 
 
 class _TestOtelSpan:
@@ -465,12 +421,6 @@ class _TestOtelSpan:
 
     def get_attribute(self, key: str):
         return self._client.otel_get_attribute(self.span_id, key)
-
-    def get_name(self):
-        return self._client.otel_get_name(self.span_id)
-
-    def get_links(self):
-        return self._client.otel_get_links(self.span_id)
 
 
 class APMLibrary:
