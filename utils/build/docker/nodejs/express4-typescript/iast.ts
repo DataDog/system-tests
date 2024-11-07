@@ -317,6 +317,40 @@ function initSinkRoutes (app: Express): void {
     res.send(`OK:${token}`)
   })
 
+  app.get('/iast/header_injection/reflected/exclusion', ({ headers, query }: Request, res: Response): void => {
+    const reflectedHeaderName: string = `${query.reflected}`
+    const originHeaderName: string = `${query.origin}`
+    res.setHeader(reflectedHeaderName, `${headers[originHeaderName]}`)
+    res.send('OK')
+  })
+
+  app.get('/iast/header_injection/reflected/no-exclusion', ({ query }: Request, res: Response): void => {
+    // There is a reason for this: to avoid vulnerabilities deduplication,
+    // which caused the non-exclusion test to fail for all tests after the first one,
+    // since they are all in the same location (the hash is calculated based on the location).
+    
+    const reflectedHeaderName: string = `${query.reflected}`
+    const originHeaderName: string = `${query.origin}`
+    switch (reflectedHeaderName) {
+      case 'pragma':
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+      case 'transfer-encoding':
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+      case 'content-encoding':
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+      case 'access-control-allow-origin':
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+      default:
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+    }
+    res.send('OK')
+  })
+
   app.post('/iast/header_injection/test_insecure', (req: Request, res: Response): void => {
     res.setHeader('testheader', req.body.test)
     res.send('OK')

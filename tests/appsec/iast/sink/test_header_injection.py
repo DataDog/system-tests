@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, features, missing_feature
-from ..utils import BaseSinkTest
+from ..utils import BaseSinkTest, BaseTestHeaderInjectionReflectedExclusion
 
 
 @features.iast_sink_header_injection
@@ -25,3 +25,35 @@ class TestHeaderInjection(BaseSinkTest):
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+
+class TestHeaderInjectionExclusionPragma(BaseTestHeaderInjectionReflectedExclusion):
+    """Verify Header injection Pragma reflexion exclusion"""
+    
+    origin_header="cache-control"
+    reflected_header="pragma"
+    headers={"cache-control": "cacheControlValue"}
+
+
+class TestHeaderInjectionExclusionTransferEncoding(BaseTestHeaderInjectionReflectedExclusion):
+    """Verify Header injection Transfer-Encoding reflexion exclusion"""
+    
+    origin_header="accept-encoding"
+    reflected_header="transfer-encoding"
+    headers={"accept-encoding": "foo, bar"}
+
+
+class TestHeaderInjectionExclusionContentEncoding(BaseTestHeaderInjectionReflectedExclusion):
+    """Verify Header injection Content-Encoding reflexion exclusion"""
+    
+    origin_header="accept-encoding"
+    reflected_header="content-encoding"
+    headers={"accept-encoding": "foo, bar"}
+
+
+class TestHeaderInjectionExclusionAccessControlAllow(BaseTestHeaderInjectionReflectedExclusion):
+    """Verify Header injection Access-Control-Allow-* reflexion exclusion"""
+    
+    origin_header="x-custom-header"
+    reflected_header="access-control-allow-origin"
+    headers={"x-custom-header": "allowed-origin"}
