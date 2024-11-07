@@ -461,8 +461,10 @@ class scenarios:
             "DD_SERVICE": "service_test",
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
+            "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
         },
         include_kafka=True,
+        include_postgres_db=True,
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
@@ -473,9 +475,12 @@ class scenarios:
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
             "DD_TRACE_KAFKA_ENABLED": "true",
             "DD_TRACE_KAFKAJS_ENABLED": "true",
+            "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
         },
         include_kafka=True,
+        include_postgres_db=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
     )
     tracing_config_nondefault_3 = EndToEndScenario(

@@ -351,6 +351,16 @@ tests/:
       Test_Otel_Span_With_W3c: v2.42.0
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
+    test_parametric_endpoints.py:
+      Test_Parametric_DDSpan_Add_Link: missing_feature (add_link parametric endpoint is not implemented)
+      Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778) # Set error endpoint does not set the error.type tag on spans
+      Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource parametric endpoint is not implemented)
+      Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
+      Test_Parametric_DDTrace_Current_Span: missing_feature (otel current span endpoint is not implemented)
+      Test_Parametric_OtelSpan_Is_Recording: bug (APMAPI-778) # parametric endpoint attempts to retrieve spans by the `id` instead of `span_id`
+      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # updates the operation name of the span not the resource name
+      Test_Parametric_Otel_Baggage: missing_feature (otel baggage endpoints are not implemented)
+      Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint are not implemented)
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -384,6 +394,7 @@ tests/:
       aws/:
         test_s3_span_pointers.py:
           Test_CopyObject: missing_feature
+          Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
   stats/:
     test_miscs.py:

@@ -266,10 +266,10 @@ tests/:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
       Test_Config_RateLimit: missing_feature
-      Test_Config_TraceAgentURL: missing_feature
+      Test_Config_TraceAgentURL: v1.4.0
       Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: v1.5.0
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
@@ -295,6 +295,14 @@ tests/:
         Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
         Test_Otel_Tracer: v0.94.0
+    test_parametric_endpoints.py:
+      Test_Parametric_DDSpan_Add_Link: bug (APMAPI-778)  # Adding spans links by parent id does not work as expected
+      Test_Parametric_DDSpan_Start: bug (APMAPI-778) # Does not support creating a child span from a finished span
+      Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
+      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778) # current span endpoint should return span and trace id of zero if no span is "active"
+      Test_Parametric_DDTrace_Flush: missing_feature (flush endpoint is not implemented, the lack of this feature introduce flakiness in all tests)
+      Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
+      Test_Parametric_Otel_Current_Span: bug (APMAPI-778) # otel current span endpoint should return a span and trace id of zero if no span is "active"
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
@@ -334,6 +342,7 @@ tests/:
       aws/:
         test_s3_span_pointers.py:
           Test_CopyObject: missing_feature
+          Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
@@ -341,20 +350,20 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientIPHeader_Configured: missing_feature
-    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
+    Test_Config_ClientIPHeader_Configured: v1.4.0
+    Test_Config_ClientIPHeader_Precedence: v1.4.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
     Test_Config_ClientTagQueryString_Empty: v1.2.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: v1.3.0 # Unknown initial version
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: missing_feature
-    Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_IntegrationEnabled_False: v1.4.0
+    Test_Config_IntegrationEnabled_True: v1.4.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
-    Test_Config_UnifiedServiceTagging_Default: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: v1.4.0
+    Test_Config_UnifiedServiceTagging_Default: v1.4.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
