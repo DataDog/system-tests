@@ -487,8 +487,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                                     f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
                                 )
 
+        not_found_list = "\n".join(not_found_ids)
         assert not error_messages, "Errors occurred during validation:\n" + "\n".join(error_messages)
-        assert not not_found_ids, f"The following probes were not found:\n{'\n'.join(not_found_ids)}"
+        assert not not_found_ids, f"The following probes were not found:\n{not_found_list}"
 
 
 class Segment:
