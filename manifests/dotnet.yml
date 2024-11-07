@@ -333,7 +333,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v3.2.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v2.53.2
       TestDynamicConfigTracingEnabled: v2.49.0
       TestDynamicConfigV1: v2.33.0
@@ -425,6 +424,7 @@ tests/:
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
     Test_HeaderTags_Colon_Trailing: bug (AIT-8600)
+    Test_HeaderTags_DynamicConfig: missing_feature
     Test_HeaderTags_Long: v2.1.0
     Test_HeaderTags_Short: v2.1.0
     Test_HeaderTags_Whitespace_Header: v2.1.0

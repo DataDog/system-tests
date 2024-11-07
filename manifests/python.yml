@@ -697,7 +697,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: flaky (APMAPI-734)
       TestDynamicConfigSamplingRules: v2.9.0
       TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
@@ -831,6 +830,7 @@ tests/:
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0
+    Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
     Test_HeaderTags_Whitespace_Header: missing_feature

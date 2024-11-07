@@ -439,6 +439,7 @@ class scenarios:
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),
+        rc_api_enabled=True,
         doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
     library_conf_custom_header_tags_invalid = EndToEndScenario(
