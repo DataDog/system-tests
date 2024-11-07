@@ -97,16 +97,16 @@ tests/:
           TestHeaderInjection:
             '*': *ref_4_21_0
             nextjs: missing_feature
-          TestHeaderInjectionExclusionPragma:
-            '*': *ref_5_26_0
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionTransferEncoding:
+          TestHeaderInjectionExclusionAccessControlAllow:
             '*': *ref_5_26_0
             nextjs: missing_feature
           TestHeaderInjectionExclusionContentEncoding:
             '*': *ref_5_26_0
             nextjs: missing_feature
-          TestHeaderInjectionExclusionAccessControlAllow:
+          TestHeaderInjectionExclusionPragma:
+            '*': *ref_5_26_0
+            nextjs: missing_feature
+          TestHeaderInjectionExclusionTransferEncoding:
             '*': *ref_5_26_0
             nextjs: missing_feature
         test_hsts_missing_header.py:
