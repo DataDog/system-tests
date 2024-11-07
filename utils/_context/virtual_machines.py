@@ -588,7 +588,7 @@ class RedHat90amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "RedHat_9_0_amd64",
-            aws_config=_AWSConfig(ami_id="ami-03794f9a4e79d4437", ami_instance_type="t2.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-03794f9a4e79d4437", ami_instance_type="t3.medium", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -620,7 +620,7 @@ class RedHat7_9amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "RedHat_7_9_amd64",
-            aws_config=_AWSConfig(ami_id="ami-093d725884faee25e", ami_instance_type="t2.medium", user="ec2-user"),
+            aws_config=_AWSConfig(ami_id="ami-093d725884faee25e", ami_instance_type="t3.medium", user="ec2-user"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
