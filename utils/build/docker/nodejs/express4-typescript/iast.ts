@@ -328,7 +328,7 @@ function initSinkRoutes (app: Express): void {
     // There is a reason for this: to avoid vulnerabilities deduplication,
     // which caused the non-exclusion test to fail for all tests after the first one,
     // since they are all in the same location (the hash is calculated based on the location).
-    
+
     const reflectedHeaderName: string = `${query.reflected}`
     const originHeaderName: string = `${query.origin}`
     switch (reflectedHeaderName) {
