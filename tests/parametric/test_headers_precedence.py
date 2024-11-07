@@ -839,7 +839,7 @@ class Test_Headers_Precedence:
         assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
         assert link2["trace_id_high"] == 1229782938247303441
 
-    # Checks for the consistent behavior of the flags and tracestate in span links.
+    # Checks for the consistent behavior of flags in span links.
     @missing_feature(context.library == "java", reason="not_implemented yet")
     @missing_feature(context.library == "ruby", reason="not_implemented yet")
     @missing_feature(context.library == "cpp", reason="not_implemented yet")
@@ -848,7 +848,7 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "nodejs", reason="not_implemented yet")
     @missing_feature(context.library == "php", reason="not_implemented yet")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext,datadog,b3multi"}])
-    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts_spanlinks_extras(
+    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts_spanlinks_flags(
         self, test_agent, test_library
     ):
         """
@@ -875,16 +875,51 @@ class Test_Headers_Precedence:
         traces = test_agent.wait_for_num_traces(1)
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
 
-        assert span["name"] == "trace_ids_do_not_match"
         span_links = retrieve_span_links(span)
         assert len(span_links) == 2
         link1 = span_links[0]
         assert link1["flags"] == 1 | TRACECONTEXT_FLAGS_SET
-        assert link1.get("tracestate") == None
 
         link2 = span_links[1]
         assert link2["flags"] == 0 | TRACECONTEXT_FLAGS_SET
-        assert link2.get("tracestate") == None
+
+    # Checks for the consistent behavior of omitting tracestate in span links.
+    @missing_feature(context.library == "java", reason="not_implemented yet")
+    @missing_feature(context.library == "ruby", reason="not_implemented yet")
+    @missing_feature(context.library == "cpp", reason="not_implemented yet")
+    @missing_feature(context.library == "dotnet", reason="not_implemented yet")
+    @missing_feature(context.library == "golang", reason="not_implemented yet")
+    @missing_feature(context.library == "nodejs", reason="not_implemented yet")
+    @missing_feature(context.library == "php", reason="not_implemented yet")
+    @enable_tracecontext_datadog()
+    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts_spanlinks_omit_tracestate(
+        self, test_agent, test_library
+    ):
+        """
+        Ensure the flags and tracestate fields are properly set in the span links
+        """
+        with test_library:
+            # Trace ids with the three styles do not match
+            with test_library.start_span(
+                name="trace_ids_do_not_match",
+                http_headers=[
+                    ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
+                    ["tracestate", "dd=s:2;p:000000000000000a,foo=1"],
+                    ["x-datadog-parent-id", "10"],
+                    ["x-datadog-trace-id", "2"],
+                    ["x-datadog-tags", "_dd.p.tid=2222222222222222"],
+                    ["x-datadog-sampling-priority", "2"],
+                ],
+            ) as s1:
+                pass
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+
+        span_links = retrieve_span_links(span)
+        assert len(span_links) == 1
+        link1 = span_links[0]
+        assert link1.get("tracestate") == None
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
