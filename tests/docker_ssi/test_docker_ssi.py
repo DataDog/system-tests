@@ -65,9 +65,6 @@ class TestDockerSSIFeatures:
         condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
         reason="APMON-1490",
     )
-    @missing_feature(library="java", reason="INPLAT-11")
-    @missing_feature(library="python", reason="INPLAT-11")
-    @missing_feature(library="ruby", reason="INPLAT-11")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
