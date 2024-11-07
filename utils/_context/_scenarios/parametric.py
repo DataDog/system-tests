@@ -357,7 +357,7 @@ COPY utils/build/docker/python/parametric/system_tests_library_version.sh system
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
-ENV DD_PATCH_MODULES="fastapi:false"
+ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 """,
         container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
