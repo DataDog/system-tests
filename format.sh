@@ -55,16 +55,6 @@ if ! pylint utils; then
   exit 1
 fi
 
-# echo "Running mypy type checks..."
-# if [ "$COMMAND" == "fix" ]; then
-#   mypy tests/parametric utils/parametric || { echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"; exit 1; }
-# else
-#   mypy --check tests/parametric utils/parametric || { echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"; exit 1; }
-# fi
-
-# # Run pylint only if mypy succeeded
-# pylint utils  # pylint does not have a fix mode
-
 # not py, as it's handled by black
 INCLUDE_EXTENSIONS=("*.md" "*.yml" "*.yaml" "*.sh" "*.cs" "*.Dockerfile" "*.java" "*.sql" "*.ts" "*.js" "*.php")
 EXCLUDE_DIRS=("logs*" "*/node_modules/*" "./venv/*" "./utils/build/virtual_machine/*" "./binaries/*")
