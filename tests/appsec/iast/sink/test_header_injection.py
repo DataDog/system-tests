@@ -27,6 +27,7 @@ class TestHeaderInjection(BaseSinkTest):
         super().test_telemetry_metric_executed_sink()
 
 
+@features.iast_sink_header_injection
 class TestHeaderInjectionExclusionPragma(BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Pragma reflexion exclusion"""
     
@@ -35,6 +36,7 @@ class TestHeaderInjectionExclusionPragma(BaseTestHeaderInjectionReflectedExclusi
     headers={"cache-control": "cacheControlValue"}
 
 
+@features.iast_sink_header_injection
 class TestHeaderInjectionExclusionTransferEncoding(BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Transfer-Encoding reflexion exclusion"""
     
@@ -43,6 +45,7 @@ class TestHeaderInjectionExclusionTransferEncoding(BaseTestHeaderInjectionReflec
     headers={"accept-encoding": "foo, bar"}
 
 
+@features.iast_sink_header_injection
 class TestHeaderInjectionExclusionContentEncoding(BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Content-Encoding reflexion exclusion"""
     
@@ -51,6 +54,7 @@ class TestHeaderInjectionExclusionContentEncoding(BaseTestHeaderInjectionReflect
     headers={"accept-encoding": "foo, bar"}
 
 
+@features.iast_sink_header_injection
 class TestHeaderInjectionExclusionAccessControlAllow(BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Access-Control-Allow-* reflexion exclusion"""
     
