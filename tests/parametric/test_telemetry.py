@@ -340,6 +340,7 @@ class Test_Environment:
                 "OTEL_RESOURCE_ATTRIBUTES": "foo",
                 "OTEL_PROPAGATORS": "foo",
                 "OTEL_LOGS_EXPORTER": "foo",
+                "DD_TRACE_OTEL_ENABLED": None,
                 "OTEL_SDK_DISABLED": "foo",
             }
         ],
