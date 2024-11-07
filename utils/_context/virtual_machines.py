@@ -114,6 +114,13 @@ class _VirtualMachine:
         self.agent_env = None
         self.app_env = None
         self.default_vm = default_vm
+        self.deployed_weblog = None
+
+    def get_current_deployed_weblog(self):
+        return self.deployed_weblog
+
+    def set_current_deployed_weblog(self, deployed_weblog):
+        self.deployed_weblog = deployed_weblog
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip

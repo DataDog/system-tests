@@ -1,6 +1,7 @@
 import pytest
 from utils import context
 from utils._decorators import is_jira_ticket
+from copy import deepcopy
 
 
 def parametrize_virtual_machines(bugs: list[dict] = None):
@@ -26,7 +27,13 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
         # https://github.com/pytest-dev/pytest-xdist/issues/58
         parameters = []
         count = 0
-        for vm in getattr(context.scenario, "required_vms", []):
+
+        # We need to group the vms by runtime. We can't have multiple weblogs in the same vm (muticontainer apps or multicontainer alpine).
+        vms_by_runtime, vms_by_runtime_ids = get_tested_apps_vms()
+
+        # Mark the test with bug marker if we need
+        # Setting groups for xdist
+        for vm in vms_by_runtime:
             bug_found = False
             if bugs:
                 for bug in bugs:
@@ -55,9 +62,50 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
             if bug_found == False:
                 parameters.append(pytest.param(vm, marks=pytest.mark.xdist_group(f"group{count}")))
             count += 1
-
-        return pytest.mark.parametrize(
-            "virtual_machine", parameters, ids=getattr(context.scenario, "required_vm_names", [])
-        )(func)
+        return pytest.mark.parametrize("virtual_machine", parameters, ids=vms_by_runtime_ids)(func)
 
     return decorator
+
+
+def get_tested_apps_vms():
+    """ This method is a workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
+    This means, if I have a multicontainer app with 3 containers (runtimes) running on 1 vm, I will have 3 machines with the same configuration but with different runtimes.
+    NOTE: On AWS we only run 1 vm. We duplicate the vms for test isolation.
+    """
+    vms_by_runtime = []
+    vms_by_runtime_ids = []
+    for vm in getattr(context.scenario, "required_vms", []):
+        deployed_weblogs = vm.get_provision().get_deployed_weblogs()
+        for weblog in deployed_weblogs:
+            vm_by_runtime = deepcopy(vm)
+            vm_by_runtime.set_current_deployed_weblog(weblog)
+            vms_by_runtime.append(vm_by_runtime)
+            vms_by_runtime_ids.append(f"{vm.name}_{weblog.runtime_version}_{weblog.app_type}")
+    return vms_by_runtime, vms_by_runtime_ids
+
+
+def nginx_parser(nginx_config_file):
+    """ This function is used to parse the nginx config file and return the apps in the return block of the location block of the server block of the http block. 
+    TODO: Improve this uggly code """
+    import crossplane
+    import json
+
+    nginx_config = crossplane.parse(nginx_config_file)
+    config_endpoints = nginx_config["config"]
+    for config_endpoint in config_endpoints:
+        parsed_data = config_endpoint["parsed"]
+        for parsed in parsed_data:
+            if "http" == parsed["directive"]:
+                parsed_blocks = parsed["block"]
+                for parsed_block in parsed_blocks:
+                    if "server" in parsed_block["directive"]:
+                        parsed_server_blocks = parsed_block["block"]
+                        for parsed_server_block in parsed_server_blocks:
+                            if "location" in parsed_server_block["directive"] and parsed_server_block["args"][0] == "/":
+                                parsed_server_location_blocks = parsed_server_block["block"]
+                                for parsed_server_location_block in parsed_server_location_blocks:
+                                    if "return" in parsed_server_location_block["directive"]:
+                                        return_args = parsed_server_location_block["args"]
+                                        # convert string to  object
+                                        json_object = json.loads(return_args[1].replace("'", '"'))
+                                        return json_object["apps"]
