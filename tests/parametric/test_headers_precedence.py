@@ -640,7 +640,7 @@ class Test_Headers_Precedence:
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
-    @irrelevant(context.library < "java@v1.43.0", reason="not implemented yet")
+    @missing_feature(context.library < "java@v1.43.0", reason="not implemented yet")
     @missing_feature(context.library == "ruby", reason="not_implemented yet")
     @missing_feature(context.library == "cpp", reason="not_implemented yet")
     @missing_feature(context.library == "dotnet", reason="not_implemented yet")
@@ -789,7 +789,7 @@ class Test_Headers_Precedence:
         assert span5["trace_id"] == 6
         assert span5.get("span_links") == None
 
-    @irrelevant(context.library < "java@v1.43.0", reason="not implemented yet")
+    @missing_feature(context.library < "java@v1.43.0", reason="not implemented yet")
     @missing_feature(context.library == "ruby", reason="not_implemented yet")
     @missing_feature(context.library == "cpp", reason="not_implemented yet")
     @missing_feature(context.library == "dotnet", reason="not_implemented yet")
@@ -838,7 +838,7 @@ class Test_Headers_Precedence:
         assert link2["span_id"] == 11744061942159299346
         assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
         assert link2["trace_id_high"] == 1229782938247303441
-    
+
     # Checks for the consistent behavior of the flags and tracestate in span links.
     @missing_feature(context.library == "java", reason="not_implemented yet")
     @missing_feature(context.library == "ruby", reason="not_implemented yet")
