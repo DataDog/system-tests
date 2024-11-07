@@ -625,7 +625,7 @@ class RedHat7_9amd64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="redhat",
+            os_branch="rhel_7_amd64",
             os_cpu="amd64",
             default_vm=False,
             **kwargs,
