@@ -1,5 +1,6 @@
 weblog:
     name: test-app-php-multialpine
+    nginx_config: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/nginx.conf
     install: 
       - os_type: linux
         copy_files:
