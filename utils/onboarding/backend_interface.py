@@ -82,13 +82,13 @@ def wait_backend_trace_id(trace_id, timeout: float = 5.0, profile: bool = False,
     while True:
         status, runtime_id = _query_for_trace_id(trace_id, validator=validator)
         if status != 200:
-            time.sleep(2)
+            time.sleep(3)
         else:
             logger.info(f"trace [{trace_id}] found in the backend!")
             if profile:
                 while True:
                     if _query_for_profile(runtime_id) != 200:
-                        time.sleep(2)
+                        time.sleep(3)
                     else:
                         logger.info(f"profile for trace [{trace_id}] (runtime [{runtime_id}]) found in the backend!")
                         break
