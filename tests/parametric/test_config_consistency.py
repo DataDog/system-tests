@@ -1,6 +1,7 @@
 """
 Test configuration consistency for features across supported APM SDKs.
 """
+
 import pytest
 from utils import scenarios, features, context, bug, missing_feature, irrelevant
 from utils.parametric.spec.trace import find_span_in_traces
@@ -126,12 +127,11 @@ class Test_Config_UnifiedServiceTagging:
 @features.tracing_configuration_consistency
 class Test_Config_TraceAgentURL:
     """
-    DD_TRACE_AGENT_URL is validated using the tracer configuration. 
+    DD_TRACE_AGENT_URL is validated using the tracer configuration.
     This approach avoids the need to modify the setup file to create additional containers at the specified URL,
     which would be unnecessarily complex.
     """
 
-    @bug(context.library == "golang", reason="APMAPI-390")
     @missing_feature(library="ruby")
     @parametrize(
         "library_env",
