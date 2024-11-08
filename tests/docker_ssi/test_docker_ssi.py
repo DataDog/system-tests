@@ -68,6 +68,7 @@ class TestDockerSSIFeatures:
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
+    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -90,10 +91,11 @@ class TestDockerSSIFeatures:
         assert inject_success, "No telemetry data found for library_entrypoint.complete"
 
     @features.ssi_guardrails
-    @irrelevant(context.library == "python")
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
     @bug(condition=context.library == "php" and context.installed_language_runtime < "7.0", reason="INPLAT-180")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
+    @bug(condition=context.library == "python" and context.installed_language_runtime < "3.7.0", reason="INPLAT-181")
+    @irrelevant(context.library == "python" and context.installed_language_runtime >= "3.7.0")
     def test_telemetry_abort(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
