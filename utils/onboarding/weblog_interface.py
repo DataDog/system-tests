@@ -1,28 +1,20 @@
 import time
 from random import randint
 import os
-from typing import List
 import requests
-from utils.onboarding.wait_for_tcp_port import wait_for_port
-from utils.tools import logger
 
 
-def make_get_request(app_url, swallow: bool = False) -> str:
+def make_get_request(app_url):
     generated_uuid = str(randint(1, 100000000000000000))
-    try:
-        requests.get(
-            app_url,
-            headers={
-                "x-datadog-trace-id": generated_uuid,
-                "x-datadog-parent-id": generated_uuid,
-                "x-datadog-sampling-priority": "2",
-            },
-            timeout=15,
-        )
-    except Exception as e:
-        if not swallow:
-            raise
-        logger.warning(e)
+    requests.get(
+        app_url,
+        headers={
+            "x-datadog-trace-id": generated_uuid,
+            "x-datadog-parent-id": generated_uuid,
+            "x-datadog-sampling-priority": "2",
+        },
+        timeout=15,
+    )
     return generated_uuid
 
 
@@ -36,13 +28,13 @@ def warmup_weblog(app_url):
 
 
 def make_internal_get_request(stdin_file, vm_port):
-    """ This method is exclusively for testing through KrunVm microVM.
+    """ This method is exclusively for testing through KrunVm microVM. 
     It is used to make a request to the weblog application inside the VM, using stdin file"""
 
     generated_uuid = str(randint(1, 100000000000000000))
     timeout = 80
     script_to_run = f"""#!/bin/bash
-echo "Requesting weblog..."
+echo "Requesting weblog..." 
 URL="http://localhost:{vm_port}/"
 TIMEOUT={timeout}
 TRACE_ID={generated_uuid}
@@ -82,29 +74,3 @@ done"""
         raise TimeoutError("Timed out waiting for weblog ready")
 
     return generated_uuid
-
-
-def request_weblog(virtual_machine, vm_ip, vm_port) -> List[str]:
-    request_uuids = []
-    if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
-        logger.info(
-            "We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
-        )
-        request_uuids = [make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)]
-    else:
-        logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
-        wait_for_port(vm_port, vm_ip, 80.0)
-        logger.info(f"[{vm_ip}]: Weblog app is ready!")
-        responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-        if responseJson is not None:
-            logger.info(f"There is a multicontainer app: {responseJson}")
-            for app in responseJson["apps"]:
-                warmup_weblog(f"http://{vm_ip}:{vm_port}{app['url']}")
-                logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
-                request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
-                time.sleep(1)
-        else:
-            logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
-            request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}/"))
-
-    return request_uuids
