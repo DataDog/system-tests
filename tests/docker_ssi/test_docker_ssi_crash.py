@@ -20,9 +20,7 @@ class TestDockerSSICrash:
     def setup_crash(self):
         if TestDockerSSICrash._r is None:
             parsed_url = urlparse(context.scenario.weblog_url + "/crashme")
-            logger.info(
-                f"Setting up Docker SSI installation WEBLOG_URL {context.scenario.weblog_url}"
-            )
+            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {context.scenario.weblog_url}")
             TestDockerSSICrash._r = weblog.request(
                 "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
             )
@@ -33,18 +31,14 @@ class TestDockerSSICrash:
     @features.ssi_crashtracking
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
-        logger.info(
-            f"Testing Docker SSI crash tracking: {context.scenario.library.library}"
-        )
+        logger.info(f"Testing Docker SSI crash tracking: {context.scenario.library.library}")
         assert (
             self.r.status_code is None
-        ), f"Response from request {context.scenario.weblog_url + "/crashme"} was supposed to fail: {self.r}"
+        ), f"Response from request {context.scenario.weblog_url + '/crashme'} was supposed to fail: {self.r}"
 
         # No traces should have been generated
         traces = interfaces.test_agent.get_all_traces()
-        assert (
-            not traces
-        ), f"Traces found for request {context.scenario.weblog_url + '/crashme'}"
+        assert not traces, f"Traces found for request {context.scenario.weblog_url + '/crashme'}"
 
         # Crash report should have been generated
         crash_reports = interfaces.test_agent.get_crash_reports()
