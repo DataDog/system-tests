@@ -613,7 +613,14 @@ class WeblogContainer(TestedContainer):
         except Exception:
             pass
 
-        base_environment = {}
+        base_environment = {
+            # Datadog setup
+            "DD_SERVICE": "weblog",
+            "DD_VERSION": "1.0.0",
+            "DD_TAGS": "key1:val1,key2:val2",
+            "DD_ENV": "system-tests",
+            "DD_TRACE_LOG_DIRECTORY": "/var/log/system-tests",
+        }
 
         # Basic env set for all scenarios
         base_environment["DD_TELEMETRY_METRICS_ENABLED"] = "true"
@@ -625,6 +632,16 @@ class WeblogContainer(TestedContainer):
 
         if appsec_enabled:
             base_environment["DD_APPSEC_ENABLED"] = "true"
+            base_environment["DD_APPSEC_WAF_TIMEOUT"] = "10000000"  # 10 seconds
+            base_environment["DD_APPSEC_TRACE_RATE_LIMIT"] = "10000"
+
+        if iast_enabled:
+            base_environment["DD_IAST_ENABLED"] = "true"
+            # Python lib has Code Security debug env var
+            base_environment["_DD_IAST_DEBUG"] = "true"
+            base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
+            base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
+            base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
