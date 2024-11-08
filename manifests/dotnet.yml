@@ -401,13 +401,13 @@ tests/:
     Test_Config_ClientIPHeader_Configured: v3.4.1
     Test_Config_ClientIPHeader_Precedence: v3.4.1
     Test_Config_ClientTagQueryString_Configured: missing_feature (configuration DNE)
-    Test_Config_ClientTagQueryString_Empty: missing_feature (Not actually passing telemetry test so disabling until I do)
-    Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: missing_feature (Need to update the casing of the integration to Upper case)
-    Test_Config_IntegrationEnabled_True: missing_feature (Need to update the casing of the integration to Upper case)
+    Test_Config_ClientTagQueryString_Empty: v3.5.0
+    Test_Config_HttpClientErrorStatuses_Default: v3.5.0
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v3.5.0
+    Test_Config_HttpServerErrorStatuses_Default: v3.5.0
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
+    Test_Config_IntegrationEnabled_False: v3.5.0
+    Test_Config_IntegrationEnabled_True: v3.5.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
