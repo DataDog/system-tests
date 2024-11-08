@@ -306,7 +306,7 @@ class Provision:
                 self.deployed_weblogs = [
                     _DeployedWeblog(
                         weblog_name=self.weblog_installation.id,
-                        runtime_version=self.weblog_installation.version,
+                        runtime_version=str(self.weblog_installation.version),
                         app_type="container" if "container" in self.weblog_installation.id else "alpine",
                         app_context_url="/",
                     )
@@ -319,7 +319,7 @@ class Provision:
                     self.deployed_weblogs.append(
                         _DeployedWeblog(
                             weblog_name=self.weblog_installation.id,
-                            runtime_version=app["runtime"],
+                            runtime_version=str(app["runtime"]),
                             app_type=app["type"],
                             app_context_url=app["url"],
                         )
@@ -329,7 +329,7 @@ class Provision:
                 self.deployed_weblogs = [
                     _DeployedWeblog(
                         weblog_name=self.weblog_installation.id,
-                        runtime_version=self.lang_variant_installation.version,
+                        runtime_version=str(self.lang_variant_installation.version),
                         app_type="host",
                         app_context_url="/",
                     )
