@@ -141,13 +141,9 @@ class DockerSSIScenario(Scenario):
             logger.stdout(f"{key}: {self._tested_components[key]}")
 
     def post_setup(self):
-        logger.stdout(
-            "--- Waiting for all traces and telemetry to be sent to test agent ---"
-        )
+        logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         time.sleep(60)  # wait for the traces and telemetry to be sent to the test agent
-        interfaces.test_agent.collect_data(
-            f"{self.host_log_folder}/interfaces/test_agent"
-        )
+        interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent")
 
     @property
     def library(self):
