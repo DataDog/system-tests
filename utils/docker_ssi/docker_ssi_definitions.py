@@ -65,12 +65,14 @@ class JavaRuntimeInstallableVersions:
 class PHPRuntimeInstallableVersions:
     """ PHP runtime versions that can be installed automatically"""
 
+    PHP56 = RuntimeInstallableVersion("PHP56", "5.6") # EOL runtime
     PHP74 = RuntimeInstallableVersion("PHP74", "7.4")
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
 
     @staticmethod
     def get_all_versions():
         return [
+            PHPRuntimeInstallableVersions.PHP56,
             PHPRuntimeInstallableVersions.PHP74,
             PHPRuntimeInstallableVersions.PHP83,
         ]

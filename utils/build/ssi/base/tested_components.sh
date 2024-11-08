@@ -8,6 +8,10 @@ if [ "$DD_LANG" == "java" ]; then
     runtime_version=$(echo "$java_version" | grep version | awk '{print $3}' | tr -d '"')
 fi
 
+if [ "$DD_LANG" == "php" ]; then
+    runtime_version=$(php -v | grep -oP 'PHP \K[0-9]+\.[0-9]+\.[0-9]+')
+fi
+
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
       if dpkg -s datadog-agent &> /dev/null; then
         agent_version=$(dpkg -s datadog-agent | grep Version  | head -n 1);
