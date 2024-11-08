@@ -734,7 +734,7 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:
-      Test_Parametric_DDTrace_Baggage: v2.15.0
+      Test_Parametric_DDTrace_Baggage: v2.16.0
       Test_Parametric_Otel_Baggage: v2.15.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
