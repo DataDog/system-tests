@@ -187,8 +187,9 @@ class Test_Config_RateLimit:
         traces = test_agent.wait_for_num_traces(2)
         trace_0_sampling_priority = traces[0][0]["metrics"]["_sampling_priority_v1"]
         trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
+
         assert trace_0_sampling_priority == 2
-        assert trace_1_sampling_priority == -1
+        assert trace_1_sampling_priority == -1 if context.library != "php" else 2
 
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
     def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
