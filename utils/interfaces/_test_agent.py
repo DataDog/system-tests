@@ -32,10 +32,6 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         except ValueError as e:
             raise e
 
-    def get_all_traces(self):
-        logger.debug("Try to find all traces")
-        return self._data_traces_list
-
     def get_traces(self, request=None):
         rid = get_rid_from_request(request)
         if not rid:

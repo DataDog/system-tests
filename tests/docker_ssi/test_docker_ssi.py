@@ -31,7 +31,7 @@ class TestDockerSSIFeatures:
     @bug(
         condition="centos-7" in context.weblog_variant and context.library == "java", reason="APMON-1490",
     )
-    @bug(condition=context.library in ("python", "ruby"), reason="INPLAT-11")
+    @bug(condition=context.library == "ruby", reason="INPLAT-11")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")

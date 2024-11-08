@@ -37,8 +37,9 @@ class TestDockerSSICrash:
         ), f"Response from request {context.scenario.weblog_url + '/crashme'} was supposed to fail: {self.r}"
 
         # No traces should have been generated
-        traces = interfaces.test_agent.get_all_traces()
-        assert not traces, f"Traces found for request {context.scenario.weblog_url + '/crashme'}"
+        assert not interfaces.test_agent.get_traces(
+            self.r
+        ), f"Traces found for request {context.scenario.weblog_url + '/crashme'}"
 
         # Crash report should have been generated
         crash_reports = interfaces.test_agent.get_crash_reports()
