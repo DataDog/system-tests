@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 
 from utils import (
+    bug,
     scenarios,
     features,
     context,
@@ -29,6 +30,7 @@ class TestDockerSSICrash:
         self.r = TestDockerSSICrash._r
 
     @features.ssi_crashtracking
+    @bug(condition=context.library != "python", reason="INPLAT-11")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
         logger.info(f"Testing Docker SSI crash tracking: {context.scenario.library.library}")
