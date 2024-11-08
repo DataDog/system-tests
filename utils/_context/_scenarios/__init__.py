@@ -460,6 +460,7 @@ class scenarios:
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
+            "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
         },
         include_kafka=True,
@@ -473,6 +474,7 @@ class scenarios:
         weblog_env={
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
             "DD_TRACE_KAFKA_ENABLED": "true",
+            "DD_TRACE_KAFKAJS_ENABLED": "true",
             "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",

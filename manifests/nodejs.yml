@@ -580,11 +580,11 @@ tests/:
       TestAdmisionControllerProfiling: *ref_5_22_0
   parametric/:
     test_config_consistency.py:
-      Test_Config_RateLimit: missing_feature
-      Test_Config_TraceAgentURL: *ref_5_22_0
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_RateLimit: *ref_5_25_0
+      Test_Config_TraceAgentURL: *ref_5_25_0
+      Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: *ref_5_25_0
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigHeaderTags: missing_feature
@@ -615,7 +615,7 @@ tests/:
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
-      Test_Consistent_Configs: missing_feature
+      Test_Consistent_Configs: *ref_5_25_0
       Test_Defaults: *ref_5_6_0
       Test_Environment: *ref_5_6_0
       Test_TelemetryInstallSignature: *ref_4_23_0
@@ -655,19 +655,25 @@ tests/:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0
-    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
+    Test_Config_ClientIPHeader_Precedence: *ref_3_19_0
     Test_Config_ClientTagQueryString_Configured: missing_feature (adding query string to http.url is not supported)
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query strings by default)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: missing_feature
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: missing_feature
-    Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
-    Test_Config_UnifiedServiceTagging_Default: missing_feature
+    Test_Config_IntegrationEnabled_False:
+      '*': *ref_5_25_0
+      express4-typescript: irrelevant
+      nextjs: irrelevant # nextjs is not related with kafka
+    Test_Config_IntegrationEnabled_True:
+      '*': *ref_5_25_0
+      express4-typescript: irrelevant
+      nextjs: irrelevant # nextjs is not related with kafka
+    Test_Config_ObfuscationQueryStringRegexp_Configured: *ref_3_0_0
+    Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
+    Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
+    Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -680,8 +686,8 @@ tests/:
     Test_HeaderTags_Colon_Trailing: *ref_4_11_0
     Test_HeaderTags_Long: *ref_4_11_0
     Test_HeaderTags_Short: *ref_4_11_0
-    Test_HeaderTags_Whitespace_Header: bug (AIT-9109)
-    Test_HeaderTags_Whitespace_Tag: bug (AIT-9109)
+    Test_HeaderTags_Whitespace_Header: *ref_5_25_0
+    Test_HeaderTags_Whitespace_Tag: *ref_5_25_0
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
