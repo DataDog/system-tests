@@ -32,6 +32,10 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         except ValueError as e:
             raise e
 
+    def get_all_traces(self):
+        logger.debug("Try to find all traces")
+        return self._data_traces_list
+
     def get_traces(self, request=None):
         rid = get_rid_from_request(request)
         if not rid:
@@ -90,3 +94,16 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
             if str(series["metric"]).startswith("library_entrypoint.")
         ]
         return injection_metrics
+
+    def get_telemetry_logs(self):
+        logger.debug("Try to find telemetry data related to logs")
+        return [t for t in self._data_telemetry_list if t["request_type"] == "logs"]
+
+    def get_crash_reports(self):
+        logger.debug("Try to find telemetry data related to crash reports")
+        return [
+            p
+            for t in self.get_telemetry_logs()
+            for p in t["payload"]
+            if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
+        ]
