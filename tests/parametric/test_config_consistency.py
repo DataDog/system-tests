@@ -81,7 +81,9 @@ class Test_Config_UnifiedServiceTagging:
 
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         assert span["service"] != "version_test"
-        assert "version" not in span["meta"]
+        # in Node.js version can automatically be grabbed from the package.json on default, thus this test does not apply
+        if test_library.lang != "nodejs":
+            assert "version" not in span["meta"]
         assert "env" not in span["meta"]
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
@@ -98,6 +100,7 @@ class Test_Config_UnifiedServiceTagging:
         assert len(traces) == 2
 
         span1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+
         assert span1["service"] == "version_test"
         assert span1["meta"]["version"] == "5.2.0"
 

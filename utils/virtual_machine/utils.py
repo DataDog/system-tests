@@ -43,6 +43,10 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
                         and (not "vm_cpu" in bug or vm.os_cpu == bug["vm_cpu"])
                         and (not "weblog_variant" in bug or context.weblog_variant == bug["weblog_variant"])
                         and (not "library" in bug or context.library == bug["library"])
+                        and (
+                            not "runtime_version" in bug
+                            or vm.get_current_deployed_weblog().runtime_version == bug["runtime_version"]
+                        )
                     ):
                         if "reason" in bug and is_jira_ticket(bug["reason"]):
                             parameters.append(
