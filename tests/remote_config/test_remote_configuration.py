@@ -28,7 +28,6 @@ class Test_Agent:
 
     @irrelevant(library="nodejs", reason="nodejs tracer does not call /info")
     @irrelevant(library="php", reason="PHP tracer does not call /info")
-    @missing_feature(library="ruby", reason="ruby tracer does not call /info")
     @irrelevant(library="cpp")
     @scenarios.remote_config_mocked_backend_asm_dd
     def test_agent_provide_config_endpoint(self):
