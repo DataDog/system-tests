@@ -1,14 +1,8 @@
 ARG BASE_IMAGE
-
-FROM ${BASE_IMAGE}
-
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
-
 # `binutils` is required by 'install_ddtrace.sh' to call 'strings' command
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y binutils
-
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
 
 # dotnet restore
 COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
@@ -24,10 +18,8 @@ RUN sed -i "s/net8.0/net6.0/g" app.csproj
 RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") \
     dotnet publish --no-restore -c Release -f net6.0 -o out
 
-#########
-
-#RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
-
+FROM ${BASE_IMAGE}
+WORKDIR /app
 # Enable Datadog .NET SDK
 ENV CORECLR_ENABLE_PROFILING=1
 ENV CORECLR_PROFILER='{846F5F1C-F9AE-4B07-969E-05C26BC060D8}'
@@ -48,9 +40,6 @@ ENV COMPlus_DbgEnableMiniDump=1
 # - MiniDumpWithPrivateReadWriteMemory is 2
 ENV COMPlus_DbgMiniDumpType=2
 
-#COPY --from=build /app/out .
-#COPY --from=build /app/SYSTEM_TESTS_*_VERSION /app/
-#COPY --from=build /opt/datadog /opt/datadog
-
+COPY --from=build /app/out .
 COPY utils/build/docker/dotnet/weblog/app.sh app.sh
 CMD [ "./app.sh" ]
