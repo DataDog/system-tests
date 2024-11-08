@@ -325,29 +325,6 @@ app.post("/trace/otel/record_exception", (req, res) => {
   res.json({})
 })
 
-// TODO: implement this endpoint correctly, current blockers:
-// 1. Fails on invalid url
-// 2. does not generate span, because http instrumentation turned off
-
-// app.post('/http/client/request', (req, res) => {
-//     const http = require('http')
-
-//         const options = {
-//             method: req.method,
-//             headers: req.headers
-//         }
-//         const request = http.request(req.url, options, response => {
-//             response.on('data', () => {})
-//             response.on('end', () => callback(null, { statusCode: response.statusCode }))
-//         })
-//         request.on('error', e => callback(e))
-//         request.write(JSON.stringify(req.body))
-//         request.end()
-//         res.json({});
-//     }
-
-//   );
-
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

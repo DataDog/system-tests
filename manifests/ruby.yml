@@ -342,7 +342,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: bug (APMAPI-867)  # theorical version is v2.0.0
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
@@ -442,6 +441,7 @@ tests/:
     Test_HeaderTags: v1.13.0
     Test_HeaderTags_Colon_Leading: v1.13.0
     Test_HeaderTags_Colon_Trailing: v1.13.0
+    Test_HeaderTags_DynamicConfig: bug (APMAPI-867)  # theorical version is v2.0.0
     Test_HeaderTags_Long: v1.13.0
     Test_HeaderTags_Short: v1.13.0
     Test_HeaderTags_Whitespace_Header: v1.13.0
