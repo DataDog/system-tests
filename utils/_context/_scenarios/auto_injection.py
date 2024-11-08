@@ -381,7 +381,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_almalinux_8_arm64=False,
             include_almalinux_9_amd64=False,
             include_almalinux_9_arm64=False,
-            include_redhat_7_9_amd64=True,
+            include_redhat_7_9_amd64=False,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
             include_redhat_9_amd64=True,
