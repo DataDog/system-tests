@@ -85,9 +85,25 @@ To run a custom tracer version from a remote branch:
 4. Follow Step 4 from above to run the Parametric tests.
 ## NodeJS library
 
-1. Clone the dd-trace-js repo inside `binaries`.
-2. Checkout your remote branch in the dd-trace-js repo that was just cloned.
-3. Run parametric or weblog tests in the `system-tests` directory and your remote changes will be in effect.
+There are three ways to run system-tests with a custom node tracer.
+
+1. Using a custom tracer existing in a remote branch.
+    - Create a file `nodejs-load-from-npm` in `binaries/`
+    - In the file, add the path to the branch of the custom tracer. The content will be installed by npm install. 
+    - Content Examples:
+      - `DataDog/dd-trace-js#master`
+      - `DataDog/dd-trace-js#<commit-hash>`
+    - Run any scenario normally with `./build.sh nodejs` and `./run.sh` and your remote changes will be in effect
+2. Using a custom tracer existing in a local branch.
+    - Create a file `nodejs-load-from-local` in `binaries/`
+    - In the file, add the relative path to the `dd-trace-js` repo.
+    - Content Examples:
+      - If the `dd-trace-js` repo is in the same directory as the `system-tests` repo, add `../dd-trace-js` to the file.
+    - This method will disable installing with npm install dd-trace and will instead get the content of the file, and use it as a location of the `dd-trace-js` repo and then mount it as a volume and npm link to it. This also removes the need to rebuild the weblog image since the code is mounted at runtime.
+3. Cloning a custom tracer in `binaries`
+    - Clone the `dd-trace-js` repo inside `binaries`.
+    - Checkout the remote branch with the custom tracer in the `dd-trace-js` repo that was just cloned.
+    - Run any scenario normally with `./build.sh nodejs` and `./run.sh` and your remote changes will be in effect
 
 ## PHP library
 
