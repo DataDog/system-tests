@@ -1,5 +1,6 @@
 weblog:
     name: test-app-python-multicontainer
+    nginx_config: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/nginx.conf
     install: 
       - os_type: linux
         copy_files:

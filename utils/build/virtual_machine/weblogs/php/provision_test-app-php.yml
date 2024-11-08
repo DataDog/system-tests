@@ -1,5 +1,6 @@
 lang_variant:
     name: PHP
+    version: 8.2
     cache: true
     install:
       - os_type: linux

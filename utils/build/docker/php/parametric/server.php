@@ -150,7 +150,8 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
         \DDTrace\set_distributed_tracing_context($context["trace_id"], $context["distributed_tracing_parent_id"] ?? 0, $origin);
     }
     $span->name = arg($req, 'name');
-    $span->service = arg($req, 'service');
+    $service = arg($req, 'service');
+    $span->service = !is_null($service) && $service !== '' ? $service : $span->service;
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
     $span->links = $links;
@@ -256,32 +257,6 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
     $activeSpan = $span->parent ?? end($spans) ?? null;
 
     return jsonResponse([]);
-}));
-$router->addRoute('POST', '/trace/span/get_name', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
-    $span = $spans[arg($req, 'span_id')] ?? $closed_spans[arg($req, 'span_id')] ?? null;
-
-    return jsonResponse([
-        'name' => $span?->name
-    ]);
-}));
-$router->addRoute('POST', '/trace/span/get_resource', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
-    $span = $spans[arg($req, 'span_id')] ?? $closed_spans[arg($req, 'span_id')] ?? null;
-
-    return jsonResponse([
-        'resource' => $span?->resource
-    ]);
-}));
-$router->addRoute('POST', '/trace/span/get_meta', new ClosureRequestHandler(function (Request $req) use (&$spans) {
-    $span = $spans[arg($req, 'span_id')];
-    return jsonResponse([
-        'value' => $span->meta[arg($req, 'key')]
-    ]);
-}));
-$router->addRoute('POST', '/trace/span/get_metric', new ClosureRequestHandler(function (Request $req) use (&$spans) {
-    $span = $spans[arg($req, 'span_id')];
-    return jsonResponse([
-        'value' => $span->metrics[arg($req, 'key')]
-    ]);
 }));
 $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(function () use (&$spans) {
     \DDTrace\flush();
@@ -528,57 +503,6 @@ $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(f
         'trace_id' => (string)$traceId,
     ]);
 }));
-$router->addRoute('POST', '/trace/otel/get_attribute', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
-    $spanId = arg($req, 'span_id');
-    $key = arg($req, 'key');
-
-    /** @var ?SDK\Span $span */
-    $span = $otelSpans[$spanId];
-    if ($span) {
-        return jsonResponse([
-            'value' => $span->getAttribute($key)
-        ]);
-    }
-
-    return jsonResponse([]);
-}));
-$router->addRoute('POST', '/trace/otel/get_name', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
-    $spanId = arg($req, 'span_id');
-
-    /** @var ?SDK\Span $span */
-    $span = $otelSpans[$spanId];
-    if ($span) {
-        return jsonResponse([
-            'name' => $span->getName()
-        ]);
-    }
-
-    return jsonResponse([]);
-}));
-$router->addRoute('POST', '/trace/otel/get_links', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
-    $spanId = arg($req, 'span_id');
-
-    /** @var ?SDK\Span $span */
-    $span = $otelSpans[$spanId];
-    if ($span) {
-        $links = $span->toSpanData()->getLinks();
-        $linksData = [];
-        foreach ($links as $link) {
-            $linksData[] = [
-                'trace_id' => $link->getSpanContext()->getTraceId(),
-                'parent_id' => $link->getSpanContext()->getSpanId(),
-                'attributes' => $link->getAttributes()->toArray(),
-                'tracestate' => (string) $link->getSpanContext()->getTraceState(),
-            ];
-        }
-
-        return jsonResponse([
-            'links' => $linksData
-        ]);
-    }
-
-    return jsonResponse([]);
-}));
 $router->addRoute('POST', '/trace/otel/add_event', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
     $name = arg($req, 'name');
@@ -637,6 +561,7 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
         'dd_trace_debug' => var_export(\dd_trace_env_config("DD_TRACE_DEBUG"), true),
         'dd_trace_otel_enabled' => var_export(\dd_trace_env_config("DD_TRACE_OTEL_ENABLED"), true),
         'dd_log_level' => trim(var_export(\dd_trace_env_config("DD_TRACE_LOG_LEVEL"), true), "'"),
+        'dd_trace_agent_url' => trim(var_export(\dd_trace_env_config("DD_TRACE_AGENT_URL"), true), "'"),
     );
     return jsonResponse(array(
         'config' => $config

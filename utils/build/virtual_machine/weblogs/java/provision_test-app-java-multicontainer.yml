@@ -25,6 +25,7 @@ lang_variant:
 
 weblog:
     name: test-app-java-multicontainer
+    nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multicontainer/nginx.conf
     install: 
       - os_type: linux
         copy_files:
