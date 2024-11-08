@@ -129,14 +129,14 @@ class Test_Consistent_Configs:
                 "DD_VERSION": "5.2.0",
                 "DD_TRACE_RATE_LIMIT": 10,
                 "DD_TRACE_HEADER_TAGS": "User-Agent:my-user-agent,Content-Type.",
-                "DD_TRACE_ENABLED": "false",
+                "DD_TRACE_ENABLED": "true",
                 "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "\d{3}-\d{2}-\d{4}",
                 "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory",
                 "DD_TRACE_CLIENT_IP_HEADER": "random-header-name",
                 "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-250",
                 "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "250-200",
                 "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
-                # "DD_TRACE_AGENT_URL": "some-host:some-port", # Don't want to configure this, since we need tracer <> agent connection to run these tests!
+                # "DD_TRACE_AGENT_URL": "http://localhost:8126", # Don't want to configure this, since we need tracer <> agent connection to run these tests!
                 # "DD_TRACE_<INTEGRATION>_ENABLED": "N/A", # Skipping because it is blocked by the telemetry intake & this information is already collected through other (non-config) telemetry.
             }
         ],
@@ -150,18 +150,41 @@ class Test_Consistent_Configs:
         configuration = event["payload"]["configuration"]
         configuration_by_name = {item["name"]: item for item in configuration}
 
-        # Check that the tags name match the expected value
+        # # Check that the tags name match the expected value
         assert configuration_by_name.get("DD_ENV").get("value") == "dev"
         assert configuration_by_name.get("DD_SERVICE").get("value") == "service_test"
         assert configuration_by_name.get("DD_VERSION").get("value") == "5.2.0"
-        assert configuration_by_name.get("DD_TRACE_RATE_LIMIT").get("value") == 10
+        assert configuration_by_name.get("DD_TRACE_RATE_LIMIT").get("value") == "10"
         assert (
             configuration_by_name.get("DD_TRACE_HEADER_TAGS").get("value") == "User-Agent:my-user-agent,Content-Type."
         )
-        assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == False
+        assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == True
         assert configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == "\d{3}-\d{2}-\d{4}"
-        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
         assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER").get("value") == "random-header-name"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory",
+                "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-250",
+                "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "250-200",
+                "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
+            }
+        ],
+    )
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
+    def test_library_settings_2(self, library_env, test_agent, test_library):
+        with test_library.start_span("test"):
+            pass
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        configuration = event["payload"]["configuration"]
+        configuration_by_name = {item["name"]: item for item in configuration}
+
+        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
         assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES").get("value") == "200-250"
         assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES").get("value") == "250-200"
         assert (
@@ -340,6 +363,7 @@ class Test_Environment:
                 "OTEL_RESOURCE_ATTRIBUTES": "foo",
                 "OTEL_PROPAGATORS": "foo",
                 "OTEL_LOGS_EXPORTER": "foo",
+                "DD_TRACE_OTEL_ENABLED": None,
                 "OTEL_SDK_DISABLED": "foo",
             }
         ],

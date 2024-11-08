@@ -1,4 +1,3 @@
-import time
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, request_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
@@ -25,10 +24,6 @@ class AutoInjectBaseTest:
         for request_uuid in request_uuids:
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
             wait_backend_trace_id(request_uuid, 120.0, profile=profile)
-            # Some flakyness here: Sometimes the tracers are not in the backend.
-            # Sometimes the backend respose with 429 (too many requests)
-            # Not clear if this fix this issue
-            time.sleep(1)
 
         runtime_id = wait_backend_trace_id(request_uuid, 120.0, profile=profile)
         if crashlog:

@@ -118,7 +118,7 @@ def _retry_request_until_timeout(request_fn: Callable, timeout: float = 5.0):
     while True:
         return_value = request_fn()
         if return_value[0] != 200:
-            time.sleep(2)
+            time.sleep(3)
         else:
             break
         if time.perf_counter() - start_time >= timeout:

@@ -146,9 +146,6 @@ class Test_Headers_None:
         assert "x-datadog-tags" not in headers
 
     @enable_none_single_key()
-    @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
-    )
     def test_headers_none_single_key_propagate(self, test_agent, test_library):
         """Ensure that the 'none' propagator is used and
         no Datadog distributed tracing headers are extracted or injected.

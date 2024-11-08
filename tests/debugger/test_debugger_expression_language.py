@@ -4,7 +4,7 @@
 
 import tests.debugger.utils as base
 import re, json
-from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug
+from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug, context
 
 
 @features.debugger_expression_language
@@ -60,7 +60,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     2,
                     Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
                 ],
-                ["Accessing duration", "\d+(\.\d+)?", Dsl("ref", "@duration"),],
+                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration"),],
             ],
         )
 
@@ -222,6 +222,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
+    @bug(context.library >= "dotnet@3.5.0", reason="DEBUG-3115")
     def test_expression_language_logical_operators(self):
         self._assert()
 
@@ -486,8 +487,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                                     f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
                                 )
 
+        not_found_list = "\n".join(not_found_ids)
         assert not error_messages, "Errors occurred during validation:\n" + "\n".join(error_messages)
-        assert not not_found_ids, f"The following probes were not found: {', '.join(not_found_ids)}"
+        assert not not_found_ids, f"The following probes were not found:\n{not_found_list}"
 
 
 class Segment:

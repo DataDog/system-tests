@@ -250,6 +250,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     )
     def test_builtIn_block_args(self, virtual_machine):
         """ Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
+        logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_block_args")
         language = context.scenario.library.library
         if language in self.buildIn_args_commands_block:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()
@@ -271,6 +272,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     )
     def test_builtIn_instrument_args(self, virtual_machine):
         """ Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
+        logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_instrument_args")
         language = context.scenario.library.library
         if language in self.buildIn_args_commands_injected:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()
