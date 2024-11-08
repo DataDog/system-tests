@@ -5,12 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
+	"net/http"
 	"os"
 	"strconv"
 
 	"go.opentelemetry.io/otel"
-	"google.golang.org/grpc"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	otel_trace "go.opentelemetry.io/otel/trace"
@@ -18,7 +17,6 @@ import (
 )
 
 type apmClientServer struct {
-	UnimplementedAPMClientServer
 	spans     map[uint64]tracer.Span
 	otelSpans map[uint64]spanContext
 	tp        *ddotel.TracerProvider
@@ -51,14 +49,33 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to convert port to integer: %v", err)
 	}
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
+	s := newServer()
+
+	// dd-trace endpoints
+	http.HandleFunc("/trace/span/start", s.startSpanHandler)
+	http.HandleFunc("/trace/span/flush", s.flushSpansHandler)
+	http.HandleFunc("/trace/stats/flush", s.flushStatsHandler)
+	http.HandleFunc("/trace/span/set_meta", s.spanSetMetaHandler)
+	http.HandleFunc("/trace/span/finish", s.finishSpanHandler)
+	http.HandleFunc("/trace/span/set_metric", s.spanSetMetricHandler)
+	http.HandleFunc("/trace/span/inject_headers", s.injectHeadersHandler)
+	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
+	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+
+	// otel-api endpoints:
+	http.HandleFunc("/trace/otel/start_span", s.otelStartSpanHandler)
+	http.HandleFunc("/trace/otel/end_span", s.otelEndSpanHandler)
+	http.HandleFunc("/trace/otel/set_attributes", s.otelSetAttributesHandler)
+	http.HandleFunc("/trace/otel/set_name", s.otelSetNameHandler)
+	http.HandleFunc("/trace/otel/flush", s.otelFlushSpansHandler)
+	http.HandleFunc("/trace/otel/is_recording", s.otelIsRecordingHandler)
+	http.HandleFunc("/trace/otel/span_context", s.otelSpanContextHandler)
+	http.HandleFunc("/trace/otel/add_event", s.otelAddEventHandler)
+	http.HandleFunc("/trace/otel/set_status", s.otelSetStatusHandler)
+
+	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
-	RegisterAPMClientServer(s, newServer())
-	log.Printf("server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	log.Printf("server listening at %v", fmt.Sprintf("0.0.0.0:%d", port))
 }

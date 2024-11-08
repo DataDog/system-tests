@@ -21,6 +21,8 @@ puts 'Loading server dependencies...'
 
 require 'datadog/tracing/span_link'
 
+require 'datadog/tracing/diagnostics/environment_logger'
+
 # Only used for OpenTelemetry testing.
 require 'opentelemetry/sdk'
 require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true works out of the box for Ruby APM
@@ -33,7 +35,6 @@ Datadog.configure do |c|
     c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
   end
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
-  c.tracing.instrument :http # Used for `http_client_request`
 end
 
 if Datadog::Core::Remote.active_remote
@@ -543,8 +544,6 @@ class MyApp
       handle_trace_span_error(req, res)
     when '/trace/span/add_link'
       handle_trace_span_add_link(req, res)
-    when '/http/client/request'
-      handle_http_client_request(req, res)
     when '/trace/otel/start_span'
       handle_trace_otel_start_span(req, res)
     when '/trace/otel/add_event'
@@ -594,10 +593,10 @@ class MyApp
 
     span = Datadog::Tracing.trace(
       args.name,
-      service: args.service,
-      resource: args.resource,
-      type: args.type,
-      continue_from: digest
+      service: args.service.empty? ? nil : args.service,
+      resource: args.resource.empty? ? nil : args.resource,
+      type: args.type.empty? ? nil : args.type,
+      continue_from: digest,
     )
     if args.links.size > 0
       span.links = args.links.map do |link|
@@ -628,15 +627,17 @@ class MyApp
     config = {}
 
     Datadog.configure do |c|
-      config['dd_service'] = c.service || ''
-      config['dd_trace_sample_rate'] = c.tracing.sampling.default_rate.to_s
-      config['dd_trace_enabled'] = c.tracing.enabled.to_s
-      config['dd_runtime_metrics_enabled'] = c.runtime_metrics.enabled.to_s
-      config['dd_trace_propagation_style'] = c.tracing.propagation_style.join(',')
-      config['dd_trace_debug'] = c.diagnostics.debug.to_s
-      config['dd_env'] = c.env || ''
-      config['dd_version'] = c.version || ''
-      config['dd_tags'] = c.tags.nil? ? '' : c.tags.map { |k, v| "#{k}:#{v}" }.join(',')
+      config["dd_service"] = c.service || ""
+      config["dd_trace_sample_rate"] = c.tracing.sampling.default_rate.to_s
+      config["dd_trace_enabled"] = c.tracing.enabled.to_s
+      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s
+      config["dd_trace_propagation_style"] = c.tracing.propagation_style.join(",")
+      config["dd_trace_debug"] = c.diagnostics.debug.to_s
+      config["dd_env"] = c.env || ""
+      config["dd_version"] = c.version || ""
+      config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
+      config["dd_trace_rate_limit"] = c.tracing.sampling.rate_limit.to_s
+      config["dd_trace_agent_url"] = Datadog::Tracing::Diagnostics::EnvironmentCollector.collect_config![:agent_url] || ""
     end
     res.write(TraceConfigReturn.new(config).to_json)
   end
@@ -691,27 +692,9 @@ class MyApp
     res.write(TraceSpanAddLinkReturn.new.to_json)
   end
 
-  def handle_http_client_request(req, res)
-    args = JSON.parse(req.body.read)
-    url = URI(args[:url])
-    headers = args[:headers][:http_headers].map { |x| [x[:key], x[:value]] }.to_h
-    method = args[:method]
-
-    request_class = Net::HTTP.const_get(method.capitalize)
-    request = request_class.new(url, headers).tap { |r| r.body = args[:body] }
-
-    Net::HTTP.start(url.hostname, url.port, use_ssl: url.scheme == 'https') do |http|
-      http.request(request)
-    end
-    res.write(HttpClientRequestReturn.new.to_json)
-  end
-
   def handle_trace_crash(_req, res)
     STDOUT.puts "Crashing server..."
-    fork do
-      Process.kill('SEGV', Process.pid)
-    end
-
+    Process.kill('SEGV', Process.pid)
     Process.wait2
   end
 

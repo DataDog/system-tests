@@ -419,6 +419,24 @@ def users():
     return Response("OK")
 
 
+MAGIC_SESSION_KEY = "random_session_id"
+
+
+@app.route("/session/new")
+def session_new():
+    response = Response("OK")
+    response.set_cookie("session_id", MAGIC_SESSION_KEY)
+    return response
+
+
+@app.route("/session/user")
+def session_user():
+    user = flask_request.args.get("sdk_user", "")
+    if user and flask_request.cookies.get("session_id", "") == MAGIC_SESSION_KEY:
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+    return Response("OK")
+
+
 @app.route("/stub_dbm")
 async def stub_dbm():
     integration = flask_request.args.get("integration")
@@ -1315,6 +1333,71 @@ def s3_put_object():
         conn = boto3.resource("s3", region_name="us-east-1")
         conn.create_bucket(Bucket=bucket)
         response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+
+    return jsonify(result)
+
+
+@app.route("/mock_s3/copy_object", methods=["GET", "POST", "OPTIONS"])
+def s3_copy_object():
+    original_bucket = flask_request.args.get("original_bucket")
+    original_key = flask_request.args.get("original_key")
+    body: str = flask_request.args.get("original_key")
+
+    copy_source = {
+        "Bucket": original_bucket,
+        "Key": original_key,
+    }
+
+    bucket = flask_request.args.get("bucket")
+    key = flask_request.args.get("key")
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=original_bucket)
+        conn.Bucket(original_bucket).put_object(Bucket=original_bucket, Key=original_key, Body=body.encode("utf-8"))
+
+        if bucket != original_bucket:
+            conn.create_bucket(Bucket=bucket)
+        response = conn.Object(bucket, key).copy_from(CopySource=copy_source)
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response["CopyObjectResult"]["ETag"].replace('"', ""),}}
+
+    return jsonify(result)
+
+
+@app.route("/mock_s3/multipart_upload", methods=["GET", "POST", "OPTIONS"])
+def s3_multipart_upload():
+
+    bucket = flask_request.args.get("bucket")
+    key = flask_request.args.get("key")
+    body_base: str = flask_request.args.get("key")
+    body = (body_base + "x" * 15_000_000).encode("utf-8")  # 15MB of padding
+
+    split_index = len(body) // 2
+    body_part_1 = body[:split_index]
+    body_part_2 = body[split_index:]
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=bucket)
+
+        multipart_upload = conn.Object(bucket, key).initiate_multipart_upload()
+        part_1_response = multipart_upload.Part(1).upload(Body=body_part_1)
+        part_2_response = multipart_upload.Part(2).upload(Body=body_part_2)
+        response = multipart_upload.complete(
+            MultipartUpload={
+                "Parts": [
+                    {"PartNumber": 1, "ETag": part_1_response["ETag"]},
+                    {"PartNumber": 2, "ETag": part_2_response["ETag"]},
+                ],
+            },
+        )
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS

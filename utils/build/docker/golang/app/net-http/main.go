@@ -11,8 +11,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"weblog/internal/common"
@@ -42,6 +44,7 @@ import (
 func main() {
 	ddtracer.Start()
 	defer ddtracer.Stop()
+
 	mux := httptrace.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -539,7 +542,6 @@ func main() {
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
-
 	mux.HandleFunc("/sns/produce", func(w http.ResponseWriter, r *http.Request) {
 		queue := r.URL.Query().Get("queue")
 		if queue == "" {
@@ -636,9 +638,28 @@ func main() {
 		w.Write([]byte(fmt.Sprintf(`{"message": "%s"}`, result)))
 	})
 
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
-	http.ListenAndServe(":7777", mux)
+	go func() {
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
 }
 
 type carrier map[string]string

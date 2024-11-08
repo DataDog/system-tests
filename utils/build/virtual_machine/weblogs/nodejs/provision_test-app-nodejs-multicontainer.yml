@@ -1,0 +1,21 @@
+weblog:
+    name: test-app-nodejs-multicontainer
+    nginx_config: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/nginx.conf
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-multicontainer-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+          - name: copy-docker-compose-file
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/docker-compose.yml
+          - name: copy-nodejs-app
+            local_path: lib-injection/build/docker/nodejs/sample-app
+          - name: copy-node18-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node18
+          - name: copy-nodesj-alpine-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.alpine
+          - name: copy-reverseproxy-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.reverseproxy
+          - name: copy-reverseproxy-conf
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/nginx.conf
+        remote-command: sh create_and_run_app_multicontainer.sh

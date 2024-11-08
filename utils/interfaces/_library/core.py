@@ -347,10 +347,10 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         if not success_by_default:
             raise ValueError("No span validates this test")
 
-    def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False):
+    def add_span_tag_validation(self, request=None, tags=None, value_as_regular_expression=False, full_trace=False):
         validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
         success = False
-        for _, _, span in self.get_spans(request=request):
+        for _, _, span in self.get_spans(request=request, full_trace=full_trace):
             success = success or validator(span)
 
         if not success:

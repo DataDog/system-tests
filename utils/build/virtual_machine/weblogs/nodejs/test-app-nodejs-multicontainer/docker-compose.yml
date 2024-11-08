@@ -1,0 +1,33 @@
+version: '2'
+
+services:
+    reverseproxy:
+        image: reverseproxy:latest
+        ports:
+            - 5985:8080
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.reverseproxy
+        healthcheck:
+            test: "curl -f http://localhost:8080"  
+
+    node_18:
+        env_file: "scenario_app.env"
+        image: system-tests/node_18:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.node18
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+
+    node_alpine:
+        env_file: "scenario_app.env"
+        image: system-tests/node_alpine:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.alpine
+        healthcheck:
+            test: "curl -f http://localhost:18080"
