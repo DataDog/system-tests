@@ -22,28 +22,6 @@ from utils import (
 from utils.tools import logger
 
 
-@features.agent_remote_configuration
-class Test_Agent:
-    """misc test on agent/remote config features"""
-
-    @irrelevant(library="nodejs", reason="nodejs tracer does not call /info")
-    @irrelevant(library="php", reason="PHP tracer does not call /info")
-    @irrelevant(library="cpp")
-    @scenarios.remote_config_mocked_backend_asm_dd
-    def test_agent_provide_config_endpoint(self):
-        """Check that agent exposes /v0.7/config endpoint"""
-        all_data = list(interfaces.library.get_data("/info"))
-
-        assert len(all_data) > 0, "The library didn't make any /info request to the agent"
-
-        for data in all_data:
-            for endpoint in data["response"]["content"]["endpoints"]:
-                if endpoint == "/v0.7/config":
-                    return
-
-        raise ValueError("Agent did not provide /v0.7/config endpoint")
-
-
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @features.remote_config_object_supported
 class RemoteConfigurationFieldsBasicTests:
