@@ -24,7 +24,8 @@ lang_variant:
           if ! command -v amazon-linux-extras 2>&1 >/dev/null
           then
               echo "Installing perl and deps"
-              sudo dnf install -y gpg gcc gcc-c++ make rust patch make bzip2 libffi-devel readline-devel zlib-devel gdbm-devel ncurses-devel
+              sudo dnf install -y gpg gcc gcc-c++ make rust patch make bzip2 libffi-devel readline-devel zlib-devel ncurses-devel
+              sudo dnf -y install gdbm-devel || true
               sudo dnf -y install perl
           fi
           curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
