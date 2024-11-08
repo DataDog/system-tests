@@ -28,17 +28,7 @@ class Test_library:
             ("/debugger/v1/diagnostics", "$[].content"),  # DEBUG-2864
         ]
 
-        if context.scenario is scenarios.debugger_expression_language and context.library >= "python@2.17.0+dev":
-            excluded_points.append(("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber"))  # DEBUG-3083
-
         interfaces.library.assert_schema_points(excluded_points)
-
-    @bug(
-        context.library >= "python@2.17.0+dev" and context.scenario is scenarios.debugger_expression_language,
-        reason="DEBUG-3083",
-    )
-    def test_debugger_python_line_numer(self):
-        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber")
 
     @bug(context.library > "nodejs@5.22.0", reason="DEBUG-2864")
     def test_library_diagnostics_content(self):

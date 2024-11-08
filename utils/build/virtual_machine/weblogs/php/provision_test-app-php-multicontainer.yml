@@ -1,5 +1,6 @@
 weblog:
     name: test-app-php-multicontainer
+    nginx_config: utils/build/virtual_machine/weblogs/php/test-app-php-multicontainer/nginx.conf
     install: 
       - os_type: linux
         copy_files:
