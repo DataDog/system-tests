@@ -135,7 +135,7 @@ onboarding_python:
             test-app-python-container,
             test-app-python-alpine
           ]
-          SCENARIO: [INSTALLER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True","False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]

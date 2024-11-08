@@ -20,9 +20,4 @@ public class HelloHandler {
     public Mono<ServerResponse> json(ServerRequest request) {
         return ok().bodyValue(new Hello(helloService.generateMessage()));
     }
-
-    public Mono<ServerResponse> crash(ServerRequest request) {
-        ProcessHandle current = ProcessHandle.current();
-        Runtime.getRuntime().exec("kill -11 " + current.pid());
-    }
 }

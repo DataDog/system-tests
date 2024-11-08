@@ -112,52 +112,6 @@ class PythonRuntimeInstallableVersions:
         raise ValueError(f"Python version {version} not supported")
 
 
-class RubyRuntimeInstallableVersions:
-    """ Ruby runtime versions that can be installed automatically"""
-
-    RB27 = RuntimeInstallableVersion("RB27", "2.7")
-    RB30 = RuntimeInstallableVersion("RB30", "3.0")
-    RB31 = RuntimeInstallableVersion("RB31", "3.1")
-    RB32 = RuntimeInstallableVersion("RB32", "3.2.6")
-
-    @staticmethod
-    def get_all_versions():
-        return [
-            RubyRuntimeInstallableVersions.RB27,
-            RubyRuntimeInstallableVersions.RB30,
-            RubyRuntimeInstallableVersions.RB31,
-            RubyRuntimeInstallableVersions.RB32,
-        ]
-
-    @staticmethod
-    def get_version_id(version):
-        for version_check in RubyRuntimeInstallableVersions.get_all_versions():
-            if version_check.version == version:
-                return version_check.version_id
-        raise ValueError(f"Ruby version {version} not supported")
-
-
-class DotnetRuntimeInstallableVersions:
-    """ Dotnet runtime versions that can be installed automatically"""
-
-    DOTNET6 = RuntimeInstallableVersion("DOTNET6", "6.0")
-    DOTNET8 = RuntimeInstallableVersion("DOTNET8", "8.0")
-
-    @staticmethod
-    def get_all_versions():
-        return [
-            DotnetRuntimeInstallableVersions.DOTNET6,
-            DotnetRuntimeInstallableVersions.DOTNET8,
-        ]
-
-    @staticmethod
-    def get_version_id(version):
-        for version_check in DotnetRuntimeInstallableVersions.get_all_versions():
-            if version_check.version == version:
-                return version_check.version_id
-        raise ValueError(f"Dotnet version {version} not supported")
-
-
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
 # Maybe a weblog app contains preinstalled language runtime, in this case we define the weblog without runtime version
 JETTY_APP = WeblogDescriptor(
@@ -229,25 +183,5 @@ PY_APP = WeblogDescriptor(
     ],
 )
 
-RB_APP = WeblogDescriptor(
-    "rb-app",
-    "ruby",
-    [
-        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
-            RubyRuntimeInstallableVersions.get_all_versions()
-        )
-    ],
-)
-
-DOTNET_APP = WeblogDescriptor(
-    "dotnet-app",
-    "dotnet",
-    [
-        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
-            DotnetRuntimeInstallableVersions.get_all_versions()
-        )
-    ],
-)
-
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP, PHP_APP, PY_APP, RB_APP, DOTNET_APP]
+ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP, PHP_APP, PY_APP]

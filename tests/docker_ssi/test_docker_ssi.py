@@ -31,7 +31,7 @@ class TestDockerSSIFeatures:
     @bug(
         condition="centos-7" in context.weblog_variant and context.library == "java", reason="APMON-1490",
     )
-    @bug(condition=context.library == "ruby", reason="INPLAT-11")
+    @bug(condition=context.library == "python", reason="INPLAT-11")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
@@ -45,13 +45,6 @@ class TestDockerSSIFeatures:
         # There is telemetry data related with the runtime-id
         telemetry_data = interfaces.test_agent.get_telemetry_for_runtime(traces_for_request["meta"]["runtime-id"])
         assert telemetry_data, "No telemetry data found"
-
-        parsed_url = urlparse(context.scenario.weblog_url)
-        TestDockerSSIFeatures._r = weblog.request(
-            "GET", parsed_url.path + "crashme", domain=parsed_url.hostname, port=parsed_url.port
-        )
-        crash_log = interfaces.test_agent.get_crashlog_for_runtime(traces_for_request["meta"]["runtime-id"])
-        assert crash_log, "No crash log found"
 
     def setup_install_weblog_running(self):
         self._setup_all()

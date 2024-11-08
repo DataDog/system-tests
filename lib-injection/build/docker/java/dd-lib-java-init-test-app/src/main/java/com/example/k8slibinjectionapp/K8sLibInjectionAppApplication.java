@@ -16,8 +16,7 @@ public class K8sLibInjectionAppApplication {
                         HelloHandler handler = s.ref(HelloHandler.class);
                         r
                                 .GET("/", handler::hello)
-                                .GET("/api", handler::json)
-                                .GET("/crashme", handler::crash);
+                                .GET("/api", handler::json);
                     }).codecs(c -> c
                             .string()
                             .jackson()))));
