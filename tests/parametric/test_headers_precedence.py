@@ -840,13 +840,13 @@ class Test_Headers_Precedence:
         assert link2["trace_id_high"] == 1229782938247303441
 
     # Checks for the consistent behavior of flags in span links.
-    @missing_feature(context.library == "java", reason="not_implemented yet")
-    @missing_feature(context.library == "ruby", reason="not_implemented yet")
-    @missing_feature(context.library == "cpp", reason="not_implemented yet")
-    @missing_feature(context.library == "dotnet", reason="not_implemented yet")
-    @missing_feature(context.library == "golang", reason="not_implemented yet")
-    @missing_feature(context.library == "nodejs", reason="not_implemented yet")
-    @missing_feature(context.library == "php", reason="not_implemented yet")
+    @irrelevant(context.library == "java", reason="implementation specs have not been determined")
+    @irrelevant(context.library == "ruby", reason="implementation specs have not been determined")
+    @irrelevant(context.library == "cpp", reason="implementation specs have not been determined")
+    @irrelevant(context.library == "dotnet", reason="implementation specs have not been determined")
+    @irrelevant(context.library == "golang", reason="implementation specs have not been determined")
+    @irrelevant(context.library == "nodejs", reason="implementation specs have not been determined")
+    @irrelevant(context.library == "php", reason="implementation specs have not been determined")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext,datadog,b3multi"}])
     def test_headers_precedence_propagationstyle_resolves_conflicting_contexts_spanlinks_flags(
         self, test_agent, test_library
