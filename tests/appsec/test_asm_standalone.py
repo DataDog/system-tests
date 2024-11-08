@@ -667,3 +667,23 @@ class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
+
+    @bug(library="nodejs", reason="APPSEC-55777")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
+
+    @bug(library="nodejs", reason="APPSEC-55777")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
+
+    @bug(library="nodejs", reason="APPSEC-55777")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1()
+
+    @bug(library="nodejs", reason="APPSEC-55777")
+    def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
+        super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0()
+
+    @bug(library="nodejs", reason="APPSEC-55777")
+    def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
+        super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1()

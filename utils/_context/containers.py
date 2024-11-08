@@ -590,6 +590,7 @@ class WeblogContainer(TestedContainer):
         environment=None,
         tracer_sampling_rate=None,
         appsec_enabled=True,
+        iast_enabled=True,
         additional_trace_header_tags=(),
         use_proxy=True,
         volumes=None,
