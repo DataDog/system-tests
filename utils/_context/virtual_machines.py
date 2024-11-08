@@ -634,7 +634,7 @@ class RedHat7_9amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="rhel_7_amd64",
             os_cpu="amd64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 

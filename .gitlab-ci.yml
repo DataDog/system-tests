@@ -56,25 +56,25 @@ onboarding_nodejs:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch redhat
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch rhel_7_amd64
 
 onboarding_java:
   extends: .base_job_onboarding_system_tests
@@ -91,25 +91,25 @@ onboarding_java:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-java]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine,test-app-java-buildpack]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer,test-app-java-multialpine]
           SCENARIO: [SIMPLE_AUTO_INJECTION_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch redhat
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch rhel_7_amd64
 
 onboarding_python:
   extends: .base_job_onboarding_system_tests
@@ -126,26 +126,26 @@ onboarding_python:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [
             test-app-python,
             test-app-python-container,
             test-app-python-alpine
           ]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch redhat
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch rhel_7_amd64
 
 onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
@@ -162,22 +162,22 @@ onboarding_dotnet:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch redhat
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch rhel_7_amd64
 
 onboarding_ruby:
   extends: .base_job_onboarding_system_tests
@@ -194,22 +194,22 @@ onboarding_ruby:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         #- ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer,test-app-ruby-multialpine]
         #  SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-        #  DEFAULT_VMS: ["True","False"]
+        #  DEFAULT_VMS: ["True"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch redhat
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch rhel_7_amd64
 
 onboarding_php:
   extends: .base_job_onboarding_system_tests
@@ -226,25 +226,25 @@ onboarding_php:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-php]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-container-83, test-app-php-alpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-php]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-php-multicontainer, test-app-php-multialpine]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True","False"]
+          DEFAULT_VMS: ["True"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch redhat
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS} --vm-only-branch rhel_7_amd64
 
 
 onboarding_stats_results:
