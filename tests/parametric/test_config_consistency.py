@@ -189,6 +189,10 @@ class Test_Config_RateLimit:
         trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
 
         assert trace_0_sampling_priority == 2
+        # In PHP the rate limiter is continuously backfilled, i.e. if the rate limit is 2, and 0.2 seconds have passed, an allowance of 0.4 is backfilled.
+        # As long as the amount of allowance is greater than zero, the request is allowed.
+        # Meaning that if the rate limit is 2 and you do two requests within 0.2 seconds, the remaining limit is 0.4, allowing for one more request. 
+        # Then it gets negative and no more requests are allowed until 0.3 seconds later, when it’s positive again.
         assert trace_1_sampling_priority == -1 if context.library != "php" else 2
 
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
