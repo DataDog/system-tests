@@ -299,7 +299,6 @@ class _VirtualMachineScenario(Scenario):
         return self._os_configurations
 
     def customize_feature_parity_dashboard(self, result):
-        logger.info("RMM Customizing Feature Parity Dashboard")
         # Customize the general report
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2
@@ -312,15 +311,15 @@ class _VirtualMachineScenario(Scenario):
             vm_id = vm_ids[i]
             vm_name_clean = vm.name.replace("_amd64", "").replace("_arm64", "")
             new_result = copy.copy(result)
+            new_tested_deps = result["testedDependencies"].copy()
             new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
             new_result["configuration"]["runtime_version"] = vm.get_current_deployed_weblog().runtime_version
             new_result["configuration"]["app_type"] = vm.get_current_deployed_weblog().app_type
             if "glibc" in vm.tested_components:
-                logger.info(f"RMM FPD Customizing for {vm_id} - glibc: {vm.tested_components['glibc']}")
-                new_result["testedDependencies"].append({"name": "glibc", "version": vm.tested_components["glibc"]})
-                new_result["testedDependencies"].append(
-                    {"name": "glibc_type", "version": vm.tested_components["glibc_type"]}
-                )
+                new_tested_deps.append({"name": "glibc", "version": vm.tested_components["glibc"]})
+                new_tested_deps.append({"name": "glibc_type", "version": vm.tested_components["glibc_type"]})
+                new_result["testedDependencies"] = new_tested_deps
+
             new_result["tests"] = []
             for test in result["tests"]:
                 if vm_id in test["description"]:
