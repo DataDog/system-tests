@@ -299,7 +299,7 @@ class _VirtualMachineScenario(Scenario):
         return self._os_configurations
 
     def customize_feature_parity_dashboard(self, result):
-
+        logger.info("RMM Customizing Feature Parity Dashboard")
         # Customize the general report
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2
@@ -316,6 +316,7 @@ class _VirtualMachineScenario(Scenario):
             new_result["configuration"]["runtime_version"] = vm.get_current_deployed_weblog().runtime_version
             new_result["configuration"]["app_type"] = vm.get_current_deployed_weblog().app_type
             if "glibc" in vm.tested_components:
+                logger.info(f"RMM FPD Customizing for {vm_id} - glibc: {vm.tested_components['glibc']}")
                 new_result["testedDependencies"].append({"name": "glibc", "version": vm.tested_components["glibc"]})
                 new_result["testedDependencies"].append(
                     {"name": "glibc_type", "version": vm.tested_components["glibc_type"]}
