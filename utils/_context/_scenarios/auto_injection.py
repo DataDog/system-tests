@@ -315,8 +315,10 @@ class _VirtualMachineScenario(Scenario):
             new_result["configuration"]["runtime_version"] = vm.get_current_deployed_weblog().runtime_version
             new_result["configuration"]["app_type"] = vm.get_current_deployed_weblog().app_type
             if "glibc" in vm.tested_components:
-                new_result["testedDependencies"].append({"glibc": vm.tested_components["glibc"]})
-                new_result["testedDependencies"].append({"glibc_type": vm.tested_components["glibc_type"]})
+                new_result["testedDependencies"].append({"name": "glibc", "version": vm.tested_components["glibc"]})
+                new_result["testedDependencies"].append(
+                    {"name": "glibc_type", "version": vm.tested_components["glibc_type"]}
+                )
             new_result["tests"] = []
             for test in result["tests"]:
                 if vm_id in test["description"]:
