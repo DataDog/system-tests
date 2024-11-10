@@ -1,5 +1,6 @@
 import os
 import json
+import copy
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils.virtual_machine.utils import get_tested_apps_vms
@@ -310,15 +311,15 @@ class _VirtualMachineScenario(Scenario):
             vm = vms[i]
             vm_id = vm_ids[i]
             vm_name_clean = vm.name.replace("_amd64", "").replace("_arm64", "")
-            new_result = result.copy()
+            new_result = copy.copy(result)
             new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
             new_result["configuration"]["runtime_version"] = vm.get_current_deployed_weblog().runtime_version
             new_result["configuration"]["app_type"] = vm.get_current_deployed_weblog().app_type
-            # if "glibc" in vm.tested_components:
-            #    new_result["testedDependencies"].append({"name": "glibc", "version": vm.tested_components["glibc"]})
-            #    new_result["testedDependencies"].append(
-            #        {"name": "glibc_type", "version": vm.tested_components["glibc_type"]}
-            #    )
+            if "glibc" in vm.tested_components:
+                new_result["testedDependencies"].append({"name": "glibc", "version": vm.tested_components["glibc"]})
+                new_result["testedDependencies"].append(
+                    {"name": "glibc_type", "version": vm.tested_components["glibc_type"]}
+                )
             new_result["tests"] = []
             for test in result["tests"]:
                 if vm_id in test["description"]:
