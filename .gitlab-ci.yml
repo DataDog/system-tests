@@ -111,6 +111,25 @@ onboarding_java:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
+java_docker_ssi:
+  image: "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362"
+  stage: java_tracer
+  tags: [ "runner:docker"]
+  allow_failure: true
+  dependencies: []
+  rules:
+    - when: manual
+  variables:
+    TEST_LIBRARY: java
+    weblog: jetty-app
+    base_image: "ubuntu:22.04"
+    arch: "linux/amd64"
+    installable_runtime: "22.0.2-zulu"
+  script:
+    - ./build.sh -i runner
+    - source venv/bin/activate
+    - timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime"
+
 onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
