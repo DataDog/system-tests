@@ -1,5 +1,6 @@
-from utils import scenarios, features, flaky, missing_feature
+from utils import scenarios, features, flaky
 from utils.tools import logger
+from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
@@ -72,15 +73,6 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     )
     def test_profiling(self, virtual_machine):
         self._test_install(virtual_machine, profile=True)
-
-
-@features.crashtracking
-@scenarios.container_auto_injection_install_script_crashtracking
-class TestContainerAutoInjectInstallScriptCrashTracking(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
-    @missing_feature(reason="Crash logs not currently forwarded to org 749096")
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine, crashlog=True)
 
 
 @features.installer_auto_instrumentation

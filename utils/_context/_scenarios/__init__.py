@@ -1,3 +1,4 @@
+import os
 import json
 
 import pytest
@@ -141,38 +142,38 @@ class scenarios:
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
         "APPSEC_MISSING_RULES",
-        appsec_rules="/donotexists",
+        weblog_env={"DD_APPSEC_RULES": "/donotexists"},
         doc="Test missing appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
-        appsec_rules="/appsec_corrupted_rules.yml",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
         doc="Test corrupted appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_custom_rules = EndToEndScenario(
         "APPSEC_CUSTOM_RULES",
-        appsec_rules="/appsec_custom_rules.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
         doc="Test custom appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_blocking = EndToEndScenario(
         "APPSEC_BLOCKING",
-        appsec_rules="/appsec_blocking_rule.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
-        appsec_rules="/appsec_blocking_rule.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="graphql",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
-        appsec_rules="/appsec_custom_rules_with_errors.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -438,6 +439,7 @@ class scenarios:
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),
+        rc_api_enabled=True,
         doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
     library_conf_custom_header_tags_invalid = EndToEndScenario(
@@ -629,14 +631,6 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    container_auto_injection_install_script_crashtracking = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_CRASHTRACKING",
-        "Onboarding Container Single Step Instrumentation crashtracking scenario using agent auto install script",
-        vm_provision="container-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
@@ -696,8 +690,7 @@ class scenarios:
 
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
-        appsec_rules="/appsec_rasp_ruleset.json",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
