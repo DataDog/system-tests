@@ -55,7 +55,9 @@ onboarding_nodejs:
   parallel:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO:
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
           SCENARIO:
@@ -92,7 +94,9 @@ onboarding_java:
   parallel:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO:
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
           SCENARIO:
@@ -165,7 +169,9 @@ onboarding_dotnet:
   parallel:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO:
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
           SCENARIO:
