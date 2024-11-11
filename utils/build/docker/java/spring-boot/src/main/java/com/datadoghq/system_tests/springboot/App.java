@@ -1086,6 +1086,13 @@ public class App {
         return "OK";
     }
 
+    @RequestMapping("/otel_drop_in")
+    public String otelDropInSpan() {
+        // exercise OpenTelemetry's R2DBC support on Java
+        db_sql_integrations("reactive_postgresql", "init");
+        return "OK";
+    }
+
     @GetMapping(value = "/requestdownstream")
     public String requestdownstream(HttpServletResponse response) throws IOException {
         String url = "http://localhost:7777/returnheaders";
