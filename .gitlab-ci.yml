@@ -118,7 +118,7 @@ java_docker_ssi:
   allow_failure: true
   dependencies: []
   rules:
-    - when: manual
+    - when: on_success
   variables:
     TEST_LIBRARY: java
     weblog: jetty-app
@@ -129,6 +129,11 @@ java_docker_ssi:
     - ./build.sh -i runner
     - source venv/bin/activate
     - timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime"
+  artifacts:
+      when: always
+      paths:
+        - reports/
+        - logs_docker_ssi/
 
 onboarding_python:
   extends: .base_job_onboarding_system_tests
