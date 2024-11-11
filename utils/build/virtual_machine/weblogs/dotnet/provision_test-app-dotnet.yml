@@ -66,6 +66,19 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
+        os_branch: rhel_7_amd64
+        remote-command: |
+          sudo yum install -y libicu krb5-libs openssl-libs zlib
+          #Disable the DEBUG traces due to https://datadoghq.atlassian.net/browse/AIT-10255
+          export DD_APM_INSTRUMENTATION_DEBUG=false
+          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+          chmod +x ./dotnet-install.sh
+          sudo ./dotnet-install.sh --channel 6.0 -InstallDir /opt
+          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
+          sudo ln -s /opt/dotnet /usr/bin/dotnet
+
+      - os_type: linux
+        os_distro: rpm
         remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
 
 weblog:
@@ -73,7 +86,8 @@ weblog:
     #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
     #Ubuntu 21 (amd64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
     #Centos 7. I can't find the libicu60 package for centos 7. Only available version 50.2
-    excluded_os_branches: [ubuntu18_amd64, ubuntu20_arm64,ubuntu21, centos_7_amd64, debian]
+    #Amazon Linux 2022: Incompatible runtime version installed. Not breaks app, but not instrumented
+    excluded_os_branches: [ubuntu18_amd64, ubuntu20_arm64,ubuntu21, centos_7_amd64, debian, amazon_linux2022]
     excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux

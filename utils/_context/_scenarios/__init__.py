@@ -142,38 +142,38 @@ class scenarios:
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
         "APPSEC_MISSING_RULES",
-        appsec_rules="/donotexists",
+        weblog_env={"DD_APPSEC_RULES": "/donotexists"},
         doc="Test missing appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
-        appsec_rules="/appsec_corrupted_rules.yml",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
         doc="Test corrupted appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_custom_rules = EndToEndScenario(
         "APPSEC_CUSTOM_RULES",
-        appsec_rules="/appsec_custom_rules.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
         doc="Test custom appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_blocking = EndToEndScenario(
         "APPSEC_BLOCKING",
-        appsec_rules="/appsec_blocking_rule.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
-        appsec_rules="/appsec_blocking_rule.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="graphql",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
-        appsec_rules="/appsec_custom_rules_with_errors.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -439,6 +439,7 @@ class scenarios:
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),
+        rc_api_enabled=True,
         doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
     library_conf_custom_header_tags_invalid = EndToEndScenario(
@@ -460,8 +461,11 @@ class scenarios:
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
+            "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
+            "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
         },
         include_kafka=True,
+        include_postgres_db=True,
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
@@ -471,9 +475,13 @@ class scenarios:
         weblog_env={
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
             "DD_TRACE_KAFKA_ENABLED": "true",
+            "DD_TRACE_KAFKAJS_ENABLED": "true",
+            "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
         },
         include_kafka=True,
+        include_postgres_db=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
     )
     tracing_config_nondefault_3 = EndToEndScenario(
@@ -682,8 +690,7 @@ class scenarios:
 
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
-        appsec_rules="/appsec_rasp_ruleset.json",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],

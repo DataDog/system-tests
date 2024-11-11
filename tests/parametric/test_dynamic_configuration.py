@@ -5,14 +5,12 @@ import json
 from typing import Any, Dict, List
 
 import pytest
-from ddapm_test_agent.trace import root_span
 
 from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
 from utils.dd_constants import Capabilities
 from utils.parametric.spec.trace import (
     Span,
     assert_trace_has_tags,
-    find_only_span,
     find_trace,
     find_first_span_in_trace_payload,
 )
@@ -131,82 +129,6 @@ def get_sampled_trace(test_library, test_agent, service, name, tags=None):
 
 
 ENV_SAMPLING_RULE_RATE = 0.55
-
-
-@scenarios.parametric
-@features.dynamic_configuration
-class TestDynamicConfigHeaderTags:
-    @parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2,Content-Length:content_length_env",
-            },
-        ],
-    )
-    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
-    def test_tracing_client_http_header_tags(
-        self, library_env, test_agent, test_library, test_agent_hostname, test_agent_port
-    ):
-        """Ensure the tracing http header tags can be set via RC.
-
-        Testing is done using a http client request RPC and asserting the span tags.
-
-        Requests are made to the test agent.
-        """
-
-        # Test without RC.
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        span = find_only_span(trace)
-        assert span["meta"]["test_header_env"] == "test-value"
-        assert span["meta"]["test_header_env2"] == "test-value-2"
-        assert int(span["meta"]["content_length_env"]) > 0
-
-        # Set and test with RC.
-        set_and_wait_rc(
-            test_agent,
-            config_overrides={
-                "tracing_header_tags": [
-                    {"header": "X-Test-Header", "tag_name": "test_header_rc"},
-                    {"header": "X-Test-Header-2", "tag_name": "test_header_rc2"},
-                    {"header": "Content-Length", "tag_name": ""},
-                ]
-            },
-        )
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        span = find_only_span(trace)
-        assert span["meta"]["test_header_rc"] == "test-value"
-        assert span["meta"]["test_header_rc2"] == "test-value-2"
-        assert span["meta"]["http.request.headers.content-length"] == "0"
-        assert (
-            span["meta"]["http.response.headers.content-length"] == "14"
-        ), "response content-length header tag value matches the header value set by the server"
-        assert "test_header_env" not in span["meta"]
-        assert "test_header_env2" not in span["meta"]
-
-        # Unset RC.
-        set_and_wait_rc(test_agent, config_overrides={})
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        span = find_only_span(trace)
-        assert span["meta"]["test_header_env"] == "test-value"
-        assert span["meta"]["test_header_env2"] == "test-value-2"
-        assert int(span["meta"]["content_length_env"]) > 0
 
 
 @scenarios.parametric

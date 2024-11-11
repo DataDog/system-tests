@@ -1,7 +1,6 @@
 from typing import TypedDict
 
 
-
 class OtelSpanContext(TypedDict):
     trace_id: str
     span_id: str

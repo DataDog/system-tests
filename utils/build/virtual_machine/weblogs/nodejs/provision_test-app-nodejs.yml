@@ -20,8 +20,9 @@ lang_variant:
 weblog:
     name: test-app-nodejs
     #Ecluded machines. We can not run node18 due to nodejs requirement: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by node) node: /lib64/libc.so.6: version `GLIBC_2.28' not found (required by node)
+    #RedHat 7.9 excluded by node: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by node)
     excluded_os_branches: [ubuntu18_amd64, amazon_linux2, centos_7_amd64]
-    excluded_os_names: [OracleLinux_7_9_amd64]
+    excluded_os_names: [OracleLinux_7_9_amd64, RedHat_7_9_amd64]
     install: 
       - os_type: linux
         copy_files:
