@@ -58,7 +58,9 @@ onboarding_nodejs:
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO:
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
@@ -93,7 +95,9 @@ onboarding_java:
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO:
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine,test-app-java-buildpack]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
@@ -164,7 +168,9 @@ onboarding_dotnet:
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+          SCENARIO:
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
