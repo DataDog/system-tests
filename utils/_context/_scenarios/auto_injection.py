@@ -1,5 +1,6 @@
 import os
 import json
+import copy
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils.virtual_machine.utils import get_tested_apps_vms
@@ -268,6 +269,9 @@ class _VirtualMachineScenario(Scenario):
                     # We store without the lang sufix
                     self._tested_components["datadog-apm-library"] = self._tested_components[key]
                     del self._tested_components[key]
+                if key.startswith("glibc"):
+                    # We will all the glibc versions in the feature parity report, due to each machine can have a different version
+                    del self._tested_components[key]
 
     def close_targets(self):
         if self.is_main_worker:
@@ -295,7 +299,6 @@ class _VirtualMachineScenario(Scenario):
         return self._os_configurations
 
     def customize_feature_parity_dashboard(self, result):
-
         # Customize the general report
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2
@@ -307,10 +310,15 @@ class _VirtualMachineScenario(Scenario):
             vm = vms[i]
             vm_id = vm_ids[i]
             vm_name_clean = vm.name.replace("_amd64", "").replace("_arm64", "")
-            new_result = result.copy()
+            new_result = copy.copy(result)
+            new_tested_deps = result["testedDependencies"].copy()
             new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
             new_result["configuration"]["runtime_version"] = vm.get_current_deployed_weblog().runtime_version
             new_result["configuration"]["app_type"] = vm.get_current_deployed_weblog().app_type
+            if "glibc" in vm.tested_components:
+                new_tested_deps.append({"name": "glibc", "version": vm.tested_components["glibc"]})
+                new_tested_deps.append({"name": "glibc_type", "version": vm.tested_components["glibc_type"]})
+                new_result["testedDependencies"] = new_tested_deps
 
             new_result["tests"] = []
             for test in result["tests"]:
