@@ -559,6 +559,22 @@ class Centos7amd64(_VirtualMachine):
         )
 
 
+class Centos8amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "CentOS_8_amd64",
+            aws_config=_AWSConfig(ami_id="ami-05f2b469e504202f7", ami_instance_type="t3.medium", user="cloud-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="centos_8_amd64",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
 class RedHat86amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
