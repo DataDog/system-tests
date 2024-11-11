@@ -38,6 +38,7 @@ def pytest_addoption(parser):
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
 
     parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
+    parser.addoption("--force-dd-iast-debug", action="store_true", help="Set DD_IAST_DEBUG_ENABLED to true")
 
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
@@ -92,6 +93,9 @@ def pytest_configure(config):
 
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
+
+    if not config.option.force_dd_iast_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_IAST_DEBUG") == "true":
+        config.option.force_dd_iast_debug = True
 
     # handle options that can be filled by environ
     if not config.option.report_environment and "SYSTEM_TESTS_REPORT_ENVIRONMENT" in os.environ:
@@ -168,6 +172,9 @@ def _collect_item_metadata(item):
             result["testDeclaration"] = "bug"
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
+        elif "got empty parameter set" in result["details"]:
+            # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
+            logger.info(f"No parameters found for ${item.nodeid}")
         else:
             raise ValueError(f"Unexpected test declaration for {item.nodeid} : {result['details']}")
 
@@ -424,6 +431,7 @@ def export_feature_parity_dashboard(session, data):
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
         ],
+        "configuration": context.configuration,
         "scenario": context.scenario.name,
         "tests": [test for test in tests if test is not None],
     }

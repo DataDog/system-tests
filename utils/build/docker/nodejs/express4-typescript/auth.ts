@@ -1,6 +1,7 @@
 'use strict'
 
 import type { Express, Request, Response, NextFunction } from "express";
+ // @ts-ignore
 import type { Tracer } from "dd-trace";
 const { Strategy: LocalStrategy } = require('passport-local')
 const { BasicStrategy } = require('passport-http')

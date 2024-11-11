@@ -7,7 +7,6 @@ import subprocess
 import sys
 import typing
 
-import boto3
 import fastapi
 from fastapi import Cookie
 from fastapi import FastAPI
@@ -22,7 +21,6 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
-from moto import mock_aws
 import psycopg2
 from pydantic import BaseModel
 import requests
@@ -580,6 +578,24 @@ async def login(request: Request):
     return PlainTextResponse("login failure", status_code=401)
 
 
+MAGIC_SESSION_KEY = "random_session_id"
+
+
+@app.get("/session/new")
+async def session_new(request: Request):
+    response = PlainTextResponse("OK")
+    response.set_cookie(key="session_id", value=MAGIC_SESSION_KEY)
+    return response
+
+
+@app.get("/session/user")
+async def session_user(request: Request):
+    user = request.query_params.get("sdk_user", "")
+    if user and request.cookies.get("session_id", "") == MAGIC_SESSION_KEY:
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+    return PlainTextResponse("OK")
+
+
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
@@ -697,6 +713,13 @@ def test_nosamesite_secure_cookie():
     return resp
 
 
+@app.get("/iast/no-samesite-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="none")
+    return resp
+
+
 @app.get("/iast/weak_randomness/test_insecure", response_class=PlainTextResponse)
 def test_weak_randomness_insecure():
     _ = random.randint(1, 100)
@@ -777,35 +800,3 @@ def return_headers(request: Request):
     for key, value in request.headers.items():
         headers[key] = value
     return JSONResponse(headers)
-
-
-@app.get("/mock_s3/put_object", response_class=JSONResponse)
-@app.post("/mock_s3/put_object", response_class=JSONResponse)
-@app.options("/mock_s3/put_object", response_class=JSONResponse)
-def s3_put_object(bucket: str, key: str):
-    body = key
-
-    e: typing.Optional[Exception] = None
-
-    for _ in range(3):
-        # NOTE: there is something strange in the way that boto3 and moto
-        # interact with fastapi. The first time that we run this code,
-        # something isn't quite completely wrapped or instantiated. So we add a
-        # retry. Would be nice not to have to worry about s3 at all.
-        try:
-            with mock_aws():
-                conn = boto3.resource("s3", region_name="us-east-1")
-                conn.create_bucket(Bucket=bucket)
-                response = conn.Bucket(bucket).put_object(Bucket=bucket, Key=key, Body=body.encode("utf-8"))
-
-                # boto adds double quotes to the ETag
-                # so we need to remove them to match what would have done AWS
-                result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
-
-            return JSONResponse(result)
-        except Exception as e:
-            print(e)
-
-    if e is None:
-        raise Exception("no exception but no return either")
-    raise e

@@ -137,22 +137,42 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
   parametric/:
     test_config_consistency.py:
-      Test_Config_RateLimit: missing_feature
-      Test_Config_TraceAgentURL: missing_feature
-      Test_Config_TraceEnabled: missing_feature
+      Test_Config_RateLimit: v1.1.0
+      Test_Config_TraceAgentURL: v1.1.0
+      Test_Config_TraceEnabled: v1.1.0
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
-    test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
+      Test_Config_UnifiedServiceTagging: v1.1.0
+    test_crashtracking.py: missing_feature
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: missing_feature
-    test_otel_sdk_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
+    test_parametric_endpoints.py:
+      Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
+      Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778)  # The expected error status is not set
+      Test_Parametric_DDSpan_Set_Metric: missing_feature (Tracer does not provide a public method for directly setting a span metric)
+      Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource endpoint is not implemented)
+      Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # Cpp parametric app does not support creating a child span from a finished span
+      Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
+      Test_Parametric_DDTrace_Config: missing_feature (config endpoint is not implemented)
+      Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
+      Test_Parametric_DDTrace_Current_Span: missing_feature (current_span endpoint is not implemented)
+      # cpp tracer does not support the OpenTelemetry API, otel parametric endpoints are not implemented
+      Test_Parametric_OtelSpan_Events: missing_feature (otel api is not supported)
+      Test_Parametric_OtelSpan_Is_Recording: missing_feature (otel api is not supported)
+      Test_Parametric_OtelSpan_Set_Attribute: missing_feature (otel api is not supported)
+      Test_Parametric_OtelSpan_Set_Name: missing_feature (otel api is not supported)
+      Test_Parametric_OtelSpan_Set_Status: missing_feature (otel api is not supported)
+      Test_Parametric_OtelSpan_Start_Finish: missing_feature (otel api is not supported)
+      Test_Parametric_Otel_Baggage: missing_feature (otel api is not supported)
+      Test_Parametric_Otel_Current_Span: missing_feature (otel api is not supported)
+      Test_Parametric_Otel_Trace_Flush: missing_feature (otel api is not supported)
+    test_partial_flushing.py:
+      Test_Partial_Flushing: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -172,8 +192,12 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
+          Test_MultipartUpload: missing_feature
+          Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature

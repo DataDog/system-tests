@@ -165,6 +165,7 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_IastStandalone_UpstreamPropagation: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
@@ -194,7 +195,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
-      Test_UpdateRuleFileWithRemoteConfig: v0.8.0
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature (v0.8.0 but lacks telemetry support)
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, but was flaky
@@ -264,15 +265,14 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
-      Test_Config_RateLimit: missing_feature
-      Test_Config_TraceAgentURL: missing_feature
+      Test_Config_RateLimit: v1.5.0
+      Test_Config_TraceAgentURL: v1.4.0
       Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: missing_feature
+      Test_Config_UnifiedServiceTagging: v1.5.0
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
@@ -284,8 +284,6 @@ tests/:
       Test_Otel_API_Interoperability: v0.94.0
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.1.0
-    test_otel_sdk_interoperability.py:
-      Test_Otel_SDK_Interoperability: v0.94.0
     test_otel_span_methods.py:
         Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_baggage.py:
@@ -294,6 +292,16 @@ tests/:
         Test_Otel_Span_With_W3c: v0.94.0
     test_otel_tracer.py:
         Test_Otel_Tracer: v0.94.0
+    test_parametric_endpoints.py:
+      Test_Parametric_DDSpan_Add_Link: bug (APMAPI-778)  # Adding spans links by parent id does not work as expected
+      Test_Parametric_DDSpan_Start: bug (APMAPI-778) # Does not support creating a child span from a finished span
+      Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
+      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778) # current span endpoint should return span and trace id of zero if no span is "active"
+      Test_Parametric_DDTrace_Flush: missing_feature (flush endpoint is not implemented, the lack of this feature introduce flakiness in all tests)
+      Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
+      Test_Parametric_Otel_Current_Span: bug (APMAPI-778) # otel current span endpoint should return a span and trace id of zero if no span is "active"
+    test_partial_flushing.py:
+      Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature
@@ -327,28 +335,32 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
-    test_span_pointers.py:
-      Test_SpanPointers: missing_feature
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
+          Test_MultipartUpload: missing_feature
+          Test_PutObject: missing_feature
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientIPHeader_Configured: missing_feature
-    Test_Config_ClientIPHeader_Precedence: missing_feature (all headers listed in the RFC are not supported)
+    Test_Config_ClientIPHeader_Configured: v1.4.0
+    Test_Config_ClientIPHeader_Precedence: v1.4.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
     Test_Config_ClientTagQueryString_Empty: v1.2.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_HttpServerErrorStatuses_Default: v1.3.0 # Unknown initial version
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: missing_feature
-    Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
-    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
-    Test_Config_UnifiedServiceTagging_Default: missing_feature
+    Test_Config_IntegrationEnabled_False: v1.4.0
+    Test_Config_IntegrationEnabled_True: v1.4.0
+    Test_Config_ObfuscationQueryStringRegexp_Configured: v1.5.0
+    Test_Config_ObfuscationQueryStringRegexp_Empty: v1.5.0
+    Test_Config_UnifiedServiceTagging_CustomService: v1.4.0
+    Test_Config_UnifiedServiceTagging_Default: v1.4.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
   test_identify.py:
@@ -359,11 +371,12 @@ tests/:
     Test_HeaderTags: v0.68.2
     Test_HeaderTags_Colon_Leading: v0.74.0
     Test_HeaderTags_Colon_Trailing: v0.74.0
-    Test_HeaderTags_Long: missing_feature
+    Test_HeaderTags_DynamicConfig: missing_feature
+    Test_HeaderTags_Long: v1.5.0
     Test_HeaderTags_Short: v0.74.0
     Test_HeaderTags_Whitespace_Header: v0.74.0
-    Test_HeaderTags_Whitespace_Tag: missing_feature
-    Test_HeaderTags_Whitespace_Val_Long: missing_feature
+    Test_HeaderTags_Whitespace_Tag: v1.5.0
+    Test_HeaderTags_Whitespace_Val_Long: v1.5.0
     Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   test_profiling.py:
     Test_Profile: bug (Not receiving profiles)

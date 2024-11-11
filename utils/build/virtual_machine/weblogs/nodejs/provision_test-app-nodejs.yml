@@ -5,7 +5,7 @@ lang_variant:
     install: 
       - os_type: linux
         os_distro: deb
-        remote-command: curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && sudo apt-get install -y nodejs  
+        remote-command: curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && sudo apt-get install -y nodejs
       - os_type: linux
         os_distro: rpm
         remote-command: |
@@ -19,9 +19,10 @@ lang_variant:
 
 weblog:
     name: test-app-nodejs
-    #Excluded because we can not run node18 due to gclib version
-    excluded_os_branches: [amazon_linux2_dotnet6, ubuntu18_amd64, amazon_linux2, centos_7_amd64]
-    excluded_os_names: [OracleLinux_7_9_amd64]
+    #Ecluded machines. We can not run node18 due to nodejs requirement: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by node) node: /lib64/libc.so.6: version `GLIBC_2.28' not found (required by node)
+    #RedHat 7.9 excluded by node: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by node)
+    excluded_os_branches: [ubuntu18_amd64, amazon_linux2, centos_7_amd64]
+    excluded_os_names: [OracleLinux_7_9_amd64, RedHat_7_9_amd64]
     install: 
       - os_type: linux
         copy_files:

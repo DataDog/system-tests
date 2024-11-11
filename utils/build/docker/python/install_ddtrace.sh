@@ -4,6 +4,8 @@ set -eu
 
 cd /binaries
 
+export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+
 if [ -e "dd-trace-py" ]; then
     echo "Install from local folder /binaries/dd-trace-py"
     pip install /binaries/dd-trace-py
@@ -21,8 +23,3 @@ else
     echo "ERROR: Found several wheel files in binaries/, abort."
     exit 1
 fi
-
-cd -
-
-# python uses the next API to get the library version. See https://github.com/DataDog/system-tests/issues/2799
-echo "0.0.0" > SYSTEM_TESTS_LIBRARY_VERSION

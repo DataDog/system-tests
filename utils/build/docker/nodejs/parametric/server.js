@@ -305,6 +305,7 @@ app.get('/trace/config', (req, res) => {
       'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
       'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null',
       'dd_trace_agent_url': config?.url !== undefined ? `${config.url.href}` : 'null',
+      'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` :'null'
     }
   });
 });
@@ -323,29 +324,6 @@ app.post("/trace/otel/record_exception", (req, res) => {
   span.recordException(new Error(message))
   res.json({})
 })
-
-// TODO: implement this endpoint correctly, current blockers:
-// 1. Fails on invalid url
-// 2. does not generate span, because http instrumentation turned off
-
-// app.post('/http/client/request', (req, res) => {
-//     const http = require('http')
-
-//         const options = {
-//             method: req.method,
-//             headers: req.headers
-//         }
-//         const request = http.request(req.url, options, response => {
-//             response.on('data', () => {})
-//             response.on('end', () => callback(null, { statusCode: response.statusCode }))
-//         })
-//         request.on('error', e => callback(e))
-//         request.write(JSON.stringify(req.body))
-//         request.end()
-//         res.json({});
-//     }
-
-//   );
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {

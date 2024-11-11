@@ -1,6 +1,7 @@
 weblog:
     name: test-app-python-alpine
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    runtime_version: 3.12
+    excluded_os_branches: [ amazon_linux2023_amd64]
     install: 
       - os_type: linux
         copy_files:
