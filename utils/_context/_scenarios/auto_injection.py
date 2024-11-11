@@ -34,8 +34,11 @@ from utils._context.virtual_machines import (
     AlmaLinux8arm64,
     AlmaLinux9amd64,
     AlmaLinux9arm64,
+    RedHat7_9amd64,
     RedHat86amd64,
     RedHat86arm64,
+    RedHat90amd64,
+    RedHat90arm64,
     Fedora36amd64,
     Fedora36arm64,
     Fedora37amd64,
@@ -82,8 +85,11 @@ class _VirtualMachineScenario(Scenario):
         include_almalinux_8_arm64=False,
         include_almalinux_9_amd64=False,
         include_almalinux_9_arm64=False,
+        include_redhat_7_9_amd64=False,
         include_redhat_8_amd64=False,
         include_redhat_8_arm64=False,
+        include_redhat_9_amd64=False,
+        include_redhat_9_arm64=False,
         include_fedora_36_amd64=False,
         include_fedora_36_arm64=False,
         include_fedora_37_amd64=False,
@@ -160,10 +166,16 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AlmaLinux9amd64())
         if include_almalinux_9_arm64:
             self.required_vms.append(AlmaLinux9arm64())
+        if include_redhat_7_9_amd64:
+            self.required_vms.append(RedHat7_9amd64())
         if include_redhat_8_amd64:
             self.required_vms.append(RedHat86amd64())
         if include_redhat_8_arm64:
             self.required_vms.append(RedHat86arm64())
+        if include_redhat_9_amd64:
+            self.required_vms.append(RedHat90amd64())
+        if include_redhat_9_arm64:
+            self.required_vms.append(RedHat90arm64())
         if include_fedora_36_amd64:
             self.required_vms.append(Fedora36amd64())
         if include_fedora_36_arm64:
@@ -377,8 +389,11 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_almalinux_8_arm64=False,
             include_almalinux_9_amd64=False,
             include_almalinux_9_arm64=False,
+            include_redhat_7_9_amd64=True,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
+            include_redhat_9_amd64=True,
+            include_redhat_9_arm64=True,
             include_fedora_36_amd64=False,
             include_fedora_36_arm64=False,
             include_fedora_37_amd64=False,
@@ -414,7 +429,10 @@ class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
             include_amazon_linux_2_arm64=True,
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
+            include_redhat_7_9_amd64=True,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
+            include_redhat_9_amd64=True,
+            include_redhat_9_arm64=True,
             scenario_groups=scenario_groups,
         )

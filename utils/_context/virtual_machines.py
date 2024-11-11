@@ -568,7 +568,7 @@ class RedHat86amd64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="redhat_8_6",
+            os_branch="redhat",
             os_cpu="amd64",
             default_vm=False,
             **kwargs,
@@ -584,9 +584,57 @@ class RedHat86arm64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="redhat_8_6",
+            os_branch="redhat",
             os_cpu="arm64",
             default_vm=True,
+            **kwargs,
+        )
+
+
+class RedHat90amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_9_0_amd64",
+            aws_config=_AWSConfig(ami_id="ami-03794f9a4e79d4437", ami_instance_type="t3.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class RedHat90arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_9_0_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0ab2ddca4728f99d1", ami_instance_type="t4g.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat",
+            os_cpu="arm64",
+            default_vm=True,
+            **kwargs,
+        )
+
+
+class RedHat7_9amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "RedHat_7_9_amd64",
+            aws_config=_AWSConfig(ami_id="ami-093d725884faee25e", ami_instance_type="t3.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="rhel_7_amd64",
+            os_cpu="amd64",
+            default_vm=False,
             **kwargs,
         )
 
