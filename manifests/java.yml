@@ -1331,7 +1331,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v1.34.0
       TestDynamicConfigTracingEnabled: v1.32.0
       TestDynamicConfigV1: v1.17.0
@@ -1448,6 +1447,7 @@ tests/:
     Test_HeaderTags: missing_feature
     Test_HeaderTags_Colon_Leading: v0.102.0
     Test_HeaderTags_Colon_Trailing: v0.102.0
+    Test_HeaderTags_DynamicConfig: missing_feature
     Test_HeaderTags_Long: v0.102.0
     Test_HeaderTags_Short: v0.102.0
     Test_HeaderTags_Whitespace_Header: v0.102.0

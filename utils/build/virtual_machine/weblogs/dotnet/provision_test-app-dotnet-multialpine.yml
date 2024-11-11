@@ -1,5 +1,6 @@
 weblog:
     name: test-app-dotnet-multialpine
+    nginx_config: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/nginx.conf
     install:
       - os_type: linux
         copy_files:
