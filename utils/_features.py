@@ -2426,13 +2426,13 @@ class features:
         """
         pytest.mark.features(feature_id=328)(test_object)
         return test_object
-    
+
     @staticmethod
     def aws_api_gateway_inferred_span_creation(test_object):
         """
         AWS Api Gateway: Tests that API Gateway inferred span creation works as expected
 
-        https://feature-parity.us1.prod.dog/#/?feature=329
+        https://feature-parity.us1.prod.dog/#/?feature=341
         """
-        pytest.mark.features(feature_id=329)(test_object)
+        pytest.mark.features(feature_id=341)(test_object)
         return test_object
