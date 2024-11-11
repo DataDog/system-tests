@@ -40,7 +40,7 @@ echo "Checking Python files..."
 if [ "$COMMAND" == "fix" ]; then
   black --quiet .
 else
-  black --quiet --check --diff .
+  black --check --diff .
 fi
 
 echo "Running mypy type checks..."
