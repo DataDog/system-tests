@@ -66,6 +66,19 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
+        os_branch: rhel_7_amd64
+        remote-command: |
+          sudo yum install -y libicu krb5-libs openssl-libs zlib
+          #Disable the DEBUG traces due to https://datadoghq.atlassian.net/browse/AIT-10255
+          export DD_APM_INSTRUMENTATION_DEBUG=false
+          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+          chmod +x ./dotnet-install.sh
+          sudo ./dotnet-install.sh --channel 6.0 -InstallDir /opt
+          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
+          sudo ln -s /opt/dotnet /usr/bin/dotnet
+
+      - os_type: linux
+        os_distro: rpm
         remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
 
 weblog:
