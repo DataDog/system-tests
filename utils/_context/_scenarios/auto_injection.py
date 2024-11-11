@@ -25,6 +25,7 @@ from utils._context.virtual_machines import (
     AmazonLinux2amd64,
     AmazonLinux2arm64,
     Centos7amd64,
+    Centos8amd64,
     OracleLinux92amd64,
     OracleLinux92arm64,
     OracleLinux88amd64,
@@ -78,6 +79,7 @@ class _VirtualMachineScenario(Scenario):
         include_amazon_linux_2023_amd64=False,
         include_amazon_linux_2023_arm64=False,
         include_centos_7_amd64=False,
+        include_centos_8_amd64=False,
         include_oraclelinux_9_2_amd64=False,
         include_oraclelinux_9_2_arm64=False,
         include_oraclelinux_8_8_amd64=False,
@@ -151,6 +153,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(AmazonLinux2023arm64())
         if include_centos_7_amd64:
             self.required_vms.append(Centos7amd64())
+        if include_centos_8_amd64:
+            self.required_vms.append(Centos8amd64())
         # Include Oracle Linux (not default vms)
         if include_oraclelinux_9_2_amd64:
             self.required_vms.append(OracleLinux92amd64())
@@ -388,6 +392,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_amazon_linux_2023_amd64=True,
             include_amazon_linux_2023_arm64=True,
             include_centos_7_amd64=True,
+            include_centos_8_amd64=True,
             include_oraclelinux_9_2_amd64=False,
             include_oraclelinux_9_2_arm64=False,
             include_oraclelinux_8_8_amd64=False,
