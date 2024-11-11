@@ -611,7 +611,7 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
-    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
+    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
         vm_provision="host-auto-inject-install-script",
@@ -621,7 +621,7 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
+    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
