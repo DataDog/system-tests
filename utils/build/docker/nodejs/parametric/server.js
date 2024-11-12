@@ -78,7 +78,11 @@ app.post('/trace/span/start', (req, res) => {
   }
 
   const extracted = tracer.extract('http_headers', convertedHeaders)
-  if (extracted !== null) parent = extracted
+  var extractedLinks = []
+  if (extracted !== null) {
+    parent = extracted
+    extractedLinks = parent._links
+  }
 
   const tags = { service: request.service }
   for (const [key, value] of request.span_tags) tags[key] = value
@@ -89,6 +93,10 @@ app.post('/trace/span/start', (req, res) => {
     childOf: parent,
     tags
   })
+
+  for (const link of extractedLinks || []) {
+    span.addLink(link.context, link.attributes)
+  }
 
   for (const link of request.links || []) {
     const linkParentId = link.parent_id;
