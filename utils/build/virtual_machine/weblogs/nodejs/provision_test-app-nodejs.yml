@@ -6,16 +6,58 @@ lang_variant:
       - os_type: linux
         os_distro: deb
         remote-command: sudo apt-get install -y nodejs
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: amazon_linux2
+        remote-command: sudo amazon-linux-extras install epel && sudo yum install nodejs
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: rhel_7_amd64
+        remote-command: |
+          sudo subscription-manager repos --enable rhel-server-rhscl-7-rpms || true
+          sudo subscription-manager repos --enable rhel-7-server-optional-rpms || true
+          sudo yum -y install rh-nodejs8 || sudo yum -y install nodejs
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: redhat
+        remote-command: |
+          sudo dnf module enable nodejs:20
+          sudo dnf install -y nodejs
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: centos_7_amd64
+        remote-command: |
+          #one of the default method for centos 7
+          #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-a-centos-7-server
+          sudo yum -y install epel-release
+          sudo yum -y install nodejs
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: centos_8_amd64
+        remote-command: |
+          #one of the default method for centos 8
+          #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-centos-8
+          sudo dnf module enable nodejs:12
+          sudo dnf -y install nodejs
+
       - os_type: linux
         os_distro: rpm
         remote-command: |
+         #Default installation for amazon linux 2022 and 2023
+         #https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-up-node-on-ec2-instance.html
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm install --no-progress 18.0.0
+          nvm install --lts
           nvm use node
           n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
+          
 
 weblog:
     name: test-app-nodejs
