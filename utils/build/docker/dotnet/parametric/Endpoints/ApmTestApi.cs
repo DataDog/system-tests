@@ -2,6 +2,7 @@ using Datadog.Trace;
 using System.Reflection;
 using System.Threading;
 using Newtonsoft.Json;
+using NodaTime;
 
 namespace ApmTestApi.Endpoints;
 
@@ -359,7 +360,7 @@ public abstract class ApmTestApi
         return keyFound ? foundValue! : String.Empty;
     }
 
-    internal static async Task LoadDependency(HttpRequest httpRequest)
+    internal static string LoadDependency(HttpRequest httpRequest)
     {
         LocalTime time = new LocalTime(16, 20, 0);
 
