@@ -38,6 +38,7 @@ refs:
   - &ref_5_23_0 '>=5.23.0 || ^4.47.0'
   - &ref_5_24_0 '>=5.24.0 || ^4.48.0'
   - &ref_5_25_0 '>=5.25.0 || ^4.49.0'
+  - &ref_5_26_0 '>=5.26.0 || ^4.50.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -521,7 +522,7 @@ tests/:
           '*': irrelevant
           express4: v0.1 # real version not known
     test_api_gateway.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+      Test_AWS_API_Gateway_Inferred_Span_Creation: *ref_5_26_0
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
