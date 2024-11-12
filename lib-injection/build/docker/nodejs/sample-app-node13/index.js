@@ -15,7 +15,7 @@ function forkAndCrash(req, res) {
 
 function getChildPids(req, res) {
   const currentPid = process.pid;
-  const psCommand = `pgrep -P ${currentPid}`;
+  const psCommand = `ps -eo ppid,pid,comm | awk -v ppid=${currentPid} '$1 == ppid {print $2, $3}'`;
 
   exec(psCommand, (error, stdout, stderr) => {
     if (error) {

@@ -50,7 +50,7 @@ public class CrashServlet extends HttpServlet {
             // Get current PID using ManagementFactory
             String jvmName = ManagementFactory.getRuntimeMXBean().getName();
             long currentPid = Long.parseLong(jvmName.split("@")[0]);
-            String command = String.format("pgrep -P %d", currentPid);
+            String command = String.format("ps -eo ppid,pid,comm | awk -v ppid=%d '$1 == ppid {print $2, $3}'", currentPid);
 
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", command);
             processBuilder.redirectErrorStream(true);
