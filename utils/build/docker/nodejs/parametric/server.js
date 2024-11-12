@@ -78,7 +78,7 @@ app.post('/trace/span/start', (req, res) => {
   }
 
   const extracted = tracer.extract('http_headers', convertedHeaders)
-  var extractedLinks = []
+  let extractedLinks = []
   if (extracted !== null) {
     parent = extracted
     extractedLinks = parent._links
