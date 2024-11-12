@@ -1067,11 +1067,11 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_remote_config_rule_changes.py:
-      Test_BlockingActionChangesWithRemoteConfig: 
+      Test_BlockingActionChangesWithRemoteConfig:
         '*': v1.42.0
         play: bug (APPSEC-55789)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_UpdateRuleFileWithRemoteConfig: 
+      Test_UpdateRuleFileWithRemoteConfig:
         '*': v1.42.0
         play: bug (APPSEC-55791)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
