@@ -8,6 +8,7 @@ stages:
   - python_tracer
   - dotnet_tracer
   - php_tracer
+  - test_tracer
   - stats_results
   - parse_results
   - before_tests
@@ -118,6 +119,27 @@ onboarding_java:
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+
+onboarding_simple_tests:
+  extends: .base_job_onboarding_system_tests
+  stage: test_tracer
+  allow_failure: true
+  dependencies: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+  variables:
+    TEST_LIBRARY: "java"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine,test-app-java-multicontainer,test-app-java-multialpine]
+          DEFAULT_VMS: ["True", "False"]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING, SIMPLE_AUTO_INJECTION_PROFILING]
+  script:
+      - ./build.sh -i runner
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms ${DEFAULT_VMS}
+
 onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
