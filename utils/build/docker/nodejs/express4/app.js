@@ -10,6 +10,7 @@ const app = require('express')()
 const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
+const crypto = require('crypto')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
@@ -457,6 +458,16 @@ app.get('/flush', (req, res) => {
 
 app.get('/requestdownstream', async (req, res) => {
   try {
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return res.json(resFetch.data)
+  } catch (e) {
+    return res.status(500).send(e)
+  }
+})
+
+app.get('/vulnerablerequestdownstream', async (req, res) => {
+  try {
+    crypto.createHash('md5').update('password').digest('hex')
     const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
     return res.json(resFetch.data)
   } catch (e) {

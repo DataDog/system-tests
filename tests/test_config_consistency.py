@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug
+from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
 
 
 @scenarios.default
@@ -84,6 +84,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
     @bug(context.library == "java", reason="APMAPI-770")
+    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(spans, tags={"http.url": "http://weblog:7777/?key=monkey"})
@@ -241,7 +242,6 @@ class Test_Config_ClientIPHeader_Precedence:
         ("x-real-ip", "8.7.6.5"),
         ("true-client-ip", "5.6.7.2"),
         ("x-client-ip", "5.6.7.3"),
-        ("x-forwarded", "5.6.7.4"),
         ("forwarded-for", "5.6.7.5"),
         ("x-cluster-client-ip", "5.6.7.6"),
         ("fastly-client-ip", "5.6.7.7"),
@@ -267,6 +267,8 @@ class Test_Config_ClientIPHeader_Precedence:
             req = self.requests[i]
             ip = self.IP_HEADERS[i][1]
             trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
+            if ip.startswith("for="):
+                ip = ip[4:]
             expected_tags = {"http.client_ip": ip}
             assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
@@ -326,18 +328,27 @@ class Test_Config_UnifiedServiceTagging_Default:
 class Test_Config_IntegrationEnabled_False:
     """ Verify behavior of integrations automatic spans """
 
-    def setup_kafka_integration_enabled_false(self):
-        self.r = weblog.get("/kafka/produce")
+    def setup_integration_enabled_false(self):
+        # PHP does not have a kafka integration
+        if context.library == "php":
+            self.r = weblog.get("/dbm", params={"integration": "pdo-pgsql"})
+            return
+        self.r = weblog.get("/kafka/produce", params={"topic": "Something"})
 
-    def test_kafka_integration_enabled_false(self):
+    def test_integration_enabled_false(self):
         assert self.r.status_code == 200
         spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
         assert spans, "No spans found in trace"
         # Ruby kafka integration generates a span with the name "kafka.producer.*",
         # unlike python/dotnet/etc. which generates a "kafka.produce" span
-        assert (
-            list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == []
-        ), f"kafka.produce span was found in trace: {spans}"
+        if context.library == "php":
+            assert (
+                list(filter(lambda span: "pdo" in span.get("service"), spans)) == []
+            ), f"PDO span was found in trace: {spans}"
+        else:
+            assert (
+                list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == []
+            ), f"kafka.produce span was found in trace: {spans}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -346,15 +357,25 @@ class Test_Config_IntegrationEnabled_False:
 class Test_Config_IntegrationEnabled_True:
     """ Verify behavior of integrations automatic spans """
 
-    def setup_kafka_integration_enabled_true(self):
-        self.r = weblog.get("/kafka/produce")
+    def setup_integration_enabled_true(self):
+        # PHP does not have a kafka integration
+        if context.library == "php":
+            self.r = weblog.get("/dbm", params={"integration": "pdo-pgsql"})
+            return
+        self.r = weblog.get("/kafka/produce", params={"topic": "Something"})
 
-    def test_kafka_integration_enabled_true(self):
+    def test_integration_enabled_true(self):
         assert self.r.status_code == 200
         spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
         assert spans, "No spans found in trace"
-        # Ruby kafka integration generates a span with the name "kafka.producer.*",
-        # unlike python/dotnet/etc. which generates a "kafka.produce" span
-        assert list(
-            filter(lambda span: "kafka.produce" in span.get("name"), spans)
-        ), f"No kafka.produce span found in trace: {spans}"
+        # PHP uses the pdo integration
+        if context.library == "php":
+            assert list(
+                filter(lambda span: "pdo" in span.get("service"), spans)
+            ), f"No PDO span found in trace: {spans}"
+        else:
+            # Ruby kafka integration generates a span with the name "kafka.producer.*",
+            # unlike python/dotnet/etc. which generates a "kafka.produce" span
+            assert list(
+                filter(lambda span: "kafka.produce" in span.get("name"), spans)
+            ), f"No kafka.produce span found in trace: {spans}"

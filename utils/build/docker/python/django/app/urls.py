@@ -731,6 +731,68 @@ def s3_put_object(request):
     return JsonResponse(result)
 
 
+def s3_copy_object(request):
+    original_bucket = request.GET.get("original_bucket")
+    original_key = request.GET.get("original_key")
+    body = request.GET.get("original_key")
+
+    copy_source = {
+        "Bucket": original_bucket,
+        "Key": original_key,
+    }
+
+    bucket = request.GET.get("bucket")
+    key = request.GET.get("key")
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=original_bucket)
+        conn.Bucket(original_bucket).put_object(Bucket=original_bucket, Key=original_key, Body=body.encode("utf-8"))
+
+        if bucket != original_bucket:
+            conn.create_bucket(Bucket=bucket)
+        response = conn.Object(bucket, key).copy_from(CopySource=copy_source)
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response["CopyObjectResult"]["ETag"].replace('"', ""),}}
+
+    return JsonResponse(result)
+
+
+def s3_multipart_upload(request):
+    bucket = request.GET.get("bucket")
+    key = request.GET.get("key")
+    body_base = request.GET.get("key")
+    body = (body_base + "x" * 15_000_000).encode("utf-8")  # 15MB of padding
+
+    split_index = len(body) // 2
+    body_part_1 = body[:split_index]
+    body_part_2 = body[split_index:]
+
+    with mock_aws():
+        conn = boto3.resource("s3", region_name="us-east-1")
+        conn.create_bucket(Bucket=bucket)
+
+        multipart_upload = conn.Object(bucket, key).initiate_multipart_upload()
+        part_1_response = multipart_upload.Part(1).upload(Body=body_part_1)
+        part_2_response = multipart_upload.Part(2).upload(Body=body_part_2)
+        response = multipart_upload.complete(
+            MultipartUpload={
+                "Parts": [
+                    {"PartNumber": 1, "ETag": part_1_response["ETag"]},
+                    {"PartNumber": 2, "ETag": part_2_response["ETag"]},
+                ],
+            },
+        )
+
+        # boto adds double quotes to the ETag
+        # so we need to remove them to match what would have done AWS
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+
+    return JsonResponse(result)
+
+
 urlpatterns = [
     path("", hello_world),
     path("sample_rate_route/<int:i>", sample_rate),
@@ -801,4 +863,6 @@ urlpatterns = [
     path("custom_event", track_custom_event),
     path("read_file", read_file),
     path("mock_s3/put_object", s3_put_object),
+    path("mock_s3/copy_object", s3_copy_object),
+    path("mock_s3/multipart_upload", s3_multipart_upload),
 ]

@@ -1,8 +1,9 @@
 """
 Test configuration consistency for features across supported APM SDKs.
 """
+
 import pytest
-from utils import scenarios, features, context, bug
+from utils import scenarios, features, context, bug, missing_feature, irrelevant
 from utils.parametric.spec.trace import find_span_in_traces
 from urllib.parse import urlparse
 
@@ -81,11 +82,14 @@ class Test_Config_UnifiedServiceTagging:
 
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         assert span["service"] != "version_test"
-        assert "version" not in span["meta"]
+        # in Node.js version can automatically be grabbed from the package.json on default, thus this test does not apply
+        if test_library.lang != "nodejs":
+            assert "version" not in span["meta"]
         assert "env" not in span["meta"]
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
+    @missing_feature(library="ruby")
     def test_specific_version(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="s1") as s1:
@@ -97,6 +101,7 @@ class Test_Config_UnifiedServiceTagging:
         assert len(traces) == 2
 
         span1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+
         assert span1["service"] == "version_test"
         assert span1["meta"]["version"] == "5.2.0"
 
@@ -121,8 +126,13 @@ class Test_Config_UnifiedServiceTagging:
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_TraceAgentURL:
-    # DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
-    @bug(context.library == "golang", reason="APMAPI-390")
+    """
+    DD_TRACE_AGENT_URL is validated using the tracer configuration.
+    This approach avoids the need to modify the setup file to create additional containers at the specified URL,
+    which would be unnecessarily complex.
+    """
+
+    @missing_feature(library="ruby")
     @parametrize(
         "library_env",
         [
@@ -169,8 +179,12 @@ class Test_Config_RateLimit:
             resp = t.get_tracer_config()
         assert resp["dd_trace_rate_limit"] == "100"
 
+    @irrelevant(
+        context.library == "php",
+        reason="PHP backfill model does not support strict two-trace limit, see test below for its behavior",
+    )
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
-    def test_setting_trace_rate_limit(self, library_env, test_agent, test_library):
+    def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="s1") as s1:
                 pass
@@ -180,6 +194,7 @@ class Test_Config_RateLimit:
         traces = test_agent.wait_for_num_traces(2)
         trace_0_sampling_priority = traces[0][0]["metrics"]["_sampling_priority_v1"]
         trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
+
         assert trace_0_sampling_priority == 2
         assert trace_1_sampling_priority == -1
 
@@ -196,3 +211,21 @@ class Test_Config_RateLimit:
         trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
         assert trace_0_sampling_priority == 1
         assert trace_1_sampling_priority == 1
+
+    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    def test_setting_trace_rate_limit(self, library_env, test_agent, test_library):
+        # In PHP the rate limiter is continuously backfilled, i.e. if the rate limit is 2, and 0.2 seconds have passed, an allowance of 0.4 is backfilled.
+        # As long as the amount of allowance is greater than zero, the request is allowed.
+        # Meaning that if the rate limit is 2 and you do two requests within 0.2 seconds, the remaining limit is 0.4, allowing for one more request.
+        # Then it gets negative and no more requests are allowed until 0.3 seconds later, when it's positive again.
+
+        with test_library:
+            # Generate three traces to demonstrate rate limiting in PHP's backfill model
+            for i in range(3):
+                with test_library.start_span(name=f"s{i+1}") as span:
+                    pass
+
+        traces = test_agent.wait_for_num_traces(3)
+        assert any(
+            trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces
+        ), "Expected at least one trace to be rate-limited with sampling priority -1."

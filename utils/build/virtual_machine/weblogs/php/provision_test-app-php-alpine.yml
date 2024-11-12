@@ -1,9 +1,8 @@
 weblog:
     name: test-app-php-alpine
-    exact_os_branches: [ubuntu24]
+    runtime_version: 8.3
     install:
       - os_type: linux
-
         copy_files:
           - name: copy-container-run-script
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
