@@ -988,14 +988,14 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
 
 class APMTestAgentContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
+    def __init__(self, host_log_folder, agent_port = 8126) -> None:
         super().__init__(
             image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
             environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket"},
-            healthcheck={"test": f"curl --fail --silent --show-error http://localhost:8126/info", "retries": 60,},
-            ports={"8126": ("127.0.0.1", 8126)},
+            healthcheck={"test": f"curl --fail --silent --show-error http://localhost:{agent_port}/info", "retries": 60,},
+            ports={"8126": ("127.0.0.1", agent_port)},
             allow_old_container=False,
             volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
         )

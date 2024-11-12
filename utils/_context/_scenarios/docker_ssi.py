@@ -1,9 +1,11 @@
 import json
 import time
+import os
 
 import docker
 from docker.errors import BuildError
 
+import utils.tools
 from utils import context, interfaces
 from utils._context.library_version import LibraryVersion, Version
 from utils._context.containers import (
@@ -28,8 +30,13 @@ class DockerSSIScenario(Scenario):
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
+        if "GITLAB_CI" in os.environ:
+            self.agent_port = utils.tools.get_free_port()
+        else:
+            self.agent_port = 8126
+
         self._required_containers: list[TestedContainer] = []
-        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port))
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
         self._tested_components = {}
@@ -143,7 +150,7 @@ class DockerSSIScenario(Scenario):
     def post_setup(self):
         logger.stdout("--- Waiting for all traces to be sent to test agent ---")
         time.sleep(5)  # wait for the traces to be sent to the test agent
-        interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent")
+        interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent", agent_port=self.agent_port)
 
     @property
     def library(self):
