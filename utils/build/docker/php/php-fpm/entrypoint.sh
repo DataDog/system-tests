@@ -9,7 +9,7 @@ fi
 chmod a+rx /root
 
 rm -f /tmp/ddappsec.lock
-LOGS_PHP=(/tmp/appsec.log /tmp/helper.log /tmp/php_error.log)
+LOGS_PHP=(/tmp/appsec.log /tmp/helper.log /tmp/php_error.log /tmp/tracer.log)
 touch "${LOGS_PHP[@]}"
 chown www-data:www-data "${LOGS_PHP[@]}"
 
