@@ -367,7 +367,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         github_workflow=None,
     ) -> None:
         # Force full tracing without limits
-        app_env_defaults = {"DD_TRACE_RATE_LIMIT": "1000000000000", "DD_TRACE_SAMPLING_RULES": "[{'sample_rate':1}]"}
+        app_env_defaults = {"DD_TRACE_RATE_LIMIT": "1000000000000", "DD_TRACE_SAMPLING_RULES": "[{'sample_rate':1}]", "DD_TRACE_DEBUG": "true"}
         if app_env is not None:
             app_env_defaults.update(app_env)
 
@@ -437,7 +437,7 @@ class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
         github_workflow=None,
     ) -> None:
         # Force full tracing without limits
-        app_env_defaults = {"DD_TRACE_RATE_LIMIT": "1000000000000", "DD_TRACE_SAMPLING_RULES": "[{'sample_rate':1}]"}
+        app_env_defaults = {"DD_TRACE_RATE_LIMIT": "1000000000000", "DD_TRACE_SAMPLING_RULES": "[{'sample_rate':1}]", "DD_TRACE_DEBUG": "true"}
         if app_env is not None:
             app_env_defaults.update(app_env)
 
