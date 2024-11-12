@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,11 +20,12 @@ public class JettyServletMain {
   public static void main(String[] args) throws Exception {
 
     for (String arg : args) {
-        if (arg.equals("--crash")) {
-            ProcessHandle current = ProcessHandle.current();
-            Runtime.getRuntime().exec("kill -11 " + current.pid());
-            break;
-        }
+      if (arg.equals("--crash")) {
+          String jvmName = ManagementFactory.getRuntimeMXBean().getName();
+          long pid = Long.parseLong(jvmName.split("@")[0]);
+          Runtime.getRuntime().exec("kill -11 " + pid);
+          break;
+      }
     }
 
     // Create a server that listens on port 8080.

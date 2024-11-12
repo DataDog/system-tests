@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -12,6 +13,7 @@ import javax.servlet.ServletException;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
+
 
 
 public class CrashServlet extends HttpServlet {
@@ -44,37 +46,35 @@ public class CrashServlet extends HttpServlet {
 
     private void handleChildPids(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-                try {
-        long currentPid = ProcessHandle.current().pid();
-        String command = String.format("ps --ppid %d --no-headers", currentPid);
+        try {
+            // Get current PID using ManagementFactory
+            String jvmName = ManagementFactory.getRuntimeMXBean().getName();
+            long currentPid = Long.parseLong(jvmName.split("@")[0]);
+            String command = String.format("ps --ppid %d --no-headers", currentPid);
 
-        ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", command);
-        processBuilder.redirectErrorStream(true);
-        Process process = processBuilder.start();
+            ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", command);
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
 
-        // Capture the output
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        StringBuilder output = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            output.append(line).append("\n");
-        }
+            // Capture the output
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
 
-        int exitCode = process.waitFor();
+            int exitCode = process.waitFor();
 
-        if (exitCode == 0) {
-            resp.setContentType("text/plain");
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().println(output.toString());
-        } else {
-            resp.setContentType("text/plain");
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().println("Command failed with exit code: " + exitCode + "\n" + output.toString());
-        }
-
-        resp.setContentType("text/plain");
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.getWriter().println(ProcessHandle.current().pid());
+            if (exitCode == 0) {
+                resp.setContentType("text/plain");
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.getWriter().println(output.toString());
+            } else {
+                resp.setContentType("text/plain");
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.getWriter().println("Command failed with exit code: " + exitCode + "\n" + output.toString());
+            }
         } catch (InterruptedException e) {
             resp.setContentType("text/plain");
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -83,25 +83,25 @@ public class CrashServlet extends HttpServlet {
     }
 
     private static String forkAndCrash()
-      throws IOException {
+            throws IOException {
         try {
-          String commandLine = new String(Files.readAllBytes(Paths.get("/proc/self/cmdline")));
-          
-          // Split by null characters, since arguments in /proc/self/cmdline are separated by \0
-          String[] command = commandLine.split("\0");
+            String commandLine = new String(Files.readAllBytes(Paths.get("/proc/self/cmdline")));
 
-          // Add an additional argument to indicate that the child should crash
-          String[] modifiedCommand = Arrays.copyOf(command, command.length + 1);
-          modifiedCommand[command.length] = "--crash";
+            // Split by null characters, since arguments in /proc/self/cmdline are separated by \0
+            String[] command = commandLine.split("\0");
 
-          ProcessBuilder processBuilder = new ProcessBuilder(modifiedCommand);
-          processBuilder.inheritIO();
+            // Add an additional argument to indicate that the child should crash
+            String[] modifiedCommand = Arrays.copyOf(command, command.length + 1);
+            modifiedCommand[command.length] = "--crash";
 
-          Process process = processBuilder.start();
-          int exitCode = process.waitFor();
-          return "Child process exited with code: " + exitCode;
+            ProcessBuilder processBuilder = new ProcessBuilder(modifiedCommand);
+            processBuilder.inheritIO();
+
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+            return "Child process exited with code: " + exitCode;
         } catch (InterruptedException e) {
-          return "Interrupted";
+            return "Interrupted";
         }
     }
 }
