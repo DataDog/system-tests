@@ -2435,6 +2435,8 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=341
         """
         pytest.mark.features(feature_id=341)(test_object)
+        
+        return test_object
 
     @staticmethod
     def parametric_endpoint_parity(test_object):
