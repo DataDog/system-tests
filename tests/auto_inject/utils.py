@@ -57,12 +57,13 @@ class AutoInjectBaseTest:
         response = requests.get(base_url, timeout=30)
 
         if "application/json" in response.headers["content-type"]:
-            response_json = response
+            response_json = response.json()
 
             logger.info(f"There is a multicontainer app: {response_json}")
+            endpoints = response_json.get("apps", [])
             responses = []
 
-            for app in response_json["apps"]:
+            for app in endpoints:
                 endpoint_url = f"{base_url}{app['url']}/{path}"
                 endpoint_response = requests.get(endpoint_url, timeout=120)
                 responses.append(endpoint_response.text)
