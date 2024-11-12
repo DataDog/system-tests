@@ -91,7 +91,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         bugs=[
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_install_after_ld_preload(self, virtual_machine):
@@ -106,7 +106,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_remove_ld_preload(self, virtual_machine):

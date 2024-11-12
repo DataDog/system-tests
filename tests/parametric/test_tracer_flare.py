@@ -70,8 +70,7 @@ def _java_tracer_flare_filenames() -> Set:
 
 
 def _set_log_level(test_agent, log_level: str) -> int:
-    """Helper to create the appropriate "flare-log-level" config in RC for a given log-level.
-    """
+    """Helper to create the appropriate "flare-log-level" config in RC for a given log-level."""
     cfg_id = uuid4().hex
     test_agent.set_remote_config(
         path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={"name": cfg_id, "config": {"log_level": log_level}}
@@ -81,15 +80,13 @@ def _set_log_level(test_agent, log_level: str) -> int:
 
 
 def _clear_log_level(test_agent, cfg_id: int) -> None:
-    """Helper to clear a previously set "flare-log-level" config from RC.
-    """
+    """Helper to clear a previously set "flare-log-level" config from RC."""
     test_agent.set_remote_config(path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={})
     test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, clear=True, post_only=True)
 
 
 def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
-    """Helper to create an agent task in RC with the given task arguments.
-    """
+    """Helper to create an agent task in RC with the given task arguments."""
     task_config["uuid"] = uuid4().hex
     task_id = hash(json.dumps(task_config))
     test_agent.add_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
@@ -98,15 +95,13 @@ def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
 
 
 def _clear_task(test_agent, task_id) -> None:
-    """Helper to clear a previously created agent task config from RC.
-    """
+    """Helper to clear a previously created agent task config from RC."""
     test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload={})
     test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2, clear=True, post_only=True)
 
 
 def trigger_tracer_flare_and_wait(test_agent, task_overrides: Dict[str, Any]) -> Dict:
-    """Creates a "trace_flare" agent task and waits for the tracer flare to be uploaded.
-    """
+    """Creates a "trace_flare" agent task and waits for the tracer flare to be uploaded."""
     task_config = _tracer_flare_task_config()
     task_args = task_config["args"]
     for k, v in task_overrides.items():
@@ -154,7 +149,6 @@ class TestTracerFlareV1:
         assert len(events) > 0
 
     @missing_feature(library="php", reason="APMLP-195")
-    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_flare_log_level_order(self, library_env, test_agent, test_library):
         test_agent.set_remote_config(
@@ -164,7 +158,6 @@ class TestTracerFlareV1:
 
     @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
-    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare(self, library_env, test_agent, test_library):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
@@ -172,7 +165,6 @@ class TestTracerFlareV1:
 
     @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
-    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_with_debug(self, library_env, test_agent, test_library):
         log_cfg_id = _set_log_level(test_agent, "debug")
@@ -208,7 +200,6 @@ class TestTracerFlareV1:
             assert_expected_files(tracer_flare["flare_file"], files)
 
     @missing_feature(library="php", reason="APMLP-195")
-    @bug(context.library > "cpp@0.2.2", reason="APMAPI-833")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_no_tracer_flare_for_other_task_types(self, library_env, test_agent, test_library):
         task_config = {

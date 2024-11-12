@@ -301,13 +301,6 @@ class APMLibraryClient:
         resp = resp.json()
         return resp["value"]
 
-    def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
-        resp = self._session.post(
-            self._url("/http/client/request"),
-            json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
-        ).json()
-        return resp
-
     def get_tracer_config(self) -> Dict[str, Optional[str]]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
@@ -536,11 +529,3 @@ class APMLibrary:
             return self._client.is_alive()
         except Exception:
             return False
-
-    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
-
-    def http_client_request(
-        self, url: str, method: str = "GET", headers: List[Tuple[str, str]] = None, body: Optional[bytes] = b"",
-    ):
-        """Do an HTTP request with the given method and headers."""
-        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body,)

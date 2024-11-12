@@ -249,7 +249,7 @@ tests/:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: v3.4.0
-      Test_UpdateRuleFileWithRemoteConfig: bug (APPSEC-55276)
+      Test_UpdateRuleFileWithRemoteConfig: v3.5.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
       Test_Info: v2.0.0
@@ -333,7 +333,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v3.2.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: missing_feature
       TestDynamicConfigSamplingRules: v2.53.2
       TestDynamicConfigTracingEnabled: v2.49.0
       TestDynamicConfigV1: v2.33.0
@@ -402,13 +401,13 @@ tests/:
     Test_Config_ClientIPHeader_Configured: v3.4.1
     Test_Config_ClientIPHeader_Precedence: v3.4.1
     Test_Config_ClientTagQueryString_Configured: missing_feature (configuration DNE)
-    Test_Config_ClientTagQueryString_Empty: missing_feature (Not actually passing telemetry test so disabling until I do)
-    Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_IntegrationEnabled_False: missing_feature (Need to update the casing of the integration to Upper case)
-    Test_Config_IntegrationEnabled_True: missing_feature (Need to update the casing of the integration to Upper case)
+    Test_Config_ClientTagQueryString_Empty: v3.5.0
+    Test_Config_HttpClientErrorStatuses_Default: v3.5.0
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v3.5.0
+    Test_Config_HttpServerErrorStatuses_Default: v3.5.0
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
+    Test_Config_IntegrationEnabled_False: v3.5.0
+    Test_Config_IntegrationEnabled_True: v3.5.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
@@ -425,6 +424,7 @@ tests/:
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
     Test_HeaderTags_Colon_Trailing: bug (AIT-8600)
+    Test_HeaderTags_DynamicConfig: missing_feature
     Test_HeaderTags_Long: v2.1.0
     Test_HeaderTags_Short: v2.1.0
     Test_HeaderTags_Whitespace_Header: v2.1.0
