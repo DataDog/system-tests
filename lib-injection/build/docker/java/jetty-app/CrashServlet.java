@@ -50,7 +50,7 @@ public class CrashServlet extends HttpServlet {
             // Get current PID using ManagementFactory
             String jvmName = ManagementFactory.getRuntimeMXBean().getName();
             long currentPid = Long.parseLong(jvmName.split("@")[0]);
-            String command = String.format("ps -eo ppid,pid,comm | awk -v ppid=%d '$1 == ppid {print $2, $3}'", currentPid);
+            String command = "ps -eo ppid,pid,comm";
 
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", command);
             processBuilder.redirectErrorStream(true);
@@ -60,8 +60,27 @@ public class CrashServlet extends HttpServlet {
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder output = new StringBuilder();
             String line;
+
+            // Parse the output manually to find child processes of currentPid
             while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
+                line = line.trim();
+                String[] parts = line.split("\\s+", 3); // Split into PPID, PID, and command name
+                if (parts.length >= 3) {
+                    try {
+                        long ppid = Long.parseLong(parts[0]);
+                        long pid = Long.parseLong(parts[1]);
+                        String commandName = parts[2];
+
+                        // If PPID matches current process ID, add to the output
+                        if (ppid == currentPid) {
+                            output.append("PID: ").append(pid)
+                                  .append(", Command: ").append(commandName)
+                                  .append("\n");
+                        }
+                    } catch (NumberFormatException e) {
+                        // Ignore lines that do not contain valid numbers in PPID/PID fields
+                    }
+                }
             }
 
             int exitCode = process.waitFor();

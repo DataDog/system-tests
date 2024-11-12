@@ -15,15 +15,33 @@ function forkAndCrash(req, res) {
 
 function getChildPids(req, res) {
   const currentPid = process.pid;
-  const psCommand = `ps -eo ppid,pid,comm | awk -v ppid=${currentPid} '$1 == ppid {print $2, $3}'`;
+  const psCommand = `ps -eo ppid,pid,comm`;
 
   exec(psCommand, (error, stdout, stderr) => {
     if (error) {
       res.writeHead(500, { 'Content-Type': 'text/plain' });
       res.end(`Error executing command: ${error.message}`);
     } else {
+      const lines = stdout.split('\n');
+      const childPids = [];
+
+      lines.forEach(line => {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 3) {
+          const ppid = parseInt(parts[0], 10);
+          const pid = parseInt(parts[1], 10);
+          const command = parts.slice(2).join(' ');
+
+          // If the PPID matches the current process ID, it is a child process
+          if (ppid === currentPid) {
+            childPids.push({ pid, command });
+          }
+        }
+      });
+
+      const response = childPids.map(proc => `PID: ${proc.pid}, Command: ${proc.command}`).join('\n');
       res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end(stdout);
+      res.end(response);
     }
   });
 }
