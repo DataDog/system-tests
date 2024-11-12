@@ -6,7 +6,7 @@ from utils import context, features, missing_feature, weblog
 from ..utils import BaseSinkTest, assert_iast_vulnerability
 
 
-class BaseTestHeaderInjectionReflectedExclusion:
+class _BaseTestHeaderInjectionReflectedExclusion:
     origin_header: None
     reflected_header: None
     headers: None
@@ -68,7 +68,7 @@ class TestHeaderInjection(BaseSinkTest):
 
 
 @features.iast_sink_header_injection
-class TestHeaderInjectionExclusionAccessControlAllow(BaseTestHeaderInjectionReflectedExclusion):
+class TestHeaderInjectionExclusionAccessControlAllow(_BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Access-Control-Allow-* reflexion exclusion"""
 
     origin_header = "x-custom-header"
@@ -77,7 +77,7 @@ class TestHeaderInjectionExclusionAccessControlAllow(BaseTestHeaderInjectionRefl
 
 
 @features.iast_sink_header_injection
-class TestHeaderInjectionExclusionContentEncoding(BaseTestHeaderInjectionReflectedExclusion):
+class TestHeaderInjectionExclusionContentEncoding(_BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Content-Encoding reflexion exclusion"""
 
     origin_header = "accept-encoding"
@@ -86,7 +86,7 @@ class TestHeaderInjectionExclusionContentEncoding(BaseTestHeaderInjectionReflect
 
 
 @features.iast_sink_header_injection
-class TestHeaderInjectionExclusionPragma(BaseTestHeaderInjectionReflectedExclusion):
+class TestHeaderInjectionExclusionPragma(_BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Pragma reflexion exclusion"""
 
     origin_header = "cache-control"
@@ -95,7 +95,7 @@ class TestHeaderInjectionExclusionPragma(BaseTestHeaderInjectionReflectedExclusi
 
 
 @features.iast_sink_header_injection
-class TestHeaderInjectionExclusionTransferEncoding(BaseTestHeaderInjectionReflectedExclusion):
+class TestHeaderInjectionExclusionTransferEncoding(_BaseTestHeaderInjectionReflectedExclusion):
     """Verify Header injection Transfer-Encoding reflexion exclusion"""
 
     origin_header = "accept-encoding"
