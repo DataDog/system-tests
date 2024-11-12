@@ -31,7 +31,7 @@ function getChildPids(req, res) {
 require('http').createServer((req, res) => {
   if (req.url === '/fork_and_crash') {
     forkAndCrash(req, res);
-   } else if (req.url === '/child-pids') {
+   } else if (req.url === '/child_pids') {
     getChildPids(req, res);    
   } else {
     res.end('Hello, world!\n')

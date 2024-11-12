@@ -73,7 +73,7 @@ public class CrashServlet extends HttpServlet {
             } else {
                 resp.setContentType("text/plain");
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                resp.getWriter().println("Command failed with exit code: " + exitCode + "\n" + output.toString());
+                resp.getWriter().println("Command " + command + " failed with exit code: " + exitCode + "\n" + output.toString());
             }
         } catch (InterruptedException e) {
             resp.setContentType("text/plain");
