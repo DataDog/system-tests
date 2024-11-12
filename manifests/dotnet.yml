@@ -301,8 +301,6 @@ tests/:
           "*": v0.1  # version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": v2.48.0
-    test_api_gateway.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -322,6 +320,8 @@ tests/:
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+    test_inferred_proxy.py:
+      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
   k8s_lib_injection/:
     test_k8s_manual_inject.py:
       TestAdmisionControllerProfiling: missing_feature

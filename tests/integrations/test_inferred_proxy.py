@@ -23,7 +23,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation:
             "x-dd-proxy": "aws-apigateway",
         }
 
-        self.r = weblog.get(f"/api-gateway/span-creation?status_code=200", headers=headers, timeout=60,)
+        self.r = weblog.get(f"/inferred-proxy/span-creation?status_code=200", headers=headers, timeout=60,)
 
     def test_api_gateway_inferred_span_creation(self):
         assert self.r.text == "ok"
