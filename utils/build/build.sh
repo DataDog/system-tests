@@ -204,8 +204,9 @@ build() {
 
             if ! [[ -z "$BINARY_PATH" ]]; then
                 cd binaries
-                clean-binaries
-                cp -rL $BINARY_PATH ./dd-trace-rb
+                #clean-binaries
+                #cp -rL $BINARY_PATH ./dd-trace-rb
+		rsync -avL $BINARY_PATH/ dd-trace-rb --exclude .git
                 cd ..
             fi
 
