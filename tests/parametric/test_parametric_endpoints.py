@@ -530,7 +530,7 @@ class Test_Parametric_OtelSpan_Set_Status:
 
         Supported Parameters:
         - span_id: Union[int, str]
-        - code: Literal[StatusCode]]
+        - code: Literal[StatusCode]
         - description: str
         Supported Return Values:
         """
