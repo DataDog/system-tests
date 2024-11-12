@@ -105,7 +105,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
     @parametrize_virtual_machines(
         bugs=[
-            {"vm_name": "ubuntu24", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
+            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
