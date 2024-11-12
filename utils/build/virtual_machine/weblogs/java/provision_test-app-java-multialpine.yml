@@ -8,11 +8,11 @@ lang_variant:
         remote-command: |
           echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
           sudo apt update
-          sudo apt -y install openjdk-8-jdk-headless
+          sudo apt -y install openjdk-8-jdk-headless openjdk-8-jre-headless
 
       - os_type: linux
         os_distro: deb
-        remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-8-jdk-headless
+        remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-8-jdk-headless openjdk-8-jre-headless
 
       - os_type: linux
         os_distro: rpm
@@ -26,7 +26,7 @@ lang_variant:
 weblog:
     name: test-app-java-multialpine
     nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf
-    install: 
+    install:
       - os_type: linux
         copy_files:
           - name: copy-multicontainer-run-script
