@@ -123,7 +123,9 @@ class DockerSSIScenario(Scenario):
 
     def fix_gitlab_network(self):
         self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip())
+        logger.debug(f"GITLAB_CI: Rewrote weblog url to {self.weblog_url}")
         self.agent_host = self._agent_container.network_ip()
+        logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
     def close_targets(self):
         for container in reversed(self._required_containers):
