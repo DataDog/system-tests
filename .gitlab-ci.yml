@@ -137,8 +137,8 @@ java_docker_ssi:
 
 check-environment:
   tags: [ "runner:docker" ]
-  image: $DOCKER_REGISTRY/docker:24.0.5
-  stage: build
+  image: registry.ddbuild.io/docker:24.0.5
+  stage: java_tracer
   script:
     - export BUILD_CONTAINER=$(docker container ls --format '{{json .}}' | jq --slurp '.[] | select(.Names | endswith("-build")) | .ID' --raw-output)
     - echo "FULL OUTPUT"
