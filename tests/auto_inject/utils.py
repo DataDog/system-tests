@@ -20,39 +20,24 @@ class AutoInjectBaseTest:
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
+        vm_context_url = f"http://{vm_ip}:{vm_port}{virtual_machine.get_current_deployed_weblog().app_context_url}"
         header = "----------------------------------------------------------------------"
         vm_logger(context.scenario.name, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the install for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
-        request_uuids = []
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
             logger.info(
                 f"We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
             )
-            request_uuids.append(make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port))
+            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
             wait_for_port(vm_port, vm_ip, 80.0)
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
-            responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-            if responseJson is not None:
-                logger.info(f"There is a multicontainer app: {responseJson}")
-                for app in responseJson["apps"]:
-                    warmup_weblog(f"http://{vm_ip}:{vm_port}{app['url']}")
-                    logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
-                    request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
-                    time.sleep(1)
-            else:
-                logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
-                request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}/"))
-
-        for request_uuid in request_uuids:
+            warmup_weblog(vm_context_url)
+            request_uuid = make_get_request(vm_context_url)
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-            wait_backend_trace_id(request_uuid, 120.0, profile=profile)
-            # Some flakyness here: Sometimes the tracers are not in the backend.
-            # Sometimes the backend respose with 429 (too many requests)
-            # Not clear if this fix this issue
-            time.sleep(1)
+        wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
     def warmup(self, virtual_machine):
         vm_ip = virtual_machine.get_ip()

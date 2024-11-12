@@ -13,7 +13,7 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
         bugs=[
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_install(self, virtual_machine):
@@ -112,7 +112,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_install_uninstall(self, virtual_machine):
@@ -133,10 +133,14 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_install(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        logger.info(
+            f"Launching test_install for : [{virtual_machine.name}] [{virtual_machine.get_current_deployed_weblog().runtime_version}]..."
+        )
         self._test_install(virtual_machine)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+        logger.info(
+            f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_current_deployed_weblog().runtime_version}]"
+        )

@@ -697,7 +697,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: flaky (APMAPI-734)
       TestDynamicConfigSamplingRules: v2.9.0
       TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
@@ -725,8 +724,6 @@ tests/:
       Test_Otel_API_Interoperability: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.9.0
-    test_otel_sdk_interoperability.py:
-      Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
     test_otel_span_with_baggage.py:
@@ -735,6 +732,9 @@ tests/:
       Test_Otel_Span_With_W3c: v2.8.0
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
+    test_parametric_endpoints.py:
+      Test_Parametric_DDTrace_Baggage: v2.16.0
+      Test_Parametric_Otel_Baggage: v2.15.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
     test_sampling_delegation.py:
@@ -784,6 +784,11 @@ tests/:
             django-poc: v2.15.0
             flask-poc: v2.15.0
             python3.12: v2.15.0
+          Test_MultipartUpload:
+            '*': missing_feature
+            django-poc: v2.15.0
+            flask-poc: v2.15.0
+            python3.12: v2.15.0
           Test_PutObject:
             '*': missing_feature
             django-poc: v2.14.0
@@ -825,6 +830,7 @@ tests/:
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0
+    Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
     Test_HeaderTags_Whitespace_Header: missing_feature
