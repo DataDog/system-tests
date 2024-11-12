@@ -25,6 +25,7 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+        app.MapGet("/load_dependency", LoadDependency);
     }
 
     // Core types
@@ -356,5 +357,19 @@ public abstract class ApmTestApi
         var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
 
         return keyFound ? foundValue! : String.Empty;
+    }
+
+    internal static async Task LoadDependency(HttpRequest httpRequest)
+    {
+        LocalTime time = new LocalTime(16, 20, 0);
+
+        var result = JsonConvert.SerializeObject(new
+        {
+            success = true,
+        });
+
+        _logger?.LogInformation("LoadDependency: {result}", result);
+
+        return result;
     }
 }

@@ -329,6 +329,10 @@ class APMLibraryClient:
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
+    def load_dependency(self) -> bool:
+        resp = self._session.get(self._url("/load_dependency")).json()
+        return resp["success"]
+
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int, parent_id: int = 0):
@@ -527,5 +531,11 @@ class APMLibrary:
     def is_alive(self) -> bool:
         try:
             return self._client.is_alive()
+        except Exception:
+            return False
+
+    def load_dependency(self) -> bool:
+        try:
+            return self._client.load_dependency()
         except Exception:
             return False

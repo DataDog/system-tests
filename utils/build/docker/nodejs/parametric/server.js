@@ -325,6 +325,12 @@ app.post("/trace/otel/record_exception", (req, res) => {
   res.json({})
 })
 
+app.get('/load_dependency', (req, res) => {
+  console.log('Load dependency endpoint')
+  require('glob')
+  res.json({ success: true })
+})
+
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
