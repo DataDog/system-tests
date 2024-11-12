@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2024-10 (176 PR merged)
+
+* Lot of work done on SSI/onboarding by @robertomonteromiguel and @emmettbutler
+* 2024-10-24 [[Ruby] Convert parametric implementation from grpc to http](https://github.com/DataDog/system-tests/pull/3279) by @ZStriker19 and @marcotc
+* 2024-10-17 [Onboarding: feature parity dashboard](https://github.com/DataDog/system-tests/pull/3247) by @robertomonteromiguel
+* 2024-10-08 [Proxy exports files content in a separated folder in logs](https://github.com/DataDog/system-tests/pull/3179) by @cbeauchesne
+* 2024-10-07 [External processing : initial poc](https://github.com/DataDog/system-tests/pull/3097) by @cbeauchesne and @e-n-0
 
 ### 2024-09 (157 PR merged)
 

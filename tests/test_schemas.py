@@ -17,18 +17,18 @@ class Test_library:
         weblog.get("/waf", params={"key": "\n :"})
 
     def test_library_schema_full(self):
-        interfaces.library.assert_schema_points(
-            excluded_points=[
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
-                ("/debugger/v1/input", "$[].dd.span_id"),  # DEBUG-2743
-                ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
-                ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
-                ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
-                ("/debugger/v1/diagnostics", "$[].content"),  # DEBUG-2864
-            ]
-        )
+        excluded_points = [
+            ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
+            ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
+            ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
+            ("/debugger/v1/input", "$[].dd.span_id"),  # DEBUG-2743
+            ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
+            ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
+            ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
+            ("/debugger/v1/diagnostics", "$[].content"),  # DEBUG-2864
+        ]
+
+        interfaces.library.assert_schema_points(excluded_points)
 
     @bug(context.library > "nodejs@5.22.0", reason="DEBUG-2864")
     def test_library_diagnostics_content(self):

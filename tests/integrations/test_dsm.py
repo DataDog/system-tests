@@ -52,6 +52,7 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
+    @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -60,33 +61,47 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         language_hashes = {
-            "nodejs": {
-                "producer": 2931833227331067675,
-                "consumer": 271115008390912609,
-                "edge_tags": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
-            },
+            "nodejs": {"producer": 7021878731777772655, "consumer": 4591800307942911915,},
             # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
             "golang": {
                 "producer": 4463699290244539355,
                 "consumer": 13758451224913876939,
-                "edge_tags": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_in": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "edge_tags_out": ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
             },
             "default": {
-                "producer": 4463699290244539355,
-                "consumer": 3735318893869752335,
-                "edge_tags": ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka"),
+                "producer": 14216899112169674443,
+                "consumer": 4247242616665718048,
+                "edge_tags_in": (
+                    "direction:in",
+                    f"group:{DSM_CONSUMER_GROUP}",
+                    "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
+                    f"topic:{DSM_QUEUE}",
+                    "type:kafka",
+                ),
+                "edge_tags_out": (
+                    "direction:out",
+                    "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
+                    f"topic:{DSM_QUEUE}",
+                    "type:kafka",
+                ),
             },
         }
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags"]
+        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default")).get(
+            "edge_tags_out", language_hashes.get("default")["edge_tags_out"]
+        )
+        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default")).get(
+            "edge_tags_in", language_hashes.get("default")["edge_tags_in"]
+        )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=producer_hash, parent_hash=0, tags=("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
+            hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
         )
         DsmHelper.assert_checkpoint_presence(
-            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags,
+            hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in,
         )
 
 
@@ -119,15 +134,10 @@ class Test_DsmRabbitmq:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @bug(
-        library="java",
-        reason="Java calculates 16129003365833597547 as producer hash by not using 'routing_key:true' in edge tags.",
-    )
-    @bug(
-        library="dotnet",
-        reason="Dotnet calculates 3168906112866048140 as producer hash by using 'routing_key:True' in edge tags, with 'True' capitalized, resulting in different hash.",
-    )
+    @bug(library="java", reason="APMAPI-840")
+    @bug(library="dotnet", reason="APMAPI-841")
     @flaky(library="python", reason="APMAPI-724")
+    @missing_feature(context.library <= "nodejs@5.24.0")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -136,11 +146,7 @@ class Test_DsmRabbitmq:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         language_hashes = {
-            "nodejs": {
-                "producer": 5246740674878013159,
-                "consumer": 10215641161150038469,
-                "edge_tags_in": ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
-            },
+            "nodejs": {"producer": 5246740674878013159, "consumer": 8116149247198652772,},
             "default": {
                 "producer": 8945717757344503539,
                 "consumer": 247866491670975357,
@@ -151,7 +157,7 @@ class Test_DsmRabbitmq:
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        edge_tags_in = language_hashes.get("default")["edge_tags_in"]
         edge_tags_out = language_hashes.get("default")["edge_tags_out"]
 
         DsmHelper.assert_checkpoint_presence(
@@ -264,6 +270,7 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 
 @features.datastreams_monitoring_support_for_sqs
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmSQS:
     """ Verify DSM stats points for AWS Sqs Service """
@@ -321,6 +328,7 @@ class Test_DsmSQS:
 
 
 @features.datastreams_monitoring_support_for_sns
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmSNS:
     """ Verify DSM stats points for AWS SNS Service """
@@ -384,6 +392,7 @@ class Test_DsmSNS:
 
 
 @features.datastreams_monitoring_support_for_kinesis
+@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmKinesis:
     """ Verify DSM stats points for AWS Kinesis Service """
@@ -544,6 +553,9 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
+    @irrelevant(
+        library="nodejs", reason="NodeJS doesn't sort the DSM edge tags and has different hashes.",
+    )
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
         assert self.produce.text == "ok"
@@ -554,7 +566,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 2991387329420856704, "consumer": 2932594615174135112,},
+            "nodejs": {"producer": 16586338448658789200, "consumer": 9706550123902107656,},
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
             "java": {
@@ -620,6 +632,9 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
+    @irrelevant(
+        library="nodejs", reason="NodeJS doesn't sort the DSM edge tags and has different hashes.",
+    )
     def test_dsm_manual_checkpoint_inter_process(self):
         assert self.produce_threaded.status_code == 200
         assert self.produce_threaded.text == "ok"
@@ -630,7 +645,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
         language_hashes = {
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 1168055216783445015, "consumer": 18123432526286354806,},
+            "nodejs": {"producer": 5168239543453408764, "consumer": 1957306998450816025,},
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
             "java": {

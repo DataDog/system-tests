@@ -14,7 +14,7 @@ from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario
+from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
@@ -85,6 +85,7 @@ class scenarios:
         },
         doc="Test profiling feature. Not included in default scenario because is quite slow",
         scenario_groups=[ScenarioGroup.PROFILING],
+        require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
     )
 
     sampling = EndToEndScenario(
@@ -141,38 +142,47 @@ class scenarios:
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
         "APPSEC_MISSING_RULES",
-        appsec_rules="/donotexists",
+        weblog_env={"DD_APPSEC_RULES": "/donotexists"},
         doc="Test missing appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
-        appsec_rules="/appsec_corrupted_rules.yml",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
         doc="Test corrupted appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_custom_rules = EndToEndScenario(
         "APPSEC_CUSTOM_RULES",
-        appsec_rules="/appsec_custom_rules.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
+        weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
         doc="Test custom appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_blocking = EndToEndScenario(
         "APPSEC_BLOCKING",
-        appsec_rules="/appsec_blocking_rule.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
-        appsec_rules="/appsec_blocking_rule.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="graphql",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
-        appsec_rules="/appsec_custom_rules_with_errors.json",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
+        weblog_volumes={
+            "./tests/appsec/custom_rules_with_errors.json": {
+                "bind": "/appsec_custom_rules_with_errors.json",
+                "mode": "ro",
+            }
+        },
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -334,6 +344,20 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    iast_standalone = EndToEndScenario(
+        "IAST_STANDALONE",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DETECTION_MODE": "FULL",
+            "DD_IAST_DEDUPLICATION_ENABLED": "false",
+            "DD_IAST_REQUEST_SAMPLING": "100",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
@@ -400,7 +424,11 @@ class scenarios:
 
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario(
-        "APM_TRACING_E2E_OTEL", weblog_env={"DD_TRACE_OTEL_ENABLED": "true",}, backend_interface_timeout=5, doc="",
+        "APM_TRACING_E2E_OTEL",
+        weblog_env={"DD_TRACE_OTEL_ENABLED": "true",},
+        backend_interface_timeout=5,
+        require_api_key=True,
+        doc="",
     )
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
@@ -409,16 +437,18 @@ class scenarios:
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
+        require_api_key=True,
         doc="",
     )
 
-    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", doc="")
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", doc="")
+    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="")
+    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),
+        rc_api_enabled=True,
         doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
     library_conf_custom_header_tags_invalid = EndToEndScenario(
@@ -440,8 +470,11 @@ class scenarios:
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
+            "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
+            "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
         },
         include_kafka=True,
+        include_postgres_db=True,
         doc="",
         scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
@@ -451,9 +484,13 @@ class scenarios:
         weblog_env={
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
             "DD_TRACE_KAFKA_ENABLED": "true",
+            "DD_TRACE_KAFKAJS_ENABLED": "true",
+            "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
         },
         include_kafka=True,
+        include_postgres_db=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
     )
     tracing_config_nondefault_3 = EndToEndScenario(
@@ -557,13 +594,6 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    installer_host_auto_injection_chaos = InstallerAutoInjectionScenario(
-        "INSTALLER_HOST_AUTO_INJECTION_CHAOS",
-        doc="Installer auto injection scenario with chaos (deleting installation folders, files)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
@@ -571,22 +601,15 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    installer_auto_injection_block_list = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION_BLOCK_LIST",
-        "Onboarding Single Step Instrumentation scenario: Test user defined blocking lists",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
-    installer_auto_injection_ld_preload = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION_LD_PRELOAD",
-        "Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries",
+    chaos_installer_auto_injection = InstallerAutoInjectionScenario(
+        "CHAOS_INSTALLER_AUTO_INJECTION",
+        " Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries. Perform chaos testing",
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
 
-    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
+    simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
         "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
@@ -597,7 +620,7 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
-    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
+    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
         vm_provision="host-auto-inject-install-script",
@@ -607,7 +630,7 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
+    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
@@ -676,8 +699,8 @@ class scenarios:
 
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
-        appsec_rules="/appsec_rasp_ruleset.json",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},
+        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],

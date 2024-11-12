@@ -13,7 +13,7 @@ def make_get_request(app_url):
             "x-datadog-parent-id": generated_uuid,
             "x-datadog-sampling-priority": "2",
         },
-        timeout=10,
+        timeout=15,
     )
     return generated_uuid
 
