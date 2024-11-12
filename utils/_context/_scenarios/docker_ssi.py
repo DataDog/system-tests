@@ -34,9 +34,11 @@ class DockerSSIScenario(Scenario):
             self.agent_port = utils.tools.get_free_port()
         else:
             self.agent_port = 8126
+        self.agent_host = "localhost"
+        self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 
         self._required_containers: list[TestedContainer] = []
-        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port))
+        self._required_containers.append(self._agent_container)
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
         self._tested_components = {}
@@ -98,9 +100,6 @@ class DockerSSIScenario(Scenario):
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
 
-        if "GITLAB_CI" in os.environ:
-            self.weblog_url = self.weblog_url.replace("localhost", "weblog-injection")
-
         self._weblog_composed_name = f"{self._base_weblog}_{self.ssi_image_builder.get_base_docker_tag()}"
         for container in self._required_containers:
             try:
@@ -116,7 +115,15 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             warmups.append(container.start)
+
+        if "GITLAB_CI" in os.environ:
+            warmups.append(self.fix_gitlab_network)
+
         return warmups
+
+    def fix_gitlab_network(self):
+        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip())
+        self.agent_host = self._agent_container.network_ip()
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -153,7 +160,7 @@ class DockerSSIScenario(Scenario):
     def post_setup(self):
         logger.stdout("--- Waiting for all traces to be sent to test agent ---")
         time.sleep(5)  # wait for the traces to be sent to the test agent
-        interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent", agent_port=self.agent_port)
+        interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port)
 
     @property
     def library(self):

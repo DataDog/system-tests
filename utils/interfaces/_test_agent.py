@@ -12,11 +12,11 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         self._data_traces_list = []
         self._data_telemetry_list = []
 
-    def collect_data(self, interface_folder, agent_port = 8126):
+    def collect_data(self, interface_folder, agent_host = "localhost", agent_port = 8126):
         import ddapm_test_agent.client as agent_client
 
         logger.debug("Collecting data from test agent")
-        client = agent_client.TestAgentClient(base_url=f"http://localhost:{agent_port}")
+        client = agent_client.TestAgentClient(base_url=f"http://{agent_host}:{agent_port}")
         try:
             self._data_traces_list = client.traces(clear=False)
             if self._data_traces_list:
