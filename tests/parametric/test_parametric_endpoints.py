@@ -15,6 +15,8 @@ from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import find_only_span
 from utils import irrelevant, bug, scenarios, features, context
+from utils.dd_constants import SpanKind
+from utils.dd_constants import StatusCode
 from utils.parametric._library_client import Link
 
 
@@ -456,7 +458,7 @@ class Test_Parametric_OtelSpan_Start_Finish:
         Supported Parameters:
         - name: str
         - timestamp (μs): Optional[int]
-        - span_kind: Optional[Literal[0, 1, 2, 3, 4, 5]] # integers correspoond -> ["UNSPECIFIED", "INTERNAL", "SERVER", "CLIENT", "PRODUCER", "CONSUMER"]
+        - span_kind: Optional[SpanKind]
         - parent_id: Optional[Union[int, str]]
         - attributes: Optional[Dict[str, str]]
         - links: Optional[List[Link]]
@@ -474,7 +476,7 @@ class Test_Parametric_OtelSpan_Start_Finish:
             with test_library.otel_start_span(
                 "otel_start_span_child",
                 1730393556000000,
-                2,
+                SpanKind.SERVER,
                 s1.span_id,
                 [Link(parent_id=s2.span_id, attributes={"link.key": "value"})],
                 {"attr_key": "value"},
@@ -528,13 +530,13 @@ class Test_Parametric_OtelSpan_Set_Status:
 
         Supported Parameters:
         - span_id: Union[int, str]
-        - code: Literal["UNSET", "OK", "ERROR"]
+        - code: Literal[StatusCode]]
         - description: str
         Supported Return Values:
         """
         with test_library:
             with test_library.otel_start_span("otel_set_status") as s1:
-                s1.set_status("ERROR", "error message")
+                s1.set_status(StatusCode.ERROR, "error message")
                 s1.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
