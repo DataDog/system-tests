@@ -15,7 +15,7 @@ function forkAndCrash(req, res) {
 
 function getChildPids(req, res) {
   const currentPid = process.pid;
-  const psCommand = `ps --ppid ${currentPid} --no-headers`;
+  const psCommand = `pgrep -P ${currentPid}`;
 
   exec(psCommand, (error, stdout, stderr) => {
     if (error) {
