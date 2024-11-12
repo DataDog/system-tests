@@ -507,33 +507,19 @@ tests/:
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': v1.39.0
-          akka-http: missing_feature (APPSEC-55781)
-          jersey-grizzly2: missing_feature (APPSEC-55781)
-          play: missing_feature (APPSEC-55781)
-          ratpack: missing_feature (APPSEC-55781)
-          resteasy-netty3: missing_feature (APPSEC-55781)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781, APPSEC-55785)
         Test_Ssrf_BodyUrlEncoded:
           '*': v1.39.0
-          akka-http: missing_feature (APPSEC-55781)
-          jersey-grizzly2: missing_feature (APPSEC-55781)
-          play: missing_feature (APPSEC-55781)
-          ratpack: missing_feature (APPSEC-55781)
-          resteasy-netty3: missing_feature (APPSEC-55781)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_BodyXml:
           '*': v1.39.0
-          akka-http: missing_feature (APPSEC-55781)
-          jersey-grizzly2: missing_feature (APPSEC-55781)
-          play: missing_feature (APPSEC-55781)
-          ratpack: missing_feature (APPSEC-55781)
-          resteasy-netty3: missing_feature (APPSEC-55781)
+          akka-http: missing_feature (APPSEC-55780)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781, APPSEC-55788)
@@ -543,55 +529,28 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Ssrf_Mandatory_SpanTags:
           '*': v1.39.0
-          akka-http: missing_feature (APPSEC-55781)
-          jersey-grizzly2: missing_feature (APPSEC-55781)
-          play: missing_feature (APPSEC-55781)
-          ratpack: missing_feature (APPSEC-55781)
-          resteasy-netty3: missing_feature (APPSEC-55781)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_Optional_SpanTags:
           '*': v1.39.0
-          akka-http: missing_feature (APPSEC-55781)
-          jersey-grizzly2: missing_feature (APPSEC-55781)
-          play: missing_feature (APPSEC-55781)
-          ratpack: missing_feature (APPSEC-55781)
-          resteasy-netty3: missing_feature (APPSEC-55781)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_StackTrace:
           '*': v1.39.0
-          akka-http: missing_feature (APPSEC-55781)
-          jersey-grizzly2: missing_feature (APPSEC-55781)
-          play: missing_feature (APPSEC-55781)
-          ratpack: missing_feature (APPSEC-55781)
-          resteasy-netty3: missing_feature (APPSEC-55781)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_Telemetry:
           '*': v1.39.0
-          akka-http: missing_feature (APPSEC-55781)
-          jersey-grizzly2: missing_feature (APPSEC-55781)
-          play: missing_feature (APPSEC-55781)
-          ratpack: missing_feature (APPSEC-55781)
-          resteasy-netty3: missing_feature (APPSEC-55781)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_UrlQuery:
           '*': v1.39.0
-          akka-http: missing_feature (APPSEC-55781)
-          jersey-grizzly2: missing_feature (APPSEC-55781)
-          play: missing_feature (APPSEC-55781)
-          ratpack: missing_feature (APPSEC-55781)
-          resteasy-netty3: missing_feature (APPSEC-55781)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
