@@ -238,6 +238,8 @@ class TestedContainer:
             if exit_code != 0:
                 logger.stdout(f"Healthcheck failed for {self.name}:\n{output}")
                 return False
+            else:
+                logger.info(f"Healthcheck successful for {self.name}")
 
         return True
 

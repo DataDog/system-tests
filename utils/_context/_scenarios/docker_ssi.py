@@ -38,7 +38,7 @@ class DockerSSIScenario(Scenario):
         self._required_containers: list[TestedContainer] = []
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port))
         self._required_containers.append(self._weblog_injection)
-        self.weblog_url = "http://localhost:18080"
+        self.weblog_url = "http://127.0.0.1:18080"
         self._tested_components = {}
 
     def configure(self, config):
