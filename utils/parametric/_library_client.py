@@ -1,4 +1,4 @@
-# pylint: disable=E1101,C0302
+# pylint: disable=E1101
 import contextlib
 import time
 import urllib.parse
@@ -43,9 +43,9 @@ class APMLibraryClient:
         self.container = container
 
         # wait for server to start
-        self.wait(timeout, "/non-existent-endpoint-to-ping-until-the-server-starts")
+        self._wait(timeout)
 
-    def wait(self, timeout, url):
+    def _wait(self, timeout):
         delay = 0.01
         for _ in range(int(timeout / delay)):
             try:
@@ -62,7 +62,7 @@ class APMLibraryClient:
         else:
             self._print_logs()
             message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
-            raise RuntimeError(message)
+            _fail(message)
 
     def is_alive(self) -> bool:
         self.container.reload()
@@ -240,7 +240,7 @@ class APMLibraryClient:
             json={
                 "name": name,
                 "timestamp": timestamp,
-                "span_kind": span_kind.name,
+                "span_kind": span_kind.value,
                 "parent_id": parent_id,
                 "links": links,
                 "http_headers": http_headers,
@@ -263,7 +263,7 @@ class APMLibraryClient:
     def otel_set_status(self, span_id: int, code: StatusCode, description: str) -> None:
         self._session.post(
             self._url("/trace/otel/set_status"),
-            json={"span_id": span_id, "code": code.value, "description": description},
+            json={"span_id": span_id, "code": code.name.lower(), "description": description},
         )
 
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
@@ -389,8 +389,8 @@ class _TestOtelSpan:
     def set_name(self, name):
         self._client.otel_set_name(self.span_id, name)
 
-    def set_status(self, code: StatusCode, description: str):
-        self._client.otel_set_status(self.span_id, code.value, description)
+    def set_status(self, code: StatusCode, description):
+        self._client.otel_set_status(self.span_id, code, description)
 
     def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
         self._client.otel_add_event(self.span_id, name, timestamp, attributes)
