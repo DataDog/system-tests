@@ -1,4 +1,5 @@
-const { fork, exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 process.on('SIGTERM', (signal) => {
   process.exit(0);
@@ -15,35 +16,38 @@ function forkAndCrash(req, res) {
 
 function getChildPids(req, res) {
   const currentPid = process.pid;
-  const psCommand = `ps -eo ppid,pid,comm`;
 
-  exec(psCommand, (error, stdout, stderr) => {
-    if (error) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end(`Error executing command: ${error.message}`);
-    } else {
-      const lines = stdout.split('\n');
-      const childPids = [];
+  try {
+    // Get the list of all process directories in /proc
+    const procDir = '/proc';
+    const procFiles = fs.readdirSync(procDir).filter(file => /^\d+$/.test(file));
 
-      lines.forEach(line => {
-        const parts = line.trim().split(/\s+/);
-        if (parts.length >= 3) {
-          const ppid = parseInt(parts[0], 10);
-          const pid = parseInt(parts[1], 10);
-          const command = parts.slice(2).join(' ');
+    let childPids = [];
 
-          // If the PPID matches the current process ID, it is a child process
+    // Iterate through each process directory
+    procFiles.forEach(pid => {
+      const statusPath = path.join(procDir, pid, 'status');
+      if (fs.existsSync(statusPath)) {
+        const statusContent = fs.readFileSync(statusPath, 'utf8');
+
+        // Find the PPid line in the status file
+        const ppidMatch = statusContent.match(/^PPid:\s+(\d+)/m);
+        if (ppidMatch) {
+          const ppid = parseInt(ppidMatch[1], 10);
           if (ppid === currentPid) {
-            childPids.push({ pid, command });
+            childPids.push(pid);
           }
         }
-      });
+      }
+    });
 
-      const response = childPids.map(proc => `PID: ${proc.pid}, Command: ${proc.command}`).join('\n');
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end(response);
-    }
-  });
+    // Send response back
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end(`Child PIDs: ${childPids.join(', ')}`);
+  } catch (error) {
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end(`Error: ${error.message}`);
+  }
 }
 
 require('http').createServer((req, res) => {

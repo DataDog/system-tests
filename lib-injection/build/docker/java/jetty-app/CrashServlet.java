@@ -1,11 +1,11 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,60 +44,74 @@ public class CrashServlet extends HttpServlet {
         resp.getWriter().println(result);
     }
 
+    private List<Long> getChildPidsFromProc(long parentPid) {
+        List<Long> childPids = new ArrayList<>();
+
+        // Iterate over all directories in /proc
+        File procDir = new File("/proc");
+        File[] files = procDir.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                // Skip non-numeric directories since only numeric names correspond to PIDs
+                if (file.isDirectory() && file.getName().matches("\\d+")) {
+                    long pid = Long.parseLong(file.getName());
+                    long ppid = getParentPid(pid);
+
+                    // If the PPID matches the current process ID, add it to the list
+                    if (ppid == parentPid) {
+                        childPids.add(pid);
+                    }
+                }
+            }
+        }
+
+        return childPids;
+    }
+
+    private long getParentPid(long pid) {
+        File statusFile = new File("/proc/" + pid + "/status");
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(statusFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("PPid:")) {
+                    String[] parts = line.split("\\s+");
+                    return Long.parseLong(parts[1]);
+                }
+            }
+        } catch (IOException e) {
+            // In case of an error (e.g., process may have ended), return -1
+            return -1;
+        }
+
+        return -1; // Return -1 if we couldn't find the PPid field
+    }
+
     private void handleChildPids(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         try {
             // Get current PID using ManagementFactory
             String jvmName = ManagementFactory.getRuntimeMXBean().getName();
             long currentPid = Long.parseLong(jvmName.split("@")[0]);
-            String command = "ps -eo ppid,pid,comm";
+   
+            // Get the list of child PIDs by examining /proc
+            List<Long> childPids = getChildPidsFromProc(currentPid);
 
-            ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", command);
-            processBuilder.redirectErrorStream(true);
-            Process process = processBuilder.start();
-
-            // Capture the output
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder output = new StringBuilder();
-            String line;
-
-            // Parse the output manually to find child processes of currentPid
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                String[] parts = line.split("\\s+", 3); // Split into PPID, PID, and command name
-                if (parts.length >= 3) {
-                    try {
-                        long ppid = Long.parseLong(parts[0]);
-                        long pid = Long.parseLong(parts[1]);
-                        String commandName = parts[2];
-
-                        // If PPID matches current process ID, add to the output
-                        if (ppid == currentPid) {
-                            output.append("PID: ").append(pid)
-                                  .append(", Command: ").append(commandName)
-                                  .append("\n");
-                        }
-                    } catch (NumberFormatException e) {
-                        // Ignore lines that do not contain valid numbers in PPID/PID fields
-                    }
-                }
+            // Prepare the response
+            StringBuilder response = new StringBuilder();
+            for (Long pid : childPids) {
+                response.append("PID: ").append(pid).append("\n");
             }
 
-            int exitCode = process.waitFor();
-
-            if (exitCode == 0) {
-                resp.setContentType("text/plain");
-                resp.setStatus(HttpServletResponse.SC_OK);
-                resp.getWriter().println(output.toString());
-            } else {
-                resp.setContentType("text/plain");
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                resp.getWriter().println("Command " + command + " failed with exit code: " + exitCode + "\n" + output.toString());
-            }
-        } catch (InterruptedException e) {
+            // Send response to the client
+            resp.setContentType("text/plain");
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().println(response.toString());   
+        } catch (Exception e) {
             resp.setContentType("text/plain");
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().println("Interrupted");
+            resp.getWriter().println("Error: " + e.getMessage());
         }
     }
 
