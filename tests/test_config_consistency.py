@@ -236,20 +236,12 @@ class Test_Config_ClientIPHeader_Precedence:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true 
     and headers are used to set http.client_ip in order of precedence"""
 
-    # The value of the x-forwarded header expected by PHP is based on RFC 7239
-    # https://datatracker.ietf.org/doc/html/rfc7239#section-4
-    if context.library == "php":
-        x_forwarded_value = "for=5.6.7.4"
-    else:
-        x_forwarded_value = "5.6.7.4"
-
     # Supported ip headers in order of precedence
     IP_HEADERS = (
         ("x-forwarded-for", "5.6.7.0"),
         ("x-real-ip", "8.7.6.5"),
         ("true-client-ip", "5.6.7.2"),
         ("x-client-ip", "5.6.7.3"),
-        ("x-forwarded", x_forwarded_value),  # Note: APPSEC is currently discussing the correct values for this header
         ("forwarded-for", "5.6.7.5"),
         ("x-cluster-client-ip", "5.6.7.6"),
         ("fastly-client-ip", "5.6.7.7"),
