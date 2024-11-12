@@ -102,7 +102,6 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
 
     @parametrize_virtual_machines(
         bugs=[
-            {"weblog_variant": "test-app-dotnet", "reason": "AIT-8620"},
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
