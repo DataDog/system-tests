@@ -38,7 +38,7 @@ class DockerSSIScenario(Scenario):
         self._required_containers: list[TestedContainer] = []
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port))
         self._required_containers.append(self._weblog_injection)
-        self.weblog_url = "http://127.0.0.1:18080"
+        self.weblog_url = "http://localhost:18080"
         self._tested_components = {}
 
     def configure(self, config):
@@ -97,6 +97,9 @@ class DockerSSIScenario(Scenario):
         # Extract version of the components that we are testing.
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
+
+        if "GITLAB_CI" in os.environ:
+            self.weblog_url = self.weblog_url.replace("localhost", "weblog-injection")
 
         self._weblog_composed_name = f"{self._base_weblog}_{self.ssi_image_builder.get_base_docker_tag()}"
         for container in self._required_containers:
