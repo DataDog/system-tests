@@ -993,9 +993,9 @@ class APMTestAgentContainer(TestedContainer):
             image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
-            environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket"},
+            environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket", "PORT": agent_port},
             healthcheck={"test": f"curl --fail --silent --show-error http://localhost:{agent_port}/info", "retries": 60,},
-            ports={"8126": ("127.0.0.1", agent_port)},
+            ports={agent_port: ("127.0.0.1", agent_port)},
             allow_old_container=False,
             volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
         )
