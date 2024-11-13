@@ -22,6 +22,7 @@ class ScenarioGroup(Enum):
     SAMPLING = "sampling"
     ONBOARDING = "onboarding"
     DOCKER_SSI = "docker-ssi"
+    ESSENTIALS = "essentials"
     EXTERNAL_PROCESSING = "external-processing"
     REMOTE_CONFIG = "remote-config"
     TELEMETRY = "telemetry"
