@@ -24,7 +24,8 @@ lang_variant:
         os_distro: rpm
         os_branch: redhat
         remote-command: |
-          sudo dnf module enable nodejs:20
+          sudo dnf -y module enable nodejs:20
+          sudo dnf -y module switch-to nodejs:20
           sudo dnf install -y nodejs
 
       - os_type: linux
@@ -42,8 +43,9 @@ lang_variant:
         remote-command: |
           #one of the default method for centos 8
           #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-centos-8
-          sudo dnf module enable nodejs:12
-          sudo dnf -y install nodejs
+          sudo dnf -y module enable nodejs:20
+          sudo dnf -y module switch-to nodejs:20
+          sudo dnf install -y nodejs
 
       - os_type: linux
         os_distro: rpm
@@ -61,10 +63,12 @@ lang_variant:
 
 weblog:
     name: test-app-nodejs
+    #This machines are going to install unsupported versions of nodejs. We use them in the provision_test-app-nodejs-unsupported-defaults
+    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu21, ubuntu20_arm64, ubuntu20_amd64]
     #Ecluded machines. We can not run node18 due to nodejs requirement: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by node) node: /lib64/libc.so.6: version `GLIBC_2.28' not found (required by node)
     #RedHat 7.9 excluded by node: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by node)
-    excluded_os_branches: [amazon_linux2, centos_7_amd64]
-    excluded_os_names: [OracleLinux_7_9_amd64, RedHat_7_9_amd64]
+    #excluded_os_branches: [amazon_linux2, centos_7_amd64]
+    #excluded_os_names: [OracleLinux_7_9_amd64, RedHat_7_9_amd64]
     install: 
       - os_type: linux
         copy_files:
