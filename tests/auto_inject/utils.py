@@ -44,37 +44,17 @@ class AutoInjectBaseTest:
         vm_port = virtual_machine.deffault_open_port
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
 
-    def get_child_pids(self, virtual_machine) -> list:
-        return self.broadcast_request(virtual_machine, "child_pids")
-
-    def fork_and_crash(self, virtual_machine) -> list:
-        return self.broadcast_request(virtual_machine, "fork_and_crash")
-
-    def broadcast_request(self, virtual_machine, path) -> list:
+    def get_child_pids(self, virtual_machine) -> str:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
-        base_url = f"http://{vm_ip}:{vm_port}/"
-        response = requests.get(base_url, timeout=30)
+        url = f"http://{vm_ip}:{vm_port}/child_pids"
+        return requests.get(url, timeout=240).text
 
-        if "content-type" in response.headers and "application/json" in response.headers["content-type"]:
-            response_json = response.json()
-
-            logger.info(f"There is a multicontainer app: {response_json}")
-            endpoints = response_json.get("apps", [])
-            responses = []
-
-            for app in endpoints:
-                endpoint_url = f"{base_url}{app['url']}/{path}"
-                endpoint_response = requests.get(endpoint_url, timeout=120)
-                responses.append(endpoint_response.text)
-
-            return responses
-        else:
-            # If the response is not JSON, treat it as a single endpoint
-            logger.info(f"Single container app detected at {base_url}")
-            single_endpoint_url = f"{base_url}{path}"
-            single_response = requests.get(single_endpoint_url, timeout=180)
-            return [single_response.text]
+    def fork_and_crash(self, virtual_machine) -> str:
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        url = f"http://{vm_ip}:{vm_port}/fork_and_crash"
+        return requests.get(url, timeout=240).text
 
     def close_channel(self, channel):
         try:

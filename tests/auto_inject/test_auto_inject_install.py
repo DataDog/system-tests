@@ -86,22 +86,19 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         process_tree = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Initial process tree: " + process_tree)
 
-        child_pids = self.get_child_pids(virtual_machine)
+        child_pids = self.get_child_pids(virtual_machine).strip()
 
-        non_empty_pids = [pid for pid in child_pids if pid.strip() != ""]
-
-        if non_empty_pids:
-            logger.warning("Non-empty PIDs found: " + ", ".join(non_empty_pids))
+        if child_pids != "":
+            logger.warning("Child PIDs found: " + child_pids)
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
 
-        assert not non_empty_pids
+        assert child_pids != ""
 
         try:
-            results = self.fork_and_crash(virtual_machine)
+            crash_result = self.fork_and_crash(virtual_machine)
 
-            for result in results:
-                logger.info("fork_and_crash: " + result)
+            logger.info("fork_and_crash: " + crash_result)
         except Exception as e:
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)

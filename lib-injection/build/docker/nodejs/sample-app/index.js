@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { fork, exec } = require('child_process');
+const { fork } = require('child_process');
 
 process.on('SIGTERM', (signal) => {
   process.exit(0);
@@ -10,27 +10,8 @@ function forkAndCrash(req, res) {
   const child = fork('child.js');
 
   child.on('close', (code, signal) => {
-    // res.writeHead(200, { 'Content-Type': 'text/plain' });
-    // res.end(`Child process ${child.pid} exited with code ${code}, signal ${signal}`);
-    exec('ps ax', (error, stdoutPsAx) => {
-      if (error) {
-        console.error(`Error executing ps ax: ${error}`);
-      }
-
-      exec('ps ax --forest', (errorForest, stdoutForest) => {
-        if (errorForest) {
-          console.error(`Error executing ps ax --forest: ${errorForest}`);
-        }
-
-        // Combine the responses and send to the client
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end(
-          `Child process ${child.pid} exited with code ${code}, signal ${signal}\n\n` +
-          `Output of ps ax:\n${stdoutPsAx}\n\n` +
-          `Output of ps ax --forest:\n${stdoutForest}`
-        );
-      });
-    });
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end(`Child process ${child.pid} exited with code ${code}, signal ${signal}`);
   });
 }
 
