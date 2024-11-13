@@ -31,7 +31,7 @@ class VirtualMachineProvisioner:
                 if vm.os_branch not in config_data["weblog"]["exact_os_branches"]:
                     logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in exact_os_branches")
                     vms_to_remove.append(vm)
-            # continue
+                    continue
 
             # Exclude by vm_only_branch
             if vm_only_branch and vm.os_branch != vm_only_branch:

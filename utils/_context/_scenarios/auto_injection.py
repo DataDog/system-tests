@@ -296,6 +296,8 @@ class _VirtualMachineScenario(Scenario):
                 if key.startswith("glibc"):
                     # We will all the glibc versions in the feature parity report, due to each machine can have a different version
                     del self._tested_components[key]
+                if "runtime_version" in key and self._tested_components[key]:
+                    vm.get_current_deployed_weblog().runtime_version = self._tested_components[key]
 
     def close_targets(self):
         if self.is_main_worker:
