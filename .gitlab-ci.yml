@@ -2,6 +2,7 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
+  - child_pipelines
   - ruby_tracer
   - nodejs_tracer
   - java_tracer
@@ -334,7 +335,7 @@ generate_system_tests_images:
 
 generate_docker_ssi_pipeline:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  stage: before_tests
+  stage: child_pipelines
   tags: ["arch:amd64"]
   dependencies: []
   script:
@@ -344,7 +345,8 @@ generate_docker_ssi_pipeline:
       - ssi_pipeline.yml
 
 ssi_tests_pipeline:
-  stage: before_tests
+  stage: child_pipelines
+  needs: ["generate_docker_ssi_pipeline"]
   trigger:
     include:
       - artifact: ssi_pipeline.yml
