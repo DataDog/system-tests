@@ -108,14 +108,11 @@ class APMLibraryClient:
     def trace_start_span(
         self,
         name: str,
-        service: str,
-        resource: str,
-        parent_id: int,
-        typestr: str,
-        origin: str,
-        http_headers: Optional[List[Tuple[str, str]]],
-        links: Optional[List[Link]],
-        tags: Optional[List[Tuple[str, str]]],
+        service: Optional[str] = None,
+        resource: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        typestr: Optional[str] = None,
+        tags: Optional[List[Tuple[str, str]]] = None,
     ):
         # Avoid using http_headers, links, and origin when creating a span in the parametric apps.
         # Alternative endpoints will be provided to set these values. This will be documented in a future PR.
@@ -127,10 +124,7 @@ class APMLibraryClient:
                 "resource": resource,
                 "parent_id": parent_id,
                 "type": typestr,
-                "origin": origin,
-                "http_headers": http_headers,
-                "links": links,
-                "span_tags": tags,
+                "span_tags": tags if tags is not None else [],
             },
         )
 
@@ -443,25 +437,14 @@ class APMLibrary:
     def start_span(
         self,
         name: str,
-        service: str = "",
-        resource: str = "",
-        parent_id: int = 0,
-        typestr: str = "",
-        origin: str = "",
-        http_headers: Optional[List[Tuple[str, str]]] = None,
-        links: Optional[List[Link]] = None,
+        service: Optional[str] = None,
+        resource: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        typestr: Optional[str] = None,
         tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
-            name=name,
-            service=service,
-            resource=resource,
-            parent_id=parent_id,
-            typestr=typestr,
-            origin=origin,
-            http_headers=http_headers if http_headers is not None else [],
-            links=links if links is not None else [],
-            tags=tags if tags is not None else [],
+            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags,
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
