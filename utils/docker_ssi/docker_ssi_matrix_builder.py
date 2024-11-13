@@ -11,7 +11,7 @@ def generate_gitlab_pipeline():
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
             "dependencies": [],
-            "scripts": [
+            "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",
                 "timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog \"$weblog\" --ssi-library \"$TEST_LIBRARY\" --ssi-base-image \"$base_image\" --ssi-arch \"$arch\" --ssi-installable-runtime \"$installable_runtime\""
