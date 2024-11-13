@@ -93,6 +93,16 @@ def validate_metric(name, type, metric):
     )
 
 
+def validate_metric_tag_version(tag_prefix, min_version, metric):
+    for tag in metric["tags"]:
+        if tag.startswith(tag_prefix + ":"):
+            version_str = tag.split(":")[1]
+            current_version = list(map(int, version_str.split(".")))
+            if current_version >= min_version:
+                return True
+    return False
+
+
 def _load_file(file_path):
     with open(file_path, "r") as f:
         return json.load(f)
@@ -130,3 +140,17 @@ class RC_CONSTANTS:
         "datadog/2/ASM_DD/rules/config",
         _load_file("./tests/appsec/rasp/rasp_ruleset.json"),
     )
+
+
+class Base_Rules_Version:
+    """Test libddwaf version"""
+
+    min_version = "1.13.3"
+
+    def test_min_version(self):
+        """Checks data in waf.init metric to verify waf version"""
+
+        min_version_array = list(map(int, self.min_version.split(".")))
+        series = find_series(True, "appsec", "waf.init")
+        assert series
+        assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)

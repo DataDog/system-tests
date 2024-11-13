@@ -150,6 +150,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"weblog_variant": "test-app-nodejs-esm", "reason": "INPLAT-136"},
         ]
     )
     def test_install(self, virtual_machine):

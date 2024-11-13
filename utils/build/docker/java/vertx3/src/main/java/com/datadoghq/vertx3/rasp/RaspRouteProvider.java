@@ -9,6 +9,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
@@ -30,6 +33,8 @@ public class RaspRouteProvider implements Consumer<Router> {
 
     private static final String FILE = "file";
 
+    private static final String DOMAIN = "domain";
+
     private final DataSource dataSource;
 
     public RaspRouteProvider(final DataSource dataSource) {
@@ -45,6 +50,9 @@ public class RaspRouteProvider implements Consumer<Router> {
         router.route().path("/rasp/lfi").consumes("application/xml").blockingHandler(rc -> executeLfi(rc, parseFileXml(rc.getBody()).getFile()));
         router.route().path("/rasp/lfi").consumes("application/json").blockingHandler(rc -> executeLfi(rc, rc.getBodyAsJson().getString(FILE)));
         router.route().path("/rasp/lfi").blockingHandler(rc -> executeLfi(rc, rc.request().getParam(FILE)));
+        router.route().path("/rasp/ssrf").consumes("application/xml").blockingHandler(rc -> executeUrl(rc, parseDomainXml(rc.getBody()).getDomain()));
+        router.route().path("/rasp/ssrf").consumes("application/json").blockingHandler(rc -> executeUrl(rc, rc.getBodyAsJson().getString(FILE)));
+        router.route().path("/rasp/ssrf").blockingHandler(rc -> executeUrl(rc, rc.request().getParam(FILE)));
     }
 
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
@@ -67,6 +75,24 @@ public class RaspRouteProvider implements Consumer<Router> {
         rc.response().end("OK");
     }
 
+    private static void executeUrl(final RoutingContext rc, String urlString) {
+        try {
+            URL url;
+            try {
+                url = new URL(urlString);
+            } catch (MalformedURLException e) {
+                url = new URL("http://" + urlString);
+            }
+
+            URLConnection connection = url.openConnection();
+            connection.connect();
+            rc.response().end("OK");
+        } catch (Exception e) {
+            e.printStackTrace();
+            rc.response().end("http connection failed");
+        }
+    }
+
     private UserDTO parseXml(final Buffer buffer) {
         try {
             JAXBContext jc = JAXBContext.newInstance(UserDTO.class);
@@ -86,7 +112,16 @@ public class RaspRouteProvider implements Consumer<Router> {
         } catch (JAXBException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    private DomainDTO parseDomainXml(final Buffer buffer) {
+        try {
+            JAXBContext jc = JAXBContext.newInstance(DomainDTO.class);
+            Unmarshaller unmarshaller = jc.createUnmarshaller();
+            return (DomainDTO) unmarshaller.unmarshal(new ByteBufInputStream(buffer.getByteBuf()));
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @XmlRootElement(name = USER_ID)
@@ -118,6 +153,22 @@ public class RaspRouteProvider implements Consumer<Router> {
 
         public void setFile(String file) {
             this.file = file;
+        }
+    }
+
+    @XmlRootElement(name = DOMAIN)
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class DomainDTO {
+
+        @XmlValue
+        private String domain;
+
+        public String getDomain() {
+            return domain;
+        }
+
+        public void setDomain(String domain) {
+            this.domain = domain;
         }
     }
 }
