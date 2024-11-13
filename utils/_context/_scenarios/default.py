@@ -15,6 +15,5 @@ class DefaultScenario(EndToEndScenario):
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
             include_postgres_db=True,
-            scenario_groups=[ScenarioGroup.ESSENTIALS],
             doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
         )
