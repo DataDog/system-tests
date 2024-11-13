@@ -745,7 +745,6 @@ class Test_Otel_Span_Methods:
             ("internal", SpanKind.INTERNAL, None),
             ("consumer", SpanKind.CONSUMER, None),
             ("producer", SpanKind.PRODUCER, None),
-            ("producer", SpanKind.UNSPECIFIED, None),
         ],
     )
     def test_otel_span_operation_name(

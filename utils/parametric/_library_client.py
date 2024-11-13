@@ -263,7 +263,7 @@ class APMLibraryClient:
     def otel_set_status(self, span_id: int, code: StatusCode, description: str) -> None:
         self._session.post(
             self._url("/trace/otel/set_status"),
-            json={"span_id": span_id, "code": code.name.lower(), "description": description},
+            json={"span_id": span_id, "code": code.name, "description": description},
         )
 
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
