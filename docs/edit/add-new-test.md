@@ -16,6 +16,8 @@ class Test_Millenium:
 ```
 ---
 
+In most cases, you'll only need to add a new test class or function. But if you need to add a new scenario, refer to [scenarios.md](./scenarios.md).
+
 Tests live under the `tests/` folder. You may need to add a new file to this folder, or a new directory + file to this folder. Alternatively, you may add a test to an existing file, if it makes sense. Tests are structured like so, e.g. `tests/test_some_feature.py`:
 
 ```python
