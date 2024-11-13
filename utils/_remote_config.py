@@ -8,7 +8,7 @@ import json
 import os
 import re
 import time
-from typing import Any
+from typing import Any, Dict
 from typing import Optional
 
 import requests
@@ -62,8 +62,8 @@ def send_state(
             It should be larger than previous versions if you want to apply a new config.
 
     """
-
-    assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"  # type: ignore
+    assert context.scenario is not None, "No scenario found in context"
+    assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
 
     client_configs = raw_payload.get("client_configs", [])
 
@@ -183,9 +183,9 @@ def build_debugger_command(probes: list, version: int):
 
         return "not_supported"
 
-    rcm = {"targets": "", "target_files": [], "client_configs": []}
+    rcm: Dict[str, Any] = {"targets": "", "target_files": [], "client_configs": []}
 
-    signed = {
+    signed: Dict[str, Any] = {
         "signed": {
             "_type": "targets",
             "custom": {"opaque_backend_state": "eyJmb28iOiAiYmFyIn0="},  # where does this come from ?
@@ -208,7 +208,7 @@ def build_debugger_command(probes: list, version: int):
         rcm["targets"] = _json_to_base64(signed)
     else:
         for probe in probes:
-            target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
+            target: Dict[str, Any] = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
             target_file = {"path": "", "raw": ""}
 
             probe["language"] = library_name
@@ -241,15 +241,15 @@ def build_debugger_command(probes: list, version: int):
 
             path = "datadog/2/LIVE_DEBUGGING/" + probe_type + "_" + probe["id"] + "/config"
 
-            target["hashes"]["sha256"] = _sha256(probe_64)  # type: ignore
+            target["hashes"]["sha256"] = _sha256(probe_64)
             target["length"] = len(json.dumps(probe).encode("utf-8"))
-            signed["signed"]["targets"][path] = target  # type: ignore
+            signed["signed"]["targets"][path] = target
 
             target_file["path"] = path
             target_file["raw"] = probe_64
 
-            rcm["target_files"].append(target_file)  # type: ignore
-            rcm["client_configs"].append(path)  # type: ignore
+            rcm["target_files"].append(target_file)
+            rcm["client_configs"].append(path)
 
         rcm["targets"] = _json_to_base64(signed)
     return rcm
@@ -283,8 +283,9 @@ class ClientConfig:
             self.raw_sha256 = hashlib.sha256(base64.b64decode(self.raw)).hexdigest()
         else:
             stored_config = self._store.get(path, None)
-            self.raw_length = stored_config.raw_length  # type: ignore
-            self.raw_sha256 = stored_config.raw_sha256  # type: ignore
+            if stored_config is not None:
+                self.raw_length = stored_config.raw_length
+                self.raw_sha256 = stored_config.raw_sha256
 
     @property
     def raw_deserialized(self):

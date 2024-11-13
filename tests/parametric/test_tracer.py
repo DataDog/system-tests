@@ -175,8 +175,9 @@ class Test_TracerUniversalServiceTagging:
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, root.trace_id)
         span = find_root_span(trace)
-        assert span["name"] == "operation"  # type: ignore
-        assert span["service"] == library_env["DD_SERVICE"]  # type: ignore
+        assert span is not None, "Root span not found"
+        assert span["name"] == "operation"
+        assert span["service"] == library_env["DD_SERVICE"]
 
     @parametrize("library_env", [{"DD_ENV": "prod"}])
     def test_tracer_env_environment_variable(
@@ -195,5 +196,6 @@ class Test_TracerUniversalServiceTagging:
         trace = find_trace(traces, root.trace_id)
 
         span = find_root_span(trace)
-        assert span["name"] == "operation"  # type: ignore
-        assert span["meta"]["env"] == library_env["DD_ENV"]  # type: ignore
+        assert span is not None, "Root span not found"
+        assert span["name"] == "operation"
+        assert span["meta"]["env"] == library_env["DD_ENV"]

@@ -208,13 +208,13 @@ class APMLibraryClient:
 
     def span_get_baggage(self, span_id: int, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key,},)
-        resp = resp.json()
-        return resp["baggage"]
+        data = resp.json()
+        return data["baggage"]
 
     def span_get_all_baggage(self, span_id: int) -> dict:
         resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
-        resp = resp.json()
-        return resp["baggage"]
+        data = resp.json()
+        return data["baggage"]
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
@@ -302,8 +302,8 @@ class APMLibraryClient:
         resp = self._session.post(
             self._url("/trace/otel/otel_set_baggage"), json={"span_id": span_id, "key": key, "value": value}
         )
-        resp = resp.json()
-        return resp["value"]
+        data = resp.json()
+        return data["value"]
 
     def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
         resp = self._session.post(

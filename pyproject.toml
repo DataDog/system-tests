@@ -104,18 +104,9 @@ allow_no_jira_ticket_for_bugs = [
 ]
 
 [tool.mypy]
+files = ["utils/parametric", "tests/parametric"]
 ignore_missing_imports = true
 disable_error_code = ["no-redef"]
-files = ["tests/parametric", "utils/parametric"]
-
-["tool.mypy-docker.*"]
-ignore_missing_imports = true
-
-["tool.mypy-paramiko.*"]
-ignore_missing_imports = true
-
-["tool.mypy-requests.*"]
-ignore_missing_imports = true
 
 [tool.pylint]
 init-hook='import sys; sys.path.append(".")'
