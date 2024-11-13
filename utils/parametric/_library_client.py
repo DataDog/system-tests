@@ -8,6 +8,7 @@ from docker.models.containers import Container
 import pytest
 from _pytest.outcomes import Failed
 import requests
+from utils import context
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.tools import logger
@@ -114,8 +115,13 @@ class APMLibraryClient:
         typestr: Optional[str] = None,
         tags: Optional[List[Tuple[str, str]]] = None,
     ):
-        # Avoid using http_headers, links, and origin when creating a span in the parametric apps.
-        # Alternative endpoints will be provided to set these values. This will be documented in a future PR.
+        if context.library == "cpp":
+            # TODO: Update the cpp parametric app to accept null values for unset parameters
+            service = service or ""
+            resource = resource or ""
+            parent_id = parent_id or 0
+            typestr = typestr or ""
+
         resp = self._session.post(
             self._url("/trace/span/start"),
             json={
