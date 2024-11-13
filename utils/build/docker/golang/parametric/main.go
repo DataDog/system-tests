@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"go.opentelemetry.io/otel"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	otel_trace "go.opentelemetry.io/otel/trace"
@@ -17,10 +18,11 @@ import (
 )
 
 type apmClientServer struct {
-	spans     map[uint64]tracer.Span
-	otelSpans map[uint64]spanContext
-	tp        *ddotel.TracerProvider
-	tracer    otel_trace.Tracer
+	spans        map[uint64]tracer.Span
+	spanContexts map[uint64]ddtrace.SpanContext
+	otelSpans    map[uint64]spanContext
+	tp           *ddotel.TracerProvider
+	tracer       otel_trace.Tracer
 }
 
 type spanContext struct {
@@ -30,8 +32,9 @@ type spanContext struct {
 
 func newServer() *apmClientServer {
 	s := &apmClientServer{
-		spans:     make(map[uint64]tracer.Span),
-		otelSpans: make(map[uint64]spanContext),
+		spans:        make(map[uint64]tracer.Span),
+		spanContexts: make(map[uint64]ddtrace.SpanContext),
+		otelSpans:    make(map[uint64]spanContext),
 	}
 	s.tp = ddotel.NewTracerProvider()
 	otel.SetTracerProvider(s.tp)
@@ -59,6 +62,7 @@ func main() {
 	http.HandleFunc("/trace/span/finish", s.finishSpanHandler)
 	http.HandleFunc("/trace/span/set_metric", s.spanSetMetricHandler)
 	http.HandleFunc("/trace/span/inject_headers", s.injectHeadersHandler)
+	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
 
