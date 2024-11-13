@@ -302,6 +302,36 @@ function initRoutes (app, tracer) {
     res.send(`OK:${token}`)
   })
 
+  app.get('/iast/header_injection/reflected/exclusion', (req, res) => {
+    res.setHeader(req.query.reflected, req.headers[req.query.origin])
+    res.send('OK')
+  })
+
+  app.get('/iast/header_injection/reflected/no-exclusion', (req, res) => {
+    // There is a reason for this: to avoid vulnerabilities deduplication,
+    // which caused the non-exclusion test to fail for all tests after the first one,
+    // since they are all in the same location (the hash is calculated based on the location).
+
+    switch (req.query.reflected) {
+      case 'pragma':
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+      case 'transfer-encoding':
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+      case 'content-encoding':
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+      case 'access-control-allow-origin':
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+      default:
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+    }
+    res.send('OK')
+  })
+
   app.post('/iast/header_injection/test_insecure', (req, res) => {
     res.setHeader('testheader', req.body.test)
     res.send('OK')
