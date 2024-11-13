@@ -9,11 +9,6 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
-        os_branch: amazon_linux2
-        remote-command: sudo amazon-linux-extras install epel && sudo yum -y install nodejs
-
-      - os_type: linux
-        os_distro: rpm
         os_branch: redhat
         remote-command: |
           sudo dnf -y module enable nodejs:20
@@ -51,7 +46,8 @@ weblog:
     #ubuntu 21: node 12
     #centos 7: node 16
     #rhel_7_amd64: I can't isntall in a standard way
-    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu21, ubuntu20_arm64, ubuntu20_amd64, centos_7_amd64, rhel_7_amd64]
+    #amazon_linux2: Using the amazon-linux-extras -  Error: Package: 1:nodejs-16.20.2-1.el7.x86_64 (epel)
+    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu21, ubuntu20_arm64, ubuntu20_amd64, centos_7_amd64, rhel_7_amd64, amazon_linux2]
     install: 
       - os_type: linux
         copy_files:
