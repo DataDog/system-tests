@@ -429,7 +429,7 @@ COPY {golang_reldir}/go.mod /app
 COPY {golang_reldir}/go.sum /app
 COPY {golang_reldir}/. /app
 # download the proper tracer version
-COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
+COPY utils/build/docker/golang/parametric/install_ddtrace.sh binaries* /binaries/
 COPY utils/build/docker/golang/parametric/system_tests_library_version.sh system_tests_library_version.sh
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
