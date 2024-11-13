@@ -41,6 +41,6 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/test-app-python_run.sh
 
           - name: copy-python-app
-            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
+            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django-27
 
         remote-command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh
