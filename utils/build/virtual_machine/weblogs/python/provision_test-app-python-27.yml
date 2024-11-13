@@ -8,7 +8,7 @@ lang_variant:
         copy_files:
           - name: copy-auto-install-script
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python/python_install.sh
-        remote-command: sudo apt-get -y update && sudo sh python_install.sh deb 2.7.18
+        remote-command: sudo apt-get -y update && sudo apt-get -y install patch && sudo sh python_install.sh deb 2.7.18
 
       - os_type: linux
         os_distro: rpm
