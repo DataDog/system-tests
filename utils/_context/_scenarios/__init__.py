@@ -169,7 +169,7 @@ class scenarios:
         weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
@@ -286,7 +286,7 @@ class scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -381,7 +381,7 @@ class scenarios:
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -394,7 +394,7 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
         },
         doc="",
-        scenario_groups=[ScenarioGroup.REMOTE_CONFIG],
+        scenario_groups=[ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
@@ -409,7 +409,7 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -495,7 +495,7 @@ class scenarios:
         include_kafka=True,
         include_postgres_db=True,
         doc="",
-        scenario_groups=[ScenarioGroup.TRACING_CONFIG],
+        scenario_groups=[ScenarioGroup.TRACING_CONFIG, ScenarioGroup.ESSENTIALS],
     )
 
     tracing_config_nondefault_2 = EndToEndScenario(

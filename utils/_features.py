@@ -2408,6 +2408,16 @@ class features:
         return test_object
 
     @staticmethod
+    def ssi_crashtracking(test_object):
+        """
+        Docker ssi crashtracking
+
+        https://feature-parity.us1.prod.dog/#/?feature=340
+        """
+        pytest.mark.features(feature_id=340)(test_object)
+        return test_object
+
+    @staticmethod
     def ssi_service_naming(test_object):
         """
         Docker ssi service naming feature
