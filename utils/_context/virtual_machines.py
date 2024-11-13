@@ -176,8 +176,8 @@ class _VirtualMachine:
 
     def get_cache_name(self):
         """ Generate a unique name for the  cache.
-        use: vm name + provision name + weblog id + hash of the cacheable installations 
-        We geneate the hash from cacheable steps content. If we modify the step scripts 
+        use: vm name + provision name + weblog id + hash of the cacheable installations
+        We geneate the hash from cacheable steps content. If we modify the step scripts
         the hash will change and the cache will be regenerated.
         If we use the AWS provider: The AWS AMI is limited to 128 characters, so we need to keep the name short
         """
@@ -653,7 +653,7 @@ class RedHat90amd64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="redhat",
+            os_branch="redhat_9",
             os_cpu="amd64",
             default_vm=False,
             **kwargs,
@@ -669,7 +669,7 @@ class RedHat90arm64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="redhat",
+            os_branch="redhat_9",
             os_cpu="arm64",
             default_vm=True,
             **kwargs,
