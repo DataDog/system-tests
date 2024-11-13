@@ -1,4 +1,4 @@
-Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to weblog tests, but refer to [placeholder] (link to contributing doc) for contributing to parametric tests.
+Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. 
 
 Once the changes are complete, post them in a PR. We'll review it ASAP.
 
