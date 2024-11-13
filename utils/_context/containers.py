@@ -693,10 +693,10 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8126
+            base_environment["DD_TRACE_AGENT_PORT"] = 8126  # type: ignore
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8127
+            base_environment["DD_TRACE_AGENT_PORT"] = 8127  # type: ignore
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})

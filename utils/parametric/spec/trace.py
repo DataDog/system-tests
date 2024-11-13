@@ -249,7 +249,7 @@ def retrieve_span_links(span):
         return links
 
 
-def id_to_int(value: Union[str, int]) -> int:
+def id_to_int(value) -> int:
     """Convert an id from hex or a base 10 string to an integer."""
     try:
         # This is a best effort to convert hex span/trace id to an integer.

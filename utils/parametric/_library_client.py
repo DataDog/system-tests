@@ -422,7 +422,7 @@ class _TestOtelSpan:
     ### Span data will be retrieved from the agent ###
 
     def get_attribute(self, key: str):
-        return self._client.otel_get_attribute(self.span_id, key)
+        return self._client.otel_get_attribute(self.span_id, key)  # type: ignore
 
 
 class APMLibrary:

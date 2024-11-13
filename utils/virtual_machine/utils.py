@@ -4,7 +4,7 @@ from utils._decorators import is_jira_ticket
 from copy import deepcopy
 
 
-def parametrize_virtual_machines(bugs: list[dict] = None):
+def parametrize_virtual_machines(bugs=None):
     """ You can set multiple bugs for a single test case. 
     If you want to set a bug for a specific VM, you can set the vm_name or vm_cpu or weblog_variant in the bug dictionary (using one or more fields). 
     ie: 
