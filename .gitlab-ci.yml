@@ -73,7 +73,7 @@ onboarding_nodejs:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer,test-app-nodejs-esm]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
   script:
