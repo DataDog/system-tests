@@ -23,7 +23,13 @@ public class JettyServletMain {
       if (arg.equals("--crash")) {
           String jvmName = ManagementFactory.getRuntimeMXBean().getName();
           long pid = Long.parseLong(jvmName.split("@")[0]);
-          Runtime.getRuntime().exec(new String[] {"kill", "-11", String.valueOf(pid)});
+          Process process = Runtime.getRuntime().exec(new String[] {"kill", "-9", String.valueOf(pid)});
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+              String line;
+              while ((line = reader.readLine()) != null) {
+                  System.err.println(line);
+              }
+          }
           break;
       }
     }

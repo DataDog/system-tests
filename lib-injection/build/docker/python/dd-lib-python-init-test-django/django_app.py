@@ -45,11 +45,30 @@ def fork_and_crash(request):
 
 def child_pids(request):
     current_pid = os.getpid()
-    ps_command = ["ps", "--ppid", str(current_pid), "--no-headers"]
+    child_pids = []
 
-    result = subprocess.run(ps_command, capture_output=True, text=True, check=True)
+    # Iterate over all directories in /proc to look for PIDs
+    try:
+        for pid in os.listdir('/proc'):
+            if pid.isdigit():
+                status_path = f'/proc/{pid}/status'
+                try:
+                    with open(status_path, 'r') as status_file:
+                        for line in status_file:
+                            if line.startswith('PPid:'):
+                                ppid = int(line.split()[1])
+                                if ppid == current_pid:
+                                    child_pids.append(pid)
+                                break
+                except (FileNotFoundError, PermissionError):
+                    # Process might have terminated or we don't have permission
+                    continue
 
-    return HttpResponse(result.stdout)
+        # Format the response to include the list of child PIDs
+        response_content = ", ".join(child_pids)
+        return HttpResponse(response_content, content_type="text/plain")
+    except Exception as e:
+        return HttpResponse(f"Error: {str(e)}", status=500, content_type="text/plain")
 
 
 urlpatterns = [
