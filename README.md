@@ -1,4 +1,4 @@
-## What is system tests?
+## What is system-tests?
 
 A workbench designed to run advanced tests (integration, smoke, functional, fuzzing and performance) against our suite of dd-trace libraries.
 
