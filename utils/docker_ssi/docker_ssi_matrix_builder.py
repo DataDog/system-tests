@@ -42,12 +42,14 @@ def generate_gitlab_pipeline():
                     test["runner"] = "docker"
                 else:
                     test["runner"] = "docker-arm"
+                test.pop("unique_name", None)
                 matrix.append(test)
 
         if matrix:
             pipeline[language] = {
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
+                "stage": language,
                 "parallel": {
                     "matrix": matrix
                 }
