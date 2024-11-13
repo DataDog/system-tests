@@ -43,7 +43,7 @@ function getChildPids(req, res) {
 
     // Send response back
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(`Child PIDs: ${childPids.join(', ')}`);
+    res.end(`${childPids.join(', ')}`);
   } catch (error) {
     res.writeHead(500, { 'Content-Type': 'text/plain' });
     res.end(`Error: ${error.message}`);

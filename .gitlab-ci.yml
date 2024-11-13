@@ -103,6 +103,9 @@ onboarding_java:
           SCENARIO:
             - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
             - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java-container]
+          SCENARIO:
             - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_CRASHTRACKING
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine,test-app-java-buildpack]
