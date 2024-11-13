@@ -2,7 +2,7 @@ So, you have a dd-trace branch that contains changes you'd like to test with sys
 **Note**: the instructions below assume that the necessary test already exists in system-tests and your weblog or parametric app has the necessary endpoint for serving the test [TODO]: LINK TO CONTRIBUTING DOC
 
 ### First
-post a PR to the dd-trace repo.
+Post a PR to the dd-trace repo.
 
 ### Then
 Test system-tests changes locally
