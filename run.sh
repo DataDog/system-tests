@@ -117,9 +117,7 @@ function lookup_scenario_group() {
             ;;
     esac
 
-    python+=(
-        -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]'
-    )
+    python+=(utils/scripts/get-scenarios-from-group.py)
 
     echo "${python[*]}" 1>&2
 

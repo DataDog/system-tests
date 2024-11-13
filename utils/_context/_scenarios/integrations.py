@@ -44,7 +44,7 @@ class IntegrationsScenario(EndToEndScenario):
             include_mysql_db=True,
             include_sqlserver=True,
             doc="Spawns tracer, agent, and a full set of database. Test the intgrations of those databases with tracers",
-            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
+            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC],
         )
 
     def configure(self, config):
@@ -98,7 +98,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             include_kafka=include_kafka,
             include_rabbitmq=include_rabbitmq,
             include_buddies=include_buddies,
-            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
+            scenario_groups=[ScenarioGroup.INTEGRATIONS],
         )
         # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
         # from other tests. This time hash is added to the message, test consumers only stops once finding the specific
