@@ -451,7 +451,7 @@ class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
             name,
             vm_provision=vm_provision,
             agent_env=agent_env,
-            app_env=app_env,
+            app_env=app_env_defaults,
             doc=doc,
             github_workflow=github_workflow,
             include_ubuntu_22_amd64=True,
