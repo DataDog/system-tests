@@ -44,7 +44,7 @@ else
 fi
 
 echo "Running mypy type checks..."
-if ! mypy --config pyproject.toml; then
+if ! mypy --config pyproject.toml --install-types --non-interactive; then
   echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi
