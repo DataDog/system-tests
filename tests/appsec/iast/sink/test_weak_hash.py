@@ -72,6 +72,7 @@ class TestWeakHash_StackTrace:
 
 
 @scenarios.iast_deduplication
+@features.weak_hash_vulnerability_detection
 class TestDeduplication:
     """Verify vulnerability deduplication."""
 
