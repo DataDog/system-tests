@@ -1,10 +1,29 @@
 To iterate on changes, you'll need to run tests locally. Instructions for running weblog tests can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/execute/README.md#run-tests) and for parametric, [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md#running-the-tests).
 
+This document will discuss the general approach to modifying system tests. Refer to the index below for the other documents in this folder:
+1. CI-and-scenarios.md: TODO
+2. add-test-class.md: TODO
+3. best-practices.md: TODO
+4. features.md: TODO
+5. format.md: TODO
+6. from-scratch.md: TODO
+7. how-to-approach-changes.md: TODO
+8. iast-validations.md: TODO
+9. lifecycle.md: TODO
+10. manifest.md: TODO
+11. remote-config.md: TODO
+12. update-docker-images.md: TODO
+13. versions.md: TODO
+
 ## Modify system-tests
 
 Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to weblog tests, but refer to [placeholder] (link to contributing doc) for contributing to parametric tests.
 
 Once the changes are complete, post them in a PR. We'll review it ASAP.
+
+### Note
+* Each test class tests only one feature
+* A test class can have several tests
 
 Tests live under the `tests/` folder. You may need to add a new file to this folder, or a new directory + file to this folder. Alternatively, you may add a test to an existing file, if it makes sense. Tests are structured like so, e.g. `tests/test_some_feature.py`:
 
@@ -37,7 +56,7 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-Sometimes [skip a test](./features.md) is needed
+Sometimes [skip a test](./features.md) is needed.
 
 ```python
 from utils import weblog, interfaces, context, bug
