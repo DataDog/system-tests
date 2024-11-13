@@ -63,8 +63,9 @@ STDOUT.sync = true
 puts 'Loading server classes...'
 
 DD_SPANS = {}
-OTEL_SPANS = {}
+DD_TRACES = {}
 DD_DIGEST = {}
+OTEL_SPANS = {}
 
 HeaderTuple = Struct.new(:key, :value, keyword_init: true)
 
@@ -490,9 +491,9 @@ def get_digest(span_id)
   elsif DD_SPANS.key?(span_id)
     span = DD_SPANS[span_id]
     raise "Span id #{span_id} not found in span list: #{DD_SPANS}" if span.nil?
-    digest = DD_DIGEST[span.trace_id]
-    raise "Span id #{span_id} not found in span list: #{DD_DIGEST}" if digest.nil?
-    digest.merge(
+    trace = DD_TRACES[span.trace_id]
+    raise "Span id #{span_id} not found in span list: #{DD_TRACES}" if trace.nil?
+    trace.to_digest.merge(
       span_id: span.id,
       span_name: span.name,
       span_resource: span.resource,
@@ -500,10 +501,9 @@ def get_digest(span_id)
       span_type: span.type,
       span_remote: false,
     )
+  elsif DD_DIGEST.key?(span_id)
+    DD_DIGEST[span_id]
   else
-    DD_DIGEST.each do |_, digest|
-      return digest if digest.span_id == span_id
-    end
     raise "Span id #{span_id} not found in spans: #{DD_SPANS} or digests: #{DD_DIGEST}"
   end
 end
@@ -615,20 +615,7 @@ class MyApp
       tags: args.span_tags.to_h
     )
     DD_SPANS[span.id] = span
-
-    active_trace = Datadog::Tracing.active_trace
-    # Calling to_digest on a TraceOperayion will sample unsampled spans,
-    # to avoid this we temporarily the sampling priority to 1. This will
-    # allow us to get the digest without sampling the span.
-    digest = if active_trace && active_trace.sampling_priority.nil?
-              active_trace.sampling_priority = 1
-              dg = active_trace.to_digest
-              active_trace.sampling_priority = nil
-              dg
-            else
-              active_trace&.to_digest
-            end
-    DD_DIGEST[span.trace_id] = digest
+    DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
     res.write(StartSpanReturn.new(span.id, span.trace_id).to_json)
   end
 
@@ -689,7 +676,7 @@ class MyApp
     args = SpanExtractArgs.new(JSON.parse(req.body.read))
     digest = extract_http_headers(args.http_headers)
     unless digest.nil?
-      DD_DIGEST[digest.trace_id] = digest
+      DD_DIGEST[digest.span_id] = digest
     end
 
     res.write(SpanExtractReturn.new(digest&.span_id).to_json)
