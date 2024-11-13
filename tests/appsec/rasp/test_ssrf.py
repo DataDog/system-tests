@@ -9,6 +9,7 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
+    Base_Rules_Version,
 )
 
 
@@ -192,3 +193,10 @@ class Test_Ssrf_Capability:
 
     def test_ssrf_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SSRF)
+
+
+@features.rasp_local_file_inclusion
+class Test_Ssrf_Rules_Version(Base_Rules_Version):
+    """Test ssrf min rules version"""
+
+    min_version = "1.13.2"

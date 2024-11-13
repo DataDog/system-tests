@@ -213,9 +213,11 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.10.0
         Test_Lfi_Optional_SpanTags: v2.10.0
         Test_Lfi_RC_CustomAction: v2.14.0
+        Test_Lfi_Rules_Version: missing_feature
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
+      test_libddwaf.py: missing_feature
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
@@ -223,6 +225,7 @@ tests/:
         Test_Shi_Capability: v2.11.0
         Test_Shi_Mandatory_SpanTags: v2.11.0-rc2
         Test_Shi_Optional_SpanTags: v2.11.0-rc2
+        Test_Shi_Rules_Version: missing_feature
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
         Test_Shi_UrlQuery: v2.11.0-rc2
@@ -233,6 +236,7 @@ tests/:
         Test_Sqli_Capability: v2.11.0
         Test_Sqli_Mandatory_SpanTags: v2.10.0
         Test_Sqli_Optional_SpanTags: v2.10.0
+        Test_Sqli_Rules_Version: missing_feature
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
         Test_Sqli_UrlQuery: v2.10.0
@@ -243,6 +247,7 @@ tests/:
         Test_Ssrf_Capability: v2.11.0
         Test_Ssrf_Mandatory_SpanTags: v2.10.0
         Test_Ssrf_Optional_SpanTags: v2.10.0
+        Test_Ssrf_Rules_Version: missing_feature
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
         Test_Ssrf_UrlQuery: v2.10.0
