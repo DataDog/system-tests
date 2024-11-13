@@ -35,7 +35,7 @@ class DockerSSIScenario(Scenario):
         self._tested_components = {}
 
     def configure(self, config):
-        assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby"
+        assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby,php"
 
         self._base_weblog = config.option.ssi_weblog
         self._library = config.option.ssi_library
