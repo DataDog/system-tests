@@ -4,6 +4,7 @@ from requests import head
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
+from utils.parametric.headers import extract_headers_and_make_child_span
 from utils.parametric.spec.trace import find_only_span
 from utils import features, scenarios, bug, context
 from typing import Any
@@ -97,9 +98,11 @@ class Test_Headers_Baggage:
 
     def test_baggage_extract_header_D005(self, test_library):
         """testing baggage header extraction and decoding"""
-        with test_library.start_span(
-            name="test_baggage_extract_header_D005",
-            http_headers=[
+
+        with extract_headers_and_make_child_span(
+            test_library,
+            "test_baggage_extract_header_D005",
+            [
                 [
                     "baggage",
                     "foo=bar,userId=Am%C3%A9lie,serverNode=DF%2028,%22%2C%3B%5C%28%29%2F%3A%3C%3D%3E%3F%40%5B%5D%7B%7D=%22%2C%3B%5C",
@@ -141,8 +144,8 @@ class Test_Headers_Baggage:
 
     def test_baggage_get_D008(self, test_library):
         """testing baggage API get_baggage"""
-        with test_library.start_span(
-            name="test_baggage_get_D008", http_headers=[["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]],
+        with extract_headers_and_make_child_span(
+            test_library, "test_baggage_get_D008", [["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]]
         ) as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
@@ -153,7 +156,9 @@ class Test_Headers_Baggage:
 
     def test_baggage_get_all_D009(self, test_library):
         """testing baggage API get_all_baggage"""
-        with test_library.start_span(name="test_baggage_get_all_D009", http_headers=[["baggage", "foo=bar"]]) as span:
+        with extract_headers_and_make_child_span(
+            test_library, "test_baggage_get_all_D009", [["baggage", "foo=bar"]]
+        ) as span:
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
             span.set_baggage("serverNode", "DF 28")
