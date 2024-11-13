@@ -1,5 +1,6 @@
 lang_variant:
     name: Python_2.7.18
+    excluded_os_branches: [amazon_linux2, rhel_7_amd64]
     version: 2.7.18
     cache: true
     install:
