@@ -14,8 +14,10 @@ tests/:
 A test is **enabled** if: 
 - Nothing is specified in the manifest file and there aren’t conflicting in-line decorators (e.g, @bug, see [skip-tests.md](./skip-tests.md)) on the test
 - `label` contains a valid [https://semver.org/] version number.
+See [enable-test.md](./enable-test.md) to enable a test.
 
-A test is **disabled** if `label` contains some other marker (See Test “Disable” Labels section).
+A test is **disabled** if `label` contains some other marker.
+See [skip-tests.md](./skip-tests.md) to disable a test.
 
 When executed locally, tests run against the latest version of dd-trace by default. In CI, the tests run against the main branch and the latest version.
 
