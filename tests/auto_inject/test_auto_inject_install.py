@@ -97,7 +97,12 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         assert not non_empty_pids
 
-        self.fork_and_crash(virtual_machine)
+        try:
+            self.fork_and_crash(virtual_machine)
+        except Exception as e:
+            process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+            logger.warning("Failure process tree: " + process_tree)
+            raise
 
         output = self.execute_command(virtual_machine, "ps ax -o pid,ppid,state,cmd | awk '$3 == \"Z\" { print $0 }'")
         output = output.strip()
