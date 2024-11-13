@@ -7,16 +7,15 @@ System tests are a great way to ensure dd-trace is "up to spec" alongside the ot
 To make changes, you must be able to run tests locally. Instructions for running **weblog** tests can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/execute/README.md#run-tests) and for **parametric**, [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md#running-the-tests).
 
 #### Index
-1. CI-and-scenarios.md: TODO
-2. add-test-class.md: TODO
-3. best-practices.md: TODO
-4. features.md: TODO
-5. format.md: TODO
-6. from-scratch.md: TODO
-7. how-to-approach-changes.md: TODO
-8. iast-validations.md: TODO
-9. lifecycle.md: TODO
-10. manifest.md: TODO
-11. remote-config.md: TODO
-12. update-docker-images.md: TODO
-13. versions.md: TODO
+1. [lifecycle.md](./lifecycle.md): Understand how system tests work
+2. [add-test-class.md](./add-test-class.md): Add a new test
+3. [scenarios.md](./scenarios.md): Add a new scenario
+4. [features.md](./features.md): Mark tests for the feature parity dashboard
+5. [format.md](./format.md): Use the linter
+6. [manifest.md](./manifest.md): How tests are marked as enabled or disabled for libraries
+7. [enable-tests.md](./enable-tests.md): Enable tests 
+8. [skip-tests.md](./skip-tests.md): Disable tests
+9. [versions.md](./versions.md) Specify version for enabling/disabling tests
+10. [remote-config.md](./remote-config.md): Understand how we test remote config
+11. [troubleshooting.md](./troubleshooting.md) Tips for debugging
+12. [iast-validations.md](./iast-validations.md): todo
