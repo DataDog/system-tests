@@ -2,7 +2,7 @@ lang_variant:
     name: Python_3.6.15
     version: 3.6.15
     cache: true
-    install: 
+    install:
       - os_type: linux
         os_distro: deb
         copy_files:
@@ -24,6 +24,7 @@ lang_variant:
 
 weblog:
     name: test-app-python-36
+    excluded_os_branches: [amazon_linux2, rhel_7_amd64]
     install:
       - os_type: linux
 
