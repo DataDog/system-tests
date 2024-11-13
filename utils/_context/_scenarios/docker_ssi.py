@@ -30,10 +30,7 @@ class DockerSSIScenario(Scenario):
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
-        if "GITLAB_CI" in os.environ:
-            self.agent_port = utils.tools.get_free_port()
-        else:
-            self.agent_port = 8126
+        self.agent_port = utils.tools.get_free_port()
         self.agent_host = "localhost"
         self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 

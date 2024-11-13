@@ -111,41 +111,6 @@ onboarding_java:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
-java_docker_ssi:
-  image: "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362"
-  stage: java_tracer
-  tags: [ "runner:docker"]
-  allow_failure: true
-  dependencies: []
-  rules:
-    - when: on_success
-  variables:
-    TEST_LIBRARY: java
-    weblog: jetty-app
-    base_image: "ubuntu:22.04"
-    arch: "linux/amd64"
-    installable_runtime: "22.0.2-zulu"
-  script:
-    - ./build.sh -i runner
-    - source venv/bin/activate
-    - timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime"
-  artifacts:
-      when: always
-      paths:
-        - reports/
-        - logs_docker_ssi/
-
-check-environment:
-  tags: [ "runner:docker" ]
-  image: registry.ddbuild.io/docker:24.0.5
-  stage: java_tracer
-  script:
-    - export BUILD_CONTAINER=$(docker container ls --format '{{json .}}' | jq --slurp '.[] | select(.Names | endswith("-build")) | .ID' --raw-output)
-    - echo "FULL OUTPUT"
-    - docker inspect $BUILD_CONTAINER
-    - env
-
-
 onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
@@ -366,3 +331,22 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
+
+generate_docker_ssi_pipeline:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  stage: before_tests
+  tags: ["arch:amd64"]
+  dependencies: []
+  script:
+    - python utils/docker_ssi/docker_ssi_matrix_builder.py --format yaml --output-file ssi_pipeline.yml
+  artifacts:
+    paths:
+      - ssi_pipeline.yml
+
+ssi_tests_pipeline:
+  stage: before_tests
+  trigger:
+    include:
+      - artifact: ssi_pipeline.yml
+        job: generate_docker_ssi_pipeline
+    strategy: depend

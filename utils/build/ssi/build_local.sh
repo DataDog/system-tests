@@ -48,7 +48,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 cd "${BASE_DIR}" || exit
-matrix_json=$(python utils/docker_ssi/docker_ssi_matrix_builder.py )
+matrix_json=$(python utils/docker_ssi/docker_ssi_matrix_builder.py --format json)
 
 extra_args=""
 if [ -n "$FORCE_BUILD" ]; then
@@ -71,4 +71,4 @@ do
         fi
    fi
 
-done < <(echo "$matrix_json" | jq -c '.include[]')
+done < <(echo "$matrix_json" | jq -c ".${TEST_LIBRARY}.parallel.matrix[]")
