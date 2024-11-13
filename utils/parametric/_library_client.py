@@ -9,6 +9,7 @@ import pytest
 from _pytest.outcomes import Failed
 import requests
 
+from utils.dd_constants import SpanKind, StatusCode
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.tools import logger
 
@@ -228,7 +229,7 @@ class APMLibraryClient:
         self,
         name: str,
         timestamp: int,
-        span_kind: int,
+        span_kind: SpanKind,
         parent_id: int,
         links: List[Link],
         http_headers: List[Tuple[str, str]],
@@ -239,7 +240,7 @@ class APMLibraryClient:
             json={
                 "name": name,
                 "timestamp": timestamp,
-                "span_kind": span_kind,
+                "span_kind": span_kind.value,
                 "parent_id": parent_id,
                 "links": links,
                 "http_headers": http_headers,
@@ -259,9 +260,10 @@ class APMLibraryClient:
     def otel_set_name(self, span_id: int, name: str) -> None:
         self._session.post(self._url("/trace/otel/set_name"), json={"span_id": span_id, "name": name})
 
-    def otel_set_status(self, span_id: int, code: int, description: str) -> None:
+    def otel_set_status(self, span_id: int, code: StatusCode, description: str) -> None:
         self._session.post(
-            self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code, "description": description}
+            self._url("/trace/otel/set_status"),
+            json={"span_id": span_id, "code": code.name, "description": description},
         )
 
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
@@ -387,7 +389,7 @@ class _TestOtelSpan:
     def set_name(self, name):
         self._client.otel_set_name(self.span_id, name)
 
-    def set_status(self, code, description):
+    def set_status(self, code: StatusCode, description):
         self._client.otel_set_status(self.span_id, code, description)
 
     def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
@@ -468,7 +470,7 @@ class APMLibrary:
         self,
         name: str,
         timestamp: int = 0,
-        span_kind: int = 0,
+        span_kind: SpanKind = SpanKind.UNSPECIFIED,
         parent_id: int = 0,
         links: Optional[List[Link]] = None,
         attributes: dict = None,
