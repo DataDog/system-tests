@@ -21,7 +21,7 @@ Whether it's adding a new test or modifying an existing test, a moderate amount 
 
 Once the changes are complete, post them in a PR. We'll review it ASAP.
 
-### Note
+#### Notes
 * Each test class tests only one feature
 * A test class can have several tests
 * If an RFC for the feature exists, you must use the decorator `rfc` decorator:
@@ -33,6 +33,7 @@ from utils import rfc
 class Test_Millenium:
     """ Test on small details """
 ```
+---
 
 Tests live under the `tests/` folder. You may need to add a new file to this folder, or a new directory + file to this folder. Alternatively, you may add a test to an existing file, if it makes sense. Tests are structured like so, e.g. `tests/test_some_feature.py`:
 
