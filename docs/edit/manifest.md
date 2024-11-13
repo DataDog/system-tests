@@ -1,4 +1,30 @@
-Manifest file is the usual way to declare what will be tested or not. They are located in `manifests/` folder, and every tracer team got its own manifest file.
+Use the manifest files under the `manifests/` folder to declare what will be tested vs skipped, and under what conditions. Tests are identified by their file path + Test_Class_Name + Optional | Test_Name (Where Test_Name is used to differentiate between multiple test functions within a class).
+Example weblog test: 
+```yaml
+tests/:
+  specific.py: v1.40.0
+```
+Example Parametric test: 
+```yaml
+tests/:
+  parametric/:
+    specific_parametric.py: v1.40.0
+```
+
+A test is **enabled** if: 
+- Nothing is specified in the manifest file and there aren’t conflicting in-line decorators (e.g, @bug, see [skip-tests.md](./skip-tests.md)) on the test
+- `label` contains a valid [https://semver.org/] version number.
+
+A test is **disabled** if `label` contains some other marker (See Test “Disable” Labels section).
+
+When executed locally, tests run against the latest version of dd-trace by default. In CI, the tests run against the main branch and the latest version.
+
+#### Notes
+- Each library team has ownership of its manifest file
+- Manifest files are validated using JSON schema in system tests CI
+- An error will occur if a manifest file refers to a file/class that does not exists
+
+The example below shows a combination of options that can be deployed in manifest files. 
 
 ## Example
 
@@ -29,28 +55,9 @@ tests/:
       Test_FeatureE: *5_6_and_someid_backports
 ```
 
-### Implementation
-
-- Manifests files are inside `manifests/` folder, one per team (each library, agent, ASM rules file, any php extension...): `manifests/golang.yml`, `manifest/agent.yml`...
-- Each team has ownership of its manifest file
-- Manifest file are validated using JSON schema in system tests CI
-- An error pops if a manifest file refers to a file/class that does not exists
-
-## Supported features
-
-- declaring a skip reason (bug, flaky, irrelevant, missing_feature) for entire file
-- declaring released version (or a skip reason) for a class
-- declaring released version (or a skip reason) for a class, with details for weblog variants
+#### Notes
 - The wildcard `*` is supported for weblog declarations
-- Supports the full npm syntax for SemVer specification. See more at: https://github.com/npm/node-semver#ranges
-
-## Will never be supported:
-
-- any complex logic
-  \_ because there is not limit on the complexity. We need to draw a line based on the ratio format simplicity / number of occurrences. The cutoff point is only test classes, declaring version for weblog variants, or skip reason for the entire class.
-- declaring metadata (bug, flaky, irrelevant) for test methods
-  - because their namings are not stable, it would lead to frequent modifications of manifest files, spaming every team
-  - because conflict mostly happen at class level
+- Manifests support the full npm syntax for SemVer specification. See more at: https://github.com/npm/node-semver#ranges
 
 ## Context and legacy way
 
