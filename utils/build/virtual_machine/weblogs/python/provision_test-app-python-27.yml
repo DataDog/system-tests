@@ -21,6 +21,7 @@ lang_variant:
           then
             sudo yum groupinstall "Development Tools" -y
           fi
+          sudo yum -y install patch
           sudo sh python_install.sh rpm 2.7.18
 
 weblog:
