@@ -18,4 +18,4 @@ To make changes, you must be able to run tests locally. Instructions for running
 9. [versions.md](./versions.md) Specify version for enabling/disabling tests
 10. [remote-config.md](./remote-config.md): Understand how we test remote config
 11. [troubleshooting.md](./troubleshooting.md) Tips for debugging
-12. [iast-validations.md](./iast-validations.md): todo
+12. [iast-validations.md](./iast-validations.md): Mark tests with vulnerabilities
