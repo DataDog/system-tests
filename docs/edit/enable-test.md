@@ -16,7 +16,7 @@ If you know the specific release that contains the changes that allowed your lib
 
 **Run the test against unmerged or unreleased changes**: 
 
-Follow [binaries.md](https://github.com/DataDog/system-tests/blob/main/docs/execute/binaries.md) to run the app with a custom build, then [update the manifest file](./manifest.md) with the name of your lib’s main branch, see: [https://github.com/DataDog/system-tests/blob/main/docs/edit/versions.md] (Probably `v<next-minor-release>-dev`).
+Follow [binaries.md](https://github.com/DataDog/system-tests/blob/main/docs/execute/binaries.md) to run the app with a custom build, then [update the manifest file](./manifest.md) with the name of your lib’s main branch (probably `v<next-minor-release>-dev`, see [versions.md](https://github.com/DataDog/system-tests/blob/main/docs/edit/versions.md)).
 
 By now, you should have a change to a manifest file. Post a PR to system-tests with your changes (the enabled test(s) will fail in CI if you enabled the test for the main branch; the necessary change is not merged into dd-trace main yet)
 
