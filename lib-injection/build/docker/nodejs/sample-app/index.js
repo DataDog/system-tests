@@ -9,7 +9,7 @@ process.on('SIGTERM', (signal) => {
 function forkAndCrash(req, res) {
   const child = fork('child.js');
 
-  child.on('exit', (code, signal) => {
+  child.on('close', (code, signal) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end(`Child process ${child.pid} exited with code ${code}, signal ${signal}`);
   });
