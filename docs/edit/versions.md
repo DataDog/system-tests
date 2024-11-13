@@ -1,14 +1,16 @@
-System-tests uses [SemVer](https://semver.org/), where a version can be seen as : `1.2.3-prerelease+build`.
+System-tests uses [SemVer](https://semver.org/), where a version is defined like: `1.2.3-prerelease+build`.
 
 * `1.2.3` is the trio `major`, `minor` and `patch`
 * `prerelease` is an optional label, usually something like `rc1`, `dev` ...
 * `build` is also an optional label, usually a commit SHA.
 
-And a very important point, in SemVer `1.2.3` < `1.2.4-rc1` < `1.2.4`.
+Any version suffixed with a prelease is always less than the same version without the suffix:
+ 
+ **`1.2.3` < `1.2.4-rc1` < `1.2.4`**
 
 ## Use cases
 
-Let say your last released version is `1.2.3`, and your version on your main branch is `1.2.4-dev` (visible in system-tests output)
+Let say your last released version is `1.2.3`, and the version of your main branch is `1.2.4-dev` (visible in system-tests output)
 
 ### Activate a test for your last released library
 
