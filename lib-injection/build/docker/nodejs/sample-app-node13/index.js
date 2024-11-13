@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { fork } = require('child_process');
 
 process.on('SIGTERM', (signal) => {
   process.exit(0);

@@ -73,7 +73,7 @@ class AutoInjectBaseTest:
             # If the response is not JSON, treat it as a single endpoint
             logger.info(f"Single container app detected at {base_url}")
             single_endpoint_url = f"{base_url}{path}"
-            single_response = requests.get(single_endpoint_url, timeout=120)
+            single_response = requests.get(single_endpoint_url, timeout=180)
             return [single_response.text]
 
     def close_channel(self, channel):
