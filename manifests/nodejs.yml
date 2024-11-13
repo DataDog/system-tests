@@ -251,6 +251,7 @@ tests/:
         Test_Lfi_RC_CustomAction:
           '*': *ref_5_24_0
           nextjs: missing_feature
+        Test_Lfi_Rules_Version: missing_feature
         Test_Lfi_StackTrace:
           '*': *ref_5_24_0
           nextjs: missing_feature
@@ -260,6 +261,8 @@ tests/:
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           nextjs: missing_feature
+      test_libddwaf.py:
+        Test_Libddwaf_Version: *ref_5_25_0
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0
@@ -271,6 +274,7 @@ tests/:
         Test_Shi_Capability: *ref_5_25_0
         Test_Shi_Mandatory_SpanTags: *ref_5_25_0
         Test_Shi_Optional_SpanTags: *ref_5_25_0
+        Test_Shi_Rules_Version: *ref_5_24_0
         Test_Shi_StackTrace:
           '*': *ref_5_25_0
           nextjs: missing_feature
@@ -291,6 +295,7 @@ tests/:
         Test_Sqli_Capability: *ref_5_23_0
         Test_Sqli_Mandatory_SpanTags: *ref_5_23_0
         Test_Sqli_Optional_SpanTags: *ref_5_23_0
+        Test_Sqli_Rules_Version: *ref_5_25_0
         Test_Sqli_StackTrace:
           '*': *ref_5_23_0
           nextjs: missing_feature
@@ -311,6 +316,7 @@ tests/:
         Test_Ssrf_Capability: *ref_5_23_0
         Test_Ssrf_Mandatory_SpanTags: *ref_5_18_0
         Test_Ssrf_Optional_SpanTags: *ref_5_18_0
+        Test_Ssrf_Rules_Version: *ref_5_25_0
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
           nextjs: missing_feature

@@ -63,12 +63,12 @@ public class RaspController {
 
     @RequestMapping(value = "/lfi", method = {GET, POST})
     public ResponseEntity<String> lfi(@RequestParam("file") final String file) {
-        return execFli(file);
+        return execLfi(file);
     }
 
     @PostMapping(value = "/lfi", consumes = {APPLICATION_XML_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<String> lfi(@RequestBody final FileDTO body) throws SQLException {
-        return execFli(body.getFile());
+        return execLfi(body.getFile());
     }
 
 
@@ -102,7 +102,7 @@ public class RaspController {
         }
     }
 
-    private ResponseEntity<String> execFli(final String file)  {
+    private ResponseEntity<String> execLfi(final String file)  {
         new File(file);
         return ResponseEntity.ok("OK");
     }
