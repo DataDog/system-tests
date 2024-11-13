@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.*;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -12,6 +13,7 @@ import javax.servlet.ServletException;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
+import sun.misc.Unsafe;
 
 /**
  * Starts up a server that serves static files from the top-level directory.
@@ -22,16 +24,13 @@ public class JettyServletMain {
 
     for (String arg : args) {
       if (arg.equals("--crash")) {
-          String jvmName = ManagementFactory.getRuntimeMXBean().getName();
-          long pid = Long.parseLong(jvmName.split("@")[0]);
-          Process process = Runtime.getRuntime().exec(new String[] {"kill", "-6", String.valueOf(pid)});
-          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-              String line;
-              while ((line = reader.readLine()) != null) {
-                  System.err.println(line);
-              }
-          }
-          break;
+        Field f = Unsafe.class.getDeclaredField("theUnsafe");
+        f.setAccessible(true);
+        Unsafe unsafe = (Unsafe) f.get(null);
+
+        // This will cause a segmentation fault by writing to address 0
+        unsafe.putAddress(0, 0);
+        break;
       }
     }
 
