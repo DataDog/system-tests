@@ -17,7 +17,10 @@ def generate_gitlab_pipeline():
                 "timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog \"$weblog\" --ssi-library \"$TEST_LIBRARY\" --ssi-base-image \"$base_image\" --ssi-arch \"$arch\" --ssi-installable-runtime \"$installable_runtime\""
             ],
             "rules": [
-                { "when": "manual" }
+                {
+                    "when": "manual",
+                    "allow_failure": True
+                }
             ],
             "artifacts": {
                 "when": "always",
@@ -50,6 +53,9 @@ def generate_gitlab_pipeline():
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
                 "stage": language,
+                "variables": {
+                    "TEST_LIBRARY": language,
+                },
                 "parallel": {
                     "matrix": matrix
                 }

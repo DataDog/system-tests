@@ -46,7 +46,7 @@ onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
       when: always
@@ -81,7 +81,7 @@ onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
       when: always
@@ -116,7 +116,7 @@ onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
       when: always
@@ -152,7 +152,7 @@ onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
       when: always
@@ -184,7 +184,7 @@ onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
       when: always
@@ -216,7 +216,7 @@ onboarding_php:
   extends: .base_job_onboarding_system_tests
   stage: php_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
       when: always
@@ -337,7 +337,7 @@ generate_docker_ssi_pipeline:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   stage: child_pipelines
   tags: ["arch:amd64"]
-  dependencies: []
+  needs: []
   script:
     - python utils/docker_ssi/docker_ssi_matrix_builder.py --format yaml --output-file ssi_pipeline.yml
   artifacts:
