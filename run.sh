@@ -422,7 +422,7 @@ function main() {
 
     # TODO: upgrade the dependencies to the latest version of pulumi once the protobuf bug is fixed
     # In the meantime remove the warning from the output
-    pytest_args+=( '-p' 'no:warnings' )
+    pytest_args+=( '-p' 'no:warnings' '--capture=no' )
 
     # evaluate max pytest number of process
     for scenario in "${scenarios[@]}"; do
