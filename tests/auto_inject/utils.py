@@ -56,7 +56,7 @@ class AutoInjectBaseTest:
         base_url = f"http://{vm_ip}:{vm_port}/"
         response = requests.get(base_url, timeout=30)
 
-        if "application/json" in response.headers["content-type"]:
+        if "content-type" in response.headers and "application/json" in response.headers["content-type"]:
             response_json = response.json()
 
             logger.info(f"There is a multicontainer app: {response_json}")

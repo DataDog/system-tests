@@ -16,7 +16,7 @@ signal.signal(signal.SIGTERM, handle_sigterm)
 
 filepath, extension = os.path.splitext(__file__)
 ROOT_URLCONF = os.path.basename(filepath)
-DEBUG = False
+DEBUG = True
 SECRET_KEY = "fdsfdasfa"
 ALLOWED_HOSTS = ["*"]
 

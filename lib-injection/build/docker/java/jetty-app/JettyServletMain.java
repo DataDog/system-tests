@@ -23,7 +23,7 @@ public class JettyServletMain {
       if (arg.equals("--crash")) {
           String jvmName = ManagementFactory.getRuntimeMXBean().getName();
           long pid = Long.parseLong(jvmName.split("@")[0]);
-          Runtime.getRuntime().exec("kill -11 " + pid);
+          Runtime.getRuntime().exec(new String[] {"kill", "-11", String.valueOf(pid)});
           break;
       }
     }
