@@ -72,12 +72,11 @@ app.post('/trace/span/start', (req, res) => {
   const request = req.body;
   let parent = spans[request.parent_id] || ddContext[request.parent_id];
 
-  const tags = { service: request.service }
+  const tags = {service: request.service, resource: request.resource};
   for (const [key, value] of request.span_tags) tags[key] = value
 
   const span = tracer.startSpan(request.name, {
     type: request.type,
-    resource: request.resource,
     childOf: parent,
     tags
   });
@@ -87,7 +86,7 @@ app.post('/trace/span/start', (req, res) => {
   }
 
   spans[span.context().toSpanId()] = span;
-  res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
+  res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId() });
 });
 
 app.post('/trace/span/add_link', (req, res) => {

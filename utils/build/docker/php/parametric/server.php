@@ -160,6 +160,7 @@ $router->addRoute('POST', '/trace/span/inject_headers', new ClosureRequestHandle
 $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandler(function (Request $req) use (&$spans, &$spansDistributedTracingHeaders) {
     $headers = arg($req, 'http_headers');
     # Hack: Create a span from the extracted headers to retrieve the parent_id in the distrivuted tracing headers
+    # Avoid finishing this span to prevent it from being sent to the agent. This endpoint should only be used to extract headers.
     $span = \DDTrace\start_span();
     $headers = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $headers));
     $callback = function ($headername) use ($headers) {
@@ -173,8 +174,6 @@ $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandl
         $spanID = null;
     }
     $spansDistributedTracingHeaders[$spanID] = $headers;
-    # do not finish the span, as it is only used to retrieve the parent_id. Delete it to avoid sending it to the agent.
-    unset($span);
     return jsonResponse(["span_id" => $spanID]);
 }));
 $router->addRoute('POST', '/trace/span/set_resource', new ClosureRequestHandler(function (Request $req) use (&$spans) {
