@@ -1,6 +1,6 @@
 Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. 
 
-Once the changes are complete, post them in a PR. We'll review it ASAP.
+Once the changes are complete, post them in a PR.
 
 #### Notes
 * Each test class tests only one feature
