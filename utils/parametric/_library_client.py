@@ -218,6 +218,10 @@ class APMLibraryClient:
         # so server.xx do not have to
         return resp.json()["http_headers"]
 
+    def trace_extract_headers(self, http_headers: List[Tuple[str, str]]):
+        resp = self._session.post(self._url("/trace/span/extract_headers"), json={"http_headers": http_headers})
+        return resp.json()["span_id"]
+
     def trace_flush(self) -> bool:
         return (
             self._session.post(self._url("/trace/span/flush"), json={}).status_code < 300
@@ -502,6 +506,9 @@ class APMLibrary:
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
+
+    def extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
+        return self._client.trace_extract_headers(http_headers)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
         return self._client.otel_set_baggage(span_id, key, value)

@@ -109,6 +109,33 @@ class Test_Parametric_Inject_Headers:
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
+class Test_Parametric_DDTrace_Extract_Headers:
+    def test_extract_headers(self, test_agent, test_library):
+        """
+        Validates that /trace/span/inject_headers generates distributed tracing headers from span data.
+
+        Supported Parameters:
+        - List[Tuple[str, str]]
+        Supported Return Values:
+        - span_id: Union[int, str]
+        """
+        with test_library:
+            parent_id = test_library.extract_headers([["x-datadog-trace-id", "1"], ["x-datadog-parent-id", "2"]])
+            # nodejs library returns span and trace_ids as strings
+            assert int(parent_id) == 2
+
+            with test_library.start_span("local_root_span", parent_id=parent_id) as s1:
+                pass
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+        assert span["name"] == "local_root_span"
+        assert span["trace_id"] == 1
+        assert span["parent_id"] == 2
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Set_Meta:
     def test_set_meta(self, test_agent, test_library):
         """
