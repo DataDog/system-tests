@@ -74,6 +74,10 @@ tests/:
           TestHeaderInjection:
             '*': v2.10.0
             fastapi: missing_feature
+          TestHeaderInjectionExclusionAccessControlAllow: missing_feature
+          TestHeaderInjectionExclusionContentEncoding: missing_feature
+          TestHeaderInjectionExclusionPragma: missing_feature
+          TestHeaderInjectionExclusionTransferEncoding: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_auth_protocol.py:
@@ -209,9 +213,11 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.10.0
         Test_Lfi_Optional_SpanTags: v2.10.0
         Test_Lfi_RC_CustomAction: v2.14.0
+        Test_Lfi_Rules_Version: missing_feature
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
+      test_libddwaf.py: missing_feature
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
@@ -219,6 +225,7 @@ tests/:
         Test_Shi_Capability: v2.11.0
         Test_Shi_Mandatory_SpanTags: v2.11.0-rc2
         Test_Shi_Optional_SpanTags: v2.11.0-rc2
+        Test_Shi_Rules_Version: missing_feature
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
         Test_Shi_UrlQuery: v2.11.0-rc2
@@ -229,6 +236,7 @@ tests/:
         Test_Sqli_Capability: v2.11.0
         Test_Sqli_Mandatory_SpanTags: v2.10.0
         Test_Sqli_Optional_SpanTags: v2.10.0
+        Test_Sqli_Rules_Version: missing_feature
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
         Test_Sqli_UrlQuery: v2.10.0
@@ -239,6 +247,7 @@ tests/:
         Test_Ssrf_Capability: v2.11.0
         Test_Ssrf_Mandatory_SpanTags: v2.10.0
         Test_Ssrf_Optional_SpanTags: v2.10.0
+        Test_Ssrf_Rules_Version: missing_feature
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
         Test_Ssrf_UrlQuery: v2.10.0
@@ -697,7 +706,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: flaky (APMAPI-734)
       TestDynamicConfigSamplingRules: v2.9.0
       TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
@@ -725,8 +733,6 @@ tests/:
       Test_Otel_API_Interoperability: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.9.0
-    test_otel_sdk_interoperability.py:
-      Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
     test_otel_span_with_baggage.py:
@@ -736,7 +742,7 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:
-      Test_Parametric_DDTrace_Baggage: v2.15.0
+      Test_Parametric_DDTrace_Baggage: v2.16.0
       Test_Parametric_Otel_Baggage: v2.15.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
@@ -833,6 +839,7 @@ tests/:
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0
+    Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
     Test_HeaderTags_Whitespace_Header: missing_feature

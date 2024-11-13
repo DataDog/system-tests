@@ -230,37 +230,6 @@ class Test_Parametric_DDSpan_Add_Link:
         assert links[0]["attributes"]["link.key"] == "value"
 
 
-@irrelevant(
-    "DO NOT USE /http/client/request in parametric tests. "
-    "This endpoint will be removed in a future PR. Instead use the make_distinct_call weblog endpoint."
-)
-@scenarios.parametric
-@features.parametric_endpoint_parity
-class Test_Parametric_DDTrace_Http_Client_Request:
-    def test_http_client_request(self, test_agent, test_library, test_agent_hostname, test_agent_port):
-        """
-        Validates that /http/client/request creates a span with http request metadata.
-
-        Supported Parameters:
-        - span_id: Union[int, str]
-        - url: str
-        - method: Optional[str]
-        - headers: Optional[List[Tuple[str, str]]]
-        - body: Optional[bytes]
-        Supported Return Values:
-        """
-
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2")],
-            body=b"test-body",
-        )
-        trace = test_agent.wait_for_num_traces(num=1)
-        span = find_only_span(trace)
-        assert span["name"] == "fake-request"
-
-
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Config:

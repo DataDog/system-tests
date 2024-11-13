@@ -305,13 +305,6 @@ class APMLibraryClient:
         data = resp.json()
         return data["value"]
 
-    def http_client_request(self, method: str, url: str, headers: List[Tuple[str, str]], body: bytes) -> int:
-        resp = self._session.post(
-            self._url("/http/client/request"),
-            json={"method": method, "url": url, "headers": headers or [], "body": body.decode()},
-        ).json()
-        return resp
-
     def get_tracer_config(self) -> Dict[str, Optional[str]]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
@@ -339,34 +332,6 @@ class APMLibraryClient:
 
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
-
-    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
-    ### The parametric apps will not expose endpoints for retrieving span data ###
-    ### Span data will be retrieved from the agent ###
-
-    def span_get_resource(self, span_id: int):
-        resp = self._session.post(self._url("/trace/span/get_resource"), json={"span_id": span_id,},)
-        return resp.json()["resource"]
-
-    def span_get_meta(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_meta"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
-    def span_get_metric(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/span/get_metric"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
-    def otel_get_attribute(self, span_id: int, key: str):
-        resp = self._session.post(self._url("/trace/otel/get_attribute"), json={"span_id": span_id, "key": key,},)
-        return resp.json()["value"]
-
-    def otel_get_name(self, span_id: int):
-        resp = self._session.post(self._url("/trace/otel/get_name"), json={"span_id": span_id,},)
-        return resp.json()["name"]
-
-    def otel_get_links(self, span_id: int):
-        resp_json = self._session.post(self._url("/trace/otel/get_links"), json={"span_id": span_id}).json()
-        return resp_json["links"]
 
 
 class _TestSpan:
@@ -413,22 +378,6 @@ class _TestSpan:
     def finish(self):
         self._client.finish_span(self.span_id)
 
-    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
-    ### The parametric apps will not expose endpoints for retrieving span data ###
-    ### Span data will be retrieved from the agent ###
-
-    def get_name(self):
-        return self._client.span_get_name(self.span_id)
-
-    def get_resource(self):
-        return self._client.span_get_resource(self.span_id)
-
-    def get_meta(self, key: str):
-        return self._client.span_get_meta(self.span_id, key)
-
-    def get_metric(self, key: str):
-        return self._client.span_get_metric(self.span_id, key)
-
 
 class _TestOtelSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
@@ -474,12 +423,6 @@ class _TestOtelSpan:
 
     def get_attribute(self, key: str):
         return self._client.otel_get_attribute(self.span_id, key)
-
-    def get_name(self):
-        return self._client.otel_get_name(self.span_id)
-
-    def get_links(self):
-        return self._client.otel_get_links(self.span_id)
 
 
 class APMLibrary:
@@ -596,15 +539,3 @@ class APMLibrary:
             return self._client.is_alive()
         except Exception:
             return False
-
-    ### Do not use the methods below in parametric tests, they will be removed in a future PR ####
-
-    def http_client_request(
-        self,
-        url: str,
-        method: str = "GET",
-        headers: Optional[List[Tuple[str, str]]] = None,
-        body: Optional[bytes] = b"",
-    ):
-        """Do an HTTP request with the given method and headers."""
-        return self._client.http_client_request(method=method, url=url, headers=headers or [], body=body or b"")

@@ -1,5 +1,6 @@
 lang_variant:
     name: DefaultJDK
+    version: default
     cache: true
     install:
       - os_type: linux

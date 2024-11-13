@@ -38,6 +38,10 @@ tests/:
           Test_HardcodedSecretsExtended: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
+          TestHeaderInjectionExclusionAccessControlAllow: missing_feature
+          TestHeaderInjectionExclusionContentEncoding: missing_feature
+          TestHeaderInjectionExclusionPragma: missing_feature
+          TestHeaderInjectionExclusionTransferEncoding: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
         test_insecure_auth_protocol.py:
@@ -115,6 +119,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_libddwaf.py: missing_feature
       test_shi.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
@@ -342,7 +347,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: bug (APMAPI-867)  # theorical version is v2.0.0
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
@@ -353,7 +357,6 @@ tests/:
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.1.0
-    test_otel_sdk_interoperability.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
     test_otel_span_with_baggage.py:
@@ -372,11 +375,7 @@ tests/:
     test_partial_flushing.py: # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
-      Test_Decisionless_Extraction: >-
-        missing_feature
-        (The "_sampling_priority_v1" numeric tag is missing from the local
-        root span when the trace was extracted without a sampling decision.
-        See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782693568?pr=2005>.)
+      Test_Decisionless_Extraction: v2.4.0
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
@@ -400,11 +399,11 @@ tests/:
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
-      Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDD: v1.13.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.13.0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.13.0
       Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
     span_pointers/:
@@ -446,7 +445,8 @@ tests/:
   test_library_conf.py:
     Test_HeaderTags: v1.13.0
     Test_HeaderTags_Colon_Leading: v1.13.0
-    Test_HeaderTags_Colon_Trailing: bug (AIT-8602)
+    Test_HeaderTags_Colon_Trailing: v1.13.0
+    Test_HeaderTags_DynamicConfig: bug (APMAPI-867)  # theorical version is v2.0.0
     Test_HeaderTags_Long: v1.13.0
     Test_HeaderTags_Short: v1.13.0
     Test_HeaderTags_Whitespace_Header: v1.13.0
@@ -462,7 +462,7 @@ tests/:
     Test_UrlQuery: v1.0.0
   test_semantic_conventions.py:
     Test_Meta: v1.7.0
-    Test_MetaDatadogTags: bug (APMAPI-735)
+    Test_MetaDatadogTags: v1.9.0
     Test_MetricsStandardTags: v1.7.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
@@ -476,10 +476,10 @@ tests/:
   test_telemetry.py:
     Test_DependencyEnable: v1.4.0
     Test_Log_Generation: missing_feature
-    Test_MessageBatch: missing_feature
+    Test_MessageBatch: v2.2.0
     Test_Metric_Generation_Disabled: v1.4.0
     Test_Metric_Generation_Enabled: missing_feature
-    Test_ProductsDisabled: missing_feature
+    Test_ProductsDisabled: v1.22.0
     Test_Telemetry: v1.4.0
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.11

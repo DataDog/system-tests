@@ -1,9 +1,7 @@
 import time
 from random import randint
 import os
-import json
 import requests
-from utils.tools import logger
 
 
 def make_get_request(app_url):
@@ -23,20 +21,10 @@ def make_get_request(app_url):
 def warmup_weblog(app_url):
     for _ in range(15):
         try:
-            r = requests.get(app_url, timeout=10)
-            if r.status_code == 200:
-                if "application/json" in r.headers["content-type"]:
-                    json_text = r.text.replace("'", '"')
-                    json_res = json.loads(json_text)
-                    logger.info(f"Weblog response: {json_res}")
-                    if "app_type" in json_res and json_res["app_type"] == "multicontainer":
-                        return json_res
-                    logger.info(f"Weblog is not multicontainer, response: {json_res}")
-                break
-            time.sleep(2)
+            requests.get(app_url, timeout=10)
+            break
         except Exception:
             time.sleep(5)
-    return None
 
 
 def make_internal_get_request(stdin_file, vm_port):

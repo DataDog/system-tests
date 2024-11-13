@@ -25,13 +25,6 @@ As the Java client library does not have a public tracing API, this controller i
 Access to internal features, like `flush`, is done using internal API (`InternalTracer`), exposed on purpose for system tests.
 
 > [!NOTE]
-> OpenTracing API does not support getting tags values from span.
-> Hence for following endpoint are not supported:
-> * `/trace/span/get_resource`
-> * `/trace/span/get_meta`
-> * `/trace/span/get_metrics`
-
-> [!NOTE]
 > Span links are not supported as they choose to not add their support to the deprecated OpenTracing API.
 
 ### Datadog Metrics API
@@ -39,10 +32,3 @@ Access to internal features, like `flush`, is done using internal API (`Internal
 Access to internal features, like `flush`, is done using internal API (`InternalTracer`), exposed on purpose for system tests.
 
 ### Datadog OpenTelemetry API
-
-> [!NOTE]
-> OpenTelemetry API does not support getting span name, attributes, nor links.
-> Hence for following endpoint are not supported:
-> * `/trace/span/get_resource`
-> * `/trace/span/get_meta`
-> * `/trace/span/get_metrics`

@@ -3,7 +3,9 @@
 # Copyright 2021 Datadog, Inc.
 
 
+from utils import context
 from utils import features
+from utils import flaky
 from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
@@ -98,6 +100,7 @@ class Test_Suspicious_Attacker_Blocking:
 
         self.config_state_6 = rc.rc_state.reset().apply()
 
+    @flaky(context.library >= "golang@1.71.0-dev", reason="APPSEC-55820")
     def test_block_suspicious_attacker(self):
         # ASM disabled
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED

@@ -23,6 +23,9 @@ import ratpack.parse.ParserSupport;
 import ratpack.registry.Registry;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -66,6 +69,23 @@ public class RaspHandlers {
                 }
             }
         });
+        chain.path("rasp/ssrf", new Handler() {
+            @Override
+            public void handle(final Context ctx) throws Exception {
+                MediaType contentType = ctx.getRequest().getContentType();
+                if (ctx.getRequest().getMethod() == HttpMethod.GET) {
+                    ctx.insert(QuerySsrfHandler.INSTANCE);
+                } else if (contentType.isForm()) {
+                    ctx.insert(FormSsrfHandler.INSTANCE);
+                } else if (contentType.isJson()) {
+                    ctx.insert(JsonSsrfHandler.INSTANCE);
+                } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
+                    ctx.insert(Registry.single(XmlParser.INSTANCE), XmlSsrfHandler.INSTANCE);
+                } else {
+                    ctx.getResponse().status(Status.BAD_REQUEST);
+                }
+            }
+        });
     }
 
     enum FormHandler implements Handler {
@@ -88,6 +108,16 @@ public class RaspHandlers {
         }
     }
 
+    enum FormSsrfHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var form = ctx.parse(Form.class);
+            form.then(f -> executeUrl(ctx, f.get("domain")));
+        }
+    }
+
     enum JsonHandler implements Handler {
         INSTANCE;
 
@@ -105,6 +135,16 @@ public class RaspHandlers {
         public void handle(Context ctx) throws Exception {
             var obj = ctx.parse(fromJson(FileDTO.class));
             obj.then(file -> executeLfi(ctx, file.getFile()));
+        }
+    }
+
+    enum JsonSsrfHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var obj = ctx.parse(fromJson(DomainDTO.class));
+            obj.then(domain -> executeUrl(ctx, domain.getDomain()));
         }
     }
 
@@ -143,6 +183,16 @@ public class RaspHandlers {
         }
     }
 
+    enum XmlSsrfHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var xml = ctx.parse(Parse.of(DomainDTO.class));
+            xml.then(domain -> executeUrl(ctx, domain.getDomain()));
+        }
+    }
+
     enum QueryHandler implements Handler {
         INSTANCE;
 
@@ -163,6 +213,16 @@ public class RaspHandlers {
         }
     }
 
+    enum QuerySsrfHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var domain = ctx.getRequest().getQueryParams().get("domain");
+            executeUrl(ctx, domain);
+        }
+    }
+
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private static void executeSql(final Context ctx, final String userId) throws Exception {
         try (final Connection conn = DATA_SOURCE.getConnection()) {
@@ -179,6 +239,24 @@ public class RaspHandlers {
     private static void executeLfi(final Context ctx, final String file) {
         new File(file);
         ctx.getResponse().send("text/plain", "OK");
+    }
+
+    private static void executeUrl(final Context ctx, String urlString) {
+        try {
+            URL url;
+            try {
+                url = new URL(urlString);
+            } catch (MalformedURLException e) {
+                url = new URL("http://" + urlString);
+            }
+
+            URLConnection connection = url.openConnection();
+            connection.connect();
+            ctx.getResponse().send("text/plain", "OK");
+        } catch (Exception e) {
+            e.printStackTrace();
+            ctx.getResponse().send("text/plain", "http connection failed");
+        }
     }
 
 
@@ -209,6 +287,21 @@ public class RaspHandlers {
 
         public void setFile(String file) {
             this.file = file;
+        }
+    }
+
+    @JacksonXmlRootElement(localName = "domain")
+    public static class DomainDTO {
+        @JsonProperty("domain")
+        @JacksonXmlText
+        private String domain;
+
+        public String getDomain() {
+            return domain;
+        }
+
+        public void setDomain(String domain) {
+            this.domain = domain;
         }
     }
 }

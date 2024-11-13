@@ -53,7 +53,7 @@
     export $(cat scenario_agent.env | xargs)
 
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
-    DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+    DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
     
     sudo cp /tmp/datadog-installer-*.log /var/log/datadog
 
