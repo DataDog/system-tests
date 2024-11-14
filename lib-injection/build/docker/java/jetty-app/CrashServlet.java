@@ -59,7 +59,8 @@ public class CrashServlet extends HttpServlet {
                     long ppid = getParentPid(pid);
 
                     // If the PPID matches the current process ID, add it to the list
-                    if (ppid == parentPid) {
+                    // Filter out jps because it can be spawned by the java tracer
+                    if (ppid == parentPid && !"jps".equals(getParentPid(ppid))) {
                         childPids.add(pid);
                     }
                 }
@@ -86,6 +87,16 @@ public class CrashServlet extends HttpServlet {
         }
 
         return -1; // Return -1 if we couldn't find the PPid field
+    }
+
+    private String getProcessName(long pid) {
+        File commFile = new File("/proc/" + pid + "/comm");
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(commFile))) {
+            return reader.readLine();
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     private void handleChildPids(HttpServletRequest req, HttpServletResponse resp)
