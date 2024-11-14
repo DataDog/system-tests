@@ -56,6 +56,11 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
         return telemetry_msgs
 
+    def get_crashlog_for_runtime(self, runtime_id):
+        logger.debug(f"Try to find a crashlog related to runtime-id {runtime_id}")
+        assert runtime_id is not None, "Runtime ID not found"
+        return [l for l in self.get_telemetry_logs() if l["runtime_id"] == runtime_id]
+
     def get_telemetry_for_autoinject(self):
         logger.debug("Try to find telemetry data related to autoinject")
         injection_metrics = []
@@ -67,3 +72,28 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
             if str(series["metric"]).startswith("inject.")
         ]
         return injection_metrics
+
+    def get_telemetry_for_autoinject_library_entrypoint(self):
+        logger.debug("Try to find telemetry data related to the library entrypoint")
+        injection_metrics = []
+        injection_metrics += [
+            series
+            for t in self._data_telemetry_list
+            if t["request_type"] == "generate-metrics"
+            for series in t["payload"]["series"]
+            if str(series["metric"]).startswith("library_entrypoint.")
+        ]
+        return injection_metrics
+
+    def get_telemetry_logs(self):
+        logger.debug("Try to find telemetry data related to logs")
+        return [t for t in self._data_telemetry_list if t["request_type"] == "logs"]
+
+    def get_crash_reports(self):
+        logger.debug("Try to find telemetry data related to crash reports")
+        return [
+            p
+            for t in self.get_telemetry_logs()
+            for p in t["payload"]
+            if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
+        ]

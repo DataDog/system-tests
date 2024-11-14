@@ -5,11 +5,15 @@ import { Request, Response } from "express";
 const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
 const { promisify } = require('util')
-const app = require('express')();
-const axios = require('axios');
+const app = require('express')()
+const axios = require('axios')
 const passport = require('passport')
 const { Kafka } = require("kafkajs")
-const { spawnSync } = require('child_process');
+const { spawnSync } = require('child_process')
+const crypto = require('crypto')
+
+const multer = require('multer')
+const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
 
 const iast = require('./iast')
 
@@ -39,6 +43,11 @@ app.get('/healthcheck', (req: Request, res: Response) => {
     }
   });
 })
+
+app.post('/waf', uploadToMemory.single('foo'), (req: Request, res: Response) => {
+  res.send('Hello\n')
+})
+
 
 app.all(['/waf', '/waf/*'], (req: Request, res: Response) => {
   res.send('Hello\n');
@@ -282,6 +291,16 @@ app.get('/requestdownstream', async (req: Request, res: Response) => {
 
 app.get('/returnheaders', (req: Request, res: Response) => {
   res.json({ ...req.headers })
+})
+
+app.get('/vulnerablerequestdownstream', async (req: Request, res: Response) => {
+  try {
+    crypto.createHash('md5').update('password').digest('hex')
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return res.json(resFetch.data)
+  } catch (e) {
+    return res.status(500).send(e)
+  }
 })
 
 app.get('/set_cookie', (req: Request, res: Response) => {

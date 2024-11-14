@@ -5,6 +5,7 @@
 from utils import bug
 from utils import context
 from utils import features
+from utils import flaky
 from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
@@ -39,6 +40,7 @@ class Test_RuntimeActivation:
         self.last_version = rc.rc_state.version
         self.response_with_activated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
+    @flaky(context.library >= "golang@1.69.1", reason="APPSEC-55820")
     def test_asm_features(self):
         # ensure last config was applied
         assert self.reset_state == rc.ApplyState.ACKNOWLEDGED
@@ -67,6 +69,7 @@ class Test_RuntimeDeactivation:
         self.config_states.append(_send_config(CONFIG_EMPTY))
         self.response_with_deactivated_waf.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
+    @flaky(context.library >= "golang@1.69.1", reason="APPSEC-55820")
     def test_asm_features(self):
         # ensure last empty config was applied
         assert all(s == rc.ApplyState.ACKNOWLEDGED for s in self.config_states)

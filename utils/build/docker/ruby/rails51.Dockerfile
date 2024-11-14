@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/dd-trace-rb/ruby:2.6.7-dd
+FROM ghcr.io/datadog/images-rb/engines/ruby:2.6
 
 RUN curl -O https://rubygems.org/downloads/libv8-node-16.10.0.0-$(arch)-linux.gem && gem install libv8-node-16.10.0.0-$(arch)-linux.gem && rm libv8-node-16.10.0.0-$(arch)-linux.gem && gem install mini_racer:'0.6.2'
 

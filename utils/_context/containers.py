@@ -582,13 +582,56 @@ class BuddyContainer(TestedContainer):
 
 
 class WeblogContainer(TestedContainer):
+    appsec_rules_file: str
+    _dd_rc_tuf_root: dict = {
+        "signed": {
+            "_type": "root",
+            "spec_version": "1.0",
+            "version": 1,
+            "expires": "2032-05-29T12:49:41.030418-04:00",
+            "keys": {
+                "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e": {
+                    "keytype": "ed25519",
+                    "scheme": "ed25519",
+                    "keyid_hash_algorithms": ["sha256", "sha512"],
+                    "keyval": {"public": "7d3102e39abe71044d207550bda239c71380d013ec5a115f79f51622630054e6"},
+                }
+            },
+            "roles": {
+                "root": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "snapshot": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "targets": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "timestsmp": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+            },
+            "consistent_snapshot": True,
+        },
+        "signatures": [
+            {
+                "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
+                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",
+            }
+        ],
+    }
+
     def __init__(
         self,
         host_log_folder,
         environment=None,
         tracer_sampling_rate=None,
-        appsec_rules=None,
         appsec_enabled=True,
+        iast_enabled=True,
         additional_trace_header_tags=(),
         use_proxy=True,
         volumes=None,
@@ -611,11 +654,57 @@ class WeblogContainer(TestedContainer):
         except Exception:
             pass
 
+        base_environment = {
+            # Datadog setup
+            "DD_SERVICE": "weblog",
+            "DD_VERSION": "1.0.0",
+            "DD_TAGS": "key1:val1,key2:val2",
+            "DD_ENV": "system-tests",
+            "DD_TRACE_LOG_DIRECTORY": "/var/log/system-tests",
+            # for remote configuration tests
+            "DD_RC_TUF_ROOT": json.dumps(self._dd_rc_tuf_root),
+        }
+
+        # Basic env set for all scenarios
+        base_environment["DD_TELEMETRY_METRICS_ENABLED"] = "true"
+        base_environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
+
+        # Python lib has different env var until we enable Telemetry Metrics by default
+        base_environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"
+        base_environment["DD_TELEMETRY_METRICS_INTERVAL_SECONDS"] = self.telemetry_heartbeat_interval
+
+        if appsec_enabled:
+            base_environment["DD_APPSEC_ENABLED"] = "true"
+            base_environment["DD_APPSEC_WAF_TIMEOUT"] = "10000000"  # 10 seconds
+            base_environment["DD_APPSEC_TRACE_RATE_LIMIT"] = "10000"
+
+        if iast_enabled:
+            base_environment["DD_IAST_ENABLED"] = "true"
+            # Python lib has Code Security debug env var
+            base_environment["_DD_IAST_DEBUG"] = "true"
+            base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
+            base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
+            base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
+
+        if tracer_sampling_rate:
+            base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+
+        if use_proxy:
+            # set the tracer to send data to runner (it will forward them to the agent)
+            base_environment["DD_AGENT_HOST"] = "proxy"
+            base_environment["DD_TRACE_AGENT_PORT"] = 8126
+        else:
+            base_environment["DD_AGENT_HOST"] = "agent"
+            base_environment["DD_TRACE_AGENT_PORT"] = 8127
+
+        # overwrite values with those set in the scenario
+        environment = base_environment | (environment or {})
+
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
-            environment=environment or {},
+            environment=environment,
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
@@ -630,28 +719,10 @@ class WeblogContainer(TestedContainer):
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
-        self.appsec_rules_file = appsec_rules
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
         self._library: LibraryVersion = None
-
-        # Basic env set for all scenarios
-        self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
-
-        if appsec_enabled:
-            self.environment["DD_APPSEC_ENABLED"] = "true"
-
-        if tracer_sampling_rate:
-            self.environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
-
-        if use_proxy:
-            # set the tracer to send data to runner (it will forward them to the agent)
-            self.environment["DD_AGENT_HOST"] = "proxy"
-            self.environment["DD_TRACE_AGENT_PORT"] = 8126
-        else:
-            self.environment["DD_AGENT_HOST"] = "agent"
-            self.environment["DD_TRACE_AGENT_PORT"] = 8127
 
     @staticmethod
     def _get_image_list_from_dockerfile(dockerfile) -> list[str]:
@@ -706,10 +777,7 @@ class WeblogContainer(TestedContainer):
         if len(self.additional_trace_header_tags) != 0:
             self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
-        if self.appsec_rules_file:
-            self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
-        else:
-            self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
+        self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
     def post_start(self):
         from utils import weblog
@@ -965,7 +1033,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.18.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
             environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket"},

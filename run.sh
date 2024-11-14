@@ -117,9 +117,7 @@ function lookup_scenario_group() {
             ;;
     esac
 
-    python+=(
-        -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]'
-    )
+    python+=(utils/scripts/get-scenarios-from-group.py)
 
     echo "${python[*]}" 1>&2
 
@@ -426,6 +424,8 @@ function main() {
         fi
         if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
             pytest_numprocesses=6
+            #https://pytest-xdist.readthedocs.io/en/latest/distribution.html
+            pytest_args+=( '--dist' 'loadgroup' )
         fi
     done
 
@@ -438,7 +438,6 @@ function main() {
     esac
 
     ## run tests
-
     if [[ "${verbosity}" -gt 0 ]]; then
         echo "plan:"
         echo "  mode: ${run_mode}"

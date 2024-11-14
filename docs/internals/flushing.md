@@ -2,7 +2,7 @@
 
 ## Default behavior
 
-Before running assertions, the system-test will wait a certain amount of time (defined in [_scenarios.py](https://github.com/DataDog/system-tests/blob/9ae1dcff8ca55bcc4157781a406bbcafeb358d54/utils/_context/_scenarios.py#L424)), to wait for all remaining data to be flushed.
+Before running assertions, the system-test will wait a certain amount of time (defined in [endtoend.py](https://github.com/DataDog/system-tests/blob/fe8f0cc6b7879ed448148906232fbd12925a0f7b/utils/_context/_scenarios/endtoend.py#L318)), to wait for all remaining data to be flushed.
 It will then stop the weblog container, and only then run all the assertions.
 
 ## Implicit flushing
@@ -13,4 +13,4 @@ Before running the assertions, the system-tests will stop the weblog application
 
 It is possible to use explicit flushing instead of the default delay.
 To do so, implement an endpoint in your weblog `GET /flush`, that when called, will force the flushing of all library data.
-You then need to add your library to the list of supported explicity flushing in: TODO LINK, and finally you can set your library delay to 0.
+You then need to add your library to the list of supported explicitly flushing in [endtoend.py](https://github.com/DataDog/system-tests/blob/fe8f0cc6b7879ed448148906232fbd12925a0f7b/utils/_context/_scenarios/endtoend.py#L413), and finally you can set your library delay to 0 in [endtoend.py](https://github.com/DataDog/system-tests/blob/fe8f0cc6b7879ed448148906232fbd12925a0f7b/utils/_context/_scenarios/endtoend.py#L318).

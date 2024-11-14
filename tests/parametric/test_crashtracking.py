@@ -12,9 +12,6 @@ from utils import bug, context, features, irrelevant, missing_feature, rfc, scen
 @scenarios.parametric
 @features.crashtracking
 class Test_Crashtracking:
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
@@ -22,9 +19,6 @@ class Test_Crashtracking:
         event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
         assert self.is_crash_report(test_library, event)
 
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent, test_library):
         test_library.crash()
@@ -36,6 +30,19 @@ class Test_Crashtracking:
 
             if event["request_type"] == "logs":
                 assert self.is_crash_report(test_library, event) is False
+
+    @bug(library="java", reason="APMLP-302")
+    @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
+    def test_telemetry_timeout(self, test_agent, test_library, apm_test_server):
+        test_agent.set_trace_delay(60)
+
+        test_library.crash()
+
+        try:
+            # container.wait will throw if the application doesn't exit in time
+            apm_test_server.container.wait(timeout=10)
+        finally:
+            test_agent.set_trace_delay(0)
 
     def is_crash_report(self, test_library, event) -> bool:
         if not isinstance(event.get("payload"), list):
