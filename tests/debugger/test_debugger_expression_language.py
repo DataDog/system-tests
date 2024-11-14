@@ -299,9 +299,39 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["List0 any gt 1", False, Dsl("any", [Dsl("ref", "l0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
                 ["List1 any gt 1", False, Dsl("any", [Dsl("ref", "l1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
                 ["List5 any gt 1", True, Dsl("any", [Dsl("ref", "l5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["Hash0 any gt 1", False, Dsl("any", [Dsl("ref", "h0"), Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1])])],
-                ["Hash1 any gt 1", False, Dsl("any", [Dsl("ref", "h1"), Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1])])],
-                ["Hash5 any gt 1", True, Dsl("any", [Dsl("ref", "h5"), Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1])])],
+                [
+                    "Hash0 any gt 1",
+                    False,
+                    Dsl(
+                        "any",
+                        [
+                            Dsl("ref", "h0"),
+                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
+                        ],
+                    ),
+                ],
+                [
+                    "Hash1 any gt 1",
+                    False,
+                    Dsl(
+                        "any",
+                        [
+                            Dsl("ref", "h1"),
+                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
+                        ],
+                    ),
+                ],
+                [
+                    "Hash5 any gt 1",
+                    True,
+                    Dsl(
+                        "any",
+                        [
+                            Dsl("ref", "h5"),
+                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
+                        ],
+                    ),
+                ],
                 ##### all
                 ["Array0 all ge 0", True, Dsl("all", [Dsl("ref", "a0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
                 ["Array1 all ge 0", True, Dsl("all", [Dsl("ref", "a1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
@@ -309,9 +339,39 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["List0 all ge 0", True, Dsl("all", [Dsl("ref", "l0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
                 ["List1 all ge 0", True, Dsl("all", [Dsl("ref", "l1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
                 ["List5 all ge 1", False, Dsl("all", [Dsl("ref", "l5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
-                ["Hash0 all ge 0", True, Dsl("all", [Dsl("ref", "h0"), Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 0])])],
-                ["Hash1 all ge 0", True, Dsl("all", [Dsl("ref", "h1"), Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 0])])],
-                ["Hash5 all ge 1", False, Dsl("all", [Dsl("ref", "h5"), Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1])])],
+                [
+                    "Hash0 all ge 0",
+                    True,
+                    Dsl(
+                        "all",
+                        [
+                            Dsl("ref", "h0"),
+                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 0]),
+                        ],
+                    ),
+                ],
+                [
+                    "Hash1 all ge 0",
+                    True,
+                    Dsl(
+                        "all",
+                        [
+                            Dsl("ref", "h1"),
+                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 0]),
+                        ],
+                    ),
+                ],
+                [
+                    "Hash5 all ge 1",
+                    False,
+                    Dsl(
+                        "all",
+                        [
+                            Dsl("ref", "h5"),
+                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
+                        ],
+                    ),
+                ],
                 ##### filter
                 [
                     "Array0 len filter lt 2",
@@ -346,17 +406,53 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 [
                     "Hash0 len filter lt 2",
                     0,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h0"), Dsl("lt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [
+                                Dsl("ref", "h0"),
+                                Dsl(
+                                    "lt",
+                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
+                                ),
+                            ],
+                        ),
+                    ),
                 ],
                 [
                     "Hash1 len filter lt 2",
                     1,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h1"), Dsl("lt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [
+                                Dsl("ref", "h1"),
+                                Dsl(
+                                    "lt",
+                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
+                                ),
+                            ],
+                        ),
+                    ),
                 ],
                 [
                     "Hash5 len filter lt 2",
                     2,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h5"), Dsl("lt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [
+                                Dsl("ref", "h5"),
+                                Dsl(
+                                    "lt",
+                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
+                                ),
+                            ],
+                        ),
+                    ),
                 ],
             ],
         )
@@ -439,7 +535,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
     def _get_hash_value_property_name(self):
         if Test_Debugger_Expression_Language.tracer is None:
             Test_Debugger_Expression_Language.tracer = base.get_tracer()
-    
+
         if Test_Debugger_Expression_Language.tracer["language"] == "dotnet":
             return "Value"
         else:
