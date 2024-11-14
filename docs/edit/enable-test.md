@@ -2,35 +2,36 @@ So, you have a dd-trace branch that contains changes you'd like to test with sys
 
 **Note**: the instructions below assume that the necessary test already exists in system-tests and your weblog or parametric app has the necessary endpoint for serving the test [TODO]: LINK TO CONTRIBUTING DOC
 
-### First
-Post a PR to the dd-trace repo.
+**1. Post a PR to the dd-trace repo if you have not already.**
 
-### Then
-Test system-tests changes locally
+**2. Test system-tests changes locally**
 
-Before enabling/disabling a test in CI, you'll need to test the changes locally.
+   Before enabling/disabling a test in CI, you'll need to test the changes locally.
 
-**Run the test locally against production-level code**: 
+   _Run the test locally against production-level code_:
 
-Enable the test to run on the latest version.
-If you know the specific release that contains the changes that allowed your lib to pass the test, and this release is not latest version, then use that version in the manifest. But don’t lose sleep hunting down the specific version if you don’t know it, just use the latest.
+   Enable the test to run on the latest version.
+   If you know the specific release that contains the changes that allowed your lib to pass the test, and this release is not latest version, then use that version in the manifest. But don’t
+   lose sleep hunting down the specific version if you don’t know it, just use the latest.
 
-**Run the test against unmerged or unreleased changes**: 
+   _Run the test against unmerged or unreleased changes_: 
 
-Follow [binaries.md](https://github.com/DataDog/system-tests/blob/main/docs/execute/binaries.md) to run the app with a custom build, then [update the manifest file](./manifest.md) with the name of your lib’s main branch (probably `v<next-minor-release>-dev`, see [versions.md](https://github.com/DataDog/system-tests/blob/main/docs/edit/versions.md)).
+   Follow [binaries.md](https://github.com/DataDog/system-tests/blob/main/docs/execute/binaries.md) to run the app with a custom build, then [update the manifest file](./manifest.md) with the name of your lib’s main branch (probably `v<next-minor-release>-dev`, see [versions.md](https://github.com/DataDog/system-tests/blob/main/docs/edit/versions.md)).
 
-By now, you should have a change to a manifest file. Post a PR to system-tests with your changes (the enabled test(s) will fail in CI if you enabled the test for the main branch; the necessary change is not merged into dd-trace main yet)
+   By now, you should have a change to a manifest file. Post a PR to system-tests with your changes (the enabled test(s) will fail in CI if you enabled the test for the main branch; the necessary change is not merged into dd-trace main yet)
 
-### Next
-Merge changes into dd-trace
+**3. Merge changes into dd-trace**
+**4. Re-run system-tests PR**
 
-### Finally
-Re-run system-tests PR. It should be pass. Assuming it does, merge system-tests PR.
+   It should be pass. Assuming it does, merge system-tests PR.
+
 
 ---
 _Alternative approaches_
 
-## The heavier way (actually good only if you don't need to modify the test)
+In most cases, you can ignore these.
+
+### Approach #1: Good only if you don't need to modify the test)
 
 Use the [`-F` option](../execute/force-execute.md):
 
@@ -43,7 +44,7 @@ Use the [`-F` option](../execute/force-execute.md):
 
 And so time to time, removes all the `-F` in your CI.
 
-## The most robust way (but so heavy, it's probably not worthy)
+### Approach #2: The most robust way (but so heavy, it's probably not worthy)
 
 1. Do a PR in system-tests (it fails)
 2. Do your PR in your repo. **On this PR, change the CI to use the system-tests branch**
