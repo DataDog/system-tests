@@ -1,17 +1,17 @@
 Use the manifest files under the [manifests](../../manifests/) folder to declare what will be tested vs skipped, and under what conditions. Tests are identified by  `file path` + `Test_Class_Name` +` Optional | Test_Name` (Where `Test_Name` is used to differentiate between multiple test functions within a class).
-Example weblog test: 
+Example weblog test:
 ```yaml
 tests/:
   specific.py: v1.40.0
 ```
-Example Parametric test: 
+Example Parametric test:
 ```yaml
 tests/:
   parametric/:
     specific_parametric.py: v1.40.0
 ```
 
-A test is **enabled** if: 
+A test is **enabled** if:
 - Nothing is specified in the manifest file and there aren’t conflicting in-line decorators (e.g, @bug, see [skip-tests.md](./skip-tests.md)) on the test
 - `label` contains a valid [https://semver.org/] version number.
 See [enable-test.md](./enable-test.md) to enable a test.
@@ -26,7 +26,7 @@ When executed locally, tests run against the latest version of dd-trace by defau
 - Manifest files are validated using JSON schema in system tests CI
 - An error will occur if a manifest file refers to a file/class that does not exists
 
-The example below shows a combination of options that can be deployed in manifest files. 
+The example below shows a combination of options that can be deployed in manifest files.
 
 ## Example
 

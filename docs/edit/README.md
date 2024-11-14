@@ -13,7 +13,7 @@ To make changes, you must be able to run tests locally. Instructions for running
 4. [features.md](./features.md): Mark tests for the feature parity dashboard
 5. [format.md](./format.md): Use the linter
 6. [manifest.md](./manifest.md): How tests are marked as enabled or disabled for libraries
-7. [enable-tests.md](./enable-tests.md): Enable tests 
+7. [enable-tests.md](./enable-tests.md): Enable tests
 8. [skip-tests.md](./skip-tests.md): Disable tests
 9. [versions.md](./versions.md) Specify version for enabling/disabling tests
 10. [remote-config.md](./remote-config.md): Understand how we test remote config

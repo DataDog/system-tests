@@ -5,7 +5,7 @@ Three decorators allow you to skip test functions or classes for a library:
 * `@flaky` (subclass of `bug`): The feature sometimes fails, sometimes passed, the test is skipped
 * `@missing_feature`: The tested feature/behavior does not exist in the library or there is a deficit in the test library that blocks this test from executing for the lib
 
-To skip specific test functions within a test class, use them as in-line decorators (Example below). 
+To skip specific test functions within a test class, use them as in-line decorators (Example below).
 To skip test classes or test files, use the decorator in the library's [manifest file](./manifest.md).
 
 The decorators take several arguments:

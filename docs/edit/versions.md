@@ -5,7 +5,7 @@ System-tests uses [SemVer](https://semver.org/), where a version is defined like
 * `build` is also an optional label, usually a commit SHA.
 
 Any version suffixed with a prelease is always less than the same version without the suffix:
- 
+
  **`1.2.3` < `1.2.4-rc1` < `1.2.4`**
 
 ## Use cases
