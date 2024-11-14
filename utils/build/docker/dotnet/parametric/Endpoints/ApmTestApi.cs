@@ -1,6 +1,6 @@
 using Datadog.Trace;
 using System.Reflection;
-using System.Threading;
+using ApmTestApi.ExtensionMethods;
 using Newtonsoft.Json;
 
 namespace ApmTestApi.Endpoints;
@@ -27,6 +27,13 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+
+        // baggage
+        app.MapPost("/trace/span/set_baggage", SetBaggage);
+        app.MapGet("/trace/span/get_baggage", GetBaggage);
+        app.MapGet("/trace/span/get_all_baggage", GetAllBaggage);
+        app.MapPost("/trace/span/remove_baggage", RemoveBaggage);
+        app.MapPost("/trace/span/remove_all_baggage", RemoveAllBaggage);
     }
 
     // Core types
@@ -62,6 +69,11 @@ public abstract class ApmTestApi
 
     internal static readonly SpanContextInjector _spanContextInjector = new();
     internal static readonly SpanContextExtractor _spanContextExtractor = new();
+
+
+
+    // persist a single baggage collection across requests (for testing purposes)
+    private static readonly IDictionary<string, string?> _baggage = Baggage.Current;
 
     internal static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
     {
@@ -356,5 +368,76 @@ public abstract class ApmTestApi
     {
         var requestJson = await JsonHelper.Create(httpRequest.Body);
         return requestJson.GetString(keyToFind);
+    }
+
+    private static async Task SetBaggage(HttpRequest request)
+    {
+        var requestHelper = await JsonHelper.Create(request.Body);
+        var key = requestHelper.GetString("key");
+        var value = requestHelper.GetString("value");
+
+        if (key is null || value is null)
+        {
+            throw new InvalidOperationException("Key and value are required to set baggage item");
+        }
+
+        // restore baggage from previous request
+        Baggage.Current = _baggage;
+
+        // set new baggage item
+        Baggage.Current[key] = value;
+    }
+
+    private static async Task<string> GetBaggage(HttpRequest request)
+    {
+        var requestHelper = await JsonHelper.Create(request.Body);
+        var key = requestHelper.GetString("key");
+
+        if (key is null)
+        {
+            throw new InvalidOperationException("Key is required to get baggage item");
+        }
+
+        // restore baggage from previous request
+        Baggage.Current = _baggage;
+
+        // get baggage item by key
+        var value = Baggage.Current.GetValueOrDefault(key);
+        return JsonConvert.SerializeObject(new { baggage = value });
+    }
+
+    private static string GetAllBaggage(HttpRequest request)
+    {
+        // restore baggage from previous request
+        Baggage.Current = _baggage;
+
+        // get all baggage items
+        return JsonConvert.SerializeObject(new { baggage = Baggage.Current });
+    }
+
+    private static async Task RemoveBaggage(HttpRequest request)
+    {
+        var requestHelper = await JsonHelper.Create(request.Body);
+        var key = requestHelper.GetString("key");
+
+        if (key is null)
+        {
+            throw new InvalidOperationException("Key is required to remove baggage item");
+        }
+
+        // restore baggage from previous request
+        Baggage.Current = _baggage;
+
+        // remove baggage item by key
+        Baggage.Current.Remove(key);
+    }
+
+    private static void RemoveAllBaggage(HttpRequest request)
+    {
+        // restore baggage from previous request
+        Baggage.Current = _baggage;
+
+        // remove all baggage items
+        Baggage.Current.Clear();
     }
 }
