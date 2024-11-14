@@ -74,3 +74,15 @@ done"""
         raise TimeoutError("Timed out waiting for weblog ready")
 
     return generated_uuid
+
+def get_child_pids(virtual_machine) -> str:
+    vm_ip = virtual_machine.get_ip()
+    vm_port = virtual_machine.deffault_open_port
+    url = f"http://{vm_ip}:{vm_port}/child_pids"
+    return requests.get(url, timeout=240).text
+
+def fork_and_crash(virtual_machine) -> str:
+    vm_ip = virtual_machine.get_ip()
+    vm_port = virtual_machine.deffault_open_port
+    url = f"http://{vm_ip}:{vm_port}/fork_and_crash"
+    return requests.get(url, timeout=240).text

@@ -651,14 +651,6 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    container_auto_injection_install_script_crashtracking = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_CRASHTRACKING",
-        "Onboarding Container Single Step Instrumentation crashtracking scenario using agent auto install script",
-        vm_provision="container-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-    )
-
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",

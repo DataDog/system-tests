@@ -39,23 +39,6 @@ class AutoInjectBaseTest:
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
-    def warmup(self, virtual_machine):
-        vm_ip = virtual_machine.get_ip()
-        vm_port = virtual_machine.deffault_open_port
-        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-
-    def get_child_pids(self, virtual_machine) -> str:
-        vm_ip = virtual_machine.get_ip()
-        vm_port = virtual_machine.deffault_open_port
-        url = f"http://{vm_ip}:{vm_port}/child_pids"
-        return requests.get(url, timeout=240).text
-
-    def fork_and_crash(self, virtual_machine) -> str:
-        vm_ip = virtual_machine.get_ip()
-        vm_port = virtual_machine.deffault_open_port
-        url = f"http://{vm_ip}:{vm_port}/fork_and_crash"
-        return requests.get(url, timeout=240).text
-
     def close_channel(self, channel):
         try:
             if not channel.eof_received:

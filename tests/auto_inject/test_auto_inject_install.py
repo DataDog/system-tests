@@ -1,6 +1,7 @@
 import re
 from utils import scenarios, features, flaky
 from utils.tools import logger
+from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, fork_and_crash
 from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
@@ -77,16 +78,18 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 
 
 @features.installer_auto_instrumentation
-@scenarios.container_auto_injection_install_script_crashtracking
+@scenarios.installer_auto_injection
 class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
     @parametrize_virtual_machines()
     def test_install(self, virtual_machine):
-        self.warmup(virtual_machine)
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
 
         process_tree = self.execute_command(virtual_machine, "ps aux --forest")
         logger.info("Initial process tree: " + process_tree)
 
-        child_pids = self.get_child_pids(virtual_machine).strip()
+        child_pids = get_child_pids(virtual_machine).strip()
 
         if child_pids != "":
             logger.warning("Child PIDs found: " + child_pids)
@@ -96,7 +99,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         assert child_pids == ""
 
         try:
-            crash_result = self.fork_and_crash(virtual_machine)
+            crash_result = fork_and_crash(virtual_machine)
 
             logger.info("fork_and_crash: " + crash_result)
         except Exception as e:
