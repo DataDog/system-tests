@@ -283,7 +283,7 @@ class _VirtualMachineScenario(Scenario):
     def fill_context(self):
         for vm in self.required_vms:
             for key in vm.tested_components:
-                if key == "host":
+                if key == "host" or key == "runtime_version":
                     continue
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
                 if key.startswith("datadog-apm-inject") and self._tested_components[key]:
@@ -296,8 +296,6 @@ class _VirtualMachineScenario(Scenario):
                 if key.startswith("glibc"):
                     # We will all the glibc versions in the feature parity report, due to each machine can have a different version
                     del self._tested_components[key]
-                if "runtime_version" in key and self._tested_components[key]:
-                    vm.get_current_deployed_weblog().runtime_version = self._tested_components[key]
 
     def close_targets(self):
         if self.is_main_worker:
@@ -339,8 +337,8 @@ class _VirtualMachineScenario(Scenario):
             new_result = copy.copy(result)
             new_tested_deps = result["testedDependencies"].copy()
             new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
-            new_result["configuration"]["runtime_version"] = vm.get_current_deployed_weblog().runtime_version
-            new_result["configuration"]["app_type"] = vm.get_current_deployed_weblog().app_type
+            new_result["configuration"]["runtime_version"] = vm.get_deployed_weblog().runtime_version
+            new_result["configuration"]["app_type"] = vm.get_deployed_weblog().app_type
             if "glibc" in vm.tested_components:
                 new_tested_deps.append({"name": "glibc", "version": vm.tested_components["glibc"]})
                 new_tested_deps.append({"name": "glibc_type", "version": vm.tested_components["glibc_type"]})

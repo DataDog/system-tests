@@ -100,11 +100,9 @@
 
       #Try to extract runtime version. Not allways possible (ie container app)
       if [ "$DD_LANG" == "js" ]; then
-        echo "RMM LANG JS"
         export runtime_version=$(node -v || echo "v")
         runtime_version="${runtime_version:1}"
       else
-        echo "RMM LANG NOT JS: $DD_LANG"
         export runtime_version=""
       fi
 
