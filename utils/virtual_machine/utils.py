@@ -85,7 +85,7 @@ def get_tested_apps_vms():
                 vm_by_runtime = deepcopy(vm)
                 vm_by_runtime.set_deployed_weblog(weblog)
                 vms_by_runtime.append(vm_by_runtime)
-                vms_by_runtime_ids.append(vms_by_runtime.get_vm_unique_id())
+                vms_by_runtime_ids.append(vm_by_runtime.get_vm_unique_id())
         else:
             vms_by_runtime.append(vm)
             vms_by_runtime_ids.append(vm.get_vm_unique_id())
