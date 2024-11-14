@@ -158,7 +158,7 @@ class Test_Headers_B3:
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
@@ -168,7 +168,7 @@ class Test_Headers_B3:
         self.test_headers_b3_extract_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
@@ -177,7 +177,7 @@ class Test_Headers_B3:
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
@@ -187,7 +187,7 @@ class Test_Headers_B3:
         self.test_headers_b3_inject_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
@@ -197,7 +197,7 @@ class Test_Headers_B3:
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
@@ -207,7 +207,7 @@ class Test_Headers_B3:
         self.test_headers_b3_propagate_invalid(test_agent, test_library)
 
     @enable_migrated_b3_single_key()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
