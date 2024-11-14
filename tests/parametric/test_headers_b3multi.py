@@ -26,17 +26,6 @@ def enable_b3multi_single_key() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_b3_deprecated() -> Any:
-    env1 = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3",
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3",
-    }
-    env2 = {
-        "DD_TRACE_PROPAGATION_STYLE": "b3",
-    }
-    return parametrize("library_env", [env1, env2])
-
-
 def enable_case_insensitive_b3multi() -> Any:
     env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "B3MULTI",
@@ -167,32 +156,3 @@ class Test_Headers_B3multi:
     @missing_feature(context.library < "ruby@2.0.0", reason="Implemented in 2.x")
     def test_headers_b3multi_case_insensitive_propagate_valid(self, test_agent, test_library):
         self.test_headers_b3multi_propagate_valid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
-    def test_headers_b3multi_deprecated_extract_valid(self, test_agent, test_library):
-        self.test_headers_b3multi_extract_valid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    def test_headers_b3multi_deprecated_extract_invalid(self, test_agent, test_library):
-        self.test_headers_b3multi_extract_invalid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
-    def test_headers_b3multi_deprecated_inject_valid(self, test_agent, test_library):
-        self.test_headers_b3multi_inject_valid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
-    def test_headers_b3multi_deprecated_propagate_valid(self, test_agent, test_library):
-        self.test_headers_b3multi_propagate_valid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
-    def test_headers_b3multi_deprecated_propagate_invalid(self, test_agent, test_library):
-        self.test_headers_b3multi_propagate_invalid(test_agent, test_library)
