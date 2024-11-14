@@ -49,13 +49,13 @@ def child_pids(request):
 
     # Iterate over all directories in /proc to look for PIDs
     try:
-        for pid in os.listdir('/proc'):
+        for pid in os.listdir("/proc"):
             if pid.isdigit():
-                status_path = f'/proc/{pid}/status'
+                status_path = f"/proc/{pid}/status"
                 try:
-                    with open(status_path, 'r') as status_file:
+                    with open(status_path, "r") as status_file:
                         for line in status_file:
-                            if line.startswith('PPid:'):
+                            if line.startswith("PPid:"):
                                 ppid = int(line.split()[1])
                                 if ppid == current_pid:
                                     child_pids.append(pid)
