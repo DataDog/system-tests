@@ -21,8 +21,9 @@ if [ "$OS" = "Debian" ]; then
 
     # Remove the PHP installed in install_os_deps.sh
     apt remove --yes php-cli
-    apt autoremove --yes
-
+#    apt autoremove --yes
+ DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev git curl llvm libncursesw5-dev xz-utils tk-dev tzdata libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+   
     # FIXME: Debian
     #curl -sSL https://packages.sury.org/php/README.txt | sudo bash -x
 
