@@ -21,6 +21,7 @@ So, you have a dd-trace branch that contains changes you'd like to test with sys
    By now, you should have a change to a manifest file. Post a PR to system-tests with your changes (the enabled test(s) will fail in CI if you enabled the test for the main branch; the necessary change is not merged into dd-trace main yet)
 
 **3. Merge changes into dd-trace**
+
 **4. Re-run system-tests PR**
 
    It should be pass. Assuming it does, merge system-tests PR.
