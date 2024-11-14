@@ -80,6 +80,7 @@ class TestUnvalidatedRedirect_StackTrace:
             "/iast/unvalidated_redirect/test_insecure_redirect", data={"location": "http://dummy.location.com"}
         )
 
+    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 

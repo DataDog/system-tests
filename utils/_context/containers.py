@@ -685,8 +685,7 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
             base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
-            base_environment["DD_IAST_DETECTION_MODE"] = ("FULL",)
-            base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = ("false",)
+            base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)

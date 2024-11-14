@@ -367,7 +367,6 @@ class scenarios:
         "IAST_DEDUPLICATION",
         weblog_env={
             "DD_IAST_ENABLED": "true",
-            "DD_IAST_DETECTION_MODE": "DEFAULT",
             "DD_IAST_DEDUPLICATION_ENABLED": "true",
             "DD_IAST_REQUEST_SAMPLING": "100",
         },
