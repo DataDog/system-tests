@@ -158,6 +158,7 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
+        logger.debug(f"KWARGS: {self.kwargs}")
         self._container = _get_client().containers.run(
             image=self.image.name,
             name=self.container_name,
