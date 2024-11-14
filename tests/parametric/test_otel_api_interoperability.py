@@ -3,7 +3,7 @@ import json
 import pytest
 
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
-from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER
+from utils.dd_constants import SpanKind
 from utils.parametric.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
 
 # this global mark applies to all tests in this file.
@@ -54,7 +54,7 @@ class Test_Otel_API_Interoperability:
         with test_library:
             with test_library.start_span("dd_span") as dd_span:
                 with test_library.otel_start_span(
-                    name="otel_span", span_kind=SK_INTERNAL, parent_id=dd_span.span_id
+                    name="otel_span", span_kind=SpanKind.INTERNAL, parent_id=dd_span.span_id
                 ) as otel_span:
                     current_dd_span = test_library.current_span()
                     otel_context = otel_span.span_context()
@@ -101,7 +101,7 @@ class Test_Otel_API_Interoperability:
             - Start a span using the Datadog API while a span created using the OTel API already exists
         """
         with test_library:
-            with test_library.otel_start_span(name="otel_span", span_kind=SK_INTERNAL) as otel_span:
+            with test_library.otel_start_span(name="otel_span", span_kind=SpanKind.INTERNAL) as otel_span:
                 with test_library.start_span(name="dd_span", parent_id=otel_span.span_id) as dd_span:
                     current_span = test_library.current_span()
                     otel_context = otel_span.span_context()
@@ -261,7 +261,7 @@ class Test_Otel_API_Interoperability:
             - Basic concurrent traces and spans
         """
         with test_library:
-            with test_library.otel_start_span("otel_root", span_kind=SK_SERVER) as otel_root:
+            with test_library.otel_start_span("otel_root", span_kind=SpanKind.SERVER) as otel_root:
                 with test_library.start_span(name="dd_child", parent_id=otel_root.span_id) as dd_child:
                     with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                         with test_library.otel_start_span(name="otel_child", parent_id=dd_root.span_id) as otel_child:
@@ -299,10 +299,10 @@ class Test_Otel_API_Interoperability:
             - Concurrent traces with nested start/end, with the first trace being opened with the OTel API
         """
         with test_library:
-            with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
+            with test_library.otel_start_span(name="otel_root", span_kind=SpanKind.SERVER) as otel_root:
                 with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
                     with test_library.otel_start_span(
-                        name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
+                        name="otel_child", parent_id=otel_root.span_id, span_kind=SpanKind.INTERNAL
                     ) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
                             otel_child.end_span()
@@ -349,9 +349,9 @@ class Test_Otel_API_Interoperability:
         """
         with test_library:
             with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
-                with test_library.otel_start_span(name="otel_root", span_kind=SK_SERVER) as otel_root:
+                with test_library.otel_start_span(name="otel_root", span_kind=SpanKind.SERVER) as otel_root:
                     with test_library.otel_start_span(
-                        name="otel_child", parent_id=otel_root.span_id, span_kind=SK_INTERNAL
+                        name="otel_child", parent_id=otel_root.span_id, span_kind=SpanKind.INTERNAL
                     ) as otel_child:
                         with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
                             otel_child.end_span()

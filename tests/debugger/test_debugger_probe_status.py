@@ -27,7 +27,8 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
-    @bug(context.library == "python@2.16.0", reason="APMRP-360")
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     def test_probe_status_log(self):
         self._assert()
 
@@ -37,7 +38,8 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
-    @bug(context.library == "python@2.16.0", reason="APMRP-360")
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     def test_probe_status_metric(self):
         self._assert()
 
@@ -56,7 +58,8 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
-    @bug(context.library == "python@2.16.0", reason="APMRP-360")
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     def test_probe_status_spandecoration(self):
         self._assert()
 

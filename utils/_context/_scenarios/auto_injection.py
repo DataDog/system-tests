@@ -368,11 +368,19 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         scenario_groups=None,
         github_workflow=None,
     ) -> None:
+        # Force full tracing without limits
+        app_env_defaults = {
+            "DD_TRACE_RATE_LIMIT": "1000000000000",
+            "DD_TRACE_SAMPLING_RULES": "'[{\"sample_rate\":1}]'",
+        }
+        if app_env is not None:
+            app_env_defaults.update(app_env)
+
         super().__init__(
             name,
             vm_provision=vm_provision,
             agent_env=agent_env,
-            app_env=app_env,
+            app_env=app_env_defaults,
             doc=doc,
             github_workflow=github_workflow,
             include_ubuntu_20_amd64=True,
@@ -409,8 +417,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_redhat_7_9_amd64=True,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
-            include_redhat_9_amd64=True,
-            include_redhat_9_arm64=True,
+            include_redhat_9_amd64=False,
+            include_redhat_9_arm64=False,
             include_fedora_36_amd64=False,
             include_fedora_36_arm64=False,
             include_fedora_37_amd64=False,
@@ -433,11 +441,19 @@ class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
         scenario_groups=None,
         github_workflow=None,
     ) -> None:
+        # Force full tracing without limits
+        app_env_defaults = {
+            "DD_TRACE_RATE_LIMIT": "1000000000000",
+            "DD_TRACE_SAMPLING_RULES": "'[{\"sample_rate\":1}]'",
+        }
+        if app_env is not None:
+            app_env_defaults.update(app_env)
+
         super().__init__(
             name,
             vm_provision=vm_provision,
             agent_env=agent_env,
-            app_env=app_env,
+            app_env=app_env_defaults,
             doc=doc,
             github_workflow=github_workflow,
             include_ubuntu_22_amd64=True,
