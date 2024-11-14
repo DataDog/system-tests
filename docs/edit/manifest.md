@@ -22,7 +22,7 @@ See [skip-tests.md](./skip-tests.md) to disable a test.
 When executed locally, tests run against the latest version of dd-trace by default. In CI, the tests run against the main branch and the latest version.
 
 #### Notes
-- Each library team has ownership of its manifest file
+- Entries in the manifest file must be sorted in alphabetical order. This is validated by the TEST_THE_TESTS scenario/linter.
 - Manifest files are validated using JSON schema in system tests CI
 - An error will occur if a manifest file refers to a file/class that does not exists
 
