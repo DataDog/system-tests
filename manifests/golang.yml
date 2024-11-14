@@ -480,6 +480,8 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In: missing_feature
   parametric/:
     test_config_consistency.py:
       Test_Config_RateLimit: v1.67.0

@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2024 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios, features
+from utils import weblog, interfaces, scenarios, features
 
 
 @features.f_otel_interoperability
-@missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
 @scenarios.integrations
 class Test_Otel_Drop_In:
     """ Verify telemetry data for OpenTelemetry drop-in support """

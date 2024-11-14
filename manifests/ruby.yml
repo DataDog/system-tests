@@ -362,6 +362,8 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
     test_k8s_manual_inject.py:
       TestAdmisionControllerProfiling: missing_feature
