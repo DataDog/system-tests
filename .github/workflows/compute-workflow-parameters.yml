@@ -78,6 +78,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: 'DataDog/system-tests'
+        ref: 'ugaitz/appsec-rasp-scenario-group'
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: main
