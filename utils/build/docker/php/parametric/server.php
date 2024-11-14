@@ -167,12 +167,7 @@ $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandl
         return $headers[$headername] ?? null;
     };
     \DDTrace\consume_distributed_tracing_headers($callback);
-    try {
-        $spanID = $span->parentId;
-    }
-    catch(Error $e) {
-        $spanID = null;
-    }
+    $spanID = $span->parentId ?? null;
     $spansDistributedTracingHeaders[$spanID] = $headers;
     return jsonResponse(["span_id" => $spanID]);
 }));
