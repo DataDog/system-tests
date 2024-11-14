@@ -5,4 +5,4 @@ WORKDIR /app
 
 RUN printf "<?php\necho'hi';\n" > index.php
 
-CMD ["sh", "-c", "php -v ; php -S 0.0.0.0:18080"]
+CMD ["php", "-S", "0.0.0.0:18080"]
