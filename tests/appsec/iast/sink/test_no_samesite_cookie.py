@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, weblog, features, rfc
+from utils import context, missing_feature, bug, weblog, features, rfc, scenarios
 from ..utils import BaseSinkTest, BaseTestCookieNameFilter, validate_stack_traces
 
 
@@ -40,6 +40,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
 
 
 @features.iast_sink_samesite_cookie
+@scenarios.iast_deduplication
 class TestNoSamesiteCookieNameFilter(BaseTestCookieNameFilter):
     """Test no SameSite cookie name filter."""
 
