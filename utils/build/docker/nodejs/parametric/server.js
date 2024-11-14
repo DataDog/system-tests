@@ -40,7 +40,7 @@ const otelSpans = new Map()
 
 app.post('/trace/span/inject_headers', (req, res) => {
   const request = req.body;
-  const span = spans[request.span_id];
+  const span = spans[request.span_id]
   const http_headersDict = {};
   const http_headers = [];
 
