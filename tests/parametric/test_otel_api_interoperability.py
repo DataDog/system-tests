@@ -5,7 +5,6 @@ import pytest
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
 from utils.parametric.spec.otel_trace import SK_INTERNAL, SK_SERVER
 from utils.parametric.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
-from utils.parametric.headers import extract_headers_and_make_child_span
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -405,7 +404,7 @@ class Test_Otel_API_Interoperability:
         ]
 
         with test_library:
-            with extract_headers_and_make_child_span(test_library, "dd_span", headers):
+            with test_library.extract_headers_and_make_child_span("dd_span", headers):
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
 
@@ -434,7 +433,7 @@ class Test_Otel_API_Interoperability:
         ]
 
         with test_library:
-            with extract_headers_and_make_child_span(test_library, "dd_span", headers):
+            with test_library.extract_headers_and_make_child_span("dd_span", headers):
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
                 otel_trace_state = otel_context.get("trace_state")

@@ -4,7 +4,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext, TRACECONTEXT_FLAGS_SET
 from utils.parametric.spec.trace import retrieve_span_links, find_span_in_traces
-from utils.parametric.headers import make_single_request_and_get_inject_headers, extract_headers_and_make_child_span
+from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -659,8 +659,7 @@ class Test_Headers_Precedence:
             # 1) Datadog and tracecontext headers, Datadog is primary context,
             # trace-id does not match,
             # tracestate is present, so should be added to tracecontext span_link
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 name="span1",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
@@ -674,8 +673,7 @@ class Test_Headers_Precedence:
                 pass
             # 2) Datadog and tracecontext headers, trace-id does match, Datadog is primary context
             # we want to make sure there's no span link since they match
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 name="span2",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
@@ -690,8 +688,7 @@ class Test_Headers_Precedence:
             # 3) Datadog, tracecontext, b3multi headers, Datadog is primary context
             # tracecontext and b3multi trace_id do match it
             # we should have two span links, b3multi should not have tracestate
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 name="span3",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
@@ -708,8 +705,7 @@ class Test_Headers_Precedence:
                 pass
             # 4) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has trace_id 0 since that's not valid.
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 name="span4",
                 http_headers=[
                     ["x-datadog-trace-id", "5"],
@@ -724,8 +720,7 @@ class Test_Headers_Precedence:
                 pass
             # 5) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has span_id 0 since that's not valid.
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 name="span5",
                 http_headers=[
                     ["x-datadog-trace-id", "6"],
@@ -810,8 +805,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
@@ -862,8 +856,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
@@ -907,8 +900,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],

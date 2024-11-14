@@ -4,7 +4,6 @@ from requests import head
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.headers import extract_headers_and_make_child_span
 from utils.parametric.spec.trace import find_only_span
 from utils import features, scenarios, bug, context
 from typing import Any
@@ -99,8 +98,7 @@ class Test_Headers_Baggage:
     def test_baggage_extract_header_D005(self, test_library):
         """testing baggage header extraction and decoding"""
 
-        with extract_headers_and_make_child_span(
-            test_library,
+        with test_library.extract_headers_and_make_child_span(
             "test_baggage_extract_header_D005",
             [
                 [
@@ -144,8 +142,8 @@ class Test_Headers_Baggage:
 
     def test_baggage_get_D008(self, test_library):
         """testing baggage API get_baggage"""
-        with extract_headers_and_make_child_span(
-            test_library, "test_baggage_get_D008", [["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]]
+        with test_library.extract_headers_and_make_child_span(
+            "test_baggage_get_D008", [["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]]
         ) as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
@@ -156,8 +154,8 @@ class Test_Headers_Baggage:
 
     def test_baggage_get_all_D009(self, test_library):
         """testing baggage API get_all_baggage"""
-        with extract_headers_and_make_child_span(
-            test_library, "test_baggage_get_all_D009", [["baggage", "foo=bar"]]
+        with test_library.extract_headers_and_make_child_span(
+            "test_baggage_get_all_D009", [["baggage", "foo=bar"]]
         ) as span:
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")

@@ -14,7 +14,6 @@ import pytest
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
 from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.headers import extract_headers_and_make_child_span
 from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -729,8 +728,7 @@ class Test_Headers_Tracecontext:
         Ensure the last parent id tag is set according to the W3C Phase 2 spec
         """
         with test_library:
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "p_set",
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
@@ -739,8 +737,7 @@ class Test_Headers_Tracecontext:
             ) as s1:
                 pass
 
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "p_invalid",
                 [
                     ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
@@ -801,8 +798,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             # 1) Trace ids and parent ids in datadog and tracecontext headers match
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "identical_trace_info",
                 [
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
@@ -815,8 +811,7 @@ class Test_Headers_Tracecontext:
                 pass
 
             # 2) Trace ids in datadog and tracecontext headers do not match
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "trace_ids_do_not_match",
                 [
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
@@ -829,8 +824,7 @@ class Test_Headers_Tracecontext:
                 pass
 
             # 3) Parent ids in Datadog and tracecontext headers do not match
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "same_trace_non_matching_parent_ids",
                 [
                     ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
@@ -843,8 +837,7 @@ class Test_Headers_Tracecontext:
                 pass
 
             # 4) Parent ids do not match and p value is not present in tracestate
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "non_matching_span_missing_p_value",
                 [
                     ["traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"],
@@ -855,8 +848,7 @@ class Test_Headers_Tracecontext:
             ) as s4:
                 pass
 
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "non_matching_span_non_matching_p_value",
                 [
                     ["traceparent", "00-00000000000000000000000000000005-000000003ade68b1-01"],
@@ -922,8 +914,7 @@ class Test_Headers_Tracecontext:
         """
 
         # 1) Datadog and tracecontext headers, parent ids do not match
-        with extract_headers_and_make_child_span(
-            test_library,
+        with test_library.extract_headers_and_make_child_span(
             "same_trace_different_parent_ids",
             [
                 ["traceparent", "00-11111111111111110000000000000001-000000000000000f-01"],
@@ -950,8 +941,7 @@ class Test_Headers_Tracecontext:
         Ensure high order bits do not leak between traces
         """
         with test_library:
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "high_order_64_bits_set",
                 [
                     ["traceparent", "00-33333333333333330000000000000003-000000003ade68b1-01"],
@@ -963,8 +953,7 @@ class Test_Headers_Tracecontext:
             ) as s1:
                 pass
 
-            with extract_headers_and_make_child_span(
-                test_library,
+            with test_library.extract_headers_and_make_child_span(
                 "high_order_64_bits_unset",
                 [
                     ["traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"],
