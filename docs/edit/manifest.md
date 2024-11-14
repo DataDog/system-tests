@@ -58,7 +58,7 @@ tests/:
 ```
 
 #### Notes
-- The wildcard `*` is supported for weblog declarations. This will associate missing_feature/bug/flak/etc. marking to all unspecified weblog variables.
+- The wildcard `*` is supported for weblog declarations. This will associate missing_feature/bug/flaky/etc. marking to all unspecified weblog variables.
 - Manifests support the full npm syntax for SemVer specification. See more at: https://github.com/npm/node-semver#ranges
 
 ## Context and legacy way
