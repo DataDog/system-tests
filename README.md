@@ -12,6 +12,7 @@ When making changes to dd-trace, you'll commonly need to run the unmerged change
 
 System-tests contains two types of tests: "weblog" and "parametric." Weblog tests came first, parametric tests were developed later. Most of the docs in this repo refer to weblog tests, and many of the instructions apply to both weblog and parametric, but not all. You can find dedicated parametric instructions in the [parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
 
+Parametric tests are designed to validate tracer and span interfaces. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. Weblog tests are designed to test a wider set of scenarios. Weblog tests can be used to test tracing integrations, security products, profiling, dynamic instrumentation, and more. When in doubt, use weblog.
 ## How to use
 
 ```mermaid
