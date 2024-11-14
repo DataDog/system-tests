@@ -1,4 +1,4 @@
-## Run the test loccally
+## Run the test locally
 
 Please have a look on the [weblog](../execute/)
 

@@ -1,4 +1,4 @@
-System tests are feature-oriented. It means that "features" drives how tests are organized.
+System tests are feature-oriented. It means that "features" drive how tests are organized.
 
 Let's take an example with a new `Awesome feature`, part of meta feature `stuffs`, so we add a new file called `tests/test_stuffs.py` and add a test class with some boilerplate code, and a basic test:
 
@@ -14,6 +14,21 @@ class Test_AwesomeFeature:
 ```
 
 Several key points:
+
+* Each new feature should be defined in [_features.py](/utils/_features.py). In most cases this consists of copying one of the already added features, changing the name, bumping the number in the url, and bumping the feature number. In this case we'd add
+
+```python
+
+    @staticmethod
+    def awesome_feature(test_object):
+        """
+        Awesome Feature for Awesomeness
+
+        https://feature-parity.us1.prod.dog/#/?feature=291
+        """
+        pytest.mark.features(feature_id=291)(test_object)
+        return test_object
+```
 
 * One class test one feature
 * One class can have several tests

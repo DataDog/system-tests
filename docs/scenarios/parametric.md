@@ -50,8 +50,8 @@ def test_datadog_spans(library_env, test_library, test_agent):
 ```
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
-- The test case creates a new span and sets a tag on it using the shared GRPC/HTTP interface.
-- The implementations of the GRPC/HTTP interface, by language, are in `utils/build/docker/<lang>/parametric`.
+- The test case creates a new span and sets a tag on it using the shared HTTP interface.
+- The implementations of the HTTP interface, by language, are in `utils/build/docker/<lang>/parametric`. See here for exact locations per langugage: [Http Server Implementations](#http-server-implementations) section for more details.
 - Data is flushed to the test agent after the with test_library block closes.
 - Data is retrieved using the `test_agent` fixture and asserted on.
 
@@ -225,14 +225,23 @@ This architecture allows us to ensure that all tracers conform to the same inter
 The http server implementations for each tracer can be found at the following locations:
 
 [Python](/utils/build/docker/python/parametric/apm_test_client/server.py)
+
 [Ruby](utils/build/docker/ruby/parametric/server.rb)
+
 [Php](utils/build/docker/php/parametric/server.php)
+
 [Nodejs](utils/build/docker/nodejs/parametric/server.js)
+
 [Java Datadog](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentracing/controller/OpenTracingController.java)
+
 [Java Otel](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentelemetry/controller/OpenTelemetryController.java)
+
 [Dotnet Datadog](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApi.cs)
+
 [Dotnet Otel](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApiOtel.cs)
+
 [Go Datadog](utils/build/docker/golang/parametric/main.go)
+
 [Go Otel](utils/build/docker/golang/parametric/otel.go)
 
 
