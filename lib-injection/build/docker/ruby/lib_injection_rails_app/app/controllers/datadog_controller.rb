@@ -8,18 +8,38 @@ class DatadogController < ApplicationController
     end
 
     def child_pids
-        current_pid = Process.pid
+      current_pid = Process.pid
+      child_pids = []
 
-        # Get the child processes
-        ps_command = "ps --ppid #{current_pid} --no-headers"
+      begin
+        # Iterate over all the directories in /proc
+        Dir.foreach('/proc') do |pid|
+          # Skip non-numeric directories
+          next unless pid =~ /^\d+$/
 
-        begin
-          # Capture the output of the ps command
-          child_processes = `#{ps_command}`
-          render plain: child_processes
-        rescue => e
-          # Handle any potential errors that might occur when executing the command
-          render plain: "Error executing command: #{e.message}", status: 500
+          status_path = "/proc/#{pid}/status"
+
+          # Read the status file for each process
+          if File.exist?(status_path)
+            File.open(status_path) do |file|
+              file.each_line do |line|
+                if line.start_with?("PPid:")
+                  ppid = line.split[1].to_i
+                  if ppid == current_pid
+                    child_pids << pid
+                  end
+                  break
+                end
+              end
+            end
+          end
         end
+
+        # Render the response with the list of child PIDs
+        render plain: "#{child_pids.join(', ')}"
+      rescue => e
+        # Handle any errors that might occur during reading from /proc
+        render plain: "Error: #{e.message}", status: 500
+      end
     end
   end
