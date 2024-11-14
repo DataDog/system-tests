@@ -51,7 +51,7 @@ def test_datadog_spans(library_env, test_library, test_agent):
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
 - The test case creates a new span and sets a tag on it using the shared HTTP interface.
-- The implementations of the HTTP interface, by language, are in `utils/build/docker/<lang>/parametric`. See here for exact locations per langugage: [Http Server Implementations](#http-server-implementations) section for more details.
+- The implementations of the HTTP interface, by language, are in `utils/build/docker/<lang>/parametric`. See here for exact locations per langugage: [Http Server Implementations](#http-server-implementations) for more details.
 - Data is flushed to the test agent after the with test_library block closes.
 - Data is retrieved using the `test_agent` fixture and asserted on.
 
