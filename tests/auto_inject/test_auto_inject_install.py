@@ -80,7 +80,12 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
 class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
+    @parametrize_virtual_machines(
+        bugs=[
+            {"weblog_variant": "test-app-ruby", "reason": "APMLP-312"},
+            {"weblog_variant": "test-app-java-buildpack", "reason": "APMON-1595"},
+        ]
+    )
     def test_install(self, virtual_machine):
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port

@@ -80,11 +80,12 @@ def get_child_pids(virtual_machine) -> str:
     vm_ip = virtual_machine.get_ip()
     vm_port = virtual_machine.deffault_open_port
     url = f"http://{vm_ip}:{vm_port}/child_pids"
-    return requests.get(url, timeout=240).text
+    return requests.get(url, timeout=60).text
 
 
 def fork_and_crash(virtual_machine) -> str:
     vm_ip = virtual_machine.get_ip()
     vm_port = virtual_machine.deffault_open_port
     url = f"http://{vm_ip}:{vm_port}/fork_and_crash"
-    return requests.get(url, timeout=240).text
+    # The timeout is high because coredump is triggered in some configs and takes a long time to complete
+    return requests.get(url, timeout=300).text
