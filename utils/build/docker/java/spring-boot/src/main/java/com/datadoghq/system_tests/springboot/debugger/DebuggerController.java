@@ -85,7 +85,7 @@ public class DebuggerController {
     }
 
     @GetMapping("/expression/collections")
-    public String stringOperations() {
+    public String collectionOperations() {
         CollectionFactory factory = new CollectionFactory();
 
         Object a0 = factory.getCollection(0, "array");
