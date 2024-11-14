@@ -26,6 +26,13 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+
+        // baggage
+        app.MapPost("/trace/span/set_baggage", SetBaggage);
+        app.MapGet("/trace/span/get_baggage", GetBaggage);
+        app.MapGet("/trace/span/get_all_baggage", GetAllBaggage);
+        app.MapPost("/trace/span/remove_baggage", RemoveBaggage);
+        app.MapPost("/trace/span/remove_all_baggage", RemoveAllBaggage);
     }
 
     private static readonly Assembly DatadogTraceAssembly = Assembly.Load("Datadog.Trace");
@@ -69,6 +76,9 @@ public abstract class ApmTestApi
     private static readonly SpanContextExtractor _spanContextExtractor = new();
 
     internal static ILogger<ApmTestApi>? _logger;
+
+    // persist a single baggage collection across requests (for testing purposes)
+    private static readonly IDictionary<string, string?> Baggage = Datadog.Trace.Baggage.Current;
 
     private static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
     {
@@ -361,5 +371,82 @@ public abstract class ApmTestApi
         var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
 
         return keyFound ? foundValue! : string.Empty;
+    }
+
+    private static async Task SetBaggage(HttpRequest request)
+    {
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(headerRequestBody)!;
+
+        var key = parsedDictionary.GetValueOrDefault("key")?.ToString();
+        var value = parsedDictionary.GetValueOrDefault("value")?.ToString();
+
+        if (key is null || value is null)
+        {
+            throw new InvalidOperationException("Key and value are required to set baggage item");
+        }
+
+        // restore baggage from previous request
+        Datadog.Trace.Baggage.Current = Baggage;
+
+        // set new baggage item
+        Datadog.Trace.Baggage.Current[key] = value;
+    }
+
+    private static async Task<string> GetBaggage(HttpRequest request)
+    {
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(headerRequestBody)!;
+
+        var key = parsedDictionary.GetValueOrDefault("key")?.ToString();
+
+        if (key is null)
+        {
+            throw new InvalidOperationException("Key is required to get baggage item");
+        }
+
+        // restore baggage from previous request
+        Datadog.Trace.Baggage.Current = Baggage;
+
+        // get baggage item by key
+        Datadog.Trace.Baggage.Current.TryGetValue(key, out var value);
+        return JsonConvert.SerializeObject(new { baggage = value });
+    }
+
+    private static string GetAllBaggage(HttpRequest request)
+    {
+        // restore baggage from previous request
+        Datadog.Trace.Baggage.Current = Baggage;
+
+        // get all baggage items
+        return JsonConvert.SerializeObject(new { baggage = Datadog.Trace.Baggage.Current });
+    }
+
+    private static async Task RemoveBaggage(HttpRequest request)
+    {
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(headerRequestBody)!;
+
+        var key = parsedDictionary.GetValueOrDefault("key")?.ToString();
+
+        if (key is null)
+        {
+            throw new InvalidOperationException("Key is required to remove baggage item");
+        }
+
+        // restore baggage from previous request
+        Datadog.Trace.Baggage.Current = Baggage;
+
+        // remove baggage item by key
+        Datadog.Trace.Baggage.Current.Remove(key);
+    }
+
+    private static void RemoveAllBaggage(HttpRequest request)
+    {
+        // restore baggage from previous request
+        Datadog.Trace.Baggage.Current = Baggage;
+
+        // remove all baggage items
+        Datadog.Trace.Baggage.Current.Clear();
     }
 }
