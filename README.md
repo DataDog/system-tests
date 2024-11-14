@@ -2,7 +2,7 @@
 
 A workbench designed to run advanced tests (integration, smoke, functional, fuzzing and performance) against our suite of dd-trace libraries.
 
-When making changes to dd-trace, you'll commonly need to run the unmerged changes against the system tests (to ensure the feature is up tospec). But because system tests are outside of the dd-trace repo, testing against unmerged changes is not so straightforward. Various approaches  to this "chicken or the egg" problem are detailed [here](https://github.com/DataDog/system-tests/blob/main/docs/execute/how-to-approach-changes.md).
+When making changes to dd-trace, you'll commonly need to run the unmerged changes against the system tests (to ensure the feature is up to spec). But because system tests are outside of dd-trace-xx repos, testing against unmerged changes is not so straightforward. Various approaches  to this "chicken or the egg" problem are detailed [here](https://github.com/DataDog/system-tests/blob/main/docs/execute/how-to-approach-changes.md).
 
 ## Requirements
 
