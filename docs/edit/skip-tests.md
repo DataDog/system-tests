@@ -11,7 +11,7 @@ To skip test classes or test files, use the decorator in the library's [manifest
 The decorators take several arguments:
 
 * `condition`: boolean, tell if it's relevant or not. As it's the first argument, you can omit the arguement name
-* `library`: provide library. version numbers are allowed (`java@1.2.4`)
+* `library`: provide library. version numbers are allowed e.g.`java@1.2.4`, see [versions.md](./versions.md) for more details on semantic versioning and testing against unmerged changes
 * `weblog_variant`: if you want to skip the test for a specific weblog
 * `reason`: why the test is skipped. It's especially useful for `@bug`, in which case the value should reference a JIRA ticket number.
 
