@@ -119,8 +119,9 @@ class DockerSSIScenario(Scenario):
         return warmups
 
     def fix_gitlab_network(self):
+        old_weblog_url = self.weblog_url
         self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip())
-        logger.debug(f"GITLAB_CI: Rewrote weblog url to {self.weblog_url}")
+        logger.debug(f"GITLAB_CI: Rewrote weblog url from {old_weblog_url} to {self.weblog_url}")
         self.agent_host = self._agent_container.network_ip()
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 

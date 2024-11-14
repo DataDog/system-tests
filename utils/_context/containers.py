@@ -182,6 +182,10 @@ class TestedContainer:
 
     def network_ip(self) -> str:
         # NetworkSettings.Networks.bridge.IPAddress
+        logger.debug(f"NetworksSettings: { self._container.attrs['NetworkSettings']}")
+        logger.debug(f"Networks: {self._container.attrs['NetworkSettings']['Networks']}")
+        logger.debug(f"Network: {self._container.attrs['NetworkSettings']['Networks'][_NETWORK_NAME]}")
+        logger.debug(f"IP: {self._container.attrs['NetworkSettings']['Networks'][_NETWORK_NAME]['IPAddress']}")
         return self._container.attrs['NetworkSettings']['Networks'][_NETWORK_NAME]['IPAddress']
 
 
