@@ -2,6 +2,7 @@ import os
 import signal
 import subprocess
 import sys
+import time
 
 from django.http import HttpResponse
 from django.urls import path
@@ -39,6 +40,7 @@ def fork_and_crash(request):
         return HttpResponse(f"Child process {pid} exited with status {status}")
     elif pid == 0:
         # Child process
+        time.sleep(5) # don't crash immediately or the injector leaves a zombie behind
         crashme(request)
         return HttpResponse("Nobody should see this")
 
