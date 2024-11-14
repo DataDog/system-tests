@@ -199,10 +199,13 @@ See the steps below in the HTTP section to run the Python server and view the sp
 ### Shared Interface
 
 To view the available HTTP endpoints , follow these steps:
+Note: These are based off of the Python tracer's http server which should be held as the standard example interface across implementations.
+
 
 1. `./utils/scripts/parametric/run_reference_http.sh`
 2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
 3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
+
 
 ### Architecture: How System-tests work
 

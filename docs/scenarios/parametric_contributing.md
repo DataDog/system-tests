@@ -33,17 +33,19 @@ The endpoints (where the actual tracer code runs) are defined in the Http Server
 
 ### If you need to add additional endpoints to test your new feature
 
-Note please refer to the [architecture section](parametric.md#architecture-how-system-tests-work) if you're confused throughout this process.
+*Note:* please refer to the [architecture section](parametric.md#architecture-how-system-tests-work) if you're confused throughout this process.
 
 Then we need to do the following:
 
 * Determine what you want the endpoint to be called and what you need it to do, and add it to your tracer's http server.
+
+*Note:* If adding a new endpoint please let a Python implementer know so they can add it as well [see](parametric.md#shared-interface)
 * In [_library_client.py](/utils/parametric/_library_client.py) Add both the endpoint call in `class APMLibraryClient` and the method that invokes it in `class APMLibrary`. Use other implementations for reference.
 * Ok we now have our new method! Use it in the tests you write using the [below section](#if-the-methods-you-need-to-run-your-tests-are-already-written)
 
 ### If the methods you need to run your tests are already written
 
-Awesome, make a new test file in `tests/parametric`, copying in the testing code you want to use as a base/guideline (usually the class and and one of the test methods in it).
+Make a new test file in `tests/parametric`, copying in the testing code you want to use as a base/guideline (usually the class and and one of the test methods in it).
 
 Then:
 
@@ -51,8 +53,7 @@ Then:
 * Change the class and method name to fit what you're testing.
 * [Change your tracer's respective manifest.yml file](/docs/edit/manifest.md) or else the script won't know to run your new test. If you're confused at how to do this properly, search for the file you copied the test from in the manifest file and see how it's specified, you can probably copy that for your new file (make sure the path is the same).
 For the version value, to make sure your test runs, specify the current release your tracer is on. This is the minimum value that the script will run your test with. If you make it too high, the script will skip your test.
-
-
+* Write the test pulling from examples of other tests written. Remember you're almost always follwing the pattern of making spans, getting them from the trace_agent, and then verifying values on them.
 
 **Finally:**
 [Try running your test!](parametric.md#running-the-tests)
