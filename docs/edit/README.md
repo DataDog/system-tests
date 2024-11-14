@@ -1,4 +1,4 @@
-System tests are a great way to ensure dd-trace is "up to spec" alongside the other dd-trace libraries. This "edit" section addresses the following use-cases:
+System tests allow developers define scenarios and ensure datadog libraries produce consistent telemetry (traces/metric/profiles/...). This "edit" section addresses the following use-cases:
 
 1. Adding a new test (maybe to support a new or existing feature)
 2. Modifying an existing test, whether that's modifying the test client (test*.py files) or the weblog and/or parametric apps that serve the test client requests)
