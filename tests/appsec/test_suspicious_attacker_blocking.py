@@ -100,7 +100,6 @@ class Test_Suspicious_Attacker_Blocking:
 
         self.config_state_6 = rc.rc_state.reset().apply()
 
-    @flaky(context.library >= "golang@1.71.0-dev", reason="APPSEC-55820")
     def test_block_suspicious_attacker(self):
         # ASM disabled
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
