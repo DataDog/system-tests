@@ -15,9 +15,9 @@ lang_variant:
         os_distro: deb
         os_branch: debian10
         remote-command: |
-          echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          echo 'deb http://deb.debian.org/debian buster main non-free contrib' | sudo tee -a /etc/apt/sources.list
           sudo apt update
-          sudo apt -y install openjdk-21-jdk
+          sudo apt -y install openjdk-21-jdk openjdk-21-jre
 
       - os_type: linux
         os_distro: deb
