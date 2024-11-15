@@ -8,7 +8,7 @@ To make changes, you must be able to run tests locally. Instructions for running
 
 **Callout**
 
-You'll commonly need to run unmerged changes to your library against system tests (e.g. to ensure the feature is up to spec). Instructions for testing against unmerged changes can be found in [enable-tests.md](./enable-tests.md).
+You'll commonly need to run unmerged changes to your library against system tests (e.g. to ensure the feature is up to spec). Instructions for testing against unmerged changes can be found in [enable-test.md](./enable-test.md).
 
 ## Index
 1. [lifecycle.md](./lifecycle.md): Understand how system tests work
