@@ -1,4 +1,4 @@
-Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to weblog tests, refer to [placeholder] (TODO: LINK) for parametric-specific instructions.
+Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to end-to-end tests, refer to [placeholder] (TODO: LINK to parametric_contributing.md) for parametric-specific instructions.
 
 Once the changes are complete, post them in a PR.
 
@@ -28,13 +28,6 @@ class Test_Feature():
     def test_feature_detail(self):
         assert my_var + 1 == 2
 ```
-
-If this is an end-to-end test, you'll need to build the images at least once, so if you haven't yet, run the `build` command. After the first build, you can just re-run the tests using the `run` command.
-
-- build: `build.sh <library_name> [options...]`, see [build documentation](../execute/build.md) for more info
-- run: `./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail`, see [run documentation](../execute/run.md) for more info
-
-If this is a parametric test, you can simply re-run the test using the [parametric commands]([url](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md#running-the-tests)).
 
 The weblog apps are responsible for generating instrumentation. Your test should send a request to the [weblog](../edit/weblog.md) and inspect the response. There are various endpoints on weblogs for performing dedicated behaviors (e.g, starting a span, etc). When writing a new test, you might use one of the existing endpoints or create a new one if needed. To validate the response from the weblog, you can use an interface validator:
 
@@ -67,5 +60,10 @@ class Test_Feature():
         """ tests an awesome feature """
         interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
 ```
+
+You'll need to build the images at least once, so if you haven't yet, run the `build` command. After the first build, you can just re-run the tests using the `run` command.
+
+- build: `build.sh <library_name> [options...]`, see [build documentation](../execute/build.md) for more info
+- run: `./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail`, see [run documentation](../execute/run.md) for more info
 
 You now have the basics. Expect to dive into the test internals, but feel free to ask for help on slack at [#apm-shared-testing](https://dd.slack.com/archives/C025TJ4RZ8X)
