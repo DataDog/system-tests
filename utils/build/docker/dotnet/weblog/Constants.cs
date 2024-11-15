@@ -7,5 +7,7 @@ namespace weblog
         public const string NpgSqlConnectionString = @"Server=postgres;Username=system_tests_user;Database=system_tests_dbname;Port=5433;Password=system_tests";
         public const string SqlClientConnectionString = @"Server=mssql;User=sa;Password=yourStrong(!)Password;";
         public const string SqliteConnectionString = "Data Source=TestDatabase;Mode=Memory;Cache=Shared";
+
+        public const string UrlReturnHeaders = "http://localhost:7777/returnheaders";
     }
 }
