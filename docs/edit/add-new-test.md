@@ -44,7 +44,7 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
 ```
 
-Sometimes [skip a test](./features.md) is needed.
+Sometimes you need to [skip a test](./skip-tests.md):
 
 ```python
 from utils import weblog, interfaces, context, bug
