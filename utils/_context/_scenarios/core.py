@@ -11,6 +11,7 @@ from utils.tools import logger, get_log_formatter
 class ScenarioGroup(Enum):
     ALL = "all"
     APPSEC = "appsec"
+    APPSEC_RASP = "appsec_rasp"
     DEBUGGER = "debugger"
     END_TO_END = "end-to-end"
     GRAPHQL = "graphql"

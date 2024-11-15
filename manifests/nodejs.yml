@@ -78,14 +78,17 @@ tests/:
           TestCodeInjection:
             '*': *ref_5_20_0
             nextjs: missing_feature
+          TestCodeInjection_StackTrace:  missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0
             nextjs: missing_feature
+          TestCommandInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords:
             '*': *ref_5_13_0
             nextjs: missing_feature
+          Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': *ref_4_18_0
@@ -93,6 +96,7 @@ tests/:
           Test_HardcodedSecretsExtended:
             '*': *ref_5_11_0
             nextjs: missing_feature
+          Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
             '*': *ref_4_21_0
@@ -109,12 +113,15 @@ tests/:
           TestHeaderInjectionExclusionTransferEncoding:
             '*': *ref_5_26_0
             nextjs: missing_feature
+          TestHeaderInjection_StackTrace: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': *ref_4_8_0
             nextjs: missing_feature
+          Test_HstsMissingHeader_StackTrace: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
+          Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': *ref_4_1_0
@@ -122,10 +129,12 @@ tests/:
           TestInsecureCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
+          TestInsecureCookie_StackTrace: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
             '*': *ref_4_1_0
             nextjs: missing_feature
+          TestLDAPInjection_StackTrace: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': *ref_4_3_0
@@ -133,6 +142,7 @@ tests/:
           TestNoHttponlyCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
+          TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': *ref_4_3_0
@@ -140,57 +150,77 @@ tests/:
           TestNoSamesiteCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
+          TestNoSamesiteCookie_StackTrace: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
             nextjs: missing_feature
+          TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': *ref_3_19_0
             nextjs: missing_feature
+          TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
+          TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             '*': *ref_3_11_0
             nextjs: missing_feature
+          TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF:
             '*': *ref_4_1_0
             nextjs: missing_feature
+          TestSSRF_StackTrace: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation_StackTrace: missing_feature
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization: missing_feature
+          TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': *ref_4_3_0
             nextjs: missing_feature
+          TestUnvalidatedHeader_StackTrace: missing_feature
           TestUnvalidatedRedirect:
             '*': *ref_4_3_0
             nextjs: missing_feature
+          TestUnvalidatedRedirect_StackTrace: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
+          TestUnvalidatedForward_StackTrace: missing_feature
         test_weak_cipher.py:
           TestWeakCipher:
             '*': *ref_3_6_0
             nextjs: missing_feature
+          TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
+          TestDeduplication:
+            '*': *ref_3_11_0
+            nextjs: missing_feature
           TestWeakHash:
             '*': *ref_3_11_0
             nextjs: missing_feature
+          TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': *ref_5_1_0
             nextjs: missing_feature
+          TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
             '*': *ref_4_8_0
             nextjs: missing_feature
+          Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
+          TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
           TestXSS: missing_feature
+          TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
           TestRequestBody:
@@ -620,7 +650,7 @@ tests/:
       Test_Otel_Span_With_Baggage: missing_feature
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource endpoint is not implemented)
-      Test_Parametric_DDSpan_Start: bug (APMAPI-778) # The service and resource name of the child span is overidden by the parent span.
+      Test_Parametric_DDSpan_Start: bug (APMAPI-778) # The resource name of the child span is overidden by the parent span.
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: missing_feature (otel current_span endpoint is not supported)
