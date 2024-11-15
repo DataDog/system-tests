@@ -410,13 +410,6 @@ class _TestOtelSpan:
     def set_baggage(self, key: str, value: str):
         self._client.otel_set_baggage(self.span_id, key, value)
 
-    ### Do not use the below methods in parametric tests, they will be removed in a future PR ####
-    ### The parametric apps will not expose endpoints for retrieving span data ###
-    ### Span data will be retrieved from the agent ###
-
-    def get_attribute(self, key: str):
-        return self._client.otel_get_attribute(self.span_id, key)
-
 
 class APMLibrary:
     def __init__(self, client: APMLibraryClient, lang):
