@@ -4,7 +4,33 @@ A workbench designed to run advanced tests (integration, smoke, functional, fuzz
 
 ## Requirements
 
-`bash`, `docker` and `python3.12`. More infos in the [documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/requirements.md)
+`bash`, `docker` and `python3.12`.
+
+We recommend to install python3.12 via pyenv: pyenv/pyenv#getting-pyenv. Pyenv is a tool for managing multiple python versions and keeping system tests dependencies isolated to their virtual environment. If you don't wish to install pyenv, instructions for downloading python 3.12 on your machine can be found below:
+
+#### Ubuntu
+
+```
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.12 python3.12-distutils python3.12-venv python3.12-dev
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3.12 get-pip.py
+./build.sh -i runner
+```
+
+#### Windows
+
+TODO
+
+#### Mac
+
+For Homebrew users :
+
+```
+brew install python@3.12
+pip3.12 install virtualenv
+```
 
 ## End-To-End vs Parametric
 
@@ -16,7 +42,7 @@ End-To-End tests are good for testing real-world scenarios — they incorporate 
 
 **Parametric**
 
-Parametric tests are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. 
+Parametric tests are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc.
 
 ## How to use
 
