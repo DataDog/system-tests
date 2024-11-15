@@ -2446,3 +2446,13 @@ class features:
         """
         pytest.mark.features(feature_id=339)(test_object)
         return test_object
+
+    @staticmethod
+    def iast_stack_trace(test_object):
+        """
+        IAST: Stack Trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=329
+        """
+        pytest.mark.features(feature_id=329)(test_object)
+        return test_object
