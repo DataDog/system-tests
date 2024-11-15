@@ -2252,7 +2252,7 @@ class features:
         """
         SCA Standalone Billing
 
-        https://feature-parity.us1.prod.dog/#/?feature=319
+        https://feature-parity.us1.prod.dog/#/?feature=320
         """
         pytest.mark.features(feature_id=320)(test_object)
         return test_object
