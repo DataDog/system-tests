@@ -12,14 +12,14 @@ You'll commonly need to run unmerged changes to your library against system test
 
 ## Index
 1. [lifecycle.md](./lifecycle.md): Understand how system tests work
-2. [add-test-class.md](./add-test-class.md): Add a new test
+2. [add-new-test.md](./add-new-test.md): Add a new test
 3. [scenarios.md](./scenarios.md): Add a new scenario
-4. [features.md](./features.md): Mark tests for the feature parity dashboard
-5. [format.md](./format.md): Use the linter
-6. [manifest.md](./manifest.md): How tests are marked as enabled or disabled for libraries
-7. [enable-tests.md](./enable-tests.md): Enable tests
-8. [skip-tests.md](./skip-tests.md): Disable tests
-9. [versions.md](./versions.md) Specify version for enabling/disabling tests
-10. [remote-config.md](./remote-config.md): Understand how we test remote config
+4. [format.md](./format.md): Use the linter
+5. [features.md](./features.md): Mark tests for the feature parity dashboard
+6. [enable-test.md](./enable-test.md): Enable a test
+7. [skip-tests.md](./skip-tests.md): Disable tests
+8. [manifest.md](./manifest.md): How tests are marked as enabled or disabled for libraries
+9. [features.md](./features.md): Mark tests for the feature parity dashboard
+10. [format.md](./format.md): Use the linter
 11. [troubleshooting.md](./troubleshooting.md) Tips for debugging
 12. [iast-validations.md](./iast-validations.md): Mark tests with vulnerabilities
