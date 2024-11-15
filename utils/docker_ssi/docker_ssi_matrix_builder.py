@@ -11,16 +11,17 @@ def generate_gitlab_pipeline():
         # A dummy job is necessary for cases where all of the test jobs are manual
         # The child pipeline shows as failed until at least 1 job is run
         "dummy": {
-            "image": "FROM registry.ddbuild.io/docker:20.10.13-gbi-focal",
+            "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal",
             "tags": ["arch:amd64"],
-            "dependencies": [],
+            "stage": "dummy",
+            "needs": [],
             "script": [
                 "echo 'DONE'"
             ]
         },
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
-            "dependencies": [],
+            "needs": [],
             "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",
