@@ -109,13 +109,14 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"weblog_variant": "test-app-nodejs-esm", "reason": "INPLAT-136"},
         ]
     )
     def test_install(self, virtual_machine):
         logger.info(
-            f"Launching test_install for : [{virtual_machine.name}] [{virtual_machine.get_current_deployed_weblog().runtime_version}]..."
+            f"Launching test_install for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
         )
         self._test_install(virtual_machine)
         logger.info(
-            f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_current_deployed_weblog().runtime_version}]"
+            f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )

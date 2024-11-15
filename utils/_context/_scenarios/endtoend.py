@@ -197,7 +197,9 @@ class EndToEndScenario(DockerScenario):
         require_api_key=False,
     ) -> None:
 
-        scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END] + (scenario_groups or [])
+        scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
+            scenario_groups or []
+        )
 
         super().__init__(
             name,

@@ -9,6 +9,7 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
+    Base_Rules_Version,
 )
 
 
@@ -184,3 +185,10 @@ class Test_Sqli_Capability:
 
     def test_sqli_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SQLI)
+
+
+@features.rasp_local_file_inclusion
+class Test_Sqli_Rules_Version(Base_Rules_Version):
+    """Test Sqli min rules version"""
+
+    min_version = "1.13.2"

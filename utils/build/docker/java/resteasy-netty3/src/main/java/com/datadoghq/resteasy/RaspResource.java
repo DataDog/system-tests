@@ -21,6 +21,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 @Path("/rasp")
 @Produces(MediaType.TEXT_PLAIN)
@@ -64,6 +67,25 @@ public class RaspResource {
         return executeLfi(file.getFile());
     }
 
+    @GET
+    @Path("/ssrf")
+    public String ssrfGet(@QueryParam("domain") final String domain) throws Exception {
+        return executeUrl(domain);
+    }
+
+    @POST
+    @Path("/ssrf")
+    public String ssrfPost(@FormParam("domain") final String domain) throws Exception {
+        return executeUrl(domain);
+    }
+
+    @POST
+    @Path("/ssrf")
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
+    public String ssrfBody(final DomainDTO domain) throws Exception {
+        return executeUrl(domain.getDomain());
+    }
+
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
     private String executeSql(final String userId) throws Exception {
         try (final Connection conn = DATA_SOURCE.getConnection()) {
@@ -80,6 +102,24 @@ public class RaspResource {
     private String executeLfi(final String file) throws Exception {
         new File(file);
         return "OK";
+    }
+
+    private String executeUrl(String urlString) {
+        try {
+            URL url;
+            try {
+                url = new URL(urlString);
+            } catch (MalformedURLException e) {
+                url = new URL("http://" + urlString);
+            }
+
+            URLConnection connection = url.openConnection();
+            connection.connect();
+            return "OK";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "http connection failed";
+        }
     }
 
     @XmlRootElement(name = "user_id")
@@ -111,6 +151,22 @@ public class RaspResource {
 
         public void setFile(String file) {
             this.file = file;
+        }
+    }
+
+    @XmlRootElement(name = "domain")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class DomainDTO {
+        @JsonProperty("domain")
+        @XmlValue
+        private String domain;
+
+        public String getDomain() {
+            return domain;
+        }
+
+        public void setDomain(String domain) {
+            this.domain = domain;
         }
     }
 }

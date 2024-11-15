@@ -5,6 +5,7 @@
 from utils import bug
 from utils import context
 from utils import features
+from utils import flaky
 from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios

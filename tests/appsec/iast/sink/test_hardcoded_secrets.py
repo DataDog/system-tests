@@ -2,7 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, weblog, features, context, missing_feature
+from utils import interfaces, weblog, features, context, rfc, weblog
+from ..utils import validate_stack_traces
 
 # Test_HardcodedSecrets and Test_HardcodedSecretsExtended don't inherit from BaseSinkTest
 # Hardcode secrets detection implementation change a lot between different languages
@@ -41,8 +42,11 @@ class Test_HardcodedSecrets:
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
     }
 
+    insecure_request = None
+
     def setup_hardcoded_secrets_exec(self):
         self.r_hardcoded_secrets_exec = weblog.get("/iast/hardcoded_secrets/test_insecure")
+        self.__class__.insecure_request = self.r_hardcoded_secrets_exec
 
     def test_hardcoded_secrets_exec(self):
         assert self.r_hardcoded_secrets_exec.status_code == 200
@@ -71,3 +75,17 @@ class Test_HardcodedSecretsExtended:
         assert len(hardcoded_secrets) == 1
         vuln = hardcoded_secrets[0]
         assert vuln["location"]["path"] == get_expectation(self.location_map)
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class Test_HardcodedSecrets_StackTrace:
+    """Validate stack trace generation """
+
+    def setup_stack_trace(self):
+        self.r = weblog.get("/iast/hardcoded_secrets/test_insecure")
+
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)
