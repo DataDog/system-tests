@@ -82,7 +82,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
         bugs=[
-            {"weblog_variant": "test-app-ruby", "reason": "APMLP-312"},
+            {"library": "ruby", "reason": "APMLP-312"},
             {"weblog_variant": "test-app-java-buildpack", "reason": "APMON-1595"},
         ]
     )
