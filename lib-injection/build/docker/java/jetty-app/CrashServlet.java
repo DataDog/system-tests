@@ -62,7 +62,7 @@ public class CrashServlet extends HttpServlet {
 
                     // If the PPID matches the current process ID, add it to the list
                     // Filter out jps because it can be spawned by the java tracer
-                    if (ppid == parentPid && !"jps".equals(getProcessName(ppid))) {
+                    if (ppid == parentPid && !"jps".equals(getProcessName(pid))) {
                         childPids.add(pid);
                     }
                 }
