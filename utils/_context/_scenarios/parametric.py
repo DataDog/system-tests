@@ -461,7 +461,7 @@ WORKDIR /app
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # dotnet restore
-COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
+COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config {dotnet_reldir}/*.nupkg binaries/*.nupkg ./
 RUN dotnet restore "./ApmTestApi.csproj"
 
 # dotnet publish
