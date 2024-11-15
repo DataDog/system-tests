@@ -105,20 +105,20 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         try:
             crash_result = fork_and_crash(virtual_machine)
-
             logger.info("fork_and_crash: " + crash_result)
         except Exception as e:
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
             raise
 
-        output = self.execute_command(virtual_machine, "ps ax -o pid,ppid,state,cmd | awk '$3 == \"Z\" { print $0 }'")
-        output = output.strip()
+        child_pids = get_child_pids(virtual_machine).strip()
 
-        process_tree = self.execute_command(virtual_machine, "ps aux --forest")
-        logger.info("Final process tree: " + process_tree)
+        if child_pids != "":
+            logger.warning("Child PIDs found: " + child_pids)
+            process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+            logger.warning("Failure process tree: " + process_tree)
 
-        assert output == ""
+        assert child_pids == ""
 
 
 @features.installer_auto_instrumentation
