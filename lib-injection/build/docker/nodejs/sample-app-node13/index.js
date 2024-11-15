@@ -60,23 +60,30 @@ function getZombies(req, res) {
     // Iterate through each process directory
     procFiles.forEach(pid => {
       const statusPath = path.join(procDir, pid, 'status');
-      if (fs.existsSync(statusPath)) {
-        const statusContent = fs.readFileSync(statusPath, 'utf8');
+      try {
+        if (fs.existsSync(statusPath)) {
+          const statusContent = fs.readFileSync(statusPath, 'utf8');
 
-        // Find the Name, State, and PPid lines in the status file
-        const nameMatch = statusContent.match(/^Name:\s+(\S+)/m);
-        const stateMatch = statusContent.match(/^State:\s+(\w)/m);
-        const ppidMatch = statusContent.match(/^PPid:\s+(\d+)/m);
+          // Find the Name, State, and PPid lines in the status file
+          const nameMatch = statusContent.match(/^Name:\s+(\S+)/m);
+          const stateMatch = statusContent.match(/^State:\s+(\w)/m);
+          const ppidMatch = statusContent.match(/^PPid:\s+(\d+)/m);
 
-        if (nameMatch && stateMatch && ppidMatch) {
-          const name = nameMatch[1];
-          const state = stateMatch[1];
-          const ppid = ppidMatch[1];
+          if (nameMatch && stateMatch && ppidMatch) {
+            const name = nameMatch[1];
+            const state = stateMatch[1];
+            const ppid = ppidMatch[1];
 
-          // Check if the process state is 'Z' (zombie)
-          if (state === 'Z') {
-            zombieProcesses.push(`${name} (PID: ${pid}, PPID: ${ppid})`);
+            // Check if the process state is 'Z' (zombie)
+            if (state === 'Z') {
+              zombieProcesses.push(`${name} (PID: ${pid}, PPID: ${ppid})`);
+            }
           }
+        }
+      } catch (error) {
+        if (error.code !== 'ESRCH') {
+          // Ignore ESRCH error, but throw other errors
+          throw error;
         }
       }
     });
