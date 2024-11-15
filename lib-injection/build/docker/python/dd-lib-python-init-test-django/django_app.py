@@ -114,4 +114,5 @@ urlpatterns = [
     path("crashme", crashme),
     path("fork_and_crash", fork_and_crash),
     path("child_pids", child_pids),
+    path("zombies", zombies),
 ]
