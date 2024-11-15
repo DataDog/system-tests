@@ -2257,7 +2257,6 @@ class features:
         pytest.mark.features(feature_id=320)(test_object)
         return test_object
 
-
     @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """

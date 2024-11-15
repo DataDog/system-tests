@@ -373,6 +373,7 @@ class scenarios:
             "DD_IAST_ENABLED": "false",
         },
         doc="SCA standalone mode (APM opt out)",
+    )
 
     iast_deduplication = EndToEndScenario(
         "IAST_DEDUPLICATION",

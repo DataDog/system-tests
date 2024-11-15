@@ -670,6 +670,7 @@ class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
 
+
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.sca_standalone
 @scenarios.sca_standalone
