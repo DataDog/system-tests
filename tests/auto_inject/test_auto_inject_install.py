@@ -111,6 +111,16 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
             logger.warning("Failure process tree: " + process_tree)
             raise
 
+        # At this point, there should be no zombies and no child pids
+        child_pids = get_child_pids(virtual_machine).strip()
+
+        if child_pids != "":
+            logger.warning("Child PIDs found: " + child_pids)
+            process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+            logger.warning("Failure process tree: " + process_tree)
+
+        assert child_pids == ""
+
         zombies = get_zombies(virtual_machine).strip()
 
         if zombies != "":
