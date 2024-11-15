@@ -18,7 +18,7 @@ lang_variant:
           echo 'deb http://deb.debian.org/debian buster main non-free contrib' | sudo tee -a /etc/apt/sources.list
           sudo apt update
           sudo dpkg --configure -a
-          sudo apt -y install default-jdk default-jdk-headless default-jre openjdk-11-jdk
+          sudo apt -y install -f default-jdk default-jdk-headless default-jre openjdk-11-jdk
 
       - os_type: linux
         os_distro: deb
