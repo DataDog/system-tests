@@ -168,11 +168,20 @@ public class CrashServlet extends HttpServlet {
 
                         while ((line = reader.readLine()) != null) {
                             if (line.startsWith("Name:")) {
-                                name = line.split("\s+")[1];
+                                String[] parts = line.split("\\s+");
+                                if (parts.length > 1) {
+                                    name = parts[1];
+                                }
                             } else if (line.startsWith("State:")) {
-                                state = line.split("\s+")[1];
+                                String[] parts = line.split("\\s+");
+                                if (parts.length > 1) {
+                                    state = parts[1];
+                                }
                             } else if (line.startsWith("PPid:")) {
-                                ppid = line.split("\s+")[1];
+                                String[] parts = line.split("\\s+");
+                                if (parts.length > 1) {
+                                    ppid = parts[1];
+                                }
                             }
 
                             // Break early if all information is found
