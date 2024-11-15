@@ -393,7 +393,6 @@ tests/:
       Test_Otel_Span_With_W3c: v1.17.0
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource endpoint is not supported)
-      Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # Generating a child span from a finished span is not supported
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: missing_feature (current span endpoint is not supported)
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)
