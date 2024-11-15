@@ -260,7 +260,7 @@ class scenarios:
         appsec_enabled=False,
         weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
     appsec_api_security = EndToEndScenario(
@@ -409,7 +409,12 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
+        scenario_groups=[
+            ScenarioGroup.APPSEC,
+            ScenarioGroup.APPSEC_RASP,
+            ScenarioGroup.REMOTE_CONFIG,
+            ScenarioGroup.ESSENTIALS,
+        ],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -726,7 +731,7 @@ class scenarios:
         weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
