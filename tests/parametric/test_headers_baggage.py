@@ -218,7 +218,16 @@ class Test_Headers_Baggage:
                 span.set_baggage(f"key{i}", f"value{i}")
 
             headers = test_library.inject_headers(span.span_id)
-            assert not any("baggage" in item for item in headers)
+            baggage_header = None
+            for key, value in headers.items():
+                if key == "baggage":
+                    baggage_header = value
+                    break
+
+            # baggage should be injected
+            assert baggage_header is not None
+            items = baggage_header.split(",")
+            assert len(items) == max_items
 
     def test_baggageheader_maxbytes_inject_D017(self, test_library):
         """Ensure that baggage headers are not injected when the total byte size of the baggage exceeds the maximum size."""
