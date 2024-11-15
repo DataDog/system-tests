@@ -465,7 +465,7 @@ COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
 RUN /binaries/install_ddtrace.sh
 
 # dotnet restore
-COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
+COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config {dotnet_reldir}/*.nupkg ./
 RUN dotnet restore "./ApmTestApi.csproj"
 
 # dotnet publish
