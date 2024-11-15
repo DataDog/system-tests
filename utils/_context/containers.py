@@ -7,7 +7,6 @@ from subprocess import run
 import time
 from functools import lru_cache
 from threading import RLock, Thread
-from typing import Optional
 
 import docker
 from docker.errors import APIError, DockerException
@@ -94,7 +93,7 @@ class TestedContainer:
         # None: container did not tried to start yet, or hasn't be started for another reason
         # False: container is not healthy
         # True: container is healthy
-        self.healthy: Optional[bool] = None
+        self.healthy = None
 
         self.environment = environment or {}
         self.kwargs = kwargs
@@ -686,6 +685,7 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
             base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
+            base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
@@ -693,10 +693,10 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8126  # type: ignore
+            base_environment["DD_TRACE_AGENT_PORT"] = 8126
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8127  # type: ignore
+            base_environment["DD_TRACE_AGENT_PORT"] = 8127
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})
@@ -723,7 +723,7 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self._library: Optional[LibraryVersion] = None
+        self._library: LibraryVersion = None
 
     @staticmethod
     def _get_image_list_from_dockerfile(dockerfile) -> list[str]:
@@ -804,7 +804,7 @@ class WeblogContainer(TestedContainer):
         self.stdout_interface.init_patterns(self.library)
 
     @property
-    def library(self) -> Optional[LibraryVersion]:
+    def library(self) -> LibraryVersion:
         return self._library
 
     @property

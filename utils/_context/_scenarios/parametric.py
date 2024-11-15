@@ -113,7 +113,10 @@ class ParametricScenario(Scenario):
 
     def __init__(self, name, doc) -> None:
         super().__init__(
-            name, doc=doc, github_workflow="parametric", scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.PARAMETRIC]
+            name,
+            doc=doc,
+            github_workflow="parametric",
+            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.PARAMETRIC, ScenarioGroup.PARAMETRIC],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
