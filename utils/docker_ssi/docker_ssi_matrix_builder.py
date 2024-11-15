@@ -14,7 +14,7 @@ def generate_gitlab_pipeline():
             "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",
-                "timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog \"$weblog\" --ssi-library \"$TEST_LIBRARY\" --ssi-base-image \"$base_image\" --ssi-arch \"$arch\" --ssi-installable-runtime \"$installable_runtime\""
+                "timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog \"$weblog\" --ssi-library \"$TEST_LIBRARY\" --ssi-base-image \"$base_image\" --ssi-arch \"$arch\" --ssi-installable-runtime \"$installable_runtime\" --ssi-force-build"
             ],
             "rules": [
                 {
