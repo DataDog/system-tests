@@ -370,7 +370,7 @@ class scenarios:
             "DD_IAST_DEDUPLICATION_ENABLED": "true",
             "DD_IAST_REQUEST_SAMPLING": "100",
         },
-        doc="Source code vulnerability standalone mode (APM opt out)",
+        doc="Iast scenario with deduplication enabled",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
