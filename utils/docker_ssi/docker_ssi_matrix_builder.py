@@ -7,7 +7,17 @@ from docker_ssi_definitions import ALL_WEBLOGS
 
 def generate_gitlab_pipeline():
     pipeline = {
-        "stages": [],
+        "stages": ["dummy"],
+        # A dummy job is necessary for cases where all of the test jobs are manual
+        # The child pipeline shows as failed until at least 1 job is run
+        "dummy": {
+            "image": "FROM registry.ddbuild.io/docker:20.10.13-gbi-focal",
+            "tags": ["arch:amd64"],
+            "dependencies": [],
+            "script": [
+                "echo 'DONE'"
+            ]
+        },
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
             "dependencies": [],
