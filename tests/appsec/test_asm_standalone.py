@@ -674,7 +674,7 @@ class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.sca_standalone
 @scenarios.sca_standalone
-class TestSCAStandalone_Telemetry:
+class Test_SCAStandalone_Telemetry:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
     def test_telemetry_sca_enabled_propagated(self):
