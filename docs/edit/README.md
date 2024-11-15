@@ -6,6 +6,9 @@ System tests allow developers define scenarios and ensure datadog libraries prod
 
 To make changes, you must be able to run tests locally. Instructions for running **weblog** tests can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/execute/README.md#run-tests) and for **parametric**, [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md#running-the-tests).
 
+**Callout**
+You'll commonly need to run unmerged changes to your library against system tests (e.g. to ensure the feature is up to spec). Instructions for testing against unmerged changes can be found in [enable-tests.md](./enable-tests.md).
+
 #### Index
 1. [lifecycle.md](./lifecycle.md): Understand how system tests work
 2. [add-test-class.md](./add-test-class.md): Add a new test
