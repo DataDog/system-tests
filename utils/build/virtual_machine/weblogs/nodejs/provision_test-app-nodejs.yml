@@ -47,7 +47,8 @@ weblog:
     #centos 7: node 16
     #rhel_7_amd64: I can't isntall in a standard way
     #amazon_linux2: Using the amazon-linux-extras -  Error: Package: 1:nodejs-16.20.2-1.el7.x86_64 (epel)
-    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu21, ubuntu20_arm64, ubuntu20_amd64, centos_7_amd64, rhel_7_amd64, amazon_linux2]
+    #ubuntu 23.04 arm. nodejs package not found
+    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu21, ubuntu20_arm64, ubuntu20_amd64, centos_7_amd64, rhel_7_amd64, amazon_linux2,Ubuntu23_04_arm64]
     install: 
       - os_type: linux
         copy_files:
