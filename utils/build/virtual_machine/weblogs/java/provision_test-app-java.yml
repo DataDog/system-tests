@@ -10,7 +10,15 @@ lang_variant:
           echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
           sudo apt update
           sudo apt -y install default-jdk
-          
+
+      - os_type: linux
+        os_distro: deb
+        os_branch: debian10
+        remote-command: |
+          echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          sudo apt update
+          sudo apt -y install openjdk-21-jdk
+
       - os_type: linux
         os_distro: deb
         remote-command: sudo apt-get -y update && sudo apt-get -y install default-jdk
