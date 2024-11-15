@@ -1,5 +1,5 @@
 
-FROM eclipse-temurin:8 as agent
+FROM public.ecr.aws/docker/library/maven:3.9.9-eclipse-temurin-11 as agent
 
 # Install tracer
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
@@ -26,7 +26,7 @@ COPY --from=agent /dd-tracer/dd-java-agent.jar .
 RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,with-profiling native:compile
 RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,without-profiling native:compile
 
-FROM ubuntu
+FROM public.ecr.aws/ubuntu/ubuntu:24.04
 
 RUN apt-get update && apt-get install -y curl
 

@@ -1,4 +1,4 @@
-FROM maven:3.9-eclipse-temurin-11 as build
+FROM public.ecr.aws/docker/library/maven:3.9.9-eclipse-temurin-11 as build
 
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
@@ -13,7 +13,7 @@ RUN mvn -Dmaven.repo.local=/maven -Pundertow package
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-FROM eclipse-temurin:11-jre
+FROM public.ecr.aws/docker/library/eclipse-temurin:11-jre
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION

@@ -1,4 +1,4 @@
-FROM maven:3.6-jdk-11 as build
+FROM public.ecr.aws/docker/library/maven:3.9.9-eclipse-temurin-11 as build
 
 RUN apt-get update && \
 	apt-get install -y libarchive-tools
@@ -16,7 +16,7 @@ RUN mvn -Dmaven.repo.local=/maven play2:routes-compile package play2:dist-explod
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-FROM eclipse-temurin:11-jre
+FROM public.ecr.aws/docker/library/eclipse-temurin:11-jre
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
