@@ -827,7 +827,7 @@ class Debian10arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Debian_10_arm64",
-            aws_config=_AWSConfig(ami_id="ami-01055bb8b97dfc981", ami_instance_type="t4g.small", user="admin"),
+            aws_config=_AWSConfig(ami_id="ami-01055bb8b97dfc981", ami_instance_type="t4g.medium", user="admin"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
