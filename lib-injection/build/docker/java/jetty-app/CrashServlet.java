@@ -105,7 +105,7 @@ public class CrashServlet extends HttpServlet {
             // Get current PID using ManagementFactory
             String jvmName = ManagementFactory.getRuntimeMXBean().getName();
             long currentPid = Long.parseLong(jvmName.split("@")[0]);
-   
+
             // Get the list of child PIDs by examining /proc
             List<Long> childPids = getChildPidsFromProc(currentPid);
 
