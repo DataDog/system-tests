@@ -29,7 +29,7 @@ class Test_Feature():
         assert my_var + 1 == 2
 ```
 
-The weblog apps are responsible for generating instrumentation. Your test should send a request to the [weblog](../edit/weblog.md) and inspect the response. There are various endpoints on weblogs for performing dedicated behaviors (e.g, starting a span, etc). When writing a new test, you might use one of the existing endpoints or create a new one if needed. To validate the response from the weblog, you can use an interface validator:
+The weblog apps are responsible for generating instrumentation. Your test should send a request to the weblog and inspect the response. There are various endpoints on weblogs for performing dedicated behaviors (e.g, starting a span, etc). When writing a new test, you might use one of the existing endpoints or create a new one if needed. To validate the response from the weblog, you can use an interface validator:
 
 ```python
 from utils import weblog, interfaces
