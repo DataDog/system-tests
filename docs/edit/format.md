@@ -1,6 +1,6 @@
 System tests code is in python, and is linted/formated using [black](https://black.readthedocs.io/en/stable/) and [pylint](https://pylint.readthedocs.io/en/latest/).
 
-Ensure you meet the other pre-reqs in (../README.md#requirements)
+Ensure you meet the other pre-reqs in [README.md](../README.md#requirements)
 Then, run the linter with:
 
 ```bash
