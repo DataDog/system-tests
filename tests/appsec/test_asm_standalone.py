@@ -709,12 +709,11 @@ class TestSCAStandalone_Telemetry:
                 continue
 
             for dependency in content["payload"]["dependencies"]:
-                    dependency_id = dependency["name"]  # +dependency["version"]
-                    
-                    if dependency_id in seen_loaded_dependencies:
-                        seen_loaded_dependencies[dependency_id] = True
+                dependency_id = dependency["name"]  # +dependency["version"]
+
+                if dependency_id in seen_loaded_dependencies:
+                    seen_loaded_dependencies[dependency_id] = True
 
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
-                
