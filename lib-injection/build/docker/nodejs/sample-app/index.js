@@ -28,16 +28,23 @@ function getChildPids(req, res) {
     // Iterate through each process directory
     procFiles.forEach(pid => {
       const statusPath = path.join(procDir, pid, 'status');
-      if (fs.existsSync(statusPath)) {
-        const statusContent = fs.readFileSync(statusPath, 'utf8');
+      try {
+        if (fs.existsSync(statusPath)) {
+          const statusContent = fs.readFileSync(statusPath, 'utf8');
 
-        // Find the PPid line in the status file
-        const ppidMatch = statusContent.match(/^PPid:\s+(\d+)/m);
-        if (ppidMatch) {
-          const ppid = parseInt(ppidMatch[1], 10);
-          if (ppid === currentPid) {
-            childPids.push(pid);
+          // Find the PPid line in the status file
+          const ppidMatch = statusContent.match(/^PPid:\s+(\d+)/m);
+          if (ppidMatch) {
+            const ppid = parseInt(ppidMatch[1], 10);
+            if (ppid === currentPid) {
+              childPids.push(pid);
+            }
           }
+        }
+      } catch (error) {
+        if (error.code !== 'ESRCH') {
+          // Ignore ESRCH error, but throw other errors
+          throw error;
         }
       }
     });
