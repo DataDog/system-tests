@@ -172,6 +172,9 @@ def _collect_item_metadata(item):
             result["testDeclaration"] = "bug"
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
+        elif "got empty parameter set" in result["details"]:
+            # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
+            logger.info(f"No parameters found for ${item.nodeid}")
         else:
             raise ValueError(f"Unexpected test declaration for {item.nodeid} : {result['details']}")
 
@@ -224,6 +227,11 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
     if collector.istestclass(obj, name):
 
+        if obj is None:
+            message = f"""{collector.nodeid} is not properly collected.
+            You may have forgotten to return a value in a decorator like @features"""
+            raise ValueError(message)
+
         manifest = load_manifests()
 
         nodeid = f"{collector.nodeid}::{name}"
@@ -232,7 +240,10 @@ def pytest_pycollect_makeitem(collector, name, obj):
             declaration = manifest[nodeid]
             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-            released(**declaration)(obj)
+            try:
+                released(**declaration)(obj)
+            except Exception as e:
+                raise ValueError(f"Unexpected error for {nodeid}.") from e
 
 
 def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):

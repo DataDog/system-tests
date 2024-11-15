@@ -1,6 +1,8 @@
 from hashlib import sha256
 from typing import NewType
 
+from utils.tools import logger
+
 
 PointerHash = NewType("PointerHash", str)
 
@@ -36,6 +38,8 @@ def make_single_span_link_validator(
     """
 
     def validator(span):
+        logger.debug("checking span: %s", span)
+
         if "span_links" not in span:
             return
 

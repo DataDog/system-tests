@@ -1,5 +1,6 @@
 weblog:
     name: test-app-nodejs-alpine
+    runtime_version: 18
     install: 
       - os_type: linux
         copy_files:

@@ -218,7 +218,7 @@ class Test_Otel_Env_Vars:
         reason="Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.",
     )
     @irrelevant(context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
-    @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true"}])
+    @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true", "DD_TRACE_OTEL_ENABLED": None}])
     def test_otel_sdk_disabled_set(self, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()

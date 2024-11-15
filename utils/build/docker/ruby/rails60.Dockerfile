@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/dd-trace-rb/ruby:2.7.6-dd
+FROM ghcr.io/datadog/images-rb/engines/ruby:2.7
 
 RUN apt-get update && apt-get install -y nodejs npm
 RUN npm install -g yarn

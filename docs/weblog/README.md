@@ -684,6 +684,10 @@ This endpoint is used to validate DSM context extraction works correctly when pr
 This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning it's value (the headers received) to inspect them, looking for
 distributed tracing propagation headers.
 
+### \[GET\] /vulnerablerequestdownstream
+
+Similar to `/requestdownstream`. This is used to test standalone IAST downstream propagation. It should call `/returnheaders` and returning return the resulting json data structure from `/returnheaders` in its response.
+
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
 
@@ -748,7 +752,6 @@ Query parameters required in the `GET` method:
 Examples:
 - `GET`: `/session/user?sdk_user=sdkUser`
 
-
 ### \[GET\] /mock_s3/put_object
 
 This endpoint is used to test the s3 integration. It creates a bucket if
@@ -775,3 +778,19 @@ stripped (accounting for a quirk in the boto3 library).
 
 Examples:
 - `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
+
+
+### \[GET\] /mock_s3/multipart_upload
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `bucket` query parameter and puts an object at the `key`
+query parameter. The body of the object is just the bytes of the key, encoded
+with utf-8, duplicated enough times to make two multipart uploads. Returns a
+result object with an `object` JSON object field containing the `e_tag` field
+with the ETag of the uploaded object returned by the final
+CompleteMultipartUpload call. The `e_tag` field has any extra double-quotes
+stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
+

@@ -21,10 +21,11 @@ lang_variant:
         
       - os_type: linux
         os_distro: rpm
-        remote-command: sudo yum -y install java-1.8.0-amazon-corretto-devel || sudo yum -y install java-1.8.0-amazon-corretto-devel
+        remote-command: sudo yum -y install java-1.8.0-amazon-corretto-devel || sudo yum -y install java-1.8.0-openjdk-devel
 
 weblog:
     name: test-app-java-multicontainer
+    nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multicontainer/nginx.conf
     install: 
       - os_type: linux
         copy_files:
