@@ -110,7 +110,6 @@ class scenarios:
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
         weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
         doc="Test DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED=false effect on tracers",
-        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
 
     telemetry_app_started_products_disabled = EndToEndScenario(
@@ -122,72 +121,59 @@ class scenarios:
         },
         appsec_enabled=False,
         doc="Disable all tracers products",
-        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
         doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
-        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
-        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_enabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_ENABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true",},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
-        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
         "APPSEC_MISSING_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/donotexists"},
+        appsec_rules="/donotexists",
         doc="Test missing appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
+        appsec_rules="/appsec_corrupted_rules.yml",
         doc="Test corrupted appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_custom_rules = EndToEndScenario(
         "APPSEC_CUSTOM_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
-        weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
+        appsec_rules="/appsec_custom_rules.json",
         doc="Test custom appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_blocking = EndToEndScenario(
         "APPSEC_BLOCKING",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        appsec_rules="/appsec_blocking_rule.json",
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        appsec_rules="/appsec_blocking_rule.json",
         doc="AppSec tests for GraphQL integrations",
         github_workflow="graphql",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
-        weblog_volumes={
-            "./tests/appsec/custom_rules_with_errors.json": {
-                "bind": "/appsec_custom_rules_with_errors.json",
-                "mode": "ro",
-            }
-        },
+        appsec_rules="/appsec_custom_rules_with_errors.json",
         doc="Appsec rule file with some errors",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -369,7 +355,7 @@ class scenarios:
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -382,7 +368,6 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
         },
         doc="",
-        scenario_groups=[ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
@@ -397,7 +382,7 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -405,7 +390,7 @@ class scenarios:
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     remote_config_mocked_backend_live_debugging_nocache = EndToEndScenario(
@@ -417,14 +402,13 @@ class scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
         },
         doc="",
-        scenario_groups=[ScenarioGroup.REMOTE_CONFIG],
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         rc_api_enabled=True,
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     # APM tracing end-to-end scenarios
@@ -455,7 +439,6 @@ class scenarios:
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),
-        rc_api_enabled=True,
         doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
     library_conf_custom_header_tags_invalid = EndToEndScenario(
@@ -477,13 +460,10 @@ class scenarios:
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
-            "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
-            "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
         },
         include_kafka=True,
-        include_postgres_db=True,
         doc="",
-        scenario_groups=[ScenarioGroup.TRACING_CONFIG, ScenarioGroup.ESSENTIALS],
+        scenario_groups=[ScenarioGroup.ESSENTIALS],
     )
 
     tracing_config_nondefault_2 = EndToEndScenario(
@@ -491,21 +471,13 @@ class scenarios:
         weblog_env={
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
             "DD_TRACE_KAFKA_ENABLED": "true",
-            "DD_TRACE_KAFKAJS_ENABLED": "true",
-            "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
-            "DD_TRACE_CLIENT_IP_ENABLED": "true",
         },
         include_kafka=True,
-        include_postgres_db=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
-        scenario_groups=[ScenarioGroup.TRACING_CONFIG],
     )
     tracing_config_nondefault_3 = EndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT_3",
-        weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"},
-        doc="",
-        scenario_groups=[ScenarioGroup.TRACING_CONFIG],
+        "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -631,7 +603,7 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
-    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
         vm_provision="host-auto-inject-install-script",
@@ -641,7 +613,7 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
@@ -710,8 +682,8 @@ class scenarios:
 
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},
-        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true"},
+        appsec_rules="/appsec_rasp_ruleset.json",
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],

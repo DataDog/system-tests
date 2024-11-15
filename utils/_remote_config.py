@@ -8,7 +8,7 @@ import json
 import os
 import re
 import time
-from typing import Any, Dict
+from typing import Any
 from typing import Optional
 
 import requests
@@ -62,12 +62,12 @@ def send_state(
             It should be larger than previous versions if you want to apply a new config.
 
     """
-    assert context.scenario is not None, "No scenario found in context"
+
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
 
     client_configs = raw_payload.get("client_configs", [])
 
-    current_states: dict[Any, Any] = {}
+    current_states = {}
     version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
@@ -130,7 +130,7 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
     if not wait_for_all_command:
         return
 
-    counts_by_runtime_id: dict[Any, Any] = {}
+    counts_by_runtime_id = {}
 
     def all_payload_sent(data):
         if data["path"] == "/v0.7/config":
@@ -161,7 +161,7 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
 
 
 def build_debugger_command(probes: list, version: int):
-    library_name = context.scenario.library.library  # type: ignore
+    library_name = context.scenario.library.library
 
     def _json_to_base64(json_object):
         json_string = json.dumps(json_object).encode("utf-8")
@@ -183,9 +183,9 @@ def build_debugger_command(probes: list, version: int):
 
         return "not_supported"
 
-    rcm: Dict[str, Any] = {"targets": "", "target_files": [], "client_configs": []}
+    rcm = {"targets": "", "target_files": [], "client_configs": []}
 
-    signed: Dict[str, Any] = {
+    signed = {
         "signed": {
             "_type": "targets",
             "custom": {"opaque_backend_state": "eyJmb28iOiAiYmFyIn0="},  # where does this come from ?
@@ -208,7 +208,7 @@ def build_debugger_command(probes: list, version: int):
         rcm["targets"] = _json_to_base64(signed)
     else:
         for probe in probes:
-            target: Dict[str, Any] = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
+            target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
             target_file = {"path": "", "raw": ""}
 
             probe["language"] = library_name
@@ -283,9 +283,8 @@ class ClientConfig:
             self.raw_sha256 = hashlib.sha256(base64.b64decode(self.raw)).hexdigest()
         else:
             stored_config = self._store.get(path, None)
-            if stored_config is not None:
-                self.raw_length = stored_config.raw_length
-                self.raw_sha256 = stored_config.raw_sha256
+            self.raw_length = stored_config.raw_length
+            self.raw_sha256 = stored_config.raw_sha256
 
     @property
     def raw_deserialized(self):

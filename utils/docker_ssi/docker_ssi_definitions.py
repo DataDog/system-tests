@@ -65,14 +65,12 @@ class JavaRuntimeInstallableVersions:
 class PHPRuntimeInstallableVersions:
     """ PHP runtime versions that can be installed automatically"""
 
-    PHP56 = RuntimeInstallableVersion("PHP56", "5.6")  # Not supported (EOL runtime)
     PHP74 = RuntimeInstallableVersion("PHP74", "7.4")
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
 
     @staticmethod
     def get_all_versions():
         return [
-            PHPRuntimeInstallableVersions.PHP56,
             PHPRuntimeInstallableVersions.PHP74,
             PHPRuntimeInstallableVersions.PHP83,
         ]
@@ -88,7 +86,6 @@ class PHPRuntimeInstallableVersions:
 class PythonRuntimeInstallableVersions:
     """ Python runtime versions that can be installed automatically"""
 
-    PY36 = RuntimeInstallableVersion("PY36", "3.6.15")  # Not supported (EOL runtime)
     PY37 = RuntimeInstallableVersion("PY37", "3.7.16")
     PY38 = RuntimeInstallableVersion("PY38", "3.8.20")
     PY39 = RuntimeInstallableVersion("PY39", "3.9.20")
@@ -99,7 +96,6 @@ class PythonRuntimeInstallableVersions:
     @staticmethod
     def get_all_versions():
         return [
-            PythonRuntimeInstallableVersions.PY36,
             PythonRuntimeInstallableVersions.PY37,
             PythonRuntimeInstallableVersions.PY38,
             PythonRuntimeInstallableVersions.PY39,

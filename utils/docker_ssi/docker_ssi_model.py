@@ -1,6 +1,3 @@
-from typing import Any
-
-
 class RuntimeInstallableVersion:
     """ Encapsulates information of the version of the language that can be installed automatically"""
 
@@ -15,7 +12,7 @@ class DockerImage:
     def __init__(self, tag, platform) -> None:
         self.tag = tag
         self.platform = platform
-        self.runtime_versions: list[Any] = []
+        self.runtime_versions = []
 
     def with_allowed_runtime_versions(self, runtime_versions):
         self.runtime_versions = runtime_versions

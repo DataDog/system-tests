@@ -24,10 +24,6 @@ class ScenarioGroup(Enum):
     DOCKER_SSI = "docker-ssi"
     ESSENTIALS = "essentials"
     EXTERNAL_PROCESSING = "external-processing"
-    REMOTE_CONFIG = "remote-config"
-    TELEMETRY = "telemetry"
-    TRACING_CONFIG = "tracing-config"
-    TRACER_RELEASE = "tracer-release"
 
 
 VALID_GITHUB_WORKFLOWS = {

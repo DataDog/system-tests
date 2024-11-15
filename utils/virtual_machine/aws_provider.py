@@ -5,7 +5,7 @@ import time
 import requests
 import tempfile
 from random import randint
-from retry import retry  # type: ignore
+from retry import retry
 
 import paramiko
 import random
@@ -94,7 +94,7 @@ class AWSPulumiProvider(VmProvider):
             ami=vm.aws_config.ami_id,
             tags=self._get_ec2_tags(vm),
             opts=self.pulumi_ssh.aws_key_resource,
-            root_block_device={"volume_size": vm.aws_config.volume_size},
+            root_block_device={"volume_size": 16},
             iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
         )
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
@@ -224,7 +224,7 @@ class AWSPulumiProvider(VmProvider):
        if there are more than 500 instances, we will wait until they are destroyed """
 
         ec2_ids = self._print_running_instances()
-        if len(ec2_ids) > 700:
+        if len(ec2_ids) > 500:
             logger.stdout(f"THERE ARE TOO MANY EC2 INSTANCES RUNNING. Waiting for the instances to be destroyed")
             raise Exception("Too many ec2 instances running")
 
@@ -268,7 +268,7 @@ class AWSCommander(Commander):
         ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
-        vm_logger(context.scenario.name, "cache_created").info(f"[{context.scenario.name}] - [{ami_name}]")
+        vm_logger(context.scenario.name, "cache_created").info(f"[{context.scenario.name}] - [{{ami_name}}]")
 
         # Expiration date for the ami
         # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
