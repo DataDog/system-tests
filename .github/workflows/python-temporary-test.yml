@@ -3,7 +3,7 @@ name: python-temporary-test
 on:
   workflow_dispatch: {}
   schedule:
-  - cron: 00 02 * * 2-6
+  - cron: '00 05 * * 2-6'
 
 env:
   REGISTRY: ghcr.io
