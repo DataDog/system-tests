@@ -39,7 +39,7 @@ jobs:
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success'
       run: ./run.sh APPSEC_STANDALONE
-    
+
     - name: Compress logs
       id: compress_logs
       if: always() && steps.build.outcome == 'success'
