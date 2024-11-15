@@ -404,7 +404,7 @@ class Test_Otel_API_Interoperability:
         ]
 
         with test_library:
-            with test_library.start_span(name="dd_span", http_headers=headers):
+            with test_library.extract_headers_and_make_child_span("dd_span", headers):
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
 
@@ -433,7 +433,7 @@ class Test_Otel_API_Interoperability:
         ]
 
         with test_library:
-            with test_library.start_span(name="dd_span", http_headers=headers,) as dd_span:
+            with test_library.extract_headers_and_make_child_span("dd_span", headers):
                 otel_span = test_library.otel_current_span()
                 otel_context = otel_span.span_context()
                 otel_trace_state = otel_context.get("trace_state")

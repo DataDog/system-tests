@@ -63,13 +63,14 @@ STDOUT.sync = true
 puts 'Loading server classes...'
 
 DD_SPANS = {}
-OTEL_SPANS = {}
 DD_TRACES = {}
+DD_DIGEST = {}
+OTEL_SPANS = {}
 
 HeaderTuple = Struct.new(:key, :value, keyword_init: true)
 
 class StartSpanArgs
-  attr_accessor :parent_id, :name, :service, :type, :resource, :origin, :http_headers, :links
+  attr_accessor :parent_id, :name, :service, :type, :resource, :span_tags
 
   def initialize(params)
     @parent_id = params['parent_id']
@@ -77,9 +78,7 @@ class StartSpanArgs
     @service = params['service']
     @type = params['type']
     @resource = params['resource']
-    @origin = params['origin']
-    @http_headers = params['http_headers']
-    @links = params['links']
+    @span_tags = params['span_tags']
   end
 end
 
@@ -171,6 +170,26 @@ class SpanInjectReturn
 
   def to_json(*_args)
     { http_headers: @http_headers }.to_json
+  end
+end
+
+class SpanExtractArgs
+  attr_accessor :http_headers
+
+  def initialize(params)
+    @http_headers = params["http_headers"]
+  end
+end
+
+class SpanExtractReturn
+  attr_accessor :span_id
+
+  def initialize(span_id)
+    @span_id = span_id
+  end
+
+  def to_json(*_args)
+    { span_id: @span_id }.to_json
   end
 end
 
@@ -446,10 +465,13 @@ def get_ddtrace_version
 end
 
 def extract_http_headers(headers)
+  headers = headers.group_by { |key, _| key }.transform_values do |values|
+    values.map { |_, value| value }.join(', ')
+  end
   if Datadog::Tracing::Contrib::HTTP.respond_to?(:extract)
-    Datadog::Tracing::Contrib::HTTP.extract(headers.to_h)
+    Datadog::Tracing::Contrib::HTTP.extract(headers)
   else
-    Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.extract(headers.to_h)
+    Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.extract(headers)
   end
 end
 
@@ -463,32 +485,32 @@ def otel_correct_time(microseconds)
   end
 end
 
-def parse_dd_link(link)
-  link_dg = if !link['http_headers'].nil? && !link['http_headers'].size.nil?
-              extract_http_headers(link['http_headers'].to_h)
-            elsif DD_SPANS.key?(link['parent_id'])
-              span_op = DD_SPANS[link['parent_id']]
-              trace_op = DD_TRACES[span_op.trace_id]
-              Datadog::Tracing::TraceDigest.new(
-                span_id: span_op.id,
-                trace_id: span_op.trace_id,
-                trace_sampling_priority: trace_op.sampling_priority,
-                trace_flags: trace_op.sampling_priority && trace_op.sampling_priority > 0 ? 1 : 0,
-                trace_state: trace_op.trace_state
-              )
-            else
-              raise "Span id in #{link} not found in span list: #{DD_SPANS}"
-            end
-  Datadog::Tracing::SpanLink.new(
-    link_dg,
-    attributes: link['attributes']
-  )
+def get_digest(span_id)
+  if span_id.nil?
+    nil
+  elsif DD_SPANS.key?(span_id)
+    span = DD_SPANS[span_id]
+    raise "Span id #{span_id} not found in span list: #{DD_SPANS}" if span.nil?
+    trace = DD_TRACES[span.trace_id]
+    raise "Span id #{span_id} not found in span list: #{DD_TRACES}" if trace.nil?
+    trace.to_digest.merge(
+      span_id: span.id,
+      span_name: span.name,
+      span_resource: span.resource,
+      span_service: span.service,
+      span_type: span.type,
+      span_remote: false,
+    )
+  elsif DD_DIGEST.key?(span_id)
+    DD_DIGEST[span_id]
+  else
+    raise "Span id #{span_id} not found in spans: #{DD_SPANS} or digests: #{DD_DIGEST}"
+  end
 end
 
 def parse_otel_link(link)
   link_context = if !link['http_headers'].nil? && !link['http_headers'].size.nil?
-                   headers = link['http_headers'].to_h
-                   digest = extract_http_headers(headers)
+                   digest = extract_http_headers(link['http_headers'])
                    digest_to_spancontext(digest)
                  elsif OTEL_SPANS.key?(link['parent_id'])
                    OTEL_SPANS[link['parent_id']].context
@@ -536,6 +558,8 @@ class MyApp
       handle_trace_span_set_metric(req, res)
     when '/trace/span/inject_headers'
       handle_trace_span_inject_headers(req, res)
+    when '/trace/span/extract_headers'
+      handle_trace_span_extract_headers(req, res)
     when '/trace/span/flush'
       handle_trace_span_flush(req, res)
     when '/trace/stats/flush'
@@ -576,36 +600,22 @@ class MyApp
 
   def handle_trace_span_start(req, res)
     args = StartSpanArgs.new(JSON.parse(req.body.read))
-    digest = if args.http_headers.size != 0
-               headers = args.http_headers.group_by { |key, _| key }.transform_values do |values|
-                 values.map { |_, value| value }.join(', ')
-               end
-               extract_http_headers(headers)
-             elsif !args.origin.empty? || args.parent_id != 0
-               if !args.origin.empty?
-                 Datadog::Tracing::TraceDigest.new(trace_origin: args.origin, span_id: args.parent_id)
-               else
-                 unless Datadog::Tracing.active_span&.id == args.parent_id
-                   raise "active parent span id (#{Datadog::Tracing.active_span&.id}) does not match requested parent_id (#{args.parent_id})"
-                 end
-               end
-             end
+    # If the parent span is the active span, we don't need to create a digest,
+    # let the tracer handle span parenting. This avoids creating a new trace chunk.
+    digest = unless Datadog::Tracing.active_span&.id == args.parent_id
+      get_digest(args.parent_id)
+    end
 
     span = Datadog::Tracing.trace(
       args.name,
-      service: args.service.empty? ? nil : args.service,
-      resource: args.resource.empty? ? nil : args.resource,
-      type: args.type.empty? ? nil : args.type,
+      service: args.service,
+      resource: args.resource,
+      type: args.type,
       continue_from: digest,
+      tags: args.span_tags.to_h
     )
-    if args.links.size > 0
-      span.links = args.links.map do |link|
-        parse_dd_link(link)
-      end
-    end
     DD_SPANS[span.id] = span
     DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
-
     res.write(StartSpanReturn.new(span.id, span.trace_id).to_json)
   end
 
@@ -651,16 +661,25 @@ class MyApp
 
   def handle_trace_span_inject_headers(req, res)
     args = SpanInjectArgs.new(JSON.parse(req.body.read))
-    find_span(args.span_id)
+    digest = get_digest(args.span_id)
     env = {}
     if Datadog::Tracing::Contrib::HTTP.respond_to?(:inject)
-      Datadog::Tracing::Contrib::HTTP.inject(Datadog::Tracing.active_trace.to_digest, env)
+      Datadog::Tracing::Contrib::HTTP.inject(digest, env)
     else
-      Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.inject!(Datadog::Tracing.active_trace.to_digest,
-                                                                            env)
+      Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.inject!(digest, env)
     end
 
     res.write(SpanInjectReturn.new(env.to_a).to_json)
+  end
+
+  def handle_trace_span_extract_headers(req, res)
+    args = SpanExtractArgs.new(JSON.parse(req.body.read))
+    digest = extract_http_headers(args.http_headers)
+    unless digest.nil?
+      DD_DIGEST[digest.span_id] = digest
+    end
+
+    res.write(SpanExtractReturn.new(digest&.span_id).to_json)
   end
 
   def handle_trace_span_flush(_req, res)
@@ -686,7 +705,10 @@ class MyApp
 
   def handle_trace_span_add_link(req, res)
     args = TraceSpanAddLinksArgs.new(JSON.parse(req.body.read))
-    link = parse_dd_link(args.to_h)
+    link = Datadog::Tracing::SpanLink.new(
+      get_digest(args.parent_id),
+      attributes: args.attributes
+    )
 
     DD_SPANS[args.span_id].links.push(link)
     res.write(TraceSpanAddLinkReturn.new.to_json)
