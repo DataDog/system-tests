@@ -1090,6 +1090,7 @@ public class App {
     public String otelDropInSpan() {
         // exercise OpenTelemetry's R2DBC support on Java
         db_sql_integrations("reactive_postgresql", "init");
+        db_sql_integrations("reactive_postgresql", "select");
         return "OK";
     }
 
