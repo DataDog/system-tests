@@ -1419,6 +1419,10 @@ tests/:
         spring-boot: bug (AIDM-325)
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In:
+        '*': missing_feature
+        spring-boot: v1.39.0
     test_sql.py:
       Test_Sql: bug (APMAPI-729)
   k8s_lib_injection/:

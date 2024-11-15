@@ -1,6 +1,9 @@
 package com.datadoghq.system_tests.springboot.integrations.db;
 
 import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.Result;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import reactor.core.publisher.Mono;
 
 public class ReactiveCRUDOperation implements ICRUDOperation {
@@ -104,15 +107,16 @@ public class ReactiveCRUDOperation implements ICRUDOperation {
 
   @Override
   public void callProcedure() {
-    String query = "{call test_procedure(?,?)}";
+    String query = "call test_procedure(?,?)";
     try {
       Mono.from(connectionFactory.create())
               .flatMapMany(connection -> connection
                       .createStatement(query)
-                      .bind(1, 1)
-                      .bind(2, 2)
+                      .bind(0, 1)
+                      .bind(1, 2)
                       .execute())
-              .blockLast();
+              .flatMap(Result::getRowsUpdated)
+              .blockLast(Duration.of(1, ChronoUnit.SECONDS));
     } catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
     }
@@ -123,6 +127,7 @@ public class ReactiveCRUDOperation implements ICRUDOperation {
             .flatMapMany(connection -> connection
                     .createStatement(sql)
                     .execute())
-            .blockLast();
+            .flatMap(Result::getRowsUpdated)
+            .blockLast(Duration.of(1, ChronoUnit.SECONDS));
   }
 }
