@@ -557,11 +557,11 @@ class Test_TelemetrySCAEnvVar:
         "library_env, specific_libraries_support, outcome_value",
         [
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, False, True,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, ("python", "golang", "nodejs"), True,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang", "nodejs"), True,),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, ("python", "golang"), True,),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang"), True,),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, False,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang", "nodejs"), False,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang", "nodejs"), False,),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang"), False,),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), False,),
         ],
     )
     @missing_feature(
