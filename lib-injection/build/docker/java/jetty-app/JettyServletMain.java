@@ -45,6 +45,7 @@ public class JettyServletMain {
 
     webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/fork_and_crash");
     webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/child_pids");
+    webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/zombies");
 
     // Start the server!
     server.start();

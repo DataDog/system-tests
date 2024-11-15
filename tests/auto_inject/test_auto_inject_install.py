@@ -1,7 +1,7 @@
 import re
 from utils import scenarios, features, flaky
 from utils.tools import logger
-from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, fork_and_crash
+from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
@@ -111,14 +111,14 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
             logger.warning("Failure process tree: " + process_tree)
             raise
 
-        child_pids = get_child_pids(virtual_machine).strip()
+        zombies = get_zombies(virtual_machine).strip()
 
-        if child_pids != "":
-            logger.warning("Child PIDs found: " + child_pids)
+        if zombies != "":
+            logger.warning("Zombies found: " + child_pids)
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
 
-        assert child_pids == ""
+        assert zombies == ""
 
 
 @features.installer_auto_instrumentation

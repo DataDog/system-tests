@@ -83,6 +83,13 @@ def get_child_pids(virtual_machine) -> str:
     return requests.get(url, timeout=60).text
 
 
+def get_zombies(virtual_machine) -> str:
+    vm_ip = virtual_machine.get_ip()
+    vm_port = virtual_machine.deffault_open_port
+    url = f"http://{vm_ip}:{vm_port}/zombies"
+    return requests.get(url, timeout=60).text
+
+
 def fork_and_crash(virtual_machine) -> str:
     vm_ip = virtual_machine.get_ip()
     vm_port = virtual_machine.deffault_open_port

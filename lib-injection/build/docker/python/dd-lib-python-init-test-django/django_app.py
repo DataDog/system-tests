@@ -73,6 +73,42 @@ def child_pids(request):
         return HttpResponse(f"Error: {str(e)}", status=500, content_type="text/plain")
 
 
+def zombies(request):
+    zombie_processes = []
+
+    # Iterate over all directories in /proc to look for PIDs
+    try:
+        for pid in os.listdir("/proc"):
+            if pid.isdigit():
+                status_path = f"/proc/{pid}/status"
+                try:
+                    with open(status_path, "r") as status_file:
+                        state = None
+                        name = None
+                        ppid = None
+                        for line in status_file:
+                            if line.startswith("State:"):
+                                state = line.split()[1]
+                            elif line.startswith("Name:"):
+                                name = line.split()[1]
+                            elif line.startswith("PPid:"):
+                                ppid = line.split()[1]
+                            if state and name and ppid:
+                                break
+                        # Check if the process state is 'Z' (zombie)
+                        if state == "Z":
+                            zombie_processes.append(f"{name} (PID: {pid}, PPID: {ppid})")
+                except (FileNotFoundError, PermissionError):
+                    # Process might have terminated or we don't have permission
+                    continue
+
+        # Format the response to include the list of zombie processes with their names, PIDs, and PPIDs
+        response_content = ", ".join(zombie_processes)
+        return HttpResponse(response_content, content_type="text/plain")
+    except Exception as e:
+        return HttpResponse(f"Error: {str(e)}", status=500, content_type="text/plain")
+
+
 urlpatterns = [
     path("", index),
     path("crashme", crashme),

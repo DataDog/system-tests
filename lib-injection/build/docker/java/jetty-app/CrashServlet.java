@@ -28,6 +28,8 @@ public class CrashServlet extends HttpServlet {
             handleForkAndCrash(req, resp);
         } else if (requestURI.equals("/child_pids")) {
             handleChildPids(req, resp);
+        } else if (requestURI.equals("/zombies")) {
+            handleZombies(req, resp);
         } else {
             // Return 404 if the endpoint is not recognized
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -124,6 +126,73 @@ public class CrashServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.getWriter().println("Error: " + e.getMessage());
         }
+    }
+
+    public void handleZombies(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            List<String> zombieProcesses = getZombieProcessesFromProc();
+
+            // Prepare the response
+            StringBuilder response = new StringBuilder();
+            for (String process : zombieProcesses) {
+                response.append(process).append("\n");
+            }
+
+            // Send response to the client
+            resp.setContentType("text/plain");
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().println(response.toString());
+        } catch (Exception e) {
+            resp.setContentType("text/plain");
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().println("Error: " + e.getMessage());
+        }
+    }
+
+    private List<String> getZombieProcessesFromProc() {
+        List<String> zombieProcesses = new ArrayList<>();
+        File procDir = new File("/proc");
+
+        // Iterate over all the directories in /proc
+        for (File file : procDir.listFiles()) {
+            if (file.isDirectory() && file.getName().matches("\\d+")) {
+                String pid = file.getName();
+                File statusFile = new File(file, "status");
+
+                if (statusFile.exists()) {
+                    try (BufferedReader reader = new BufferedReader(new FileReader(statusFile))) {
+                        String name = null;
+                        String state = null;
+                        String ppid = null;
+                        String line;
+
+                        while ((line = reader.readLine()) != null) {
+                            if (line.startsWith("Name:")) {
+                                name = line.split("\s+")[1];
+                            } else if (line.startsWith("State:")) {
+                                state = line.split("\s+")[1];
+                            } else if (line.startsWith("PPid:")) {
+                                ppid = line.split("\s+")[1];
+                            }
+
+                            // Break early if all information is found
+                            if (name != null && state != null && ppid != null) {
+                                break;
+                            }
+                        }
+
+                        // Check if the process state is 'Z' (zombie)
+                        if ("Z".equals(state)) {
+                            zombieProcesses.add(String.format("%s (PID: %s, PPID: %s)", name, pid, ppid));
+                        }
+                    } catch (IOException e) {
+                        // Ignore errors reading individual process information
+                    }
+                }
+            }
+        }
+
+        return zombieProcesses;
     }
 
     private static String forkAndCrash()

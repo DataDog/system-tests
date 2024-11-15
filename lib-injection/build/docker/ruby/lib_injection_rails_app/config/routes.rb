@@ -5,4 +5,5 @@ Rails.application.routes.draw do
   # root "articles#index"
   get 'fork_and_crash', controller: 'datadog', action: :fork_and_crash
   get 'child_pids', controller: 'datadog', action: :child_pids
+  get 'zombies', controller: 'datadog', action: :zombies
 end
