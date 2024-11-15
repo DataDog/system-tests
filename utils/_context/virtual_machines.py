@@ -779,7 +779,7 @@ class Debian11amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Debian_11_amd64",
-            aws_config=_AWSConfig(ami_id="ami-0607e701db389efe7", ami_instance_type="t2.medium", user="admin"),
+            aws_config=_AWSConfig(ami_id="ami-0607e701db389efe7", ami_instance_type="t3.medium", user="admin"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
