@@ -74,8 +74,10 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 
+
 def monitor_process_trace(f):
     import sys
+
     def show_span(span):
         return f"Span(id={span.span_id:16X}, trace_id={span.trace_id:16X}, parent_id={span.parent_id or 0:16X}, name={span.name})"
 
@@ -94,7 +96,9 @@ def monitor_process_trace(f):
 
     return aux
 
+
 from ddtrace._trace.processor import TraceSamplingProcessor
+
 TraceSamplingProcessor.process_trace = monitor_process_trace(TraceSamplingProcessor.process_trace)
 
 
