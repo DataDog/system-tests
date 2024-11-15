@@ -17,7 +17,7 @@ lang_variant:
         remote-command: |
           echo 'deb http://deb.debian.org/debian buster main non-free contrib' | sudo tee -a /etc/apt/sources.list
           sudo apt update
-          sudo apt -y install default-jdk
+          sudo apt -y install default-jdk default-jdk-headless default-jre openjdk-11-jdk
 
       - os_type: linux
         os_distro: deb
