@@ -29,13 +29,14 @@ class Test_Feature():
         assert my_var + 1 == 2
 ```
 
-No need to rebuild images at each iteration. Simply re-run `run.sh` to re-run (and build) your test:
+If this is an end-to-end test, you'll need to build the images at least once, so if you haven't yet, run the `build` command. After the first build, you can just re-run the tests using the `run` command.
 
-```
-./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail
-```
+- build: `build.sh <library_name> [options...]`, see [build documentation](../execute/build.md) for more info
+- run: `./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail`, see [run documentation](../execute/run.md) for more info
 
-Weblog apps will perform the instrumentation you want to test, so you'll probably want to send a request to the [weblog](../edit/weblog.md) and inspect it. The weblogs already have existing endpoints that perform some behaviors; perhaps you can use an existing endpoint, or you may need to add a new one. The weblog will then send back information about the behavior; this is the information your test will need to inspect, and you can use an interface validator to do so:
+If this is a parametric test, you can simply re-run the test using the [parametric commands]([url](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md#running-the-tests)).
+
+The weblog apps are responsible for generating instrumentation. Your test should send a request to the [weblog](../edit/weblog.md) and inspect the response. There are various endpoints on weblogs for performing dedicated behaviors (e.g, starting a span, etc). When writing a new test, you might use one of the existing endpoints or create a new one if needed. To validate the response from the weblog, you can use an interface validator:
 
 ```python
 from utils import weblog, interfaces
