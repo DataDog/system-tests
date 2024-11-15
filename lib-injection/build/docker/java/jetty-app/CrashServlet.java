@@ -118,7 +118,7 @@ public class CrashServlet extends HttpServlet {
             // Send response to the client
             resp.setContentType("text/plain");
             resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().println(response.toString());   
+            resp.getWriter().println(response.toString());
         } catch (Exception e) {
             resp.setContentType("text/plain");
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
