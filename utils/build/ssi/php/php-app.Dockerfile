@@ -7,7 +7,7 @@ RUN printf "<?php\necho 'hi';\n" > index.php
 
 EXPOSE 18080
 
-CMD ["php","-S","127.0.0.1:18080"]
+CMD ["sh", "-c", "sleep 5; php -S 0.0.0.0:18080"]
 
 #RUN wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.4.56.v20240826/jetty-distribution-9.4.56.v20240826.tar.gz
 #RUN tar -xvf jetty-distribution-9.4.56.v20240826.tar.gz
