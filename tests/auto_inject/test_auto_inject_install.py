@@ -84,6 +84,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         bugs=[
             {"library": "ruby", "reason": "APMLP-312"},
             {"weblog_variant": "test-app-java-buildpack", "reason": "APMON-1595"},
+            {"weblog_variant": "test-app-python-alpine", "reason": "APMLP-290"}
         ]
     )
     def test_install(self, virtual_machine):
