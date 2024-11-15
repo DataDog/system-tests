@@ -74,6 +74,30 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 
+def monitor_process_trace(f):
+    import sys
+    def show_span(span):
+        return f"Span(id={span.span_id:16X}, trace_id={span.trace_id:16X}, parent_id={span.parent_id or 0:16X}, name={span.name})"
+
+    def show_trace(trace):
+        if isinstance(trace, list):
+            return "\n    ".join(map(show_span, trace))
+        return trace
+
+    def aux(self, trace):
+        print(f">>> {f.__name__} {self}\n>>> {show_trace(trace)}\n>>>{self.apm_opt_out=}", file=sys.stderr, flush=True)
+        res = f(self, trace)
+        if trace:
+            print(f"||| {trace[0]._metrics.get('_dd.apm.enabled')!r}", file=sys.stderr, flush=True)
+        print(f"<<< {f.__name__}\n<<< {show_trace(trace)}", file=sys.stderr, flush=True)
+        return res
+
+    return aux
+
+from ddtrace._trace.processor import TraceSamplingProcessor
+TraceSamplingProcessor.process_trace = monitor_process_trace(TraceSamplingProcessor.process_trace)
+
+
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
 
