@@ -4,7 +4,7 @@ if (Environment.GetEnvironmentVariable("FORKED") != null)
 {
     var thread = new Thread(() =>
     {
-        Thread.Sleep(10_000); // Add a small delay otherwise the telemetry forwarder leaves a zombie process behind
+        Thread.Sleep(30_000); // Add a small delay otherwise the telemetry forwarder leaves a zombie process behind
         throw new BadImageFormatException("Expected");
     });
 
