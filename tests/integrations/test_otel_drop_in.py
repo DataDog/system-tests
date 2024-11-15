@@ -10,8 +10,10 @@ from utils import weblog, interfaces, scenarios, features
 class Test_Otel_Drop_In:
     """ Verify telemetry data for OpenTelemetry drop-in support """
 
-    def setup_otel_drop_in_telemetry_data(self):
+    def exercise_otel_drop_in(self):
         self.r = weblog.get("/otel_drop_in")
+
+    setup_otel_drop_in_telemetry_data = exercise_otel_drop_in
 
     def test_otel_drop_in_telemetry_data(self):
         def has_otel_integration(integrations):
@@ -24,6 +26,8 @@ class Test_Otel_Drop_In:
                 integration_found = True
                 break
         assert integration_found, "Otel drop-in telemetry data not found"
+
+    setup_otel_drop_in_span_metrics = exercise_otel_drop_in
 
     def test_otel_drop_in_span_metrics(self):
         def has_otel_library_tag(tags):
