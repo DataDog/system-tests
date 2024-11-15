@@ -2,17 +2,21 @@
 
 A workbench designed to run advanced tests (integration, smoke, functional, fuzzing and performance) against our suite of dd-trace libraries.
 
-When making changes to dd-trace, you'll commonly need to run the unmerged changes against the system tests (to ensure the feature is up to spec). But because system tests are outside of dd-trace-xx repos, testing against unmerged changes is not so straightforward. Various approaches  to this "chicken or the egg" problem are detailed [here](https://github.com/DataDog/system-tests/blob/main/docs/execute/how-to-approach-changes.md).
-
 ## Requirements
 
 `bash`, `docker` and `python3.12`. More infos in the [documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/requirements.md)
 
-## Weblog vs Parametric
+## End-To-End vs Parametric
 
-System-tests contains two types of tests: "weblog" and "parametric." Weblog apps support "automatic instrumentation." Weblog tests are used to test tracing integrations, security products, profiling, dynamic instrumentation, and more. Parametric tests are designed to validate tracer and span interfaces. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. Weblog tests are designed to test a wider set of scenarios, so when in doubt, use weblog.
+System-tests contains various testing scenarios; the two most commonly used are called "End-To-End" and "Parametric." Most of the docs in this repo refer to End-To-End tests, which were developed earlier and support a wider range of scenarios. Some of the instructions apply to both end-to-end and parametric (e.g. the [edit docs](./docs/edit/)), but not all. You can find dedicated parametric instructions in the [parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
 
-Most of the docs in this repo refer to weblog tests, and many of the instructions apply to both weblog and parametric, but not all. You can find dedicated parametric instructions in the [parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
+**End-To-End**
+
+End-To-End tests are good for testing real-world scenarios — they incorporate "weblog" servers designed to mimick customer applications with automatic instrumentation, a "test-agent" to mimick the Datadog Agent, and communication with the Datadog backend. They support the full lifecycle of a trace (hence the name, "End-To-End"). Use End-To-End scenarios to test tracing integrations, security products, profiling, dynamic instrumentation, and more. When in doubt, use end-to-end.
+
+**Parametric**
+
+Parametric tests are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. 
 
 ## How to use
 
