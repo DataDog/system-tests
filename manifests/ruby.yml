@@ -154,6 +154,7 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.4.1-dev
       Test_IastStandalone_UpstreamPropagation: missing_feature
+      Test_SCAStandalone_Telemetry: missing_feature
     test_automated_login_events.py:
       Test_Login_Events:
         '*': v1.13.0

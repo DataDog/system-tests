@@ -361,6 +361,13 @@ class Test_Telemetry:
             assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
             assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
 
+    _test_loaded_dependencies = {
+        "dotnet": {"NodaTime": False},
+        "nodejs": {"glob": False},
+        "java": {"httpclient": False},
+        "ruby": {"bundler": False},
+    }
+
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
 
@@ -379,13 +386,6 @@ class Test_Telemetry:
     @bug(library="nodejs", reason="unknown")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
-
-        test_loaded_dependencies = {
-            "dotnet": {"NodaTime": False},
-            "nodejs": {"glob": False},
-            "java": {"httpclient": False},
-            "ruby": {"bundler": False},
-        }
 
         test_defined_dependencies = {
             "dotnet": {},
@@ -425,7 +425,7 @@ class Test_Telemetry:
             "ruby": {},
         }
 
-        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
+        seen_loaded_dependencies = Test_Telemetry._test_loaded_dependencies[context.library.library]
         seen_defined_dependencies = test_defined_dependencies[context.library.library]
 
         for data in interfaces.library.get_telemetry_data():

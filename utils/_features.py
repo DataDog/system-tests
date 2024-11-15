@@ -2248,6 +2248,17 @@ class features:
         return test_object
 
     @staticmethod
+    def sca_standalone(test_object):
+        """
+        SCA Standalone Billing
+
+        https://feature-parity.us1.prod.dog/#/?feature=319
+        """
+        pytest.mark.features(feature_id=320)(test_object)
+        return test_object
+
+
+    @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """
         Profiling works when enabled through the agent installer script in Host environments

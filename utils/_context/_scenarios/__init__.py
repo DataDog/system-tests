@@ -358,6 +358,18 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    sca_standalone = EndToEndScenario(
+        "SCA_STANDALONE",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APPSEC_SCA_ENABLED": "true",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "false",
+        },
+        doc="SCA standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,

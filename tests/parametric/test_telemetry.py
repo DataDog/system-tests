@@ -559,27 +559,9 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, False, True),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, ("python", "golang", "nodejs"), True),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang", "nodejs"), True),
-            (
-                {
-                    **DEFAULT_ENVVARS,
-                    "DD_APPSEC_SCA_ENABLED": "true",
-                    "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-                },
-                ("python", "golang", "nodejs"),
-                True,
-            ),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, False),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang", "nodejs"), False),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang", "nodejs"), False),
-            (
-                {
-                    **DEFAULT_ENVVARS,
-                    "DD_APPSEC_SCA_ENABLED": "false",
-                    "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-                },
-                ("python", "golang", "nodejs"),
-                False,
-            ),
         ],
     )
     @missing_feature(
@@ -620,44 +602,3 @@ class Test_TelemetrySCAEnvVar:
             assert cfg_appsec_enabled.get("value") is None
         else:
             assert DD_APPSEC_SCA_ENABLED not in configuration_by_name.keys()
-
-    @pytest.mark.parametrize(
-        "library_env, specific_libraries_support",
-        [
-            ({**DEFAULT_ENVVARS,}, ("dotnet", "nodejs")),
-            ({**DEFAULT_ENVVARS, "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",}, ("dotnet", "nodejs")),
-        ],
-    )
-    @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    def test_app_dependencies_loaded(self, library_env, specific_libraries_support, test_agent, test_library):
-        """test app-dependencies-loaded requests"""
-
-        if specific_libraries_support and context.library not in specific_libraries_support:
-            pytest.xfail(f"unsupported value for {context.library}")
-
-        with test_library.start_span("first_span"):
-            assert test_library.load_dependency()
-
-        event = test_agent.wait_for_telemetry_event("app-dependencies-loaded", wait_loops=400)
-
-        payload = event["payload"]
-        assert event["request_type"] == "app-dependencies-loaded"
-
-        test_loaded_dependencies = {
-            "dotnet": {"NodaTime": False},
-            "nodejs": {"glob": False},
-            "java": {"httpclient": False},
-            "ruby": {"bundler": False},
-        }
-
-        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
-
-        for dependency in payload["dependencies"]:
-            dependency_id = dependency["name"]  # +dependency["version"]
-
-            if dependency_id in seen_loaded_dependencies:
-                seen_loaded_dependencies[dependency_id] = True
-
-        for dependency, seen in seen_loaded_dependencies.items():
-            if not seen:
-                raise Exception(dependency + " not received in app-dependencies-loaded message")
