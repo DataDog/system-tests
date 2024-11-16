@@ -2,6 +2,7 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
+  - test_tracer
   - ruby_tracer
   - nodejs_tracer
   - java_tracer
