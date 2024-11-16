@@ -614,7 +614,12 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
-
+    mysql_installer_auto_injection = InstallerAutoInjectionScenario(
+        "MYSQL_INSTALLER_AUTO_INJECTION",
+        "MySql test case scenario",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
+    )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",

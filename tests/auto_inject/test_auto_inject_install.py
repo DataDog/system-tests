@@ -120,3 +120,26 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
+
+
+@features.installer_auto_instrumentation
+@scenarios.mysql_installer_auto_injection
+class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines()
+    def test_mysql(self, virtual_machine):
+        logger.info(f"Launching test_mysql for : [{virtual_machine.name}] ...")
+        # uninstall SSI
+        self.execute_command(virtual_machine, "sudo datadog-installer apm uninstrument")
+        # Restart mysql
+        self.execute_command(virtual_machine, "sudo service mysql restart")
+        # The status of mysql should be OK
+        mysql_status = self.execute_command(virtual_machine, "sudo service mysql status")
+        assert " ERROR: ld.so: object" not in mysql_status, "The mysql service is reporting a ld.so error"
+        # install SSI
+        self.execute_command(virtual_machine, "sudo datadog-installer apm instrument")
+        # Restart mysql
+        self.execute_command(virtual_machine, "sudo service mysql restart")
+        # The status of mysql should be OK
+        mysql_status = self.execute_command(virtual_machine, "sudo service mysql status")
+        assert " ERROR: ld.so: object" not in mysql_status, "The mysql service is reporting a ld.so error"
+        logger.info(f"Done test_mysql for : [{virtual_machine.name}]")

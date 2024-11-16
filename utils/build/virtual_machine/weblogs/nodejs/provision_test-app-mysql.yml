@@ -1,0 +1,28 @@
+lang_variant:
+    name: nodejs
+    version: default
+    cache: true
+    install: 
+      - os_type: linux
+        os_distro: deb
+        remote-command: |
+         export DD_APM_INSTRUMENTATION_DEBUG=TRUE
+         export DD_INSTRUMENT_SERVICE_WITH_APM=TRUE
+         export DD_APM_INSTRUMENTATION_ENABLED=all
+         sudo -E apt-get install -y nodejs
+         sudo -E apt-get -y update && sudo -E apt-get -y install default-jdk
+         sudo -E apt-get -y install python3
+         sudo add-apt-repository -y ppa:dotnet/backports
+         sudo -E apt-get update
+         sudo -E apt-get install -y dotnet-sdk-6.0
+         sudo -E apt-get install -y dotnet-runtime-6.0      
+
+weblog:
+    name: test-app-mysql
+    exact_os_branches: [ubuntu24]
+    install:
+      - os_type: linux
+        remote-command: |
+          export DD_APM_INSTRUMENTATION_DEBUG=TRUE
+          sudo apt install -y mysql-server
+          sudo service mysql status
