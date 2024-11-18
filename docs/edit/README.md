@@ -4,6 +4,8 @@ System tests allow developers define scenarios and ensure datadog libraries prod
 2. Modifying an existing test, whether that's modifying the test client (test*.py files) or the weblog and/or parametric apps that serve the test client requests)
 3. Enabling/disabling tests for libraries under various conditions
 
+**Note: Anytime you make changes and open a PR, re-run the linter**: [format.md](docs/edit/format.md)
+
 To make changes, you must be able to run tests locally. Instructions for running **end-to-end** tests can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/execute/README.md#run-tests) and for **parametric**, [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md#running-the-tests).
 
 **Callout**
