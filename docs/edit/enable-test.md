@@ -34,7 +34,7 @@ So, you have a branch branch that contains changes you'd like to test with syste
 
 In most cases, you can ignore these.
 
-### Approach #1: Good only if you don't need to modify the test)
+### Approach \#1: Good only if you don't need to modify the test)
 
 Use the [`-F` option](../execute/force-execute.md):
 
