@@ -30,7 +30,7 @@ So, you have a branch branch that contains changes you'd like to test with syste
 
 
 ---
-_Alternative approaches_
+## Alternative approaches
 
 In most cases, you can ignore these.
 
