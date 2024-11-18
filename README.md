@@ -6,7 +6,7 @@ A workbench designed to run advanced tests (integration, smoke, functional, fuzz
 
 `bash`, `docker` and `python3.12`.
 
-We recommend to install python3.12 via pyenv: pyenv/pyenv#getting-pyenv. Pyenv is a tool for managing multiple python versions and keeping system tests dependencies isolated to their virtual environment. If you don't wish to install pyenv, instructions for downloading python 3.12 on your machine can be found below:
+We recommend to install python3.12 via pyenv: [pyenv](https://github.com/pyenv/pyenv#getting-pyenv). Pyenv is a tool for managing multiple python versions and keeping system tests dependencies isolated to their virtual environment. If you don't wish to install pyenv, instructions for downloading python 3.12 on your machine can be found below:
 
 #### Ubuntu
 
