@@ -255,7 +255,7 @@ class APMLibraryClient:
         # and others with bignum trace_ids and uint64 span_ids (ex: python). We should standardize this.
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
-    def otel_end_span(self, span_id: int, timestamp: int) -> None:
+    def otel_end_span(self, span_id: int, timestamp: Optional[int]) -> None:
         self._session.post(self._url("/trace/otel/end_span"), json={"id": span_id, "timestamp": timestamp})
 
     def otel_set_attributes(self, span_id: int, attributes) -> None:
@@ -402,7 +402,7 @@ class _TestOtelSpan:
     def record_exception(self, message: str, attributes: Optional[dict] = None):
         self._client.otel_record_exception(self.span_id, message, attributes)
 
-    def end_span(self, timestamp: int = 0):
+    def end_span(self, timestamp: Optional[int] = None):
         self._client.otel_end_span(self.span_id, timestamp)
 
     def is_recording(self) -> bool:

@@ -8,6 +8,7 @@ the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2dde
 """
 import json
 import pytest
+import time
 
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
@@ -477,10 +478,10 @@ class Test_Parametric_DDTrace_Baggage:
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
-class Test_Parametric_OtelSpan_Start_Finish:
-    def test_span_start_and_finish(self, test_agent, test_library):
+class Test_Parametric_OtelSpan_Start:
+    def test_span_start(self, test_agent, test_library):
         """
-        Validates that the /trace/otel/start_span creates a new span and that the /trace/otel/end_span finishes a span and sends it to the agent.
+        Validates that the /trace/otel/start_span creates a new span.
 
         Supported Parameters:
         - name: str
@@ -524,6 +525,49 @@ class Test_Parametric_OtelSpan_Start_Finish:
         assert len(links) == 1
         assert links[0]["span_id"] == int(s2.span_id)
         assert links[0]["attributes"]["link.key"] == "value"
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
+class Test_Parametric_OtelSpan_End:
+    def test_span_end(self, test_agent, test_library):
+        """
+        Validates that the /trace/otel/end_span finishes a span and sends it to the agent
+
+        Supported Parameters:
+        - timestamp (μs): Optional[int]
+        Supported Return Values:
+        """
+        sleep = 0.2
+        t1 = time.time()
+        with test_library:
+            with test_library.otel_start_span("otel_end_span", end_on_exit=True) as s1:
+                time.sleep(sleep)
+        total_time = time.time() - t1
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        assert sleep <= span["duration"] / 1e9 <= total_time
+
+    def test_span_end_with_timestamp(self, test_agent, test_library):
+        """
+        Validates that the /trace/otel/end_span finishes a span and sends it to the agent with the expected duration
+
+        Supported Parameters:
+        - timestamp (μs): Optional[int]
+        Supported Return Values:
+        """
+        start = 5_000_000  # microseconds
+        end = 10_000_000  # microseconds
+        with test_library:
+            with test_library.otel_start_span("otel_end_span_with_timestamp", timestamp=start, end_on_exit=False) as s1:
+                pass
+            s1.end_span(end)
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        assert span["start"] == start * 1000
+        assert span["duration"] == (end - start) * 1000
 
 
 @scenarios.parametric

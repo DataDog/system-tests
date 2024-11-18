@@ -279,10 +279,9 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             # start parent
-            with test_library.otel_start_span(name="parent") as parent:
+            with test_library.otel_start_span(name="parent", end_on_exit=True) as parent:
                 assert parent.is_recording()
-
-                assert not parent.is_recording()
+            assert not parent.is_recording()
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
@@ -327,8 +326,8 @@ class Test_Otel_Span_Methods:
             - still possible to start child spans from parent context
         """
         with test_library:
-            with test_library.otel_start_span(name="parent", span_kind=SpanKind.PRODUCER) as parent:
-
+            with test_library.otel_start_span(name="parent", span_kind=SpanKind.PRODUCER, end_on_exit=False) as parent:
+                parent.end_span()
                 # setting attributes after finish has no effect
                 parent.set_name("new_name")
                 parent.set_attributes({"after_finish": "true"})  # should have no affect
@@ -416,10 +415,10 @@ class Test_Otel_Span_Methods:
             (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
         """
         with test_library:
-            with test_library.otel_start_span(name="op1") as parent:
-
-                with test_library.otel_start_span(name="op2", parent_id=parent.span_id) as span:
-
+            with test_library.otel_start_span(name="op1", end_on_exit=False) as parent:
+                parent.end_span()
+                with test_library.otel_start_span(name="op2", parent_id=parent.span_id, end_on_exit=False) as span:
+                    span.end_span()
                     context = span.span_context()
                     assert context.get("trace_id") == parent.span_context().get("trace_id")
                     if (
@@ -479,7 +478,8 @@ class Test_Otel_Span_Methods:
         given two valid span (or SpanContext) objects" as specified in the RFC.
         """
         with test_library:
-            with test_library.otel_start_span("root") as parent:
+            with test_library.otel_start_span("root", end_on_exit=False) as parent:
+                parent.end_span()
                 with test_library.otel_start_span(
                     "child",
                     parent_id=parent.span_id,
@@ -664,8 +664,8 @@ class Test_Otel_Span_Methods:
         """Test adding a span link from a span to another span.
         """
         with test_library:
-            with test_library.otel_start_span("root") as parent:
-
+            with test_library.otel_start_span("root", end_on_exit=False) as parent:
+                parent.end_span()
                 with test_library.otel_start_span("first", parent_id=parent.span_id) as first:
                     pass
 
