@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from utils.dd_constants import SpanKind
+from utils.parametric.spec.otel_trace import SK_PRODUCER
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, irrelevant, context, scenarios, features
@@ -31,7 +31,7 @@ class Test_Otel_Span_With_W3c:
             start_time = int(time.time())
             with test_library.otel_start_span(
                 "operation",
-                span_kind=SpanKind.PRODUCER,
+                span_kind=SK_PRODUCER,
                 timestamp=start_time,
                 attributes={"start_attr_key": "start_attr_val"},
             ) as parent:

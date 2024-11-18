@@ -38,11 +38,22 @@ source venv/bin/activate
 
 echo "Checking Python files..."
 if [ "$COMMAND" == "fix" ]; then
-  black .
+  black --quiet .
 else
   black --check --diff .
 fi
-pylint utils  # pylint does not have a fix mode
+
+echo "Running mypy type checks..."
+if ! mypy --config pyproject.toml --install-types --non-interactive; then
+  echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running pylint checks..."
+if ! pylint utils; then
+  echo "Pylint checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
 
 echo "Checking trailing whitespaces..."
 INCLUDE_PATTERN='.*\.(md|yml|yaml|sh|cs|Dockerfile|java|sql|ts|js|php)$'

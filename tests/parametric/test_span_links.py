@@ -8,7 +8,7 @@ from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import scenarios, missing_feature
 from utils.parametric._library_client import Link
-from utils.parametric.spec.trace import retrieve_span_links, find_span, find_trace, find_span_in_traces
+from utils.parametric.spec.trace import retrieve_span_links, find_span, find_trace
 
 
 @scenarios.parametric
@@ -24,8 +24,10 @@ class Test_Span_Links:
             with test_library.start_span("first") as s1:
                 pass
 
-            with test_library.start_span("second") as s2:
-                s2.add_link(s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})
+            with test_library.start_span(
+                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+            ) as s2:
+                pass
 
         traces = test_agent.wait_for_num_traces(2)
         trace1 = find_trace(traces, s1.trace_id)
@@ -60,8 +62,10 @@ class Test_Span_Links:
             with test_library.start_span("first") as s1:
                 pass
 
-            with test_library.start_span("second") as s2:
-                s2.add_link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})
+            with test_library.start_span(
+                "second", links=[Link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
+            ) as s2:
+                pass
 
         traces = test_agent.wait_for_num_traces(2)
         trace1 = find_trace(traces, s1.trace_id)
@@ -93,17 +97,22 @@ class Test_Span_Links:
         representation in span links.
         """
         with test_library:
-            with test_library.start_span("root") as rs:
-                parent_id = test_library.extract_headers(
-                    http_headers=[
-                        ["x-datadog-trace-id", "1234567890"],
-                        ["x-datadog-parent-id", "9876543210"],
-                        ["x-datadog-sampling-priority", "2"],
-                        ["x-datadog-origin", "synthetics"],
-                        ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
-                    ]
-                )
-                rs.add_link(parent_id=parent_id, attributes={"foo": "bar"})
+            with test_library.start_span(
+                "root",
+                links=[
+                    Link(
+                        attributes={"foo": "bar"},
+                        http_headers=[
+                            ["x-datadog-trace-id", "1234567890"],
+                            ["x-datadog-parent-id", "9876543210"],
+                            ["x-datadog-sampling-priority", "2"],
+                            ["x-datadog-origin", "synthetics"],
+                            ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
+                        ],
+                    )
+                ],
+            ) as rs:
+                pass
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, rs.trace_id)
@@ -127,14 +136,18 @@ class Test_Span_Links:
         This mostly tests that the injected tracestate and flags are accurate.
         """
         with test_library:
-            with test_library.start_span("root") as rs:
-                parent_id = test_library.extract_headers(
-                    http_headers=[
-                        ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                        ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
-                    ]
-                )
-                rs.add_link(parent_id=parent_id)
+            with test_library.start_span(
+                "root",
+                links=[
+                    Link(
+                        http_headers=[
+                            ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                            ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
+                        ],
+                    ),
+                ],
+            ) as rs:
+                pass
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, rs.trace_id)
@@ -170,8 +183,7 @@ class Test_Span_Links:
             with test_library.start_span("first") as s1:
                 with test_library.start_span("second", parent_id=s1.span_id) as s2:
                     pass
-            with test_library.start_span("third") as s3:
-                s3.add_link(s1.span_id)
+            with test_library.start_span("third", parent_id=0, links=[Link(parent_id=s1.span_id)]) as s3:
                 s3.add_link(s2.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
 
         traces = test_agent.wait_for_num_traces(2)
@@ -216,31 +228,41 @@ class Test_Span_Links:
         downstream spans.
         """
         with test_library:
-            with test_library.start_span("link_w_manual_keep") as s1:
-                parent_id = test_library.extract_headers(
-                    http_headers=[
-                        ["x-datadog-trace-id", "666"],
-                        ["x-datadog-parent-id", "777"],
-                        ["x-datadog-sampling-priority", "2"],
-                        ["x-datadog-tags", "_dd.p.dm=-0,_dd.p.tid=0000000000000010"],
-                    ]
-                )
-                s1.add_link(parent_id=parent_id)
+            with test_library.start_span(
+                "link_w_manual_keep",
+                links=[
+                    Link(
+                        http_headers=[
+                            ["x-datadog-trace-id", "666"],
+                            ["x-datadog-parent-id", "777"],
+                            ["x-datadog-sampling-priority", "2"],
+                            ["x-datadog-tags", "_dd.p.dm=-0,_dd.p.tid=0000000000000010"],
+                        ],
+                    )
+                ],
+            ) as s1:
+                pass
 
-            with test_library.start_span("link_w_manual_drop") as s2:
-                parent_id = test_library.extract_headers(
-                    http_headers=[
-                        ["traceparent", "00-66645678901234567890123456789012-0000000000000011-01"],
-                        ["tracestate", "foo=1,dd=t.dm:-3;s:-1,bar=baz"],
-                    ]
-                )
-                s2.add_link(parent_id=parent_id)
+            with test_library.start_span(
+                "link_w_manual_drop",
+                links=[
+                    Link(
+                        http_headers=[
+                            ["traceparent", "00-66645678901234567890123456789012-0000000000000011-01"],
+                            ["tracestate", "foo=1,dd=t.dm:-3;s:-1,bar=baz"],
+                        ],
+                    )
+                ],
+            ) as s2:
+                pass
 
             with test_library.start_span("auto_dropped_span") as ads:
                 ads.set_meta(AUTO_DROP_KEY, "")
                 # We must add a link to linked_to_auto_dropped_span before auto_dropped_span ends
-                with test_library.start_span("linked_to_auto_dropped_span") as s3:
-                    s3.add_link(parent_id=ads.span_id)
+                with test_library.start_span(
+                    "linked_to_auto_dropped_span", parent_id=0, links=[Link(parent_id=ads.span_id)]
+                ) as s3:
+                    pass
 
         traces = test_agent.wait_for_num_traces(4)
         # Span Link generated from datadog headers containing manual keep
@@ -264,8 +286,9 @@ class Test_Span_Links:
         assert link_w_manual_drop["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
 
         # Span Link generated between two root spans
-        auto_dropped_span = find_span_in_traces(traces, ads.trace_id, ads.span_id)
-        linked_to_auto_dropped_span = find_span_in_traces(traces, s3.trace_id, s3.span_id)
+        trace3 = find_trace(traces, s3.trace_id)
+        auto_dropped_span = find_span(trace3, ads.span_id)
+        linked_to_auto_dropped_span = traces[3][0]
         # assert that span link is set up correctly
         span_links = retrieve_span_links(linked_to_auto_dropped_span)
         assert len(span_links) == 1 and span_links[0]["span_id"] == auto_dropped_span["span_id"]

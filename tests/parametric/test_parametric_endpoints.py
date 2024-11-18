@@ -15,8 +15,6 @@ from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import find_only_span
 from utils import irrelevant, bug, scenarios, features, context
-from utils.dd_constants import SpanKind
-from utils.dd_constants import StatusCode
 from utils.parametric._library_client import Link
 
 
@@ -107,33 +105,6 @@ class Test_Parametric_Inject_Headers:
             assert headers
             assert "x-datadog-parent-id" in [h[0] for h in headers]
             assert str(s1.span_id) in [h[1] for h in headers]
-
-
-@scenarios.parametric
-@features.parametric_endpoint_parity
-class Test_Parametric_DDTrace_Extract_Headers:
-    def test_extract_headers(self, test_agent, test_library):
-        """
-        Validates that /trace/span/inject_headers generates distributed tracing headers from span data.
-
-        Supported Parameters:
-        - List[Tuple[str, str]]
-        Supported Return Values:
-        - span_id: Union[int, str]
-        """
-        with test_library:
-            parent_id = test_library.extract_headers([["x-datadog-trace-id", "1"], ["x-datadog-parent-id", "2"]])
-            # nodejs library returns span and trace_ids as strings
-            assert int(parent_id) == 2
-
-            with test_library.start_span("local_root_span", parent_id=parent_id) as s1:
-                pass
-
-        traces = test_agent.wait_for_num_traces(1)
-        span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
-        assert span["name"] == "local_root_span"
-        assert span["trace_id"] == 1
-        assert span["parent_id"] == 2
 
 
 @scenarios.parametric
@@ -485,7 +456,7 @@ class Test_Parametric_OtelSpan_Start_Finish:
         Supported Parameters:
         - name: str
         - timestamp (μs): Optional[int]
-        - span_kind: Optional[SpanKind]
+        - span_kind: Optional[Literal[0, 1, 2, 3, 4, 5]] # integers correspoond -> ["UNSPECIFIED", "INTERNAL", "SERVER", "CLIENT", "PRODUCER", "CONSUMER"]
         - parent_id: Optional[Union[int, str]]
         - attributes: Optional[Dict[str, str]]
         - links: Optional[List[Link]]
@@ -503,7 +474,7 @@ class Test_Parametric_OtelSpan_Start_Finish:
             with test_library.otel_start_span(
                 "otel_start_span_child",
                 1730393556000000,
-                SpanKind.SERVER,
+                2,
                 s1.span_id,
                 [Link(parent_id=s2.span_id, attributes={"link.key": "value"})],
                 {"attr_key": "value"},
@@ -557,13 +528,13 @@ class Test_Parametric_OtelSpan_Set_Status:
 
         Supported Parameters:
         - span_id: Union[int, str]
-        - code: Literal[StatusCode]
+        - code: Literal["UNSET", "OK", "ERROR"]
         - description: str
         Supported Return Values:
         """
         with test_library:
             with test_library.otel_start_span("otel_set_status") as s1:
-                s1.set_status(StatusCode.ERROR, "error message")
+                s1.set_status("ERROR", "error message")
                 s1.end_span()
 
         traces = test_agent.wait_for_num_traces(1)

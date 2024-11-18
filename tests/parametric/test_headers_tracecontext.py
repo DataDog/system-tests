@@ -728,18 +728,18 @@ class Test_Headers_Tracecontext:
         Ensure the last parent id tag is set according to the W3C Phase 2 spec
         """
         with test_library:
-            with test_library.extract_headers_and_make_child_span(
-                "p_set",
-                [
+            with test_library.start_span(
+                name="p_set",
+                http_headers=[
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
                 ],
             ) as s1:
                 pass
 
-            with test_library.extract_headers_and_make_child_span(
-                "p_invalid",
-                [
+            with test_library.start_span(
+                name="p_invalid",
+                http_headers=[
                     ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
                     ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
                 ],
@@ -798,9 +798,9 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             # 1) Trace ids and parent ids in datadog and tracecontext headers match
-            with test_library.extract_headers_and_make_child_span(
-                "identical_trace_info",
-                [
+            with test_library.start_span(
+                name="identical_trace_info",
+                http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;p:000000003ade68b1,foo=1"],
                     ["x-datadog-trace-id", "1"],
@@ -811,9 +811,9 @@ class Test_Headers_Tracecontext:
                 pass
 
             # 2) Trace ids in datadog and tracecontext headers do not match
-            with test_library.extract_headers_and_make_child_span(
-                "trace_ids_do_not_match",
-                [
+            with test_library.start_span(
+                name="trace_ids_do_not_match",
+                http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;p:000000000000000a,foo=1"],
                     ["x-datadog-parent-id", "10"],
@@ -824,9 +824,9 @@ class Test_Headers_Tracecontext:
                 pass
 
             # 3) Parent ids in Datadog and tracecontext headers do not match
-            with test_library.extract_headers_and_make_child_span(
-                "same_trace_non_matching_parent_ids",
-                [
+            with test_library.start_span(
+                name="same_trace_non_matching_parent_ids",
+                http_headers=[
                     ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;p:000000000000000a,foo=1"],
                     ["x-datadog-trace-id", "3"],
@@ -837,9 +837,9 @@ class Test_Headers_Tracecontext:
                 pass
 
             # 4) Parent ids do not match and p value is not present in tracestate
-            with test_library.extract_headers_and_make_child_span(
-                "non_matching_span_missing_p_value",
-                [
+            with test_library.start_span(
+                name="non_matching_span_missing_p_value",
+                http_headers=[
                     ["traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2,foo=1"],
                     ["x-datadog-trace-id", "4"],
@@ -848,9 +848,10 @@ class Test_Headers_Tracecontext:
             ) as s4:
                 pass
 
-            with test_library.extract_headers_and_make_child_span(
-                "non_matching_span_non_matching_p_value",
-                [
+            # 5) Parent ids do not match and p value does not match datadog headers
+            with test_library.start_span(
+                name="non_matching_span_non_matching_p_value",
+                http_headers=[
                     ["traceparent", "00-00000000000000000000000000000005-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;p:8fffffffffffffff,foo=1"],
                     ["x-datadog-parent-id", "10"],
@@ -914,9 +915,9 @@ class Test_Headers_Tracecontext:
         """
 
         # 1) Datadog and tracecontext headers, parent ids do not match
-        with test_library.extract_headers_and_make_child_span(
-            "same_trace_different_parent_ids",
-            [
+        with test_library.start_span(
+            name="same_trace_different_parent_ids",
+            http_headers=[
                 ["traceparent", "00-11111111111111110000000000000001-000000000000000f-01"],
                 ["tracestate", "dd=s:2;p:0123456789abcdef,foo=1"],
                 ["x-datadog-trace-id", "1"],
@@ -941,9 +942,9 @@ class Test_Headers_Tracecontext:
         Ensure high order bits do not leak between traces
         """
         with test_library:
-            with test_library.extract_headers_and_make_child_span(
-                "high_order_64_bits_set",
-                [
+            with test_library.start_span(
+                name="high_order_64_bits_set",
+                http_headers=[
                     ["traceparent", "00-33333333333333330000000000000003-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;p:000000000000000a,foo=1"],
                     ["x-datadog-trace-id", "3"],
@@ -953,9 +954,9 @@ class Test_Headers_Tracecontext:
             ) as s1:
                 pass
 
-            with test_library.extract_headers_and_make_child_span(
-                "high_order_64_bits_unset",
-                [
+            with test_library.start_span(
+                name="high_order_64_bits_unset",
+                http_headers=[
                     ["traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2,foo=1"],
                     ["x-datadog-trace-id", "4"],

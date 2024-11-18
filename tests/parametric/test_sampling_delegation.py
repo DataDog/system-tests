@@ -52,18 +52,15 @@ class Test_Decisionless_Extraction:
         """
         trace_id = 1212121212121212121
         parent_id = 34343434
-        test_library.extract_headers(
-            [
-                ["x-datadog-trace-id", str(trace_id)],
-                ["x-datadog-parent-id", str(parent_id)],
-                ["x-datadog-origin", "rum"],
-            ]
-        )
         span_args = {
             "name": "name",
             "service": "service",
             "resource": "resource",
-            "parent_id": parent_id,
+            "http_headers": [
+                ["x-datadog-trace-id", str(trace_id)],
+                ["x-datadog-parent-id", str(parent_id)],
+                ["x-datadog-origin", "rum"],
+            ],
         }
         with test_library:
             with test_library.start_span(**span_args):

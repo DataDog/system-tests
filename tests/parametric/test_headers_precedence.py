@@ -89,20 +89,14 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 @scenarios.parametric
 @features.datadog_headers_propagation
 class Test_Headers_Precedence:
-    @irrelevant(
-        context.library >= "dotnet@2.22.0", reason="Newer versions include tracecontext as a default propagator"
-    )
-    @irrelevant(
-        context.library >= "golang@1.47.0", reason="Newer versions include tracecontext as a default propagator"
-    )
-    @irrelevant(
-        context.library >= "nodejs@3.14.0",
-        reason="Newer versions include tracecontext as a default propagator (2.27.0 and 3.14.0)",
-    )
-    @irrelevant(context.library >= "php@0.84.0", reason="Newer versions include tracecontext as a default propagator")
-    @irrelevant(context.library >= "python@1.7.0", reason="Newer versions include tracecontext as a default propagator")
+    @irrelevant(context.library == "dotnet", reason="Implements the new 'datadog,tracecontext' default")
+    @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
     @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
+    @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
+    @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
+    @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
+    @irrelevant(context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator")
     @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_legacy(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
@@ -218,14 +212,18 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
-    @irrelevant(context.library >= "nodejs@5.0.0", reason="Default value was switched to datadog,tracecontext")
+    @bug(context.library == "cpp", reason="Issue: traceparent not being injected")
+    @bug(context.library == "nodejs", reason="Issue: headers4 is incorrectly using the x-datadog-trace-id by default")
+    @missing_feature(
+        context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration"
+    )
+    @missing_feature(
+        context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration"
+    )
     @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library > "dotnet@2.47.0", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
-    @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
-    @irrelevant(context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration")
+    @irrelevant(context.library > "dotnet@2.47.0", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
@@ -491,13 +489,13 @@ class Test_Headers_Precedence:
         assert "x-datadog-sampling-priority" not in headers6
 
     @missing_feature(context.library < "java@1.24.0", reason="Implemented from 1.24.0")
-    @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library < "dotnet@2.48.0", reason="Default value was updated in 2.48.0")
-    @missing_feature(context.library < "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
-    @missing_feature(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
-    @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
-    @missing_feature(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
-    @missing_feature(context.library < "ruby@1.17.0", reason="Implemented from 1.17.0")
+    @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
+    @irrelevant(context.library < "dotnet@2.48.0", reason="Default value was updated in 2.48.0")
+    @irrelevant(context.library < "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
+    @irrelevant(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
+    @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
+    @irrelevant(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
+    @irrelevant(context.library == "python", reason="library does not implement this default configuration")
     def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
 
@@ -661,7 +659,7 @@ class Test_Headers_Precedence:
             # 1) Datadog and tracecontext headers, Datadog is primary context,
             # trace-id does not match,
             # tracestate is present, so should be added to tracecontext span_link
-            with test_library.extract_headers_and_make_child_span(
+            with test_library.start_span(
                 name="span1",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
@@ -675,13 +673,13 @@ class Test_Headers_Precedence:
                 pass
             # 2) Datadog and tracecontext headers, trace-id does match, Datadog is primary context
             # we want to make sure there's no span link since they match
-            with test_library.extract_headers_and_make_child_span(
+            with test_library.start_span(
                 name="span2",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "1"],
-                    ["x-datadog-parent-id", "987654322"],
+                    ["x-datadog-parent-id", "987654321"],
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
@@ -690,13 +688,13 @@ class Test_Headers_Precedence:
             # 3) Datadog, tracecontext, b3multi headers, Datadog is primary context
             # tracecontext and b3multi trace_id do match it
             # we should have two span links, b3multi should not have tracestate
-            with test_library.extract_headers_and_make_child_span(
+            with test_library.start_span(
                 name="span3",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "4"],
-                    ["x-datadog-parent-id", "987654323"],
+                    ["x-datadog-parent-id", "987654321"],
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-b3-traceid", "11111111111111110000000000000003"],
@@ -707,26 +705,26 @@ class Test_Headers_Precedence:
                 pass
             # 4) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has trace_id 0 since that's not valid.
-            with test_library.extract_headers_and_make_child_span(
+            with test_library.start_span(
                 name="span4",
                 http_headers=[
                     ["x-datadog-trace-id", "5"],
-                    ["x-datadog-parent-id", "987654324"],
+                    ["x-datadog-parent-id", "987654321"],
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-b3-traceid", "00000000000000000000000000000000"],
-                    ["x-b3-spanid", "a2fb4a1d1a96d314"],
+                    ["x-b3-spanid", "a2fb4a1d1a96d312"],
                     ["x-b3-sampled", "1"],
                 ],
             ) as s4:
                 pass
             # 5) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has span_id 0 since that's not valid.
-            with test_library.extract_headers_and_make_child_span(
+            with test_library.start_span(
                 name="span5",
                 http_headers=[
                     ["x-datadog-trace-id", "6"],
-                    ["x-datadog-parent-id", "987654325"],
+                    ["x-datadog-parent-id", "987654321"],
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-b3-traceid", "11111111111111110000000000000003"],
@@ -807,7 +805,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with test_library.extract_headers_and_make_child_span(
+            with test_library.start_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
@@ -858,7 +856,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with test_library.extract_headers_and_make_child_span(
+            with test_library.start_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
@@ -902,7 +900,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with test_library.extract_headers_and_make_child_span(
+            with test_library.start_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
@@ -925,12 +923,9 @@ class Test_Headers_Precedence:
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library < "dotnet@2.42.0", reason="Implemented in 2.42.0")
-    @missing_feature(context.library < "python@2.3.3", reason="Implemented in 2.3.3")
-    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
-    @missing_feature(context.library < "php@0.94.0", reason="Implemented in 0.94.0")
-    @missing_feature(context.library < "ruby@1.17.0", reason="Implemented in 1.17.0")
+    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
+    @missing_feature(context.library < "python@2.3.3", reason="python must implement new tracestate propagation")
+    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):
@@ -939,8 +934,8 @@ class Test_Headers_Precedence:
         )
 
     @enable_datadog_b3multi_tracecontext_extract_first_true()
-    @missing_feature(context.library == "cpp", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
-    @missing_feature(context.library == "php", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
+    @bug(context.library == "cpp", reason="Legacy behaviour")
+    @bug(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
     @bug(
         context.library < "golang@1.57.0",
         reason="Legacy behaviour: tracecontext propagator would always take precedence",
