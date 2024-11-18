@@ -165,7 +165,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 [
                     "intValue instanceof float",
                     False,
-                    Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("int")]),
+                    Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("float")]),
                 ],
                 [
                     "floatValue instanceof int",
@@ -184,7 +184,6 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
-    @bug(library="java", reason="DEBUG-2527")
     @bug(library="dotnet", reason="DEBUG-2530")
     def test_expression_language_instance_of(self):
         self._assert()
@@ -274,7 +273,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     def setup_expression_language_collection_operations(self):
         message_map, probes = self._create_expression_probes(
-            methodName="StringOperations",
+            methodName="CollectionOperations",
             expressions=[
                 ### at the app there are 3 types of collections are created - array, list and hash.
                 ### the number at the end of variable means the length of the collection
@@ -292,7 +291,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ##### index
                 ["Array5 index 4", 4, Dsl("index", [Dsl("ref", "a5"), 4])],
                 ["List5 index 4", 4, Dsl("index", [Dsl("ref", "l5"), 4])],
-                ["Hash5 index 4", 4, Dsl("index", [Dsl("ref", "h5"), "4"])],
+                ["Hash5 index 4", 4, Dsl("index", [Dsl("ref", "h5"), 4])],
                 ##### any
                 ["Array0 any gt 1", False, Dsl("any", [Dsl("ref", "a0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
                 ["Array1 any gt 1", False, Dsl("any", [Dsl("ref", "a1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
@@ -300,9 +299,39 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["List0 any gt 1", False, Dsl("any", [Dsl("ref", "l0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
                 ["List1 any gt 1", False, Dsl("any", [Dsl("ref", "l1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
                 ["List5 any gt 1", True, Dsl("any", [Dsl("ref", "l5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["Hash0 any gt 1", False, Dsl("any", [Dsl("ref", "h0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["Hash1 any gt 1", False, Dsl("any", [Dsl("ref", "h1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["Hash5 any gt 1", True, Dsl("any", [Dsl("ref", "h5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                [
+                    "Hash0 any gt 1",
+                    False,
+                    Dsl(
+                        "any",
+                        [
+                            Dsl("ref", "h0"),
+                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
+                        ],
+                    ),
+                ],
+                [
+                    "Hash1 any gt 1",
+                    False,
+                    Dsl(
+                        "any",
+                        [
+                            Dsl("ref", "h1"),
+                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
+                        ],
+                    ),
+                ],
+                [
+                    "Hash5 any gt 1",
+                    True,
+                    Dsl(
+                        "any",
+                        [
+                            Dsl("ref", "h5"),
+                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
+                        ],
+                    ),
+                ],
                 ##### all
                 ["Array0 all ge 0", True, Dsl("all", [Dsl("ref", "a0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
                 ["Array1 all ge 0", True, Dsl("all", [Dsl("ref", "a1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
@@ -310,9 +339,39 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["List0 all ge 0", True, Dsl("all", [Dsl("ref", "l0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
                 ["List1 all ge 0", True, Dsl("all", [Dsl("ref", "l1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
                 ["List5 all ge 1", False, Dsl("all", [Dsl("ref", "l5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
-                ["Hash0 all ge 0", True, Dsl("all", [Dsl("ref", "h0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["Hash1 all ge 0", True, Dsl("all", [Dsl("ref", "h1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["Hash5 all ge 1", False, Dsl("all", [Dsl("ref", "h5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
+                [
+                    "Hash0 all ge 0",
+                    True,
+                    Dsl(
+                        "all",
+                        [
+                            Dsl("ref", "h0"),
+                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 0]),
+                        ],
+                    ),
+                ],
+                [
+                    "Hash1 all ge 0",
+                    True,
+                    Dsl(
+                        "all",
+                        [
+                            Dsl("ref", "h1"),
+                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 0]),
+                        ],
+                    ),
+                ],
+                [
+                    "Hash5 all ge 1",
+                    False,
+                    Dsl(
+                        "all",
+                        [
+                            Dsl("ref", "h5"),
+                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
+                        ],
+                    ),
+                ],
                 ##### filter
                 [
                     "Array0 len filter lt 2",
@@ -347,17 +406,53 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 [
                     "Hash0 len filter lt 2",
                     0,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [
+                                Dsl("ref", "h0"),
+                                Dsl(
+                                    "lt",
+                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
+                                ),
+                            ],
+                        ),
+                    ),
                 ],
                 [
                     "Hash1 len filter lt 2",
                     1,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [
+                                Dsl("ref", "h1"),
+                                Dsl(
+                                    "lt",
+                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
+                                ),
+                            ],
+                        ),
+                    ),
                 ],
                 [
                     "Hash5 len filter lt 2",
                     2,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [
+                                Dsl("ref", "h5"),
+                                Dsl(
+                                    "lt",
+                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
+                                ),
+                            ],
+                        ),
+                    ),
                 ],
             ],
         )
@@ -366,7 +461,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/collections")
 
     @bug(library="dotnet", reason="DEBUG-2602")
-    @bug(library="java", reason="DEBUG-2603")
+    @bug(library="java", reason="DEBUG-3131")
     def test_expression_language_collection_operations(self):
         self._assert()
 
@@ -424,9 +519,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 intance_type = value_type
         elif tracer["language"] == "java":
             if value_type == "int":
-                intance_type = "java.lang.int"
+                intance_type = "java.lang.Integer"
             elif value_type == "float":
-                intance_type = "java.lang.float"
+                intance_type = "java.lang.Float"
             elif value_type == "string":
                 intance_type = "java.lang.String"
             elif value_type == "controller":
@@ -436,6 +531,15 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         else:
             intance_type = value_type
         return intance_type
+
+    def _get_hash_value_property_name(self):
+        if Test_Debugger_Expression_Language.tracer is None:
+            Test_Debugger_Expression_Language.tracer = base.get_tracer()
+
+        if Test_Debugger_Expression_Language.tracer["language"] == "dotnet":
+            return "Value"
+        else:
+            return "value"
 
     def _create_expression_probes(self, methodName, expressions):
         probes = []
