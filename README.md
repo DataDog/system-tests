@@ -34,7 +34,27 @@ brew install python@3.12
 pip3.12 install virtualenv
 ```
 
-## How to use
+## Getting started
+
+### Run a test
+
+Run a test according to the [run documentation](docs/execute/run.md); note that if you're running an [end to end test](docs/scenarios/README.md#end-to-end-scenarios), you will need to build the test infrastructure according to the [build documentation](docs/execute/build.md) before you can run the test.
+
+Note that a test will only run if it is not disabled; see how tests are disabled tests in [skip-tests.md](docs/edit/skip-tests.md) and how tests are enabled in [enable-test.md](docs/edit/enable-test.md). Alternatively, you can force a disabled test to execute according to the [force-execute documentation](docs/execute/force-execute.md).
+
+![Output on success](./utils/assets/output.png?raw=true)
+
+### Edit a test
+
+Refer to the [edit docs](docs/edit/README.md).
+
+### Understand the tests
+
+**[Complete documentation](https://github.com/DataDog/system-tests/blob/main/docs)**
+
+System-tests supports various scenarios for running tests; read more about the different kinds of tests that this repo covers in [scenarios/README.md](scenarios/README.md).
+
+Understand the test architecture at the [architectural overview](https://github.com/DataDog/system-tests/blob/main/docs/architecture/overview.md).
 
 ```mermaid
 flowchart TD
@@ -52,12 +72,3 @@ flowchart TD
     OUTPUT[Test output in bash]
     LOGS[Logs directory per scenario]
 ```
-
-Understand the parts of the tests at the [architectural overview](https://github.com/DataDog/system-tests/blob/main/docs/architecture/overview.md).
-
-More details in [build documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md) and [run documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/run.md).
-
-![Output on success](./utils/assets/output.png?raw=true)
-
-**[Complete documentation](https://github.com/DataDog/system-tests/blob/main/docs)**
-
