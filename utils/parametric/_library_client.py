@@ -14,7 +14,6 @@ from utils.dd_constants import SpanKind, StatusCode
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.tools import logger
 
-# testing a push
 def _fail(message):
     """ Used to mak a test as failed """
     logger.error(message)
