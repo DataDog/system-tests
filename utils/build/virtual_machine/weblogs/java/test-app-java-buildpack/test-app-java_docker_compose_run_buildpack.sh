@@ -10,6 +10,8 @@ sudo chmod -R 755 *
 
 rm -rf Dockerfile || true
 
+sudo systemctl start docker # Start docker service if it's not started
+
 echo "**************** Docker system df *****************" 
 sudo docker system df
 echo "**************** Disk usage *****************" 
