@@ -5,7 +5,7 @@ import argparse
 
 from docker_ssi_definitions import ALL_WEBLOGS
 
-def generate_gitlab_pipeline():
+def generate_gitlab_pipeline(languages):
     pipeline = {
         "stages": ["dummy"],
         # A dummy job is necessary for cases where all of the test jobs are manual
@@ -39,8 +39,6 @@ def generate_gitlab_pipeline():
             }
         }
     };
-
-    languages = ["java","python","nodejs","dotnet","ruby","php"]
 
     for language in languages:
         pipeline["stages"].append(language)
@@ -79,9 +77,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--format", required=True, type=str, choices=["json", "yaml"], help="json or yaml")
     parser.add_argument("--output-file", required=False, type=str)
+    parser.add_argument("--language", required=False, type=str, help="Only generate config for single language")
 
     args = parser.parse_args()
-    pipeline = generate_gitlab_pipeline()
+    if (args.language):
+        languages = [args.language]
+    else:
+        languages = ["java", "python", "nodejs", "dotnet", "ruby", "php"]
+
+    pipeline = generate_gitlab_pipeline(languages)
 
     output = json.dumps(pipeline, sort_keys=False) if args.format == "json" else yaml.dump(pipeline, sort_keys=False, default_flow_style=False)
     print(output)
