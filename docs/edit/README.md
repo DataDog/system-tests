@@ -24,3 +24,6 @@ You'll commonly need to run unmerged changes to your library against system test
 9. [format.md](./format.md): Use the linter
 10. [troubleshooting.md](./troubleshooting.md) Tips for debugging
 11. [iast-validations.md](./iast-validations.md): Mark tests with vulnerabilities
+12. [CI-and-scenarios.md](./CI-and-scenarios.md): Understand how scenarios run in CI
+13. [update-docker-images.md](./update-docker-images.md): Modify test app docker images
+14. [remote-config.md](./remote-config.md): Write remote config tests
