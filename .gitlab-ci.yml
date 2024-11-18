@@ -52,7 +52,7 @@ onboarding_tests_debs:
       when: always
     - when: manual
   variables:
-    TEST_LIBRARY: "ruby"
+    TEST_LIBRARY: "python"
     SKIP_AMI_CACHE: "true"
   parallel:
       matrix:
