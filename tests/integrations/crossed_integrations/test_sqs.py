@@ -5,6 +5,7 @@ from utils.buddies import python_buddy, java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
 
+
 class _Test_SQS:
     """Test sqs compatibility with inputted datadog tracer"""
 
@@ -97,9 +98,7 @@ class _Test_SQS:
             "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
         )
         self.consume_response = self.buddy.get(
-            "/sqs/consume",
-            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
-            timeout=61,
+            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message}, timeout=61,
         )
 
     def test_produce(self):
@@ -161,9 +160,7 @@ class _Test_SQS:
             "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
         )
         self.consume_response = weblog.get(
-            "/sqs/consume",
-            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
-            timeout=61,
+            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message}, timeout=61,
         )
 
     def test_consume(self):

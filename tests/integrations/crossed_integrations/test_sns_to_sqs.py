@@ -115,9 +115,7 @@ class _Test_SNS:
             timeout=60,
         )
         self.consume_response = self.buddy.get(
-            "/sns/consume",
-            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
-            timeout=61,
+            "/sns/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message}, timeout=61,
         )
 
     def test_produce(self):
@@ -176,9 +174,7 @@ class _Test_SNS:
             timeout=60,
         )
         self.consume_response = weblog.get(
-            "/sns/consume",
-            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
-            timeout=61,
+            "/sns/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message}, timeout=61,
         )
 
     def test_consume(self):

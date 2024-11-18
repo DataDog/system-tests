@@ -5,9 +5,7 @@
 import base64
 import json
 
-from tests.integrations.utils import (
-    compute_dsm_hash,
-)
+from tests.integrations.utils import compute_dsm_hash
 
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
 from utils.tools import logger
@@ -393,8 +391,7 @@ class Test_DsmKinesis:
             self.stream = f"{DSM_STREAM}_{context.library.library}"
 
         self.r = weblog.get(
-            f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
-            timeout=DSM_REQUEST_TIMEOUT,
+            f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}", timeout=DSM_REQUEST_TIMEOUT,
         )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
