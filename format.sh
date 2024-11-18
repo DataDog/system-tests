@@ -43,9 +43,13 @@ else
   black --check --diff .
 fi
 
-echo "Running mypy type checks..."
-if ! mypy --config pyproject.toml --install-types --non-interactive; then
+# Create a temporary cache directory
+TEMP_CACHE_DIR=$(mktemp -d)
+
+if ! mypy --config pyproject.toml --install-types --non-interactive --cache-dir="$TEMP_CACHE_DIR"; then
   echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
+  # Clean up the temporary cache directory
+  rm -rf "$TEMP_CACHE_DIR"
   exit 1
 fi
 
