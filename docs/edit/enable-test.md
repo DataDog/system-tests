@@ -10,21 +10,21 @@ So, you have a branch that contains changes you'd like to test with system tests
 
    Before enabling/disabling a test in CI, you'll need to test the changes locally.
 
-   _Run the test locally against production-level code_:
+   **Run the test locally against production-level code**:
 
    Enable the test to run on the latest version.
    If you know the specific release that contains the changes that allowed your lib to pass the test, and this release is not latest version, then use that version in the manifest. But don’t
    lose sleep hunting down the specific version if you don’t know it, just use the latest.
 
-   _Run the test against unmerged or unreleased changes_:
+   **Run the test against unmerged or unreleased changes**:
 
    Follow [binaries.md](https://github.com/DataDog/system-tests/blob/main/docs/execute/binaries.md) to run the app with a custom build, then [update the manifest file](./manifest.md) with the name of your lib’s main branch (probably `v<next-minor-release>-dev`, see [versions.md](https://github.com/DataDog/system-tests/blob/main/docs/edit/versions.md)).
 
    By now, you should have a change to a manifest file. Post a PR to system-tests with your changes (the enabled test(s) will fail in CI if you enabled the test for the main branch; the necessary change is not merged into dd-trace main yet)
 
-**3. Merge changes into dd-trace**
+3. Merge changes into dd-trace
 
-**4. Re-run system-tests PR**
+4. Re-run system-tests PR
 
    It should be pass. Assuming it does, merge system-tests PR.
 
