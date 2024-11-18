@@ -188,6 +188,7 @@ class Test_Sqli_Capability:
 
 
 @features.rasp_local_file_inclusion
+@scenarios.appsec_rasp
 class Test_Sqli_Rules_Version(Base_Rules_Version):
     """Test Sqli min rules version"""
 

@@ -196,6 +196,7 @@ class Test_Ssrf_Capability:
 
 
 @features.rasp_local_file_inclusion
+@scenarios.appsec_rasp
 class Test_Ssrf_Rules_Version(Base_Rules_Version):
     """Test ssrf min rules version"""
 

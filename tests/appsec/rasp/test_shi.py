@@ -184,6 +184,7 @@ class Test_Shi_Capability:
 
 
 @features.rasp_local_file_inclusion
+@scenarios.appsec_rasp
 class Test_Shi_Rules_Version(Base_Rules_Version):
     """Test shi min rules version"""
 

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features
+from utils import features, scenarios
 from tests.appsec.rasp.utils import find_series, validate_metric_tag_version
 
 
@@ -10,6 +10,7 @@ from tests.appsec.rasp.utils import find_series, validate_metric_tag_version
 @features.rasp_sql_injection
 @features.rasp_shell_injection
 @features.rasp_server_side_request_forgery
+@scenarios.appsec_rasp
 class Test_Libddwaf_Version:
     """Test libddwaf version"""
 

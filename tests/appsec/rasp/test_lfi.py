@@ -263,6 +263,7 @@ class Test_Lfi_Capability:
 
 
 @features.rasp_local_file_inclusion
+@scenarios.appsec_rasp
 class Test_Lfi_Rules_Version(Base_Rules_Version):
     """Test lfi min rules version"""
 
