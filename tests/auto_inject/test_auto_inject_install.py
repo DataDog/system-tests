@@ -1,5 +1,5 @@
 import re
-from utils import scenarios, features, flaky
+from utils import scenarios, features, flaky, irrelevant, context
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 from utils import scenarios, features
@@ -87,7 +87,10 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
             {"weblog_variant": "test-app-python-alpine", "reason": "APMLP-290"},
         ]
     )
-    def test_install(self, virtual_machine):
+    @irrelevant(
+        context.weblog_variant not in ["test-app-java-container", "test-app-dotnet-container", "test-app-ruby-container", "test-app-python-container", "test-app-nodejs-container"],
+        reason="Zombies only appears in containers")
+    def test_crash_no_zombie(self, virtual_machine):
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
