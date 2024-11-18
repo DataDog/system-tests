@@ -1,14 +1,20 @@
 lang_variant:
-    name: Python_3.8.15
-    version: 3.8.15
+    name: Python
+    version: default
     cache: true
     install: 
       - os_type: linux
         os_distro: deb
-        copy_files:
-          - name: copy-auto-install-script
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python/python_install.sh
-        remote-command: sudo apt-get -y update && sudo sh python_install.sh deb 3.8.15
+        remote-command: |
+          sudo apt install -y python-is-python3
+          sudo apt install -y python3-pip
+          sudo apt install -y python3-django || true
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: amazon_linux2
+        remote-command: |
+          sudo amazon-linux-extras install python3
 
       - os_type: linux
         os_distro: rpm

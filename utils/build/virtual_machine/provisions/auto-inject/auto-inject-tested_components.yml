@@ -45,6 +45,8 @@
       if [ "$DD_LANG" == "js" ]; then
         export runtime_version=$(node -v || echo "v")
         runtime_version="${runtime_version:1}"
+      elif [ "$DD_LANG" == "python" ]; then
+        export runtime_version=$(python --version 2>&1 | awk '{print $2}' | cut -d '.' -f 1,2)
       else
         export runtime_version=""
       fi
@@ -100,6 +102,8 @@
       if [ "$DD_LANG" == "js" ]; then
         export runtime_version=$(node -v || echo "v")
         runtime_version="${runtime_version:1}"
+      elif [ "$DD_LANG" == "python" ]; then
+        export runtime_version=$(python --version 2>&1 | awk '{print $2}' | cut -d '.' -f 1,2)
       else
         export runtime_version=""
       fi
