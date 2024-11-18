@@ -81,9 +81,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @scenarios.installer_auto_injection
 class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
-        bugs=[
-            {"library": "ruby", "reason": "APMLP-312"},
-        ]
+        bugs=[{"library": "ruby", "reason": "APMLP-312"},]
     )
     @irrelevant(
         context.weblog_variant
