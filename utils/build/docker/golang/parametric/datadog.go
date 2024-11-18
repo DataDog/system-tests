@@ -45,6 +45,9 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (d
 		if span, ok := s.spans[p]; ok {
 			opts = append(opts, tracer.ChildOf(span.Context()))
 		} else if spanContext, ok := s.spanContexts[p]; ok {
+			if linksCtx, ok := spanContext.(ddtrace.SpanContextWithLinks); ok && linksCtx.SpanLinks() != nil {
+				opts = append(opts, tracer.WithSpanLinks(linksCtx.SpanLinks()))
+			}
 			opts = append(opts, tracer.ChildOf(spanContext))
 		} else {
 			return nil, fmt.Errorf("parent span not found")
