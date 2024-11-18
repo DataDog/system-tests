@@ -1,6 +1,6 @@
 ## Where to begin
 
-So, you have a branch branch that contains changes you'd like to test with system tests...
+So, you have a branch that contains changes you'd like to test with system tests...
 
 **Note**: the instructions below assume that the necessary test already exists in system-tests and your weblog or parametric app has the necessary endpoint for serving the test [TODO]: LINK TO CONTRIBUTING DOC
 

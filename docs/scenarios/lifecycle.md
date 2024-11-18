@@ -1,4 +1,3 @@
-**TODO**: Doesn't this document belong somewhere else? Not in the `edit/` folder?
 System tests spawn several services before starting. Here is the lifecycle:
 
 1. Starts agent procy and library proxy
