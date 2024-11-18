@@ -1,4 +1,6 @@
+import json
 import os
+import requests
 import time
 import pytest
 import paramiko
@@ -44,7 +46,7 @@ class AutoInjectBaseTest:
         except Exception as e:
             logger.error(f"Error closing the channel: {e}")
 
-    def execute_command(self, virtual_machine, command):
+    def execute_command(self, virtual_machine, command) -> str:
         # Env for the command
         prefix_env = ""
         for key, value in virtual_machine.get_command_environment().items():
@@ -71,6 +73,8 @@ class AutoInjectBaseTest:
             vm_logger(context.scenario.name, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
+
+            return command_output
 
     def _test_uninstall_commands(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
