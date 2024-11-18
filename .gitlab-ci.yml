@@ -347,6 +347,11 @@ generate_docker_ssi_pipeline:
 ssi_tests_pipeline:
   stage: child_pipelines
   needs: ["generate_docker_ssi_pipeline"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
   trigger:
     include:
       - artifact: ssi_pipeline.yml
