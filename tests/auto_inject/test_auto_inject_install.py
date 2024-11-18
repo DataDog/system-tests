@@ -88,8 +88,16 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         ]
     )
     @irrelevant(
-        context.weblog_variant not in ["test-app-java-container", "test-app-dotnet-container", "test-app-ruby-container", "test-app-python-container", "test-app-nodejs-container"],
-        reason="Zombies only appears in containers")
+        context.weblog_variant
+        not in [
+            "test-app-java-container",
+            "test-app-dotnet-container",
+            "test-app-ruby-container",
+            "test-app-python-container",
+            "test-app-nodejs-container",
+        ],
+        reason="Zombies only appears in containers",
+    )
     def test_crash_no_zombie(self, virtual_machine):
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
