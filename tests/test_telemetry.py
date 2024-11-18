@@ -53,6 +53,13 @@ class Test_Telemetry:
     library_requests = {}
     agent_requests = {}
 
+    _test_loaded_dependencies = {
+        "dotnet": {"NodaTime": False},
+        "nodejs": {"glob": False},
+        "java": {"httpclient": False},
+        "ruby": {"bundler": False},
+    }
+
     def validate_library_telemetry_data(self, validator, success_by_default=False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
@@ -360,13 +367,6 @@ class Test_Telemetry:
             average_delay = sum(delays) / len(delays)
             assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
             assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
-
-    _test_loaded_dependencies = {
-        "dotnet": {"NodaTime": False},
-        "nodejs": {"glob": False},
-        "java": {"httpclient": False},
-        "ruby": {"bundler": False},
-    }
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
