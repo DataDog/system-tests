@@ -59,6 +59,14 @@ type InjectHeadersReturn struct {
 	HttpHeaders []Tuple `json:"http_headers"`
 }
 
+type ExtractHeadersArgs struct {
+	HttpHeaders []Tuple `json:"http_headers"`
+}
+
+type ExtractHeadersReturn struct {
+	SpanId *uint64 `json:"span_id"`
+}
+
 type FinishSpanArgs struct {
 	Id uint64 `json:"span_id"`
 }

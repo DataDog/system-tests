@@ -659,7 +659,7 @@ class Test_Headers_Precedence:
             # 1) Datadog and tracecontext headers, Datadog is primary context,
             # trace-id does not match,
             # tracestate is present, so should be added to tracecontext span_link
-            with test_library.start_span(
+            with test_library.extract_headers_and_make_child_span(
                 name="span1",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
@@ -673,13 +673,13 @@ class Test_Headers_Precedence:
                 pass
             # 2) Datadog and tracecontext headers, trace-id does match, Datadog is primary context
             # we want to make sure there's no span link since they match
-            with test_library.start_span(
+            with test_library.extract_headers_and_make_child_span(
                 name="span2",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "1"],
-                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-parent-id", "987654322"],
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                 ],
@@ -688,13 +688,13 @@ class Test_Headers_Precedence:
             # 3) Datadog, tracecontext, b3multi headers, Datadog is primary context
             # tracecontext and b3multi trace_id do match it
             # we should have two span links, b3multi should not have tracestate
-            with test_library.start_span(
+            with test_library.extract_headers_and_make_child_span(
                 name="span3",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
                     ["x-datadog-trace-id", "4"],
-                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-parent-id", "987654323"],
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-b3-traceid", "11111111111111110000000000000003"],
@@ -705,26 +705,26 @@ class Test_Headers_Precedence:
                 pass
             # 4) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has trace_id 0 since that's not valid.
-            with test_library.start_span(
+            with test_library.extract_headers_and_make_child_span(
                 name="span4",
                 http_headers=[
                     ["x-datadog-trace-id", "5"],
-                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-parent-id", "987654324"],
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-b3-traceid", "00000000000000000000000000000000"],
-                    ["x-b3-spanid", "a2fb4a1d1a96d312"],
+                    ["x-b3-spanid", "a2fb4a1d1a96d314"],
                     ["x-b3-sampled", "1"],
                 ],
             ) as s4:
                 pass
             # 5) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
             # if the secondary context has span_id 0 since that's not valid.
-            with test_library.start_span(
+            with test_library.extract_headers_and_make_child_span(
                 name="span5",
                 http_headers=[
                     ["x-datadog-trace-id", "6"],
-                    ["x-datadog-parent-id", "987654321"],
+                    ["x-datadog-parent-id", "987654325"],
                     ["x-datadog-sampling-priority", "2"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
                     ["x-b3-traceid", "11111111111111110000000000000003"],
@@ -805,7 +805,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with test_library.start_span(
+            with test_library.extract_headers_and_make_child_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
@@ -856,7 +856,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with test_library.start_span(
+            with test_library.extract_headers_and_make_child_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
@@ -900,7 +900,7 @@ class Test_Headers_Precedence:
         """
         with test_library:
             # Trace ids with the three styles do not match
-            with test_library.start_span(
+            with test_library.extract_headers_and_make_child_span(
                 name="trace_ids_do_not_match",
                 http_headers=[
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
