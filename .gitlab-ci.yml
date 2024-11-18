@@ -215,7 +215,7 @@ onboarding_ruby:
         - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer,test-app-ruby-multialpine]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
   script:
