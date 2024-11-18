@@ -8,7 +8,16 @@ from docker_ssi_definitions import ALL_WEBLOGS
 
 def generate_gitlab_pipeline(languages):
     pipeline = {
-        "stages": [],
+        "stages": ["dummy"],
+        # A dummy job is necessary for cases where all of the test jobs are manual
+        # The child pipeline shows as failed until at least 1 job is run
+        "dummy": {
+            "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal",
+            "tags": ["arch:amd64"],
+            "stage": "dummy",
+            "needs": [],
+            "script": ["echo 'DONE'"],
+        },
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
             "needs": [],
@@ -17,7 +26,10 @@ def generate_gitlab_pipeline(languages):
                 "source venv/bin/activate",
                 'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" --ssi-force-build',
             ],
-            "rules": [{"when": "always"}],
+            "rules": [
+                {"if": '$PARENT_PIPELINE_SOURCE == "schedule"', "when": "always"},
+                {"when": "manual", "allow_failure": True},
+            ],
             "artifacts": {"when": "always", "paths": ["logs_docker_ssi/"]},
         },
     }
