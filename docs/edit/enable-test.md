@@ -6,7 +6,7 @@ So, you have a branch that contains changes you'd like to test with system tests
 
 1. Post a PR to the dd-trace repo if you have not already.
 
-**2. Test system-tests changes locally**
+2. Test system-tests changes locally
 
    Before enabling/disabling a test in CI, you'll need to test the changes locally.
 
