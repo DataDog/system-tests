@@ -132,7 +132,6 @@ class Test_Config_TraceAgentURL:
     which would be unnecessarily complex.
     """
 
-    @bug(context.library == "golang", reason="APMAPI-390")
     @parametrize(
         "library_env",
         [
