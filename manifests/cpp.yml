@@ -27,6 +27,7 @@ tests/:
         test_reflection_injection.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
+        test_template_injection.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
         test_untrusted_deserialization.py: irrelevant (ASM is not implemented in C++)
         test_unvalidated_redirect.py: irrelevant (ASM is not implemented in C++)
@@ -136,6 +137,8 @@ tests/:
       Test_DsmSQS: missing_feature
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In: missing_feature
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: missing_feature (parametric app does not support trace/span/extract endpoint)
