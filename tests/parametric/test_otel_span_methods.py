@@ -523,7 +523,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("span1") as s1:
-                pass
+                s1.end_span()
 
             with test_library.otel_start_span(
                 "root",
@@ -533,12 +533,12 @@ class Test_Otel_Span_Methods:
                         attributes={"foo": "bar", "array": ["a", "b", "c"], "bools": [True, False], "nested": [1, 2]},
                     )
                 ],
-            ) as span:
-                span.end_span()
+            ) as s2:
+                s2.end_span()
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        span = find_span(trace, span.span_id)
+        traces = test_agent.wait_for_num_traces(2)
+        trace = find_trace(traces, s2.trace_id)
+        span = find_span(trace, s2.span_id)
         span_links = retrieve_span_links(span)
         assert span_links is not None
         assert len(span_links) == 1

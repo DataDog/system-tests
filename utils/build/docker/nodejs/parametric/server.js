@@ -159,7 +159,7 @@ app.post('/trace/otel/start_span', (req, res) => {
   const makeSpan = (parentContext) => {
 
     const links = (request.links || []).map(link => {
-      spanContext = otelSpans[link.parent_id].spanContext()
+      let spanContext = otelSpans[link.parent_id].spanContext()
       return {context: spanContext, attributes: link.attributes}
     });
 

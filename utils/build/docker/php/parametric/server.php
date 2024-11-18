@@ -216,7 +216,7 @@ $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(func
     $span = $spans[arg($req, 'span_id')];
     $parent_id = arg($req, 'parent_id');
     $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
-    $link->attributes += arg($req, "attributes") ?? [];
+    $link->attributes = ($link->attributes ?? []) + (arg($req, "attributes") ?? []);
     $span->links[] = $link;
     return jsonResponse([]);
 }));
@@ -312,15 +312,6 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
             $span_context = $otelSpans[$span_link_parent_id]->getContext();
             $spanBuilder->addLink($span_context, $span_link_attributes);
         }
-    }
-
-    if ($httpHeaders) {
-        $carrier = [];
-        foreach ($httpHeaders as $headers) {
-            $carrier[$headers[0]] = $headers[1];
-        }
-        $remoteContext = TraceContextPropagator::getInstance()->extract($carrier);
-        $spanBuilder->setParent($remoteContext);
     }
 
     if ($attributes) {

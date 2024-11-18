@@ -508,11 +508,15 @@ def get_digest(span_id)
 end
 
 def parse_otel_link(link)
-  link_context = OTEL_SPANS[link['parent_id']]&.context || raise "Span id in #{link} not found in span list: #{OTEL_SPANS}"
-  OpenTelemetry::Trace::Link.new(
-    link_context,
-    link['attributes']
-  )
+  if OTEL_SPANS.key?(link['parent_id'])
+    link_context = OTEL_SPANS[link['parent_id']].context
+    OpenTelemetry::Trace::Link.new(
+      link_context,
+      link['attributes']
+    )
+  else
+    raise "Parent id in #{link} not found in span list: #{OTEL_SPANS}"
+  end
 end
 
 def digest_to_spancontext(digest)
