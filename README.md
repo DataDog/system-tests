@@ -38,7 +38,7 @@ pip3.12 install virtualenv
 
 System-tests contains various testing scenarios; the two most commonly used are called "End-To-End" and "Parametric." Most of the docs in this repo refer to End-To-End tests, which were developed earlier and support a wider range of scenarios. Some of the instructions apply to both end-to-end and parametric (e.g. the [edit docs](./docs/edit/)), but not all. You can find dedicated parametric instructions in the [parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
 
-**End-To-End**
+### End-To-End
 
 End-To-End tests are good for testing real-world scenarios — they incorporate "weblog" servers designed to mimick customer applications with automatic instrumentation, a "test-agent" to mimick the Datadog Agent, and communication with the Datadog backend. They support the full lifecycle of a trace (hence the name, "End-To-End"). Use End-To-End scenarios to test tracing integrations, security products, profiling, dynamic instrumentation, and more. When in doubt, use end-to-end.
 
