@@ -46,10 +46,7 @@ class AgentRequest(TypedDict):
 
 
 class AgentRequestV06Stats(AgentRequest):
-    method: str
-    url: str
-    headers: Dict[str, str]
-    body: V06StatsPayload
+    body: V06StatsPayload  # type: ignore
 
 
 def pytest_configure(config):
@@ -107,7 +104,7 @@ class _TestAgentAPI:
         self._base_url = base_url
         self._session = requests.Session()
         self._pytest_request = pytest_request
-        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
+        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"  # type: ignore
         os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
 
     def _url(self, path: str) -> str:
@@ -460,7 +457,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
-    def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
+    def wait_for_tracer_flare(self, case_id: Optional[str] = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -479,7 +476,7 @@ class _TestAgentAPI:
 
 
 @pytest.fixture(scope="session")
-def docker() -> str:
+def docker() -> Optional[str]:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
     r = subprocess.run(
