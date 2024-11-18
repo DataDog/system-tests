@@ -115,13 +115,23 @@ class _VirtualMachine:
         self.agent_env = None
         self.app_env = None
         self.default_vm = default_vm
-        self.deployed_weblog = None
+        self._deployed_weblog = None
 
-    def get_current_deployed_weblog(self):
-        return self.deployed_weblog
+    def get_deployed_weblog(self):
+        if self._deployed_weblog is None:
+            self._deployed_weblog = self._vm_provision.get_deployed_weblog()
+        if self._deployed_weblog.app_type == "host":
+            # If we are using multiple xdist workers we need to load the weblog runtime from the logs
+            # it's the same case as the ip address
+            self._load_runtime_from_logs()
 
-    def set_current_deployed_weblog(self, deployed_weblog):
-        self.deployed_weblog = deployed_weblog
+        return self._deployed_weblog
+
+    def set_deployed_weblog(self, deployed_weblog):
+        self._deployed_weblog = deployed_weblog
+
+    def get_vm_unique_id(self):
+        return f"{self.name}_{self.get_deployed_weblog().runtime_version}_{self.get_deployed_weblog().app_type}"
 
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
@@ -131,6 +141,27 @@ class _VirtualMachine:
         if not self.ssh_config.hostname:
             self._load_ip_from_logs()
         return self.ssh_config.hostname
+
+    def _load_runtime_from_logs(self):
+        """ Load the runtime version from the test_components.log """
+        vms_tested_components_file = f"{context.scenario.host_log_folder}/tested_components.log"
+        if os.path.isfile(vms_tested_components_file):
+            # Get the machine ip
+            machine_ip = self.get_ip()
+            # Read the file line by line looking for line with the ip
+            with open(vms_tested_components_file) as file:
+                for line in file:
+                    if machine_ip not in line:
+                        continue
+                    # The line comes with date before the json (date:json) and json with single quotes
+                    current_line = line[line.rstrip().find(":") :][1:].replace("'", '"')
+                    json_components = json.loads(current_line)
+                    if "runtime_version" in json_components and json_components["runtime_version"] != "":
+                        self._deployed_weblog.runtime_version = json_components["runtime_version"]
+                        logger.info(
+                            f"Runtime version found for {self.name}. Runtime: {self._deployed_weblog.runtime_version}"
+                        )
+                    break
 
     def _load_ip_from_logs(self):
         """ Load the ip address from the logs"""

@@ -15,8 +15,10 @@ GET  /user_login_failure_event controllers.AppSecController.loginFailure(event_u
 GET  /custom_event             controllers.AppSecController.customEvent(event_name: Option[String])
 GET  /rasp/sqli                controllers.RaspController.sqli
 POST /rasp/sqli                controllers.RaspController.sqli
-GET  /rasp/lfi                controllers.RaspController.lfi
-POST /rasp/lfi                controllers.RaspController.lfi
+GET  /rasp/lfi                 controllers.RaspController.lfi
+POST /rasp/lfi                 controllers.RaspController.lfi
+GET  /rasp/ssrf                controllers.RaspController.ssrf
+POST /rasp/ssrf                controllers.RaspController.ssrf
 GET  /requestdownstream        controllers.AppSecController.requestdownstream
 GET  /vulnerablerequestdownstream        controllers.AppSecController.vulnerableRequestdownstream
 GET  /returnheaders            controllers.AppSecController.returnheaders
