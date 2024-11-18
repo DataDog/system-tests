@@ -33,6 +33,11 @@ class Test_Headers_Datadog:
         assert span["meta"].get("_dd.p.dm") == "-4"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
+    @bug(context.library == "golang", reason="APMAPI-901")
+    @bug(context.library == "php", reason="APMAPI-902")
+    @bug(context.library == "python", reason="APMAPI-903")
+    @bug(context.library == "ruby", reason="APMAPI-904")
+    @bug(context.library == "cpp", reason="APMAPI-905")
     def test_distributed_headers_extract_datadog_span_id_0(self, test_agent, test_library):
         """Ensure that Datadog distributed tracing headers are extracted
         and activated properly.
