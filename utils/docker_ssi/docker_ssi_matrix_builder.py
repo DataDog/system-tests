@@ -8,6 +8,7 @@ from docker_ssi_definitions import ALL_WEBLOGS
 
 def generate_gitlab_pipeline(languages):
     pipeline = {
+        "stages": [],
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
             "needs": [],
@@ -18,7 +19,7 @@ def generate_gitlab_pipeline(languages):
             ],
             "rules": [{"when": "always"}],
             "artifacts": {"when": "always", "paths": ["logs_docker_ssi/"]},
-        }
+        },
     }
 
     for language in languages:
