@@ -10,8 +10,9 @@ RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
 
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+COPY ./utils/build/docker/java/install_*.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_drop_in.sh
 
 FROM eclipse-temurin:11-jre
 
@@ -19,6 +20,7 @@ WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY --from=build /dd-tracer/opentelemetry-javaagent-r2dbc.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
 COPY ./utils/build/docker/java/app.sh /app/app.sh

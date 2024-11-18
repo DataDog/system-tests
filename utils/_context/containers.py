@@ -592,6 +592,47 @@ class BuddyContainer(TestedContainer):
 
 class WeblogContainer(TestedContainer):
     appsec_rules_file: str
+    _dd_rc_tuf_root: dict = {
+        "signed": {
+            "_type": "root",
+            "spec_version": "1.0",
+            "version": 1,
+            "expires": "2032-05-29T12:49:41.030418-04:00",
+            "keys": {
+                "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e": {
+                    "keytype": "ed25519",
+                    "scheme": "ed25519",
+                    "keyid_hash_algorithms": ["sha256", "sha512"],
+                    "keyval": {"public": "7d3102e39abe71044d207550bda239c71380d013ec5a115f79f51622630054e6"},
+                }
+            },
+            "roles": {
+                "root": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "snapshot": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "targets": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "timestsmp": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+            },
+            "consistent_snapshot": True,
+        },
+        "signatures": [
+            {
+                "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
+                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",
+            }
+        ],
+    }
 
     def __init__(
         self,
@@ -629,6 +670,8 @@ class WeblogContainer(TestedContainer):
             "DD_TAGS": "key1:val1,key2:val2",
             "DD_ENV": "system-tests",
             "DD_TRACE_LOG_DIRECTORY": "/var/log/system-tests",
+            # for remote configuration tests
+            "DD_RC_TUF_ROOT": json.dumps(self._dd_rc_tuf_root),
         }
 
         # Basic env set for all scenarios
@@ -651,6 +694,7 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
             base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
+            base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)

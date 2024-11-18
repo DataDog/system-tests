@@ -231,7 +231,6 @@ class Test_StandardTagsClientIp:
         "true-client-ip": PUBLIC_IP,
         "x-client-ip": PUBLIC_IP,
         "forwarded-for": PUBLIC_IP,
-        "x-forwarded": PUBLIC_IP,
         "x-cluster-client-ip": f"10.42.42.42, {PUBLIC_IP}, fe80::1",
     }
     FORWARD_HEADERS_VENDOR = {
@@ -261,10 +260,6 @@ class Test_StandardTagsClientIp:
 
     def _test_client_ip(self, forward_headers):
         for header, _ in forward_headers.items():
-            if header == "x-forwarded":
-                # TODO: Java currently handles X-Forwarded as Forwarded, while other tracers handle it as X-Forwarded-For.
-                # Keeping this case out until it's clear how to handle it.
-                continue
             request = self.requests_without_attack[header]
             meta = self._get_root_span_meta(request)
             assert "http.client_ip" in meta, f"Missing http.client_ip for {header}"

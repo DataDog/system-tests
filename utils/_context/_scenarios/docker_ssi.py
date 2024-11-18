@@ -41,7 +41,7 @@ class DockerSSIScenario(Scenario):
         self._tested_components = {}
 
     def configure(self, config):
-        assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby"
+        assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby,php"
 
         self._base_weblog = config.option.ssi_weblog
         self._library = config.option.ssi_library
@@ -158,9 +158,13 @@ class DockerSSIScenario(Scenario):
             logger.stdout(f"{key}: {self._tested_components[key]}")
 
     def post_setup(self):
-        logger.stdout("--- Waiting for all traces to be sent to test agent ---")
-        time.sleep(5)  # wait for the traces to be sent to the test agent
-        interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port)
+        logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
+        data = None
+        attempts = 0
+        while attempts < 30 and not data:
+            attempts += 1
+            data = interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port)
+            time.sleep(5)
 
     @property
     def library(self):

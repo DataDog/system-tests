@@ -8,7 +8,9 @@ from docker.models.containers import Container
 import pytest
 from _pytest.outcomes import Failed
 import requests
+from utils import context
 
+from utils.dd_constants import SpanKind, StatusCode
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.tools import logger
 
@@ -108,17 +110,19 @@ class APMLibraryClient:
     def trace_start_span(
         self,
         name: str,
-        service: str,
-        resource: str,
-        parent_id: int,
-        typestr: str,
-        origin: str,
-        http_headers: Optional[List[Tuple[str, str]]],
-        links: Optional[List[Link]],
-        tags: Optional[List[Tuple[str, str]]],
+        service: Optional[str] = None,
+        resource: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        typestr: Optional[str] = None,
+        tags: Optional[List[Tuple[str, str]]] = None,
     ):
-        # Avoid using http_headers, links, and origin when creating a span in the parametric apps.
-        # Alternative endpoints will be provided to set these values. This will be documented in a future PR.
+        if context.library == "cpp":
+            # TODO: Update the cpp parametric app to accept null values for unset parameters
+            service = service or ""
+            resource = resource or ""
+            parent_id = parent_id or 0
+            typestr = typestr or ""
+
         resp = self._session.post(
             self._url("/trace/span/start"),
             json={
@@ -127,10 +131,7 @@ class APMLibraryClient:
                 "resource": resource,
                 "parent_id": parent_id,
                 "type": typestr,
-                "origin": origin,
-                "http_headers": http_headers,
-                "links": links,
-                "span_tags": tags,
+                "span_tags": tags if tags is not None else [],
             },
         )
 
@@ -218,6 +219,10 @@ class APMLibraryClient:
         # so server.xx do not have to
         return resp.json()["http_headers"]
 
+    def trace_extract_headers(self, http_headers: List[Tuple[str, str]]):
+        resp = self._session.post(self._url("/trace/span/extract_headers"), json={"http_headers": http_headers})
+        return resp.json()["span_id"]
+
     def trace_flush(self) -> bool:
         return (
             self._session.post(self._url("/trace/span/flush"), json={}).status_code < 300
@@ -228,7 +233,7 @@ class APMLibraryClient:
         self,
         name: str,
         timestamp: int,
-        span_kind: int,
+        span_kind: SpanKind,
         parent_id: int,
         links: List[Link],
         http_headers: List[Tuple[str, str]],
@@ -239,7 +244,7 @@ class APMLibraryClient:
             json={
                 "name": name,
                 "timestamp": timestamp,
-                "span_kind": span_kind,
+                "span_kind": span_kind.value,
                 "parent_id": parent_id,
                 "links": links,
                 "http_headers": http_headers,
@@ -259,9 +264,10 @@ class APMLibraryClient:
     def otel_set_name(self, span_id: int, name: str) -> None:
         self._session.post(self._url("/trace/otel/set_name"), json={"span_id": span_id, "name": name})
 
-    def otel_set_status(self, span_id: int, code: int, description: str) -> None:
+    def otel_set_status(self, span_id: int, code: StatusCode, description: str) -> None:
         self._session.post(
-            self._url("/trace/otel/set_status"), json={"span_id": span_id, "code": code, "description": description}
+            self._url("/trace/otel/set_status"),
+            json={"span_id": span_id, "code": code.name, "description": description},
         )
 
     def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
@@ -387,7 +393,7 @@ class _TestOtelSpan:
     def set_name(self, name):
         self._client.otel_set_name(self.span_id, name)
 
-    def set_status(self, code, description):
+    def set_status(self, code: StatusCode, description):
         self._client.otel_set_status(self.span_id, code, description)
 
     def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
@@ -407,13 +413,6 @@ class _TestOtelSpan:
 
     def set_baggage(self, key: str, value: str):
         self._client.otel_set_baggage(self.span_id, key, value)
-
-    ### Do not use the below methods in parametric tests, they will be removed in a future PR ####
-    ### The parametric apps will not expose endpoints for retrieving span data ###
-    ### Span data will be retrieved from the agent ###
-
-    def get_attribute(self, key: str):
-        return self._client.otel_get_attribute(self.span_id, key)
 
 
 class APMLibrary:
@@ -439,36 +438,29 @@ class APMLibrary:
     def start_span(
         self,
         name: str,
-        service: str = "",
-        resource: str = "",
-        parent_id: int = 0,
-        typestr: str = "",
-        origin: str = "",
-        http_headers: Optional[List[Tuple[str, str]]] = None,
-        links: Optional[List[Link]] = None,
+        service: Optional[str] = None,
+        resource: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        typestr: Optional[str] = None,
         tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
-            name=name,
-            service=service,
-            resource=resource,
-            parent_id=parent_id,
-            typestr=typestr,
-            origin=origin,
-            http_headers=http_headers if http_headers is not None else [],
-            links=links if links is not None else [],
-            tags=tags if tags is not None else [],
+            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags,
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
         span.finish()
+
+    def extract_headers_and_make_child_span(self, name, http_headers):
+        parent_id = self.extract_headers(http_headers=http_headers)
+        return self.start_span(name=name, parent_id=parent_id,)
 
     @contextlib.contextmanager
     def otel_start_span(
         self,
         name: str,
         timestamp: int = 0,
-        span_kind: int = 0,
+        span_kind: SpanKind = SpanKind.UNSPECIFIED,
         parent_id: int = 0,
         links: Optional[List[Link]] = None,
         attributes: dict = None,
@@ -502,6 +494,9 @@ class APMLibrary:
 
     def inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
+
+    def extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
+        return self._client.trace_extract_headers(http_headers)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
         return self._client.otel_set_baggage(span_id, key, value)

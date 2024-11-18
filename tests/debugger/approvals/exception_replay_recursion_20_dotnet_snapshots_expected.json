@@ -13,87 +13,87 @@
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
@@ -350,7 +350,7 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion20",
+        "method": "ExceptionReplayRecursion",
         "type": "weblog.DebuggerController"
       }
     },
@@ -467,11 +467,11 @@
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             }
           ]
@@ -524,115 +524,115 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion20",
+        "method": "ExceptionReplayRecursion",
         "type": "weblog.DebuggerController"
       }
     },
     "stack": [
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
         "function": "Unknown.lambda_method<scrubbed>",
@@ -926,15 +926,15 @@
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             }
           ]
@@ -987,110 +987,110 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion20",
+        "method": "ExceptionReplayRecursion",
         "type": "weblog.DebuggerController"
       }
     },
     "stack": [
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
         "function": "Unknown.lambda_method<scrubbed>",
@@ -1384,19 +1384,19 @@
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             }
           ]
@@ -1449,105 +1449,105 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion20",
+        "method": "ExceptionReplayRecursion",
         "type": "weblog.DebuggerController"
       }
     },
     "stack": [
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
         "function": "Unknown.lambda_method<scrubbed>",
@@ -1841,23 +1841,23 @@
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             },
             {
-              "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+              "function": "weblog.DebuggerController.ExceptionReplayRecursion",
               "lineNumber": 0
             }
           ]
@@ -1910,100 +1910,100 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion20",
+        "method": "ExceptionReplayRecursion",
         "type": "weblog.DebuggerController"
       }
     },
     "stack": [
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
-        "function": "weblog.DebuggerController.ExceptionReplayRecursion20",
+        "function": "weblog.DebuggerController.ExceptionReplayRecursion",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 154
+        "lineNumber": 140
       },
       {
         "function": "Unknown.lambda_method<scrubbed>",

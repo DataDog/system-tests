@@ -83,6 +83,17 @@ To run a custom tracer version from a remote branch:
 2. Open the details of the test in CircleCi and click on the `Artifacts` tab.
 3. Download the `libs/dd-java-agent-*-SNAPSHOT.jar` and `libs/dd-trace-api-*-SNAPSHOT.jar` and move them into the `system-tests/binaries/` folder.
 4. Follow Step 4 from above to run the Parametric tests.
+
+Follow these steps to run the OpenTelemetry drop-in test with a custom drop-in version:
+
+1. Download the custom version from https://repo1.maven.org/maven2/io/opentelemetry/javaagent/instrumentation/opentelemetry-javaagent-r2dbc-1.0/
+2. Copy the downloaded `opentelemetry-javaagent-r2dbc-1.0-{version}.jar` into the `system-tests/binaries/` folder
+
+Then run the OpenTelemetry drop-in test from the repo root folder:
+
+- `./build.sh java`
+- `TEST_LIBRARY=java ./run.sh INTEGRATIONS -k Test_Otel_Drop_In`
+
 ## NodeJS library
 
 There are three ways to run system-tests with a custom node tracer.
