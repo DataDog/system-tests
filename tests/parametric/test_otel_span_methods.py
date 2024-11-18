@@ -64,7 +64,6 @@ class Test_Otel_Span_Methods:
         with test_library:
             with test_library.otel_start_span("parent_span", span_kind=SpanKind.INTERNAL) as parent:
                 parent.set_attributes({"service.name": "new_service"})
-                parent.end_span()
 
         traces = test_agent.wait_for_num_traces(num=1)
         trace = find_trace(traces, parent.trace_id)
@@ -90,7 +89,6 @@ class Test_Otel_Span_Methods:
         with test_library:
             with test_library.otel_start_span("operation") as span:
                 span.set_attributes({"http.response.status_code": 200})
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(num=1)
         trace = find_trace(traces, span.trace_id)
@@ -117,7 +115,6 @@ class Test_Otel_Span_Methods:
         with test_library:
             with test_library.otel_start_span("operation") as span:
                 span.set_attributes({"http.status_code": 200})
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(num=1)
         trace = find_trace(traces, span.trace_id)
@@ -155,7 +152,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"array_val_bool": [True, False]})
                 span.set_attributes({"array_val_double": [10.1, 20.2]})
                 span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
-                span.end_span()
+
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
         assert len(trace) == 1
@@ -236,7 +233,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"array_val_bool": [True, False]})
                 span.set_attributes({"array_val_double": [10.1, 20.2]})
                 span.set_attributes({"d_str_val": "bye", "d_bool_val": False, "d_int_val": 2, "d_double_val": 3.14})
-                span.end_span()
+
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
         assert len(trace) == 1
@@ -284,7 +281,7 @@ class Test_Otel_Span_Methods:
             # start parent
             with test_library.otel_start_span(name="parent") as parent:
                 assert parent.is_recording()
-                parent.end_span()
+
                 assert not parent.is_recording()
 
     @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
@@ -331,14 +328,14 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span(name="parent", span_kind=SpanKind.PRODUCER) as parent:
-                parent.end_span()
+
                 # setting attributes after finish has no effect
                 parent.set_name("new_name")
                 parent.set_attributes({"after_finish": "true"})  # should have no affect
                 with test_library.otel_start_span(
                     name="child", span_kind=SpanKind.CONSUMER, parent_id=parent.span_id
                 ) as child:
-                    child.end_span()
+                    pass
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, parent.trace_id)
@@ -375,7 +372,7 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span(name="error_span", span_kind=SpanKind.INTERNAL) as s:
                 s.set_status(StatusCode.ERROR, "error_desc")
                 s.set_status(StatusCode.UNSET, "unset_desc")
-                s.end_span()
+
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, s.trace_id)
         s = find_span(trace, s.span_id)
@@ -403,7 +400,6 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span(name="ok_span", span_kind=SpanKind.INTERNAL) as span:
                 span.set_status(StatusCode.OK, "ok_desc")
                 span.set_status(StatusCode.ERROR, "error_desc")
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -421,9 +417,9 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span(name="op1") as parent:
-                parent.end_span()
+
                 with test_library.otel_start_span(name="op2", parent_id=parent.span_id) as span:
-                    span.end_span()
+
                     context = span.span_context()
                     assert context.get("trace_id") == parent.span_context().get("trace_id")
                     if (
@@ -462,7 +458,6 @@ class Test_Otel_Span_Methods:
             with test_library.otel_start_span(name="operation", span_kind=SpanKind.CLIENT) as span:
                 span.set_attributes({"messaging.system": "Kafka"})
                 span.set_attributes({"messaging.operation": "Receive"})
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -485,13 +480,12 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("root") as parent:
-                parent.end_span()
                 with test_library.otel_start_span(
                     "child",
                     parent_id=parent.span_id,
                     links=[Link(parent_id=parent.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})],
                 ) as child:
-                    child.end_span()
+                    pass
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, parent.trace_id)
@@ -537,7 +531,7 @@ class Test_Otel_Span_Methods:
                     )
                 ],
             ) as span:
-                span.end_span()
+                pass
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -584,7 +578,7 @@ class Test_Otel_Span_Methods:
                     )
                 ],
             ) as span:
-                span.end_span()
+                pass
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -638,7 +632,7 @@ class Test_Otel_Span_Methods:
                     )
                 ],
             ) as span:
-                span.end_span()
+                pass
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -671,9 +665,10 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("root") as parent:
-                parent.end_span()
+
                 with test_library.otel_start_span("first", parent_id=parent.span_id) as first:
-                    first.end_span()
+                    pass
+
                 with test_library.otel_start_span(
                     "second",
                     parent_id=parent.span_id,
@@ -682,7 +677,7 @@ class Test_Otel_Span_Methods:
                         Link(parent_id=first.span_id, attributes={"bools": [True, False], "nested": [1, 2]}),
                     ],
                 ) as second:
-                    second.end_span()
+                    pass
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, parent.trace_id)
@@ -774,7 +769,7 @@ class Test_Otel_Span_Methods:
                 span.set_attributes({"service.name": "new.service.name"})
                 span.set_attributes({"span.type": "new.span.type"})
                 span.set_attributes({"analytics.event": "true"})
-                span.end_span()
+
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
         assert len(trace) == 1
@@ -896,7 +891,6 @@ class Test_Otel_Span_Methods:
                     timestamp=1,
                     attributes={"int_val": 1, "string_val": "2", "int_array": [3, 4], "string_array": ["5", "6"]},
                 )
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -939,7 +933,6 @@ class Test_Otel_Span_Methods:
         with test_library:
             with test_library.otel_start_span("operation") as span:
                 span.record_exception(message="woof", attributes={"exception.stacktrace": "stacktrace string"})
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -965,7 +958,6 @@ class Test_Otel_Span_Methods:
                 )
                 span.add_event(name="non_exception_event", attributes={"exception.stacktrace": "non-error"})
                 span.record_exception(message="woof3", attributes={"exception.message": "message override"})
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -1014,7 +1006,6 @@ class Test_Otel_Span_Methods:
                 )
                 span.add_event(name="non_exception_event", attributes={"exception.stacktrace": "non-error"})
                 span.record_exception(message="woof3", attributes={"exception.message": "message override"})
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -1060,7 +1051,6 @@ class Test_Otel_Span_Methods:
                 span.record_exception(
                     message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
                 )
-                span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
@@ -1075,7 +1065,8 @@ class Test_Otel_Span_Methods:
 def run_operation_name_test(expected_operation_name: str, span_kind: int, attributes: dict, test_library, test_agent):
     with test_library:
         with test_library.otel_start_span("otel_span_name", span_kind=span_kind, attributes=attributes) as span:
-            span.end_span()
+            pass
+
     traces = test_agent.wait_for_num_traces(1)
     trace = find_trace(traces, span.trace_id)
     assert len(trace) == 1
@@ -1091,7 +1082,7 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
     with test_library:
         with test_library.otel_start_span("operation", span_kind=SpanKind.SERVER) as span:
             span.set_attributes({"analytics.event": analytics_event_value})
-            span.end_span()
+
     traces = test_agent.wait_for_num_traces(1)
     trace = find_trace(traces, span.trace_id)
     assert len(trace) == 1

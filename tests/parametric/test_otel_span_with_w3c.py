@@ -53,7 +53,6 @@ class Test_Otel_Span_With_W3c:
                 context = span.span_context()
                 assert context.get("trace_flags") == "01"
                 assert context.get("trace_id") == "00000000000000001111111111111111"
-                span.end_span()
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 1229782938247303441

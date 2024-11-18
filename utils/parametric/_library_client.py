@@ -465,6 +465,7 @@ class APMLibrary:
         links: Optional[List[Link]] = None,
         attributes: dict = None,
         http_headers: Optional[List[Tuple[str, str]]] = None,
+        end_on_exit: bool = True,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(
             name=name,
@@ -477,11 +478,8 @@ class APMLibrary:
         )
         span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
-
-        return {
-            "span_id": resp["span_id"],
-            "trace_id": resp["trace_id"],
-        }
+        if end_on_exit:
+            span.end_span()
 
     def flush(self) -> bool:
         return self._client.trace_flush()
