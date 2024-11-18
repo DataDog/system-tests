@@ -41,7 +41,9 @@ class Test_API_Security_Sampling_Rate:
             for _ in range(self.N ** 2)
         ]
 
-    @irrelevant(context.library in ("nodejs", "python"), reason="New sampling algorithm tests have been implemented")
+    @irrelevant(
+        context.library not in ("nodejs", "python"), reason="New sampling algorithm tests have been implemented"
+    )
     def test_sampling_rate(self):
         """can provide request header schema"""
         N = self.N
