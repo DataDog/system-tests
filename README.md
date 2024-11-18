@@ -38,7 +38,7 @@ pip3.12 install virtualenv
 
 Run a test according to the [run documentation](docs/execute/run.md); note that if you're running an [end to end test](docs/scenarios/README.md#end-to-end-scenarios), you will need to build the test infrastructure according to the [build documentation](docs/execute/build.md) before you can run the test.
 
-Note that a test will only run if it is not disabled; see how tests are disabled tests in [skip-tests.md](docs/edit/skip-tests.md) and how tests are enabled in [enable-test.md](docs/edit/enable-test.md). Alternatively, you can force a disabled test to execute according to the [force-execute documentation](docs/execute/force-execute.md).
+Tests will only run if they are not disabled; see how tests are disabled in [skip-tests.md](docs/edit/skip-tests.md) and how tests are enabled in [enable-test.md](docs/edit/enable-test.md). Alternatively, you can force a disabled test to execute according to the [force-execute documentation](docs/execute/force-execute.md).
 
 ![Output on success](./utils/assets/output.png?raw=true)
 
