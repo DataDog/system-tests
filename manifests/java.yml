@@ -605,8 +605,7 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Lfi_Rules_Version:
           '*': v1.40.0
-      test_libddwaf.py:
-        '*': v1.40.0
+      test_libddwaf.py: v1.40.0
       test_shi.py:
         Test_Shi_UrlQuery: missing_feature (Not support in Java)
         Test_Shi_BodyUrlEncoded: missing_feature (Not support in Java)
