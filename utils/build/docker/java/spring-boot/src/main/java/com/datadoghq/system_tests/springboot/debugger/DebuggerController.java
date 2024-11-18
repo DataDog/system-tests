@@ -127,19 +127,10 @@ public class DebuggerController {
         throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Simple exception");
     }
 
-    @GetMapping("/exceptionreplay/recursion5")
-    public String exceptionReplayRecursion5(@RequestParam(required = false, defaultValue = "5") Integer depth) {
+    @GetMapping("/exceptionreplay/recursion")
+    public String exceptionReplayRecursion(@RequestParam(required = true) Integer depth) {
         if (depth > 0) {
-            return exceptionReplayRecursion5(depth - 1);
-        } else {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Recursion exception");
-        }
-    }
-
-    @GetMapping("/exceptionreplay/recursion20")
-    public String exceptionReplayRecursion20(@RequestParam(required = false, defaultValue = "20") Integer depth) {
-        if (depth > 0) {
-            return exceptionReplayRecursion20(depth - 1);
+            return exceptionReplayRecursion(depth - 1);
         } else {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Recursion exception");
         }
