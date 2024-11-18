@@ -364,7 +364,7 @@ docker_ssi_pipeline:
     - when: manual
       allow_failure: true
   variables:
-    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    PARENT_PIPELINE_SOURCE: "schedule"
   trigger:
     include:
       - artifact: ssi_pipeline.yml
