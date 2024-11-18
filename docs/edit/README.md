@@ -13,15 +13,14 @@ To make changes, you must be able to run tests locally. Instructions for running
 You'll commonly need to run unmerged changes to your library against system tests (e.g. to ensure the feature is up to spec). Instructions for testing against unmerged changes can be found in [enable-test.md](./enable-test.md).
 
 ## Index
-1. [lifecycle.md](./lifecycle.md): Understand how system tests work
-2. [add-new-test.md](./add-new-test.md): Add a new test
-3. [scenarios.md](./scenarios.md): Add a new scenario
-4. [format.md](./format.md): Use the linter
-5. [features.md](./features.md): Mark tests for the feature parity dashboard
-6. [enable-test.md](./enable-test.md): Enable a test
-7. [skip-tests.md](./skip-tests.md): Disable tests
-8. [manifest.md](./manifest.md): How tests are marked as enabled or disabled for libraries
-9. [features.md](./features.md): Mark tests for the feature parity dashboard
-10. [format.md](./format.md): Use the linter
-11. [troubleshooting.md](./troubleshooting.md) Tips for debugging
-12. [iast-validations.md](./iast-validations.md): Mark tests with vulnerabilities
+1. [add-new-test.md](./add-new-test.md): Add a new test
+2. [scenarios.md](./scenarios.md): Add a new scenario
+3. [format.md](./format.md): Use the linter
+4. [features.md](./features.md): Mark tests for the feature parity dashboard
+5. [enable-test.md](./enable-test.md): Enable a test
+6. [skip-tests.md](./skip-tests.md): Disable tests
+7. [manifest.md](./manifest.md): How tests are marked as enabled or disabled for libraries
+8. [features.md](./features.md): Mark tests for the feature parity dashboard
+9. [format.md](./format.md): Use the linter
+10. [troubleshooting.md](./troubleshooting.md) Tips for debugging
+11. [iast-validations.md](./iast-validations.md): Mark tests with vulnerabilities
