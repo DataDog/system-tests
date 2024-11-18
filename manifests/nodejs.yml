@@ -174,6 +174,10 @@ tests/:
             '*': *ref_4_1_0
             nextjs: missing_feature
           TestSSRF_StackTrace: missing_feature
+        test_template_injection.py:
+          TestTemplateInjection:
+            '*': *ref_5_26_0
+            nextjs: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
           Test_TrustBoundaryViolation_StackTrace: missing_feature
@@ -624,6 +628,8 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_20_0
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
     test_k8s_manual_inject.py:
       TestAdmisionControllerProfiling: *ref_5_22_0
