@@ -42,7 +42,7 @@ System-tests contains various testing scenarios; the two most commonly used are 
 
 End-To-End tests are good for testing real-world scenarios — they incorporate "weblog" servers designed to mimick customer applications with automatic instrumentation, a "test-agent" to mimick the Datadog Agent, and communication with the Datadog backend. They support the full lifecycle of a trace (hence the name, "End-To-End"). Use End-To-End scenarios to test tracing integrations, security products, profiling, dynamic instrumentation, and more. When in doubt, use end-to-end.
 
-**Parametric**
+### Parametric
 
 Parametric tests are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc.
 
