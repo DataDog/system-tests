@@ -2,10 +2,8 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
-
-from tests.integrations.utils import delete_kinesis_stream
 
 
 class _Test_Kinesis:
@@ -76,22 +74,19 @@ class _Test_Kinesis:
         send request A to weblog : this request will produce a Kinesis message
         send request B to library buddy, this request will consume Kinesis message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
+        )
 
-            self.production_response = weblog.get(
-                "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message}, timeout=120
-            )
-            self.consume_response = self.buddy.get(
-                "/kinesis/consume",
-                params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message, "timeout": 60},
-                timeout=61,
-            )
-        finally:
-            delete_kinesis_stream(self.WEBLOG_TO_BUDDY_STREAM)
+        self.production_response = weblog.get(
+            "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message}, timeout=120
+        )
+        self.consume_response = self.buddy.get(
+            "/kinesis/consume",
+            params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message, "timeout": 60},
+            timeout=61,
+        )
 
     def test_produce(self):
         """Check that a message produced to Kinesis is correctly ingested by a Datadog tracer"""
@@ -139,22 +134,19 @@ class _Test_Kinesis:
         request A: GET /library_buddy/produce_kinesis_message
         request B: GET /weblog/consume_kinesis_message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
+        )
 
-            self.production_response = self.buddy.get(
-                "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message}, timeout=500
-            )
-            self.consume_response = weblog.get(
-                "/kinesis/consume",
-                params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message, "timeout": 60},
-                timeout=61,
-            )
-        finally:
-            delete_kinesis_stream(self.BUDDY_TO_WEBLOG_STREAM)
+        self.production_response = self.buddy.get(
+            "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message}, timeout=500
+        )
+        self.consume_response = weblog.get(
+            "/kinesis/consume",
+            params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message, "timeout": 60},
+            timeout=61,
+        )
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -215,12 +207,11 @@ class _Test_Kinesis:
 
 
 @scenarios.crossed_tracing_libraries
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @features.aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_Kinesis):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
     unique_id = scenarios.crossed_tracing_libraries.unique_id
-    WEBLOG_TO_BUDDY_STREAM = f"Kinesis_prop_via_msg_attributes_weblog_to_buddy_{unique_id}"
-    BUDDY_TO_WEBLOG_STREAM = f"Kinesis_prop_via_msg_attributes_buddy_to_weblog_{unique_id}"
+    WEBLOG_TO_BUDDY_STREAM = f"Kinesis_prop_via_msg_attributes_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_STREAM = f"Kinesis_prop_via_msg_attributes_buddy_to_weblog"

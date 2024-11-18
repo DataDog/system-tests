@@ -2,10 +2,8 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
-
-from tests.integrations.utils import delete_sns_topic, delete_sqs_queue
 
 
 class _Test_SNS:
@@ -106,25 +104,21 @@ class _Test_SNS:
         send request A to weblog : this request will produce a sns message
         send request B to library buddy, this request will consume sns message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
+        )
 
-            self.production_response = weblog.get(
-                "/sns/produce",
-                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC, "message": message},
-                timeout=60,
-            )
-            self.consume_response = self.buddy.get(
-                "/sns/consume",
-                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sns_topic(self.WEBLOG_TO_BUDDY_TOPIC)
-            delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
+        self.production_response = weblog.get(
+            "/sns/produce",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC, "message": message},
+            timeout=60,
+        )
+        self.consume_response = self.buddy.get(
+            "/sns/consume",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
+            timeout=61,
+        )
 
     def test_produce(self):
         """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
@@ -171,25 +165,21 @@ class _Test_SNS:
         request A: GET /library_buddy/produce_sns_message
         request B: GET /weblog/consume_sns_message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
+        )
 
-            self.production_response = self.buddy.get(
-                "/sns/produce",
-                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC, "message": message},
-                timeout=60,
-            )
-            self.consume_response = weblog.get(
-                "/sns/consume",
-                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sns_topic(self.BUDDY_TO_WEBLOG_TOPIC)
-            delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
+        self.production_response = self.buddy.get(
+            "/sns/produce",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC, "message": message},
+            timeout=60,
+        )
+        self.consume_response = weblog.get(
+            "/sns/consume",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
+            timeout=61,
+        )
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -258,14 +248,13 @@ class _Test_SNS:
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 class Test_SNS_Propagation(_Test_SNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
     unique_id = scenarios.crossed_tracing_libraries.unique_id
 
-    WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_msg_attributes_weblog_to_buddy_{unique_id}"
-    WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attributes_weblog_to_buddy_topic_{unique_id}"
-    BUDDY_TO_WEBLOG_QUEUE = f"SNS_Propagation_msg_attributes_buddy_to_weblog_{unique_id}"
-    BUDDY_TO_WEBLOG_TOPIC = f"SNS_Propagation_msg_attributes_buddy_to_weblog_topic_{unique_id}"
+    WEBLOG_TO_BUDDY_QUEUE = f"SNS_Propagation_msg_attributes_weblog_to_buddy"
+    WEBLOG_TO_BUDDY_TOPIC = f"SNS_Propagation_msg_attributes_weblog_to_buddy_topic"
+    BUDDY_TO_WEBLOG_QUEUE = f"SNS_Propagation_msg_attributes_buddy_to_weblog"
+    BUDDY_TO_WEBLOG_TOPIC = f"SNS_Propagation_msg_attributes_buddy_to_weblog_topic"
