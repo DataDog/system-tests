@@ -608,16 +608,16 @@ tests/:
       test_libddwaf.py:
         Test_Libddwaf_Version: v1.40.0
       test_shi.py:
-        Test_Shi_UrlQuery: missing_feature (Not support in Java)
+        Test_Shi_BodyJson: missing_feature (Not support in Java)
         Test_Shi_BodyUrlEncoded: missing_feature (Not support in Java)
         Test_Shi_BodyXml: missing_feature (Not support in Java)
-        Test_Shi_BodyJson: missing_feature (Not support in Java)
+        Test_Shi_Capability: missing_feature (Not support in Java)
         Test_Shi_Mandatory_SpanTags: missing_feature (Not support in Java)
         Test_Shi_Optional_SpanTags: missing_feature (Not support in Java)
+        Test_Shi_Rules_Version: v1.40.0
         Test_Shi_StackTrace: missing_feature (Not support in Java)
         Test_Shi_Telemetry: missing_feature (Not support in Java)
-        Test_Shi_Capability: missing_feature (Not support in Java)
-        Test_Shi_Rules_Version: v1.40.0
+        Test_Shi_UrlQuery: missing_feature (Not support in Java)
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
         Test_Sqli_BodyJson:
