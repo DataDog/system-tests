@@ -191,7 +191,7 @@ class TestedContainer:
 
             if ip:
                 return ip
-            sleep(1)
+            sleep(3)
 
         raise RuntimeError(f"Unable to retrieve IP for {self.name}")
 
