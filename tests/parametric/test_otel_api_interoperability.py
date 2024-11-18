@@ -229,14 +229,12 @@ class Test_Otel_API_Interoperability:
         with test_library:
             with test_library.otel_start_span("otel.span") as otel_span:
                 current_span = test_library.current_span()
+                parent_id = test_library.extract_headers(
+                    [("traceparent", f"00-{TEST_TRACE_ID}-{TEST_SPAN_ID}-01"), ("tracestate", TEST_TRACESTATE),]
+                )
 
                 current_span.add_link(
-                    parent_id=0,
-                    attributes=TEST_ATTRIBUTES,
-                    http_headers=[
-                        ("traceparent", f"00-{TEST_TRACE_ID}-{TEST_SPAN_ID}-01"),
-                        ("tracestate", TEST_TRACESTATE),
-                    ],
+                    parent_id=parent_id, attributes=TEST_ATTRIBUTES,
                 )
 
                 otel_span.end_span()

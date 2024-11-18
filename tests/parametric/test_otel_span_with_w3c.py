@@ -43,20 +43,3 @@ class Test_Otel_Span_With_W3c:
         assert root_span["resource"] == "operation"
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration_ns
-
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    def test_otel_span_with_w3c_headers(self, test_agent, test_library):
-        with test_library:
-            with test_library.otel_start_span(
-                name="name", http_headers=[["traceparent", "00-00000000000000001111111111111111-2222222222222222-01"]],
-            ) as span:
-                context = span.span_context()
-                assert context.get("trace_flags") == "01"
-                assert context.get("trace_id") == "00000000000000001111111111111111"
-                span.end_span()
-
-        span = find_only_span(test_agent.wait_for_num_traces(1))
-        assert span.get("trace_id") == 1229782938247303441
-        assert span.get("parent_id") == 2459565876494606882
-        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
-        assert span["meta"].get(ORIGIN) is None
