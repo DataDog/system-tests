@@ -163,7 +163,9 @@ class DockerSSIScenario(Scenario):
         attempts = 0
         while attempts < 30 and not data:
             attempts += 1
-            data = interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port)
+            data = interfaces.test_agent.collect_data(
+                f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
+            )
             time.sleep(5)
 
     @property

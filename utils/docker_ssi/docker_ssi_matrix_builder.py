@@ -5,6 +5,7 @@ import argparse
 
 from docker_ssi_definitions import ALL_WEBLOGS
 
+
 def generate_gitlab_pipeline(languages):
     pipeline = {
         ".base_ssi_job": {
@@ -13,19 +14,12 @@ def generate_gitlab_pipeline(languages):
             "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",
-                "timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog \"$weblog\" --ssi-library \"$TEST_LIBRARY\" --ssi-base-image \"$base_image\" --ssi-arch \"$arch\" --ssi-installable-runtime \"$installable_runtime\" --ssi-force-build"
+                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" --ssi-force-build',
             ],
-            "rules": [
-                {
-                    "when": "always"
-                }
-            ],
-            "artifacts": {
-                "when": "always",
-                "paths": ["logs_docker_ssi/"]
-            }
+            "rules": [{"when": "always"}],
+            "artifacts": {"when": "always", "paths": ["logs_docker_ssi/"]},
         }
-    };
+    }
 
     for language in languages:
         pipeline["stages"].append(language)
@@ -49,12 +43,8 @@ def generate_gitlab_pipeline(languages):
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
                 "stage": language,
-                "variables": {
-                    "TEST_LIBRARY": language,
-                },
-                "parallel": {
-                    "matrix": matrix
-                }
+                "variables": {"TEST_LIBRARY": language,},
+                "parallel": {"matrix": matrix},
             }
 
     return pipeline
@@ -67,18 +57,23 @@ def main():
     parser.add_argument("--language", required=False, type=str, help="Only generate config for single language")
 
     args = parser.parse_args()
-    if (args.language):
+    if args.language:
         languages = [args.language]
     else:
         languages = ["java", "python", "nodejs", "dotnet", "ruby", "php"]
 
     pipeline = generate_gitlab_pipeline(languages)
 
-    output = json.dumps(pipeline, sort_keys=False) if args.format == "json" else yaml.dump(pipeline, sort_keys=False, default_flow_style=False)
+    output = (
+        json.dumps(pipeline, sort_keys=False)
+        if args.format == "json"
+        else yaml.dump(pipeline, sort_keys=False, default_flow_style=False)
+    )
     print(output)
     if args.output_file is not None:
         with open(args.output_file, "w") as f:
             f.write(output)
+
 
 if __name__ == "__main__":
     main()

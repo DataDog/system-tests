@@ -184,7 +184,7 @@ class TestedContainer:
         logger.debug("NetworksSettings: {self._container.attrs['NetworkSettings']}")
 
         # NetworkSettings.Networks.bridge.IPAddress
-        return self._container.attrs['NetworkSettings']['Networks'][_NETWORK_NAME]['IPAddress']
+        return self._container.attrs["NetworkSettings"]["Networks"][_NETWORK_NAME]["IPAddress"]
 
     def check_circular_dependencies(self, seen: list):
         """ Check if the container has a circular dependency """
@@ -1041,13 +1041,20 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
 
 class APMTestAgentContainer(TestedContainer):
-    def __init__(self, host_log_folder, agent_port = 8126) -> None:
+    def __init__(self, host_log_folder, agent_port=8126) -> None:
         super().__init__(
             image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
-            environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket", "PORT": agent_port},
-            healthcheck={"test": f"curl --fail --silent --show-error http://localhost:{agent_port}/info", "retries": 60,},
+            environment={
+                "SNAPSHOT_CI": "0",
+                "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket",
+                "PORT": agent_port,
+            },
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{agent_port}/info",
+                "retries": 60,
+            },
             ports={agent_port: ("127.0.0.1", agent_port)},
             allow_old_container=False,
             volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
