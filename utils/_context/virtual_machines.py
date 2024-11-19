@@ -653,7 +653,7 @@ class RedHat90amd64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="redhat_9",
+            os_branch="redhat",
             os_cpu="amd64",
             default_vm=False,
             **kwargs,
