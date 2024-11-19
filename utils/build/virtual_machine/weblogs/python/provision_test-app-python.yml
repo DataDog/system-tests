@@ -12,24 +12,27 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
-        os_branch: amazon_linux2
+        os_branch: redhat
         remote-command: |
-          sudo amazon-linux-extras install python3
+          #Redhat 9 is going to install python 3.9.
+          sudo dnf install -y python3
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo dnf install -y python-pip
 
       - os_type: linux
         os_distro: rpm
-        copy_files:
-          - name: copy-auto-install-script
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python/python_install.sh
         remote-command: |
-          if ! command -v make &> /dev/null
-          then
-            sudo yum groupinstall "Development Tools" -y
-          fi
-          sudo sh python_install.sh rpm 3.8.15
+          #works for: amazon_linux2022, amazon_linux2023_arm64 and amazon_linux2023_amd64
+           sudo ln -s /usr/bin/python3 /usr/bin/python && sudo dnf install -y python-pip
 
 weblog:
     name: test-app-python
+    #AL2 uses the yum package manager that has a hard dependency on Python 2.7
+    #Centos 7 is going to install python 3.6. Not supported.
+    #Centos 8 is going to install python 3.6. Not supported.
+    #Rhel 7 is going to install python 3.6. Not supported.
+    excluded_os_branches: [ amazon_linux2, centos_7_amd64, centos_8_amd64, rhel_7_amd64]
+    excluded_os_names: [RedHat_8_6_arm64, RedHat_8_6_amd64]
     install:
       - os_type: linux
 
