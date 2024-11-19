@@ -700,7 +700,7 @@ class RedHat90arm64(_VirtualMachine):
             krunvm_config=None,
             os_type="linux",
             os_distro="rpm",
-            os_branch="redhat_9",
+            os_branch="redhat",
             os_cpu="arm64",
             default_vm=True,
             **kwargs,
