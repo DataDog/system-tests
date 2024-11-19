@@ -194,8 +194,8 @@ def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
 
 
 def get_free_port():
-    last_allowed_port = 65535
-    port = random.randint(1100, 65100)
+    last_allowed_port = 32000
+    port = random.randint(1100, last_allowed_port - 600)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while port <= last_allowed_port:
         try:
