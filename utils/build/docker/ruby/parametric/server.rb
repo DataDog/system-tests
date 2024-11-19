@@ -478,7 +478,7 @@ end
 # OTel system tests provide times in microseconds, but Ruby OTel
 # measures time in seconds (Float).
 def otel_correct_time(microseconds)
-  unless microseconds.nil?
+  unless microseconds.nil? || microseconds == 0
     microseconds / 1_000_000.0
   end
 end
