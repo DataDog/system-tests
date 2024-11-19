@@ -73,6 +73,7 @@ class AutoInjectBaseTest:
             vm_logger(context.scenario.name, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
+            return command_output
 
             return command_output
 
