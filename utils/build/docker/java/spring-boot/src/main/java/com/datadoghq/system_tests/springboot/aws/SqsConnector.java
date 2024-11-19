@@ -137,7 +137,7 @@ public class SqsConnector {
                     System.out.printf("[SQS] Consumed the following: %s%n", actualMessage.body());
                     String body = actualMessage.body();
                     String messageBody = body; // Default to the raw body
-        
+
                     // Attempt to parse the body as JSON
                     try {
                         JsonNode messageJson = objectMapper.readTree(body);
@@ -145,7 +145,7 @@ public class SqsConnector {
                     } catch (Exception e) {
                         System.out.printf("[SQS] Failed to parse JSON: %s%n", e.getMessage());
                     }
-        
+
                     // Check if the decoded messageBody matches the expected message
                     if (messageBody.equals(expectedMessage)) {
                         System.out.printf("[SQS] Success! Found the following message: %s%n", messageBody);
