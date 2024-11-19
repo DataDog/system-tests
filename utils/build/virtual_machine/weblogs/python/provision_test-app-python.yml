@@ -6,6 +6,7 @@ lang_variant:
       - os_type: linux
         os_distro: deb
         remote-command: |
+          sudo apt-get update
           sudo apt install -y python-is-python3
           sudo apt install -y python3-pip
           sudo apt install -y python3-django || true
