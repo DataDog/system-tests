@@ -24,7 +24,7 @@ def generate_gitlab_pipeline(languages):
             "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",
-                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" --ssi-force-build',
+                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime"',
             ],
             "rules": [
                 {"if": '$PARENT_PIPELINE_SOURCE == "schedule"', "when": "always"},
