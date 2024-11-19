@@ -125,16 +125,16 @@ public class SnsConnector {
         SnsClient snsClient = createSnsClient();
         SqsClient sqsClient = sqs.createSqsClient();
         System.out.printf("[SNS->SQS] Publishing message: %s%n", message);
-        String topicArn = createSnsTopic(snsClient, topic, true);
+        String topicArn = createSnsTopic(snsClient, topic, false);
 
         // Create queue and get queue ARN
-        String queueUrl = sqs.createSqsQueue(sqsClient, sqs.queue, true);
+        String queueUrl = sqs.createSqsQueue(sqsClient, sqs.queue, false);
         GetQueueAttributesResponse queueAttributes = sqsClient.getQueueAttributes(GetQueueAttributesRequest.builder()
             .attributeNames(QueueAttributeName.QUEUE_ARN)
             .queueUrl(queueUrl)
             .build());
         String queueArn = queueAttributes.attributes().get(QueueAttributeName.QUEUE_ARN);
-        subscribeQueueToTopic(snsClient, sqsClient, topicArn, queueArn, queueUrl);
+        // subscribeQueueToTopic(snsClient, sqsClient, topicArn, queueArn, queueUrl);
 
         PublishRequest publishRequest = PublishRequest.builder()
             .topicArn(topicArn)

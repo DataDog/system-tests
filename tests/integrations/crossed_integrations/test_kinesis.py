@@ -87,9 +87,13 @@ class _Test_Kinesis:
         self.production_response = weblog.get(
             "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message}, timeout=120
         )
-        data = json.loads(self.production_response.text)
-        shard_id = data.get("ShardId", data.get("shardId", "shardId-000000000000"))
-        sequence_number = data.get("sequenceNumber", data.get("SequenceNumber", None))
+        try:
+            data = json.loads(self.production_response.text)
+            shard_id = data.get("ShardId", data.get("shardId", "shardId-000000000000"))
+            sequence_number = data.get("sequenceNumber", data.get("SequenceNumber", None))
+        except: 
+            shard_id = None
+            sequence_number = None
         self.consume_response = self.buddy.get(
             "/kinesis/consume",
             params={
@@ -156,15 +160,21 @@ class _Test_Kinesis:
         self.production_response = self.buddy.get(
             "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message}, timeout=500
         )
-        data = json.loads(self.production_response.text)
+        try:
+            data = json.loads(self.production_response.text)
+            shard_id = data.get("ShardId", data.get("shardId", "shardId-000000000000"))
+            sequence_number = data.get("sequenceNumber", data.get("SequenceNumber", None))
+        except: 
+            shard_id = None
+            sequence_number = None
         self.consume_response = weblog.get(
             "/kinesis/consume",
             params={
                 "stream": self.BUDDY_TO_WEBLOG_STREAM,
                 "message": message,
                 "timeout": 60,
-                "shardId": data["ShardId"],
-                "sequenceNumber": data["SequenceNumber"],
+                "shardId": shard_id,
+                "sequenceNumber": sequence_number,
             },
             timeout=61,
         )
