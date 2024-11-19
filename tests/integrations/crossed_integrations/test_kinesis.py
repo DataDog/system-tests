@@ -91,7 +91,7 @@ class _Test_Kinesis:
             data = json.loads(self.production_response.text)
             shard_id = data.get("ShardId", data.get("shardId", "shardId-000000000000"))
             sequence_number = data.get("sequenceNumber", data.get("SequenceNumber", None))
-        except: 
+        except:
             shard_id = None
             sequence_number = None
         self.consume_response = self.buddy.get(
@@ -164,7 +164,7 @@ class _Test_Kinesis:
             data = json.loads(self.production_response.text)
             shard_id = data.get("ShardId", data.get("shardId", "shardId-000000000000"))
             sequence_number = data.get("sequenceNumber", data.get("SequenceNumber", None))
-        except: 
+        except:
             shard_id = None
             sequence_number = None
         self.consume_response = weblog.get(
