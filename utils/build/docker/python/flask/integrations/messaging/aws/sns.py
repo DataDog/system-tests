@@ -81,18 +81,23 @@ def sns_consume(queue, expectedMessage, timeout=60):
                         try:
                             print("[SNS->SQS] Trying to decode raw message: ")
                             print(message.get("Body", ""))
-                            message_json = json.loads(message["Body"])
-                            if message_json.get("Message", "") == expectedMessage:
-                                consumed_message = message_json["Message"]
-                                print("[SNS->SQS] Success. Found the following message: " + consumed_message)
-                                break
+                            try:
+                                message_json = json.loads(message["Body"])
+                                message_body = message_json.get("Message", "")
+                            except:
+                                message_body = message["Body"]
                         except Exception as e:
                             print(e)
                             pass
 
+                        if message_body == expectedMessage:
+                            consumed_message = message_json["Message"]
+                            print("[SNS->SQS] Success. Found the following message: " + consumed_message)
+                            break
+
         except Exception as e:
             logging.warning("[SNS->SQS] " + str(e))
-        time.sleep(1)
+        time.sleep(0.1)
 
     if not consumed_message:
         logging.info(f"[SNS->SQS]: Failed to consume message: {expectedMessage}")

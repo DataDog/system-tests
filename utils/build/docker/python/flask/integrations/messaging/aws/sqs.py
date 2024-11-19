@@ -66,7 +66,7 @@ def sqs_consume(queue, expectedMessage, timeout=60):
                         logging.info("Consumed the following SQS message: " + consumed_message)
         except Exception as e:
             logging.warning(e)
-        time.sleep(1)
+        time.sleep(0.1)
 
     if not consumed_message:
         logging.info(f"[SQS]: Failed to consume message: {expectedMessage}")

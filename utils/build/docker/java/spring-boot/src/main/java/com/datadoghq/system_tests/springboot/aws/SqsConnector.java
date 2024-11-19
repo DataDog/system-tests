@@ -11,6 +11,8 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.net.URI;
@@ -114,6 +116,7 @@ public class SqsConnector {
     public boolean consumeMessageWithoutNewThread(String service, String expectedMessage) throws Exception {
         SqsClient sqsClient = this.createSqsClient();
         String queueUrl = createSqsQueue(sqsClient, queue, false);
+        ObjectMapper objectMapper = new ObjectMapper();
 
         ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
             .queueUrl(queueUrl)
@@ -125,9 +128,29 @@ public class SqsConnector {
             ReceiveMessageResponse response = sqsClient.receiveMessage(receiveMessageRequest);
             List<Message> messages = response.messages();
             for (Message actualMessage : messages) {
+                System.out.printf("[SQS] Consumed the following: %s%n", actualMessage.body());
                 if (actualMessage.body().equals(expectedMessage)) {
+                    System.out.printf("[SQS] Success! Consumed the following expected message: %s%n", actualMessage.body());
                     System.out.println("[" + service.toUpperCase() + "] got message! " + actualMessage.body() + " from " + queue);
                     return true;
+                } else {
+                    System.out.printf("[SQS] Consumed the following: %s%n", actualMessage.body());
+                    String body = actualMessage.body();
+                    String messageBody = body; // Default to the raw body
+        
+                    // Attempt to parse the body as JSON
+                    try {
+                        JsonNode messageJson = objectMapper.readTree(body);
+                        messageBody = messageJson.path("Message").asText("");
+                    } catch (Exception e) {
+                        System.out.printf("[SQS] Failed to parse JSON: %s%n", e.getMessage());
+                    }
+        
+                    // Check if the decoded messageBody matches the expected message
+                    if (messageBody.equals(expectedMessage)) {
+                        System.out.printf("[SQS] Success! Found the following message: %s%n", messageBody);
+                        return true;
+                    }
                 }
             }
         }
