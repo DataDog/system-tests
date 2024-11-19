@@ -61,7 +61,11 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 
 	if links := args.SpanLinks; links != nil {
 		for _, link := range links {
-			otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[link.ParentId].span.SpanContext(), Attributes: link.Attributes.ConvertToAttributesStringified()}))
+			if pSpan, ok := s.otelSpans[link.ParentId]; ok {
+				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: pSpan.span.SpanContext(), Attributes: link.Attributes.ConvertToAttributesStringified()}))
+			} else {
+				return OtelStartSpanReturn{}, fmt.Errorf("OtelStartSpan call failed. Failed to generate a link to span with id=%d", link.ParentId)
+			}
 		}
 	}
 
