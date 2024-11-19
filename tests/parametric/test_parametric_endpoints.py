@@ -547,7 +547,7 @@ class Test_Parametric_OtelSpan_End:
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
-        assert sleep <= span["duration"] / 1e9 <= total_time
+        assert sleep <= span["duration"] / 1e9 <= total_time, span["start"]
 
     def test_span_end_with_timestamp(self, test_agent, test_library):
         """
