@@ -1,4 +1,5 @@
 from utils import (
+    bug,
     context,
     features,
     interfaces,
@@ -42,6 +43,7 @@ class Test_API_Security_sampling:
     @irrelevant(
         context.library not in ["nodejs"], reason="RFC is deprecated by a newer RFC. New tests will be implemented"
     )
+    @bug(context.library > "nodejs@5.25.0", reason="APPSEC-55901")
     def test_sampling_rate(self):
         """can provide request header schema"""
         N = self.N
