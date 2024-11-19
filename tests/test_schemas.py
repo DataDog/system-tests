@@ -40,7 +40,7 @@ class Test_library:
     def test_python_debugger_line_number(self):
         interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber")
 
-    @bug(context.library > "nodejs@5.22.0", reason="DEBUG-2864")
+    @bug(context.library > "nodejs@4.48.0", reason="DEBUG-2864")
     def test_library_diagnostics_content(self):
         interfaces.library.assert_schema_point("/debugger/v1/diagnostics", "$[].content")
 

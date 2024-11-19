@@ -28,24 +28,11 @@ There are two ways for running the C++ library tests with a custom tracer:
 
 ## Golang library
 
-For "regular" system tests (weblog), create a file `golang-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog via `go get` when you build the test image.
-
+Create a file `golang-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
 * Content example:
     * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
     * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
     * `gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>` Test un-merged changes
-
-For parametric tests, run the following commands inside of the system-tests/utils/build/docker/golang/parametric directory:
-
-```sh
-go get -u gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>
-go mod tidy
-```
-
-* Content example:
-    * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
-    * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
-
 
 ## Java library
 
