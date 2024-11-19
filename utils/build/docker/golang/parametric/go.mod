@@ -2,15 +2,11 @@ module main
 
 go 1.22.0
 
-toolchain go1.22.4
-
 require (
 	github.com/sirupsen/logrus v1.9.3
 	go.opentelemetry.io/otel v1.20.0
 	go.opentelemetry.io/otel/trace v1.20.0
-	google.golang.org/grpc v1.57.1
-	google.golang.org/protobuf v1.33.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.69.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.69.1
 )
 
 require (
@@ -28,7 +24,6 @@ require (
 	github.com/ebitengine/purego v0.6.0-alpha.5 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.7 // indirect
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2 // indirect
@@ -45,14 +40,12 @@ require (
 	go.opentelemetry.io/otel/metric v1.20.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 )
 
 // replace gopkg.in/DataDog/dd-trace-go.v1 => ./dd-trace-go

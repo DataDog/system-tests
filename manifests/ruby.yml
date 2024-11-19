@@ -29,61 +29,95 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: missing_feature
+          TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
+          TestCommandInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
+          Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
           Test_HardcodedSecretsExtended: missing_feature
+          Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
+          TestHeaderInjectionExclusionAccessControlAllow: missing_feature
+          TestHeaderInjectionExclusionContentEncoding: missing_feature
+          TestHeaderInjectionExclusionPragma: missing_feature
+          TestHeaderInjectionExclusionTransferEncoding: missing_feature
+          TestHeaderInjection_StackTrace: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
+          Test_HstsMissingHeader_StackTrace: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
+          Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
           TestInsecureCookieNameFilter: missing_feature
+          TestInsecureCookie_StackTrace: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
+          TestLDAPInjection_StackTrace: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie: missing_feature
           TestNoHttponlyCookieNameFilter: missing_feature
+          TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
           TestNoSamesiteCookieNameFilter: missing_feature
+          TestNoSamesiteCookie_StackTrace: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
+          TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
+          TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
           TestSqlInjection: missing_feature
+          TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF: missing_feature
+          TestSSRF_StackTrace: missing_feature
+        test_template_injection.py:
+          TestTemplateInjection: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation_StackTrace: missing_feature
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization: missing_feature
+          TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
+          TestUnvalidatedHeader_StackTrace: missing_feature
           TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedRedirect_StackTrace: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
+          TestUnvalidatedForward_StackTrace: missing_feature
         test_weak_cipher.py:
           TestWeakCipher: missing_feature
+          TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
+          TestDeduplication: missing_feature
           TestWeakHash: missing_feature
+          TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
+          TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
+          Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
+          TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
           TestXSS: missing_feature
+          TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
           TestRequestBody: missing_feature
@@ -115,6 +149,7 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_lfi.py: missing_feature
+      test_libddwaf.py: missing_feature
       test_shi.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
@@ -329,6 +364,8 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
     test_k8s_manual_inject.py:
       TestAdmisionControllerProfiling: missing_feature
@@ -360,7 +397,6 @@ tests/:
       Test_Otel_Span_With_W3c: v1.17.0
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource endpoint is not supported)
-      Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # Generating a child span from a finished span is not supported
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: missing_feature (current span endpoint is not supported)
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)

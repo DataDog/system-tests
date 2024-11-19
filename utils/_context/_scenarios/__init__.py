@@ -110,6 +110,7 @@ class scenarios:
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
         weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
         doc="Test DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED=false effect on tracers",
+        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
 
     telemetry_app_started_products_disabled = EndToEndScenario(
@@ -121,22 +122,26 @@ class scenarios:
         },
         appsec_enabled=False,
         doc="Disable all tracers products",
+        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
         doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
+        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
+        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_enabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_ENABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true",},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
+        scenario_groups=[ScenarioGroup.TELEMETRY],
     )
 
     # ASM scenarios
@@ -253,8 +258,9 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
     appsec_api_security = EndToEndScenario(
@@ -308,7 +314,7 @@ class scenarios:
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     appsec_auto_events_extended = EndToEndScenario(
@@ -358,13 +364,24 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    iast_deduplication = EndToEndScenario(
+        "IAST_DEDUPLICATION",
+        weblog_env={
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DEDUPLICATION_ENABLED": "true",
+            "DD_IAST_REQUEST_SAMPLING": "100",
+        },
+        doc="Iast scenario with deduplication enabled",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -377,6 +394,7 @@ class scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
         },
         doc="",
+        scenario_groups=[ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
     )
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
@@ -391,7 +409,12 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[
+            ScenarioGroup.APPSEC,
+            ScenarioGroup.APPSEC_RASP,
+            ScenarioGroup.REMOTE_CONFIG,
+            ScenarioGroup.ESSENTIALS,
+        ],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -399,7 +422,7 @@ class scenarios:
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
     )
 
     remote_config_mocked_backend_live_debugging_nocache = EndToEndScenario(
@@ -411,13 +434,14 @@ class scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
         },
         doc="",
+        scenario_groups=[ScenarioGroup.REMOTE_CONFIG],
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         rc_api_enabled=True,
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
     )
 
     # APM tracing end-to-end scenarios
@@ -476,7 +500,7 @@ class scenarios:
         include_kafka=True,
         include_postgres_db=True,
         doc="",
-        scenario_groups=[ScenarioGroup.ESSENTIALS],
+        scenario_groups=[ScenarioGroup.TRACING_CONFIG, ScenarioGroup.ESSENTIALS],
     )
 
     tracing_config_nondefault_2 = EndToEndScenario(
@@ -492,9 +516,13 @@ class scenarios:
         include_kafka=True,
         include_postgres_db=True,
         doc="Test tracer configuration when a collection of non-default settings are applied",
+        scenario_groups=[ScenarioGroup.TRACING_CONFIG],
     )
     tracing_config_nondefault_3 = EndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT_3", weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"}, doc="",
+        "TRACING_CONFIG_NONDEFAULT_3",
+        weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"},
+        doc="",
+        scenario_groups=[ScenarioGroup.TRACING_CONFIG],
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -703,7 +731,7 @@ class scenarios:
         weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")

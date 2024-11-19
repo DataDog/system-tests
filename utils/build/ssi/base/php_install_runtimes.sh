@@ -32,6 +32,14 @@ if [ "$OS" = "Debian" ]; then
 
     apt install --yes "php${PHP_VERSION}-cli"
 
+    # Hack!
+    # The requirements.json file provided by PHP prevents PHP 5 from being injected.
+    # To be able to test the "library_entrypoint.abort" telemetry, we have to change the path.
+    if [[ "${PHP_VERSION}" == "5.6" ]]; then
+        rm -f /usr/bin/php
+        mv /usr/bin/php5.6 /usr/bin/php
+    fi
+
     php -v
 
 elif [ "$OS" = "RedHat" ]; then

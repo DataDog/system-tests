@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, flaky, missing_feature, features
-from ..utils import BaseSinkTest, assert_iast_vulnerability
+from utils import weblog, context, missing_feature, features, rfc, scenarios
+from ..utils import BaseSinkTest, assert_iast_vulnerability, validate_stack_traces
 
 
 def _expected_location():
@@ -46,6 +46,39 @@ class TestWeakHash(BaseSinkTest):
     location_map = _expected_location()
     evidence_map = _expected_evidence()
 
+    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
+    @missing_feature(library="dotnet", reason="Not implemented yet")
+    def test_telemetry_metric_instrumented_sink(self):
+        super().test_telemetry_metric_instrumented_sink()
+
+    @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
+    @missing_feature(context.library < "dotnet@2.38.0", reason="Not implemented yet")
+    def test_telemetry_metric_executed_sink(self):
+        super().test_telemetry_metric_executed_sink()
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class TestWeakHash_StackTrace:
+    """Validate stack trace generation """
+
+    def setup_stack_trace(self):
+        self.r = weblog.get("/iast/insecure_hashing/test_md5_algorithm")
+
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)
+
+
+@scenarios.iast_deduplication
+@features.weak_hash_vulnerability_detection
+class TestDeduplication:
+    """Verify vulnerability deduplication."""
+
+    location_map = _expected_location()
+    evidence_map = _expected_evidence()
+
     def setup_insecure_hash_remove_duplicates(self):
         self.r_insecure_hash_remove_duplicates = weblog.get("/iast/insecure_hashing/deduplicate")
 
@@ -56,8 +89,8 @@ class TestWeakHash(BaseSinkTest):
             request=self.r_insecure_hash_remove_duplicates,
             vulnerability_count=1,
             vulnerability_type="WEAK_HASH",
-            expected_location=self.expected_location,
-            expected_evidence=self.expected_evidence,
+            expected_location=_expected_location(),
+            expected_evidence=_expected_evidence(),
         )
 
     def setup_insecure_hash_multiple(self):
@@ -69,15 +102,5 @@ class TestWeakHash(BaseSinkTest):
             request=self.r_insecure_hash_multiple,
             vulnerability_count=2,
             vulnerability_type="WEAK_HASH",
-            expected_location=self.expected_location,
+            expected_location=_expected_location(),
         )
-
-    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
-    @missing_feature(library="dotnet", reason="Not implemented yet")
-    def test_telemetry_metric_instrumented_sink(self):
-        super().test_telemetry_metric_instrumented_sink()
-
-    @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
-    @missing_feature(context.library < "dotnet@2.38.0", reason="Not implemented yet")
-    def test_telemetry_metric_executed_sink(self):
-        super().test_telemetry_metric_executed_sink()
