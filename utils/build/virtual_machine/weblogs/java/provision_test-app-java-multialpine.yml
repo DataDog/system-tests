@@ -31,7 +31,7 @@ lang_variant:
 weblog:
     name: test-app-java-multialpine
     nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf
-    ignore_branch: [debian10]
+    excluded_os_branches: [debian10]
     install:
       - os_type: linux
         copy_files:

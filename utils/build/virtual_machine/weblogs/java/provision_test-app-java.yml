@@ -30,6 +30,7 @@ lang_variant:
 
 weblog:
     name: test-app-java
+    excluded_os_branches: [debian10]
     install:
       - os_type: linux
 
