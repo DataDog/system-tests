@@ -5,6 +5,7 @@
 import tests.debugger.utils as base
 
 from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug
+from utils.tools import logger
 
 
 @features.debugger
@@ -34,26 +35,25 @@ class Test_Debugger_Method_Probe_Snapshots(base._Base_Debugger_Test):
         _validate_snapshots(expected_snapshots)
         _validate_spans(expected_spans)
 
-    def setup_rate_limiting(self):
-        probes = base.read_probes("probe_snapshot_method")
+@features.debugger
+@scenarios.debugger_method_probes_snapshot
+class Test_Debugger_Snapshot_Probe_Rate_Limiting(base._Base_Debugger_Test):
+    def setup_snapshot_probe_rate_limiting(self):
+        probes = base.read_probes("probe_snapshot_rate_limiting")
         self.expected_probe_ids = base.extract_probe_ids(probes)
         self.rc_state = rc.send_debugger_command(probes, version=1)
 
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         # call the log endpoint multiple times
-        self.weblog_responses = [
-            weblog.get("/debugger/log"),
-            weblog.get("/debugger/log"),
-            weblog.get("/debugger/log"),
-            weblog.get("/debugger/log"),
-        ]
+        self.weblog_responses = []
+        for _ in range(10):
+            self.weblog_responses.append(weblog.get("/debugger/log"))
 
-    def test_rate_limiting(self):
+    def test_snapshot_probe_rate_limiting(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
 
-        # expect a single snapshot
         agent_logs_endpoint_requests = list(interfaces.agent.get_data(base._LOGS_PATH))
         snapshot_count = 0
         for request in agent_logs_endpoint_requests:
@@ -62,11 +62,12 @@ class Test_Debugger_Method_Probe_Snapshots(base._Base_Debugger_Test):
                 if content:
                     snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
                     if snapshot:
+                        logger.debug(f"Found snapshot with id {snapshot["id"]}")
                         probe_id = snapshot["probe"]["id"]
-                        if probe_id == "log170aa-acda-4453-9111-1478a6method":
+                        if probe_id == "log170aa-acda-4453-9111-1478a6ratelimit":
                             snapshot_count += 1
 
-        assert snapshot_count == 99
+        assert snapshot_count == 1
 
 @features.debugger
 @scenarios.debugger_line_probes_snapshot
