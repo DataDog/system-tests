@@ -86,7 +86,7 @@ class Test_Agent:
             ]
         )
 
-    @bug(context.library > "nodejs@4.46.0", reason="DEBUG-2864")
+    @bug(context.library > "nodejs@4.46.0", reason="DEBUG-2864") # and 5.22.0
     def test_library_diagnostics_content(self):
         interfaces.library.assert_schema_point("/api/v2/debugger", "$[].content")
 
