@@ -10,6 +10,8 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
     The goal of this function is to trigger kinesis producer calls
     """
 
+    logging.info(f"[Kinesis] Begin produce to stream: {stream} the following message: {message}")
+
     # Create an SQS client
     kinesis = boto3.client("kinesis", region_name="us-east-1")
 
@@ -22,6 +24,7 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
 
     while not message_sent and time.time() < start + timeout:
         try:
+            logging.info(f"[Kinesis] Create Stream with name: {stream}")
             kinesis.create_stream(StreamName=stream, ShardCount=1)
             logging.info(f"[Kinesis] Created Kinesis Stream with name: {stream}")
         except Exception as e:
@@ -36,10 +39,13 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
                 and response.get("StreamDescription", None).get("StreamStatus", "") == "ACTIVE"
             ):
                 # Send the message to the Kinesis stream
-                kinesis.put_record(
+                resp = kinesis.put_record(
                     StreamARN=response["StreamDescription"]["StreamARN"], Data=message, PartitionKey=partition_key
                 )
-                message_sent = True
+                logging.info("[Kinesis] Python Kinesis message sent successfully")
+                logging.info(f"[Kinesis] PutRecords response: {resp}")
+                print(resp)
+                return resp
             else:
                 time.sleep(1)
                 continue
@@ -47,18 +53,19 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
             exc = e
         time.sleep(1)
 
-    if message_sent:
-        logging.info("[Kinesis] Python Kinesis message sent successfully")
-        return "Kinesis Produce ok"
-    elif exc:
+    if exc:
         logging.info(f"[Kinesis] Error during Python Kinesis put record: {str(exc)}")
         return {"error": f"Error during Python Kinesis put record: {str(exc)}"}
+    return {}
 
 
-def kinesis_consume(stream, expectedMessage, timeout=60):
+def kinesis_consume(stream, expectedMessage, timeout=60, shard_id=None, sequence_number=None):
     """
     The goal of this function is to trigger kinesis consumer calls
     """
+    logging.info(f"[Kinesis] Trying to consume expected: {expectedMessage} for stream: {stream}")
+    logging.info(f"[Kinesis] Using Sequence Number: {sequence_number} and shard id: {shard_id}")
+
     # Create a Kinesis client
     kinesis = boto3.client("kinesis", region_name="us-east-1")
 
@@ -76,10 +83,19 @@ def kinesis_consume(stream, expectedMessage, timeout=60):
                     and response.get("StreamDescription", {}).get("StreamStatus", "") == "ACTIVE"
                 ):
                     stream_arn = response["StreamDescription"]["StreamARN"]
-                    shard_id = response["StreamDescription"]["Shards"][0]["ShardId"]
-                    response = kinesis.get_shard_iterator(
-                        StreamName=stream, ShardId=shard_id, ShardIteratorType="TRIM_HORIZON"
-                    )
+                    shard_id = shard_id if shard_id else response["StreamDescription"]["Shards"][0]["ShardId"]
+
+                    if sequence_number:
+                        response = kinesis.get_shard_iterator(
+                            StreamName=stream,
+                            ShardId=shard_id,
+                            ShardIteratorType="AT_SEQUENCE_NUMBER",
+                            StartingSequenceNumber=sequence_number,
+                        )
+                    else:
+                        response = kinesis.get_shard_iterator(
+                            StreamName=stream, ShardId=shard_id, ShardIteratorType="TRIM_HORIZON"
+                        )
                     shard_iterator = response["ShardIterator"]
                     logging.info(f"[Kinesis] Found Kinesis Shard Iterator: {shard_iterator} for stream: {stream}")
                 else:

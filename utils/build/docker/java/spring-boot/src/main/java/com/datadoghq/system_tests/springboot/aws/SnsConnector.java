@@ -50,7 +50,7 @@ public class SnsConnector {
             }
         }  catch (SnsException e) {
             System.err.println(e.awsErrorDetails().errorMessage());
-            throw new Exception("[SNS] Failed to create SNS topic with following error: " + e.getLocalizedMessage());
+            return snsClient.listTopics().topics().stream().filter(t -> t.topicArn().endsWith(topic)).findFirst().get().topicArn();
         }
     }
 

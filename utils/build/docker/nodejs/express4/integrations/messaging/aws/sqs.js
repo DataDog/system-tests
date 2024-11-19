@@ -76,6 +76,7 @@ const sqsConsume = async (queue, timeout, expectedMessage) => {
                 const consumedMessage = message.Body
                 messageFound = true
                 console.log(`[SQS] Received the following for queue ${queue}: ` + consumedMessage)
+                console.log('[SQS] Resolved consume message')
                 resolve()
                 return
               }

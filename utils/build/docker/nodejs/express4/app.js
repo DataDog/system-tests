@@ -287,8 +287,8 @@ app.get('/kinesis/produce', (req, res) => {
   console.log(`[Kinesis] Produce: ${message}`)
 
   kinesisProduce(stream, message, '1', null)
-    .then(() => {
-      res.status(200).send('[Kinesis] publish ok')
+    .then((data) => {
+      res.status(200).send(data)
     })
     .catch((error) => {
       console.error(error)
@@ -300,9 +300,11 @@ app.get('/kinesis/consume', (req, res) => {
   const stream = req.query.stream
   const timeout = parseInt(req.query.timeout) ?? 5
   const message = req.query.message
+  const sequenceNumber = req.query.sequenceNumber
+  const shardId = req.query.shardId
   console.log(`[Kinesis] Consume, Expected: ${message}`)
 
-  kinesisConsume(stream, timeout * 1000, message)
+  kinesisConsume(stream, timeout * 1000, message, sequenceNumber, shardId)
     .then(() => {
       res.status(200).send('[Kinesis] consume ok')
     })

@@ -633,7 +633,9 @@ def produce_kinesis_message():
     if "error" in output:
         return output, 400
     else:
-        return output, 200
+        shard_id = output.get("ShardId", "")
+        sequence_number = output.get("SequenceNumber", "")
+        return json.dumps({"ShardId": shard_id, "SequenceNumber": sequence_number}), 200
 
 
 @app.route("/kinesis/consume")
@@ -641,8 +643,10 @@ def consume_kinesis_message():
     stream = flask_request.args.get("stream", "DistributedTracing")
     timeout = int(flask_request.args.get("timeout", 60))
     message = flask_request.args.get("message", "Hello from Python Producer: Kinesis Context Propagation Test")
+    sequence_number = flask_request.args.get("sequenceNumber", None)
+    shard_id = flask_request.args.get("shardId", None)
 
-    output = kinesis_consume(stream, message, timeout)
+    output = kinesis_consume(stream, message, timeout, shard_id, sequence_number)
     if "error" in output:
         return output, 400
     else:

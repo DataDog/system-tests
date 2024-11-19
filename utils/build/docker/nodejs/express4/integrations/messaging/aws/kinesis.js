@@ -41,13 +41,13 @@ const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) =>
                 } else {
                   console.log('[Kinesis] Node.js Kinesis putRecord response: ' + data)
                   console.log('[Kinesis] Node.js Kinesis message sent successfully: ' + message)
+                  console.log(data)
                   resolve(data)
                 }
               }
             )
           } else {
             console.log('[Kinesis] Kinesis describe stream, stream not active')
-            console.log(data)
             setTimeout(() => {
               sendRecord()
             }, 1000)
@@ -64,11 +64,13 @@ const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) =>
   })
 }
 
-const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
+const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber, shardId) => {
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis()
 
   console.log(`[Kinesis] Looking for the following message for stream: ${stream}: ${message}`)
+  console.log(`[Kinesis] Starting at sequence number: ${sequenceNumber}`)
+  console.log(`[Kinesis] Starting at shard id: ${shardId}`)
 
   return new Promise((resolve, reject) => {
     const consumeMessage = () => {
@@ -78,11 +80,9 @@ const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
           setTimeout(consumeMessage, 1000)
         } else {
           if (response && response.StreamDescription && response.StreamDescription.StreamStatus === 'ACTIVE') {
-            const shardId = response.StreamDescription.Shards[0].ShardId
-
             const params = {
               StreamName: stream,
-              ShardId: shardId
+              ShardId: shardId ?? response.StreamDescription.Shards[0].ShardId
             }
             if (sequenceNumber) {
               Object.assign(params, {
@@ -122,10 +122,12 @@ const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
                           })
                           console.log(`[Kinesis] Consumed the following: ${messageStr}`)
                           resolve()
+                          console.log('[Kinesis] resolved.')
+                          return
                         }
                       }
                     }
-                    setTimeout(consumeMessage, 50)
+                    setTimeout(consumeMessage, 200)
                   }
                 })
               }

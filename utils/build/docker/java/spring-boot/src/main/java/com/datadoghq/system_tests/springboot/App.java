@@ -25,6 +25,7 @@ import datadog.trace.api.EventTracker;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
+import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
 
 
 import java.nio.charset.StandardCharsets;
@@ -494,26 +495,32 @@ public class App {
     ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         try {
-            kinesis.produceMessageWithoutNewThread(message);
+            PutRecordResponse data = kinesis.produceMessageWithoutNewThread(message);
+            String jsonResponse = String.format("{\"shardId\":\"%s\", \"sequenceNumber\":\"%s\"}", 
+                data.shardId(), 
+                data.sequenceNumber()
+            );
+            return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start producing message...");
             e.printStackTrace();
             return new ResponseEntity<>("[Kinesis] failed to start producing messages", HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>("produce ok", HttpStatus.OK);
     }
 
     @RequestMapping("/kinesis/consume")
     ResponseEntity<String> kinesisConsume(
         @RequestParam(required = true) String stream,
         @RequestParam(required = false) Integer timeout,
-        @RequestParam(required = true) String message
+        @RequestParam(required = true) String message,
+        @RequestParam(required = false) String sequenceNumber,
+        @RequestParam(required = false) String shardId
     ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = kinesis.consumeMessageWithoutNewThread(timeout, message);
+            consumed = kinesis.consumeMessageWithoutNewThread(timeout, message, sequenceNumber, shardId);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start consuming message...");
@@ -564,7 +571,9 @@ public class App {
         @RequestParam(required = false, name = "routing_key") String routing_key,
         @RequestParam(required = false, name = "exchange") String exchange,
         @RequestParam(required = false, name = "group") String group,
-        @RequestParam(required = false, name = "message") String message
+        @RequestParam(required = false, name = "message") String message,
+        @RequestParam(required = false, name = "sequenceNumber") String sequenceNumber,
+        @RequestParam(required = false, name = "shardId") String shardId
     ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);
@@ -685,7 +694,7 @@ public class App {
                 return "[Kinesis] failed to start producing message";
             }
             try {
-                kinesis.consumeMessageWithoutNewThread(60, message);
+                kinesis.consumeMessageWithoutNewThread(60, message, sequenceNumber, shardId);
             } catch (Exception e) {
                 System.out.println("[Kinesis] Failed to start consuming message...");
                 e.printStackTrace();

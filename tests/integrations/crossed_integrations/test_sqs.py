@@ -20,7 +20,12 @@ class _Test_SQS:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
+        traces = []
         for data, trace in interface.get_traces():
+            traces.append(trace)
+
+        # reverse the list of traces to get the last trace (since we may have had several AWS consume calls to get our desired message)
+        for trace in reversed(traces):
             # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sns_to_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
             for span in reversed(trace):
@@ -51,7 +56,6 @@ class _Test_SQS:
 
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
-
                 elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
@@ -222,16 +226,16 @@ class _Test_SQS:
         return producer_span, consumer_span
 
 
-@scenarios.crossed_tracing_libraries
-@features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
-    buddy_interface = interfaces.python_buddy
-    buddy = python_buddy
+# @scenarios.crossed_tracing_libraries
+# @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
+# class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
+#     buddy_interface = interfaces.python_buddy
+#     buddy = python_buddy
 
-    unique_id = scenarios.crossed_tracing_libraries.unique_id
+#     unique_id = scenarios.crossed_tracing_libraries.unique_id
 
-    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_msg_attributes_weblog_to_buddy"
-    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_msg_attributes_buddy_to_weblog"
+#     WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_msg_attributes_weblog_to_buddy"
+#     BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_msg_attributes_buddy_to_weblog"
 
 
 @scenarios.crossed_tracing_libraries

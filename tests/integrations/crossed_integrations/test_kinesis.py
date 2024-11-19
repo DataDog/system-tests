@@ -19,8 +19,13 @@ class _Test_Kinesis:
     def get_span(cls, interface, span_kind, stream, operation):
         logger.debug(f"Trying to find traces with span kind: {span_kind} and stream: {stream} in {interface}")
 
+        traces = []
         for data, trace in interface.get_traces():
-            for span in trace:
+            traces.append(trace)
+
+        # reverse the list of traces to get the last trace (since we may have had several AWS consume calls to get our desired message)
+        for trace in reversed(traces):
+            for span in reversed(trace):
                 if not span.get("meta"):
                     continue
 
@@ -82,9 +87,18 @@ class _Test_Kinesis:
         self.production_response = weblog.get(
             "/kinesis/produce", params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message}, timeout=120
         )
+        data = json.loads(self.production_response.text)
+        shard_id = data.get("ShardId", data.get("shardId", "shardId-000000000000"))
+        sequence_number = data.get("sequenceNumber", data.get("SequenceNumber", None))
         self.consume_response = self.buddy.get(
             "/kinesis/consume",
-            params={"stream": self.WEBLOG_TO_BUDDY_STREAM, "message": message, "timeout": 60},
+            params={
+                "stream": self.WEBLOG_TO_BUDDY_STREAM,
+                "message": message,
+                "timeout": 60,
+                "shardId": shard_id,
+                "sequenceNumber": sequence_number,
+            },
             timeout=61,
         )
 
@@ -142,9 +156,16 @@ class _Test_Kinesis:
         self.production_response = self.buddy.get(
             "/kinesis/produce", params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message}, timeout=500
         )
+        data = json.loads(self.production_response.text)
         self.consume_response = weblog.get(
             "/kinesis/consume",
-            params={"stream": self.BUDDY_TO_WEBLOG_STREAM, "message": message, "timeout": 60},
+            params={
+                "stream": self.BUDDY_TO_WEBLOG_STREAM,
+                "message": message,
+                "timeout": 60,
+                "shardId": data["ShardId"],
+                "sequenceNumber": data["SequenceNumber"],
+            },
             timeout=61,
         )
 

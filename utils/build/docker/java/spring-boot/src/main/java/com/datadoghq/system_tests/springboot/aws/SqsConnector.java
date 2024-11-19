@@ -56,13 +56,12 @@ public class SqsConnector {
                     .build();
                 sqsClient.createQueue(createQueueRequest);
             }
-
-            GetQueueUrlResponse getQueueUrlResponse = sqsClient.getQueueUrl(GetQueueUrlRequest.builder().queueName(queue).build());
-            return getQueueUrlResponse.queueUrl();
         }  catch (SqsException e) {
             System.err.println(e.awsErrorDetails().errorMessage());
-            throw new Exception("Failed to create SQS queue with following error: " + e.getLocalizedMessage());
+            // throw new Exception("Failed to create SQS queue with following error: " + e.getLocalizedMessage());
         }
+        GetQueueUrlResponse getQueueUrlResponse = sqsClient.getQueueUrl(GetQueueUrlRequest.builder().queueName(queue).build());
+        return getQueueUrlResponse.queueUrl();
     }
 
     public Thread startProducingMessage(String message) throws Exception {

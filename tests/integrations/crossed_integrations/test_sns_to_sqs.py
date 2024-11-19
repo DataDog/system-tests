@@ -22,7 +22,12 @@ class _Test_SNS:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
+        traces = []
         for data, trace in interface.get_traces():
+            traces.append(trace)
+
+        # reverse the list of traces to get the last trace (since we may have had several AWS consume calls to get our desired message)
+        for trace in reversed(traces):
             # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
             for span in reversed(trace):
