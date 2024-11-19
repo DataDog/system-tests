@@ -218,7 +218,7 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
-    @irrelevant(context.library >= "nodejs@5.0.0", reason="Default value was switched to datadog,tracecontext")
+    @irrelevant(context.library >= "nodejs@4.0.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
