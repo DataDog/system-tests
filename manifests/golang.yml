@@ -90,6 +90,8 @@ tests/:
         test_ssrf.py:
           TestSSRF: missing_feature
           TestSSRF_StackTrace: missing_feature
+        test_template_injection.py:
+          TestTemplateInjection: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
           Test_TrustBoundaryViolation_StackTrace: missing_feature

@@ -257,6 +257,8 @@ tests/:
             ratpack: missing_feature (No endpoint implemented)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx4: missing_feature (No endpoint implemented)
+        test_template_injection.py:
+          TestTemplateInjection: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation:
             '*': v1.22.0
