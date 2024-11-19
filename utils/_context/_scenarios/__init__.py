@@ -105,6 +105,15 @@ class scenarios:
         doc="Test W3C trace style",
     )
 
+    trace_propagation_style_w3c_datadog_b3 = EndToEndScenario(
+        "TRACE_PROPAGATION_STYLE_W3C_DATADOG_B3",
+        weblog_env={
+            "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,datadog,b3multi",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
+        },
+        doc="Test compound propagation trace style",
+    )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
