@@ -176,7 +176,7 @@ class _Base_Debugger_Test:
                 errors.append(f"ID {full_id} not found in state")
             else:
                 apply_state = self.rc_state[full_id]["apply_state"]
-                logger.debug(f"RC stace for {full_id} is {apply_state}")
+                logger.debug(f"RC state for {full_id} is {apply_state}")
 
                 if apply_state == ApplyState.ERROR:
                     errors.append(f"State for {full_id} is error: {self.rc_state[full_id]['apply_error']}")

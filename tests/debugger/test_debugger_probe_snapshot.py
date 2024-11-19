@@ -9,8 +9,8 @@ from utils import scenarios, interfaces, weblog, features, remote_config as rc, 
 
 @features.debugger
 @scenarios.debugger_method_probes_snapshot
-class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
-    def setup_method_probe_snaphots(self):
+class Test_Debugger_Method_Probe_Snapshots(base._Base_Debugger_Test):
+    def setup_method_probe_snapshots(self):
         probes = base.read_probes("probe_snapshot_method")
         self.expected_probe_ids = base.extract_probe_ids(probes)
         self.rc_state = rc.send_debugger_command(probes, version=1)
@@ -23,7 +23,7 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
         ]
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
-    def test_method_probe_snaphots(self):
+    def test_method_probe_snapshots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()
