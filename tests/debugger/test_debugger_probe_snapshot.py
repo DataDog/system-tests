@@ -70,6 +70,28 @@ class Test_Debugger_Snapshot_Probe_Rate_Limiting(base._Base_Debugger_Test):
         assert snapshot_count == 1
 
 @features.debugger
+@scenarios.debugger_method_probes_snapshot
+class Test_Debugger_Snapshot_Probes_Same_Location(base._Base_Debugger_Test):
+    def setup_snapshot_probes_same_location(self):
+        probes = base.read_probes("probe_snapshot_same_location")
+        self.expected_probe_ids = base.extract_probe_ids(probes)
+        self.rc_state = rc.send_debugger_command(probes, version=1)
+
+        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
+        self.weblog_responses = [weblog.get("/debugger/log")]
+
+    def test_snapshot_probes_same_location(self):
+        self.assert_all_states_not_error()
+        self.assert_all_probes_are_installed()
+        self.assert_all_weblog_responses_ok()
+
+        expected_snapshots = [
+            "log170aa-acda-4453-9111-1478a6sameloc1",
+            "log170aa-acda-4453-9111-1478a6sameloc2",
+        ]
+        _validate_snapshots(expected_snapshots)
+
+@features.debugger
 @scenarios.debugger_line_probes_snapshot
 class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
     def setup_line_probe_snaphots(self):

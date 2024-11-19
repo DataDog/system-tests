@@ -1,0 +1,26 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "log170aa-acda-4453-9111-1478a6sameloc1",
+        "captureSnapshot": true,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "LogProbe",
+            "sourceFile": null
+        },
+        "evaluateAt": "EXIT"
+    },
+    {
+        "language": "",
+        "type": "",
+        "id": "log170aa-acda-4453-9111-1478a6sameloc2",
+        "captureSnapshot": true,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "LogProbe",
+            "sourceFile": null
+        },
+        "evaluateAt": "EXIT"
+    }
+]
