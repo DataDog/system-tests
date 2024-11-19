@@ -26,7 +26,7 @@ class Test_Tracer:
                 "operation", service="my-webserver", resource="/endpoint", typestr="web"
             ) as parent:
                 parent.set_metric("number", 10)
-                with test_library.start_span("operation.child", parent_id=str(parent.span_id)) as child:
+                with test_library.start_span("operation.child", parent_id=parent.span_id) as child:
                     child.set_meta("key", "val")
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -60,7 +60,7 @@ class Test_TracerSCITagging:
         """
         with test_library:
             with test_library.start_span("operation") as parent:
-                with test_library.start_span("operation.child", parent_id=str(parent.span_id)):
+                with test_library.start_span("operation.child", parent_id=parent.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -86,7 +86,7 @@ class Test_TracerSCITagging:
         """
         with test_library:
             with test_library.start_span("operation") as parent:
-                with test_library.start_span("operation.child", parent_id=str(parent.span_id)):
+                with test_library.start_span("operation.child", parent_id=parent.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -146,7 +146,7 @@ class Test_TracerSCITagging:
         """
         with test_library:
             with test_library.start_span("operation") as parent:
-                with test_library.start_span("operation.child", parent_id=str(parent.span_id)):
+                with test_library.start_span("operation.child", parent_id=parent.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)

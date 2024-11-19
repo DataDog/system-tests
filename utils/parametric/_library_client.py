@@ -449,12 +449,12 @@ class APMLibrary:
         name: str,
         service: Optional[str] = None,
         resource: Optional[str] = None,
-        parent_id: Optional[str] = None,
+        parent_id: Optional[int] = None,
         typestr: Optional[str] = None,
         tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
-            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags,
+            name=name, service=service, resource=resource, parent_id=str(parent_id), typestr=typestr, tags=tags,
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
@@ -486,12 +486,6 @@ class APMLibrary:
         )
         span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
-
-        # this method does not return anything
-        # return {
-        #     "span_id": resp["span_id"],
-        #     "trace_id": resp["trace_id"],
-        # }
 
     def flush(self) -> bool:
         return self._client.trace_flush()
