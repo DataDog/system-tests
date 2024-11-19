@@ -496,8 +496,8 @@ public class App {
         KinesisConnector kinesis = new KinesisConnector(stream);
         try {
             PutRecordResponse data = kinesis.produceMessageWithoutNewThread(message);
-            String jsonResponse = String.format("{\"shardId\":\"%s\", \"sequenceNumber\":\"%s\"}", 
-                data.shardId(), 
+            String jsonResponse = String.format("{\"shardId\":\"%s\", \"sequenceNumber\":\"%s\"}",
+                data.shardId(),
                 data.sequenceNumber()
             );
             return new ResponseEntity<>(jsonResponse, HttpStatus.OK);
