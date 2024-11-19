@@ -195,12 +195,14 @@ onboarding_ruby:
   stage: ruby_tracer
   allow_failure: true
   dependencies: []
+  timeout: 90 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
       when: always
     - when: manual
   variables:
     TEST_LIBRARY: "ruby"
+    SKIP_AMI_CACHE: "true"
   parallel:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
@@ -220,7 +222,7 @@ onboarding_ruby:
         #  DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_php:
   extends: .base_job_onboarding_system_tests
