@@ -53,6 +53,9 @@ on:
       dockerssi_weblogs:
         description: ""
         value: ${{ jobs.main.outputs.dockerssi_weblogs }}
+      externalprocessing_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
       _experimental_parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs._experimental_parametric_job_matrix }}
@@ -72,6 +75,7 @@ jobs:
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
       dockerssi_scenarios: ${{ steps.main.outputs.dockerssi_scenarios }}
       dockerssi_weblogs: ${{ steps.main.outputs.dockerssi_weblogs }}
+      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
     steps:
     - name: Checkout
