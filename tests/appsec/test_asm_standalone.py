@@ -2,8 +2,7 @@ import json
 
 from requests.structures import CaseInsensitiveDict
 
-from tests.parametric.test_telemetry import Test_TelemetrySCAEnvVar
-from tests.test_telemetry import Test_Telemetry
+from utils.telemetry_utils import TelemetryUtils
 from utils import context, weblog, interfaces, scenarios, features, rfc, bug, flaky
 
 
@@ -688,7 +687,7 @@ class Test_SCAStandalone_Telemetry:
 
         assert configuration_by_name
 
-        DD_APPSEC_SCA_ENABLED = Test_TelemetrySCAEnvVar.get_dd_appsec_sca_enabled_str(context.library)
+        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
         assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
@@ -702,7 +701,7 @@ class Test_SCAStandalone_Telemetry:
         weblog.get("/load_dependency")
 
     def test_app_dependencies_loaded(self):
-        seen_loaded_dependencies = Test_Telemetry._test_loaded_dependencies[context.library.library]
+        seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.library)
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]

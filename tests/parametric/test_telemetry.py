@@ -9,6 +9,7 @@ import uuid
 
 import pytest
 
+from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, missing_feature, bug
 
 
@@ -542,17 +543,6 @@ class Test_TelemetrySCAEnvVar:
 
         return None
 
-    @staticmethod
-    def get_dd_appsec_sca_enabled_str(library):
-        DD_APPSEC_SCA_ENABLED = "DD_APPSEC_SCA_ENABLED"
-        if library == "java":
-            DD_APPSEC_SCA_ENABLED = "appsec_sca_enabled"
-        elif library == "nodejs":
-            DD_APPSEC_SCA_ENABLED = "appsec.sca.enabled"
-        elif library in ("php", "ruby"):
-            DD_APPSEC_SCA_ENABLED = "appsec.sca_enabled"
-        return DD_APPSEC_SCA_ENABLED
-
     @pytest.mark.parametrize(
         "library_env, specific_libraries_support, outcome_value",
         [
@@ -575,7 +565,7 @@ class Test_TelemetrySCAEnvVar:
 
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
 
-        DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
+        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
         assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
@@ -592,7 +582,7 @@ class Test_TelemetrySCAEnvVar:
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
 
-        DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
+        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         if context.library in ("java", "nodejs", "python"):
             cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)

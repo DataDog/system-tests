@@ -53,13 +53,6 @@ class Test_Telemetry:
     library_requests = {}
     agent_requests = {}
 
-    _test_loaded_dependencies = {
-        "dotnet": {"NodaTime": False},
-        "nodejs": {"glob": False},
-        "java": {"httpclient": False},
-        "ruby": {"bundler": False},
-    }
-
     def validate_library_telemetry_data(self, validator, success_by_default=False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
@@ -387,6 +380,13 @@ class Test_Telemetry:
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
+        test_loaded_dependencies = {
+            "dotnet": {"NodaTime": False},
+            "nodejs": {"glob": False},
+            "java": {"httpclient": False},
+            "ruby": {"bundler": False},
+        }
+
         test_defined_dependencies = {
             "dotnet": {},
             "nodejs": {
@@ -425,7 +425,7 @@ class Test_Telemetry:
             "ruby": {},
         }
 
-        seen_loaded_dependencies = Test_Telemetry._test_loaded_dependencies[context.library.library]
+        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
         seen_defined_dependencies = test_defined_dependencies[context.library.library]
 
         for data in interfaces.library.get_telemetry_data():
