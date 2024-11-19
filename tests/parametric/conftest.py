@@ -11,7 +11,7 @@ import hashlib
 from typing import Dict, Generator, List, TextIO, TypedDict, Optional, Any
 import urllib.parse
 
-import requests
+import requests  # type: ignore
 import pytest
 
 from utils.parametric.spec import remoteconfig

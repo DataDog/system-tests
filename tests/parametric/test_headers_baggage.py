@@ -1,6 +1,6 @@
 from operator import le
 from py import test
-from requests import head
+from requests import head  # type: ignore
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers

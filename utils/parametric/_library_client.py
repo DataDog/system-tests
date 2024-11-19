@@ -7,7 +7,7 @@ from typing import Any, Generator, List, Optional, Tuple, TypedDict, Union, Dict
 from docker.models.containers import Container
 import pytest
 from _pytest.outcomes import Failed
-import requests
+import requests  # type: ignore
 from utils import context
 
 from utils.dd_constants import SpanKind, StatusCode
