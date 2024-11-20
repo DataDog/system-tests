@@ -139,7 +139,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         self._validate_pii_type_redaction(redacted_types, line_probe=line_probe)
 
     def setup_pii_redaction_full(self):
-        self._setup('pii')
+        self._setup("pii")
 
     @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
     @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
@@ -147,12 +147,12 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     # Ruby requires @irrelevant rather than @missing_feature to skip setup
     # for this test (which will interfere with the line probe test).
-    @irrelevant(context.library == 'ruby', reason='Local variable capture not implemented for method probes')
+    @irrelevant(context.library == "ruby", reason="Local variable capture not implemented for method probes")
     def test_pii_redaction_full(self):
         self._test(REDACTED_KEYS, REDACTED_TYPES)
 
     def setup_pii_redaction_java_1_33(self):
-        self._setup('pii')
+        self._setup("pii")
 
     @irrelevant(context.library != "java@1.33", reason="not relevant for other version")
     def test_pii_redaction_java_1_33(self):
@@ -173,7 +173,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         )
 
     def setup_pii_redaction_dotnet_2_50(self):
-        self._setup('pii')
+        self._setup("pii")
 
     @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
     @bug(
@@ -183,9 +183,9 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
         self._test(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)
 
     def setup_pii_redaction_line(self):
-        self._setup('pii_line')
-        
-    @irrelevant(context.library != 'ruby', reason='Ruby needs to use line probes to capture variables')
+        self._setup("pii_line")
+
+    @irrelevant(context.library != "ruby", reason="Ruby needs to use line probes to capture variables")
     def test_pii_redaction_line(self):
         self._test(REDACTED_KEYS, REDACTED_TYPES, True)
 
@@ -207,10 +207,10 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
                                 fields = snapshot["captures"]["lines"]["33"]["locals"]["pii"]["fields"]
                             else:
                                 fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
-                                
+
                             # Ruby prefixes instance variable names with @
-                            if context.library == 'ruby':
-                                check_field_name = '@' + field_name
+                            if context.library == "ruby":
+                                check_field_name = "@" + field_name
                             else:
                                 check_field_name = field_name
 
