@@ -163,17 +163,12 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     library.wait_for(all_payload_sent, timeout=timeout)
 
 
-def build_debugger_command(probes: list, version: int):
-    def _json_to_base64(json_object):
-        json_string = json.dumps(json_object).encode("utf-8")
-        return base64.b64encode(json_string).decode("utf-8")
+def _create_base_rcm():
+    return {"targets": "", "target_files": [], "client_configs": []}
 
-    def _sha256(value):
-        return hashlib.sha256(base64.b64decode(value)).hexdigest()
 
-    rcm = {"targets": "", "target_files": [], "client_configs": []}
-
-    signed = {
+def _create_base_signed(version: int):
+    return {
         "signed": {
             "_type": "targets",
             "custom": {"opaque_backend_state": "eyJmb28iOiAiYmFyIn0="},  # where does this come from ?
@@ -192,6 +187,11 @@ def build_debugger_command(probes: list, version: int):
         ],
     }
 
+
+def build_debugger_command(probes: list | None, version: int):
+    rcm = _create_base_rcm()
+    signed = _create_base_signed(version)
+
     if probes is None:
         rcm["targets"] = _json_to_base64(signed)
     else:
@@ -201,7 +201,7 @@ def build_debugger_command(probes: list, version: int):
 
             probe_64 = _json_to_base64(probe)
             target["hashes"]["sha256"] = _sha256(probe_64)
-            target["length"] = len(json.dumps(probe).encode("utf-8"))
+            target["length"] = len(base64.b64decode(probe_64))
 
             probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
             path = "datadog/2/LIVE_DEBUGGING/" + probe_path + "_" + probe["id"] + "/config"
@@ -222,9 +222,46 @@ def send_debugger_command(probes: list, version: int) -> dict:
     return send_state(raw_payload)
 
 
+def build_symdb_command():
+    rcm = _create_base_rcm()
+    signed = _create_base_signed(version=1)
+
+    target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
+    target_file = {"path": "", "raw": ""}
+
+    payload = {"upload_symbols": True}
+    payload_64 = _json_to_base64(payload)
+    payload_length = len(base64.b64decode(payload_64))
+
+    path = "datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config"
+
+    target["hashes"]["sha256"] = _sha256(payload_64)
+    target["length"] = payload_length
+
+    signed["signed"]["targets"][path] = target
+
+    target_file["path"] = path
+    target_file["raw"] = payload_64
+
+    rcm["target_files"].append(target_file)
+    rcm["client_configs"].append(path)
+    rcm["targets"] = _json_to_base64(signed)
+
+    return rcm
+
+
+def send_symdb_command() -> dict:
+    raw_payload = build_symdb_command()
+    return send_state(raw_payload)
+
+
 def _json_to_base64(json_object):
     json_string = json.dumps(json_object, indent=2).encode("utf-8")
     return base64.b64encode(json_string).decode("utf-8")
+
+
+def _sha256(value):
+    return hashlib.sha256(base64.b64decode(value)).hexdigest()
 
 
 class ClientConfig:
