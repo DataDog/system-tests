@@ -151,7 +151,7 @@ onboarding_python:
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults,test-app-python-27]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
   script:
