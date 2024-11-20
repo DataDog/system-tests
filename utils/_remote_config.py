@@ -259,6 +259,64 @@ def send_debugger_command(probes: list, version: int) -> dict:
     raw_payload = build_debugger_command(probes, version)
     return send_state(raw_payload)
 
+def build_symdb_command():
+
+    def _json_to_base64(json_object):
+        json_string = json.dumps(json_object).encode("utf-8")
+        base64_string = base64.b64encode(json_string).decode("utf-8")
+        return base64_string
+
+    def _sha256(value):
+        return hashlib.sha256(base64.b64decode(value)).hexdigest()
+
+    rcm = {"targets": "", "target_files": [], "client_configs": []}
+
+    signed = {
+        "signed": {
+            "_type": "targets",
+            "custom": {"opaque_backend_state": "eyJmb28iOiAiYmFyIn0="},  # where does this come from ?
+            "expires": "3000-01-01T00:00:00Z",
+            "spec_version": "1.0",
+            "targets": {},
+            "version": 1,
+        },
+        "signatures": [
+            {
+                # where does this come from ?
+                "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
+                "sig": "e2279a554d52503f5bd68e0a9910c7e90c9bb81744fe9c8824ea3737b279d9e6"
+                "9b3ce5f4b463c402ebe34964fb7a69625eb0e91d3ddbd392cc8b3210373d9b0f",
+            }
+        ],
+    }
+
+    target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
+    target_file = {"path": "", "raw": ""}
+
+    payload = {"upload_symbols": True}
+    payload_64 = _json_to_base64(payload)
+
+    path = "datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config"
+
+    target["hashes"]["sha256"] = _sha256(payload_64)
+    target["length"] = len(json.dumps(payload).encode("utf-8"))
+
+    signed["signed"]["targets"][path] = target
+
+    target_file["path"] = path
+    target_file["raw"] = payload_64
+
+    rcm["target_files"].append(target_file)
+    rcm["client_configs"].append(path)
+    rcm["targets"] = _json_to_base64(signed)
+
+    return rcm
+
+
+def send_symdb_command() -> dict:
+    raw_payload = build_symdb_command()
+    return send_state(raw_payload)
+
 
 def _json_to_base64(json_object):
     json_string = json.dumps(json_object, indent=2).encode("utf-8")

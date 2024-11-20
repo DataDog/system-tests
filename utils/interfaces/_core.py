@@ -131,6 +131,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             path_filters = [re.compile(path) for path in path_filters]
 
         for data in self._data_list:
+            print(data["path"])
             if path_filters is not None and all((path.fullmatch(data["path"]) is None for path in path_filters)):
                 continue
 

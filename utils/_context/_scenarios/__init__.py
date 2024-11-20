@@ -604,6 +604,20 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_symdb_upload = EndToEndScenario(
+        "DEBUGGER_SYMDB_UPLOAD",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+            "DD_THIRD_PARTY_EXCLUDES": "org.springframework.samples.petclinic",
+        },
+        doc="Test scenario for checking if symbols are uploaded.",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
     fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
