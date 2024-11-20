@@ -196,6 +196,7 @@ onboarding_dotnet:
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-unsupported]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
       - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
