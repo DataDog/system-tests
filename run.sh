@@ -119,9 +119,7 @@ function lookup_scenario_group() {
 
     python+=(utils/scripts/get-scenarios-from-group.py)
 
-    echo "${python[*]}" 1>&2
-
-    cat < scenario_groups.yml | "${python[@]}" "${group}"
+    PYTHONPATH=. ${python[@]} ${group}
 }
 
 function upcase() {
