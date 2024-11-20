@@ -76,14 +76,14 @@ class Test_Headers_Baggage:
 
     def test_baggage_inject_header_D004(self, test_library):
         """testing baggage header injection, proper concatenation of key value pairs, and encoding"""
-        with test_library.start_span(name="test_baggage_set_D004") as span:
+        with test_library.dd_start_span(name="test_baggage_set_D004") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
             span.set_baggage("serverNode", "DF 28")
             span.set_baggage('",;\\()/:<=>?@[]{}', '",;\\')
 
-            headers = test_library.inject_headers(span.span_id)
+            headers = test_library.dd_inject_headers(span.span_id)
 
         assert any("baggage" in header for header in headers)
         baggage_list = next((header for header in headers if header[0] == "baggage"), [])
@@ -119,7 +119,7 @@ class Test_Headers_Baggage:
             }
 
     def test_baggage_set_D006(self, test_library):
-        with test_library.start_span(name="test_baggage_set_D006") as span:
+        with test_library.dd_start_span(name="test_baggage_set_D006") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
@@ -133,11 +133,11 @@ class Test_Headers_Baggage:
     @disable_baggage()
     def test_baggage_set_disabled_D007(self, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled."""
-        with test_library.start_span(name="test_baggage_set_disabled_D007") as span:
+        with test_library.dd_start_span(name="test_baggage_set_disabled_D007") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
 
-            headers = test_library.inject_headers(span.span_id)
+            headers = test_library.dd_inject_headers(span.span_id)
         assert not any("baggage" in item for item in headers)
 
     def test_baggage_get_D008(self, test_library):
@@ -165,7 +165,7 @@ class Test_Headers_Baggage:
 
     def test_baggage_remove_D010(self, test_library):
         """testing baggage API remove_baggage"""
-        with test_library.start_span(name="test_baggage_remove_D010") as span:
+        with test_library.dd_start_span(name="test_baggage_remove_D010") as span:
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
             span.set_baggage("serverNode", "DF 28")
@@ -177,7 +177,7 @@ class Test_Headers_Baggage:
 
     def test_baggage_remove_all_D011(self, test_library):
         """testing baggage API remove_all_baggage"""
-        with test_library.start_span(name="test_baggage_remove_all_D011") as span:
+        with test_library.dd_start_span(name="test_baggage_remove_all_D011") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
             span.remove_all_baggage()
@@ -216,18 +216,18 @@ class Test_Headers_Baggage:
     def test_baggageheader_maxitems_inject_D016(self, test_library):
         """Ensure that baggage headers are not injected when the number of baggage items exceeds the maximum number of items."""
         max_items = 64
-        with test_library.start_span(name="test_baggageheader_maxitems_inject_D016") as span:
+        with test_library.dd_start_span(name="test_baggageheader_maxitems_inject_D016") as span:
             for i in range(max_items + 1):
                 span.set_baggage(f"key{i}", f"value{i}")
 
-            headers = test_library.inject_headers(span.span_id)
+            headers = test_library.dd_inject_headers(span.span_id)
             assert not any("baggage" in item for item in headers)
 
     def test_baggageheader_maxbytes_inject_D017(self, test_library):
         """Ensure that baggage headers are not injected when the total byte size of the baggage exceeds the maximum size."""
         max_bytes = 8192
-        with test_library.start_span(name="test_baggageheader_maxbytes_inject_D017",) as span:
+        with test_library.dd_start_span(name="test_baggageheader_maxbytes_inject_D017",) as span:
             span.set_baggage("foo", "a" * (max_bytes))
 
-        headers = test_library.inject_headers(span.span_id)
+        headers = test_library.dd_inject_headers(span.span_id)
         assert not any("baggage" in item for item in headers)

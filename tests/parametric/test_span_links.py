@@ -21,10 +21,10 @@ class Test_Span_Links:
         given two valid span (or SpanContext) objects" as specified in the RFC.
         """
         with test_library:
-            with test_library.start_span("first") as s1:
+            with test_library.dd_start_span("first") as s1:
                 pass
 
-            with test_library.start_span("second") as s2:
+            with test_library.dd_start_span("second") as s2:
                 s2.add_link(s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})
 
         traces = test_agent.wait_for_num_traces(2)
@@ -57,10 +57,10 @@ class Test_Span_Links:
         """
         with test_library:
             # create a span that will be sampled
-            with test_library.start_span("first") as s1:
+            with test_library.dd_start_span("first") as s1:
                 pass
 
-            with test_library.start_span("second") as s2:
+            with test_library.dd_start_span("second") as s2:
                 s2.add_link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})
 
         traces = test_agent.wait_for_num_traces(2)
@@ -93,8 +93,8 @@ class Test_Span_Links:
         representation in span links.
         """
         with test_library:
-            with test_library.start_span("root") as rs:
-                parent_id = test_library.extract_headers(
+            with test_library.dd_start_span("root") as rs:
+                parent_id = test_library.dd_extract_headers(
                     http_headers=[
                         ["x-datadog-trace-id", "1234567890"],
                         ["x-datadog-parent-id", "9876543210"],
@@ -127,8 +127,8 @@ class Test_Span_Links:
         This mostly tests that the injected tracestate and flags are accurate.
         """
         with test_library:
-            with test_library.start_span("root") as rs:
-                parent_id = test_library.extract_headers(
+            with test_library.dd_start_span("root") as rs:
+                parent_id = test_library.dd_extract_headers(
                     http_headers=[
                         ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                         ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
@@ -167,10 +167,10 @@ class Test_Span_Links:
         """Test adding a span link from a span to another span.
         """
         with test_library:
-            with test_library.start_span("first") as s1:
-                with test_library.start_span("second", parent_id=s1.span_id) as s2:
+            with test_library.dd_start_span("first") as s1:
+                with test_library.dd_start_span("second", parent_id=s1.span_id) as s2:
                     pass
-            with test_library.start_span("third") as s3:
+            with test_library.dd_start_span("third") as s3:
                 s3.add_link(s1.span_id)
                 s3.add_link(s2.span_id, attributes={"bools": [True, False], "nested": [1, 2]})
 
@@ -216,8 +216,8 @@ class Test_Span_Links:
         downstream spans.
         """
         with test_library:
-            with test_library.start_span("link_w_manual_keep") as s1:
-                parent_id = test_library.extract_headers(
+            with test_library.dd_start_span("link_w_manual_keep") as s1:
+                parent_id = test_library.dd_extract_headers(
                     http_headers=[
                         ["x-datadog-trace-id", "666"],
                         ["x-datadog-parent-id", "777"],
@@ -227,8 +227,8 @@ class Test_Span_Links:
                 )
                 s1.add_link(parent_id=parent_id)
 
-            with test_library.start_span("link_w_manual_drop") as s2:
-                parent_id = test_library.extract_headers(
+            with test_library.dd_start_span("link_w_manual_drop") as s2:
+                parent_id = test_library.dd_extract_headers(
                     http_headers=[
                         ["traceparent", "00-66645678901234567890123456789012-0000000000000011-01"],
                         ["tracestate", "foo=1,dd=t.dm:-3;s:-1,bar=baz"],
@@ -236,10 +236,10 @@ class Test_Span_Links:
                 )
                 s2.add_link(parent_id=parent_id)
 
-            with test_library.start_span("auto_dropped_span") as ads:
+            with test_library.dd_start_span("auto_dropped_span") as ads:
                 ads.set_meta(AUTO_DROP_KEY, "")
                 # We must add a link to linked_to_auto_dropped_span before auto_dropped_span ends
-                with test_library.start_span("linked_to_auto_dropped_span") as s3:
+                with test_library.dd_start_span("linked_to_auto_dropped_span") as s3:
                     s3.add_link(parent_id=ads.span_id)
 
         traces = test_agent.wait_for_num_traces(4)
