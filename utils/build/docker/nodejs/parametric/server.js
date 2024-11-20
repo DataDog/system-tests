@@ -166,9 +166,13 @@ app.post('/trace/otel/start_span', (req, res) => {
       return {context: spanContext, attributes: link.attributes}
     });
 
+    let kind = null
+    if (request.kind != null) {
+      kind = request.kind - 1
+    }
     const span = otelTracer.startSpan(request.name, {
         type: request.type,
-        kind: request.kind,
+        kind: kind,
         attributes: request.attributes,
         links,
         startTime: microLongToHrTime(request.timestamp)
