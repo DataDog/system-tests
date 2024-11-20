@@ -119,9 +119,7 @@ function lookup_scenario_group() {
 
     python+=(utils/scripts/get-scenarios-from-group.py)
 
-    echo "${python[*]}" 1>&2
-
-    cat < scenario_groups.yml | "${python[@]}" "${group}"
+    PYTHONPATH=. "${python[@]}" "${group}"
 }
 
 function upcase() {
@@ -142,7 +140,7 @@ function activate_venv() {
 }
 
 function network_name() {
-    perl -ne '/_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
+    perl -ne '/_DEFAULT_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
 }
 
 function ensure_network() {

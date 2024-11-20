@@ -393,8 +393,6 @@ tests/:
       Test_Otel_Span_Methods: v1.17.0
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
-    test_otel_span_with_w3c.py:
-      Test_Otel_Span_With_W3c: v1.17.0
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource endpoint is not supported)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)

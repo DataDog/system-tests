@@ -215,23 +215,8 @@ $router->addRoute('POST', '/trace/span/add_event', new ClosureRequestHandler(fun
 $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
     $span = $spans[arg($req, 'span_id')];
     $parent_id = arg($req, 'parent_id');
-    $httpHeaders = arg($req, 'http_headers');
-    if (isset($spans[$parent_id]) || isset($closed_spans[$parent_id])) {
-        $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
-        $link->attributes += arg($req, "attributes") ?? [];
-    } elseif ($httpHeaders) {
-        $httpHeaders = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $httpHeaders));
-        $callback = function ($headername) use ($httpHeaders) {
-            return $httpHeaders[$headername] ?? null;
-        };
-        $link = \DDTrace\SpanLink::fromHeaders($callback);
-        $link->attributes += arg($req, "attributes") ?? [];
-    } else {
-        $link = new \DDTrace\SpanLink();
-        $link->spanId = arg($req, 'parent_id');
-        $link->attributes = arg($req, 'attributes') ?? [];
-    }
-
+    $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
+    $link->attributes = ($link->attributes ?? []) + (arg($req, "attributes") ?? []);
     $span->links[] = $link;
     return jsonResponse([]);
 }));
@@ -286,7 +271,6 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
     $timestamp = arg($req, 'timestamp');
     $spanKind = arg($req, 'span_kind');
     $parentId = arg($req, 'parent_id');
-    $httpHeaders = arg($req, 'http_headers');
     $attributes = arg($req, 'attributes');
 
     $tracer = (new TracerProvider())->getTracer('OpenTelemetry.PHPTestTracer');
@@ -324,39 +308,10 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
     if ($span_links = arg($req, 'links')) {
         foreach ($span_links as $span_link) {
             $span_link_attributes = isset($span_link["attributes"]) ? $span_link["attributes"] : [];
-            if ($span_link_parent_id = $span_link["parent_id"]) {
-                $span_context = $otelSpans[$span_link_parent_id]->getContext();
-                $spanBuilder->addLink($span_context, $span_link_attributes);
-            } else if ($span_link_http_headers = $span_link["http_headers"]) {
-                $carrier = [];
-                foreach ($span_link_http_headers as $span_link_http_header) {
-                    $carrier[$span_link_http_header[0]] = $span_link_http_header[1];
-                }
-
-                $callback = function ($headername) use ($carrier) {
-                    return $carrier[$headername] ?? null;
-                };
-                $headers_link = \DDTrace\SpanLink::fromHeaders($callback);
-
-                $linkSpanContext = \OpenTelemetry\API\Trace\SpanContext::create(
-                    $headers_link->traceId,
-                    $headers_link->spanId,
-                    \OpenTelemetry\API\Trace\TraceFlags::DEFAULT, // trace flags are not currently embedded into the native span link
-                    new \OpenTelemetry\API\Trace\TraceState($headers_link->traceState ?? null),
-                );
-
-                $spanBuilder->addLink($linkSpanContext, $span_link_attributes);
-            }
+            $span_link_parent_id = $span_link["parent_id"];
+            $span_context = $otelSpans[$span_link_parent_id]->getContext();
+            $spanBuilder->addLink($span_context, $span_link_attributes);
         }
-    }
-
-    if ($httpHeaders) {
-        $carrier = [];
-        foreach ($httpHeaders as $headers) {
-            $carrier[$headers[0]] = $headers[1];
-        }
-        $remoteContext = TraceContextPropagator::getInstance()->extract($carrier);
-        $spanBuilder->setParent($remoteContext);
     }
 
     if ($attributes) {

@@ -1,9 +1,11 @@
 import json
 import time
+import os
 
 import docker
 from docker.errors import BuildError
 
+import utils.tools
 from utils import context, interfaces
 from utils._context.library_version import LibraryVersion, Version
 from utils._context.containers import (
@@ -28,8 +30,12 @@ class DockerSSIScenario(Scenario):
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
+        self.agent_port = utils.tools.get_free_port()
+        self.agent_host = "localhost"
+        self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
+
         self._required_containers: list[TestedContainer] = []
-        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(self._agent_container)
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
         self._tested_components = {}
@@ -106,7 +112,18 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             warmups.append(container.start)
+
+        if "GITLAB_CI" in os.environ:
+            warmups.append(self.fix_gitlab_network)
+
         return warmups
+
+    def fix_gitlab_network(self):
+        old_weblog_url = self.weblog_url
+        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip())
+        logger.debug(f"GITLAB_CI: Rewrote weblog url from {old_weblog_url} to {self.weblog_url}")
+        self.agent_host = self._agent_container.network_ip()
+        logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -146,7 +163,9 @@ class DockerSSIScenario(Scenario):
         attempts = 0
         while attempts < 30 and not data:
             attempts += 1
-            data = interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent")
+            data = interfaces.test_agent.collect_data(
+                f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
+            )
             time.sleep(5)
 
     @property
