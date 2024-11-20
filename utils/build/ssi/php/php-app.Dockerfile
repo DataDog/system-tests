@@ -3,6 +3,7 @@ ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 WORKDIR /app
 
-RUN printf "<?php\necho'hi';\n" > index.php
+RUN printf "<?php\necho 'hi';\n" > index.php
 
-CMD ["sh", "-c", "php -v ; php -S 0.0.0.0:18080"]
+# Without the sleep, the docker network has issues
+CMD ["sh", "-c", "sleep 2; php -S 0.0.0.0:18080"]
