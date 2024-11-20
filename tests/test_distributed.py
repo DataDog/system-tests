@@ -49,25 +49,28 @@ class Test_Span_Links_From_Conflicting_Contexts:
         self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=extract_headers)
 
     def test_span_links_from_conflicting_contexts(self):
-        trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
+        trace = [
+            span
+            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
+            if retrieve_span_links(span) is not None and span["trace_id"] == 2
+        ]
         print(trace)
         for span in trace:
             links = retrieve_span_links(span)
-            if links != None:
-                assert len(links) == 2
-                print(links)
-                link1 = links[0]
-                assert link1["trace_id"] == 2
-                assert link1["span_id"] == 10
-                assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "datadog"}
-                assert link1["trace_id_high"] == 2459565876494606882
+            assert len(links) == 2
+            print(links)
+            link1 = links[0]
+            assert link1["trace_id"] == 2
+            assert link1["span_id"] == 10
+            assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "datadog"}
+            assert link1["trace_id_high"] == 2459565876494606882
 
-                link2 = links[1]
-                assert link2["trace_id"] == 3
-                assert link2["span_id"] == 11744061942159299346
-                assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
-                assert link2["trace_id_high"] == 1229782938247303441
-                return
+            link2 = links[1]
+            assert link2["trace_id"] == 3
+            assert link2["span_id"] == 11744061942159299346
+            assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
+            assert link2["trace_id_high"] == 1229782938247303441
+            return
 
         # Return false if we get no span links
         assert False
