@@ -21,10 +21,13 @@ const app = express();
 app.use(express.json());
 
 
-function nanoLongToHrTime ({ high = 0, low = 0 } = {}) {
+function microLongToHrTime (timestamp) {
+  if (timestamp === null) {
+      return [0, 0]
+  }
   return [
-      high * 1e3 + Math.floor(low / 1e6),
-      (low % 1e6) * 1e3,
+      Math.floor(timestamp / 1000000),
+      (timestamp % 1000000) * 1000,
   ]
 }
 
@@ -168,7 +171,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         kind: request.kind,
         attributes: request.attributes,
         links,
-        startTime: nanoLongToHrTime(request.timestamp)
+        startTime: microLongToHrTime(request.timestamp)
     }, parentContext)
     const ctx = span._ddSpan.context()
     const span_id = ctx._spanId.toString(10)
@@ -190,7 +193,7 @@ app.post('/trace/otel/end_span', (req, res) => {
   const { id, timestamp } = req.body;
   const span_id = `${id}`
   const span = otelSpans[span_id]
-  span.end(nanoLongToHrTime(timestamp))
+  span.end(microLongToHrTime(timestamp))
   res.json({});
 });
 

@@ -50,7 +50,7 @@ Refer to the [edit docs](docs/edit/README.md).
 
 **[Complete documentation](https://github.com/DataDog/system-tests/blob/main/docs)**
 
-System-tests supports various scenarios for running tests; read more about the different kinds of tests that this repo covers in [scenarios/README.md](scenarios/README.md).
+System-tests supports various scenarios for running tests; read more about the different kinds of tests that this repo covers in [scenarios/README.md](docs/scenarios/README.md).
 
 Understand the test architecture at the [architectural overview](https://github.com/DataDog/system-tests/blob/main/docs/architecture/overview.md).
 

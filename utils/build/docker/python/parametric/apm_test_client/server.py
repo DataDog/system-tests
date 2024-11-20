@@ -501,7 +501,7 @@ def otel_record_exception(args: OtelRecordExceptionArgs) -> OtelRecordExceptionR
 
 class OtelEndSpanArgs(BaseModel):
     id: int
-    timestamp: int
+    timestamp: Optional[int]
 
 
 class OtelEndSpanReturn(BaseModel):
