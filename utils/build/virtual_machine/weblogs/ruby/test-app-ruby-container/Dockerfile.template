@@ -45,7 +45,6 @@ COPY lib_injection_rails_app /app
 # Install gems
 RUN bundle install
 
-# Set entrypoint
-ENTRYPOINT ["/bin/bash", "-c"]
+ENV DD_CRASHTRACKING_ENABLED true
 
-CMD ["bin/rails server -b 0.0.0.0 -p 18080"]
+ENTRYPOINT ["bin/rails", "server", "-b", "0.0.0.0", "-p", "18080"]

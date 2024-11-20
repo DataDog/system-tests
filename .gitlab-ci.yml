@@ -3,6 +3,7 @@ include:
 
 stages:
   - test_tracer
+  - child_pipelines
   - ruby_tracer
   - nodejs_tracer
   - java_tracer
@@ -68,7 +69,7 @@ onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
       when: always
@@ -90,7 +91,7 @@ onboarding_nodejs:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
           DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
@@ -107,7 +108,7 @@ onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
       when: always
@@ -145,7 +146,7 @@ onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
       when: always
@@ -173,6 +174,9 @@ onboarding_python:
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults]
+          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
       - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
@@ -181,7 +185,7 @@ onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
       when: always
@@ -217,7 +221,7 @@ onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
       when: always
@@ -249,7 +253,7 @@ onboarding_php:
   extends: .base_job_onboarding_system_tests
   stage: php_tracer
   allow_failure: true
-  dependencies: []
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
       when: always
@@ -365,3 +369,30 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
+
+generate_docker_ssi_pipeline:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  stage: child_pipelines
+  tags: ["arch:amd64"]
+  needs: []
+  script:
+    - python utils/docker_ssi/docker_ssi_matrix_builder.py --format yaml --output-file ssi_pipeline.yml
+  artifacts:
+    paths:
+      - ssi_pipeline.yml
+
+docker_ssi_pipeline:
+  stage: child_pipelines
+  needs: ["generate_docker_ssi_pipeline"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: ssi_pipeline.yml
+        job: generate_docker_ssi_pipeline
+    strategy: depend

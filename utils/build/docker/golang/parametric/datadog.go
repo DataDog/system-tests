@@ -42,8 +42,13 @@ func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Reques
 func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (ddtrace.Span, error) {
 	var opts []tracer.StartSpanOption
 	if p := args.ParentId; p > 0 {
-		parent := s.spans[p]
-		opts = append(opts, tracer.ChildOf(parent.Context()))
+		if span, ok := s.spans[p]; ok {
+			opts = append(opts, tracer.ChildOf(span.Context()))
+		} else if spanContext, ok := s.spanContexts[p]; ok {
+			opts = append(opts, tracer.ChildOf(spanContext))
+		} else {
+			return nil, fmt.Errorf("parent span not found")
+		}
 	}
 	if r := args.Resource; r != "" {
 		opts = append(opts, tracer.ResourceName(r))
@@ -59,27 +64,7 @@ func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (d
 			opts = append(opts, tracer.Tag(tag.Key(), tag.Value()))
 		}
 	}
-	if len(args.HttpHeaders) != 0 {
-		headers := map[string]string{}
-		for _, headerTuple := range args.HttpHeaders {
-			k := headerTuple.Key()
-			v := headerTuple.Value()
-			if k != "" && v != "" {
-				headers[k] = v
-			}
-		}
-
-		sctx, err := tracer.Extract(tracer.TextMapCarrier(headers))
-		if err != nil {
-			fmt.Printf("No trace context extracted from headers %v: %v\n", err, headers)
-		} else {
-			opts = append(opts, tracer.ChildOf(sctx))
-		}
-	}
 	span := tracer.StartSpan(args.Name, opts...)
-	if o := args.Origin; o != "" {
-		span.SetTag("_dd.origin", o)
-	}
 	s.spans[span.Context().SpanID()] = span
 	return span, nil
 }
@@ -186,6 +171,38 @@ func (s *apmClientServer) injectHeadersHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	response := InjectHeadersReturn{HttpHeaders: distr}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (s *apmClientServer) extractHeadersHandler(w http.ResponseWriter, r *http.Request) {
+	var args ExtractHeadersArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	headers := map[string]string{}
+	for _, headerTuple := range args.HttpHeaders {
+		k := headerTuple.Key()
+		v := headerTuple.Value()
+		if k != "" && v != "" {
+			headers[k] = v
+		}
+	}
+
+	sctx, err := tracer.Extract(tracer.TextMapCarrier(headers))
+	response := ExtractHeadersReturn{}
+	if err == nil {
+		spanID := sctx.SpanID()
+		response.SpanId = &spanID
+		s.spanContexts[spanID] = sctx
+	} else {
+		fmt.Printf("No trace context extracted from headers %v. headers: %v, args: %v\n", err, headers, args)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
