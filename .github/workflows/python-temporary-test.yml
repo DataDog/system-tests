@@ -49,5 +49,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
-        name: logs_endtoend_{{ matrix.attempt }}
+        name: logs_endtoend_${{ matrix.attempt }}
         path: artifact.tar.gz
