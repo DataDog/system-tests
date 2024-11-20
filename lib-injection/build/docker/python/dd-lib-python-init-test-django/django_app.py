@@ -2,9 +2,10 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.urls import path
 
 
@@ -20,6 +21,30 @@ ROOT_URLCONF = os.path.basename(filepath)
 DEBUG = False
 SECRET_KEY = "fdsfdasfa"
 ALLOWED_HOSTS = ["*"]
+
+# Path for the `strace` output file
+STRACE_OUTPUT_FILE = "/tmp/strace_output.log"
+
+
+# Function to run `strace` in a background thread
+def start_strace():
+    pid = os.getpid()
+    cmd = ["strace", "-f", "-o", STRACE_OUTPUT_FILE, "-p", str(pid)]
+    try:
+        subprocess.run(cmd)
+    except Exception as e:
+        print(f"Error running strace: {e}", file=sys.stderr)
+
+
+# Start the `strace` thread
+def start_strace_thread():
+    thread = threading.Thread(target=start_strace, daemon=True)
+    thread.start()
+
+
+# Trigger the strace thread on app startup
+start_strace_thread()
+
 
 
 def index(request):
@@ -109,10 +134,20 @@ def zombies(request):
         return HttpResponse(f"Error: {str(e)}", status=500, content_type="text/plain")
 
 
+def download_strace(request):
+    if os.path.exists(STRACE_OUTPUT_FILE):
+        with open(STRACE_OUTPUT_FILE, "r") as f:
+            content = f.read()
+        return HttpResponse(content, content_type="text/plain")
+    else:
+        return HttpResponse("Strace file not found.", status=404, content_type="text/plain")
+
+
 urlpatterns = [
     path("", index),
     path("crashme", crashme),
     path("fork_and_crash", fork_and_crash),
     path("child_pids", child_pids),
     path("zombies", zombies),
+    path("download_strace", download_strace),
 ]

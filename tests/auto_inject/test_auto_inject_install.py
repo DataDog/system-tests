@@ -1,7 +1,7 @@
 import re
 from utils import scenarios, features, flaky, irrelevant, context
 from utils.tools import logger
-from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
+from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash, get_strace
 from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
@@ -96,7 +96,6 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         ],
         reason="Zombies only appears in containers",
     )
-    @flaky(library="python", reason="APMLP-313")
     def test_crash_no_zombie(self, virtual_machine):
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
@@ -128,7 +127,11 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         if child_pids != "":
             logger.warning("Child PIDs found: " + child_pids)
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
-            logger.warning("Failure process tree: " + process_tree)
+            logger.warning("Failure process tree: " + process_tree)            
+
+        # download the strace file
+        strace = get_strace(virtual_machine)
+        logger.warning("Strace output: " + process_tree)
 
         assert child_pids == ""
 
