@@ -13,7 +13,6 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -1119,4 +1118,4 @@ class Test_Headers_Tracecontext:
 
 
 def make_single_request_and_get_tracecontext(test_library, headers_list):
-    return get_tracecontext(test_library.make_single_request_and_get_inject_headers(headers_list))
+    return get_tracecontext(test_library.dd_make_child_span_and_get_headers(headers_list))
