@@ -323,7 +323,7 @@ class Test_Environment:
         if context.library == "python":
             otelsampler_config = "otel_traces_sampler"
         else:
-            otelsampler_config = "otel_traces_sampler_args"
+            otelsampler_config = "otel_traces_sampler_arg"
 
         for dd_config, otel_config in [
             ["dd_trace_propagation_style", "otel_propagators"],
@@ -399,7 +399,7 @@ class Test_Environment:
         if context.library == "python":
             otelsampler_config = "otel_traces_sampler"
         else:
-            otelsampler_config = "otel_traces_sampler_args"
+            otelsampler_config = "otel_traces_sampler_arg"
 
         for dd_config, otel_config in [
             ["dd_trace_propagation_style", "otel_propagators"],
