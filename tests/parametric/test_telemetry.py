@@ -406,7 +406,7 @@ class Test_Environment:
             ["dd_trace_sample_rate", "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
             ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
-            ["dd_tags", "otel_resource_attributes"],
+            # ["dd_tags", "otel_resource_attributes"], not supported by nodejs
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
             ["dd_trace_sample_rate", otelsampler_config],
