@@ -729,8 +729,6 @@ class Test_Parametric_Otel_Trace_Flush:
         Supported Return Values:
         - success: boolean
         """
-        # Here we are avoiding using the __exit__() operation on the contextmanager
-        # and instead manually finishing and flushing the span.
         with test_library.otel_start_span("test_otel_flush") as s1:
             s1.end_span()
         assert test_library.otel_flush(timeout_sec=5)
