@@ -45,7 +45,8 @@ def _get_client():
         raise e
 
 
-_NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else "system-tests_default"
+_DEFAULT_NETWORK_NAME = "system-tests_default"
+_NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
 def create_network():
