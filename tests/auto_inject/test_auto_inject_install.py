@@ -131,7 +131,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         # download the strace file
         strace = get_strace(virtual_machine)
-        logger.warning("Strace output: " + process_tree)
+        logger.warning("Strace output: " + strace)
 
         assert child_pids == ""
 

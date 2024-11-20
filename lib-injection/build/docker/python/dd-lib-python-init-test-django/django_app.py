@@ -24,14 +24,16 @@ ALLOWED_HOSTS = ["*"]
 
 # Path for the `strace` output file
 STRACE_OUTPUT_FILE = "/tmp/strace_output.log"
-
+strace_process = None
 
 # Function to run `strace` in a background thread
 def start_strace():
+    global strace_process
     pid = os.getpid()
     cmd = ["strace", "-f", "-o", STRACE_OUTPUT_FILE, "-p", str(pid)]
     try:
-        subprocess.run(cmd)
+        strace_process = subprocess.Popen(cmd)
+        strace_process.wait()  # Wait for the strace process to finish
     except Exception as e:
         print(f"Error running strace: {e}", file=sys.stderr)
 
@@ -81,12 +83,19 @@ def child_pids(request):
                 status_path = f"/proc/{pid}/status"
                 try:
                     with open(status_path, "r") as status_file:
+                        ppid = None
+                        name = None
                         for line in status_file:
                             if line.startswith("PPid:"):
                                 ppid = int(line.split()[1])
-                                if ppid == current_pid:
-                                    child_pids.append(pid)
+                            if line.startswith("Name:"):
+                                name = line.split()[1]
+                            if ppid is not None and name is not None:
                                 break
+
+                        # Check if the process is a child and not named "strace"
+                        if ppid == current_pid and name != "strace":
+                            child_pids.append(pid)
                 except (FileNotFoundError, PermissionError):
                     # Process might have terminated or we don't have permission
                     continue
@@ -135,6 +144,13 @@ def zombies(request):
 
 
 def download_strace(request):
+    global strace_process
+
+    # Stop the `strace` process if it is running
+    if strace_process and strace_process.poll() is None:  # Check if process is still running
+        strace_process.terminate()  # Terminate the process
+        strace_process.wait()  # Ensure it has stopped
+
     if os.path.exists(STRACE_OUTPUT_FILE):
         with open(STRACE_OUTPUT_FILE, "r") as f:
             content = f.read()
