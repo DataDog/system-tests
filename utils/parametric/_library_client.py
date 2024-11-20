@@ -440,8 +440,8 @@ class APMLibrary:
         span.finish()
 
     def extract_headers_and_make_child_span(self, name, http_headers):
-        parent_id = self.extract_headers(http_headers=http_headers)
-        return self.start_span(name=name, parent_id=parent_id,)
+        parent_id = self.dd_extract_headers(http_headers=http_headers)
+        return self.dd_start_span(name=name, parent_id=parent_id,)
 
     @contextlib.contextmanager
     def otel_start_span(
