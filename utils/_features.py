@@ -1180,6 +1180,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_sink_template_injection(test_object):
+        """
+        IAST Sink: Template Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=330
+        """
+        pytest.mark.features(feature_id=330)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_source_request_parameter_value(test_object):
         """
         IAST Source: Request Parameter Value

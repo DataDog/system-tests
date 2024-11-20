@@ -81,6 +81,8 @@ tests/:
         test_ssrf.py:
           TestSSRF: missing_feature
           TestSSRF_StackTrace: missing_feature
+        test_template_injection.py:
+          TestTemplateInjection: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
           Test_TrustBoundaryViolation_StackTrace: missing_feature
@@ -295,6 +297,8 @@ tests/:
       Test_DsmSQS: missing_feature
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In: missing_feature
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0

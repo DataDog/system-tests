@@ -223,7 +223,7 @@ Please install and configure as described in the [following documentation](https
 
 ### Pytest
 
-All system-tests assertions and utilities are based on python and pytests. Check the documentation to configure your python environment: [system-tests requirements](https://github.com/DataDog/system-tests/blob/main/docs/execute/requirements.md)
+All system-tests assertions and utilities are based on python and pytests. Check the documentation to configure your python environment: [system-tests requirements](../../README.md#requirements)
 
 ## Run the tests
 
@@ -231,7 +231,7 @@ All system-tests assertions and utilities are based on python and pytests. Check
 
 Before run the onboarding tests you should configure:
 
-- Python environment as described: [configure python for system-tests](https://github.com/DataDog/system-tests/blob/main/docs/execute/requirements.md).
+- Python environment as described: [configure python for system-tests](../../README.md#requirements).
 - Ensure that requirements.txt is loaded (you can run "./build.sh -i runner")
 - AWS Cli is configured
 - Pulumi environment configured as described: [Get started with Pulumi](https://www.pulumi.com/docs/get-started/)

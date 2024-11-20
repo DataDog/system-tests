@@ -20,6 +20,8 @@ public abstract class ApmTestApi
         app.MapPost("/trace/tracer/stop", StopTracer);
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
+        app.MapPost("/trace/span/extract_headers", ExtractHeaders);
+
         app.MapPost("/trace/span/error", SpanSetError);
         app.MapPost("/trace/span/set_meta", SpanSetMeta);
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
@@ -69,6 +71,7 @@ public abstract class ApmTestApi
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
+    private static readonly Dictionary<ulong, Datadog.Trace.ISpanContext> DDContexts = new();
 
     internal static ILogger<ApmTestApi>? _logger;
 
@@ -106,22 +109,15 @@ public abstract class ApmTestApi
             FinishOnClose = false,
         };
 
-        if (parsedDictionary!.TryGetValue("http_headers", out var headersList))
-        {
-            creationSettings.Parent = _spanContextExtractor.Extract(
-                ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>()!,
-                getter: GetHeaderValues);
-        }
-
-        if (parsedDictionary!.TryGetValue("parent_id", out var parentId))
+        if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var longParentId = Convert.ToUInt64(parentId);
-
-            if (creationSettings.Parent is null && longParentId > 0 )
-            {
-                var parentSpan = Spans[longParentId];
-                // TODO: I suspect this won't work and we need to do a bunch of reflection faffing
+            if(Spans.TryGetValue(longParentId, out var parentSpan)) {
                 creationSettings.Parent = parentSpan.Context;
+            } else if (DDContexts.TryGetValue(longParentId, out var ddContext)) {
+                creationSettings.Parent = ddContext;
+            } else {
+                throw new Exception($"Parent span with id {longParentId} not found");
             }
         }
 
@@ -129,29 +125,19 @@ public abstract class ApmTestApi
         using var scope = Tracer.Instance.StartActive(operationName: name!.ToString()!, creationSettings);
         var span = scope.Span;
 
-        if (parsedDictionary.TryGetValue("service", out var service) && !String.IsNullOrEmpty(service.ToString()))
+        if (parsedDictionary.TryGetValue("service", out var service) && service is not null)
         {
             span.ServiceName = service.ToString();
         }
 
-        if (parsedDictionary.TryGetValue("resource", out var resource))
+        if (parsedDictionary.TryGetValue("resource", out var resource) && resource is not null)
         {
             span.ResourceName = resource.ToString();
         }
 
-        if (parsedDictionary.TryGetValue("type", out var type))
+        if (parsedDictionary.TryGetValue("type", out var type)  && type is not null)
         {
             span.Type = type.ToString();
-        }
-
-        if (parsedDictionary.TryGetValue("origin", out var origin) && !string.IsNullOrWhiteSpace(origin.ToString()))
-        {
-            // This implementation is .NET v3 specific, and assumes that the span returned by StartActive is a DuckType
-            var autoSpan = span.GetType()
-                .GetProperty("Instance", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                ?.GetValue(span);
-            var spanContext = SpanContext.GetValue(autoSpan)!;
-            Origin.SetValue(spanContext, origin);
         }
 
         if (parsedDictionary.TryGetValue("span_tags", out var tagsToken))
@@ -221,6 +207,29 @@ public abstract class ApmTestApi
         {
             span.SetTag(Tags.ErrorStack, stack);
         }
+    }
+
+    private static async Task<string> ExtractHeaders(HttpRequest request)
+    {
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
+        var headersList = (Newtonsoft.Json.Linq.JArray)parsedDictionary!["http_headers"];
+        var extractedContext = _spanContextExtractor.Extract(
+            headersList.ToObject<string[][]>()!,
+            getter: GetHeaderValues
+        );
+
+        String extractedSpanId = null;
+        if (extractedContext is not null)
+        {
+            DDContexts[extractedContext.SpanId] = extractedContext;
+            extractedSpanId = extractedContext.SpanId.ToString();
+        }
+
+        return JsonConvert.SerializeObject(new
+        {
+            span_id = extractedSpanId
+        });
     }
 
     private static async Task<string> InjectHeaders(HttpRequest request)
