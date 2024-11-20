@@ -10,7 +10,7 @@ lang_variant:
           sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu74 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
           wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
           chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 3.0 -InstallDir /opt
+          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
           sudo ln -s /opt/dotnet /usr/local/bin/dotnet
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 
@@ -22,7 +22,7 @@ lang_variant:
           sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
           wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
           chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 3.0 -InstallDir /opt
+          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
           sudo ln -s /opt/dotnet /usr/local/bin/dotnet
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 
@@ -34,7 +34,7 @@ lang_variant:
           sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
           wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
           chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 3.0 -InstallDir /opt
+          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
           sudo ln -s /opt/dotnet /usr/local/bin/dotnet
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 
@@ -46,7 +46,7 @@ lang_variant:
           sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
           wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
           chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 3.0 -InstallDir /opt
+          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
           sudo ln -s /opt/dotnet /usr/local/bin/dotnet
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 
@@ -55,7 +55,7 @@ lang_variant:
         remote-command: |
           wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
           chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 3.0 -InstallDir /opt
+          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
           sudo ln -s /opt/dotnet /usr/local/bin/dotnet
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 
@@ -66,7 +66,7 @@ lang_variant:
           sudo yum install -y libicu60 krb5-libs openssl-libs zlib
           wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
           chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 3.0 -InstallDir /opt
+          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
           sudo ln -s /opt/dotnet /usr/local/bin/dotnet
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 
@@ -77,7 +77,7 @@ lang_variant:
           sudo yum install -y libicu krb5-libs openssl-libs zlib
           wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
           chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 3.0 -InstallDir /opt
+          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
           sudo ln -s /opt/dotnet /usr/local/bin/dotnet
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 
@@ -86,7 +86,7 @@ lang_variant:
         remote-command: |
           wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
           chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 3.0 -InstallDir /opt
+          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
           sudo ln -s /opt/dotnet /usr/local/bin/dotnet
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 

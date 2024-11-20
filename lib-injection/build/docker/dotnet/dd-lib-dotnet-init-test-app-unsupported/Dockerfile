@@ -1,6 +1,4 @@
-ARG RUNTIME="bullseye-slim"
-
-FROM mcr.microsoft.com/dotnet/aspnet:3.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:2.1-stretch-slim AS base
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0.100 AS build
@@ -12,6 +10,6 @@ FROM base AS final
 WORKDIR /app
 EXPOSE 18080
 ENV ASPNETCORE_URLS=http://+:18080
-COPY --from=publish /publish .
+COPY --from=build /publish .
 
 ENTRYPOINT ["dotnet", "MinimalWebApp.dll"]
