@@ -604,17 +604,19 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    debugger_symdb_upload = EndToEndScenario(
-        "DEBUGGER_SYMDB_UPLOAD",
+    debugger_symdb = EndToEndScenario(
+        "DEBUGGER_SYMDB",
         rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
             "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
             "DD_THIRD_PARTY_EXCLUDES": "org.springframework.samples.petclinic",
         },
-        doc="Test scenario for checking if symbols are uploaded.",
+        library_interface_timeout=5,
+        doc="Test scenario for checking symdb.",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
