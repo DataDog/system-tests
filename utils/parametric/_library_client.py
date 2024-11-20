@@ -356,7 +356,7 @@ class _TestSpan:
 
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
-        
+
     def add_link(self, parent_id: int, attributes: Optional[dict[Any, Any]] = None):
         self._client.span_add_link(self.span_id, parent_id, attributes)
 
