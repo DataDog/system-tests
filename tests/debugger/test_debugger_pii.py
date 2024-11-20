@@ -122,6 +122,8 @@ def filter(keys_to_filter):
 @scenarios.debugger_pii_redaction
 class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     def _setup(self, probes_file):
+        self.initialize_weblog_remote_config()
+        
         probes = base.read_probes(probes_file)
         self.expected_probe_ids = base.extract_probe_ids(probes)
         self.rc_state = rc.send_debugger_command(probes, version=1)
@@ -147,7 +149,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     # Ruby requires @irrelevant rather than @missing_feature to skip setup
     # for this test (which will interfere with the line probe test).
-    @irrelevant(context.library == "ruby", reason="Local variable capture not implemented for method probes")
+    @irrelevant(library="ruby", reason="Local variable capture not implemented for method probes")
     def test_pii_redaction_full(self):
         self._test(REDACTED_KEYS, REDACTED_TYPES)
 
@@ -185,7 +187,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     def setup_pii_redaction_line(self):
         self._setup("pii_line")
 
-    @irrelevant(context.library != "ruby", reason="Ruby needs to use line probes to capture variables")
+    @irrelevant(library = "ruby", reason="Ruby needs to use line probes to capture variables")
     def test_pii_redaction_line(self):
         self._test(REDACTED_KEYS, REDACTED_TYPES, True)
 
