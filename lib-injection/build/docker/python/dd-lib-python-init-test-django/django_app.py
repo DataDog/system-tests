@@ -1,4 +1,5 @@
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -24,6 +25,7 @@ ALLOWED_HOSTS = ["*"]
 
 # Path for the `strace` output file
 STRACE_OUTPUT_FILE = "/tmp/strace_output.log"
+MAX_RESPONSE_SIZE = 100 * 1024
 strace_process = None
 
 # Function to run `strace` in a background thread
@@ -150,8 +152,13 @@ def download_strace(request):
     strace_process.wait()  # Ensure it has stopped
 
     if os.path.exists(STRACE_OUTPUT_FILE):
-        with open(STRACE_OUTPUT_FILE, "r") as f:
-            content = f.read()
+        # Path for the copied file
+        copy_file_path = "/tmp/strace_output_copy.log"
+
+        # Create a copy of the file
+        shutil.copyfile(STRACE_OUTPUT_FILE, copy_file_path)
+        with open(copy_file_path, "r") as f:
+            content = f.read(MAX_RESPONSE_SIZE)
         return HttpResponse(content, content_type="text/plain")
     else:
         return HttpResponse("Strace file not found.", status=404, content_type="text/plain")
