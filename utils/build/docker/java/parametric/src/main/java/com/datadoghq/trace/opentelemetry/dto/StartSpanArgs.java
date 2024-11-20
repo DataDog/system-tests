@@ -11,7 +11,6 @@ public record StartSpanArgs(
     String name,
     @JsonProperty("span_kind") int spanKind,
     long timestamp,
-    @JsonProperty("http_headers") @JsonDeserialize(using = KeyValueListDeserializer.class) List<KeyValue> httpHeaders,
     List<SpanLink> links,
     Map<String, Object> attributes) {
 }

@@ -266,7 +266,7 @@ class HttpClientRequestReturn
 end
 
 class OtelStartSpanArgs
-  attr_accessor :name, :parent_id, :span_kind, :service, :resource, :type, :links, :timestamp, :http_headers,
+  attr_accessor :name, :parent_id, :span_kind, :service, :resource, :type, :links, :timestamp,
                 :attributes
 
   def initialize(params)
@@ -278,7 +278,6 @@ class OtelStartSpanArgs
     @type = params['type']
     @links = params['links']
     @timestamp = params['timestamp']
-    @http_headers = params['http_headers']
     @attributes = params['attributes']
   end
 end
@@ -509,18 +508,15 @@ def get_digest(span_id)
 end
 
 def parse_otel_link(link)
-  link_context = if !link['http_headers'].nil? && !link['http_headers'].size.nil?
-                   digest = extract_http_headers(link['http_headers'])
-                   digest_to_spancontext(digest)
-                 elsif OTEL_SPANS.key?(link['parent_id'])
-                   OTEL_SPANS[link['parent_id']].context
-                 else
-                   raise "Span id in #{link} not found in span list: #{OTEL_SPANS}"
-                 end
-  OpenTelemetry::Trace::Link.new(
-    link_context,
-    link['attributes']
-  )
+  if OTEL_SPANS.key?(link['parent_id'])
+    link_context = OTEL_SPANS[link['parent_id']].context
+    OpenTelemetry::Trace::Link.new(
+      link_context,
+      link['attributes']
+    )
+  else
+    raise "Parent id in #{link} not found in span list: #{OTEL_SPANS}"
+  end
 end
 
 def digest_to_spancontext(digest)
@@ -724,10 +720,7 @@ class MyApp
     js = JSON.parse(req.body.read)
     args = OtelStartSpanArgs.new(js)
 
-    headers = args.http_headers.to_h
-    if !headers.empty?
-      parent_context = OpenTelemetry.propagation.extract(headers)
-    elsif args.parent_id != 0
+    if args.parent_id != 0
       parent_span = OTEL_SPANS[args.parent_id]
       parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
     end
