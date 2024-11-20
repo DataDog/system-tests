@@ -79,7 +79,7 @@ def monitor_process_trace(f):
     import sys
 
     def show_span(span):
-        return f"Span(id={span.span_id:16X}, trace_id={span.trace_id:16X}, parent_id={span.parent_id or 0:16X}, name={span.name}, type={span.span_type})"
+        return f"Span(id={span.span_id:16X}, trace_id={span.trace_id:16X}, parent_id={span.parent_id or 0:16X}, name={span.name}, type={span.span_type}, local_root={span._local_root_value})"
 
     def show_trace(trace):
         if isinstance(trace, list):
