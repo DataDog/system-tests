@@ -146,12 +146,26 @@ def zombies(request):
         return HttpResponse(f"Error: {str(e)}", status=500, content_type="text/plain")
 
 
-def download_strace(request):
+def kill_strace(request):
     try:
         global strace_process
 
-        strace_process.terminate()  # Terminate the process
-        #strace_process.wait()  # Ensure it has stopped
+        os.killpg(os.getpgid(strace_process.pid), signal.SIGTERM)
+        strace_process.wait()  # Wait for the process to fully terminate
+
+        return HttpResponse(f"killed pid {strace_process.pid}", content_type="text/plain")
+    except Exception as e:
+        # Capture the full traceback
+        error_details = traceback.format_exc()
+        return HttpResponse(
+            f"An error occurred:\n\n{error_details}", 
+            content_type="text/plain", 
+            status=500
+        )
+
+def download_strace(request):
+    try:
+        global strace_process
 
         if os.path.exists(STRACE_OUTPUT_FILE):
             # Path for the copied file
@@ -171,7 +185,7 @@ def download_strace(request):
             f"An error occurred:\n\n{error_details}", 
             content_type="text/plain", 
             status=500
-        )    
+        )
 
 
 urlpatterns = [
@@ -181,4 +195,5 @@ urlpatterns = [
     path("child_pids", child_pids),
     path("zombies", zombies),
     path("download_strace", download_strace),
+    path("kill_strace", kill_strace),
 ]
