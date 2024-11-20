@@ -148,12 +148,23 @@ def zombies(request):
 
 def kill_strace(request):
     try:
-        global strace_process
+        # Iterate through all processes in /proc
+        for pid in os.listdir("/proc"):
+            if pid.isdigit():  # Ensure the entry is a PID directory
+                try:
+                    # Read the process name from /proc/<pid>/comm
+                    with open(f"/proc/{pid}/comm", "r") as comm_file:
+                        process_name = comm_file.read().strip()
 
-        os.killpg(os.getpgid(strace_process.pid), signal.SIGTERM)
-        strace_process.wait()  # Wait for the process to fully terminate
+                    # Check if the process is `strace`
+                    if process_name == "strace":
+                        print(f"Killing strace process with PID: {pid}")
+                        os.kill(int(pid), signal.SIGTERM)  # Send SIGTERM to the process
+                except (FileNotFoundError, ProcessLookupError, PermissionError):
+                    # Ignore processes that no longer exist or are inaccessible
+                    continue
 
-        return HttpResponse(f"killed pid {strace_process.pid}", content_type="text/plain")
+        return HttpResponse(f"strace processes terminated successfully.", content_type="text/plain")
     except Exception as e:
         # Capture the full traceback
         error_details = traceback.format_exc()
