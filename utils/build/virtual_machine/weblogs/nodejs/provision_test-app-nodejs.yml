@@ -5,7 +5,7 @@ lang_variant:
     install: 
       - os_type: linux
         os_distro: deb
-        remote-command: sudo apt-get update && sudo apt-get install -y nodejs
+        remote-command: sudo apt-get install -y nodejs
 
       - os_type: linux
         os_distro: rpm
