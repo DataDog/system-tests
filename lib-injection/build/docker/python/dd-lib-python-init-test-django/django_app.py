@@ -146,10 +146,8 @@ def zombies(request):
 def download_strace(request):
     global strace_process
 
-    # Stop the `strace` process if it is running
-    if strace_process and strace_process.poll() is None:  # Check if process is still running
-        strace_process.terminate()  # Terminate the process
-        strace_process.wait()  # Ensure it has stopped
+    strace_process.terminate()  # Terminate the process
+    strace_process.wait()  # Ensure it has stopped
 
     if os.path.exists(STRACE_OUTPUT_FILE):
         with open(STRACE_OUTPUT_FILE, "r") as f:
