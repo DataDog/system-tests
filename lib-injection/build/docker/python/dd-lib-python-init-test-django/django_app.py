@@ -149,7 +149,7 @@ def download_strace(request):
     global strace_process
 
     strace_process.terminate()  # Terminate the process
-    strace_process.wait()  # Ensure it has stopped
+    #strace_process.wait()  # Ensure it has stopped
 
     if os.path.exists(STRACE_OUTPUT_FILE):
         # Path for the copied file
