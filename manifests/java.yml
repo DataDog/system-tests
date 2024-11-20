@@ -608,7 +608,7 @@ tests/:
       test_libddwaf.py:
         Test_Libddwaf_Version:
           '*': v1.40.0
-          pring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_shi.py: irrelevant (Not support in Java)
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
