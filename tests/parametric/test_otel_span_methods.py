@@ -508,107 +508,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
-    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
-    @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
-    def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
-        """Properly inject datadog distributed tracing information into span links.
-        """
-        with test_library:
-            with test_library.otel_start_span(
-                "root",
-                links=[
-                    Link(
-                        http_headers=[
-                            ["x-datadog-trace-id", "1234567890"],
-                            ["x-datadog-parent-id", "9876543210"],
-                            ["x-datadog-sampling-priority", "2"],
-                            ["x-datadog-origin", "synthetics"],
-                            ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
-                        ],
-                        attributes={"foo": "bar"},
-                    )
-                ],
-            ) as span:
-                pass
-
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        span = find_span(trace, span.span_id)
-        span_links = retrieve_span_links(span)
-        assert span_links is not None
-        assert len(span_links) == 1
-
-        link = span_links[0]
-        assert link.get("span_id") == 9876543210
-        assert link.get("trace_id") == 1234567890
-        assert link.get("trace_id_high") == 16
-
-        # Tracestate is not required, but if it is present, it must be valid
-        if link.get("tracestate"):
-            tracestateArr = link["tracestate"].split(",")
-            assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
-            tracestateDD = tracestateArr[0][3:].split(";")
-            assert "o:synthetics" in tracestateDD
-            assert "s:2" in tracestateDD
-            assert "t.dm:-4" in tracestateDD
-            # Sampled flag should be set to match the existing tracestate
-            assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
-
-    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
-    @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
-    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
-    @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @bug(context.library < "ruby@2.3.1-dev", reason="APMRP-360")
-    @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
-    def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
-        """Properly inject w3c distributed tracing information into span links.
-        This mostly tests that the injected tracestate and flags are accurate.
-        """
-        with test_library:
-            with test_library.otel_start_span(
-                "root",
-                links=[
-                    Link(
-                        http_headers=[
-                            ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                            ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
-                        ]
-                    )
-                ],
-            ) as span:
-                pass
-
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        span = find_span(trace, span.span_id)
-        span_links = retrieve_span_links(span)
-        assert span_links is not None
-        assert len(span_links) == 1
-
-        link = span_links[0]
-        assert link.get("span_id") == 1311768467284833366
-        assert link.get("trace_id") == 8687463697196027922
-        assert link.get("trace_id_high") == 1311768467284833366
-
-        assert link.get("tracestate") is not None
-        tracestateArr = link["tracestate"].split(",")
-        dd_member = next(iter([x for x in tracestateArr if x.startswith("dd=")]), None)
-        foo_member = next(iter([x for x in tracestateArr if x.startswith("foo=")]), None)
-        bar_member = next(iter([x for x in tracestateArr if x.startswith("bar=")]), None)
-        # ruby removes the dd member from the tracestate while python does not
-        if dd_member:
-            assert "s:2" in dd_member
-            assert "t.dm:-4" in dd_member
-        assert foo_member == "foo=1"
-        assert bar_member == "bar=baz"
-
-        assert (link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET) or (link.get("flags") == TRACECONTEXT_FLAGS_SET)
-        assert link.get("attributes") is None or len(link.get("attributes")) == 0
-
-    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
-    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
@@ -617,26 +516,23 @@ class Test_Otel_Span_Methods:
         """Test that span links implementations correctly handle attributes according to spec.
         """
         with test_library:
+            with test_library.otel_start_span("span1") as s1:
+                s1.end_span()
+
             with test_library.otel_start_span(
                 "root",
                 links=[
                     Link(
-                        http_headers=[
-                            ["x-datadog-trace-id", "1234567890"],
-                            ["x-datadog-parent-id", "9876543210"],
-                            ["x-datadog-sampling-priority", "2"],
-                            ["x-datadog-origin", "synthetics"],
-                            ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
-                        ],
+                        parent_id=s1.span_id,
                         attributes={"foo": "bar", "array": ["a", "b", "c"], "bools": [True, False], "nested": [1, 2]},
                     )
                 ],
-            ) as span:
+            ) as s2:
                 pass
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        span = find_span(trace, span.span_id)
+        traces = test_agent.wait_for_num_traces(2)
+        trace = find_trace(traces, s2.trace_id)
+        span = find_span(trace, s2.span_id)
         span_links = retrieve_span_links(span)
         assert span_links is not None
         assert len(span_links) == 1

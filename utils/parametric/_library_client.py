@@ -32,9 +32,8 @@ class SpanResponse(TypedDict):
 
 
 class Link(TypedDict):
-    parent_id: int  # 0 to extract from headers
+    parent_id: int
     attributes: dict
-    http_headers: List[Tuple[str, str]]
 
 
 class APMLibraryClient:
@@ -188,19 +187,10 @@ class APMLibraryClient:
             json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
         )
 
-    def span_add_link(
-        self, span_id: int, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None
-    ):
-        # Avoid using http_headers when creating a span link in the parametric apps
-        # Alternative endpoints will be provided to set these values. This will be documented in a future PR.
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None):
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={
-                "span_id": span_id,
-                "parent_id": parent_id,
-                "attributes": attributes or {},
-                "http_headers": http_headers or [],
-            },
+            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {},},
         )
 
     def span_get_baggage(self, span_id: int, key: str) -> str:
@@ -236,7 +226,6 @@ class APMLibraryClient:
         span_kind: SpanKind,
         parent_id: int,
         links: List[Link],
-        http_headers: List[Tuple[str, str]],
         attributes: dict = None,
     ) -> StartSpanResponse:
         resp = self._session.post(
@@ -247,7 +236,6 @@ class APMLibraryClient:
                 "span_kind": span_kind.value,
                 "parent_id": parent_id,
                 "links": links,
-                "http_headers": http_headers,
                 "attributes": attributes or {},
             },
         ).json()
@@ -369,8 +357,8 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None):
-        self._client.span_add_link(self.span_id, parent_id, attributes, http_headers)
+    def add_link(self, parent_id: int, attributes: dict = None):
+        self._client.span_add_link(self.span_id, parent_id, attributes)
 
     def finish(self):
         self._client.finish_span(self.span_id)
@@ -464,7 +452,6 @@ class APMLibrary:
         parent_id: int = 0,
         links: Optional[List[Link]] = None,
         attributes: dict = None,
-        http_headers: Optional[List[Tuple[str, str]]] = None,
         end_on_exit: bool = True,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(
@@ -474,7 +461,6 @@ class APMLibrary:
             parent_id=parent_id,
             links=links if links is not None else [],
             attributes=attributes,
-            http_headers=http_headers if http_headers is not None else [],
         )
         span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span

@@ -162,14 +162,7 @@ app.post('/trace/otel/start_span', (req, res) => {
   const makeSpan = (parentContext) => {
 
     const links = (request.links || []).map(link => {
-      let spanContext;
-      if (link.parent_id && link.parent_id !== 0) {
-        spanContext = otelSpans[link.parent_id].spanContext();
-      } else {
-        const linkHeaders = Object.fromEntries(link.http_headers.map(([k, v]) => [k.toLowerCase(), v]));
-        const extractedContext = tracer.extract('http_headers', linkHeaders)
-        spanContext = new OtelSpanContext(extractedContext)
-      }
+      let spanContext = otelSpans[link.parent_id].spanContext()
       return {context: spanContext, attributes: link.attributes}
     });
 
@@ -193,20 +186,6 @@ app.post('/trace/otel/start_span', (req, res) => {
       const parentSpan = otelSpans[request.parent_id]
       const parentContext = trace.setSpan(ROOT_CONTEXT, parentSpan)
       return makeSpan(parentContext)
-  }
-  if (request.http_headers) {
-      const http_headers = request.http_headers || []
-      // Node.js HTTP headers are automatically lower-cased, simulate that here.
-      const convertedHeaders = {}
-      for (const [ key, value ] of http_headers) {
-          convertedHeaders[key.toLowerCase()] = value
-      }
-      const extracted = tracer.extract('http_headers', convertedHeaders)
-      if (extracted) {
-          const parentSpan = trace.wrapSpanContext(new OtelSpanContext(extracted))
-          const parentContext = trace.setSpan(ROOT_CONTEXT, parentSpan)
-          return makeSpan(parentContext)
-      }
   }
 
   makeSpan()
