@@ -91,7 +91,7 @@ lang_variant:
           sudo ln -s /opt/dotnet /usr/bin/dotnet
 
 weblog:
-    name: test-app-dotnet
+    name: test-app-dotnet-unsupported
     #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
     #Ubuntu 21 (amd64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
     #Centos 7. I can't find the libicu60 package for centos 7. Only available version 50.2
