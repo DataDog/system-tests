@@ -641,7 +641,7 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
     test_crashtracking.py:
-      Test_Crashtracking: *ref_5_23_0
+      Test_Crashtracking: *ref_5_26_0
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: *ref_5_4_0
