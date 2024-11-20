@@ -354,15 +354,15 @@ def python_library_factory() -> APMLibraryTestServer:
         container_img="""
 FROM ghcr.io/datadog/dd-trace-py/testrunner:9e3bd1fb9e42a4aa143cae661547517c7fbd8924
 WORKDIR /app
-RUN pyenv global 3.9.16
-RUN python3.9 -m pip install fastapi==0.89.1 uvicorn==0.20.0
+RUN pyenv global 3.11
+RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0
 COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 """,
-        container_cmd="ddtrace-run python3.9 -m apm_test_client".split(" "),
+        container_cmd="ddtrace-run python3.11 -m apm_test_client".split(" "),
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes={os.path.join(python_absolute_appdir, "apm_test_client"): "/app/apm_test_client"},
