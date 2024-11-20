@@ -41,7 +41,6 @@ class Test_Headers_None:
         """
         with test_library:
             test_library.dd_make_child_span_and_get_headers(
-                test_library,
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -65,8 +64,7 @@ class Test_Headers_None:
         and activated properly.
         """
         with test_library:
-            test_library.dd_make_child_span_and_get_headers(
-                test_library,
+            test_library.test_dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -89,7 +87,7 @@ class Test_Headers_None:
         no Datadog distributed tracing headers are injected.
         """
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
         assert "traceparent" not in headers
         assert "tracestate" not in headers
@@ -105,7 +103,7 @@ class Test_Headers_None:
         In this case, ensure that the Datadog distributed tracing headers are injected properly.
         """
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
@@ -119,7 +117,6 @@ class Test_Headers_None:
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
-                test_library,
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -151,7 +148,6 @@ class Test_Headers_None:
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
-                test_library,
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],

@@ -125,7 +125,7 @@ class Test_128_Bit_Traceids:
         """ Ensure that if incoming tids are malformed and the error is tagged, the tag is set to the expected value.
         """
         with test_library:
-            dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "1234567890123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -402,7 +402,7 @@ class Test_128_Bit_Traceids:
         the trace header then no error is reported.
         """
         with test_library:
-            dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:640cfd8d00000000"],
@@ -454,7 +454,7 @@ class Test_128_Bit_Traceids:
         the trace header, the trace header tid is preserved.
         """
         with test_library:
-            dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:640cfd8d0000ffff"],
@@ -481,7 +481,7 @@ class Test_128_Bit_Traceids:
         the trace header the error is tagged.
         """
         with test_library:
-            dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:640cfd8d0000ffff"],
@@ -502,7 +502,7 @@ class Test_128_Bit_Traceids:
         """Ensure that if the trace state contains a tid that is badly formed, the trace header tid is preserved.
         """
         with test_library:
-            dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:XXXX"],
@@ -529,7 +529,7 @@ class Test_128_Bit_Traceids:
         it is tagged with the expected value.
         """
         with test_library:
-            dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:XXXX"],

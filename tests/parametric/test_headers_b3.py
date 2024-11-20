@@ -52,7 +52,7 @@ class Test_Headers_B3:
         and activated properly.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
             )
 
@@ -69,7 +69,7 @@ class Test_Headers_B3:
         """Ensure that invalid b3 distributed tracing headers are not extracted.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
+            test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
@@ -83,7 +83,7 @@ class Test_Headers_B3:
         """Ensure that b3 distributed tracing headers are injected properly.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers([])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         b3Arr = headers["b3"].split("-")
@@ -106,7 +106,7 @@ class Test_Headers_B3:
         and injected properly.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers(
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
             )
 
@@ -130,7 +130,7 @@ class Test_Headers_B3:
         and the new span context is injected properly.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
+            headers = test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
