@@ -96,7 +96,7 @@ class Test_Parametric_DDSpan_Finish:
 class Test_Parametric_Inject_Headers:
     def test_inject_headers(self, test_agent, test_library):
         """
-        Validates that /trace/span/dd_inject_headers generates distributed tracing headers from span data.
+        Validates that /trace/span/inject_headers generates distributed tracing headers from span data.
 
         Supported Parameters:
         - span_id: Union[int, str]
@@ -115,7 +115,7 @@ class Test_Parametric_Inject_Headers:
 class Test_Parametric_DDTrace_Extract_Headers:
     def test_extract_headers(self, test_agent, test_library):
         """
-        Validates that /trace/span/dd_inject_headers generates distributed tracing headers from span data.
+        Validates that /trace/span/extract_headers extracts span data from distributed tracing headers.
 
         Supported Parameters:
         - List[Tuple[str, str]]
