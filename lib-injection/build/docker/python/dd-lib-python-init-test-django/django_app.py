@@ -5,6 +5,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 
 from django.http import HttpResponse, FileResponse
 from django.urls import path
@@ -146,22 +147,31 @@ def zombies(request):
 
 
 def download_strace(request):
-    global strace_process
+    try:
+        global strace_process
 
-    strace_process.terminate()  # Terminate the process
-    #strace_process.wait()  # Ensure it has stopped
+        strace_process.terminate()  # Terminate the process
+        #strace_process.wait()  # Ensure it has stopped
 
-    if os.path.exists(STRACE_OUTPUT_FILE):
-        # Path for the copied file
-        copy_file_path = "/tmp/strace_output_copy.log"
+        if os.path.exists(STRACE_OUTPUT_FILE):
+            # Path for the copied file
+            copy_file_path = "/tmp/strace_output_copy.log"
 
-        # Create a copy of the file
-        shutil.copyfile(STRACE_OUTPUT_FILE, copy_file_path)
-        with open(copy_file_path, "r") as f:
-            content = f.read(MAX_RESPONSE_SIZE)
-        return HttpResponse(content, content_type="text/plain")
-    else:
-        return HttpResponse("Strace file not found.", status=404, content_type="text/plain")
+            # Create a copy of the file
+            shutil.copyfile(STRACE_OUTPUT_FILE, copy_file_path)
+            with open(copy_file_path, "r") as f:
+                content = f.read(MAX_RESPONSE_SIZE)
+            return HttpResponse(content, content_type="text/plain")
+        else:
+            return HttpResponse("Strace file not found.", status=404, content_type="text/plain")
+    except Exception as e:
+        # Capture the full traceback
+        error_details = traceback.format_exc()
+        return HttpResponse(
+            f"An error occurred:\n\n{error_details}", 
+            content_type="text/plain", 
+            status=500
+        )    
 
 
 urlpatterns = [

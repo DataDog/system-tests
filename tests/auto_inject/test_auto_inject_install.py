@@ -127,11 +127,16 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         if child_pids != "":
             logger.warning("Child PIDs found: " + child_pids)
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
-            logger.warning("Failure process tree: " + process_tree)            
+            logger.warning("Failure process tree: " + process_tree)
 
         # download the strace file
-        strace = get_strace(virtual_machine)
-        logger.warning("Strace output: " + strace)
+        try:
+            strace = get_strace(virtual_machine)
+            logger.warning("Strace output: " + strace)
+        except:
+            process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+            logger.warning("Process tree after strace: " + process_tree)
+            raise
 
         assert child_pids == ""
 
