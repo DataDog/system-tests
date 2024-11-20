@@ -5,8 +5,8 @@ import pytest
 
 from typing import Union
 from utils.parametric._library_client import Link
-from utils.parametric.spec.otel_trace import OTEL_UNSET_CODE, OTEL_ERROR_CODE, OTEL_OK_CODE
-from utils.parametric.spec.otel_trace import SK_PRODUCER, SK_INTERNAL, SK_SERVER, SK_CLIENT, SK_CONSUMER
+from utils.dd_constants import StatusCode
+from utils.dd_constants import SpanKind
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links
@@ -39,7 +39,7 @@ class Test_Otel_Span_Methods:
             start_time: int = 12345
             with test_library.otel_start_span(
                 "operation",
-                span_kind=SK_PRODUCER,
+                span_kind=SpanKind.PRODUCER,
                 timestamp=start_time,
                 attributes={"start_attr_key": "start_attr_val"},
             ) as parent:
@@ -62,7 +62,7 @@ class Test_Otel_Span_Methods:
             - Update the service name on a span
         """
         with test_library:
-            with test_library.otel_start_span("parent_span", span_kind=SK_INTERNAL) as parent:
+            with test_library.otel_start_span("parent_span", span_kind=SpanKind.INTERNAL) as parent:
                 parent.set_attributes({"service.name": "new_service"})
                 parent.end_span()
 
@@ -143,7 +143,7 @@ class Test_Otel_Span_Methods:
         """
         start_time = int(time.time())
         with test_library:
-            with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
+            with test_library.otel_start_span("operation", span_kind=SpanKind.PRODUCER, timestamp=start_time,) as span:
                 span.set_attributes({"str_val": "val"})
                 span.set_attributes({"str_val_empty": ""})
                 span.set_attributes({"bool_val": True})
@@ -224,7 +224,7 @@ class Test_Otel_Span_Methods:
         """
         start_time = int(time.time())
         with test_library:
-            with test_library.otel_start_span("operation", span_kind=SK_PRODUCER, timestamp=start_time,) as span:
+            with test_library.otel_start_span("operation", span_kind=SpanKind.PRODUCER, timestamp=start_time,) as span:
                 span.set_attributes({"str_val": "val"})
                 span.set_attributes({"str_val_empty": ""})
                 span.set_attributes({"bool_val": True})
@@ -302,7 +302,9 @@ class Test_Otel_Span_Methods:
         start_time: int = 12345
         duration: int = 6789
         with test_library:
-            with test_library.otel_start_span(name="operation", span_kind=SK_INTERNAL, timestamp=start_time) as span:
+            with test_library.otel_start_span(
+                name="operation", span_kind=SpanKind.INTERNAL, timestamp=start_time
+            ) as span:
                 assert span.is_recording()
                 span.end_span(timestamp=start_time + duration)
                 assert not span.is_recording()
@@ -328,13 +330,13 @@ class Test_Otel_Span_Methods:
             - still possible to start child spans from parent context
         """
         with test_library:
-            with test_library.otel_start_span(name="parent", span_kind=SK_PRODUCER) as parent:
+            with test_library.otel_start_span(name="parent", span_kind=SpanKind.PRODUCER) as parent:
                 parent.end_span()
                 # setting attributes after finish has no effect
                 parent.set_name("new_name")
                 parent.set_attributes({"after_finish": "true"})  # should have no affect
                 with test_library.otel_start_span(
-                    name="child", span_kind=SK_CONSUMER, parent_id=parent.span_id
+                    name="child", span_kind=SpanKind.CONSUMER, parent_id=parent.span_id
                 ) as child:
                     child.end_span()
 
@@ -370,9 +372,9 @@ class Test_Otel_Span_Methods:
 
         """
         with test_library:
-            with test_library.otel_start_span(name="error_span", span_kind=SK_INTERNAL) as s:
-                s.set_status(OTEL_ERROR_CODE, "error_desc")
-                s.set_status(OTEL_UNSET_CODE, "unset_desc")
+            with test_library.otel_start_span(name="error_span", span_kind=SpanKind.INTERNAL) as s:
+                s.set_status(StatusCode.ERROR, "error_desc")
+                s.set_status(StatusCode.UNSET, "unset_desc")
                 s.end_span()
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, s.trace_id)
@@ -398,9 +400,9 @@ class Test_Otel_Span_Methods:
                 prior or future status values
         """
         with test_library:
-            with test_library.otel_start_span(name="ok_span", span_kind=SK_INTERNAL) as span:
-                span.set_status(OTEL_OK_CODE, "ok_desc")
-                span.set_status(OTEL_ERROR_CODE, "error_desc")
+            with test_library.otel_start_span(name="ok_span", span_kind=SpanKind.INTERNAL) as span:
+                span.set_status(StatusCode.OK, "ok_desc")
+                span.set_status(StatusCode.ERROR, "error_desc")
                 span.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
@@ -457,7 +459,7 @@ class Test_Otel_Span_Methods:
             behaves accordingly to the naming conventions
         """
         with test_library:
-            with test_library.otel_start_span(name="operation", span_kind=SK_CLIENT) as span:
+            with test_library.otel_start_span(name="operation", span_kind=SpanKind.CLIENT) as span:
                 span.set_attributes({"messaging.system": "Kafka"})
                 span.set_attributes({"messaging.operation": "Receive"})
                 span.end_span()
@@ -512,107 +514,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
-    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
-    @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
-    def test_otel_span_started_with_link_from_datadog_headers(self, test_agent, test_library):
-        """Properly inject datadog distributed tracing information into span links.
-        """
-        with test_library:
-            with test_library.otel_start_span(
-                "root",
-                links=[
-                    Link(
-                        http_headers=[
-                            ["x-datadog-trace-id", "1234567890"],
-                            ["x-datadog-parent-id", "9876543210"],
-                            ["x-datadog-sampling-priority", "2"],
-                            ["x-datadog-origin", "synthetics"],
-                            ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
-                        ],
-                        attributes={"foo": "bar"},
-                    )
-                ],
-            ) as span:
-                span.end_span()
-
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        span = find_span(trace, span.span_id)
-        span_links = retrieve_span_links(span)
-        assert span_links is not None
-        assert len(span_links) == 1
-
-        link = span_links[0]
-        assert link.get("span_id") == 9876543210
-        assert link.get("trace_id") == 1234567890
-        assert link.get("trace_id_high") == 16
-
-        # Tracestate is not required, but if it is present, it must be valid
-        if link.get("tracestate"):
-            tracestateArr = link["tracestate"].split(",")
-            assert len(tracestateArr) == 1 and tracestateArr[0].startswith("dd=")
-            tracestateDD = tracestateArr[0][3:].split(";")
-            assert "o:synthetics" in tracestateDD
-            assert "s:2" in tracestateDD
-            assert "t.dm:-4" in tracestateDD
-            # Sampled flag should be set to match the existing tracestate
-            assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
-
-    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
-    @missing_feature(context.library < "java@1.28.0", reason="Implemented in 1.28.0")
-    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
-    @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
-    @bug(context.library < "ruby@2.3.1-dev", reason="APMRP-360")
-    @missing_feature(context.library == "php", reason="Implemented in 0.97.0 but link.flags are not natively supported")
-    def test_otel_span_started_with_link_from_w3c_headers(self, test_agent, test_library):
-        """Properly inject w3c distributed tracing information into span links.
-        This mostly tests that the injected tracestate and flags are accurate.
-        """
-        with test_library:
-            with test_library.otel_start_span(
-                "root",
-                links=[
-                    Link(
-                        http_headers=[
-                            ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                            ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
-                        ]
-                    )
-                ],
-            ) as span:
-                span.end_span()
-
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        span = find_span(trace, span.span_id)
-        span_links = retrieve_span_links(span)
-        assert span_links is not None
-        assert len(span_links) == 1
-
-        link = span_links[0]
-        assert link.get("span_id") == 1311768467284833366
-        assert link.get("trace_id") == 8687463697196027922
-        assert link.get("trace_id_high") == 1311768467284833366
-
-        assert link.get("tracestate") is not None
-        tracestateArr = link["tracestate"].split(",")
-        dd_member = next(iter([x for x in tracestateArr if x.startswith("dd=")]), None)
-        foo_member = next(iter([x for x in tracestateArr if x.startswith("foo=")]), None)
-        bar_member = next(iter([x for x in tracestateArr if x.startswith("bar=")]), None)
-        # ruby removes the dd member from the tracestate while python does not
-        if dd_member:
-            assert "s:2" in dd_member
-            assert "t.dm:-4" in dd_member
-        assert foo_member == "foo=1"
-        assert bar_member == "bar=baz"
-
-        assert (link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET) or (link.get("flags") == TRACECONTEXT_FLAGS_SET)
-        assert link.get("attributes") is None or len(link.get("attributes")) == 0
-
-    @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
-    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
@@ -621,26 +522,23 @@ class Test_Otel_Span_Methods:
         """Test that span links implementations correctly handle attributes according to spec.
         """
         with test_library:
+            with test_library.otel_start_span("span1") as s1:
+                s1.end_span()
+
             with test_library.otel_start_span(
                 "root",
                 links=[
                     Link(
-                        http_headers=[
-                            ["x-datadog-trace-id", "1234567890"],
-                            ["x-datadog-parent-id", "9876543210"],
-                            ["x-datadog-sampling-priority", "2"],
-                            ["x-datadog-origin", "synthetics"],
-                            ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
-                        ],
+                        parent_id=s1.span_id,
                         attributes={"foo": "bar", "array": ["a", "b", "c"], "bools": [True, False], "nested": [1, 2]},
                     )
                 ],
-            ) as span:
-                span.end_span()
+            ) as s2:
+                s2.end_span()
 
-        traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        span = find_span(trace, span.span_id)
+        traces = test_agent.wait_for_num_traces(2)
+        trace = find_trace(traces, s2.trace_id)
+        span = find_span(trace, s2.span_id)
         span_links = retrieve_span_links(span)
         assert span_links is not None
         assert len(span_links) == 1
@@ -718,28 +616,31 @@ class Test_Otel_Span_Methods:
     @pytest.mark.parametrize(
         "expected_operation_name,span_kind,attributes",
         [
-            ("http.server.request", SK_SERVER, {"http.request.method": "GET"}),
-            ("http.client.request", SK_CLIENT, {"http.request.method": "GET"}),
-            ("redis.query", SK_CLIENT, {"db.system": "Redis"}),
-            ("kafka.receive", SK_CLIENT, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
-            ("kafka.receive", SK_SERVER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
-            ("kafka.receive", SK_PRODUCER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
-            ("kafka.receive", SK_CONSUMER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
-            ("aws.s3.request", SK_CLIENT, {"rpc.system": "aws-api", "rpc.service": "S3"}),
-            ("aws.client.request", SK_CLIENT, {"rpc.system": "aws-api"}),
-            ("grpc.client.request", SK_CLIENT, {"rpc.system": "GRPC"}),
-            ("grpc.server.request", SK_SERVER, {"rpc.system": "GRPC"}),
-            ("aws.my-function.invoke", SK_CLIENT, {"faas.invoked_provider": "aws", "faas.invoked_name": "My-Function"}),
-            ("datasource.invoke", SK_SERVER, {"faas.trigger": "Datasource"}),
-            ("graphql.server.request", SK_SERVER, {"graphql.operation.type": "query"}),
-            ("amqp.server.request", SK_SERVER, {"network.protocol.name": "Amqp"}),
-            ("server.request", SK_SERVER, None),
-            ("amqp.client.request", SK_CLIENT, {"network.protocol.name": "Amqp"}),
-            ("client.request", SK_CLIENT, None),
-            ("internal", SK_INTERNAL, None),
-            ("consumer", SK_CONSUMER, None),
-            ("producer", SK_PRODUCER, None),
-            ("internal", None, None),
+            ("http.server.request", SpanKind.SERVER, {"http.request.method": "GET"}),
+            ("http.client.request", SpanKind.CLIENT, {"http.request.method": "GET"}),
+            ("redis.query", SpanKind.CLIENT, {"db.system": "Redis"}),
+            ("kafka.receive", SpanKind.CLIENT, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
+            ("kafka.receive", SpanKind.SERVER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
+            ("kafka.receive", SpanKind.PRODUCER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
+            ("kafka.receive", SpanKind.CONSUMER, {"messaging.system": "Kafka", "messaging.operation": "Receive"}),
+            ("aws.s3.request", SpanKind.CLIENT, {"rpc.system": "aws-api", "rpc.service": "S3"}),
+            ("aws.client.request", SpanKind.CLIENT, {"rpc.system": "aws-api"}),
+            ("grpc.client.request", SpanKind.CLIENT, {"rpc.system": "GRPC"}),
+            ("grpc.server.request", SpanKind.SERVER, {"rpc.system": "GRPC"}),
+            (
+                "aws.my-function.invoke",
+                SpanKind.CLIENT,
+                {"faas.invoked_provider": "aws", "faas.invoked_name": "My-Function"},
+            ),
+            ("datasource.invoke", SpanKind.SERVER, {"faas.trigger": "Datasource"}),
+            ("graphql.server.request", SpanKind.SERVER, {"graphql.operation.type": "query"}),
+            ("amqp.server.request", SpanKind.SERVER, {"network.protocol.name": "Amqp"}),
+            ("server.request", SpanKind.SERVER, None),
+            ("amqp.client.request", SpanKind.CLIENT, {"network.protocol.name": "Amqp"}),
+            ("client.request", SpanKind.CLIENT, None),
+            ("internal", SpanKind.INTERNAL, None),
+            ("consumer", SpanKind.CONSUMER, None),
+            ("producer", SpanKind.PRODUCER, None),
         ],
     )
     def test_otel_span_operation_name(
@@ -762,7 +663,7 @@ class Test_Otel_Span_Methods:
             Tests that the reserved attributes will override expected values
         """
         with test_library:
-            with test_library.otel_start_span("otel_span_name", span_kind=SK_SERVER) as span:
+            with test_library.otel_start_span("otel_span_name", span_kind=SpanKind.SERVER) as span:
                 span.set_attributes({"http.request.method": "GET"})
                 span.set_attributes({"resource.name": "new.name"})
                 span.set_attributes({"operation.name": "overriden.name"})
@@ -954,7 +855,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:
-                span.set_status(OTEL_ERROR_CODE, "error_desc")
+                span.set_status(StatusCode.ERROR, "error_desc")
                 span.record_exception(
                     message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
                 )
@@ -1003,7 +904,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:
-                span.set_status(OTEL_ERROR_CODE, "error_desc")
+                span.set_status(StatusCode.ERROR, "error_desc")
                 span.record_exception(
                     message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
                 )
@@ -1051,7 +952,7 @@ class Test_Otel_Span_Methods:
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:
-                span.set_status(OTEL_ERROR_CODE, "error_desc")
+                span.set_status(StatusCode.ERROR, "error_desc")
                 span.record_exception(
                     message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
                 )
@@ -1084,7 +985,7 @@ def run_otel_span_reserved_attributes_overrides_analytics_event(
     analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
 ):
     with test_library:
-        with test_library.otel_start_span("operation", span_kind=SK_SERVER) as span:
+        with test_library.otel_start_span("operation", span_kind=SpanKind.SERVER) as span:
             span.set_attributes({"analytics.event": analytics_event_value})
             span.end_span()
     traces = test_agent.wait_for_num_traces(1)

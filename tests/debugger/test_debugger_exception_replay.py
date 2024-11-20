@@ -94,7 +94,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
     ############ Recursion ############
     def setup_exception_replay_recursion_5(self):
-        self._setup("/debugger/exceptionreplay/recursion5", "exceptionreplayrecursion5")
+        self._setup("/debugger/exceptionreplay/recursion?depth=5", "exceptionreplayrecursion")
 
     @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")
@@ -104,7 +104,7 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
         self._validate_tags(test_name="exception_replay_recursion_5")
 
     def setup_exception_replay_recursion_20(self):
-        self._setup("/debugger/exceptionreplay/recursion20", "exceptionreplayrecursion20")
+        self._setup("/debugger/exceptionreplay/recursion?depth=20", "exceptionreplayrecursion")
 
     @bug(library="java", reason="DEBUG-3053")
     @bug(library="dotnet", reason="DEBUG-2799")

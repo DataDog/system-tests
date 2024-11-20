@@ -9,6 +9,7 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
+    Base_Rules_Version,
 )
 
 
@@ -180,3 +181,10 @@ class Test_Shi_Capability:
 
     def test_shi_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SHI)
+
+
+@features.rasp_local_file_inclusion
+class Test_Shi_Rules_Version(Base_Rules_Version):
+    """Test shi min rules version"""
+
+    min_version = "1.13.1"

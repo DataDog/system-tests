@@ -283,7 +283,7 @@ class _VirtualMachineScenario(Scenario):
     def fill_context(self):
         for vm in self.required_vms:
             for key in vm.tested_components:
-                if key == "host":
+                if key == "host" or key == "runtime_version":
                     continue
                 self._tested_components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
                 if key.startswith("datadog-apm-inject") and self._tested_components[key]:
@@ -337,8 +337,8 @@ class _VirtualMachineScenario(Scenario):
             new_result = copy.copy(result)
             new_tested_deps = result["testedDependencies"].copy()
             new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
-            new_result["configuration"]["runtime_version"] = vm.get_current_deployed_weblog().runtime_version
-            new_result["configuration"]["app_type"] = vm.get_current_deployed_weblog().app_type
+            new_result["configuration"]["runtime_version"] = vm.get_deployed_weblog().runtime_version
+            new_result["configuration"]["app_type"] = vm.get_deployed_weblog().app_type
             if "glibc" in vm.tested_components:
                 new_tested_deps.append({"name": "glibc", "version": vm.tested_components["glibc"]})
                 new_tested_deps.append({"name": "glibc_type", "version": vm.tested_components["glibc_type"]})
@@ -366,11 +366,19 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         scenario_groups=None,
         github_workflow=None,
     ) -> None:
+        # Force full tracing without limits
+        app_env_defaults = {
+            "DD_TRACE_RATE_LIMIT": "1000000000000",
+            "DD_TRACE_SAMPLING_RULES": "'[{\"sample_rate\":1}]'",
+        }
+        if app_env is not None:
+            app_env_defaults.update(app_env)
+
         super().__init__(
             name,
             vm_provision=vm_provision,
             agent_env=agent_env,
-            app_env=app_env,
+            app_env=app_env_defaults,
             doc=doc,
             github_workflow=github_workflow,
             include_ubuntu_20_amd64=True,
@@ -407,8 +415,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_redhat_7_9_amd64=True,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
-            include_redhat_9_amd64=True,
-            include_redhat_9_arm64=True,
+            include_redhat_9_amd64=False,
+            include_redhat_9_arm64=False,
             include_fedora_36_amd64=False,
             include_fedora_36_arm64=False,
             include_fedora_37_amd64=False,
@@ -431,11 +439,19 @@ class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
         scenario_groups=None,
         github_workflow=None,
     ) -> None:
+        # Force full tracing without limits
+        app_env_defaults = {
+            "DD_TRACE_RATE_LIMIT": "1000000000000",
+            "DD_TRACE_SAMPLING_RULES": "'[{\"sample_rate\":1}]'",
+        }
+        if app_env is not None:
+            app_env_defaults.update(app_env)
+
         super().__init__(
             name,
             vm_provision=vm_provision,
             agent_env=agent_env,
-            app_env=app_env,
+            app_env=app_env_defaults,
             doc=doc,
             github_workflow=github_workflow,
             include_ubuntu_22_amd64=True,

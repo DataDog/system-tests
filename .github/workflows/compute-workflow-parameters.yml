@@ -47,12 +47,6 @@ on:
       parametric_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.parametric_scenarios }}
-      dockerssi_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.dockerssi_scenarios }}
-      dockerssi_weblogs:
-        description: ""
-        value: ${{ jobs.main.outputs.dockerssi_weblogs }}
       _experimental_parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs._experimental_parametric_job_matrix }}
@@ -70,8 +64,6 @@ jobs:
       opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
       opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
-      dockerssi_scenarios: ${{ steps.main.outputs.dockerssi_scenarios }}
-      dockerssi_weblogs: ${{ steps.main.outputs.dockerssi_weblogs }}
       _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
     steps:
     - name: Checkout

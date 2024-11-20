@@ -19,7 +19,6 @@ type StartSpanArgs struct {
 	Resource    string     `json:"resource,omitempty"`
 	Type        string     `json:"type,omitempty"`
 	Origin      string     `json:"origin,omitempty"`
-	HttpHeaders []Tuple    `json:"http_headers,omitempty"`
 	SpanTags    []Tuple    `json:"span_tags,omitempty"`
 	SpanLinks   []SpanLink `json:"span_links,omitempty"`
 }
@@ -28,7 +27,6 @@ type Tuple []string
 
 type SpanLink struct {
 	ParentId    uint64           `json:"parent_id"`
-	HttpHeaders []Tuple          `json:"http_headers"`
 	Attributes  AttributeKeyVals `json:"attributes,omitempty"`
 }
 
@@ -57,6 +55,14 @@ type InjectHeadersArgs struct {
 
 type InjectHeadersReturn struct {
 	HttpHeaders []Tuple `json:"http_headers"`
+}
+
+type ExtractHeadersArgs struct {
+	HttpHeaders []Tuple `json:"http_headers"`
+}
+
+type ExtractHeadersReturn struct {
+	SpanId *uint64 `json:"span_id"`
 }
 
 type FinishSpanArgs struct {
@@ -90,7 +96,6 @@ type OtelStartSpanArgs struct {
 	Type        string           `json:"type"`
 	Timestamp   int64            `json:"timestamp"`
 	SpanLinks   []SpanLink       `json:"links"`
-	HttpHeaders []Tuple          `json:"http_headers"`
 	Attributes  AttributeKeyVals `json:"attributes"`
 }
 

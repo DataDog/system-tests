@@ -1,9 +1,10 @@
 System tests code is in python, and is linted/formated using [black](https://black.readthedocs.io/en/stable/) and [pylint](https://pylint.readthedocs.io/en/latest/).
 
-You'll only need [python3.12](https://www.python.org/downloads/) (you may have it by default) to run them, with a unique command :
+Ensure you meet the other pre-reqs in [README.md](../../README.md#requirements)
+Then, run the linter with:
 
 ```bash
 ./format.sh
 ```
 
-There is a good chance that all your files are correctly formated :tada:. For some use-cases where issues can't be automatically fixed, you'll jave the explanation in the output. And you can run only checks, without modifying any file using the `-c` option.
+Any library app code (that is, code written in Java, Golang, .NET, etc in weblog or parametric apps) will need to be formatted using that library's formatter.
