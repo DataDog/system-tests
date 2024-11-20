@@ -66,14 +66,28 @@ class PHPRuntimeInstallableVersions:
     """ PHP runtime versions that can be installed automatically"""
 
     PHP56 = RuntimeInstallableVersion("PHP56", "5.6")  # Not supported (EOL runtime)
+    PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
+    PHP71 = RuntimeInstallableVersion("PHP71", "7.1")
+    PHP72 = RuntimeInstallableVersion("PHP72", "7.2")
+    PHP73 = RuntimeInstallableVersion("PHP73", "7.3")
     PHP74 = RuntimeInstallableVersion("PHP74", "7.4")
+    PHP80 = RuntimeInstallableVersion("PHP80", "8.0")
+    PHP81 = RuntimeInstallableVersion("PHP81", "8.1")
+    PHP82 = RuntimeInstallableVersion("PHP82", "8.2")
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
 
     @staticmethod
     def get_all_versions():
         return [
             PHPRuntimeInstallableVersions.PHP56,
+            PHPRuntimeInstallableVersions.PHP70,
+            PHPRuntimeInstallableVersions.PHP71,
+            PHPRuntimeInstallableVersions.PHP72,
+            PHPRuntimeInstallableVersions.PHP73,
             PHPRuntimeInstallableVersions.PHP74,
+            PHPRuntimeInstallableVersions.PHP80,
+            PHPRuntimeInstallableVersions.PHP81,
+            PHPRuntimeInstallableVersions.PHP82,
             PHPRuntimeInstallableVersions.PHP83,
         ]
 
@@ -174,7 +188,14 @@ JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64
 PHP_APP = WeblogDescriptor(
     "php-app",
     "php",
-    [SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(PHPRuntimeInstallableVersions.get_all_versions())],
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            PHPRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            PHPRuntimeInstallableVersions.get_all_versions()
+        ),
+    ],
 )
 
 PY_APP = WeblogDescriptor(
