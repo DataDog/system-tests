@@ -13,7 +13,6 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -44,7 +43,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(test_library, [])
+            traceparent, tracestate = make_single_request_and_get_tracecontext([])
 
     @temporary_enable_optin_tracecontext_single_key()
     @missing_feature(
@@ -57,7 +56,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         assert traceparent.trace_id == "12345678901234567890123456789012"
@@ -71,7 +70,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         assert traceparent.trace_id == "12345678901234567890123456789012"
@@ -124,11 +123,11 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["trace-parent", "00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["trace-parent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["trace.parent", "00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["trace.parent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         assert traceparent1.trace_id != "12345678901234567890123456789012"
@@ -143,15 +142,15 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["TraceParent", "00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["TraceParent", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["TrAcEpArEnT", "00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["TrAcEpArEnT", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent3, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["TRACEPARENT", "00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["TRACEPARENT", "00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         assert traceparent1.trace_id == "12345678901234567890123456789012"
@@ -166,7 +165,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01.",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01.",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
@@ -190,7 +189,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, _ = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "cc-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "cc-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent2, _ = make_single_request_and_get_tracecontext(
@@ -225,7 +224,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "ff-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "ff-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
@@ -238,11 +237,11 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", ".0-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", ".0-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "0.-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "0.-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         assert traceparent1.trace_id != "12345678901234567890123456789012"
@@ -256,11 +255,11 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "000-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "000-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "0000-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "0000-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         assert traceparent1.trace_id != "12345678901234567890123456789012"
@@ -274,7 +273,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "0-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "0-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
@@ -287,7 +286,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-00000000000000000000000000000000-1234567890123456-01",],],
+                [["traceparent", "00-00000000000000000000000000000000-1234567890123456-01",],],
             )
 
         assert traceparent.trace_id != "00000000000000000000000000000000"
@@ -300,11 +299,11 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-.2345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "00-.2345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-1234567890123456789012345678901.-1234567890123456-01",],],
+                [["traceparent", "00-1234567890123456789012345678901.-1234567890123456-01",],],
             )
 
         assert traceparent1.trace_id != ".2345678901234567890123456789012"
@@ -318,7 +317,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-123456789012345678901234567890123-1234567890123456-01",],],
+                [["traceparent", "00-123456789012345678901234567890123-1234567890123456-01",],],
             )
 
         assert traceparent.trace_id != "123456789012345678901234567890123"
@@ -333,7 +332,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-1234567890123456789012345678901-1234567890123456-01",],],
+                [["traceparent", "00-1234567890123456789012345678901-1234567890123456-01",],],
             )
 
         assert traceparent.trace_id != "1234567890123456789012345678901"
@@ -346,7 +345,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-0000000000000000-01",],],
+                [["traceparent", "00-12345678901234567890123456789012-0000000000000000-01",],],
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
@@ -359,11 +358,11 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-.234567890123456-01",],],
+                [["traceparent", "00-12345678901234567890123456789012-.234567890123456-01",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-123456789012345.-01",],],
+                [["traceparent", "00-12345678901234567890123456789012-123456789012345.-01",],],
             )
 
         assert traceparent1.trace_id != "12345678901234567890123456789012"
@@ -377,7 +376,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-12345678901234567-01",],],
+                [["traceparent", "00-12345678901234567890123456789012-12345678901234567-01",],],
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
@@ -390,7 +389,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-123456789012345-01",],],
+                [["traceparent", "00-12345678901234567890123456789012-123456789012345-01",],],
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
@@ -403,11 +402,11 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-.0",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-.0",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-0.",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-0.",],],
             )
 
         assert traceparent1.trace_id != "12345678901234567890123456789012"
@@ -421,7 +420,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, _ = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-001",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-001",],],
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
@@ -434,7 +433,7 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-1",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-1",],],
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
@@ -447,23 +446,23 @@ class Test_Headers_Tracecontext:
         """
         with test_library:
             traceparent1, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", " 00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", " 00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent2, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "\t00-12345678901234567890123456789012-1234567890123456-01",],],
+                [["traceparent", "\t00-12345678901234567890123456789012-1234567890123456-01",],],
             )
 
             traceparent3, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01 ",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01 ",],],
             )
 
             traceparent4, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01\t",],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01\t",],],
             )
 
             traceparent5, tracestate = make_single_request_and_get_tracecontext(
-                test_library, [["traceparent", "\t 00-12345678901234567890123456789012-1234567890123456-01 \t",],],
+                [["traceparent", "\t 00-12345678901234567890123456789012-1234567890123456-01 \t",],],
             )
 
         assert traceparent1.trace_id == "12345678901234567890123456789012"
@@ -480,8 +479,8 @@ class Test_Headers_Tracecontext:
         expects the tracestate to be discarded
         """
         with test_library:
-            _, tracestate1 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1"],],)
-            _, tracestate2 = make_single_request_and_get_tracecontext(test_library, [["tracestate", "foo=1,bar=2"],],)
+            _, tracestate1 = make_single_request_and_get_tracecontext([["tracestate", "foo=1"],],)
+            _, tracestate2 = make_single_request_and_get_tracecontext([["tracestate", "foo=1,bar=2"],],)
 
         # Updated the test to check that the number of tracestate list-members is the same,
         # since Datadog will add an entry.
@@ -1119,4 +1118,4 @@ class Test_Headers_Tracecontext:
 
 
 def make_single_request_and_get_tracecontext(test_library, headers_list):
-    return get_tracecontext(make_single_request_and_get_inject_headers(test_library, headers_list))
+    return get_tracecontext(test_library.dd_make_child_span_and_get_headers(headers_list))

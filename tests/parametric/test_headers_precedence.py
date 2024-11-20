@@ -4,7 +4,6 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext, TRACECONTEXT_FLAGS_SET
 from utils.parametric.spec.trace import retrieve_span_links, find_span_in_traces
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -111,22 +110,20 @@ class Test_Headers_Precedence:
     def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
+            headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
             )
 
             # 4) Both tracecontext and Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1"],
@@ -137,8 +134,7 @@ class Test_Headers_Precedence:
             )
 
             # 5) Only Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -147,8 +143,7 @@ class Test_Headers_Precedence:
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
                     ["tracestate", "foo=1"],
@@ -233,22 +228,20 @@ class Test_Headers_Precedence:
     def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
+            headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
             )
 
             # 4) Both tracecontext and Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1"],
@@ -259,8 +252,7 @@ class Test_Headers_Precedence:
             )
 
             # 5) Only Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -269,8 +261,7 @@ class Test_Headers_Precedence:
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
                     ["tracestate", "foo=1"],
@@ -374,22 +365,20 @@ class Test_Headers_Precedence:
     def test_headers_precedence_propagationstyle_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
+            headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
             )
 
             # 4) Both tracecontext and Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1"],
@@ -400,8 +389,7 @@ class Test_Headers_Precedence:
             )
 
             # 5) Only Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -410,8 +398,7 @@ class Test_Headers_Precedence:
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
                     ["tracestate", "foo=1"],
@@ -505,22 +492,20 @@ class Test_Headers_Precedence:
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
+            headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
             )
 
             # 4) Both tracecontext and Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1"],
@@ -531,8 +516,7 @@ class Test_Headers_Precedence:
             )
 
             # 5) Only Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -541,8 +525,7 @@ class Test_Headers_Precedence:
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
                     ["tracestate", "foo=1"],
@@ -962,7 +945,7 @@ class Test_Headers_Precedence:
 
     @enable_tracecontext_datadog_b3multi_extract_first_true()
     def test_headers_precedence_propagationstyle_tracecontext_first_extract_first_true_correctly_propagates_tracestate(
-        self, test_agent, test_library
+        self, test_library, test_agent
     ):
         self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
             test_agent, test_library, prefer_tracecontext=True, extract_first=True
@@ -985,8 +968,7 @@ class Test_Headers_Precedence:
         with test_library:
             # 1) Datadog and tracecontext headers, trace-id and span-id match, tracestate is present
             # Note: This is expected to be the most frequent case
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
@@ -998,8 +980,7 @@ class Test_Headers_Precedence:
             )
             # 2) Scenario 1 but the x-datadog-* headers don't match the tracestate string
             # Note: This is an exceptional case that should not happen, but we should be consistent
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
                     ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
@@ -1012,8 +993,7 @@ class Test_Headers_Precedence:
 
             # 3) Scenario 1 but there is no dd tracestate list-member
             # Note: This is an exceptional case that should not happen, but we should be consistent
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
                     ["tracestate", "foo=1"],
@@ -1026,8 +1006,7 @@ class Test_Headers_Precedence:
 
             # 4) Datadog and tracecontext headers, trace-id is the same but span-id is different, tracestate is present
             # Note: This happens when a W3C Proxy / Cloud Provider continues the W3C trace
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000004-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
@@ -1041,8 +1020,7 @@ class Test_Headers_Precedence:
             # 5) Datadog and tracecontext headers, trace-id is different, tracestate is present
             # Note: This happens when a W3C Proxy / Cloud Provider starts a new W3C trace,
             # which would happen if the incoming request only had x-datadog-* headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000005-000000003ade68b1-01"],
                     ["tracestate", "foo=1"],

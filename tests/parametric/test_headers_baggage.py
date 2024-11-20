@@ -3,13 +3,11 @@ from py import test
 from requests import head
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.spec.trace import find_only_span
 from utils import features, scenarios, bug, context
 from typing import Any
 import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.spec.trace import find_only_span
 
 parametrize = pytest.mark.parametrize
@@ -35,8 +33,7 @@ class Test_Headers_Baggage:
     def test_headers_baggage_default_D001(self, test_agent, test_library):
         """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [["x-datadog-trace-id", "123456789"], ["x-datadog-parent-id", "987654321"], ["baggage", "foo=bar"],],
             )
 
@@ -50,8 +47,8 @@ class Test_Headers_Baggage:
     def test_headers_baggage_only_D002(self, test_library):
         """Ensure that only baggage headers are injected when baggage is the only enabled propagation style."""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-datadog-trace-id", "123456789"], ["baggage", "foo=bar"]]
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["x-datadog-trace-id", "123456789"], ["baggage", "foo=bar"]]
             )
 
         assert "x-datadog-trace-id" not in headers.keys()
@@ -64,8 +61,7 @@ class Test_Headers_Baggage:
     def test_baggage_disable_settings_D003(self, test_agent, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled and does not interfere with other headers."""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [["x-datadog-trace-id", "123456789"], ["x-datadog-parent-id", "987654321"], ["baggage", "foo=bar"],],
             )
 
@@ -186,8 +182,8 @@ class Test_Headers_Baggage:
     def test_baggage_malformed_headers_D012(self, test_library, test_agent):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["baggage", "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"]],
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["baggage", "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"]],
             )
 
             assert "baggage" not in headers.keys()
@@ -195,20 +191,20 @@ class Test_Headers_Baggage:
     def test_baggage_malformed_headers_D013(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [["baggage", "=no-key"]],)
+            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "=no-key"]],)
 
             assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D014(self, test_library):
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [["baggage", "no-value="]],)
+            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "no-value="]],)
 
             assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D015(self, test_library):
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["baggage", "foo=gets-dropped-because-subsequent-pair-is-malformed,="]],
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["baggage", "foo=gets-dropped-because-subsequent-pair-is-malformed,="]],
             )
 
             assert "baggage" not in headers.keys()
