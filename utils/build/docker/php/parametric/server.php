@@ -239,8 +239,11 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(function () use (&$spans) {
-    \DDTrace\flush();
-    dd_trace_internal_fn("synchronous_flush");
+    dd_trace_synchronous_flush(1000); # flush spans with a timeout of 1s
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/stats/flush', new ClosureRequestHandler(function () use (&$spans) {
+    # NOP: php doesn't expose an API to flush trace stats
     return jsonResponse([]);
 }));
 $router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(function () use (&$spans, &$activeSpan) {
@@ -398,11 +401,11 @@ $router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(fu
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/otel/flush', new ClosureRequestHandler(function (Request $req) {
-    \DDTrace\flush();
-    dd_trace_internal_fn("synchronous_flush");
-     return jsonResponse([
-         'success' => true
-     ]);
+    $timeout = (arg($req, 'seconds') || 0.1) * 1000; # convert timeout to ms
+    dd_trace_synchronous_flush($timeout);
+    return jsonResponse([
+        'success' => true
+    ]);
 }));
 $router->addRoute('POST', '/trace/otel/is_recording', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
