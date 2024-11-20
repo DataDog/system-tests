@@ -222,11 +222,11 @@ class APMLibraryClient:
     def otel_trace_start_span(
         self,
         name: str,
-        timestamp: int,
-        span_kind: SpanKind,
-        parent_id: int,
-        links: List[Link],
-        attributes: dict = None,
+        timestamp: Optional[int],
+        span_kind: Optional[SpanKind],
+        parent_id: Optional[int],
+        links: Optional[List[Link]],
+        attributes: Optional[dict],
     ) -> StartSpanResponse:
         resp = self._session.post(
             self._url("/trace/otel/start_span"),
@@ -235,7 +235,7 @@ class APMLibraryClient:
                 "timestamp": timestamp,
                 "span_kind": span_kind.value,
                 "parent_id": parent_id,
-                "links": links,
+                "links": links or [],
                 "attributes": attributes or {},
             },
         ).json()
@@ -447,18 +447,18 @@ class APMLibrary:
     def otel_start_span(
         self,
         name: str,
-        timestamp: int = 0,
-        span_kind: SpanKind = SpanKind.UNSPECIFIED,
-        parent_id: int = 0,
+        timestamp: Optional[int] = None,
+        span_kind: Optional[SpanKind] = None,
+        parent_id: Optional[int] = None,
         links: Optional[List[Link]] = None,
-        attributes: dict = None,
+        attributes: Optional[dict] = None,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(
             name=name,
             timestamp=timestamp,
             span_kind=span_kind,
             parent_id=parent_id,
-            links=links if links is not None else [],
+            links=links,
             attributes=attributes,
         )
         span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
