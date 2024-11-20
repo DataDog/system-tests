@@ -401,7 +401,7 @@ $router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(fu
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/otel/flush', new ClosureRequestHandler(function (Request $req) {
-    $timeout = (arg($req, 'seconds') || 0.1) * 1000; # convert timeout to ms
+    $timeout = (arg($req, 'seconds') ?: 0.1) * 1000; # convert timeout to ms
     dd_trace_synchronous_flush($timeout);
     return jsonResponse([
         'success' => true
