@@ -62,7 +62,6 @@ class Test_Otel_API_Interoperability:
                     # FIXME: The trace_id is encoded in hex while span_id is an int. Make this API consistent
                     assert current_dd_span.trace_id == otel_context.get("trace_id")
                     assert "{:016x}".format(int(current_dd_span.span_id)) == otel_context.get("span_id")
-                    otel_span.end_span()
             dd_span.finish()
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -111,8 +110,6 @@ class Test_Otel_API_Interoperability:
 
                 otel_current_span = test_library.otel_current_span()
                 assert otel_current_span.span_id == otel_span.span_id
-
-                otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, otel_span.trace_id)
@@ -235,7 +232,6 @@ class Test_Otel_API_Interoperability:
                 dd_current_span.add_link(
                     parent_id=dd_span.span_id, attributes=TEST_ATTRIBUTES,
                 )
-                otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
         trace = find_trace(traces, otel_span.trace_id)
@@ -254,9 +250,7 @@ class Test_Otel_API_Interoperability:
                 with test_library.dd_start_span(name="dd_child", parent_id=otel_root.span_id) as dd_child:
                     with test_library.dd_start_span(name="dd_root", parent_id=0) as dd_root:
                         with test_library.otel_start_span(name="otel_child", parent_id=dd_root.span_id) as otel_child:
-                            otel_child.end_span()
-                        dd_root.finish()
-                otel_root.end_span()
+                            pass
 
         traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
 
@@ -294,8 +288,6 @@ class Test_Otel_API_Interoperability:
                         name="otel_child", parent_id=otel_root.span_id, span_kind=SpanKind.INTERNAL
                     ) as otel_child:
                         with test_library.dd_start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
-                            otel_child.end_span()
-
                             dd_current_span = test_library.dd_current_span()
                             assert dd_current_span.span_id == dd_child.span_id
 
@@ -305,7 +297,6 @@ class Test_Otel_API_Interoperability:
 
                     dd_current_span = test_library.dd_current_span()
                     assert dd_current_span.span_id == otel_root.span_id
-                otel_root.end_span()
 
         traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
 
@@ -343,8 +334,6 @@ class Test_Otel_API_Interoperability:
                         name="otel_child", parent_id=otel_root.span_id, span_kind=SpanKind.INTERNAL
                     ) as otel_child:
                         with test_library.dd_start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
-                            otel_child.end_span()
-
                             dd_current_span = test_library.dd_current_span()
                             assert dd_current_span.span_id == dd_child.span_id
 
@@ -354,7 +343,6 @@ class Test_Otel_API_Interoperability:
 
                     dd_current_span = test_library.dd_current_span()
                     assert dd_current_span.span_id == otel_root.span_id
-                otel_root.end_span()
 
         traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
 
@@ -497,8 +485,6 @@ class Test_Otel_API_Interoperability:
                 dd_span.set_meta("str_array", ["a", "b", "c"])
                 dd_span.set_meta("nested_str_array", [["a", "b"], ["c", "d"]])
                 dd_span.set_metric("int_array", [1, 2, 3])
-
-                otel_span.end_span()
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, otel_span.span_id)

@@ -8,6 +8,7 @@ the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2dde
 """
 import json
 import pytest
+import time
 
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
@@ -350,7 +351,6 @@ class Test_Parametric_DDTrace_Current_Span:
             with test_library.otel_start_span("span_test_current_span_from_otel") as s1:
                 dd_current_span = test_library.dd_current_span()
                 assert dd_current_span.span_id == s1.span_id
-                s1.end_span()
             dd_current_span = test_library.dd_current_span()
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
@@ -477,10 +477,10 @@ class Test_Parametric_DDTrace_Baggage:
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
-class Test_Parametric_OtelSpan_Start_Finish:
-    def test_span_start_and_finish(self, test_agent, test_library):
+class Test_Parametric_OtelSpan_Start:
+    def test_span_start(self, test_agent, test_library):
         """
-        Validates that the /trace/otel/start_span creates a new span and that the /trace/otel/end_span finishes a span and sends it to the agent.
+        Validates that the /trace/otel/start_span creates a new span.
 
         Supported Parameters:
         - name: str
@@ -495,10 +495,10 @@ class Test_Parametric_OtelSpan_Start_Finish:
         """
         with test_library:
             with test_library.otel_start_span("otel_start_span_parent") as s1:
-                s1.end_span()
+                pass
 
             with test_library.otel_start_span("otel_start_span_linked") as s2:
-                s2.end_span()
+                pass
 
             with test_library.otel_start_span(
                 "otel_start_span_child",
@@ -508,7 +508,7 @@ class Test_Parametric_OtelSpan_Start_Finish:
                 [Link(parent_id=s2.span_id, attributes={"link.key": "value"})],
                 {"attr_key": "value"},
             ) as s3:
-                s3.end_span()
+                pass
 
         traces = test_agent.wait_for_num_traces(2)
         first_trace = find_trace(traces, s1.trace_id)
@@ -528,6 +528,49 @@ class Test_Parametric_OtelSpan_Start_Finish:
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
+class Test_Parametric_OtelSpan_End:
+    def test_span_end(self, test_agent, test_library):
+        """
+        Validates that the /trace/otel/end_span finishes a span and sends it to the agent
+
+        Supported Parameters:
+        - timestamp (μs): Optional[int]
+        Supported Return Values:
+        """
+        sleep = 0.2
+        t1 = time.time()
+        with test_library:
+            with test_library.otel_start_span("otel_end_span", end_on_exit=True) as s1:
+                time.sleep(sleep)
+        total_time = time.time() - t1
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        assert sleep <= span["duration"] / 1e9 <= total_time, span["start"]
+
+    def test_span_end_with_timestamp(self, test_agent, test_library):
+        """
+        Validates that the /trace/otel/end_span finishes a span and sends it to the agent with the expected duration
+
+        Supported Parameters:
+        - timestamp (μs): Optional[int]
+        Supported Return Values:
+        """
+        start = 5_000_000  # microseconds
+        end = 10_000_000  # microseconds
+        with test_library:
+            with test_library.otel_start_span("otel_end_span_with_timestamp", timestamp=start, end_on_exit=False) as s1:
+                pass
+            s1.end_span(end)
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        assert span["start"] == start * 1000
+        assert span["duration"] == (end - start) * 1000
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
 class Test_Parametric_OtelSpan_Set_Attribute:
     def test_otel_set_attribute(self, test_agent, test_library):
         """
@@ -541,7 +584,6 @@ class Test_Parametric_OtelSpan_Set_Attribute:
         with test_library:
             with test_library.otel_start_span("otel_set_attribute") as s1:
                 s1.set_attribute("key", "value")
-                s1.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -564,7 +606,6 @@ class Test_Parametric_OtelSpan_Set_Status:
         with test_library:
             with test_library.otel_start_span("otel_set_status") as s1:
                 s1.set_status(StatusCode.ERROR, "error message")
-                s1.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -586,7 +627,6 @@ class Test_Parametric_OtelSpan_Set_Name:
         with test_library:
             with test_library.otel_start_span("otel_set_name") as s1:
                 s1.set_name("new_name")
-                s1.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -610,7 +650,6 @@ class Test_Parametric_OtelSpan_Events:
         with test_library:
             with test_library.otel_start_span("otel_add_event") as s1:
                 s1.add_event("some_event", 1730393556000000, {"key": "value"})
-                s1.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -636,7 +675,6 @@ class Test_Parametric_OtelSpan_Events:
         with test_library:
             with test_library.otel_start_span("otel_record_exception") as s1:
                 s1.record_exception("MyException Parametric tests rock", {"error.key": "value"})
-                s1.end_span()
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -661,7 +699,6 @@ class Test_Parametric_OtelSpan_Is_Recording:
         """
         with test_library.otel_start_span("otel_is_recording") as s1:
             assert s1.is_recording()
-            s1.end_span()
 
 
 @scenarios.parametric
@@ -680,7 +717,6 @@ class Test_Parametric_Otel_Baggage:
         with test_library.otel_start_span("otel_set_baggage") as s1:
             value = test_library.otel_set_baggage(s1.span_id, "foo", "bar")
             assert value == "bar"
-            s1.end_span()
 
 
 @scenarios.parametric
@@ -706,11 +742,9 @@ class Test_Parametric_Otel_Current_Span:
                 with test_library.otel_start_span("span_test_current_spans_s2", parent_id=s1.span_id) as s2:
                     dd_current_span = test_library.otel_current_span()
                     assert dd_current_span.span_id == s2.span_id
-                    s2.end_span()
 
                 dd_current_span = test_library.otel_current_span()
                 assert dd_current_span.span_id == s1.span_id
-                s1.end_span()
 
             dd_current_span = test_library.otel_current_span()
             assert int(dd_current_span.span_id) == 0
@@ -732,5 +766,6 @@ class Test_Parametric_Otel_Trace_Flush:
         # Here we are avoiding using the __exit__() operation on the contextmanager
         # and instead manually finishing and flushing the span.
         with test_library.otel_start_span("test_otel_flush") as s1:
-            s1.end_span()
+            pass
+
         assert test_library.otel_flush(timeout_sec=5)

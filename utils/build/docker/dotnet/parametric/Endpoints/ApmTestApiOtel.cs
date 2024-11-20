@@ -56,9 +56,9 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         DateTimeOffset startTime = default;
-        if (requestBodyObject.TryGetValue("timestamp", out var timestamp))
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) &&  Convert.ToInt64(timestamp) is long timestampInMicroseconds && timestampInMicroseconds > 0)
         {
-            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
+            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(timestampInMicroseconds);
         }
 
         var parentContext = localParentContext ?? remoteParentContext ?? default;
@@ -158,9 +158,9 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         var activity = FindActivity(requestBodyObject["id"]);
 
-        if (!string.IsNullOrEmpty(requestBodyObject["timestamp"].ToString()))
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
         {
-            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(requestBodyObject["timestamp"]));
+            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
             activity.SetEndTime(convertedTimestamp.UtcDateTime);
         }
 
