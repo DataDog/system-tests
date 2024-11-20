@@ -119,7 +119,7 @@ function lookup_scenario_group() {
 
     python+=(utils/scripts/get-scenarios-from-group.py)
 
-    PYTHONPATH=. ${python[@]} ${group}
+    PYTHONPATH=. "${python[@]}" "${group}"
 }
 
 function upcase() {
