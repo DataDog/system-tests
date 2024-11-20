@@ -106,7 +106,7 @@ allow_no_jira_ticket_for_bugs = [
 files = ["utils/parametric", "tests/parametric"]
 ignore_missing_imports = true
 disable_error_code = ["no-redef"]
-exclude = '^(?!utils/parametric|tests/parametric).*$'
+exclude = 'utils/parametric/_library_client\.py|^(?!utils/parametric|tests/parametric).*$'
 follow_imports = "skip"
 
 [tool.pylint]

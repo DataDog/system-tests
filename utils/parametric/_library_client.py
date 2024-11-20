@@ -2,12 +2,12 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Any, Generator, List, Optional, Tuple, TypedDict, Union, Dict
+from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
 
 from docker.models.containers import Container
 import pytest
 from _pytest.outcomes import Failed
-import requests  # type: ignore
+import requests
 from utils import context
 
 from utils.dd_constants import SpanKind, StatusCode
@@ -32,8 +32,9 @@ class SpanResponse(TypedDict):
 
 
 class Link(TypedDict):
-    parent_id: int
+    parent_id: int  # 0 to extract from headers
     attributes: dict
+    http_headers: List[Tuple[str, str]]
 
 
 class APMLibraryClient:
@@ -119,7 +120,7 @@ class APMLibraryClient:
             # TODO: Update the cpp parametric app to accept null values for unset parameters
             service = service or ""
             resource = resource or ""
-            parent_id = parent_id or ""
+            parent_id = parent_id or 0
             typestr = typestr or ""
 
         resp = self._session.post(
@@ -187,21 +188,30 @@ class APMLibraryClient:
             json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
         )
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: Optional[dict[Any, Any]] = None):
+    def span_add_link(
+        self, span_id: int, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None
+    ):
+        # Avoid using http_headers when creating a span link in the parametric apps
+        # Alternative endpoints will be provided to set these values. This will be documented in a future PR.
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {},},
+            json={
+                "span_id": span_id,
+                "parent_id": parent_id,
+                "attributes": attributes or {},
+                "http_headers": http_headers or [],
+            },
         )
 
     def span_get_baggage(self, span_id: int, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key,},)
-        data = resp.json()
-        return data["baggage"]
+        resp = resp.json()
+        return resp["baggage"]
 
     def span_get_all_baggage(self, span_id: int) -> dict:
         resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
-        data = resp.json()
-        return data["baggage"]
+        resp = resp.json()
+        return resp["baggage"]
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
@@ -226,7 +236,8 @@ class APMLibraryClient:
         span_kind: SpanKind,
         parent_id: int,
         links: List[Link],
-        attributes: Optional[dict[Any, Any]] = None,
+        http_headers: List[Tuple[str, str]],
+        attributes: dict = None,
     ) -> StartSpanResponse:
         resp = self._session.post(
             self._url("/trace/otel/start_span"),
@@ -236,6 +247,7 @@ class APMLibraryClient:
                 "span_kind": span_kind.value,
                 "parent_id": parent_id,
                 "links": links,
+                "http_headers": http_headers,
                 "attributes": attributes or {},
             },
         ).json()
@@ -292,8 +304,8 @@ class APMLibraryClient:
         resp = self._session.post(
             self._url("/trace/otel/otel_set_baggage"), json={"span_id": span_id, "key": key, "value": value}
         )
-        data = resp.json()
-        return data["value"]
+        resp = resp.json()
+        return resp["value"]
 
     def get_tracer_config(self) -> Dict[str, Optional[str]]:
         resp = self._session.get(self._url("/trace/config")).json()
@@ -357,8 +369,8 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: Optional[dict[Any, Any]] = None):
-        self._client.span_add_link(self.span_id, parent_id, attributes)
+    def add_link(self, parent_id: int, attributes: dict = None, http_headers: List[Tuple[str, str]] = None):
+        self._client.span_add_link(self.span_id, parent_id, attributes, http_headers)
 
     def finish(self):
         self._client.finish_span(self.span_id)
@@ -385,7 +397,7 @@ class _TestOtelSpan:
         self._client.otel_set_status(self.span_id, code, description)
 
     def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
-        self._client.otel_add_event(self.span_id, name, timestamp, attributes)  # type: ignore
+        self._client.otel_add_event(self.span_id, name, timestamp, attributes)
 
     def record_exception(self, message: str, attributes: Optional[dict] = None):
         self._client.otel_record_exception(self.span_id, message, attributes)
@@ -428,12 +440,12 @@ class APMLibrary:
         name: str,
         service: Optional[str] = None,
         resource: Optional[str] = None,
-        parent_id: Optional[int] = None,
+        parent_id: Optional[str] = None,
         typestr: Optional[str] = None,
         tags: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
-            name=name, service=service, resource=resource, parent_id=str(parent_id), typestr=typestr, tags=tags,
+            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags,
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
@@ -451,7 +463,8 @@ class APMLibrary:
         span_kind: SpanKind = SpanKind.UNSPECIFIED,
         parent_id: int = 0,
         links: Optional[List[Link]] = None,
-        attributes: Optional[dict[Any, Any]] = None,
+        attributes: dict = None,
+        http_headers: Optional[List[Tuple[str, str]]] = None,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(
             name=name,
@@ -460,9 +473,15 @@ class APMLibrary:
             parent_id=parent_id,
             links=links if links is not None else [],
             attributes=attributes,
+            http_headers=http_headers if http_headers is not None else [],
         )
         span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
+
+        return {
+            "span_id": resp["span_id"],
+            "trace_id": resp["trace_id"],
+        }
 
     def flush(self) -> bool:
         return self._client.trace_flush()
