@@ -414,7 +414,7 @@ class APMLibrary:
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
-            self.flush()
+            self._client.trace_flush() and self._client.otel_flush()
 
     def crash(self) -> None:
         self._client.crash()
