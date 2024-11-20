@@ -26,7 +26,7 @@ lang_variant:
 
 weblog:
     name: test-app-python-27
-    excluded_os_branches: [amazon_linux2, rhel_7_amd64, redhat]
+    excluded_os_branches: [amazon_linux2, rhel_7_amd64, redhat, ubuntu23]
     install:
       - os_type: linux
 
