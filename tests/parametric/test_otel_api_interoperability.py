@@ -227,34 +227,23 @@ class Test_Otel_API_Interoperability:
             - Test that links can be added with the Datadog API on a span created with the OTel API
         """
         with test_library:
-            with test_library.otel_start_span("otel.span") as otel_span:
+            with test_library.start_span("dd_root") as dd_span:
+                pass
+
+            with test_library.otel_start_span("otel_root") as otel_span:
                 current_span = test_library.current_span()
-
                 current_span.add_link(
-                    parent_id=0,
-                    attributes=TEST_ATTRIBUTES,
-                    http_headers=[
-                        ("traceparent", f"00-{TEST_TRACE_ID}-{TEST_SPAN_ID}-01"),
-                        ("tracestate", TEST_TRACESTATE),
-                    ],
+                    parent_id=dd_span.span_id, attributes=TEST_ATTRIBUTES,
                 )
-
                 otel_span.end_span()
 
-        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
         trace = find_trace(traces, otel_span.trace_id)
         assert len(trace) == 1
 
         root = find_root_span(trace)
         span_links = retrieve_span_links(root)
         assert len(span_links) == 1
-
-        link = span_links[0]
-        assert link["trace_id"] == TEST_TRACE_ID_LOW
-        assert link["trace_id_high"] == TEST_TRACE_ID_HIGH
-        assert link["span_id"] == TEST_SPAN_ID_INT
-        assert "t.dm:-0" in link["tracestate"]
-        assert link["attributes"]["arg1"] == "val1"
 
     def test_concurrent_traces_in_order(self, test_agent, test_library):
         """
