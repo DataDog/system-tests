@@ -698,9 +698,14 @@ class Test_SCAStandalone_Telemetry:
         assert cfg_appsec_enabled.get("value") == outcome_value
 
     def setup_app_dependencies_loaded(self):
-        weblog.get("/load_dependency")
+        self.r = weblog.get("/load_dependency")
 
     def test_app_dependencies_loaded(self):
+        # test standalone is enabled and dropping traces
+        for data, _trace, span in interfaces.library.get_spans(request=self.r):
+            assert span["metrics"]["_sampling_priority_v1"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0
+
         seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.library)
 
         for data in interfaces.library.get_telemetry_data():
