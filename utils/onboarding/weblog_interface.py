@@ -90,6 +90,13 @@ def get_strace(virtual_machine) -> str:
     return requests.get(url, timeout=240).text
 
 
+def kill_strace(virtual_machine) -> str:
+    vm_ip = virtual_machine.get_ip()
+    vm_port = virtual_machine.deffault_open_port
+    url = f"http://{vm_ip}:{vm_port}/kill_strace"
+    return requests.get(url, timeout=30).text
+
+
 def get_zombies(virtual_machine) -> str:
     vm_ip = virtual_machine.get_ip()
     vm_port = virtual_machine.deffault_open_port
