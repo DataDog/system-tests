@@ -241,5 +241,7 @@ class Test_Headers_Baggage:
             for header in headers:
                 if "baggage" in header:
                     baggage_header = header
+            items = baggage_header[1].split(",")
             header_size = len(baggage_header[1].encode("utf-8"))
+            assert len(items) == 2
             assert header_size <= max_bytes
