@@ -3,8 +3,8 @@ FROM golang:1.22
 # print important lib versions
 RUN go version && curl --version
 
-# install jq and socat
-RUN apt-get update && apt-get -y install jq socat
+# install socat for the UDS
+RUN apt-get update && apt-get -y install socat
 
 # download go dependencies
 RUN mkdir -p /app

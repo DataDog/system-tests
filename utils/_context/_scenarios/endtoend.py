@@ -193,6 +193,7 @@ class EndToEndScenario(DockerScenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_otel_drop_in=False,
         include_buddies=False,
         require_api_key=False,
     ) -> None:
@@ -237,6 +238,7 @@ class EndToEndScenario(DockerScenario):
                 "INCLUDE_RABBITMQ": str(include_rabbitmq).lower(),
                 "INCLUDE_MYSQL": str(include_mysql_db).lower(),
                 "INCLUDE_SQLSERVER": str(include_sqlserver).lower(),
+                "INCLUDE_OTEL_DROP_IN": str(include_otel_drop_in).lower(),
             }
         )
 

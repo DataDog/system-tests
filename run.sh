@@ -142,7 +142,7 @@ function activate_venv() {
 }
 
 function network_name() {
-    perl -ne '/_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
+    perl -ne '/_DEFAULT_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
 }
 
 function ensure_network() {

@@ -164,34 +164,18 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             },
         ],
         "python": [
-            {
-                "ignored_args": "",
-                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
-                "skip": False,
-            },
-            {
-                "ignored_args": "arg1",
-                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
-                "skip": True,
-            },
-            {
-                "ignored_args": "arg12,arg2,arg44",
-                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
-                "skip": True,
-            },
+            {"ignored_args": "", "command": "sudo -E python myscript.py arg1 arg2 arg3", "skip": False,},
+            {"ignored_args": "arg1", "command": "sudo -E python myscript.py arg1 arg2 arg3", "skip": True,},
+            {"ignored_args": "arg12,arg2,arg44", "command": "sudo -E python myscript.py arg1 arg2 arg3", "skip": True,},
             {
                 "ignored_args": "arg11, arg22,arg44",
-                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py arg1 arg2 arg3",
+                "command": "sudo -E python myscript.py arg1 arg2 arg3",
                 "skip": False,
             },
-            {
-                "ignored_args": "--dosomething",
-                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py --dosomething yes",
-                "skip": True,
-            },
+            {"ignored_args": "--dosomething", "command": "sudo -E python myscript.py --dosomething yes", "skip": True,},
             {
                 "ignored_args": "--dosomethingXXXX",
-                "command": "sudo -E /home/datadog/.pyenv/versions/3.8.15/bin/python myscript.py --dosomething no",
+                "command": "sudo -E python myscript.py --dosomething no",
                 "skip": False,
             },
         ],
@@ -221,6 +205,8 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     @irrelevant(
@@ -241,6 +227,8 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     @irrelevant(
@@ -263,6 +251,8 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     @irrelevant(
@@ -295,6 +285,8 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
             {"library": "ruby", "reason": "INPLAT-153"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     @irrelevant(
