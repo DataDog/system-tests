@@ -190,7 +190,7 @@ def download_strace(request):
                 content = f.read(MAX_RESPONSE_SIZE)
 
             response_content = f"Original File size: {original_file_size} bytes\n\nCopy File size: {copy_file_size}\n\n{content}"
-            return HttpResponse(content, content_type="text/plain")
+            return HttpResponse(response_content, content_type="text/plain")
         else:
             return HttpResponse("Strace file not found.", status=404, content_type="text/plain")
     except Exception as e:
