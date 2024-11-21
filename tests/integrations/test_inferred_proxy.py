@@ -1,12 +1,12 @@
 import json
 import time
 
-from utils import weblog, scenarios, features, interfaces
+from utils import weblog, interfaces
 from utils.tools import logger
 
 
-@features.aws_api_gateway_inferred_span_creation
-@scenarios.integrations
+# @features.aws_api_gateway_inferred_span_creation
+# @scenarios.integrations
 class TOBEFIXED_Test_AWS_API_Gateway_Inferred_Span_Creation:
     """ Verify DSM context is extracted using "dd-pathway-ctx-base64" """
 
