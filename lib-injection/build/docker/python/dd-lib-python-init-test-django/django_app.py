@@ -180,7 +180,7 @@ def download_strace(request):
             original_file_size = os.path.getsize(STRACE_OUTPUT_FILE)
 
             with open(STRACE_OUTPUT_FILE, "r") as f:
-                content = f.read(MAX_RESPONSE_SIZE)
+                content = f.read()
 
             response_content = f"File size: {original_file_size} bytes\n\n{content}"
             return HttpResponse(response_content, content_type="text/plain")
