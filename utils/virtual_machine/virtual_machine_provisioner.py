@@ -215,7 +215,7 @@ class VirtualMachineProvisioner:
         weblog = weblog_raw_data["weblog"]
         assert weblog["name"] == weblog_name, f"Weblog name {weblog_name} does not match the provision file name"
         installations = weblog["install"]
-        ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
+        ci_commit_branch = os.getenv("GITLAB_CI")
         installation = self._get_installation(
             env,
             library_name,
