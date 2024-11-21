@@ -718,7 +718,7 @@ class MyApp
     js = JSON.parse(req.body.read)
     args = OtelStartSpanArgs.new(js)
 
-    if args.parent_id != 0
+    if args.parent_id
       parent_span = OTEL_SPANS[args.parent_id]
       parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
     end
