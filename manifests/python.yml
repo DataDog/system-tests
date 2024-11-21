@@ -772,8 +772,6 @@ tests/:
       Test_Otel_Span_Methods: v2.8.0
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
-    test_otel_span_with_w3c.py:
-      Test_Otel_Span_With_W3c: v2.8.0
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:

@@ -102,7 +102,8 @@ class VirtualMachineProvisioner:
                     vms_to_remove.append(vm)
         # Ok remove the vms
         for vm in vms_to_remove:
-            required_vms.remove(vm)
+            if vm in required_vms:
+                required_vms.remove(vm)
 
     def get_provision(self, library_name, env, weblog, vm_provision_name, os_type, os_distro, os_branch, os_cpu):
         """ Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
@@ -214,7 +215,7 @@ class VirtualMachineProvisioner:
         weblog = weblog_raw_data["weblog"]
         assert weblog["name"] == weblog_name, f"Weblog name {weblog_name} does not match the provision file name"
         installations = weblog["install"]
-        ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
+        ci_commit_branch = os.getenv("GITLAB_CI")
         installation = self._get_installation(
             env,
             library_name,
