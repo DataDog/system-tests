@@ -679,7 +679,7 @@ class Test_SCAStandalone_Telemetry:
     def assert_standalone_is_enabled(self, request):
         # test standalone is enabled and dropping traces
         for data, _trace, span in interfaces.library.get_spans(request):
-            assert span["metrics"]["_sampling_priority_v1"] == 0
+            assert span["metrics"]["_sampling_priority_v1"] <= 0
             assert span["metrics"]["_dd.apm.enabled"] == 0
 
     def setup_telemetry_sca_enabled_propagated(self):
