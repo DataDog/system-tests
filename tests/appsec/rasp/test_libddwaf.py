@@ -28,7 +28,7 @@ class Test_Libddwaf_Version:
 
 
 @features.rasp_command_injection
-class Test_LibddwafVersion_CmdI:
+class Test_Libddwaf_Version_CmdI:
     """Test CmdI libddwaf version"""
 
     def test_min_version(self):
