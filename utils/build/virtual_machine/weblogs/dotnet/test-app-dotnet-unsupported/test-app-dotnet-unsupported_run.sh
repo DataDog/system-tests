@@ -11,6 +11,7 @@ export DOTNET_DbgEnableMiniDump=1
 export DOTNET_DbgMiniDumpType=4
 export DOTNET_CreateDumpDiagnostics=1
 export DOTNET_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.txt
+export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 
 #workaround. Remove the system-tests cloned folder. The sources are copied to current home folder
 #if we don't remove it, the dotnet restore will try to restore the system-tests folder
