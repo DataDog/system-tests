@@ -41,18 +41,18 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 	}
 	var pCtx = context.Background()
 	var ddOpts []tracer.StartSpanOption
-	if pid := args.ParentId; pid != 0 {
-		parent, ok := s.otelSpans[pid]
+	if pid := args.ParentId; pid != nil {
+		parent, ok := s.otelSpans[*pid]
 		if ok {
 			pCtx = parent.ctx
 		}
 	}
 	var otelOpts []otel_trace.SpanStartOption
-	if args.SpanKind != 0 {
-		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(args.SpanKind))))
+	if args.SpanKind != nil {
+		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(*args.SpanKind - 1))))
 	}
-	if t := args.Timestamp; t != 0 {
-		tm := time.UnixMicro(t)
+	if t := args.Timestamp; t != nil {
+		tm := time.UnixMicro(*t)
 		otelOpts = append(otelOpts, otel_trace.WithTimestamp(tm))
 	}
 	if a := args.Attributes; len(a) > 0 {
