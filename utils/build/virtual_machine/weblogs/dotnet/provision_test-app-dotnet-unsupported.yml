@@ -26,8 +26,7 @@ weblog:
     #Ubuntu 21 (amd64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
     #Centos 7. I can't find the libicu60 package for centos 7. Only available version 50.2
     #Amazon Linux 2022: Incompatible runtime version installed. Not breaks app, but not instrumented
-    excluded_os_branches: []
-    excluded_os_names: []
+    exact_os_branches: [Ubuntu20amd64]
     install:
       - os_type: linux
         copy_files:
