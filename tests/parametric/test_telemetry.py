@@ -129,7 +129,7 @@ class Test_Consistent_Configs:
                 "DD_TRACE_RATE_LIMIT": 10,
                 "DD_TRACE_HEADER_TAGS": "User-Agent:my-user-agent,Content-Type.",
                 "DD_TRACE_ENABLED": "true",
-                "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "\d{3}-\d{2}-\d{4}",
+                "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"\d{3}-\d{2}-\d{4}",
                 "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory",
                 "DD_TRACE_CLIENT_IP_HEADER": "random-header-name",
                 "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-250",
@@ -157,7 +157,9 @@ class Test_Consistent_Configs:
             configuration_by_name.get("DD_TRACE_HEADER_TAGS").get("value") == "User-Agent:my-user-agent,Content-Type."
         )
         assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == True
-        assert configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == "\d{3}-\d{2}-\d{4}"
+        assert (
+            configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == r"\d{3}-\d{2}-\d{4}"
+        )
         assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER").get("value") == "random-header-name"
 
     @pytest.mark.parametrize(

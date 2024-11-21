@@ -314,7 +314,7 @@ class scenarios:
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     appsec_auto_events_extended = EndToEndScenario(
