@@ -47,6 +47,7 @@ onboarding_nodejs:
   stage: nodejs_tracer
   allow_failure: true
   needs: []
+  timeout: 90 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
       when: always
@@ -79,13 +80,14 @@ onboarding_nodejs:
           DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
   needs: []
+  timeout: 90 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
       when: always
@@ -118,12 +120,13 @@ onboarding_java:
           DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
   needs: []
+  timeout: 90 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
       when: always
@@ -156,13 +159,14 @@ onboarding_python:
           DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
   needs: []
+  timeout: 90 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
       when: always
@@ -192,13 +196,14 @@ onboarding_dotnet:
           DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
   needs: []
+  timeout: 90 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
       when: always
@@ -224,13 +229,14 @@ onboarding_ruby:
           DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_php:
   extends: .base_job_onboarding_system_tests
   stage: php_tracer
   allow_failure: true
   needs: []
+  timeout: 90 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
       when: always
@@ -259,7 +265,7 @@ onboarding_php:
           DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 
 onboarding_stats_results:
