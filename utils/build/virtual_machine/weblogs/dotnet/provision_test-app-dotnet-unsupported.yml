@@ -12,6 +12,14 @@ lang_variant:
           sudo apt-get update;
           sudo apt-get install -y dotnet-sdk-2.1
 
+      - os_type: linux
+        os_distro: deb
+        remote-command: |
+          sudo apt-get update;
+          sudo apt-get install -y apt-transport-https;
+          sudo apt-get update;
+          sudo apt-get install -y dotnet-sdk-2.1
+
 weblog:
     name: test-app-dotnet-unsupported
     #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
