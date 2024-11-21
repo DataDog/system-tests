@@ -16,6 +16,7 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
+from utils.docker_ssi.docker_ssi_definitions import SupportedImages
 from utils.tools import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
@@ -39,6 +40,8 @@ class DockerSSIScenario(Scenario):
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
         self._tested_components = {}
+        # scenario configuration that is going to be reported in the final report
+        self._configuration = {"app_type": "docker_ssi"}
 
     def configure(self, config):
         assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby,php"
@@ -96,6 +99,7 @@ class DockerSSIScenario(Scenario):
         # Extract version of the components that we are testing.
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
+        self.print_installed_components()
 
         self._weblog_composed_name = f"{self._base_weblog}_{self.ssi_image_builder.get_base_docker_tag()}"
         for container in self._required_containers:
@@ -141,21 +145,37 @@ class DockerSSIScenario(Scenario):
     def fill_context(self, json_tested_components):
         """ After extract the components from the weblog, fill the context with the data """
 
-        logger.stdout("\nInstalled components:\n")
+        image_internal_name = SupportedImages().get_internal_name_from_base_image(self._base_image, self._arch)
+        self.configuration["os"] = image_internal_name
+        self.configuration["arch"] = self._arch
 
         for key in json_tested_components:
+            self._tested_components[key] = json_tested_components[key].lstrip(" ")
             if key == "weblog_url" and json_tested_components[key]:
                 self.weblog_url = json_tested_components[key].lstrip(" ")
                 continue
             if key == "runtime_version" and json_tested_components[key]:
                 self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
+                # Runtime version is stored as configuration not as dependency
+                del self._tested_components[key]
+                self.configuration["runtime_version"] = self._installed_language_runtime
             if key.startswith("datadog-apm-inject") and json_tested_components[key]:
                 self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
-            if key.startswith("datadog-apm-library-") and json_tested_components[key]:
+            if key.startswith("datadog-apm-library-") and self._tested_components[key]:
                 library_version_number = json_tested_components[key].lstrip(" ")
                 self._libray_version = LibraryVersion(self._library, library_version_number)
-            self._tested_components[key] = json_tested_components[key].lstrip(" ")
-            logger.stdout(f"{key}: {self._tested_components[key]}")
+                # We store without the lang sufix
+                self._tested_components["datadog-apm-library"] = self._tested_components[key]
+                del self._tested_components[key]
+
+    def print_installed_components(self):
+        logger.terminal.write_sep("=", "Installed components", bold=True)
+        for component in self.components:
+            logger.stdout(f"{component}: {self.components[component]}")
+
+        logger.terminal.write_sep("=", "Configuration", bold=True)
+        for conf in self.configuration:
+            logger.stdout(f"{conf}: {self.configuration[conf]}")
 
     def post_setup(self):
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
@@ -187,6 +207,10 @@ class DockerSSIScenario(Scenario):
     @property
     def dd_apm_inject_version(self):
         return self._datadog_apm_inject_version
+
+    @property
+    def configuration(self):
+        return self._configuration
 
 
 class DockerSSIImageBuilder:
