@@ -718,7 +718,7 @@ class MyApp
     js = JSON.parse(req.body.read)
     args = OtelStartSpanArgs.new(js)
 
-    if args.parent_id
+    if args.parent_id != 0
       parent_span = OTEL_SPANS[args.parent_id]
       parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
     end
@@ -727,15 +727,12 @@ class MyApp
         parse_otel_link(link)
       end
     end
-    kind = if args.span_kind
-      OTEL_SPAN_KIND[args.span_kind]
-    end
     span = otel_tracer.start_span(
       args.name,
       with_parent: parent_context,
       attributes: args.attributes,
       start_timestamp: otel_correct_time(args.timestamp),
-      kind: kind,
+      kind: OTEL_SPAN_KIND[args.span_kind],
       links: otel_links
     )
     # the otel trace id is oddly not 128-bit so we reach in and grab the

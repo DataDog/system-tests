@@ -91,6 +91,9 @@ type OtelStartSpanArgs struct {
 	Name        string           `json:"name"`
 	ParentId    uint64           `json:"parent_id"`
 	SpanKind    uint64           `json:"span_kind"`
+	Service     string           `json:"service"`
+	Resource    string           `json:"resource"`
+	Type        string           `json:"type"`
 	Timestamp   int64            `json:"timestamp"`
 	SpanLinks   []SpanLink       `json:"links"`
 	Attributes  AttributeKeyVals `json:"attributes"`

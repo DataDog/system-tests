@@ -422,14 +422,15 @@ def otel_start_span(args: OtelStartSpanArgs):
 
     # parametric tests expect span kind to be 0 for internal, 1 for server, 2 for client, ....
     # while parametric tests set 0 for unset, 1 internal, 2 for server, 3 for client, ....
-    span_kind = SpanKind(args.span_kind - 1) if args.span_kind else None
+    span_kind_int = max(0, args.span_kind - 1)
     with otel_tracer.start_as_current_span(
         args.name,
         context=set_span_in_context(parent_span),
-        kind=span_kind,
+        kind=SpanKind(span_kind_int),
         attributes=args.attributes,
         links=links,
-        # convert timestamp from microseconds to nanoseconds
+        # parametric tests expect timestamps to be set in microseconds (required by go)
+        # but the python implementation sets time nanoseconds.
         start_time=args.timestamp * 1e3 if args.timestamp else None,
         record_exception=True,
         set_status_on_exception=True,

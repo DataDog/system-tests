@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 public record StartSpanArgs(
-    @JsonProperty("parent_id") Long parentId,
+    @JsonProperty("parent_id") long parentId,
     String name,
-    @JsonProperty("span_kind") Integer spanKind,
-    Long timestamp,
+    @JsonProperty("span_kind") int spanKind,
+    long timestamp,
     List<SpanLink> links,
     Map<String, Object> attributes) {
 }

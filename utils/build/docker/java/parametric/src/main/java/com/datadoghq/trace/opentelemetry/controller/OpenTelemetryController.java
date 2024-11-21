@@ -164,7 +164,7 @@ public class OpenTelemetryController {
     // Build span from request
     SpanBuilder builder = this.tracer.spanBuilder(args.name());
     // Check parent span to create parent context from
-    if (args.parentId() != null) {
+    if (args.parentId() != 0L) {
       Span parentSpan = getSpan(args.parentId());
       if (parentSpan != null) {
         Context contextWithParentSpan = parentSpan.storeInContext(Context.root());
@@ -172,13 +172,11 @@ public class OpenTelemetryController {
       }
     }
     // Add other span information
-    if (args.spanKind() != null) {
-      builder.setSpanKind(parseSpanKindNumber(args.spanKind()));
-    }
-    if (args.timestamp() != null) {
+    builder.setSpanKind(parseSpanKindNumber(args.spanKind()));
+    if (args.timestamp() > 0) {
       builder.setStartTimestamp(args.timestamp(), MICROSECONDS);
     }
-    if (!args.links().isEmpty()) {
+    if (args.links() != null && !args.links().isEmpty()) {
       for (SpanLink spanLink : args.links()) {
         LOGGER.debug("Span link: {}", spanLink);
         Span span = getSpan(spanLink.parentId());
