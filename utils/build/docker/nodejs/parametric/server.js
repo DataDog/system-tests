@@ -21,10 +21,13 @@ const app = express();
 app.use(express.json());
 
 
-function nanoLongToHrTime ({ high = 0, low = 0 } = {}) {
+function microLongToHrTime (timestamp) {
+  if (timestamp === null) {
+      return [0, 0]
+  }
   return [
-      high * 1e3 + Math.floor(low / 1e6),
-      (low % 1e6) * 1e3,
+      Math.floor(timestamp / 1000000),
+      (timestamp % 1000000) * 1000,
   ]
 }
 
@@ -35,88 +38,68 @@ const otelStatusCodes = {
 }
 
 const spans = new Map()
+const ddContext = new Map()
 const otelSpans = new Map()
 
-// Endpoint /trace/span/inject_headers
 app.post('/trace/span/inject_headers', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
-  const http_headersDict = {}
-  const http_headers = []
+  const http_headersDict = {};
+  const http_headers = [];
 
-  tracer.inject(span, 'http_headers', http_headersDict)
+  tracer.inject(span, 'http_headers', http_headersDict);
   for (const [key, value] of Object.entries(http_headersDict)) {
-      http_headers.push([key, value])
+      http_headers.push([key, value]);
   }
 
   res.json({ http_headers });
 });
 
-// Additional Endpoints
+app.post('/trace/span/extract_headers', (req, res) => {
+  const request = req.body;
+  const http_headers = request.http_headers || [];
+  // Node.js HTTP headers are automatically lower-cased, simulate that here.
+  const linkHeaders = Object.fromEntries(http_headers.map(([k, v]) => [k.toLowerCase(), v]));
+  const extracted = tracer.extract('http_headers', linkHeaders);
+
+  let extractedSpanID = null;
+  if (extracted && extracted._spanId) {
+    extractedSpanID = extracted.toSpanId();
+    ddContext[extractedSpanID] = extracted;
+  }
+
+  res.json({ span_id: extractedSpanID });
+});
+
 app.post('/trace/span/start', (req, res) => {
   const request = req.body;
-  let parent
+  let parent = spans[request.parent_id] || ddContext[request.parent_id];
 
-  if (request.parent_id) parent = spans[request.parent_id]
-
-  if (request.origin) {
-      const traceId = parent?.traceId
-      const parentId = parent?.parentId
-
-      parent = new SpanContext({
-          traceId,
-          parentId
-      })
-      parent.origin = request.origin
-  }
-
-  const http_headers = request.http_headers || []
-  // Node.js HTTP headers are automatically lower-cased, simulate that here.
-  const convertedHeaders = {}
-  for (const [key, value] of http_headers) {
-      convertedHeaders[key.toLowerCase()] = value
-  }
-
-  const extracted = tracer.extract('http_headers', convertedHeaders)
-  if (extracted !== null) parent = extracted
-
-  const tags = { service: request.service }
+  const tags = {service: request.service, resource: request.resource};
   for (const [key, value] of request.span_tags) tags[key] = value
 
   const span = tracer.startSpan(request.name, {
     type: request.type,
-    resource: request.resource,
     childOf: parent,
     tags
-  })
+  });
 
-  for (const link of request.links || []) {
-    const linkParentId = link.parent_id;
-    if (linkParentId) {
-      const linkParentSpan = spans[linkParentId];
-      span.addLink(linkParentSpan.context(), link.attributes);
-    } else {
-      const linkHeaders = link.http_headers || {};
-      const convertedLinkHeaders = {}
-      for (const [key, value] of linkHeaders) {
-        convertedLinkHeaders[key.toLowerCase()] = value
-      }
-      const linkExtracted = tracer.extract('http_headers', convertedLinkHeaders);
-      if (linkExtracted) {
-        span.addLink(linkExtracted, link.attributes);
-      }
-    }
+  if (ddContext[request.parent_id]) {
+    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link.context, link.attributes)
   }
 
-  spans[span.context().toSpanId()] = span
-  res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId(), service:request.service, resource:request.resource,});
+  spans[span.context().toSpanId()] = span;
+  res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId() });
 });
 
 app.post('/trace/span/add_link', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
-  const linked_span = spans[request.parent_id]
-  span.addLink(linked_span.context(), request.attributes)
+  if (spans[request.parent_id]) {
+    span.addLink(spans[request.parent_id].context(), request.attributes)
+  } else {
+    span.addLink(ddContext[request.parent_id], request.attributes)
+  }
   res.json({});
 });
 
@@ -133,6 +116,7 @@ app.post('/trace/span/flush', (req, res) => {
     res.json({});
   })
   spans.clear();
+  ddContext.clear();
 });
 
 app.post('/trace/span/set_meta', (req, res) => {
@@ -178,14 +162,7 @@ app.post('/trace/otel/start_span', (req, res) => {
   const makeSpan = (parentContext) => {
 
     const links = (request.links || []).map(link => {
-      let spanContext;
-      if (link.parent_id && link.parent_id !== 0) {
-        spanContext = otelSpans[link.parent_id].spanContext();
-      } else {
-        const linkHeaders = Object.fromEntries(link.http_headers.map(([k, v]) => [k.toLowerCase(), v]));
-        const extractedContext = tracer.extract('http_headers', linkHeaders)
-        spanContext = new OtelSpanContext(extractedContext)
-      }
+      let spanContext = otelSpans[link.parent_id].spanContext()
       return {context: spanContext, attributes: link.attributes}
     });
 
@@ -194,7 +171,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         kind: request.kind,
         attributes: request.attributes,
         links,
-        startTime: nanoLongToHrTime(request.timestamp)
+        startTime: microLongToHrTime(request.timestamp)
     }, parentContext)
     const ctx = span._ddSpan.context()
     const span_id = ctx._spanId.toString(10)
@@ -208,20 +185,6 @@ app.post('/trace/otel/start_span', (req, res) => {
       const parentContext = trace.setSpan(ROOT_CONTEXT, parentSpan)
       return makeSpan(parentContext)
   }
-  if (request.http_headers) {
-      const http_headers = request.http_headers || []
-      // Node.js HTTP headers are automatically lower-cased, simulate that here.
-      const convertedHeaders = {}
-      for (const [ key, value ] of http_headers) {
-          convertedHeaders[key.toLowerCase()] = value
-      }
-      const extracted = tracer.extract('http_headers', convertedHeaders)
-      if (extracted) {
-          const parentSpan = trace.wrapSpanContext(new OtelSpanContext(extracted))
-          const parentContext = trace.setSpan(ROOT_CONTEXT, parentSpan)
-          return makeSpan(parentContext)
-      }
-  }
 
   makeSpan()
 });
@@ -230,13 +193,12 @@ app.post('/trace/otel/end_span', (req, res) => {
   const { id, timestamp } = req.body;
   const span_id = `${id}`
   const span = otelSpans[span_id]
-  span.end(nanoLongToHrTime(timestamp))
+  span.end(microLongToHrTime(timestamp))
   res.json({});
 });
 
 app.post('/trace/otel/flush', async (req, res) => {
   await tracerProvider.forceFlush()
-  spans.clear();
   otelSpans.clear();
   res.json({ success: true });
 });

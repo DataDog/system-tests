@@ -15,9 +15,9 @@ TODO=(
   utils/build/docker/python/django/app.sh
   utils/build/docker/golang/app.sh
   utils/build/docker/golang/install_ddtrace.sh
-  utils/build/docker/weblog-cmd.sh
   utils/build/docker/java/app.sh
   utils/build/docker/java/install_ddtrace.sh
+  utils/build/docker/java/install_drop_in.sh
   utils/build/docker/java/spring-boot/app.sh
   utils/build/docker/java_otel/spring-boot/app.sh
   utils/build/docker/php/apache-mod/build.sh

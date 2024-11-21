@@ -3,7 +3,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Union
+from typing import Any
 
 import os
 from fastapi import FastAPI
@@ -37,6 +37,7 @@ from ddtrace.internal.utils.version import parse_version
 
 
 spans: Dict[int, Span] = {}
+ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
 # Store the active span for each tracer in an array to allow for easy global access
 # FastAPI resets the contextvar containing the active span after each request
@@ -56,14 +57,11 @@ opentelemetry.trace.set_tracer_provider(TracerProvider())
 
 
 class StartSpanArgs(BaseModel):
-    parent_id: int
     name: str
-    service: str
-    type: str
-    resource: str
-    origin: str
-    http_headers: List[Tuple[str, str]]
-    links: List[Dict]
+    parent_id: Optional[int]
+    service: Optional[str]
+    type: Optional[str]
+    resource: Optional[str]
     span_tags: List[Tuple[str, str]]
 
 
@@ -79,40 +77,13 @@ def trace_crash() -> None:
 
 @app.post("/trace/span/start")
 def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
-    parent: Union[None, Span, Context]
-    if args.parent_id:
-        parent = spans[args.parent_id]
-    else:
-        parent = None
-
-    if args.origin != "":
-        trace_id = parent.trace_id if parent else None
-        parent_id = parent.span_id if parent else None
-        parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=args.origin)
-
-    if args.service == "":
-        args.service = None
-
-    if len(args.http_headers) > 0:
-        headers = {k: v for k, v in args.http_headers}
-        parent = HTTPPropagator.extract(headers)
-
+    parent = spans.get(args.parent_id, ddcontexts.get(args.parent_id))
     span = ddtrace.tracer.start_span(
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
-    for link in args.links:
-        link_parent_id = link.get("parent_id", 0)
-        if link_parent_id > 0:  # we have a parent_id to create link instead
-            link_parent = spans[link_parent_id]
-            span.link_span(link_parent.context, link.get("attributes"))
-        else:
-            headers = {k: v for k, v in link["http_headers"]}
-            context = HTTPPropagator.extract(headers)
-            span.link_span(context, link.get("attributes"))
-
+    # TODO: add tags to tracer.start_span
     for k, v in args.span_tags:
         span.set_tag(k, v)
-
     spans[span.span_id] = span
     # Access the active span from the tracer, this allows us to test tracer's context management
     active_ddspan[0] = ddtrace.tracer.current_span()
@@ -308,6 +279,23 @@ def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
+class SpanInjectArgs(BaseModel):
+    http_headers: List[Tuple[str, str]]
+
+
+class SpanExtractReturn(BaseModel):
+    span_id: Optional[int]
+
+
+@app.post("/trace/span/extract_headers")
+def trace_span_extract_headers(args: SpanInjectArgs) -> SpanExtractReturn:
+    headers = {k: v for k, v in args.http_headers}
+    context = HTTPPropagator.extract(headers)
+    if context.span_id:
+        ddcontexts[context.span_id] = context
+    return SpanExtractReturn(span_id=context.span_id)
+
+
 class TraceSpansFlushArgs(BaseModel):
     pass
 
@@ -319,6 +307,8 @@ class TraceSpansFlushReturn(BaseModel):
 @app.post("/trace/span/flush")
 def trace_spans_flush(args: TraceSpansFlushArgs) -> TraceSpansFlushReturn:
     ddtrace.tracer.flush()
+    spans.clear()
+    ddcontexts.clear()
     return TraceSpansFlushReturn()
 
 
@@ -377,8 +367,13 @@ class TraceSpanAddLinkReturn(BaseModel):
 @app.post("/trace/span/add_link")
 def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
     span = spans[args.span_id]
-    linked_span = spans[args.parent_id]
-    span.link_span(linked_span.context, attributes=args.attributes)
+    if args.parent_id in spans:
+        linked_context = spans[args.parent_id].context
+    elif args.parent_id in ddcontexts:
+        linked_context = ddcontexts[args.parent_id]
+    else:
+        raise ValueError(f"Parent span {args.parent_id} not found in {spans.keys()} or {ddcontexts.keys()}")
+    span.link_span(linked_context, attributes=args.attributes)
     return TraceSpanAddLinkReturn()
 
 
@@ -406,7 +401,6 @@ class OtelStartSpanArgs(BaseModel):
     type: str = ""
     links: List[Dict] = []
     timestamp: int
-    http_headers: List[Tuple[str, str]]
     attributes: dict
 
 
@@ -419,46 +413,11 @@ class OtelStartSpanReturn(BaseModel):
 def otel_start_span(args: OtelStartSpanArgs):
     otel_tracer = opentelemetry.trace.get_tracer(__name__)
 
-    if args.parent_id:
-        parent_span = otel_spans[args.parent_id]
-    elif args.http_headers:
-        headers = {k: v for k, v in args.http_headers}
-        ddcontext = HTTPPropagator.extract(headers)
-        parent_span = OtelNonRecordingSpan(
-            OtelSpanContext(
-                ddcontext.trace_id,
-                ddcontext.span_id,
-                True,
-                (
-                    TraceFlags.SAMPLED
-                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                    else TraceFlags.DEFAULT
-                ),
-                TraceState.from_header([ddcontext._tracestate]),
-            )
-        )
-    else:
-        parent_span = None
-
+    parent_span = otel_spans.get(args.parent_id)
     links = []
     for link in args.links:
-        parent_id = link.get("parent_id", 0)
-        if parent_id > 0:
-            span_context = otel_spans[parent_id].get_span_context()
-        else:
-            headers = {k: v for k, v in link["http_headers"]}
-            ddcontext = HTTPPropagator.extract(headers)
-            span_context = OtelSpanContext(
-                ddcontext.trace_id,
-                ddcontext.span_id,
-                True,
-                (
-                    TraceFlags.SAMPLED
-                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                    else TraceFlags.DEFAULT
-                ),
-                TraceState.from_header([ddcontext._tracestate]),
-            )
+        parent_id = link["parent_id"]
+        span_context = otel_spans[parent_id].get_span_context()
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
 
     # parametric tests expect span kind to be 0 for internal, 1 for server, 2 for client, ....
@@ -542,7 +501,7 @@ def otel_record_exception(args: OtelRecordExceptionArgs) -> OtelRecordExceptionR
 
 class OtelEndSpanArgs(BaseModel):
     id: int
-    timestamp: int
+    timestamp: Optional[int]
 
 
 class OtelEndSpanReturn(BaseModel):
@@ -592,6 +551,7 @@ def otel_flush_spans(args: OtelFlushSpansArgs):
     ddtrace.tracer.flush()
     spans.clear()
     otel_spans.clear()
+    ddcontexts.clear()
     return OtelFlushSpansReturn(success=True)
 
 

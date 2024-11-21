@@ -2,7 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, weblog, features, context, missing_feature
+from utils import interfaces, weblog, features, context, rfc
+from ..utils import validate_stack_traces
 
 # Test_HardcodedPasswords doesn't inherit from BaseSinkTest
 # Hardcode passwords detection implementation change a lot between different languages
@@ -18,8 +19,11 @@ class Test_HardcodedPasswords:
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
     }
 
+    insecure_request = None
+
     def setup_hardcoded_passwords_exec(self):
         self.r_hardcoded_passwords_exec = weblog.get("/iast/hardcoded_passwords/test_insecure")
+        self.__class__.insecure_request = self.r_hardcoded_passwords_exec
 
     def test_hardcoded_passwords_exec(self):
         assert self.r_hardcoded_passwords_exec.status_code == 200
@@ -48,3 +52,17 @@ class Test_HardcodedPasswords:
         if isinstance(expected, dict):
             expected = expected.get(context.weblog_variant)
         return expected
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class Test_HardcodedPasswords_StackTrace:
+    """Validate stack trace generation """
+
+    def setup_stack_trace(self):
+        self.r = weblog.get("/iast/hardcoded_passwords/test_insecure")
+
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)

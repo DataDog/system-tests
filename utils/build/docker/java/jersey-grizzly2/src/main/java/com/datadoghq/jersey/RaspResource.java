@@ -18,6 +18,9 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlValue;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -51,21 +54,41 @@ public class RaspResource {
     @GET
     @Path("/lfi")
     public String lfiGet(@QueryParam("file") final String file) throws Exception {
-        return executeFli(file);
+        return executeLfi(file);
     }
 
     @POST
     @Path("/lfi")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String lfiPost(@FormParam("file") final String file) throws Exception {
-        return executeFli(file);
+        return executeLfi(file);
     }
 
     @POST
     @Path("/lfi")
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
     public String lfiBody(final FileDTO file) throws Exception {
-        return executeFli(file.getFile());
+        return executeLfi(file.getFile());
+    }
+
+    @GET
+    @Path("/ssrf")
+    public String ssrfGet(@QueryParam("domain") final String domain) throws Exception {
+        return executeUrl(domain);
+    }
+
+    @POST
+    @Path("/ssrf")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String ssrfPost(@FormParam("domain") final String domain) throws Exception {
+        return executeUrl(domain);
+    }
+
+    @POST
+    @Path("/ssrf")
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
+    public String ssrfBody(final DomainDTO domain) throws Exception {
+        return executeUrl(domain.getDomain());
     }
 
     @SuppressWarnings({"SqlDialectInspection", "SqlNoDataSourceInspection"})
@@ -97,7 +120,7 @@ public class RaspResource {
         }
     }
 
-    private String executeFli(final String file) throws Exception {
+    private String executeLfi(final String file) throws Exception {
         new File(file);
         return "OK";
     }
@@ -117,4 +140,41 @@ public class RaspResource {
             this.file = file;
         }
     }
+
+    private String executeUrl(String urlString) {
+        try {
+            URL url;
+            try {
+                url = new URL(urlString);
+            } catch (MalformedURLException e) {
+                url = new URL("http://" + urlString);
+            }
+
+            URLConnection connection = url.openConnection();
+            connection.connect();
+            return "OK";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "http connection failed";
+        }
+    }
+
+
+    @XmlRootElement(name = "domain")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class DomainDTO {
+        @JsonbProperty("domain")
+        @XmlValue
+        private String domain;
+
+        public String getDomain() {
+            return domain;
+        }
+
+        public void setDomain(String domain) {
+            this.domain = domain;
+        }
+    }
+
+
 }

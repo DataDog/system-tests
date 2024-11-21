@@ -1180,6 +1180,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_sink_template_injection(test_object):
+        """
+        IAST Sink: Template Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=330
+        """
+        pytest.mark.features(feature_id=330)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_source_request_parameter_value(test_object):
         """
         IAST Source: Request Parameter Value
@@ -2408,6 +2418,16 @@ class features:
         return test_object
 
     @staticmethod
+    def ssi_crashtracking(test_object):
+        """
+        Docker ssi crashtracking
+
+        https://feature-parity.us1.prod.dog/#/?feature=340
+        """
+        pytest.mark.features(feature_id=340)(test_object)
+        return test_object
+
+    @staticmethod
     def ssi_service_naming(test_object):
         """
         Docker ssi service naming feature
@@ -2446,4 +2466,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=339
         """
         pytest.mark.features(feature_id=339)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_stack_trace(test_object):
+        """
+        IAST: Stack Trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=329
+        """
+        pytest.mark.features(feature_id=329)(test_object)
         return test_object

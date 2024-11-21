@@ -7,6 +7,7 @@ const crypto = require('crypto')
 const { execSync } = require('child_process')
 const https = require('https')
 const { MongoClient } = require('mongodb')
+const pug = require('pug')
 const mongoSanitize = require('express-mongo-sanitize')
 const ldap = require('../integrations/ldap')
 
@@ -302,6 +303,36 @@ function initRoutes (app, tracer) {
     res.send(`OK:${token}`)
   })
 
+  app.get('/iast/header_injection/reflected/exclusion', (req, res) => {
+    res.setHeader(req.query.reflected, req.headers[req.query.origin])
+    res.send('OK')
+  })
+
+  app.get('/iast/header_injection/reflected/no-exclusion', (req, res) => {
+    // There is a reason for this: to avoid vulnerabilities deduplication,
+    // which caused the non-exclusion test to fail for all tests after the first one,
+    // since they are all in the same location (the hash is calculated based on the location).
+
+    switch (req.query.reflected) {
+      case 'pragma':
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+      case 'transfer-encoding':
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+      case 'content-encoding':
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+      case 'access-control-allow-origin':
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+      default:
+        res.setHeader(req.query.reflected, req.query.origin)
+        break
+    }
+    res.send('OK')
+  })
+
   app.post('/iast/header_injection/test_insecure', (req, res) => {
     res.setHeader('testheader', req.body.test)
     res.send('OK')
@@ -332,6 +363,18 @@ function initRoutes (app, tracer) {
     // eslint-disable-next-line no-eval
     eval('1+2')
     res.send('OK')
+  })
+
+  app.post('/iast/template_injection/test_insecure', (req, res) => {
+    const fn = pug.compile(req.body.template)
+    const html = fn()
+    res.send(`OK:${html}`)
+  })
+
+  app.post('/iast/template_injection/test_secure', (req, res) => {
+    const fn = pug.compile('p Hello!')
+    const html = fn()
+    res.send(`OK:${html}`)
   })
 
   require('./sources')(app, tracer)

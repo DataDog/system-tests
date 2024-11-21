@@ -1,12 +1,8 @@
-import time
 import os
-import socket
-import random
-import tempfile
 from uuid import uuid4
 
 from utils.k8s_lib_injection.k8s_command_utils import execute_command, execute_command_sync
-from utils.tools import logger
+from utils.tools import logger, get_free_port
 from utils import context
 
 
@@ -85,20 +81,6 @@ def setup_kind_in_gitlab(k8s_kind_cluster):
     )
 
     k8s_kind_cluster.cluster_host_name = correct_control_plane_ip
-
-
-def get_free_port():
-    last_allowed_port = 65535
-    port = random.randint(1100, 65100)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    while port <= last_allowed_port:
-        try:
-            sock.bind(("", port))
-            sock.close()
-            return port
-        except OSError:
-            port += 1
-    raise IOError("no free ports")
 
 
 class K8sKindCluster:

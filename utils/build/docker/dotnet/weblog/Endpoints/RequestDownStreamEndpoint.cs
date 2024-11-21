@@ -8,23 +8,12 @@ public class RequestDownStreamEndpoint : ISystemTestEndpoint
 {
     public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
     {
-        const string url = "http://localhost:7777/returnheaders";
-
         // Get
         routeBuilder.MapGet("/requestdownstream", async context =>
-            await context.Response.WriteAsync(DoHttpGet(url)));
+            await context.Response.WriteAsync(Helper.DoHttpGet(Constants.UrlReturnHeaders)));
 
         // Post
         routeBuilder.MapPost("/requestdownstream", async context =>
-            await context.Response.WriteAsync(DoHttpGet(url)));
-    }
-
-    private static string DoHttpGet(string url)
-    {
-        using var client = new HttpClient();
-        var response = client.GetAsync(url).Result;
-        response.EnsureSuccessStatusCode();
-
-        return response.Content.ReadAsStringAsync().Result;
+            await context.Response.WriteAsync(Helper.DoHttpGet(Constants.UrlReturnHeaders)));
     }
 }

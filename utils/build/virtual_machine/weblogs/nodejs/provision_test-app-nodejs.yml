@@ -1,28 +1,54 @@
 lang_variant:
-    name: node18
-    version: 18
+    name: nodejs
+    version: default
     cache: true
     install: 
       - os_type: linux
         os_distro: deb
-        remote-command: curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && sudo apt-get install -y nodejs
+        remote-command: sudo apt-get update && sudo apt-get install -y nodejs
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: redhat
+        remote-command: |
+          sudo dnf -y module enable nodejs:20
+          sudo dnf -y module switch-to nodejs:20
+          sudo dnf install -y nodejs
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: centos_8_amd64
+        remote-command: |
+          #one of the default method for centos 8
+          #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-centos-8
+          sudo dnf -y module enable nodejs:20
+          sudo dnf -y module switch-to nodejs:20
+          sudo dnf install -y nodejs
+
       - os_type: linux
         os_distro: rpm
         remote-command: |
+         #Default installation for amazon linux 2022 and 2023
+         #https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-up-node-on-ec2-instance.html
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm install --no-progress 18.0.0
+          nvm install --lts
           nvm use node
-          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
+          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local        
 
 weblog:
     name: test-app-nodejs
-    #Ecluded machines. We can not run node18 due to nodejs requirement: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by node) node: /lib64/libc.so.6: version `GLIBC_2.28' not found (required by node)
-    #RedHat 7.9 excluded by node: /lib64/libm.so.6: version `GLIBC_2.27' not found (required by node)
-    excluded_os_branches: [ubuntu18_amd64, amazon_linux2, centos_7_amd64]
-    excluded_os_names: [OracleLinux_7_9_amd64, RedHat_7_9_amd64]
+    #This machines are going to install unsupported versions of nodejs. We use them in the provision_test-app-nodejs-unsupported-defaults
+    #ubuntu 22: node 12
+    #ubuntu 20: node 10
+    #ubuntu 21: node 12
+    #centos 7: node 16
+    #rhel_7_amd64: I can't isntall in a standard way
+    #amazon_linux2: Using the amazon-linux-extras -  Error: Package: 1:nodejs-16.20.2-1.el7.x86_64 (epel)
+    excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu21, ubuntu20_arm64, ubuntu20_amd64, centos_7_amd64, rhel_7_amd64, amazon_linux2]
+
     install: 
       - os_type: linux
         copy_files:

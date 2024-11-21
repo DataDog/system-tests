@@ -97,9 +97,10 @@ class Test_Headers_Baggage:
 
     def test_baggage_extract_header_D005(self, test_library):
         """testing baggage header extraction and decoding"""
-        with test_library.start_span(
-            name="test_baggage_extract_header_D005",
-            http_headers=[
+
+        with test_library.extract_headers_and_make_child_span(
+            "test_baggage_extract_header_D005",
+            [
                 [
                     "baggage",
                     "foo=bar,userId=Am%C3%A9lie,serverNode=DF%2028,%22%2C%3B%5C%28%29%2F%3A%3C%3D%3E%3F%40%5B%5D%7B%7D=%22%2C%3B%5C",
@@ -141,8 +142,8 @@ class Test_Headers_Baggage:
 
     def test_baggage_get_D008(self, test_library):
         """testing baggage API get_baggage"""
-        with test_library.start_span(
-            name="test_baggage_get_D008", http_headers=[["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]],
+        with test_library.extract_headers_and_make_child_span(
+            "test_baggage_get_D008", [["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]]
         ) as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
@@ -153,7 +154,9 @@ class Test_Headers_Baggage:
 
     def test_baggage_get_all_D009(self, test_library):
         """testing baggage API get_all_baggage"""
-        with test_library.start_span(name="test_baggage_get_all_D009", http_headers=[["baggage", "foo=bar"]]) as span:
+        with test_library.extract_headers_and_make_child_span(
+            "test_baggage_get_all_D009", [["baggage", "foo=bar"]]
+        ) as span:
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
             span.set_baggage("serverNode", "DF 28")
@@ -214,17 +217,34 @@ class Test_Headers_Baggage:
         """Ensure that baggage headers are not injected when the number of baggage items exceeds the maximum number of items."""
         max_items = 64
         with test_library.start_span(name="test_baggageheader_maxitems_inject_D016") as span:
-            for i in range(max_items + 1):
+            for i in range(max_items + 2):
                 span.set_baggage(f"key{i}", f"value{i}")
 
             headers = test_library.inject_headers(span.span_id)
-            assert not any("baggage" in item for item in headers)
+            for header in headers:
+                if "baggage" in header:
+                    baggage_header = header
+            items = baggage_header[1].split(",")
+            assert len(items) == max_items
 
     def test_baggageheader_maxbytes_inject_D017(self, test_library):
         """Ensure that baggage headers are not injected when the total byte size of the baggage exceeds the maximum size."""
         max_bytes = 8192
         with test_library.start_span(name="test_baggageheader_maxbytes_inject_D017",) as span:
-            span.set_baggage("foo", "a" * (max_bytes))
+            baggage_items = {
+                "key1": "a" * ((max_bytes // 3)),
+                "key2": "b" * ((max_bytes // 3)),
+                "key3": "c" * ((max_bytes // 3)),
+                "key4": "d",
+            }
+            for key, value in baggage_items.items():
+                span.set_baggage(key, value)
 
-        headers = test_library.inject_headers(span.span_id)
-        assert not any("baggage" in item for item in headers)
+            headers = test_library.inject_headers(span.span_id)
+            for header in headers:
+                if "baggage" in header:
+                    baggage_header = header
+            items = baggage_header[1].split(",")
+            header_size = len(baggage_header[1].encode("utf-8"))
+            assert len(items) == 2
+            assert header_size <= max_bytes

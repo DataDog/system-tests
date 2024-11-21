@@ -1,62 +1,27 @@
-## Run the test loccally
+System tests allow developers define scenarios and ensure datadog libraries produce consistent telemetry (that is, traces, metrics, profiles, etc...). This "edit" section addresses the following use-cases:
 
-Please have a look on the [weblog](../execute/)
+1. Adding a new test (maybe to support a new or existing feature)
+2. Modifying an existing test, whether that's modifying the test client (test*.py files) or the weblog and/or parametric apps that serve the test client requests)
+3. Enabling/disabling tests for libraries under various conditions
 
-```bash
-./build.sh python  # or any another library. This step can be ran only once, as long as you do not need a modification on the lib/agent
-./run.sh
-```
+**Note: Anytime you make changes and open a PR, re-run the linter**: [format.md](docs/edit/format.md)
 
-That's it. If you're using VScode with Python extension, your terminal will automatically switch to the virtual env, and you will be able to use lint/format tools.
+To make changes, you must be able to run tests locally. Instructions for running **end-to-end** tests can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/execute/README.md#run-tests) and for **parametric**, [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md#running-the-tests).
 
-## Propose a modification
+**Callout**
 
-The workflow is very simple: add your test case, commit into a branch and create a PR. We'll review it ASAP.
+You'll commonly need to run unmerged changes to your library against system tests (e.g. to ensure the feature is up to spec). Instructions for testing against unmerged changes can be found in [enable-test.md](./enable-test.md).
 
-Depending of how far is your test from an existing tests, it'll ask you some effort. The very first step is to add it and execute it. For instance, in a new file `tests/test_some_feature.py`:
-
-```python
-class Test_Feature():
-    def test_feature_detail(self):
-        assert 1 + 1 == 2
-```
-
-Please note that you don't have to rebuild images at each iteration. Simply re-run `run.sh`. And you can also specify the test you want to run, don't be overflooded by logs:
-
-```
-./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail
-```
-
-You now want to send something on the [weblog](../edit/weblog.md), and check it. You need to use an interface validator:
-
-```python
-from utils import weblog, interfaces
-
-
-class Test_Feature():
-    def setup_feature_detail(self):
-        self.r = weblog.get("/url")
-
-    def test_feature_detail(self):
-        """ tests an awesome feature """
-        interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
-```
-
-Sometimes [skip a test](./features.md) is needed
-
-```python
-from utils import weblog, interfaces, context, bug
-
-
-class Test_Feature():
-
-    def setup_feature_detail(self):
-        self.r = weblog.get("/url")
-
-    @bug(library="ruby", reason="APPSEC-123")
-    def test_feature_detail(self):
-        """ tests an awesome feature """
-        interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
-```
-
-You now have the basics. It proably won't be as easy, and you may needs to dive into internals, so please do not hesitate to ask for help on slack at [#apm-shared-testing](https://dd.slack.com/archives/C025TJ4RZ8X)
+## Index
+1. [add-new-test.md](./add-new-test.md): Add a new test
+2. [scenarios.md](./scenarios.md): Add a new scenario
+3. [format.md](./format.md): Use the linter
+4. [features.md](./features.md): Mark tests for the feature parity dashboard
+5. [enable-test.md](./enable-test.md): Enable a test
+6. [skip-tests.md](./skip-tests.md): Disable tests
+7. [manifest.md](./manifest.md): How tests are marked as enabled or disabled for libraries
+8. [troubleshooting.md](./troubleshooting.md) Tips for debugging
+9. [iast-validations.md](./iast-validations.md): Mark tests with vulnerabilities
+10. [CI-and-scenarios.md](./CI-and-scenarios.md): Understand how scenarios run in CI
+11. [update-docker-images.md](./update-docker-images.md): Modify test app docker images
+12. [remote-config.md](./remote-config.md): Write remote config tests

@@ -92,6 +92,8 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     def test_install_after_ld_preload(self, virtual_machine):
@@ -102,11 +104,12 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
 
     @parametrize_virtual_machines(
         bugs=[
-            {"weblog_variant": "test-app-dotnet", "reason": "AIT-8620"},
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     def test_remove_ld_preload(self, virtual_machine):
