@@ -676,7 +676,18 @@ class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_
 class Test_SCAStandalone_Telemetry:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
+    def assert_standalone_is_enabled(self, request):
+        # test standalone is enabled and dropping traces
+        for data, _trace, span in interfaces.library.get_spans(request):
+            assert span["metrics"]["_sampling_priority_v1"] == 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0
+
+    def setup_telemetry_sca_enabled_propagated(self):
+        self.r = weblog.get("/")
+
     def test_telemetry_sca_enabled_propagated(self):
+        self.assert_standalone_is_enabled(self.r)
+
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "app-started":
@@ -701,10 +712,7 @@ class Test_SCAStandalone_Telemetry:
         self.r = weblog.get("/load_dependency")
 
     def test_app_dependencies_loaded(self):
-        # test standalone is enabled and dropping traces
-        for data, _trace, span in interfaces.library.get_spans(request=self.r):
-            assert span["metrics"]["_sampling_priority_v1"] == 0
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+        self.assert_standalone_is_enabled(self.r)
 
         seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.library)
 
