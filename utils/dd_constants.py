@@ -61,6 +61,7 @@ class Capabilities(IntEnum):
     ASM_SESSION_FINGERPRINT = 33
     ASM_NETWORK_FINGERPRINT = 34
     ASM_HEADER_FINGERPRINT = 35
+    ASM_RASP_CMDI = 37
 
 
 class SpanKind(IntEnum):

@@ -297,6 +297,7 @@ tests/:
           nextjs: missing_feature
       test_libddwaf.py:
         Test_Libddwaf_Version: *ref_5_25_0
+        Test_LibddwafVersion_CmdI: missing_feature
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0
@@ -305,6 +306,7 @@ tests/:
           '*': *ref_5_25_0
           nextjs: missing_feature
         Test_Shi_BodyXml: missing_feature
+        Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_Capability: *ref_5_25_0
         Test_Shi_Mandatory_SpanTags: *ref_5_25_0
         Test_Shi_Optional_SpanTags: *ref_5_25_0
@@ -318,6 +320,7 @@ tests/:
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
           nextjs: missing_feature
+      test_cmdi.py: missing_feature          
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': *ref_5_23_0

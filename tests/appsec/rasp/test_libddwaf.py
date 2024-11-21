@@ -6,6 +6,11 @@ from utils import features
 from tests.appsec.rasp.utils import find_series, validate_metric_tag_version
 
 
+def check_min_version(min_version):
+    series = find_series(True, "appsec", "waf.init")
+    assert series
+    assert any(validate_metric_tag_version("waf_version", min_version, s) for s in series)
+
 @features.rasp_local_file_inclusion
 @features.rasp_sql_injection
 @features.rasp_shell_injection
@@ -16,7 +21,13 @@ class Test_Libddwaf_Version:
     def test_min_version(self):
         """Checks data in waf.init metric to verify waf version"""
         min_version = [1, 20, 1]
+        check_min_version(min_version)
 
-        series = find_series(True, "appsec", "waf.init")
-        assert series
-        assert any(validate_metric_tag_version("waf_version", min_version, s) for s in series)
+@features.rasp_command_injection
+class Test_LibddwafVersion_CmdI:
+    """Test CmdI libddwaf version"""
+
+    def test_min_version(self):
+        """Checks data in waf.init metric to verify waf version for first condition"""
+        min_version = [1, 20, 1]
+        check_min_version(min_version)

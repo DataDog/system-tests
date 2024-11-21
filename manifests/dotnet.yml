@@ -162,6 +162,7 @@ tests/:
         Test_Lfi_UrlQuery: v2.51.0
       test_libddwaf.py:
         Test_Libddwaf_Version: v3.4.1
+        Test_LibddwafVersion_CmdI: missing_feature
       test_shi.py:
         Test_Shi_BodyJson: v3.2.0
         Test_Shi_BodyUrlEncoded: v3.2.0
@@ -173,6 +174,18 @@ tests/:
         Test_Shi_StackTrace: v3.2.0
         Test_Shi_Telemetry: v3.3.0
         Test_Shi_UrlQuery: v3.2.0
+        Test_Shi_Telemetry_Variant_Tag: missing_feature
+      test_cmdi.py:
+        Test_Cmdi_BodyJson: missing_feature
+        Test_Cmdi_BodyUrlEncoded: missing_feature
+        Test_Cmdi_BodyXml: missing_feature
+        Test_Cmdi_Capability: missing_feature
+        Test_Cmdi_Mandatory_SpanTags: missing_feature
+        Test_Cmdi_Optional_SpanTags: missing_feature
+        Test_Cmdi_Rules_Version: missing_feature
+        Test_Cmdi_StackTrace: missing_feature
+        Test_Cmdi_Telemetry: missing_feature
+        Test_Cmdi_UrlQuery: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson: v2.54.0
         Test_Sqli_BodyUrlEncoded: v2.54.0

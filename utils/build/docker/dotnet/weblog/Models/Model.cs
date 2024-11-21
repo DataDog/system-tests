@@ -17,7 +17,8 @@ namespace weblog
         public string? Domain { get; set; }
         public string? User_id { get; set; }
         public string? List_dir { get; set; }
-
+        public string? Command { get; set; }
+        
         public override string ToString() => $"value {Value}, value2 {Value2}";
     }
 }
