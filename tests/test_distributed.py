@@ -59,7 +59,6 @@ class Test_Span_Links_From_Conflicting_Contexts:
         for span in trace:
             links = retrieve_span_links(span)
             assert len(links) == 2
-            print(links)
             link1 = links[0]
             assert link1["trace_id"] == 2
             assert link1["span_id"] == 10
