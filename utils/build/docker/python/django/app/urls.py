@@ -68,12 +68,10 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 @csrf_exempt
 def healthcheck(request):
+
     result = {
         "status": "ok",
-        "library": {
-            "language": "python",
-            "version": ddtrace.__version__,
-        },
+        "library": {"language": "python", "version": ddtrace.__version__,},
     }
 
     return HttpResponse(json.dumps(result), content_type="application/json")
@@ -83,9 +81,7 @@ def healthcheck(request):
 def waf(request, *args, **kwargs):
     if "tag_value" in kwargs:
         appsec_trace_utils.track_custom_event(
-            tracer,
-            event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME,
-            metadata={"value": kwargs["tag_value"]},
+            tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": kwargs["tag_value"]},
         )
         if kwargs["tag_value"].startswith("payload_in_response_body") and request.method == "POST":
             return HttpResponse(
@@ -94,11 +90,7 @@ def waf(request, *args, **kwargs):
                 status=int(kwargs["status_code"]),
                 headers=request.GET.dict(),
             )
-        return HttpResponse(
-            "Value tagged",
-            status=int(kwargs["status_code"]),
-            headers=request.GET.dict(),
-        )
+        return HttpResponse("Value tagged", status=int(kwargs["status_code"]), headers=request.GET.dict(),)
     return HttpResponse("Hello, World!")
 
 
@@ -635,10 +627,7 @@ def track_user_login_success_event(request):
 
 def track_user_login_failure_event(request):
     appsec_trace_utils.track_user_login_failure_event(
-        tracer,
-        user_id=_TRACK_USER,
-        exists=True,
-        metadata=_TRACK_METADATA,
+        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
     )
     return HttpResponse("OK")
 
@@ -747,12 +736,7 @@ def s3_put_object(request):
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS
-        result = {
-            "result": "ok",
-            "object": {
-                "e_tag": response.e_tag.replace('"', ""),
-            },
-        }
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
 
     return JsonResponse(result)
 
@@ -781,12 +765,7 @@ def s3_copy_object(request):
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS
-        result = {
-            "result": "ok",
-            "object": {
-                "e_tag": response["CopyObjectResult"]["ETag"].replace('"', ""),
-            },
-        }
+        result = {"result": "ok", "object": {"e_tag": response["CopyObjectResult"]["ETag"].replace('"', ""),}}
 
     return JsonResponse(result)
 
@@ -819,12 +798,7 @@ def s3_multipart_upload(request):
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS
-        result = {
-            "result": "ok",
-            "object": {
-                "e_tag": response.e_tag.replace('"', ""),
-            },
-        }
+        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
 
     return JsonResponse(result)
 
@@ -836,8 +810,6 @@ urlpatterns = [
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
-    path("vulnerablerequestdownstream", vulnerable_request_downstream),
-    path("vulnerablerequestdownstream/", vulnerable_request_downstream),
     path("requestdownstream", request_downstream),
     path("requestdownstream/", request_downstream),
     path("returnheaders", return_headers),
