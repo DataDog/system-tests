@@ -207,6 +207,7 @@ def get_free_port():
             port += 1
     raise IOError("no free ports")
 
+
 def retrieve_span_links(span):
     if span.get("span_links") is not None:
         return span["span_links"]
@@ -233,6 +234,7 @@ def retrieve_span_links(span):
                 link["flags"] = 0
             links.append(link)
         return links
+
 
 # The Datadog specific tracecontext flags to mark flags are set
 TRACECONTEXT_FLAGS_SET = 1 << 31

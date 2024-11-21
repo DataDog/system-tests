@@ -52,7 +52,8 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if retrieve_span_links(span) is not None and span["trace_id"] == 2 # Only fetch the trace that is related to the header extractions
+            if retrieve_span_links(span) is not None
+            and span["trace_id"] == 2  # Only fetch the trace that is related to the header extractions
         ]
 
         for span in trace:
@@ -77,7 +78,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
     def setup_no_span_links_from_nonconflicting_contexts(self):
         extract_headers = {
-           "traceparent": "00-11111111111111110000000000000001-000000003ade68b1-01",
+            "traceparent": "00-11111111111111110000000000000001-000000003ade68b1-01",
             "tracestate": "dd=s:2;t.tid:1111111111111111,foo=1",
             "x-datadog-trace-id": "1",
             "x-datadog-parent-id": "987654322",
@@ -91,7 +92,8 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if retrieve_span_links(span) is not None and span["trace_id"] == 1 # Only fetch the trace that is related to the header extractions
+            if retrieve_span_links(span) is not None
+            and span["trace_id"] == 1  # Only fetch the trace that is related to the header extractions
         ]
 
         assert len(trace) == 0
@@ -113,7 +115,8 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if retrieve_span_links(span) is not None and span["trace_id"] == 5 # Only fetch the trace that is related to the header extractions
+            if retrieve_span_links(span) is not None
+            and span["trace_id"] == 5  # Only fetch the trace that is related to the header extractions
         ]
 
         assert len(trace) == 0
@@ -135,7 +138,8 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if retrieve_span_links(span) is not None and span["trace_id"] == 6 # Only fetch the trace that is related to the header extractions
+            if retrieve_span_links(span) is not None
+            and span["trace_id"] == 6  # Only fetch the trace that is related to the header extractions
         ]
 
         assert len(trace) == 0
@@ -148,7 +152,7 @@ class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
 
     def setup_span_links_from_conflicting_contexts_datadog_precedence(self):
         extract_headers = {
-           "traceparent": "00-11111111111111110000000000000001-000000003ade68b1-01",
+            "traceparent": "00-11111111111111110000000000000001-000000003ade68b1-01",
             "tracestate": "dd=s:2;t.tid:1111111111111111,foo=1",
             "x-datadog-trace-id": "4",
             "x-datadog-parent-id": "987654323",
@@ -165,7 +169,8 @@ class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if retrieve_span_links(span) is not None and span["trace_id"] == 4 # Only fetch the trace that is related to the header extractions
+            if retrieve_span_links(span) is not None
+            and span["trace_id"] == 4  # Only fetch the trace that is related to the header extractions
         ]
 
         for span in trace:
@@ -177,7 +182,7 @@ class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
             assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
             assert link1["tracestate"] == "dd=s:2;t.tid:1111111111111111,foo=1"
             assert link1["trace_id_high"] == 1229782938247303441
-            
+
             link2 = links[1]
             assert link2["trace_id"] == 3
             assert link2["span_id"] == 11744061942159299346
@@ -187,6 +192,7 @@ class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
 
         # Return false if we get no span links
         assert False
+
 
 @scenarios.trace_propagation_style_w3c_datadog_b3
 @features.w3c_headers_injection_and_extraction
@@ -212,7 +218,8 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if retrieve_span_links(span) is not None and span["trace_id"] == 2 # Only fetch the trace that is related to the header extractions
+            if retrieve_span_links(span) is not None
+            and span["trace_id"] == 2  # Only fetch the trace that is related to the header extractions
         ]
 
         for span in trace:
@@ -227,6 +234,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
 
         # Return false if we get no span links
         assert False
+
 
 @scenarios.trace_propagation_style_w3c_datadog_b3
 @features.w3c_headers_injection_and_extraction
@@ -249,7 +257,8 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if retrieve_span_links(span) is not None and span["trace_id"] == 2 # Only fetch the trace that is related to the header extractions
+            if retrieve_span_links(span) is not None
+            and span["trace_id"] == 2  # Only fetch the trace that is related to the header extractions
         ]
 
         for span in trace:
