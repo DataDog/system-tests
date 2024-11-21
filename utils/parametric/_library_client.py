@@ -233,8 +233,8 @@ class APMLibraryClient:
             json={
                 "name": name,
                 "timestamp": timestamp,
-                "span_kind": span_kind.value,
                 "parent_id": parent_id,
+                "span_kind": span_kind.value if span_kind is not None else None,
                 "links": links or [],
                 "attributes": attributes or {},
             },
