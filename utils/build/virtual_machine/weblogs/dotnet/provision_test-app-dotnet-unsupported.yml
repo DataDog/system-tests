@@ -5,90 +5,12 @@ lang_variant:
     install:
       - os_type: linux
         os_distro: deb
-        os_branch: ubuntu24
-        remote-command: |
-          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu74 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: deb
-        os_branch: ubuntu22_arm64
-        remote-command: |
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: deb
         os_branch: ubuntu20_amd64
         remote-command: |
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: deb
-        os_branch: ubuntu23
-        remote-command: |
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: deb
-        remote-command: |
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: rpm
-        os_branch: amazon_linux2
-        remote-command: |
-          sudo yum install -y libicu60 krb5-libs openssl-libs zlib
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: rpm
-        os_branch: rhel_7_amd64
-        remote-command: |
-          sudo yum install -y libicu krb5-libs openssl-libs zlib
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: rpm
-        remote-command: |
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 2.1 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
+          sudo apt-get update;
+          sudo apt-get install -y apt-transport-https;
+          sudo apt-get update;
+          sudo apt-get install -y dotnet-sdk-2.1
 
 weblog:
     name: test-app-dotnet-unsupported
