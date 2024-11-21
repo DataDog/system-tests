@@ -35,6 +35,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
+                "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "True"
             },
             include_postgres_db=True,
             include_cassandra_db=True,
