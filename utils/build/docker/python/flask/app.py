@@ -10,8 +10,8 @@ import threading
 import urllib.request
 
 import boto3
-from moto import mock_aws
 import mock
+from moto import mock_aws
 import urllib3
 import xmltodict
 
@@ -63,16 +63,45 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_consume
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
+from debugger_controller import debugger_blueprint
+
 import ddtrace
 from ddtrace import Pin
 from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.internal.datastreams import data_streams_processor
-from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
 from ddtrace.data_streams import set_produce_checkpoint
+from ddtrace.internal.datastreams import data_streams_processor
+from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 
-from debugger_controller import debugger_blueprint
+
+def monitor_process_trace(f):
+    import sys
+
+    def show_span(span):
+        return f"Span(id={span.span_id:16X}, trace_id={span.trace_id:16X}, parent_id={span.parent_id or 0:16X}, name={span.name}, type={span.span_type}, local_root={span._local_root_value})"
+
+    def show_trace(trace):
+        if isinstance(trace, list):
+            return "\n    ".join(map(show_span, trace))
+        return trace
+
+    def aux(self, trace):
+        print(f">>> {f.__name__} {self}\n>>> {show_trace(trace)}\n>>>{self.apm_opt_out=}", file=sys.stderr, flush=True)
+        res = f(self, trace)
+        if trace:
+            print(f"||| {trace[0]._metrics.get('_dd.apm.enabled')!r}", file=sys.stderr, flush=True)
+        print(f"<<< {f.__name__}\n<<< {show_trace(trace)}", file=sys.stderr, flush=True)
+        return res
+
+    return aux
+
+
+from ddtrace._trace.processor import TraceSamplingProcessor
+
+
+TraceSamplingProcessor.process_trace = monitor_process_trace(TraceSamplingProcessor.process_trace)
+
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -717,7 +746,7 @@ def dsm():
         response = Response("ok")
     elif integration == "sqs":
         produce_thread = threading.Thread(target=sqs_produce, args=(queue, message,),)
-        consume_thread = threading.Thread(target=sqs_consume, args=(queue, message,))
+        consume_thread = threading.Thread(target=sqs_consume, args=(queue, message,),)
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -738,7 +767,7 @@ def dsm():
         response = Response("ok")
     elif integration == "sns":
         produce_thread = threading.Thread(target=sns_produce, args=(queue, topic, message,),)
-        consume_thread = threading.Thread(target=sns_consume, args=(queue, message,))
+        consume_thread = threading.Thread(target=sns_consume, args=(queue, message,),)
         produce_thread.start()
         consume_thread.start()
         produce_thread.join()
@@ -1324,7 +1353,6 @@ def return_headers(*args, **kwargs):
 
 @app.route("/mock_s3/put_object", methods=["GET", "POST", "OPTIONS"])
 def s3_put_object():
-
     bucket = flask_request.args.get("bucket")
     key = flask_request.args.get("key")
     body: str = flask_request.args.get("key")
@@ -1336,7 +1364,10 @@ def s3_put_object():
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS
-        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+        result = {
+            "result": "ok",
+            "object": {"e_tag": response.e_tag.replace('"', ""),},
+        }
 
     return jsonify(result)
 
@@ -1366,14 +1397,16 @@ def s3_copy_object():
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS
-        result = {"result": "ok", "object": {"e_tag": response["CopyObjectResult"]["ETag"].replace('"', ""),}}
+        result = {
+            "result": "ok",
+            "object": {"e_tag": response["CopyObjectResult"]["ETag"].replace('"', ""),},
+        }
 
     return jsonify(result)
 
 
 @app.route("/mock_s3/multipart_upload", methods=["GET", "POST", "OPTIONS"])
 def s3_multipart_upload():
-
     bucket = flask_request.args.get("bucket")
     key = flask_request.args.get("key")
     body_base: str = flask_request.args.get("key")
@@ -1401,6 +1434,9 @@ def s3_multipart_upload():
 
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS
-        result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', ""),}}
+        result = {
+            "result": "ok",
+            "object": {"e_tag": response.e_tag.replace('"', ""),},
+        }
 
     return jsonify(result)
