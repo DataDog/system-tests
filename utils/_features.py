@@ -1918,7 +1918,9 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(
+        test_object,
+    ):
         """
         [AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
 
@@ -1928,7 +1930,9 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
+        test_object,
+    ):
         """
         [AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
 
@@ -1998,7 +2002,9 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+    def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
+        test_object,
+    ):
         """
         [AWS-SNS][Span Creation][Context Propagation] with dd-trace
 
@@ -2058,7 +2064,9 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
+        test_object,
+    ):
         """
         [AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
 
@@ -2376,7 +2384,7 @@ class features:
         """
         pytest.mark.features(feature_id=318)(test_object)
         return test_object
-   
+
     @staticmethod
     def rasp_command_injection(test_object):
         """
@@ -2385,7 +2393,7 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=319
         """
         pytest.mark.features(feature_id=319)(test_object)
-        return test_object    
+        return test_object
 
     @staticmethod
     def debugger_exception_replay(test_object):
