@@ -12,7 +12,6 @@ import (
 
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -59,60 +58,13 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 	if a := args.Attributes; len(a) > 0 {
 		otelOpts = append(otelOpts, otel_trace.WithAttributes(a.ConvertToAttributes()...))
 	}
-	if h := args.HttpHeaders; len(h) > 0 {
-		headers := map[string]string{}
-		for _, headerTuple := range h {
-			k := headerTuple.Key()
-			v := headerTuple.Value()
-			if k != "" && v != "" {
-				headers[k] = v
-			}
-		}
-		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
-		if err != nil {
-			fmt.Println("failed to extract span context from headers:", err, args.HttpHeaders)
-		} else {
-			ddOpts = append(ddOpts, tracer.ChildOf(sctx))
-		}
-	}
 
 	if links := args.SpanLinks; links != nil {
 		for _, link := range links {
-			if p := link.ParentId; p != 0 {
-				if _, ok := s.otelSpans[p]; ok {
-					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[p].span.SpanContext(), Attributes: link.Attributes.ConvertToAttributesStringified()}))
-				}
-			} else if h := link.HttpHeaders; h != nil {
-				headers := map[string]string{}
-				for _, headerTuple := range h {
-					k := headerTuple.Key()
-					v := headerTuple.Value()
-					if k != "" && v != "" {
-						headers[k] = v
-					}
-				}
-				extractedContext, _ := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
-				state, _ := otel_trace.ParseTraceState(headers["tracestate"])
-
-				var traceID otel_trace.TraceID
-				var spanID otel_trace.SpanID
-				if w3cCtx, ok := extractedContext.(ddtrace.SpanContextW3C); ok {
-					traceID = w3cCtx.TraceID128Bytes()
-				} else {
-					fmt.Printf("Non-W3C context found in span, unable to get full 128 bit trace id")
-					uint64ToByte(extractedContext.TraceID(), traceID[:])
-				}
-				uint64ToByte(extractedContext.SpanID(), spanID[:])
-				config := otel_trace.SpanContextConfig{
-					TraceID:    traceID,
-					SpanID:     spanID,
-					TraceState: state,
-				}
-				var newCtx = otel_trace.NewSpanContext(config)
-				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{
-					SpanContext: newCtx,
-					Attributes:  link.Attributes.ConvertToAttributesStringified(),
-				}))
+			if pSpan, ok := s.otelSpans[link.ParentId]; ok {
+				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: pSpan.span.SpanContext(), Attributes: link.Attributes.ConvertToAttributesStringified()}))
+			} else {
+				return OtelStartSpanReturn{}, fmt.Errorf("OtelStartSpan call failed. Failed to generate a link to span with id=%d", link.ParentId)
 			}
 		}
 	}
