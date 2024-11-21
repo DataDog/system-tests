@@ -394,13 +394,10 @@ def trace_span_current() -> TraceSpanCurrentReturn:
 
 class OtelStartSpanArgs(BaseModel):
     name: str
-    parent_id: int
-    span_kind: int
-    service: str = ""
-    resource: str = ""
-    type: str = ""
-    links: List[Dict] = []
-    timestamp: int
+    parent_id: Optional[int] = None
+    span_kind: Optional[int] = None
+    timestamp: Optional[int] = None
+    links: List[Dict]
     attributes: dict
 
 
