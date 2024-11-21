@@ -1,6 +1,6 @@
 from operator import le
 from py import test
-from requests import head
+from requests import head  # type: ignore
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.headers import make_single_request_and_get_inject_headers
@@ -217,17 +217,34 @@ class Test_Headers_Baggage:
         """Ensure that baggage headers are not injected when the number of baggage items exceeds the maximum number of items."""
         max_items = 64
         with test_library.dd_start_span(name="test_baggageheader_maxitems_inject_D016") as span:
-            for i in range(max_items + 1):
+            for i in range(max_items + 2):
                 span.set_baggage(f"key{i}", f"value{i}")
 
             headers = test_library.dd_inject_headers(span.span_id)
-            assert not any("baggage" in item for item in headers)
+            for header in headers:
+                if "baggage" in header:
+                    baggage_header = header
+            items = baggage_header[1].split(",")
+            assert len(items) == max_items
 
     def test_baggageheader_maxbytes_inject_D017(self, test_library):
         """Ensure that baggage headers are not injected when the total byte size of the baggage exceeds the maximum size."""
         max_bytes = 8192
         with test_library.dd_start_span(name="test_baggageheader_maxbytes_inject_D017",) as span:
-            span.set_baggage("foo", "a" * (max_bytes))
+            baggage_items = {
+                "key1": "a" * ((max_bytes // 3)),
+                "key2": "b" * ((max_bytes // 3)),
+                "key3": "c" * ((max_bytes // 3)),
+                "key4": "d",
+            }
+            for key, value in baggage_items.items():
+                span.set_baggage(key, value)
 
-        headers = test_library.dd_inject_headers(span.span_id)
-        assert not any("baggage" in item for item in headers)
+            headers = test_library.dd_inject_headers(span.span_id)
+            for header in headers:
+                if "baggage" in header:
+                    baggage_header = header
+            items = baggage_header[1].split(",")
+            header_size = len(baggage_header[1].encode("utf-8"))
+            assert len(items) == 2
+            assert header_size <= max_bytes
