@@ -1548,6 +1548,10 @@ tests/:
     Test_LibraryHeaders: v1.29.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts: v1.43.0
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v1.43.0
+    Test_Span_Links_Flags_From_Conflicting_Contexts: irrelevant (implementation specs have not been determined)
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: irrelevant (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: missing_feature
     Test_Propagate: missing_feature
