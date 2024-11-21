@@ -45,7 +45,7 @@ class Test_Headers_B3multi:
         and activated properly.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers(
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-b3-traceid", "000000000000000000000000075bcd15"],
                     ["x-b3-spanid", "000000003ade68b1"],
@@ -64,7 +64,7 @@ class Test_Headers_B3multi:
         """Ensure that invalid b3multi distributed tracing headers are not extracted.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers(
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
             )
 
@@ -78,7 +78,7 @@ class Test_Headers_B3multi:
         """Ensure that b3multi distributed tracing headers are injected properly.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers([])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         b3_trace_id = headers["x-b3-traceid"]
@@ -97,7 +97,7 @@ class Test_Headers_B3multi:
         and injected properly.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers(
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-b3-traceid", "000000000000000000000000075bcd15"],
                     ["x-b3-spanid", "000000003ade68b1"],
@@ -123,7 +123,7 @@ class Test_Headers_B3multi:
         and the new span context is injected properly.
         """
         with test_library:
-            headers = library.dd_make_child_span_and_get_headers(
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
             )
 

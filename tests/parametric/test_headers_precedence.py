@@ -945,7 +945,7 @@ class Test_Headers_Precedence:
 
     @enable_tracecontext_datadog_b3multi_extract_first_true()
     def test_headers_precedence_propagationstyle_tracecontext_first_extract_first_true_correctly_propagates_tracestate(
-        self, test_library, test_agent
+        self, test_agent, test_library
     ):
         self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
             test_agent, test_library, prefer_tracecontext=True, extract_first=True

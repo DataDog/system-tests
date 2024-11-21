@@ -64,7 +64,7 @@ class Test_Headers_None:
         and activated properly.
         """
         with test_library:
-            test_library.test_dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
