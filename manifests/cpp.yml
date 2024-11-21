@@ -138,6 +138,8 @@ tests/:
       Test_DsmSQS: missing_feature
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+    test_inferred_proxy.py:
+      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   parametric/:
@@ -182,12 +184,13 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: missing_feature (current_span endpoint is not implemented)
       Test_Parametric_DDTrace_Extract_Headers: missing_feature (extract_headers endpoint is not implemented)
       # cpp tracer does not support the OpenTelemetry API, otel parametric endpoints are not implemented
+      Test_Parametric_OtelSpan_End: missing_feature (otel api is not supported)
       Test_Parametric_OtelSpan_Events: missing_feature (otel api is not supported)
       Test_Parametric_OtelSpan_Is_Recording: missing_feature (otel api is not supported)
       Test_Parametric_OtelSpan_Set_Attribute: missing_feature (otel api is not supported)
       Test_Parametric_OtelSpan_Set_Name: missing_feature (otel api is not supported)
       Test_Parametric_OtelSpan_Set_Status: missing_feature (otel api is not supported)
-      Test_Parametric_OtelSpan_Start_Finish: missing_feature (otel api is not supported)
+      Test_Parametric_OtelSpan_Start: missing_feature (otel api is not supported)
       Test_Parametric_Otel_Baggage: missing_feature (otel api is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel api is not supported)
       Test_Parametric_Otel_Trace_Flush: missing_feature (otel api is not supported)

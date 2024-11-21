@@ -365,6 +365,8 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
+    test_inferred_proxy.py:
+      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
@@ -394,8 +396,6 @@ tests/:
       Test_Otel_Span_Methods: v1.17.0
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
-    test_otel_span_with_w3c.py:
-      Test_Otel_Span_With_W3c: v1.17.0
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource endpoint is not supported)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
