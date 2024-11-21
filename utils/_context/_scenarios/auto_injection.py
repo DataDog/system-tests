@@ -388,7 +388,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_ubuntu_22_arm64=True,
             include_ubuntu_23_04_amd64=True,
             include_ubuntu_23_04_arm64=True,
-            include_ubuntu_23_10_amd64=True,
+            include_ubuntu_23_10_amd64=False,
             include_ubuntu_23_10_arm64=True,
             include_ubuntu_24_amd64=True,
             include_ubuntu_24_arm64=True,

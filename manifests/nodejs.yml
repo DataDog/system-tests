@@ -661,7 +661,7 @@ tests/:
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: missing_feature (otel current_span endpoint is not supported)
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)
-      Test_Parametric_OtelSpan_Start_Finish: bug (APMAPI-778)  # The expected span.kind tag is not set
+      Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set
       Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel baggage endpoints are not implemented)
     test_partial_flushing.py:
