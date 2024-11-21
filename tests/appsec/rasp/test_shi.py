@@ -181,26 +181,22 @@ class Test_Shi_Telemetry_Variant_Tag:
     """Validate Telemetry data variant tag on exploit attempts"""
 
     def setup_shi_telemetry(self):
-        self.r = weblog.get(
-            "/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}
-        )
+        self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_telemetry(self):
         assert self.r.status_code == 403
 
         series_eval = find_series(True, "appsec", "rasp.rule.eval")
         assert series_eval
-        assert any(
-            validate_metric_variant("rasp.rule.eval", "command_injection", "shell", s)
-            for s in series_eval
-        ), [s.get("tags") for s in series_eval]
+        assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "shell", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
 
         series_match = find_series(True, "appsec", "rasp.rule.match")
         assert series_match
-        assert any(
-            validate_metric_variant("rasp.rule.match", "command_injection", "shell", s)
-            for s in series_match
-        ), [s.get("tags") for s in series_match]
+        assert any(validate_metric_variant("rasp.rule.match", "command_injection", "shell", s) for s in series_match), [
+            s.get("tags") for s in series_match
+        ]
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")

@@ -9,9 +9,7 @@ from tests.appsec.rasp.utils import find_series, validate_metric_tag_version
 def check_min_version(min_version):
     series = find_series(True, "appsec", "waf.init")
     assert series
-    assert any(
-        validate_metric_tag_version("waf_version", min_version, s) for s in series
-    )
+    assert any(validate_metric_tag_version("waf_version", min_version, s) for s in series)
 
 
 @features.rasp_local_file_inclusion

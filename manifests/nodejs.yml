@@ -297,7 +297,7 @@ tests/:
           nextjs: missing_feature
       test_libddwaf.py:
         Test_Libddwaf_Version: *ref_5_25_0
-        Test_LibddwafVersion_CmdI: missing_feature
+        Test_Libddwaf_Version_CmdI: missing_feature
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0

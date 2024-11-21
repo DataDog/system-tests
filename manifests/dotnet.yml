@@ -162,7 +162,7 @@ tests/:
         Test_Lfi_UrlQuery: v2.51.0
       test_libddwaf.py:
         Test_Libddwaf_Version: v3.4.1
-        Test_LibddwafVersion_CmdI: missing_feature
+        Test_Libddwaf_Version_CmdI: missing_feature
       test_shi.py:
         Test_Shi_BodyJson: v3.2.0
         Test_Shi_BodyUrlEncoded: v3.2.0
