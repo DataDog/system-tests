@@ -5,6 +5,7 @@ from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get
 from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
+import time
 
 
 @features.host_auto_installation_script
@@ -120,6 +121,8 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
             raise
+
+        time.sleep(5)
 
         # At this point, there should be no zombies and no child pids
         child_pids = get_child_pids(virtual_machine).strip()

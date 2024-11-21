@@ -177,19 +177,12 @@ def kill_strace(request):
 def download_strace(request):
     try:
         if os.path.exists(STRACE_OUTPUT_FILE):
-            # Path for the copied file
-            copy_file_path = "/tmp/strace_output_copy.log"
-
-            # Create a copy of the file
-            shutil.copyfile(STRACE_OUTPUT_FILE, copy_file_path)
-
             original_file_size = os.path.getsize(STRACE_OUTPUT_FILE)
-            copy_file_size = os.path.getsize(copy_file_path)
 
-            with open(copy_file_path, "r") as f:
+            with open(STRACE_OUTPUT_FILE, "r") as f:
                 content = f.read(MAX_RESPONSE_SIZE)
 
-            response_content = f"Original File size: {original_file_size} bytes\n\nCopy File size: {copy_file_size}\n\n{content}"
+            response_content = f"File size: {original_file_size} bytes\n\n{content}"
             return HttpResponse(response_content, content_type="text/plain")
         else:
             return HttpResponse("Strace file not found.", status=404, content_type="text/plain")
