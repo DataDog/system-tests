@@ -92,7 +92,6 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
-    @bug(condition=context.library == "php" and context.installed_language_runtime < "7.0", reason="INPLAT-180")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
     @bug(condition=context.library == "python" and context.installed_language_runtime < "3.7.0", reason="INPLAT-181")
     @irrelevant(context.library == "python" and context.installed_language_runtime >= "3.7.0")
