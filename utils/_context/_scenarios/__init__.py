@@ -111,7 +111,16 @@ class scenarios:
             "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,datadog,b3multi",
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
         },
-        doc="Test compound propagation trace style",
+        doc="Test compound propagation trace style with w3c headers first",
+    )
+
+    trace_propagation_style_datadog_w3c_b3 = EndToEndScenario(
+        "TRACE_PROPAGATION_STYLE_DATADOG_W3C_B3",
+        weblog_env={
+            "DD_TRACE_PROPAGATION_STYLE_INJECT": "datadog,tracecontext,b3multi",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi",
+        },
+        doc="Test compound propagation trace style with Datadog headers first",
     )
 
     # Telemetry scenarios
