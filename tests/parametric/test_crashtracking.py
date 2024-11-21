@@ -12,15 +12,8 @@ from utils import bug, context, features, irrelevant, missing_feature, rfc, scen
 @scenarios.parametric
 @features.crashtracking
 class Test_Crashtracking:
-    @missing_feature(context.library == "nodejs", reason="Only enabled for SSI by default")
-    def test_report_crash(self, test_agent, test_library):
-        test_library.crash()
-
-        event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-        assert self.is_crash_report(test_library, event)
-
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
-    def test_enable_crashtracking(self, test_agent, test_library):
+    def test_report_crash(self, test_agent, test_library):
         test_library.crash()
 
         event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
