@@ -24,6 +24,7 @@ ENV PGHOST=postgres
 ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
+ENV DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED=true
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
