@@ -2448,17 +2448,6 @@ class features:
         return test_object
 
     @staticmethod
-    def aws_api_gateway_inferred_span_creation(test_object):
-        """
-        AWS Api Gateway: Tests that API Gateway inferred span creation works as expected
-
-        https://feature-parity.us1.prod.dog/#/?feature=341
-        """
-        pytest.mark.features(feature_id=341)(test_object)
-
-        return test_object
-
-    @staticmethod
     def parametric_endpoint_parity(test_object):
         """
         Enforces standardized behaviors for configurations across the tracing libraries.

@@ -512,23 +512,6 @@ By default, the generated event has the following specification:
 
 Values can be changed with the query params called `event_name`.
 
-### GET '/inferred-proxy/span-creation'
-
-This endpoint is supposed to be hit with the necessary headers that are used to create inferred proxy
-spans for routers such as AWS API Gateway. Not including the headers means a span will not be created by the tracer
-if the feature exists.
-
-The endpoint supports the following query parameters:
- - `status_code`: str containing status code to used in API response
-
-The headers necessary to create a span with example values:
-  `x-dd-proxy-request-time-ms`: start time in milliseconds
-  `x-dd-proxy-path`: "/api/data",
-  `x-dd-proxy-httpmethod`: "GET",
-  `x-dd-proxy-domain-name`: "system-tests-api-gateway.com",
-  `x-dd-proxy-stage`: "staging",
-  `x-dd-proxy`: "aws-apigateway",
-
 ### GET /users
 
 This endpoint calls the appsec blocking SDK functions used for blocking users. If the expected parameter matches one of
