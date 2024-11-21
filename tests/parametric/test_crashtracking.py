@@ -16,14 +16,14 @@ class Test_Crashtracking:
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
 
-        event = test_agent.wait_for_telemetry_event("logs", wait_loops=1000)
+        event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
         assert self.is_crash_report(test_library, event)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_enable_crashtracking(self, test_agent, test_library):
         test_library.crash()
 
-        event = test_agent.wait_for_telemetry_event("logs", wait_loops=1000)
+        event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
         assert self.is_crash_report(test_library, event)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
