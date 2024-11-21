@@ -33,5 +33,5 @@ class Test_Libddwaf_Version_CmdI:
 
     def test_min_version(self):
         """Checks data in waf.init metric to verify waf version for first condition"""
-        min_version = [1, 20, 1]
+        min_version = [1, 21, 0]
         check_min_version(min_version)
