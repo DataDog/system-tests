@@ -353,7 +353,7 @@ class Test_Environment:
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(
-        context.library == "nodejs", reason="does not collect env.invalid metrics for otel_resource_attributes"
+        context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
     )
     @pytest.mark.parametrize(
         "library_env",
