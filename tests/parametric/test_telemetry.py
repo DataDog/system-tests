@@ -308,7 +308,6 @@ class Test_Environment:
         assert event["request_type"] == "generate-metrics"
 
         metrics = payload["series"]
-        # python tracer stores all telemetry metrics under the tracer namespace, it seems like nodejs and golang do not
         assert payload["namespace"] == "tracers"
         otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
         assert not [s for s in metrics if s["metric"] == "otel.env.invalid"]
