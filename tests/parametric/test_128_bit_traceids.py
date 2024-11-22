@@ -1,6 +1,5 @@
 import pytest
 
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
 from utils import missing_feature, context, scenarios, features
 
@@ -20,8 +19,7 @@ class Test_128_Bit_Traceids:
         headers.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "1234567890123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -47,8 +45,7 @@ class Test_128_Bit_Traceids:
         """ Ensure that incoming tids that are too long are discarded.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "1234567890123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -74,8 +71,7 @@ class Test_128_Bit_Traceids:
         """ Ensure that incoming tids that are too short are discarded.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "1234567890123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -101,8 +97,7 @@ class Test_128_Bit_Traceids:
         """ Ensure that incoming tids with bad characters are discarded.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "1234567890123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -130,8 +125,7 @@ class Test_128_Bit_Traceids:
         """ Ensure that if incoming tids are malformed and the error is tagged, the tag is set to the expected value.
         """
         with test_library:
-            make_single_request_and_get_inject_headers(
-                test_library,
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "1234567890123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -151,8 +145,8 @@ class Test_128_Bit_Traceids:
         """Ensure that a new span from incoming headers does not modify the trace id when generation is true.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-datadog-trace-id", "1234567890123456789"], ["x-datadog-parent-id", "987654321"],],
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["x-datadog-trace-id", "1234567890123456789"], ["x-datadog-parent-id", "987654321"],],
             )
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
@@ -172,7 +166,7 @@ class Test_128_Bit_Traceids:
         datadog headers, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
@@ -192,7 +186,7 @@ class Test_128_Bit_Traceids:
         datadog headers, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
@@ -214,7 +208,7 @@ class Test_128_Bit_Traceids:
         datadog headers, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
@@ -235,8 +229,8 @@ class Test_128_Bit_Traceids:
         single-header.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["b3", "640cfd8d00000000abcdefab12345678-000000003ade68b1-1"],],
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["b3", "640cfd8d00000000abcdefab12345678-000000003ade68b1-1"],],
             )
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
@@ -257,9 +251,7 @@ class Test_128_Bit_Traceids:
         """Ensure that a new span from incoming headers does not modify the trace id when generation is true.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["b3", "abcdefab12345678-000000003ade68b1-1"],],
-            )
+            headers = test_library.dd_make_child_span_and_get_headers([["b3", "abcdefab12345678-000000003ade68b1-1"],],)
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
         dd_p_tid = span["meta"].get("_dd.p.tid")
@@ -282,7 +274,7 @@ class Test_128_Bit_Traceids:
         single-header, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
         fields = headers["b3"].split("-", 1)
 
@@ -299,7 +291,7 @@ class Test_128_Bit_Traceids:
         single-header, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
         fields = headers["b3"].split("-", 1)
 
@@ -315,8 +307,7 @@ class Test_128_Bit_Traceids:
         multi-headers.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [["x-b3-traceid", "640cfd8d00000000abcdefab12345678"], ["x-b3-spanid", "000000003ade68b1"],],
             )
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -336,8 +327,8 @@ class Test_128_Bit_Traceids:
         """Ensure that a new span from incoming headers does not modify the trace id when generation is true.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-b3-traceid", "abcdefab12345678"], ["x-b3-spanid", "000000003ade68b1"],],
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["x-b3-traceid", "abcdefab12345678"], ["x-b3-spanid", "000000003ade68b1"],],
             )
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
@@ -359,7 +350,7 @@ class Test_128_Bit_Traceids:
         multi-headers, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
         check_64_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
@@ -374,7 +365,7 @@ class Test_128_Bit_Traceids:
         multi-headers, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
         check_128_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
@@ -389,8 +380,8 @@ class Test_128_Bit_Traceids:
         headers.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01",],],
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01",],],
             )
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
@@ -411,8 +402,7 @@ class Test_128_Bit_Traceids:
         the trace header then no error is reported.
         """
         with test_library:
-            make_single_request_and_get_inject_headers(
-                test_library,
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:640cfd8d00000000"],
@@ -464,8 +454,7 @@ class Test_128_Bit_Traceids:
         the trace header, the trace header tid is preserved.
         """
         with test_library:
-            make_single_request_and_get_inject_headers(
-                test_library,
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:640cfd8d0000ffff"],
@@ -492,8 +481,7 @@ class Test_128_Bit_Traceids:
         the trace header the error is tagged.
         """
         with test_library:
-            make_single_request_and_get_inject_headers(
-                test_library,
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:640cfd8d0000ffff"],
@@ -514,8 +502,7 @@ class Test_128_Bit_Traceids:
         """Ensure that if the trace state contains a tid that is badly formed, the trace header tid is preserved.
         """
         with test_library:
-            make_single_request_and_get_inject_headers(
-                test_library,
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:XXXX"],
@@ -542,8 +529,7 @@ class Test_128_Bit_Traceids:
         it is tagged with the expected value.
         """
         with test_library:
-            make_single_request_and_get_inject_headers(
-                test_library,
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"],
                     ["tracestate", "dd=t.tid:XXXX"],
@@ -563,8 +549,8 @@ class Test_128_Bit_Traceids:
         """Ensure that a new span from incoming headers does not modify the trace id when generation is true.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-0000000000000000abcdefab12345678-000000003ade68b1-01",],],
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-0000000000000000abcdefab12345678-000000003ade68b1-01",],],
             )
         span = find_only_span(test_agent.wait_for_num_traces(1))
         trace_id = span.get("trace_id")
@@ -587,7 +573,7 @@ class Test_128_Bit_Traceids:
         headers, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
         fields = headers["traceparent"].split("-", 2)
 
@@ -603,7 +589,7 @@ class Test_128_Bit_Traceids:
         headers, and populated in trace data.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
         span = find_only_span(test_agent.wait_for_num_traces(1))
         fields = headers["traceparent"].split("-", 2)
 
