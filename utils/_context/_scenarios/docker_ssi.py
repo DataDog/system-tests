@@ -169,11 +169,11 @@ class DockerSSIScenario(Scenario):
                 del self._tested_components[key]
 
     def print_installed_components(self):
-        logger.terminal.write_sep("=", "Installed components", bold=True)
+        logger.stdout("Installed components")
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
 
-        logger.terminal.write_sep("=", "Configuration", bold=True)
+        logger.stdout("Configuration")
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
