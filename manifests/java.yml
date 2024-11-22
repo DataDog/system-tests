@@ -606,11 +606,9 @@ tests/:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-      test_libddwaf.py:
-        Test_Libddwaf_Version:
+        Test_Lfi_Waf_Version:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_Libddwaf_Version_CmdI: missing_feature
       test_shi.py: irrelevant (Not support in Java)
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
@@ -666,6 +664,9 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
+        Test_Sqli_Waf_Version:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': v1.39.0
@@ -718,6 +719,9 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
+        Test_Ssrf_Waf_Version:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     waf/:
       test_addresses.py:
         Test_BodyJson:

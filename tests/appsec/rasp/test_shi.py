@@ -11,6 +11,7 @@ from tests.appsec.rasp.utils import (
     validate_metric,
     validate_metric_variant,
     Base_Rules_Version,
+    Base_WAF_Version
 )
 
 
@@ -214,3 +215,10 @@ class Test_Shi_Rules_Version(Base_Rules_Version):
     """Test shi min rules version"""
 
     min_version = "1.13.1"
+
+
+@features.rasp_local_file_inclusion
+class Test_Shi_WAF_Version(Base_WAF_Version):
+    """Test shi WAF version"""
+
+    min_version = "1.20.1"

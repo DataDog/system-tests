@@ -10,6 +10,7 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric_variant,
     Base_Rules_Version,
+    Base_WAF_Version
 )
 
 
@@ -188,3 +189,10 @@ class Test_Cmdi_Rules_Version(Base_Rules_Version):
     """Test cmdi min rules version"""
 
     min_version = "1.13.5"
+
+
+@features.rasp_local_file_inclusion
+class Test_Cmdi_WAF_Version(Base_WAF_Version):
+    """Test cmdi WAF version"""
+
+    min_version = "1.21.0"

@@ -249,9 +249,7 @@ tests/:
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
-      test_libddwaf.py:
-        Test_Libddwaf_Version: v2.15.0
-        Test_Libddwaf_Version_CmdI: missing_feature
+        Test_Lfi_Waf_Version: v2.15.0
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
@@ -264,6 +262,7 @@ tests/:
         Test_Shi_Telemetry: v2.11.0-rc2
         Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery: v2.11.0-rc2
+        Test_Shi_Waf_Version: v2.15.0
       test_sqli.py:
         Test_Sqli_BodyJson: v2.10.0
         Test_Sqli_BodyUrlEncoded: v2.10.0
@@ -275,6 +274,7 @@ tests/:
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
         Test_Sqli_UrlQuery: v2.10.0
+        Test_Sqli_Waf_Version: v2.15.0
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0
         Test_Ssrf_BodyUrlEncoded: v2.10.0
@@ -286,6 +286,7 @@ tests/:
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
         Test_Ssrf_UrlQuery: v2.10.0
+        Test_Ssrf_Waf_Version: v2.15.0
     waf/:
       test_addresses.py:
         Test_BodyJson:
