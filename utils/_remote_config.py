@@ -226,6 +226,11 @@ def build_debugger_command(probes: list, version: int):
                     probe["where"]["methodName"] = re.sub(
                         r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
                     ).lower()
+                elif library_name == "ruby":
+                    probe["where"]["typeName"] = "DebuggerController"
+                    probe["where"]["methodName"] = re.sub(
+                        r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
+                    ).lower()
             elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                 if library_name == "dotnet":
                     probe["where"]["sourceFile"] = "DebuggerController.cs"
@@ -233,6 +238,8 @@ def build_debugger_command(probes: list, version: int):
                     probe["where"]["sourceFile"] = "DebuggerController.java"
                 elif library_name == "python":
                     probe["where"]["sourceFile"] = "debugger_controller.py"
+                elif library_name == "ruby":
+                    probe["where"]["sourceFile"] = "debugger_controller.rb"
 
             logger.debug(f"RC probe is:\n{json.dumps(probe, indent=2)}")
             probe_type = _get_probe_type(probe["id"])
