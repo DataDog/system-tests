@@ -1,14 +1,16 @@
 import time
 
 import requests
-from utils import scenarios, features, bug, context
+from utils import scenarios, features, context, irrelevant
 from utils.tools import logger
 from utils import scenarios, features
 
 @features.k8s_admission_controller
 @scenarios.k8s_library_injection_djm
+@irrelevant(condition=(context.library!="java"), reason="Data Jobs Monitoring requires Java library only.")
+@irrelevant(condition=(context.weblog_variant!="dd-djm-spark-test-app"), reason="Data Jobs Monitoring tests are only applicable when using dd-djm-spark-test-app web-log variant.")
 class TestK8sDJMWithSSI:
-    """ This test case validates java lib injection for DJM.
+    """ This test case validates java lib injection for Data Jobs Monitoring on k8s.
     The tracer is injected using admission controller via annotations on submitted Spark application. 
     We then use the dev test agent to check if the Spark application is instrumented.
     """

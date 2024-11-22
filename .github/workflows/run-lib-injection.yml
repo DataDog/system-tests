@@ -89,7 +89,7 @@ jobs:
             results_supported_langs.append(weblog["name"])
           if "skip-profiling" not in weblog or weblog["skip-profiling"] != "true":
             results_profiling_supported.append(weblog["name"])
-          if "skip-basic" not in weblog or weblog["skip-basic"] != "true":
+          if "skip-basic" in weblog and weblog["skip-basic"] == "true":
             results_skip_basic.append(weblog["name"])
 
         #Use the latest init image for prod version, latest_snapshot init image for dev version
@@ -239,7 +239,7 @@ jobs:
 
       - name: Kubernetes lib-injection tests
         id: k8s-lib-injection-tests
-        if: ${{ ! contains(fromJson(needs.compute-matrix.outputs.matrix_skip_basic), matrix.weblog) }}
+        if: ${{ !contains(fromJson(needs.compute-matrix.outputs.matrix_skip_basic), matrix.weblog) }}
         run: ./run.sh K8S_LIBRARY_INJECTION_BASIC
 
       - name: Kubernetes lib-injection profiling tests
@@ -249,7 +249,8 @@ jobs:
 
       - name: Kubernetes lib-injection DJM tests
         id: k8s-lib-injection-tests-djm
-        run: ./run.sh K8S_LIBRARY_INJECTION_PROFILING
+        if: ${{  matrix.weblog == 'dd-djm-spark-test-app' }}
+        run: ./run.sh K8S_LIBRARY_INJECTION_DJM
 
       - name: Compress logs
         id: compress_logs
