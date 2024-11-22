@@ -309,7 +309,7 @@ class Test_Environment:
 
         metrics = payload["series"]
         # python tracer stores all telemetry metrics under the tracer namespace, it seems like nodejs and golang do not
-        assert payload["namespace"] == "tracer" or payload["namespace"] == "tracers"
+        assert payload["namespace"] == "tracers"
         otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
         assert not [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
@@ -353,7 +353,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
+    @missing_feature(context.library == "does not collect env.invalid metrics for otel_resource_attributes", reason="nodejs")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -385,7 +385,7 @@ class Test_Environment:
 
         metrics = payload["series"]
 
-        assert payload["namespace"] == "tracers" or payload["namespace"] == "tracer"
+        assert payload["namespace"] == "tracers"
 
         otel_invalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
@@ -406,7 +406,7 @@ class Test_Environment:
             ["dd_trace_sample_rate", "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
             ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
-            # ["dd_tags", "otel_resource_attributes"], not supported by nodejs
+            ["dd_tags", "otel_resource_attributes"],
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
             ["dd_trace_sample_rate", otelsampler_config],
