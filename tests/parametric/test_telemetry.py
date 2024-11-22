@@ -9,6 +9,7 @@ import uuid
 
 import pytest
 
+from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, missing_feature, bug
 
 
@@ -69,7 +70,7 @@ class Test_Defaults:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -129,7 +130,7 @@ class Test_Consistent_Configs:
                 "DD_TRACE_RATE_LIMIT": 10,
                 "DD_TRACE_HEADER_TAGS": "User-Agent:my-user-agent,Content-Type.",
                 "DD_TRACE_ENABLED": "true",
-                "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "\d{3}-\d{2}-\d{4}",
+                "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"\d{3}-\d{2}-\d{4}",
                 "DD_TRACE_LOG_DIRECTORY": "/some/temporary/directory",
                 "DD_TRACE_CLIENT_IP_HEADER": "random-header-name",
                 "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-250",
@@ -142,7 +143,7 @@ class Test_Consistent_Configs:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -157,7 +158,9 @@ class Test_Consistent_Configs:
             configuration_by_name.get("DD_TRACE_HEADER_TAGS").get("value") == "User-Agent:my-user-agent,Content-Type."
         )
         assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == True
-        assert configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == "\d{3}-\d{2}-\d{4}"
+        assert (
+            configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == r"\d{3}-\d{2}-\d{4}"
+        )
         assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER").get("value") == "random-header-name"
 
     @pytest.mark.parametrize(
@@ -175,7 +178,7 @@ class Test_Consistent_Configs:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings_2(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -216,7 +219,7 @@ class Test_Environment:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -301,7 +304,7 @@ class Test_Environment:
         ],
     )
     def test_telemetry_otel_env_hiding(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
         payload = event["payload"]
@@ -365,7 +368,7 @@ class Test_Environment:
         ],
     )
     def test_telemetry_otel_env_invalid(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
         payload = event["payload"]
@@ -435,7 +438,7 @@ class Test_TelemetryInstallSignature:
         """
 
         # Some libraries require a first span for telemetry to be emitted.
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
@@ -479,7 +482,7 @@ class Test_TelemetryInstallSignature:
         """
 
         # Some libraries require a first span for telemetry to be emitted.
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started")
@@ -518,7 +521,7 @@ class Test_TelemetrySCAEnvVar:
 
     @staticmethod
     def get_app_started_configuration_by_name(test_agent, test_library):
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
@@ -542,17 +545,6 @@ class Test_TelemetrySCAEnvVar:
 
         return None
 
-    @staticmethod
-    def get_dd_appsec_sca_enabled_str(library):
-        DD_APPSEC_SCA_ENABLED = "DD_APPSEC_SCA_ENABLED"
-        if library == "java":
-            DD_APPSEC_SCA_ENABLED = "appsec_sca_enabled"
-        elif library == "nodejs":
-            DD_APPSEC_SCA_ENABLED = "appsec.sca.enabled"
-        elif library in ("php", "ruby"):
-            DD_APPSEC_SCA_ENABLED = "appsec.sca_enabled"
-        return DD_APPSEC_SCA_ENABLED
-
     @pytest.mark.parametrize(
         "library_env, specific_libraries_support, outcome_value",
         [
@@ -575,7 +567,7 @@ class Test_TelemetrySCAEnvVar:
 
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
 
-        DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
+        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
         assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
@@ -592,7 +584,7 @@ class Test_TelemetrySCAEnvVar:
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
 
-        DD_APPSEC_SCA_ENABLED = self.get_dd_appsec_sca_enabled_str(context.library)
+        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         if context.library in ("java", "nodejs", "python"):
             cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)

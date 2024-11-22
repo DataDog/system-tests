@@ -2,10 +2,10 @@
 Test configuration consistency for features across supported APM SDKs.
 """
 
-import pytest
-from utils import scenarios, features, context, bug, missing_feature, irrelevant
-from utils.parametric.spec.trace import find_span_in_traces
 from urllib.parse import urlparse
+import pytest
+from utils import scenarios, features, context, bug, missing_feature, irrelevant, flaky
+from utils.parametric.spec.trace import find_span_in_traces
 
 parametrize = pytest.mark.parametrize
 
@@ -28,7 +28,7 @@ class Test_Config_TraceEnabled:
     def test_tracing_enabled(self, library_env, test_agent, test_library):
         assert library_env.get("DD_TRACE_ENABLED", "true") == "true"
         with test_library:
-            with test_library.start_span("allowed"):
+            with test_library.dd_start_span("allowed"):
                 pass
         assert test_agent.wait_for_num_traces(
             num=1
@@ -38,7 +38,7 @@ class Test_Config_TraceEnabled:
     def test_tracing_disabled(self, library_env, test_agent, test_library):
         assert library_env.get("DD_TRACE_ENABLED") == "false"
         with test_library:
-            with test_library.start_span("allowed"):
+            with test_library.dd_start_span("allowed"):
                 pass
         with pytest.raises(ValueError) as e:
             test_agent.wait_for_num_traces(num=1)
@@ -54,7 +54,7 @@ class Test_Config_TraceLogDirectory:
     )
     def test_trace_log_directory_configured_with_existing_directory(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.start_span("allowed"):
+            with test_library.dd_start_span("allowed"):
                 pass
 
         success, message = test_library.container_exec_run("ls /parametric-tracer-logs")
@@ -74,7 +74,7 @@ class Test_Config_UnifiedServiceTagging:
     @parametrize("library_env", [{}])
     def test_default_config(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1") as s1:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
@@ -92,9 +92,9 @@ class Test_Config_UnifiedServiceTagging:
     @missing_feature(context.library < "ruby@2.7.1-dev")
     def test_specific_version(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1") as s1:
                 pass
-            with test_library.start_span(name="s2", service="no dd_service") as s2:
+            with test_library.dd_start_span(name="s2", service="no dd_service") as s2:
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
@@ -113,7 +113,7 @@ class Test_Config_UnifiedServiceTagging:
     def test_specific_env(self, library_env, test_agent, test_library):
         assert library_env.get("DD_ENV") == "dev"
         with test_library:
-            with test_library.start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1") as s1:
                 pass
 
         traces = test_agent.wait_for_num_traces(1)
@@ -144,7 +144,7 @@ class Test_Config_TraceAgentURL:
     )
     def test_dd_trace_agent_unix_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
-            resp = t.get_tracer_config()
+            resp = t.config()
 
         url = urlparse(resp["dd_trace_agent_url"])
         assert "unix" in url.scheme
@@ -157,7 +157,7 @@ class Test_Config_TraceAgentURL:
     )
     def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
-            resp = t.get_tracer_config()
+            resp = t.config()
 
         url = urlparse(resp["dd_trace_agent_url"])
         assert url.scheme == "http"
@@ -175,7 +175,7 @@ class Test_Config_RateLimit:
     @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": "1"}])
     def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
         with test_library as t:
-            resp = t.get_tracer_config()
+            resp = t.config()
         assert resp["dd_trace_rate_limit"] == "100"
 
     @irrelevant(
@@ -183,11 +183,12 @@ class Test_Config_RateLimit:
         reason="PHP backfill model does not support strict two-trace limit, see test below for its behavior",
     )
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    @flaky(library="java", reason="APMAPI-908")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1") as s1:
                 pass
-            with test_library.start_span(name="s2") as s2:
+            with test_library.dd_start_span(name="s2") as s2:
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
@@ -200,9 +201,9 @@ class Test_Config_RateLimit:
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
     def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1") as s1:
                 pass
-            with test_library.start_span(name="s2") as s2:
+            with test_library.dd_start_span(name="s2") as s2:
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
@@ -221,7 +222,7 @@ class Test_Config_RateLimit:
         with test_library:
             # Generate three traces to demonstrate rate limiting in PHP's backfill model
             for i in range(3):
-                with test_library.start_span(name=f"s{i+1}") as span:
+                with test_library.dd_start_span(name=f"s{i+1}") as span:
                     pass
 
         traces = test_agent.wait_for_num_traces(3)

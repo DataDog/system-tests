@@ -71,6 +71,11 @@ app.post('/trace/span/extract_headers', (req, res) => {
   res.json({ span_id: extractedSpanID });
 });
 
+app.get('/trace/crash', (req, res) => {
+  process.kill(process.pid, 'SIGSEGV');
+  res.json({});
+});
+
 app.post('/trace/span/start', (req, res) => {
   const request = req.body;
   let parent = spans[request.parent_id] || ddContext[request.parent_id];
@@ -166,9 +171,13 @@ app.post('/trace/otel/start_span', (req, res) => {
       return {context: spanContext, attributes: link.attributes}
     });
 
+    let kind = null
+    if (request.kind != null) {
+      kind = request.kind - 1
+    }
     const span = otelTracer.startSpan(request.name, {
         type: request.type,
-        kind: request.kind,
+        kind: kind,
         attributes: request.attributes,
         links,
         startTime: microLongToHrTime(request.timestamp)
