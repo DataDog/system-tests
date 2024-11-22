@@ -213,7 +213,7 @@ class Test_Cmdi_Capability:
 class Test_Cmdi_Rules_Version(Base_Rules_Version):
     """Test cmdi min rules version"""
 
-    min_version = "1.13.5"
+    min_version = "1.13.3"
 
 
 @features.rasp_local_file_inclusion
