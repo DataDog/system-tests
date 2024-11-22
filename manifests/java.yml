@@ -563,6 +563,7 @@ tests/:
             vertx3: missing_feature
             vertx4: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': v1.40.0
@@ -611,7 +612,6 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Libddwaf_Version_CmdI: missing_feature
       test_shi.py: irrelevant (Not support in Java)
-      test_cmdi.py: missing_feature
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
         Test_Sqli_BodyJson:

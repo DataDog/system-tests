@@ -48,7 +48,7 @@ namespace weblog
         {
             return ExecuteCommandInternal("ls " + data.List_dir);
         }
-        
+
         [HttpGet("cmdi")]
         public IActionResult cmdiGet(string command)
         {
@@ -81,9 +81,9 @@ namespace weblog
         public IActionResult cmdiPostJson([FromBody] Model data)
         {
             return ExecuteCommandInternal(data.Command, false);
-        }        
-		
-		private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true)
+        }
+
+        private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true)
         {
             try
             {
@@ -93,7 +93,6 @@ namespace weblog
                     startInfo.FileName = commandLine;
                     startInfo.UseShellExecute = useShell;
                     var result = Process.Start(startInfo);
-
                     return Content($"Process launched.");
                 }
                 else
@@ -106,7 +105,7 @@ namespace weblog
                 return Content("Non existing file.");
             }
         }
-		
+
         [HttpGet("lfi")]
         public IActionResult lfiGet(string file)
         {
@@ -189,18 +188,18 @@ namespace weblog
             var result = new System.Net.Http.HttpClient().GetStringAsync(("http://" + data.Domain)).Result;
             return Content(result);
         }
-		
+
         [HttpGet("sqli")]
         public IActionResult SqliGet(string user_id)
         {
-			if (!string.IsNullOrEmpty(user_id))
-			{
-				return Content(SqlQuery(user_id));
-			}
-			else
-			{
-				return BadRequest("No params provided");
-			}
+            if (!string.IsNullOrEmpty(user_id))
+            {
+                return Content(SqlQuery(user_id));
+            }
+            else
+            {
+                return BadRequest("No params provided");
+            }
         }
 
         [XmlRoot("user_id")]
@@ -228,29 +227,29 @@ namespace weblog
         [Consumes("application/x-www-form-urlencoded")]
         public IActionResult SqliPostForm([FromForm] Model data)
         {
-			if (!string.IsNullOrEmpty(data.User_id))
-			{
-				return Content(SqlQuery(data.User_id));
-			}
-			else
-			{
-				return BadRequest("No params provided");
-			}
+            if (!string.IsNullOrEmpty(data.User_id))
+            {
+                return Content(SqlQuery(data.User_id));
+            }
+            else
+            {
+                return BadRequest("No params provided");
+            }
         }
 
 
-		[HttpPost("sqli")]
+        [HttpPost("sqli")]
         [Consumes("application/json")]
         public IActionResult SqliPostJson([FromBody] Model data)
         {
-			if (!string.IsNullOrEmpty(data.User_id))
-			{
-				return Content(SqlQuery(data.User_id));
-			}
-			else
-			{
-				return BadRequest("No params provided");
-			}
+            if (!string.IsNullOrEmpty(data.User_id))
+            {
+                return Content(SqlQuery(data.User_id));
+            }
+            else
+            {
+                return BadRequest("No params provided");
+            }
         }
 
         private string SqlQuery(string user)

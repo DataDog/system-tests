@@ -236,6 +236,7 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py:
         Test_Lfi_BodyJson: v2.10.0
         Test_Lfi_BodyUrlEncoded: v2.10.0
@@ -250,7 +251,7 @@ tests/:
         Test_Lfi_UrlQuery: v2.10.0
       test_libddwaf.py:
         Test_Libddwaf_Version: v2.15.0
-        Test_Libddwaf_Version_CmdI: missing_feature        
+        Test_Libddwaf_Version_CmdI: missing_feature
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
@@ -261,9 +262,8 @@ tests/:
         Test_Shi_Rules_Version: v2.15.0
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
-        Test_Shi_UrlQuery: v2.11.0-rc2
         Test_Shi_Telemetry_Variant_Tag: missing_feature
-      test_cmdi.py: missing_feature
+        Test_Shi_UrlQuery: v2.11.0-rc2
       test_sqli.py:
         Test_Sqli_BodyJson: v2.10.0
         Test_Sqli_BodyUrlEncoded: v2.10.0
