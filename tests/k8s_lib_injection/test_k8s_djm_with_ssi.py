@@ -1,6 +1,8 @@
 import time
 
 import requests
+import json
+
 from utils import scenarios, features, context, irrelevant
 from utils.tools import logger
 from utils import scenarios, features
@@ -39,7 +41,11 @@ class TestK8sDJMWithSSI:
         
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         
-        logger.debug(f"Traces received: {traces_json}")
+        logger.info(f"Traces received: {traces_json}")
+        # TODO: remove this once we have a better way to inspect traces
+        with open(f"{test_k8s_instance.output_folder}/traces.json", "w") as f:
+            f.write(json.dumps(traces_json, indent=4))
+        
         assert len(traces_json) > 0, "No traces found"
         assert any("spark.application" in trace for trace in traces_json), "No spark.application traces found"
         
