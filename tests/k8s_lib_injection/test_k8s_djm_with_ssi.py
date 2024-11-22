@@ -29,24 +29,30 @@ class TestK8sDJMWithSSI:
                 return traces_json
             time.sleep(2)
         return []
+    
+    def _get_spark_application_traces(self, test_k8s_instance):
+        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        logger.debug(f"Traces received: {traces_json}")
+        return [
+            trace for trace in traces_json 
+            if any(span.get("name") == "spark.application" and span.get("type") == "spark" for span in trace)
+        ]
         
     def test_spark_instrumented_with_ssi(self, test_k8s_instance):
         logger.info(
             f"Launching test test_spark_instrumented_with_ssi: Weblog: [{test_k8s_instance.k8s_kind_cluster.get_weblog_port()}] Agent: [{test_k8s_instance.k8s_kind_cluster.get_agent_port()}]"
         )
         
+        test_k8s_instance.create_spark_service_account()
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_datadog_cluster_agent()
         test_k8s_instance.deploy_weblog_as_pod()
         
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        spark_traces = self._get_spark_application_traces(test_k8s_instance)
         
-        logger.info(f"Traces received: {traces_json}")
-        # TODO: remove this once we have a better way to inspect traces
-        with open(f"{test_k8s_instance.output_folder}/traces.json", "w") as f:
-            f.write(json.dumps(traces_json, indent=4))
+        logger.info(f"Spark application traces received: {spark_traces}")
+        with open(f"{test_k8s_instance.output_folder}/spark_traces.json", "w") as f:
+            f.write(json.dumps(spark_traces, indent=4))
+        assert len(spark_traces) > 0, "No Data Jobs Monitoring Spark application traces found"
         
-        assert len(traces_json) > 0, "No traces found"
-        assert any("spark.application" in trace for trace in traces_json), "No spark.application traces found"
-        
-        self.logger.info(f"Test test_spark_instrumented_with_ssi finished")
+        logger.info(f"Test test_spark_instrumented_with_ssi finished")

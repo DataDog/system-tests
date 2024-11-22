@@ -9,6 +9,7 @@ from utils.k8s_lib_injection.k8s_kind_cluster import ensure_cluster, destroy_clu
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.k8s_lib_injection.k8s_wrapper import K8sWrapper
+from utils.k8s_lib_injection.k8s_command_utils import execute_command_sync
 from kubernetes import config
 
 
@@ -105,3 +106,8 @@ class K8sInstance:
     def export_debug_info(self):
         self.test_agent.export_debug_info()
         self.test_weblog.export_debug_info()
+        
+    def create_spark_service_account(self):
+        execute_command_sync(f"kubectl create serviceaccount spark", self.k8s_kind_cluster)
+        execute_command_sync(f"kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default", self.k8s_kind_cluster)
+        
