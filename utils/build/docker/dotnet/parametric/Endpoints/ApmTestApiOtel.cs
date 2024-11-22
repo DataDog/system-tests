@@ -36,7 +36,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         ActivityContext? remoteParentContext = null;
 
         // try getting parent context from parent id (local parent)
-        if (requestBodyObject!.TryGetValue("parent_id", out var parentId))
+        if (requestBodyObject!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var stringParentId = parentId.ToString();
 
@@ -56,7 +56,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         DateTimeOffset startTime = default;
-        if (requestBodyObject.TryGetValue("timestamp", out var timestamp))
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
         {
             startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
         }
@@ -65,7 +65,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         var kind = ActivityKind.Internal;
 
-        if (requestBodyObject.TryGetValue("span_kind", out var spanKind))
+        if (requestBodyObject.TryGetValue("span_kind", out var spanKind) && spanKind is not null)
         {
             switch (Convert.ToInt64(spanKind))
             {
@@ -158,9 +158,9 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         var activity = FindActivity(requestBodyObject["id"]);
 
-        if (!string.IsNullOrEmpty(requestBodyObject["timestamp"].ToString()))
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
         {
-            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(requestBodyObject["timestamp"]));
+            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
             activity.SetEndTime(convertedTimestamp.UtcDateTime);
         }
 

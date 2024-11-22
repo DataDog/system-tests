@@ -477,9 +477,7 @@ end
 # OTel system tests provide times in microseconds, but Ruby OTel
 # measures time in seconds (Float).
 def otel_correct_time(microseconds)
-  if microseconds.nil? || microseconds == 0
-    microseconds
-  else
+  unless microseconds.nil? || microseconds == 0
     microseconds / 1_000_000.0
   end
 end
@@ -720,7 +718,7 @@ class MyApp
     js = JSON.parse(req.body.read)
     args = OtelStartSpanArgs.new(js)
 
-    if args.parent_id != 0
+    if args.parent_id
       parent_span = OTEL_SPANS[args.parent_id]
       parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
     end

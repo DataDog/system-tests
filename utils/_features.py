@@ -2258,6 +2258,16 @@ class features:
         return test_object
 
     @staticmethod
+    def sca_standalone(test_object):
+        """
+        SCA Standalone Billing
+
+        https://feature-parity.us1.prod.dog/#/?feature=320
+        """
+        pytest.mark.features(feature_id=320)(test_object)
+        return test_object
+
+    @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """
         Profiling works when enabled through the agent installer script in Host environments
@@ -2445,6 +2455,17 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=328
         """
         pytest.mark.features(feature_id=328)(test_object)
+        return test_object
+
+    @staticmethod
+    def aws_api_gateway_inferred_span_creation(test_object):
+        """
+        AWS Api Gateway: Tests that API Gateway inferred span creation works as expected
+
+        https://feature-parity.us1.prod.dog/#/?feature=341
+        """
+        pytest.mark.features(feature_id=341)(test_object)
+
         return test_object
 
     @staticmethod

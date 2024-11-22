@@ -428,8 +428,8 @@ class Test_128_Bit_Traceids:
         """Ensure that only root span contains the tid.
         """
         with test_library:
-            with test_library.start_span(name="parent", service="service", resource="resource") as parent:
-                with test_library.start_span(name="child", service="service", parent_id=parent.span_id) as child:
+            with test_library.dd_start_span(name="parent", service="service", resource="resource") as parent:
+                with test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id) as child:
                     pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)

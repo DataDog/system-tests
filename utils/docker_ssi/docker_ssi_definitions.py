@@ -11,30 +11,36 @@ class SupportedImages:
     """ All supported images """
 
     def __init__(self) -> None:
+        # Try to set the same name as utils/_context/virtual_machines.py
+        self.UBUNTU_22_AMD64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_AMD64)
+        self.UBUNTU_22_ARM64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_ARM64)
+        self.UBUNTU_16_AMD64 = DockerImage("Ubuntu_16", "ubuntu:16.04", LINUX_AMD64)
+        self.UBUNTU_16_ARM64 = DockerImage("Ubuntu_16", "ubuntu:16.04", LINUX_ARM64)
+        self.CENTOS_7_AMD64 = DockerImage("CentOS_7", "centos:7", LINUX_AMD64)
+        self.ORACLELINUX_9_ARM64 = DockerImage("OracleLinux_9", "oraclelinux:9", LINUX_ARM64)
+        self.ORACLELINUX_9_AMD64 = DockerImage("OracleLinux_9", "oraclelinux:9", LINUX_AMD64)
+        self.ORACLELINUX_8_ARM64 = DockerImage("OracleLinux_8_10", "oraclelinux:8.10", LINUX_ARM64)
+        self.ORACLELINUX_8_AMD64 = DockerImage("OracleLinux_8_10", "oraclelinux:8.10", LINUX_AMD64)
 
-        self.UBUNTU_22_AMD64 = DockerImage("ubuntu:22.04", LINUX_AMD64)
-        self.UBUNTU_22_ARM64 = DockerImage("ubuntu:22.04", LINUX_ARM64)
-        self.UBUNTU_16_AMD64 = DockerImage("ubuntu:16.04", LINUX_AMD64)
-        self.UBUNTU_16_ARM64 = DockerImage("ubuntu:16.04", LINUX_ARM64)
-        self.CENTOS_7_AMD64 = DockerImage("centos:7", LINUX_AMD64)
-        self.ORACLELINUX_9_ARM64 = DockerImage("oraclelinux:9", LINUX_ARM64)
-        self.ORACLELINUX_9_AMD64 = DockerImage("oraclelinux:9", LINUX_AMD64)
-        self.ORACLELINUX_8_ARM64 = DockerImage("oraclelinux:8.10", LINUX_ARM64)
-        self.ORACLELINUX_8_AMD64 = DockerImage("oraclelinux:8.10", LINUX_AMD64)
-
-        self.ALMALINUX_9_ARM64 = DockerImage("almalinux:9.4", LINUX_ARM64)
-        self.ALMALINUX_9_AMD64 = DockerImage("almalinux:9.4", LINUX_AMD64)
-        self.ALMALINUX_8_ARM64 = DockerImage("almalinux:8.10", LINUX_ARM64)
-        self.ALMALINUX_8_AMD64 = DockerImage("almalinux:8.10", LINUX_AMD64)
+        self.ALMALINUX_9_ARM64 = DockerImage("AlmaLinux_9", "almalinux:9.4", LINUX_ARM64)
+        self.ALMALINUX_9_AMD64 = DockerImage("AlmaLinux_9", "almalinux:9.4", LINUX_AMD64)
+        self.ALMALINUX_8_ARM64 = DockerImage("AlmaLinux_8", "almalinux:8.10", LINUX_ARM64)
+        self.ALMALINUX_8_AMD64 = DockerImage("AlmaLinux_8", "almalinux:8.10", LINUX_AMD64)
 
         # Currently bugged
         # DockerImage("centos:7", LINUX_ARM64, short_name="centos_7")
         # DockerImage("alpine:3", LINUX_AMD64, short_name="alpine_3"),
         # DockerImage("alpine:3", LINUX_ARM64, short_name="alpine_3"),
-        self.TOMCAT_9_AMD64 = DockerImage("tomcat:9", LINUX_AMD64)
-        self.TOMCAT_9_ARM64 = DockerImage("tomcat:9", LINUX_ARM64)
-        self.WEBSPHERE_AMD64 = DockerImage("icr.io/appcafe/websphere-traditional", LINUX_AMD64)
-        self.JBOSS_AMD64 = DockerImage("quay.io/wildfly/wildfly:26.1.2.Final", LINUX_AMD64)
+        self.TOMCAT_9_AMD64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_AMD64)
+        self.TOMCAT_9_ARM64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_ARM64)
+        self.WEBSPHERE_AMD64 = DockerImage("Websphere", "icr.io/appcafe/websphere-traditional", LINUX_AMD64)
+        self.JBOSS_AMD64 = DockerImage("Wildfly", "quay.io/wildfly/wildfly:26.1.2.Final", LINUX_AMD64)
+
+    def get_internal_name_from_base_image(self, base_image, arch):
+        for image in self.__dict__.values():
+            if image.tag == base_image and image.platform == arch:
+                return image.internal_name
+        raise ValueError(f"Image {base_image} not supported")
 
 
 class JavaRuntimeInstallableVersions:
@@ -66,14 +72,28 @@ class PHPRuntimeInstallableVersions:
     """ PHP runtime versions that can be installed automatically"""
 
     PHP56 = RuntimeInstallableVersion("PHP56", "5.6")  # Not supported (EOL runtime)
+    PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
+    PHP71 = RuntimeInstallableVersion("PHP71", "7.1")
+    PHP72 = RuntimeInstallableVersion("PHP72", "7.2")
+    PHP73 = RuntimeInstallableVersion("PHP73", "7.3")
     PHP74 = RuntimeInstallableVersion("PHP74", "7.4")
+    PHP80 = RuntimeInstallableVersion("PHP80", "8.0")
+    PHP81 = RuntimeInstallableVersion("PHP81", "8.1")
+    PHP82 = RuntimeInstallableVersion("PHP82", "8.2")
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
 
     @staticmethod
     def get_all_versions():
         return [
             PHPRuntimeInstallableVersions.PHP56,
+            PHPRuntimeInstallableVersions.PHP70,
+            PHPRuntimeInstallableVersions.PHP71,
+            PHPRuntimeInstallableVersions.PHP72,
+            PHPRuntimeInstallableVersions.PHP73,
             PHPRuntimeInstallableVersions.PHP74,
+            PHPRuntimeInstallableVersions.PHP80,
+            PHPRuntimeInstallableVersions.PHP81,
+            PHPRuntimeInstallableVersions.PHP82,
             PHPRuntimeInstallableVersions.PHP83,
         ]
 
@@ -174,7 +194,14 @@ JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64
 PHP_APP = WeblogDescriptor(
     "php-app",
     "php",
-    [SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(PHPRuntimeInstallableVersions.get_all_versions())],
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            PHPRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            PHPRuntimeInstallableVersions.get_all_versions()
+        ),
+    ],
 )
 
 PY_APP = WeblogDescriptor(
