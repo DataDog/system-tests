@@ -14,19 +14,42 @@ lang_variant:
 
       - os_type: linux
         os_distro: deb
+        os_branch: ubuntu18_amd64
         remote-command: |
           sudo apt-get update;
           sudo apt-get install -y apt-transport-https;
           sudo apt-get update;
           sudo apt-get install -y dotnet-sdk-2.1
 
+      - os_type: linux
+        os_distro: deb
+        remote-command: |
+          sudo apt-get update;
+          sudo apt-get install -y apt-transport-https;
+          sudo apt-get update;
+          sudo apt-get install -y dotnet-sdk-2.1
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: amazon_linux2
+        remote-command: |
+          sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+          sudo yum install dotnet-sdk-2.1
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: rhel_7_amd64
+        remote-command: |
+          sudo yum install scl-utils
+          sudo subscription-manager repos --enable=rhel-7-server-dotnet-rpms
+          sudo yum install rh-dotnet21 -y
+          sudo scl enable rh-dotnet21 bash
+
 weblog:
     name: test-app-dotnet-unsupported
-    #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
-    #Ubuntu 21 (amd64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
-    #Centos 7. I can't find the libicu60 package for centos 7. Only available version 50.2
-    #Amazon Linux 2022: Incompatible runtime version installed. Not breaks app, but not instrumented
-    exact_os_branches: [Ubuntu20amd64]
+    # Mostly based on the docs on supported OSs from
+    # https://github.com/dotnet/docs/commit/9693653929db2efbc8f5893c4eee37acf81b5ac6
+    exact_os_branches: [Ubuntu20amd64, Ubuntu18amd64, AmazonLinux2amd64, RedHat7_9amd64]
     install:
       - os_type: linux
         copy_files:
