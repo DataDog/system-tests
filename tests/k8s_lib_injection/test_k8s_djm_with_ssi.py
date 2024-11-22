@@ -6,6 +6,7 @@ import json
 from utils import scenarios, features, context, irrelevant
 from utils.tools import logger
 from utils import scenarios, features
+from utils.k8s_lib_injection.k8s_command_utils import execute_command_sync
 
 @features.k8s_admission_controller
 @scenarios.k8s_library_injection_djm
@@ -43,7 +44,10 @@ class TestK8sDJMWithSSI:
             f"Launching test test_spark_instrumented_with_ssi: Weblog: [{test_k8s_instance.k8s_kind_cluster.get_weblog_port()}] Agent: [{test_k8s_instance.k8s_kind_cluster.get_agent_port()}]"
         )
         
-        test_k8s_instance.create_spark_service_account()
+        # create service account for launching spark application in k8s
+        execute_command_sync(f"kubectl create serviceaccount spark", test_k8s_instance.k8s_kind_cluster)
+        execute_command_sync(f"kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default", test_k8s_instance.k8s_kind_cluster)
+        
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_datadog_cluster_agent()
         test_k8s_instance.deploy_weblog_as_pod(service_account="spark")
