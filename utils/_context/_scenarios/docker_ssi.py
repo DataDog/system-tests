@@ -63,8 +63,6 @@ class DockerSSIScenario(Scenario):
         # The runtime that is installed on the base image (because we installed automatically or because the weblog contains the runtime preinstalled).
         # the language is the language used by the tested datadog library
         self._installed_language_runtime = None
-        # usually base_weblog + base_image + (runtime) + arch
-        self._weblog_composed_name = None
 
         logger.stdout(
             f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}]"
@@ -101,7 +99,6 @@ class DockerSSIScenario(Scenario):
         self.fill_context(json_tested_component)
         self.print_installed_components()
 
-        self._weblog_composed_name = f"{self._base_weblog}_{self.ssi_image_builder.get_base_docker_tag()}"
         for container in self._required_containers:
             try:
                 container.configure(self.replay)
@@ -202,7 +199,7 @@ class DockerSSIScenario(Scenario):
 
     @property
     def weblog_variant(self):
-        return self._weblog_composed_name
+        return self._base_weblog
 
     @property
     def dd_apm_inject_version(self):
