@@ -21,8 +21,8 @@ class AnyRatio(object):
 
 def _get_spans(test_agent, test_library, child_span_tag=None):
     with test_library:
-        with test_library.start_span(name="parent", service="webserver") as ps:
-            with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
+        with test_library.dd_start_span(name="parent", service="webserver") as ps:
+            with test_library.dd_start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
                 if child_span_tag:
                     cs.set_meta(child_span_tag, None)
 

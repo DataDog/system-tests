@@ -295,7 +295,7 @@ class APMLibraryClient:
         resp = resp.json()
         return resp["value"]
 
-    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+    def config(self) -> Dict[str, Optional[str]]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
         return {
@@ -414,7 +414,7 @@ class APMLibrary:
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
-            self.flush()
+            self.dd_flush()
 
     def crash(self) -> None:
         self._client.crash()
@@ -423,7 +423,7 @@ class APMLibrary:
         return self._client.container_exec_run(command)
 
     @contextlib.contextmanager
-    def start_span(
+    def dd_start_span(
         self,
         name: str,
         service: Optional[str] = None,
@@ -440,8 +440,8 @@ class APMLibrary:
         span.finish()
 
     def extract_headers_and_make_child_span(self, name, http_headers):
-        parent_id = self.extract_headers(http_headers=http_headers)
-        return self.start_span(name=name, parent_id=parent_id,)
+        parent_id = self.dd_extract_headers(http_headers=http_headers)
+        return self.dd_start_span(name=name, parent_id=parent_id,)
 
     @contextlib.contextmanager
     def otel_start_span(
@@ -467,7 +467,7 @@ class APMLibrary:
         if end_on_exit:
             span.end_span()
 
-    def flush(self) -> bool:
+    def dd_flush(self) -> bool:
         return self._client.trace_flush()
 
     def otel_flush(self, timeout_sec: int) -> bool:
@@ -476,22 +476,19 @@ class APMLibrary:
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
-    def inject_headers(self, span_id) -> List[Tuple[str, str]]:
+    def dd_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
 
-    def extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
+    def dd_extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
         return self._client.trace_extract_headers(http_headers)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
         return self._client.otel_set_baggage(span_id, key, value)
 
-    def finish_span(self, span_id: int) -> None:
-        self._client.finish_span(span_id)
+    def config(self) -> Dict[str, Optional[str]]:
+        return self._client.config()
 
-    def get_tracer_config(self) -> Dict[str, Optional[str]]:
-        return self._client.get_tracer_config()
-
-    def current_span(self) -> Union[_TestSpan, None]:
+    def dd_current_span(self) -> Union[_TestSpan, None]:
         resp = self._client.current_span()
         if resp is None:
             return None
