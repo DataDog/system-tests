@@ -147,7 +147,7 @@ class DockerSSIScenario(Scenario):
 
         image_internal_name = SupportedImages().get_internal_name_from_base_image(self._base_image, self._arch)
         self.configuration["os"] = image_internal_name
-        self.configuration["arch"] = self._arch
+        self.configuration["arch"] = self._arch.replace("linux/", "")
 
         for key in json_tested_components:
             self._tested_components[key] = json_tested_components[key].lstrip(" ")
