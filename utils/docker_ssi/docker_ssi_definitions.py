@@ -139,12 +139,12 @@ class PythonRuntimeInstallableVersions:
 class JSRuntimeInstallableVersions:
     """Node.js runtime versions that can be installed automatically"""
 
-    JS12 = RuntimeInstallableVersion("JS12", "12")
-    JS14 = RuntimeInstallableVersion("JS14", "14")
-    JS16 = RuntimeInstallableVersion("JS16", "16")
-    JS18 = RuntimeInstallableVersion("JS18", "18")
-    JS20 = RuntimeInstallableVersion("JS20", "20")
-    JS22 = RuntimeInstallableVersion("JS22", "22")
+    JS12 = RuntimeInstallableVersion("JS12", "12.0")
+    JS14 = RuntimeInstallableVersion("JS14", "14.0")
+    JS16 = RuntimeInstallableVersion("JS16", "16.0")
+    JS18 = RuntimeInstallableVersion("JS18", "18.0")
+    JS20 = RuntimeInstallableVersion("JS20", "20.0")
+    JS22 = RuntimeInstallableVersion("JS22", "22.0")
 
     @staticmethod
     def get_all_versions():
