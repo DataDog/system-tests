@@ -30,7 +30,17 @@ def generate_gitlab_pipeline(languages):
                 {"if": '$PARENT_PIPELINE_SOURCE == "schedule"', "when": "always"},
                 {"when": "manual", "allow_failure": True},
             ],
-            "artifacts": {"when": "always", "paths": ["logs_docker_ssi/"]},
+            "after_script": [
+                'SCENARIO_SUFIX=$(echo "DOCKER_SSI" | tr "[:upper:]" "[:lower:]")',
+                'REPORTS_PATH="reports/"',
+                'mkdir -p "$REPORTS_PATH"',
+                'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
+                'cleaned_base_image=$(echo "$base_image" | tr -cd "[:alnum:]_")',
+                'cleaned_arch=$(echo "$arch" | tr -cd "[:alnum:]_")',
+                'cleaned_runtime=$(echo "$installable_runtime" | tr -cd "[:alnum:]_")',
+                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${weblog}"_"${SCENARIO_SUFIX}_${cleaned_base_image}_${cleaned_arch}_${cleaned_runtime}"',
+            ],
+            "artifacts": {"when": "always", "paths": ["reports/"]},
         },
     }
 
