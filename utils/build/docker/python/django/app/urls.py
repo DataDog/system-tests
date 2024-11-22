@@ -112,6 +112,16 @@ def request_downstream(request, *args, **kwargs):
 
 
 @csrf_exempt
+def vulnerable_request_downstream(request, *args, **kwargs):
+    weak_hash()
+    # Propagate the received headers to the downstream service
+    http = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http.request("GET", "http://localhost:7777/returnheaders")
+    return HttpResponse(response.data)
+
+
+@csrf_exempt
 def set_cookie(request):
     res = HttpResponse("OK")
     res.headers["Set-Cookie"] = f"{request.GET.get('name')}={request.GET.get('value')}"
