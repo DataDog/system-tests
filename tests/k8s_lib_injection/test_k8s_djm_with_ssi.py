@@ -46,7 +46,7 @@ class TestK8sDJMWithSSI:
         test_k8s_instance.create_spark_service_account()
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_datadog_cluster_agent()
-        test_k8s_instance.deploy_weblog_as_pod()
+        test_k8s_instance.deploy_weblog_as_pod(service_account="spark")
         
         spark_traces = self._get_spark_application_traces(test_k8s_instance)
         

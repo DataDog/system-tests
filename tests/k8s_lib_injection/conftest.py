@@ -9,7 +9,6 @@ from utils.k8s_lib_injection.k8s_kind_cluster import ensure_cluster, destroy_clu
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.k8s_lib_injection.k8s_wrapper import K8sWrapper
-from utils.k8s_lib_injection.k8s_command_utils import execute_command_sync
 from kubernetes import config
 
 
@@ -97,17 +96,13 @@ class K8sInstance:
     def deploy_agent(self):
         self.test_agent.deploy_agent()
 
-    def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False, env=None):
+    def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False, env=None, service_account=None):
         if with_admission_controller:
-            self.test_weblog.install_weblog_pod_with_admission_controller(env=env)
+            self.test_weblog.install_weblog_pod_with_admission_controller(env=env, service_account=service_account)
         else:
             self.test_weblog.install_weblog_pod_without_admission_controller(use_uds, env=env)
 
     def export_debug_info(self):
         self.test_agent.export_debug_info()
         self.test_weblog.export_debug_info()
-        
-    def create_spark_service_account(self):
-        execute_command_sync(f"kubectl create serviceaccount spark", self.k8s_kind_cluster)
-        execute_command_sync(f"kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default", self.k8s_kind_cluster)
         
