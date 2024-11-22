@@ -28,13 +28,17 @@ class Test_library:
             ("/debugger/v1/diagnostics", "$[].content"),  # DEBUG-2864
         ]
 
-        if context.library == "python@2.16.2" and context.scenario is scenarios.debugger_expression_language:
+        if (
+            context.library in ("python@2.16.2", "python@2.16.3")
+            and context.scenario is scenarios.debugger_expression_language
+        ):
             excluded_points.append(("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber"))
 
         interfaces.library.assert_schema_points(excluded_points)
 
     @bug(
-        context.library == "python@2.16.2" and context.scenario is scenarios.debugger_expression_language,
+        context.library in ("python@2.16.2", "python@2.16.3")
+        and context.scenario is scenarios.debugger_expression_language,
         reason="APMRP-360",
     )
     def test_python_debugger_line_number(self):

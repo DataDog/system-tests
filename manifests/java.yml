@@ -590,7 +590,9 @@ tests/:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Lfi_RC_CustomAction: missing_feature (APPSEC-54930)
-        Test_Lfi_Rules_Version: missing_feature
+        Test_Lfi_Rules_Version:
+          '*': v1.43.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Lfi_StackTrace:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -603,8 +605,11 @@ tests/:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-      test_libddwaf.py: missing_feature
-      test_shi.py: missing_feature (Not support in Java)
+      test_libddwaf.py:
+        Test_Libddwaf_Version:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      test_shi.py: irrelevant (Not support in Java)
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
         Test_Sqli_BodyJson:
@@ -638,7 +643,9 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
-        Test_Sqli_Rules_Version: missing_feature
+        Test_Sqli_Rules_Version:
+          '*': v1.43.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Sqli_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -683,14 +690,14 @@ tests/:
         Test_Ssrf_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_Optional_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
           vertx4: missing_feature (APPSEC-55781)
-        Test_Ssrf_Rules_Version: missing_feature
+        Test_Ssrf_Rules_Version:
+          '*': v1.43.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Ssrf_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -900,6 +907,7 @@ tests/:
       Test_IastStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_SCAStandalone_Telemetry: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -1419,6 +1427,8 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         spring-boot: bug (AIDM-325)
+    test_inferred_proxy.py:
+      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
@@ -1618,4 +1628,3 @@ tests/:
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0
-
