@@ -10,7 +10,7 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric_variant,
     Base_Rules_Version,
-    Base_WAF_Version
+    Base_WAF_Version,
 )
 
 
@@ -175,6 +175,31 @@ class Test_Cmdi_Telemetry:
 
 
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
+@features.rasp_shell_injection
+@scenarios.appsec_rasp
+class Test_Cmdi_Telemetry_Variant_Tag:
+    """Validate Telemetry data variant tag on exploit attempts"""
+
+    def setup_cmdi_telemetry(self):
+        self.r = weblog.get("/rasp/cmdi", params={"command": "/bin/evilCommand"})
+
+    def test_cmdi_telemetry(self):
+        assert self.r.status_code == 403
+
+        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        assert series_eval
+        assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "exec", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
+
+        series_match = find_series(True, "appsec", "rasp.rule.match")
+        assert series_match
+        assert any(validate_metric_variant("rasp.rule.match", "command_injection", "shell", s) for s in series_match), [
+            s.get("tags") for s in series_match
+        ]
+
+
+@rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_command_injection
 @scenarios.remote_config_mocked_backend_asm_dd
 class Test_Cmdi_Capability:
@@ -192,7 +217,7 @@ class Test_Cmdi_Rules_Version(Base_Rules_Version):
 
 
 @features.rasp_local_file_inclusion
-class Test_Cmdi_WAF_Version(Base_WAF_Version):
+class Test_Cmdi_Waf_Version(Base_WAF_Version):
     """Test cmdi WAF version"""
 
     min_version = "1.21.0"

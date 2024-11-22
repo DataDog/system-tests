@@ -12,7 +12,7 @@ from tests.appsec.rasp.utils import (
     validate_metric,
     RC_CONSTANTS,
     Base_Rules_Version,
-    Base_WAF_Version
+    Base_WAF_Version,
 )
 
 
@@ -271,7 +271,7 @@ class Test_Lfi_Rules_Version(Base_Rules_Version):
 
 
 @features.rasp_local_file_inclusion
-class Test_Lfi_WAF_Version(Base_WAF_Version):
+class Test_Lfi_Waf_Version(Base_WAF_Version):
     """Test lfi WAF version"""
 
     min_version = "1.20.1"

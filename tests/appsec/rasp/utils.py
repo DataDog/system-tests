@@ -177,4 +177,4 @@ class Base_WAF_Version:
         min_version_array = list(map(int, self.min_version.split(".")))
         series = find_series(True, "appsec", "waf.init")
         assert series
-        assert any(validate_metric_tag_version("waf_version", min_version_array, s) for s in series)        
+        assert any(validate_metric_tag_version("waf_version", min_version_array, s) for s in series)

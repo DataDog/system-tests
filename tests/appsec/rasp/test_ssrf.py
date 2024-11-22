@@ -10,7 +10,7 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric,
     Base_Rules_Version,
-    Base_WAF_Version
+    Base_WAF_Version,
 )
 
 
@@ -204,7 +204,7 @@ class Test_Ssrf_Rules_Version(Base_Rules_Version):
 
 
 @features.rasp_local_file_inclusion
-class Test_Ssrf_WAF_Version(Base_WAF_Version):
+class Test_Ssrf_Waf_Version(Base_WAF_Version):
     """Test ssrf WAF version"""
 
     min_version = "1.20.1"

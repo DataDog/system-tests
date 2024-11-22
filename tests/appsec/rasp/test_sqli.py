@@ -10,7 +10,7 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric,
     Base_Rules_Version,
-    Base_WAF_Version
+    Base_WAF_Version,
 )
 
 
@@ -196,7 +196,7 @@ class Test_Sqli_Rules_Version(Base_Rules_Version):
 
 
 @features.rasp_local_file_inclusion
-class Test_Sqli_WAF_Version(Base_WAF_Version):
+class Test_Sqli_Waf_Version(Base_WAF_Version):
     """Test sqli WAF version"""
 
     min_version = "1.20.1"
