@@ -67,10 +67,6 @@ class SpanKind(IntEnum):
     """Specifies additional details on how this span relates to its parent span.
     """
 
-    # TODO: give unspecified to have a value of 5, and update the other values
-    # this better aligns with how this enum is defined in the OpenTelemetry Python API.
-    UNSPECIFIED = 0
-
     #: Default value. Indicates that the span is used internally in the
     # application.
     INTERNAL = 1
