@@ -698,6 +698,13 @@ class scenarios:
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
+    
+    k8s_library_injection_djm = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_DJM",
+        doc="Kubernetes Instrumentation with Data Jobs Monitoring",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
 
     k8s_library_injection_profiling = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_PROFILING",
