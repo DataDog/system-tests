@@ -31,17 +31,17 @@ class Test_Otel_API_Interoperability:
         """
         with test_library:
             with test_library.otel_start_span("otel_span") as otel_span:
-                current_span = test_library.current_span()
+                dd_current_span = test_library.dd_current_span()
 
-                assert current_span is not None
-                assert current_span.span_id == otel_span.span_id
+                assert dd_current_span is not None
+                assert dd_current_span.span_id == otel_span.span_id
 
     def test_span_creation_using_datadog(self, test_agent, test_library):
         """
             - A span created with the DD API should be visible in the OTel API
         """
         with test_library:
-            with test_library.start_span("dd_span") as dd_span:
+            with test_library.dd_start_span("dd_span") as dd_span:
                 otel_current_span = test_library.otel_current_span()
 
                 assert otel_current_span is not None
@@ -52,11 +52,11 @@ class Test_Otel_API_Interoperability:
             - Start a span using the OTel API while a span created using the Datadog API already exists
         """
         with test_library:
-            with test_library.start_span("dd_span") as dd_span:
+            with test_library.dd_start_span("dd_span") as dd_span:
                 with test_library.otel_start_span(
                     name="otel_span", span_kind=SpanKind.INTERNAL, parent_id=dd_span.span_id
                 ) as otel_span:
-                    current_dd_span = test_library.current_span()
+                    current_dd_span = test_library.dd_current_span()
                     otel_context = otel_span.span_context()
 
                     # FIXME: The trace_id is encoded in hex while span_id is an int. Make this API consistent
@@ -79,16 +79,16 @@ class Test_Otel_API_Interoperability:
             - Test that the ending status of a span is propagated across APIs
         """
         with test_library:
-            with test_library.start_span("dd_span") as dd_span:
-                current_span = test_library.otel_current_span()
-                current_span.is_recording()
+            with test_library.dd_start_span("dd_span") as dd_span:
+                dd_current_span = test_library.otel_current_span()
+                dd_current_span.is_recording()
 
-                has_ended = current_span.is_recording()
+                has_ended = dd_current_span.is_recording()
                 assert has_ended is True
 
                 dd_span.finish()
 
-                has_ended = current_span.is_recording()
+                has_ended = dd_current_span.is_recording()
                 assert has_ended is False
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -101,12 +101,12 @@ class Test_Otel_API_Interoperability:
         """
         with test_library:
             with test_library.otel_start_span(name="otel_span", span_kind=SpanKind.INTERNAL) as otel_span:
-                with test_library.start_span(name="dd_span", parent_id=otel_span.span_id) as dd_span:
-                    current_span = test_library.current_span()
+                with test_library.dd_start_span(name="dd_span", parent_id=otel_span.span_id) as dd_span:
+                    dd_current_span = test_library.dd_current_span()
                     otel_context = otel_span.span_context()
 
-                    assert current_span.trace_id == otel_context.get("trace_id")
-                    assert current_span.span_id == dd_span.span_id
+                    assert dd_current_span.trace_id == otel_context.get("trace_id")
+                    assert dd_current_span.span_id == dd_span.span_id
 
                 otel_current_span = test_library.otel_current_span()
                 assert otel_current_span.span_id == otel_span.span_id
@@ -126,7 +126,7 @@ class Test_Otel_API_Interoperability:
             - Test that meta is set/updated/removed across APIs
         """
         with test_library:
-            with test_library.start_span("dd_span") as dd_span:
+            with test_library.dd_start_span("dd_span") as dd_span:
                 dd_span.set_meta("arg1", "val1")
                 dd_span.set_meta("arg2", "val2")
 
@@ -167,7 +167,7 @@ class Test_Otel_API_Interoperability:
             - Test that metrics are set/updated/removed across APIs
         """
         with test_library:
-            with test_library.start_span("dd_span") as dd_span:
+            with test_library.dd_start_span("dd_span") as dd_span:
                 dd_span.set_metric("m1", 1)  # Set a metric with the DD API
                 dd_span.set_metric("m2", 2)
 
@@ -209,7 +209,7 @@ class Test_Otel_API_Interoperability:
         """
         with test_library:
             with test_library.otel_start_span("my_resource") as otel_span:
-                dd_span = test_library.current_span()
+                dd_span = test_library.dd_current_span()
                 dd_span.set_resource("my_new_resource")
                 dd_span.finish()
                 assert not otel_span.is_recording()
@@ -224,12 +224,12 @@ class Test_Otel_API_Interoperability:
             - Test that links can be added with the Datadog API on a span created with the OTel API
         """
         with test_library:
-            with test_library.start_span("dd_root") as dd_span:
+            with test_library.dd_start_span("dd_root") as dd_span:
                 pass
 
             with test_library.otel_start_span("otel_root") as otel_span:
-                current_span = test_library.current_span()
-                current_span.add_link(
+                dd_current_span = test_library.dd_current_span()
+                dd_current_span.add_link(
                     parent_id=dd_span.span_id, attributes=TEST_ATTRIBUTES,
                 )
 
@@ -247,8 +247,8 @@ class Test_Otel_API_Interoperability:
         """
         with test_library:
             with test_library.otel_start_span("otel_root", span_kind=SpanKind.SERVER) as otel_root:
-                with test_library.start_span(name="dd_child", parent_id=otel_root.span_id) as dd_child:
-                    with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
+                with test_library.dd_start_span(name="dd_child", parent_id=otel_root.span_id) as dd_child:
+                    with test_library.dd_start_span(name="dd_root", parent_id=0) as dd_root:
                         with test_library.otel_start_span(name="otel_child", parent_id=dd_root.span_id) as otel_child:
                             pass
 
@@ -283,21 +283,20 @@ class Test_Otel_API_Interoperability:
         """
         with test_library:
             with test_library.otel_start_span(name="otel_root", span_kind=SpanKind.SERVER) as otel_root:
-                with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
+                with test_library.dd_start_span(name="dd_root", parent_id=0) as dd_root:
                     with test_library.otel_start_span(
                         name="otel_child", parent_id=otel_root.span_id, span_kind=SpanKind.INTERNAL
                     ) as otel_child:
-                        with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
+                        with test_library.dd_start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
+                            dd_current_span = test_library.dd_current_span()
+                            assert dd_current_span.span_id == dd_child.span_id
 
-                            current_span = test_library.current_span()
-                            assert current_span.span_id == dd_child.span_id
-
-                        current_span = test_library.current_span()
-                        assert current_span.span_id == dd_root.span_id
+                        dd_current_span = test_library.dd_current_span()
+                        assert dd_current_span.span_id == dd_root.span_id
                     dd_root.finish()
 
-                    current_span = test_library.current_span()
-                    assert current_span.span_id == otel_root.span_id
+                    dd_current_span = test_library.dd_current_span()
+                    assert dd_current_span.span_id == otel_root.span_id
 
         traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
 
@@ -329,22 +328,21 @@ class Test_Otel_API_Interoperability:
             - Concurrent traces with nested start/end, with the first trace being opened with the Datadog API
         """
         with test_library:
-            with test_library.start_span(name="dd_root", parent_id=0) as dd_root:
+            with test_library.dd_start_span(name="dd_root", parent_id=0) as dd_root:
                 with test_library.otel_start_span(name="otel_root", span_kind=SpanKind.SERVER) as otel_root:
                     with test_library.otel_start_span(
                         name="otel_child", parent_id=otel_root.span_id, span_kind=SpanKind.INTERNAL
                     ) as otel_child:
-                        with test_library.start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
+                        with test_library.dd_start_span(name="dd_child", parent_id=dd_root.span_id) as dd_child:
+                            dd_current_span = test_library.dd_current_span()
+                            assert dd_current_span.span_id == dd_child.span_id
 
-                            current_span = test_library.current_span()
-                            assert current_span.span_id == dd_child.span_id
-
-                        current_span = test_library.current_span()
-                        assert current_span.span_id == dd_root.span_id
+                        dd_current_span = test_library.dd_current_span()
+                        assert dd_current_span.span_id == dd_root.span_id
                     dd_root.finish()
 
-                    current_span = test_library.current_span()
-                    assert current_span.span_id == otel_root.span_id
+                    dd_current_span = test_library.dd_current_span()
+                    assert dd_current_span.span_id == otel_root.span_id
 
         traces = test_agent.wait_for_num_traces(2, sort_by_start=False)
 
@@ -436,7 +434,7 @@ class Test_Otel_API_Interoperability:
             - Test that attributes can be set on a Datadog span using the OTel API
         """
         with test_library:
-            with test_library.start_span("dd_span") as dd_span:
+            with test_library.dd_start_span("dd_span") as dd_span:
                 otel_span = test_library.otel_current_span()
 
                 otel_span.set_attribute("int", 1)
@@ -476,7 +474,7 @@ class Test_Otel_API_Interoperability:
         """
         with test_library:
             with test_library.otel_start_span(name="otel_span") as otel_span:
-                dd_span = test_library.current_span()
+                dd_span = test_library.dd_current_span()
 
                 dd_span.set_metric("int", 1)
                 dd_span.set_metric("float", 1.0)

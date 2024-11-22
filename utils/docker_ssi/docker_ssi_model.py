@@ -9,7 +9,9 @@ class RuntimeInstallableVersion:
 class DockerImage:
     """ Encapsulates information of the docker image """
 
-    def __init__(self, tag, platform) -> None:
+    def __init__(self, internal_name, tag, platform) -> None:
+        # Try to set the same name as utils/_context/virtual_machines.py
+        self.internal_name = internal_name
         self.tag = tag
         self.platform = platform
         self.runtime_versions = []
