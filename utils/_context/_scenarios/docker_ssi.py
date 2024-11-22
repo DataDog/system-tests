@@ -158,7 +158,7 @@ class DockerSSIScenario(Scenario):
                 self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
                 # Runtime version is stored as configuration not as dependency
                 del self._tested_components[key]
-                self.configuration["runtime_version"] = self._installed_language_runtime
+                self.configuration["runtime_version"] = f"{self._installed_language_runtime}"
             if key.startswith("datadog-apm-inject") and json_tested_components[key]:
                 self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
             if key.startswith("datadog-apm-library-") and self._tested_components[key]:
@@ -369,9 +369,7 @@ class DockerSSIImageBuilder:
                 buildargs={"DD_LANG": self._library, "BASE_IMAGE": ssi_installer_docker_tag},
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
-            logger.stdout(
-                f"0000[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}]."
-            )
+            logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
             # Build the weblog image
             self._weblog_docker_image, build_logs = get_docker_client().images.build(
                 path=".",
@@ -381,7 +379,6 @@ class DockerSSIImageBuilder:
                 nocache=self._force_build or self.should_push_base_images,
                 buildargs={"BASE_IMAGE": self.ssi_all_docker_tag},
             )
-            logger.info("Weblog build done 000000000!")
             self.print_docker_build_logs(weblog_docker_tag, build_logs)
             logger.info("Weblog build done!")
         except BuildError as e:
@@ -409,7 +406,6 @@ class DockerSSIImageBuilder:
         vm_logger(scenario_name, "docker_build").info("***************************************************************")
 
         for chunk in build_logs:
-            logger.debug("chunk")
             if "stream" in chunk:
                 for line in chunk["stream"].splitlines():
                     vm_logger(scenario_name, "docker_build").info(line)
