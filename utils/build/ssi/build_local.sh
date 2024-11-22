@@ -67,7 +67,7 @@ do
    if [ -z "$WEBLOG_VARIANT" ] || [ "$WEBLOG_VARIANT" = "$weblog" ]; then
         if [ -z "$ARCH" ] || [ "$ARCH" = "$arch" ]; then
             echo "Runing test scenario for weblog [${weblog}], base_image [${base_image}], arch [${arch}], installable_runtime [${installable_runtime}], extra_args: [${extra_args}]"
-            ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" "$extra_args"
+            ./run.sh DOCKER_SSI --ssi-weblog="$weblog" --ssi-library="$TEST_LIBRARY" --ssi-base-image="$base_image" --ssi-arch="$arch" --ssi-installable-runtime="$installable_runtime" "$extra_args"
         fi
    fi
 

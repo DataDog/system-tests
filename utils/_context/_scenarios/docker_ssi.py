@@ -208,6 +208,10 @@ class DockerSSIImageBuilder:
         self.should_push_base_images = False
         self._weblog_docker_image = None
 
+    @property
+    def dd_lang(self) -> str:
+        return "js" if self._library == "nodejs" else self._library
+
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
         self._docker_registry_tag = f"ghcr.io/datadog/system-tests/ssi_installer_{self.docker_tag}:latest"
@@ -288,7 +292,7 @@ class DockerSSIImageBuilder:
                 nocache=self._force_build or self.should_push_base_images,
                 buildargs={
                     "ARCH": self._arch,
-                    "DD_LANG": self._library,
+                    "DD_LANG": self.dd_lang,
                     "RUNTIME_VERSIONS": self._installable_runtime,
                     "BASE_IMAGE": self._base_image,
                 },
@@ -342,7 +346,7 @@ class DockerSSIImageBuilder:
                 platform=self._arch,
                 nocache=self._force_build or self.should_push_base_images,
                 tag=self.ssi_all_docker_tag,
-                buildargs={"DD_LANG": self._library, "BASE_IMAGE": ssi_installer_docker_tag},
+                buildargs={"DD_LANG": self.dd_lang, "BASE_IMAGE": ssi_installer_docker_tag},
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
             logger.stdout(
@@ -372,7 +376,7 @@ class DockerSSIImageBuilder:
         Return json with the data"""
         logger.info("Weblog extract tested components")
         result = get_docker_client().containers.run(
-            image=self._weblog_docker_image, command=f"/tested_components.sh {self._library}", remove=True
+            image=self._weblog_docker_image, command=f"/tested_components.sh {self.dd_lang}", remove=True
         )
         logger.info(f"Testes components: {result.decode('utf-8')}")
         return json.loads(result.decode("utf-8").replace("'", '"'))

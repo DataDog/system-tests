@@ -130,6 +130,35 @@ class PythonRuntimeInstallableVersions:
         raise ValueError(f"Python version {version} not supported")
 
 
+class JSRuntimeInstallableVersions:
+    """Node.js runtime versions that can be installed automatically"""
+
+    JS12 = RuntimeInstallableVersion("JS12", "12")
+    JS14 = RuntimeInstallableVersion("JS14", "14")
+    JS16 = RuntimeInstallableVersion("JS16", "16")
+    JS18 = RuntimeInstallableVersion("JS18", "18")
+    JS20 = RuntimeInstallableVersion("JS20", "20")
+    JS22 = RuntimeInstallableVersion("JS22", "22")
+
+    @staticmethod
+    def get_all_versions():
+        return [
+            JSRuntimeInstallableVersions.JS12,
+            JSRuntimeInstallableVersions.JS14,
+            JSRuntimeInstallableVersions.JS18,
+            JSRuntimeInstallableVersions.JS18,
+            JSRuntimeInstallableVersions.JS20,
+            JSRuntimeInstallableVersions.JS22,
+        ]
+
+    @staticmethod
+    def get_version_id(version):
+        for version_check in JSRuntimeInstallableVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f"Node.js version {version} not supported")
+
+
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
 # Maybe a weblog app contains preinstalled language runtime, in this case we define the weblog without runtime version
 JETTY_APP = WeblogDescriptor(
@@ -204,9 +233,31 @@ PY_APP = WeblogDescriptor(
     [
         SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
             PythonRuntimeInstallableVersions.get_all_versions()
-        )
+        ),
+    ],
+)
+
+JS_APP = WeblogDescriptor(
+    "js-app",
+    "nodejs",
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
     ],
 )
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP, PHP_APP, PY_APP]
+ALL_WEBLOGS = [
+    JETTY_APP,
+    TOMCAT_APP,
+    JAVA7_APP,
+    WEBSPHERE_APP,
+    JBOSS_APP,
+    PHP_APP,
+    PY_APP,
+    JS_APP,
+]
