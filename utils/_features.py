@@ -2382,9 +2382,9 @@ class features:
         """
         Appsec RASP rule : command injection
 
-        https://feature-parity.us1.prod.dog/#/?feature=319
+        https://feature-parity.us1.prod.dog/#/?feature=342
         """
-        pytest.mark.features(feature_id=319)(test_object)
+        pytest.mark.features(feature_id=342)(test_object)
         return test_object
 
     @staticmethod
