@@ -12,36 +12,12 @@ lang_variant:
           sudo apt-get update;
           sudo apt-get install -y dotnet-sdk-2.1
 
-      - os_type: linux
-        os_distro: deb
-        os_branch: ubuntu18_amd64
-        remote-command: |
-          sudo apt-get update;
-          sudo apt-get install -y apt-transport-https;
-          sudo apt-get update;
-          sudo apt-get install -y dotnet-sdk-2.1
-
-      - os_type: linux
-        os_distro: rpm
-        os_branch: amazon_linux2
-        remote-command: |
-          sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
-          sudo yum install dotnet-sdk-2.1
-
-      - os_type: linux
-        os_distro: rpm
-        os_branch: rhel_7_amd64
-        remote-command: |
-          sudo yum install scl-utils
-          sudo subscription-manager repos --enable=rhel-7-server-dotnet-rpms
-          sudo yum install rh-dotnet21 -y
-          sudo scl enable rh-dotnet21 bash
 
 weblog:
     name: test-app-dotnet-unsupported
     # Mostly based on the docs on supported OSs from
     # https://github.com/dotnet/docs/commit/9693653929db2efbc8f5893c4eee37acf81b5ac6
-    exact_os_branches: [ubuntu20_amd64, ubuntu18_amd64, amazon_linux2, rhel_7_amd64]
+    exact_os_branches: [ubuntu20_amd64]
     install:
       - os_type: linux
         copy_files:
