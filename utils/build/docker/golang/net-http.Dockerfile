@@ -3,9 +3,6 @@ FROM golang:1.22 AS build
 # print important lib versions
 RUN go version && curl --version
 
-# install jq
-RUN apt-get update && apt-get -y install jq
-
 # download go dependencies
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
@@ -33,7 +30,7 @@ WORKDIR /app
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 ENV DD_DATA_STREAMS_ENABLED=true
 
-RUN printf "#!/bin/bash\n./weblog" > app.sh
+RUN printf "#!/bin/bash\nexec ./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 

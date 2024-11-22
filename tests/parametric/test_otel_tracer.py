@@ -26,13 +26,10 @@ class Test_Otel_Tracer:
                 parent1.set_attributes({"parent_k1": "parent_v1"})
                 with test_library.otel_start_span(name="child1", parent_id=parent1.span_id) as child1:
                     assert parent1.span_context()["trace_id"] == child1.span_context()["trace_id"]
-                    child1.end_span()
-                parent1.end_span()
+
             with test_library.otel_start_span("root_two") as parent2:
                 with test_library.otel_start_span(name="child2", parent_id=parent2.span_id) as child2:
                     assert parent2.span_context()["trace_id"] == child2.span_context()["trace_id"]
-                    child2.end_span()
-                parent2.end_span()
 
         traces = test_agent.wait_for_num_traces(2)
         trace_one = find_trace(traces, parent1.trace_id)
@@ -57,16 +54,14 @@ class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(
-        context.library == "ruby", reason="Ruby is instrumenting telemetry calls, creating 2 spans instead of 1"
-    )
     def test_otel_force_flush(self, test_agent, test_library):
         """
         Verify that force flush flushed the spans
         """
         with test_library:
             with test_library.otel_start_span(name="test_span") as span:
-                span.end_span()
+                pass
+
             # force flush with 5 second time out
             flushed = test_library.otel_flush(5)
             assert flushed, "ForceFlush error"

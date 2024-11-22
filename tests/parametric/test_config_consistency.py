@@ -1,10 +1,11 @@
 """
 Test configuration consistency for features across supported APM SDKs.
 """
+
+from urllib.parse import urlparse
 import pytest
-from utils import scenarios, features, context, bug, missing_feature
+from utils import scenarios, features, context, bug, missing_feature, irrelevant, flaky
 from utils.parametric.spec.trace import find_span_in_traces
-import re
 
 parametrize = pytest.mark.parametrize
 
@@ -29,9 +30,8 @@ class Test_Config_TraceEnabled:
         with test_library:
             with test_library.start_span("allowed"):
                 pass
-        test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
+        assert test_agent.wait_for_num_traces(
+            num=1
         ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
 
     @enable_tracing_disabled()
@@ -40,11 +40,9 @@ class Test_Config_TraceEnabled:
         with test_library:
             with test_library.start_span("allowed"):
                 pass
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "wait_for_num_traces raises an exception after waiting for 1 trace."  # wait_for_num_traces will throw an error if not received within 2 sec, so we expect to see an exception
+        with pytest.raises(ValueError) as e:
+            test_agent.wait_for_num_traces(num=1)
+        assert e.match(".*traces not available from test agent, got 0.*")
 
 
 @scenarios.parametric
@@ -84,11 +82,14 @@ class Test_Config_UnifiedServiceTagging:
 
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         assert span["service"] != "version_test"
-        assert "version" not in span["meta"]
+        # in Node.js version can automatically be grabbed from the package.json on default, thus this test does not apply
+        if test_library.lang != "nodejs":
+            assert "version" not in span["meta"]
         assert "env" not in span["meta"]
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
+    @missing_feature(context.library < "ruby@2.7.1-dev")
     def test_specific_version(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="s1") as s1:
@@ -100,6 +101,7 @@ class Test_Config_UnifiedServiceTagging:
         assert len(traces) == 2
 
         span1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+
         assert span1["service"] == "version_test"
         assert span1["meta"]["version"] == "5.2.0"
 
@@ -124,7 +126,12 @@ class Test_Config_UnifiedServiceTagging:
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_TraceAgentURL:
-    # DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
+    """
+    DD_TRACE_AGENT_URL is validated using the tracer configuration.
+    This approach avoids the need to modify the setup file to create additional containers at the specified URL,
+    which would be unnecessarily complex.
+    """
+
     @parametrize(
         "library_env",
         [
@@ -138,13 +145,10 @@ class Test_Config_TraceAgentURL:
     def test_dd_trace_agent_unix_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
-        if context.library == "golang":
-            match = re.match(r"^http://uds__var_run_datadog_apm.socket/.*", resp["dd_trace_agent_url"])
-            assert match is not None, "trace_agent_url does not match expected pattern"
-        else:
-            assert resp["dd_trace_agent_url"] == "unix:///var/run/datadog/apm.socket"
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert "unix" in url.scheme
+        assert url.path == "/var/run/datadog/apm.socket"
 
     # The DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
     @parametrize(
@@ -154,14 +158,11 @@ class Test_Config_TraceAgentURL:
     def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.get_tracer_config()
-        # Go tracer reports `<url>/<protocol>/traces` as agent_url in startup log, so use a regex to match the expected suffix
-        if context.library == "golang":
-            match = re.match(r"^http://random-host:9999/.*", resp["dd_trace_agent_url"])
-            assert match is not None, "trace_agent_url does not match expected pattern"
-        else:
-            assert resp["dd_trace_agent_url"] == "http://random-host:9999/"
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1, clear=True)
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "http"
+        assert url.hostname == "random-host"
+        assert url.port == 9999
 
 
 @scenarios.parametric
@@ -177,8 +178,13 @@ class Test_Config_RateLimit:
             resp = t.get_tracer_config()
         assert resp["dd_trace_rate_limit"] == "100"
 
+    @irrelevant(
+        context.library == "php",
+        reason="PHP backfill model does not support strict two-trace limit, see test below for its behavior",
+    )
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
-    def test_setting_trace_rate_limit(self, library_env, test_agent, test_library):
+    @flaky(library="java", reason="APMAPI-908")
+    def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="s1") as s1:
                 pass
@@ -188,11 +194,10 @@ class Test_Config_RateLimit:
         traces = test_agent.wait_for_num_traces(2)
         trace_0_sampling_priority = traces[0][0]["metrics"]["_sampling_priority_v1"]
         trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
+
         assert trace_0_sampling_priority == 2
         assert trace_1_sampling_priority == -1
 
-    # DD_TRACE_RATE_LIMIT should have no effect if DD_TRACE_SAMPLE_RATE or DD_TRACE_SAMPLING_RULES is not set
-    @missing_feature(context.library == "python", reason="Not implemented")
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
     def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
         with test_library:
@@ -206,3 +211,21 @@ class Test_Config_RateLimit:
         trace_1_sampling_priority = traces[1][0]["metrics"]["_sampling_priority_v1"]
         assert trace_0_sampling_priority == 1
         assert trace_1_sampling_priority == 1
+
+    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    def test_setting_trace_rate_limit(self, library_env, test_agent, test_library):
+        # In PHP the rate limiter is continuously backfilled, i.e. if the rate limit is 2, and 0.2 seconds have passed, an allowance of 0.4 is backfilled.
+        # As long as the amount of allowance is greater than zero, the request is allowed.
+        # Meaning that if the rate limit is 2 and you do two requests within 0.2 seconds, the remaining limit is 0.4, allowing for one more request.
+        # Then it gets negative and no more requests are allowed until 0.3 seconds later, when it's positive again.
+
+        with test_library:
+            # Generate three traces to demonstrate rate limiting in PHP's backfill model
+            for i in range(3):
+                with test_library.start_span(name=f"s{i+1}") as span:
+                    pass
+
+        traces = test_agent.wait_for_num_traces(3)
+        assert any(
+            trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces
+        ), "Expected at least one trace to be rate-limited with sampling priority -1."

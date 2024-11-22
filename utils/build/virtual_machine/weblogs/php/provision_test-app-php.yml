@@ -1,5 +1,6 @@
 lang_variant:
     name: PHP
+    version: 8.2
     cache: true
     install:
       - os_type: linux
@@ -24,7 +25,8 @@ lang_variant:
 
 weblog:
     name: test-app-php
-    excluded_os_branches: [ centos_7_amd64]
+    #rh7 is installing php 5.4
+    excluded_os_branches: [ centos_7_amd64, rhel_7_amd64]
     excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux

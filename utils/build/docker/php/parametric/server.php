@@ -103,57 +103,38 @@ $otelSpans = [];
 $scopes = [];
 /** @var ?\DDTrace\SpanData $span */
 $activeSpan = null;
+/** @var array[] $spansDistributedTracingHeaders */
+$spansDistributedTracingHeaders = [];
 
 $router = new Router($server, $logger, $errorHandler);
-$router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan) {
+$router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
     if ($parent = arg($req, 'parent_id')) {
-        \DDTrace\switch_stack($spans[$parent]);
-        \DDTrace\create_stack();
-        $span = \DDTrace\start_span();
+        if (isset($spans[$parent])) {
+            \DDTrace\switch_stack($spans[$parent]);
+            \DDTrace\create_stack();
+            $span = \DDTrace\start_span();
+        } elseif (isset($spansDistributedTracingHeaders[$parent])) {
+            $span = \DDTrace\start_span();
+            $distributedTracingHeaders = $spansDistributedTracingHeaders[$parent];
+            \DDTrace\consume_distributed_tracing_headers($distributedTracingHeaders);
+        } else {
+            $span = \DDTrace\start_trace_span();
+        }
     } else {
         $span = \DDTrace\start_trace_span();
     }
-    $link_from_headers = null;
-    $links = [];
-    if ($span_links = arg($req, 'links')) {
-        foreach ($span_links as $span_link) {
-            if ($parent = $span_link["parent_id"]) {
-                $links[] = $link = $spans[$parent]->getLink();
-                if (isset($span_link["attributes"])) {
-                    $link->attributes += $span_link["attributes"];
-                }
-            } else {
-                $link_from_headers = $span_link;
-                $headers_link = &$links[];
-            }
-        }
-    }
-    if ($headers = arg($req, 'http_headers')) {
-        $headers = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $headers));
-        $callback = function ($headername) use ($headers) {
-            return $headers[$headername] ?? null;
-        };
-        if ($link_from_headers) {
-            $headers_link = \DDTrace\SpanLink::fromHeaders($callback);
-            if (isset($link_from_headers["attributes"])) {
-                $headers_link->attributes += $link_from_headers["attributes"];
-            }
-            var_dump($headers_link->samplingPriority);
-            \DDTrace\set_priority_sampling($headers_link->samplingPriority);
-            $span->meta += $headers_link->extractedAttributes;
-        } else {
-            \DDTrace\consume_distributed_tracing_headers($callback);
-        }
-    }
-    if ($origin = arg($req, 'origin')) {
-        $context = \DDTrace\current_context();
-        \DDTrace\set_distributed_tracing_context($context["trace_id"], $context["distributed_tracing_parent_id"] ?? 0, $origin);
-    }
     $span->name = arg($req, 'name');
-    $span->service = arg($req, 'service');
+    $service = arg($req, 'service');
+    $span->service = !is_null($service) && $service !== '' ? $service : $span->service;
     $span->type = arg($req, 'type');
     $span->resource = arg($req, 'resource');
-    $span->links = $links;
+
+    if ($tags = arg($req, 'span_tags')) {
+        foreach ($tags as $tag) { // [ 0 => [tag, value], 1 => [tag, value], ... ]
+            list($key, $value) = $tag;
+            $span->meta[$key] = $value;
+        }
+    }
 
     if (\dd_trace_env_config("DD_TRACE_ENABLED")) {
         $spanId = $span->id;
@@ -175,6 +156,20 @@ $router->addRoute('POST', '/trace/span/inject_headers', new ClosureRequestHandle
     \DDTrace\switch_stack($span);
     $headers = \DDTrace\generate_distributed_tracing_headers();
     return jsonResponse(["http_headers" => array_map(null, array_keys($headers), $headers)]);
+}));
+$router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandler(function (Request $req) use (&$spans, &$spansDistributedTracingHeaders) {
+    $headers = arg($req, 'http_headers');
+    # Hack: Create a span from the extracted headers to retrieve the parent_id in the distrivuted tracing headers
+    # Avoid finishing this span to prevent it from being sent to the agent. This endpoint should only be used to extract headers.
+    $span = \DDTrace\start_span();
+    $headers = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $headers));
+    $callback = function ($headername) use ($headers) {
+        return $headers[$headername] ?? null;
+    };
+    \DDTrace\consume_distributed_tracing_headers($callback);
+    $spanID = $span->parentId ?? null;
+    $spansDistributedTracingHeaders[$spanID] = $headers;
+    return jsonResponse(["span_id" => $spanID]);
 }));
 $router->addRoute('POST', '/trace/span/set_resource', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
@@ -220,27 +215,12 @@ $router->addRoute('POST', '/trace/span/add_event', new ClosureRequestHandler(fun
 $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
     $span = $spans[arg($req, 'span_id')];
     $parent_id = arg($req, 'parent_id');
-    $httpHeaders = arg($req, 'http_headers');
-    if (isset($spans[$parent_id]) || isset($closed_spans[$parent_id])) {
-        $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
-        $link->attributes += arg($req, "attributes") ?? [];
-    } elseif ($httpHeaders) {
-        $httpHeaders = array_merge(...array_map(fn($h) => [strtolower($h[0]) => $h[1]], $httpHeaders));
-        $callback = function ($headername) use ($httpHeaders) {
-            return $httpHeaders[$headername] ?? null;
-        };
-        $link = \DDTrace\SpanLink::fromHeaders($callback);
-        $link->attributes += arg($req, "attributes") ?? [];
-    } else {
-        $link = new \DDTrace\SpanLink();
-        $link->spanId = arg($req, 'parent_id');
-        $link->attributes = arg($req, 'attributes') ?? [];
-    }
-
+    $link = ($spans[$parent_id] ?? $closed_spans[$parent_id])->getLink();
+    $link->attributes = ($link->attributes ?? []) + (arg($req, "attributes") ?? []);
     $span->links[] = $link;
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans, &$activeSpan) {
+$router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans, &$activeSpan, &$spansDistributedTracingHeaders) {
     $span_id = arg($req, 'span_id');
 
     if (!isset($spans[$span_id])) {
@@ -249,6 +229,7 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
 
     $span = $spans[$span_id];
     \DDTrace\switch_stack($span);
+    $spansDistributedTracingHeaders[$span_id] = \DDTrace\generate_distributed_tracing_headers();
     \DDTrace\close_span();
     $closed_spans[$span_id] = $span;
     unset($spans[$span_id]);
@@ -257,35 +238,12 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
 
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/trace/span/get_name', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
-    $span = $spans[arg($req, 'span_id')] ?? $closed_spans[arg($req, 'span_id')] ?? null;
-
-    return jsonResponse([
-        'name' => $span?->name
-    ]);
-}));
-$router->addRoute('POST', '/trace/span/get_resource', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
-    $span = $spans[arg($req, 'span_id')] ?? $closed_spans[arg($req, 'span_id')] ?? null;
-
-    return jsonResponse([
-        'resource' => $span?->resource
-    ]);
-}));
-$router->addRoute('POST', '/trace/span/get_meta', new ClosureRequestHandler(function (Request $req) use (&$spans) {
-    $span = $spans[arg($req, 'span_id')];
-    return jsonResponse([
-        'value' => $span->meta[arg($req, 'key')]
-    ]);
-}));
-$router->addRoute('POST', '/trace/span/get_metric', new ClosureRequestHandler(function (Request $req) use (&$spans) {
-    $span = $spans[arg($req, 'span_id')];
-    return jsonResponse([
-        'value' => $span->metrics[arg($req, 'key')]
-    ]);
-}));
 $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(function () use (&$spans) {
-    \DDTrace\flush();
-    dd_trace_internal_fn("synchronous_flush");
+    dd_trace_synchronous_flush(1000); # flush spans with a timeout of 1s
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/stats/flush', new ClosureRequestHandler(function () use (&$spans) {
+    # NOP: php doesn't expose an API to flush trace stats
     return jsonResponse([]);
 }));
 $router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(function () use (&$spans, &$activeSpan) {
@@ -316,7 +274,6 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
     $timestamp = arg($req, 'timestamp');
     $spanKind = arg($req, 'span_kind');
     $parentId = arg($req, 'parent_id');
-    $httpHeaders = arg($req, 'http_headers');
     $attributes = arg($req, 'attributes');
 
     $tracer = (new TracerProvider())->getTracer('OpenTelemetry.PHPTestTracer');
@@ -354,39 +311,10 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
     if ($span_links = arg($req, 'links')) {
         foreach ($span_links as $span_link) {
             $span_link_attributes = isset($span_link["attributes"]) ? $span_link["attributes"] : [];
-            if ($span_link_parent_id = $span_link["parent_id"]) {
-                $span_context = $otelSpans[$span_link_parent_id]->getContext();
-                $spanBuilder->addLink($span_context, $span_link_attributes);
-            } else if ($span_link_http_headers = $span_link["http_headers"]) {
-                $carrier = [];
-                foreach ($span_link_http_headers as $span_link_http_header) {
-                    $carrier[$span_link_http_header[0]] = $span_link_http_header[1];
-                }
-
-                $callback = function ($headername) use ($carrier) {
-                    return $carrier[$headername] ?? null;
-                };
-                $headers_link = \DDTrace\SpanLink::fromHeaders($callback);
-
-                $linkSpanContext = \OpenTelemetry\API\Trace\SpanContext::create(
-                    $headers_link->traceId,
-                    $headers_link->spanId,
-                    \OpenTelemetry\API\Trace\TraceFlags::DEFAULT, // trace flags are not currently embedded into the native span link
-                    new \OpenTelemetry\API\Trace\TraceState($headers_link->traceState ?? null),
-                );
-
-                $spanBuilder->addLink($linkSpanContext, $span_link_attributes);
-            }
+            $span_link_parent_id = $span_link["parent_id"];
+            $span_context = $otelSpans[$span_link_parent_id]->getContext();
+            $spanBuilder->addLink($span_context, $span_link_attributes);
         }
-    }
-
-    if ($httpHeaders) {
-        $carrier = [];
-        foreach ($httpHeaders as $headers) {
-            $carrier[$headers[0]] = $headers[1];
-        }
-        $remoteContext = TraceContextPropagator::getInstance()->extract($carrier);
-        $spanBuilder->setParent($remoteContext);
     }
 
     if ($attributes) {
@@ -473,11 +401,11 @@ $router->addRoute('POST', '/trace/otel/set_status', new ClosureRequestHandler(fu
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/otel/flush', new ClosureRequestHandler(function (Request $req) {
-    \DDTrace\flush();
-    dd_trace_internal_fn("synchronous_flush");
-     return jsonResponse([
-         'success' => true
-     ]);
+    $timeout = (arg($req, 'seconds') ?: 0.1) * 1000; # convert timeout to ms
+    dd_trace_synchronous_flush($timeout);
+    return jsonResponse([
+        'success' => true
+    ]);
 }));
 $router->addRoute('POST', '/trace/otel/is_recording', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
@@ -527,57 +455,6 @@ $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(f
         'span_id' => (string)$spanId,
         'trace_id' => (string)$traceId,
     ]);
-}));
-$router->addRoute('POST', '/trace/otel/get_attribute', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
-    $spanId = arg($req, 'span_id');
-    $key = arg($req, 'key');
-
-    /** @var ?SDK\Span $span */
-    $span = $otelSpans[$spanId];
-    if ($span) {
-        return jsonResponse([
-            'value' => $span->getAttribute($key)
-        ]);
-    }
-
-    return jsonResponse([]);
-}));
-$router->addRoute('POST', '/trace/otel/get_name', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
-    $spanId = arg($req, 'span_id');
-
-    /** @var ?SDK\Span $span */
-    $span = $otelSpans[$spanId];
-    if ($span) {
-        return jsonResponse([
-            'name' => $span->getName()
-        ]);
-    }
-
-    return jsonResponse([]);
-}));
-$router->addRoute('POST', '/trace/otel/get_links', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
-    $spanId = arg($req, 'span_id');
-
-    /** @var ?SDK\Span $span */
-    $span = $otelSpans[$spanId];
-    if ($span) {
-        $links = $span->toSpanData()->getLinks();
-        $linksData = [];
-        foreach ($links as $link) {
-            $linksData[] = [
-                'trace_id' => $link->getSpanContext()->getTraceId(),
-                'parent_id' => $link->getSpanContext()->getSpanId(),
-                'attributes' => $link->getAttributes()->toArray(),
-                'tracestate' => (string) $link->getSpanContext()->getTraceState(),
-            ];
-        }
-
-        return jsonResponse([
-            'links' => $linksData
-        ]);
-    }
-
-    return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/otel/add_event', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
     $spanId = arg($req, 'span_id');
@@ -637,6 +514,8 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
         'dd_trace_debug' => var_export(\dd_trace_env_config("DD_TRACE_DEBUG"), true),
         'dd_trace_otel_enabled' => var_export(\dd_trace_env_config("DD_TRACE_OTEL_ENABLED"), true),
         'dd_log_level' => trim(var_export(\dd_trace_env_config("DD_TRACE_LOG_LEVEL"), true), "'"),
+        'dd_trace_agent_url' => trim(var_export(\dd_trace_env_config("DD_TRACE_AGENT_URL"), true), "'"),
+        'dd_trace_rate_limit' => var_export(\dd_trace_env_config("DD_TRACE_RATE_LIMIT"), true),
     );
     return jsonResponse(array(
         'config' => $config

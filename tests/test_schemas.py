@@ -17,20 +17,34 @@ class Test_library:
         weblog.get("/waf", params={"key": "\n :"})
 
     def test_library_schema_full(self):
-        interfaces.library.assert_schema_points(
-            excluded_points=[
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
-                ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
-                ("/debugger/v1/input", "$[].dd.span_id"),  # DEBUG-2743
-                ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
-                ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
-                ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
-                ("/debugger/v1/diagnostics", "$[].content"),  # DEBUG-2864
-            ]
-        )
+        excluded_points = [
+            ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
+            ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
+            ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
+            ("/debugger/v1/input", "$[].dd.span_id"),  # DEBUG-2743
+            ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
+            ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
+            ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
+            ("/debugger/v1/diagnostics", "$[].content"),  # DEBUG-2864
+        ]
 
-    @bug(context.library > "nodejs@5.22.0", reason="DEBUG-2864")
+        if (
+            context.library in ("python@2.16.2", "python@2.16.3")
+            and context.scenario is scenarios.debugger_expression_language
+        ):
+            excluded_points.append(("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber"))
+
+        interfaces.library.assert_schema_points(excluded_points)
+
+    @bug(
+        context.library in ("python@2.16.2", "python@2.16.3")
+        and context.scenario is scenarios.debugger_expression_language,
+        reason="APMRP-360",
+    )
+    def test_python_debugger_line_number(self):
+        interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber")
+
+    @bug(context.library > "nodejs@4.48.0", reason="DEBUG-2864")
     def test_library_diagnostics_content(self):
         interfaces.library.assert_schema_point("/debugger/v1/diagnostics", "$[].content")
 
@@ -76,7 +90,7 @@ class Test_Agent:
             ]
         )
 
-    @bug(context.library > "nodejs@5.22.0", reason="DEBUG-2864")
+    @bug(context.library > "nodejs@4.46.0", reason="DEBUG-2864")  # and 5.22.0
     def test_library_diagnostics_content(self):
         interfaces.library.assert_schema_point("/api/v2/debugger", "$[].content")
 

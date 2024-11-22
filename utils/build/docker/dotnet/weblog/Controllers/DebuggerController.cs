@@ -97,7 +97,7 @@ namespace weblog
 
         [HttpGet("expression/collections")]
         [Consumes("application/json", "application/xml")]
-        public async Task<IActionResult> StringOperations()
+        public async Task<IActionResult> CollectionOperations()
         {
             var a0 = await CollectionFactory.GetCollection(0, "array");
             var l0 = await CollectionFactory.GetCollection(0, "list");
@@ -127,27 +127,13 @@ namespace weblog
             throw new System.Exception("Simple exception");
         }
 
-        [HttpGet("exceptionreplay/recursion5")]
+        [HttpGet("exceptionreplay/recursion")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayRecursion5(int depth = 5)
+        public IActionResult ExceptionReplayRecursion(int depth)
         {
             if (depth > 0)
             {
-                return ExceptionReplayRecursion5(depth - 1);
-            }
-            else
-            {
-                throw new System.Exception("Recursion exception");
-            }
-        }
-
-        [HttpGet("exceptionreplay/recursion20")]
-        [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayRecursion20(int depth = 20)
-        {
-            if (depth > 0)
-            {
-                return ExceptionReplayRecursion20(depth - 1);
+                return ExceptionReplayRecursion(depth - 1);
             }
             else
             {
@@ -167,6 +153,28 @@ namespace weblog
             {
                 throw new System.Exception("Outer exception", ex);
             }
+        }
+
+        [HttpGet("exceptionreplay/rps")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayRockPaperScissors(string shape)
+        {
+            if (shape == "rock")
+            {
+                throw new ExceptionReplayRock();
+            }
+
+            if (shape == "paper")
+            {
+                throw new ExceptionReplayPaper();
+            }
+
+            if (shape == "scissors")
+            {
+                throw new ExceptionReplayScissors();
+            }
+
+            return Content("No exception");
         }
     }
 }

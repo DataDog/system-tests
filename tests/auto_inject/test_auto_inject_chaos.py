@@ -8,19 +8,16 @@ import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
-@features.installer_auto_instrumentation
-@scenarios.installer_host_auto_injection_chaos
-class TestAutoInjectChaos(base.AutoInjectBaseTest):
+class BaseAutoInjectChaos(base.AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
         """ Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
         After breaking the installation, we can restart the app
         After restores the installation, the app should be working and sending traces to the backend."""
 
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         weblog_url = f"http://{vm_ip}:{vm_port}/"
-
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         weblog_start_command = "sudo systemctl start test-app.service"
         if context.scenario.library.library in ["ruby", "python", "dotnet"]:
@@ -28,18 +25,21 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
 
         # Ok the installation is done, now we can do some chaos
         self._test_install(virtual_machine)
-
+        logger.info(f"[{virtual_machine.name}]Ok the installation is done, now we can do some chaos")
         # Remove installation folder
         self.execute_command(virtual_machine, evil_command)
-
+        logger.info(f"[{virtual_machine.name}]Ok evil command launched!")
         # Assert the app is still working
         wait_for_port(vm_port, vm_ip, 40.0)
         r = requests.get(weblog_url, timeout=10)
         assert r.status_code == 200, "The weblog app it's not working after remove the installation folder"
-
+        logger.info(f"[{virtual_machine.name}]Ok the weblog app it's working after remove wrong things")
         # Kill the app
-        self.execute_command(virtual_machine, "sudo systemctl kill -s SIGKILL test-app.service")
-
+        self.execute_command(
+            virtual_machine,
+            "sudo systemctl kill -s SIGKILL test-app.service || sudo systemctl kill -s KILL test-app.service ",
+        )
+        logger.info(f"[{virtual_machine.name}]Ok the weblog app stopped")
         # Start the app again
         self.execute_command(virtual_machine, weblog_start_command)
         # App shpuld be working again, although the installation folder was removed
@@ -50,7 +50,10 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
             r.status_code == 200
         ), "The weblog app it's not working after remove the installation folder  and restart the app"
         # Kill the app before restore the installation
-        self.execute_command(virtual_machine, "sudo systemctl kill -s SIGKILL test-app.service")
+        self.execute_command(
+            virtual_machine,
+            "sudo systemctl kill -s SIGKILL test-app.service || sudo systemctl kill -s KILL test-app.service",
+        )
         # Restore the installation
         apm_inject_restore = "sudo datadog-installer apm instrument"
 
@@ -80,13 +83,33 @@ class TestAutoInjectChaos(base.AutoInjectBaseTest):
         # The app should be instrumented and reporting traces to the backend
         self._test_install(virtual_machine)
 
+
+@features.installer_auto_instrumentation
+@scenarios.chaos_installer_auto_injection
+class TestAutoInjectChaos(BaseAutoInjectChaos):
     @parametrize_virtual_machines(
         bugs=[
-            {"weblog_variant": "test-app-dotnet", "reason": "AIT-8620"},
+            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+        ]
+    )
+    def test_install_after_ld_preload(self, virtual_machine):
+        """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+
+    @parametrize_virtual_machines(
+        bugs=[
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     def test_remove_ld_preload(self, virtual_machine):

@@ -5,106 +5,230 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	reflect "reflect"
+	"net/http"
+	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*StartSpanReturn, error) {
+func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Request) {
+	var args StartSpanArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	span, err := s.StartSpan(r.Context(), &args)
+	if err != nil {
+		http.Error(w, "Failed to start span: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	response := StartSpanReturn{
+		SpanId:  span.Context().SpanID(),
+		TraceId: span.Context().TraceID(),
+	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (ddtrace.Span, error) {
 	var opts []tracer.StartSpanOption
-	if args.GetParentId() > 0 {
-		parent := s.spans[*args.ParentId]
-		opts = append(opts, tracer.ChildOf(parent.Context()))
-	}
-	if args.Resource != nil {
-		opts = append(opts, tracer.ResourceName(*args.Resource))
-	}
-	if args.Service != nil {
-		opts = append(opts, tracer.ServiceName(*args.Service))
-	}
-	if args.Type != nil {
-		opts = append(opts, tracer.SpanType(*args.Type))
-	}
-
-	if args.GetSpanTags() != nil && len(args.SpanTags) != 0 {
-		for _, tag := range args.SpanTags {
-			opts = append(opts, tracer.Tag(tag.GetKey(), tag.GetValue()))
-		}
-	}
-
-	if args.GetHttpHeaders() != nil && len(args.HttpHeaders.HttpHeaders) != 0 {
-		headers := map[string]string{}
-		for _, headerTuple := range args.HttpHeaders.HttpHeaders {
-			k := headerTuple.GetKey()
-			v := headerTuple.GetValue()
-			if k != "" && v != "" {
-				headers[k] = v
-			}
-		}
-
-		sctx, err := tracer.Extract(tracer.TextMapCarrier(headers))
-		if err != nil {
-			fmt.Println("failed in StartSpan", err, headers)
+	if p := args.ParentId; p > 0 {
+		if span, ok := s.spans[p]; ok {
+			opts = append(opts, tracer.ChildOf(span.Context()))
+		} else if spanContext, ok := s.spanContexts[p]; ok {
+			opts = append(opts, tracer.ChildOf(spanContext))
 		} else {
-			opts = append(opts, tracer.ChildOf(sctx))
+			return nil, fmt.Errorf("parent span not found")
+		}
+	}
+	if r := args.Resource; r != "" {
+		opts = append(opts, tracer.ResourceName(r))
+	}
+	if s := args.Service; s != "" {
+		opts = append(opts, tracer.ServiceName(s))
+	}
+	if t := args.Type; t != "" {
+		opts = append(opts, tracer.SpanType(t))
+	}
+	if len(args.SpanTags) != 0 {
+		for _, tag := range args.SpanTags {
+			opts = append(opts, tracer.Tag(tag.Key(), tag.Value()))
 		}
 	}
 	span := tracer.StartSpan(args.Name, opts...)
-	if args.GetOrigin() != "" {
-		span.SetTag("_dd.origin", *args.Origin)
-	}
 	s.spans[span.Context().SpanID()] = span
-	return &StartSpanReturn{
-		SpanId:  span.Context().SpanID(),
-		TraceId: span.Context().TraceID(),
-	}, nil
+	return span, nil
 }
 
-func (s *apmClientServer) SpanSetMeta(ctx context.Context, args *SpanSetMetaArgs) (*SpanSetMetaReturn, error) {
-	span := s.spans[args.SpanId]
+func (s *apmClientServer) spanSetMetaHandler(w http.ResponseWriter, r *http.Request) {
+	var args SpanSetMetaArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	span, exists := s.spans[args.SpanId]
+	if !exists {
+		http.Error(w, "Span not found", http.StatusNotFound)
+		return
+	}
 	span.SetTag(args.Key, args.Value)
-	return &SpanSetMetaReturn{}, nil
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct{}{})
 }
 
-func (s *apmClientServer) SpanSetMetric(ctx context.Context, args *SpanSetMetricArgs) (*SpanSetMetricReturn, error) {
-	span := s.spans[args.SpanId]
+func (s *apmClientServer) spanSetMetricHandler(w http.ResponseWriter, r *http.Request) {
+	var args SpanSetMetricArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	span, exists := s.spans[args.SpanId]
+	if !exists {
+		http.Error(w, "Span not found", http.StatusNotFound)
+		return
+	}
+
 	span.SetTag(args.Key, args.Value)
-	return &SpanSetMetricReturn{}, nil
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
-func (s *apmClientServer) FinishSpan(ctx context.Context, args *FinishSpanArgs) (*FinishSpanReturn, error) {
-	span := s.spans[args.Id]
+func (s *apmClientServer) finishSpanHandler(w http.ResponseWriter, r *http.Request) {
+	var args FinishSpanArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	span, exists := s.spans[args.Id]
+	if !exists {
+		http.Error(w, "Span not found", http.StatusNotFound)
+		return
+	}
 	span.Finish()
-	return &FinishSpanReturn{}, nil
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
-func (s *apmClientServer) FlushSpans(context.Context, *FlushSpansArgs) (*FlushSpansReturn, error) {
+func (s *apmClientServer) flushSpansHandler(w http.ResponseWriter, r *http.Request) {
 	tracer.Flush()
 	s.spans = make(map[uint64]tracer.Span)
-	return &FlushSpansReturn{}, nil
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
-func (s *apmClientServer) FlushTraceStats(context.Context, *FlushTraceStatsArgs) (*FlushTraceStatsReturn, error) {
+func (s *apmClientServer) flushStatsHandler(w http.ResponseWriter, r *http.Request) {
 	tracer.Flush()
 	s.spans = make(map[uint64]tracer.Span)
-	return &FlushTraceStatsReturn{}, nil
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
-func (s *apmClientServer) StopTracer(context.Context, *StopTracerArgs) (*StopTracerReturn, error) {
-	tracer.Stop()
-	return &StopTracerReturn{}, nil
+func (s *apmClientServer) injectHeadersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var args InjectHeadersArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	span, exists := s.spans[args.SpanId]
+	if !exists {
+		http.Error(w, "Span not found", http.StatusNotFound)
+		return
+	}
+
+	headers := tracer.TextMapCarrier(map[string]string{})
+	err := tracer.Inject(span.Context(), headers)
+	if err != nil {
+		http.Error(w, "Error while injecting headers", http.StatusInternalServerError)
+		return
+	}
+
+	distr := []Tuple{}
+	for k, v := range headers {
+		distr = append(distr, []string{k, v})
+	}
+
+	response := InjectHeadersReturn{HttpHeaders: distr}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
-func (s *apmClientServer) SpanSetError(ctx context.Context, args *SpanSetErrorArgs) (*SpanSetErrorReturn, error) {
-	span := s.spans[args.SpanId]
+func (s *apmClientServer) extractHeadersHandler(w http.ResponseWriter, r *http.Request) {
+	var args ExtractHeadersArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	headers := map[string]string{}
+	for _, headerTuple := range args.HttpHeaders {
+		k := headerTuple.Key()
+		v := headerTuple.Value()
+		if k != "" && v != "" {
+			headers[k] = v
+		}
+	}
+
+	sctx, err := tracer.Extract(tracer.TextMapCarrier(headers))
+	response := ExtractHeadersReturn{}
+	if err == nil {
+		spanID := sctx.SpanID()
+		response.SpanId = &spanID
+		s.spanContexts[spanID] = sctx
+	} else {
+		fmt.Printf("No trace context extracted from headers %v. headers: %v, args: %v\n", err, headers, args)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (s *apmClientServer) spanSetErrorHandler(w http.ResponseWriter, r *http.Request) {
+	var args SpanSetErrorArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	span, exists := s.spans[args.SpanId]
+	if !exists {
+		http.Error(w, "Span not found", http.StatusNotFound)
+		return
+	}
+
+	// Set the error tags on the span
 	span.SetTag("error", true)
 	span.SetTag("error.msg", args.Message)
 	span.SetTag("error.type", args.Type)
 	span.SetTag("error.stack", args.Stack)
-	return &SpanSetErrorReturn{}, nil
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 type CustomLogger struct {
@@ -139,7 +263,7 @@ func (l *CustomLogger) Log(logMessage string) {
 
 	var config Config
 	if err := json.Unmarshal([]byte(strings.ToLower(jsonStr)), &config); err != nil {
-		log.Print("Error unmarshaling JSON: %v\n", err)
+		log.Printf("Error unmarshaling JSON: %v\n", err)
 		return
 	}
 
@@ -178,28 +302,21 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	return config
 }
 
-func (s *apmClientServer) GetTraceConfig(ctx context.Context, args *GetTraceConfigArgs) (*GetTraceConfigReturn, error) {
-	var log = &CustomLogger{logrus.New(), make(map[string]string)}
+func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.Request) {
+	var log = &CustomLogger{Logger: logrus.New(), globalConfig: make(map[string]string)}
+
 	tracer.Start(tracer.WithLogger(log))
 
 	tracerEnabled := "true"
-	// if globalConfig is empty, then there were no startup logs generated and thus it means the tracer was disabled
+	// If globalConfig is empty, then startup log wasn't generated -- tracer must be disabled
 	if len(log.globalConfig) == 0 {
 		tracerEnabled = "false"
 	}
-	return &GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled)}, nil
-}
 
-func (s *apmClientServer) InjectHeaders(ctx context.Context, args *InjectHeadersArgs) (*InjectHeadersReturn, error) {
-	span := s.spans[args.SpanId]
-	headers := tracer.TextMapCarrier(map[string]string{})
-	err := tracer.Inject(span.Context(), headers)
-	if err != nil {
-		fmt.Println("error while injecting")
-	}
-	distr := []*HeaderTuple{}
-	for k, v := range headers {
-		distr = append(distr, &HeaderTuple{Key: k, Value: v})
-	}
-	return &InjectHeadersReturn{HttpHeaders: &DistributedHTTPHeaders{HttpHeaders: distr}}, nil
+	// Prepare the response
+	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled)}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }

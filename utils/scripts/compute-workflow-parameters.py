@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from utils.docker_ssi.docker_ssi_matrix_builder import get_github_matrix
 
 
 def get_github_workflow_map(scenarios, scenarios_groups):
@@ -88,7 +87,7 @@ def get_endtoend_weblogs(library):
             "rack",
             "uds-sinatra",
             *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
-            *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71"]],
+            *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71", "72", "80"]],
         ],
     }
 
@@ -128,9 +127,6 @@ def main(language: str, scenarios: str, groups: str):
 
     _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
     print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
-
-    dockerssi_weblogs = get_github_matrix(language)
-    print(f"dockerssi_weblogs={json.dumps(dockerssi_weblogs)}")
 
 
 if __name__ == "__main__":

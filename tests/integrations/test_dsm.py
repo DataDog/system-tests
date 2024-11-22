@@ -52,9 +52,7 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
-    @irrelevant(
-        context.library in ["python", "java", "nodejs", "dotnet"], reason="New behavior with cluster id not merged yet."
-    )
+    @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -92,8 +90,12 @@ class Test_DsmKafka:
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_out"]
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default")).get(
+            "edge_tags_out", language_hashes.get("default")["edge_tags_out"]
+        )
+        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default")).get(
+            "edge_tags_in", language_hashes.get("default")["edge_tags_in"]
+        )
 
         DsmHelper.assert_checkpoint_presence(
             hash_=producer_hash, parent_hash=0, tags=edge_tags_out,
@@ -132,15 +134,10 @@ class Test_DsmRabbitmq:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @bug(
-        library="java",
-        reason="Java calculates 16129003365833597547 as producer hash by not using 'routing_key:true' in edge tags.",
-    )
-    @bug(
-        library="dotnet",
-        reason="Dotnet calculates 3168906112866048140 as producer hash by using 'routing_key:True' in edge tags, with 'True' capitalized, resulting in different hash.",
-    )
+    @bug(library="java", reason="APMAPI-840")
+    @bug(library="dotnet", reason="APMAPI-841")
     @flaky(library="python", reason="APMAPI-724")
+    @missing_feature(context.library <= "nodejs@5.24.0")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -149,11 +146,7 @@ class Test_DsmRabbitmq:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         language_hashes = {
-            "nodejs": {
-                "producer": 5246740674878013159,
-                "consumer": 10215641161150038469,
-                "edge_tags_in": ("direction:in", f"topic:{DSM_ROUTING_KEY}", "type:rabbitmq"),
-            },
+            "nodejs": {"producer": 5246740674878013159, "consumer": 8116149247198652772,},
             "default": {
                 "producer": 8945717757344503539,
                 "consumer": 247866491670975357,
@@ -164,7 +157,7 @@ class Test_DsmRabbitmq:
 
         producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
         consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default"))["edge_tags_in"]
+        edge_tags_in = language_hashes.get("default")["edge_tags_in"]
         edge_tags_out = language_hashes.get("default")["edge_tags_out"]
 
         DsmHelper.assert_checkpoint_presence(

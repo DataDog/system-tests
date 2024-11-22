@@ -1,5 +1,6 @@
 lang_variant:
-    name: OpenJDK11
+    name: DefaultJDK
+    version: default
     cache: true
     install:
       - os_type: linux
@@ -8,20 +9,15 @@ lang_variant:
         remote-command: |
           echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
           sudo apt update
-          sudo apt -y install openjdk-11-jdk
+          sudo apt -y install default-jdk
           
       - os_type: linux
         os_distro: deb
-        remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
-      
-      - os_type: linux
-        os_distro: rpm
-        os_branch: amazon_linux2
-        remote-command: sudo yum -y install java-11-amazon-corretto-headless
+        remote-command: sudo apt-get -y update && sudo apt-get -y install default-jdk
 
       - os_type: linux
         os_distro: rpm
-        remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
+        remote-command: sudo sudo dnf -y install java-devel || sudo yum -y install java-devel
 
 weblog:
     name: test-app-java

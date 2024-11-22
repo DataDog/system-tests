@@ -31,10 +31,6 @@ class Test_ConfigurationVariables:
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
-    @missing_feature(
-        context.weblog_variant in ["sinatra14", "sinatra20", "sinatra21", "uds-sinatra"],
-        reason="Conf is done in weblog instead of library",
-    )
     @scenarios.everything_disabled
     def test_disabled(self):
         """ test DD_APPSEC_ENABLED = false """

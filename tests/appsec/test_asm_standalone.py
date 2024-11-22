@@ -2,13 +2,11 @@ import json
 
 from requests.structures import CaseInsensitiveDict
 
-from utils import weblog, interfaces, scenarios, features, rfc, bug, flaky
+from utils.telemetry_utils import TelemetryUtils
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, flaky
 
 
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.appsec_standalone
-@scenarios.appsec_standalone
-class Test_AppSecStandalone_UpstreamPropagation:
+class AsmStandalone_UpstreamPropagation_Base:
     """APM correctly propagates AppSec events in distributing tracing."""
 
     # TODO downstream propagation
@@ -27,6 +25,13 @@ class Test_AppSecStandalone_UpstreamPropagation:
     #   - The value can be a string to assert the value of the tag
     #   - The value can be a lambda function that will be used to assert the value of the tag (special case for _sampling_priority_v1)
     #
+
+    # Enpoint that triggers an ASM event and a downstream request
+    requestdownstreamUrl = "/requestdownstream"
+
+    # Tested product
+    tested_product = None
+
     # Return a boolean indicating if the test passed
     @staticmethod
     def _assert_tags(first_trace, span, obj, expected_tags):
@@ -55,7 +60,34 @@ class Test_AppSecStandalone_UpstreamPropagation:
         except (KeyError, AssertionError) as e:
             return False
 
-    def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
+    @staticmethod
+    def assert_product_is_enabled(request, product):
+        product_enabled = False
+        tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
+        meta_struct_key = "vulnerability" if product == "iast" else "appsec"
+        for data, trace, span in interfaces.library.get_spans(request=request):
+            # Check if the product is enabled in meta
+            meta = span["meta"]
+            if tags in meta:
+                product_enabled = True
+                break
+            # Check if the product is enabled in meta_struct
+            meta_struct = span["meta_struct"]
+            if meta_struct and meta_struct.get(meta_struct_key):
+                product_enabled = True
+                break
+        assert product_enabled, f"{product} is not available"
+
+    def setup_product_is_enabled(self):
+        headers = {}
+        if self.tested_product == "appsec":
+            headers = {
+                "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
+            }
+        self.check_r = weblog.get(self.requestdownstreamUrl, headers=headers)
+
+    def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -69,7 +101,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_minus_1(self):
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -97,7 +130,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
-    def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
+    def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -111,7 +145,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_0(self):
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -139,7 +174,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
-    def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_1(self):
+    def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -153,7 +189,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_1(self):
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -181,7 +218,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
-    def setup_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_2(self):
+    def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -195,7 +233,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    def test_no_appsec_upstream__no_attack__is_kept_with_priority_1__from_2(self):
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
@@ -223,25 +262,22 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert "X-Datadog-Sampling-Priority" not in downstream_headers
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
-    def setup_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
+    def setup_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream",
+            self.requestdownstreamUrl,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
                 "x-datadog-origin": "rum",
                 "x-datadog-sampling-priority": "-1",
                 "x-datadog-tags": "_dd.p.other=1",
-                "User-Agent": "Arachni/v1",
+                "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
-    def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_minus_1(self):
+    def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
@@ -269,26 +305,23 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    def setup_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
+    def setup_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream",
+            self.requestdownstreamUrl,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
                 "x-datadog-origin": "rum",
                 "x-datadog-sampling-priority": "0",
                 "x-datadog-tags": "_dd.p.other=1",
-                "User-Agent": "Arachni/v1",
+                "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     @flaky(library="python", reason="APPSEC-55222")  # _dd.apm.enabled missing in metrics
-    def test_no_upstream_appsec_propagation__with_attack__is_kept_with_priority_2__from_0(self):
+    def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
@@ -316,7 +349,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    def setup_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_0(self):
+    def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -330,7 +364,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_0(self):
+    def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
@@ -357,7 +392,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["0", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    def setup_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
+    def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -371,7 +407,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_1(self):
+    def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
@@ -398,7 +435,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["1", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    def setup_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_2(self):
+    def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
+        self.setup_product_is_enabled()
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
@@ -412,7 +450,8 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    def test_upstream_appsec_propagation__no_attack__is_propagated_as_is__being_2(self):
+    def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
+        self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
@@ -439,24 +478,21 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    def setup_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
+    def setup_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream",
+            self.requestdownstreamUrl,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
                 "x-datadog-origin": "rum",
                 "x-datadog-sampling-priority": "-1",
-                "User-Agent": "Arachni/v1",
+                "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
-    def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_minus_1(self):
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
@@ -483,11 +519,11 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    def setup_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
+    def setup_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream",
+            self.requestdownstreamUrl,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -497,10 +533,7 @@ class Test_AppSecStandalone_UpstreamPropagation:
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
-    def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_0(self):
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
@@ -527,24 +560,21 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-    def setup_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
+    def setup_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            "/requestdownstream",
+            self.requestdownstreamUrl,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
                 "x-datadog-origin": "rum",
                 "x-datadog-sampling-priority": "1",
-                "User-Agent": "Arachni/v1",
+                "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
         )
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
-    def test_any_upstream_propagation__with_attack__raises_priority_to_2__from_1(self):
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
@@ -570,3 +600,133 @@ class Test_AppSecStandalone_UpstreamPropagation:
         assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone
+@scenarios.appsec_standalone
+class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_Base):
+    """APPSEC correctly propagates AppSec events in distributing tracing."""
+
+    requestdownstreamUrl = "/requestdownstream"
+
+    tested_product = "appsec"
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
+        super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1()
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
+        super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0()
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1()
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
+
+    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
+    def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
+        super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.iast_standalone
+@scenarios.iast_standalone
+class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_Base):
+    """IAST correctly propagates AppSec events in distributing tracing."""
+
+    requestdownstreamUrl = "/vulnerablerequestdownstream"
+
+    tested_product = "iast"
+
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1()
+
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0()
+
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
+
+    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.sca_standalone
+@scenarios.sca_standalone
+class Test_SCAStandalone_Telemetry:
+    """Tracer correctly propagates SCA telemetry in distributing tracing."""
+
+    def assert_standalone_is_enabled(self, request):
+        # test standalone is enabled and dropping traces
+        for data, _trace, span in interfaces.library.get_spans(request):
+            assert span["metrics"]["_sampling_priority_v1"] <= 0
+            assert span["metrics"]["_dd.apm.enabled"] == 0
+
+    def setup_telemetry_sca_enabled_propagated(self):
+        self.r = weblog.get("/")
+
+    def test_telemetry_sca_enabled_propagated(self):
+        self.assert_standalone_is_enabled(self.r)
+
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "app-started":
+                continue
+            configuration = content["payload"]["configuration"]
+
+            configuration_by_name = {item["name"]: item for item in configuration}
+
+        assert configuration_by_name
+
+        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
+
+        cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
+        assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
+
+        outcome_value = True
+        if context.library == "java":
+            outcome_value = str(outcome_value).lower()
+        assert cfg_appsec_enabled.get("value") == outcome_value
+
+    def setup_app_dependencies_loaded(self):
+        self.r = weblog.get("/load_dependency")
+
+    def test_app_dependencies_loaded(self):
+        self.assert_standalone_is_enabled(self.r)
+
+        seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.library)
+
+        for data in interfaces.library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "app-dependencies-loaded":
+                continue
+
+            for dependency in content["payload"]["dependencies"]:
+                dependency_id = dependency["name"]  # +dependency["version"]
+
+                if dependency_id in seen_loaded_dependencies:
+                    seen_loaded_dependencies[dependency_id] = True
+
+        for dependency, seen in seen_loaded_dependencies.items():
+            if not seen:
+                raise Exception(dependency + " not received in app-dependencies-loaded message")
