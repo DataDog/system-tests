@@ -49,7 +49,7 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 	}
 	var otelOpts []otel_trace.SpanStartOption
 	if args.SpanKind != nil {
-		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(*args.SpanKind - 1))))
+		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(*args.SpanKind))))
 	}
 	if t := args.Timestamp; t != nil {
 		tm := time.UnixMicro(*t)
