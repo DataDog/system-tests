@@ -108,7 +108,8 @@ $spansDistributedTracingHeaders = [];
 
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
-    if ($parent = arg($req, 'parent_id')) {
+    $parent = arg($req, 'parent_id');
+    if ($parent !== null) {
         if (isset($spans[$parent])) {
             \DDTrace\switch_stack($spans[$parent]);
             \DDTrace\create_stack();
@@ -167,7 +168,7 @@ $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandl
         return $headers[$headername] ?? null;
     };
     \DDTrace\consume_distributed_tracing_headers($callback);
-    $spanID = $span->parentId ?? null;
+    $spanID = $span->parentId ?? 0;
     $spansDistributedTracingHeaders[$spanID] = $headers;
     return jsonResponse(["span_id" => $spanID]);
 }));
