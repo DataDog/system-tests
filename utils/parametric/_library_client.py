@@ -445,7 +445,7 @@ class APMLibrary:
 
     def dd_make_child_span_and_get_headers(self, headers):
         with self.dd_extract_headers_and_make_child_span("name", headers) as span:
-            headers = self.inject_headers(span.span_id)
+            headers = self.dd_inject_headers(span.span_id)
             return {k.lower(): v for k, v in headers}
 
     @contextlib.contextmanager
