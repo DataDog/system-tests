@@ -70,7 +70,7 @@ class Test_Defaults:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -143,7 +143,7 @@ class Test_Consistent_Configs:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -178,7 +178,7 @@ class Test_Consistent_Configs:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings_2(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -219,7 +219,7 @@ class Test_Environment:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -304,7 +304,7 @@ class Test_Environment:
         ],
     )
     def test_telemetry_otel_env_hiding(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
         payload = event["payload"]
@@ -368,7 +368,7 @@ class Test_Environment:
         ],
     )
     def test_telemetry_otel_env_invalid(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
         payload = event["payload"]
@@ -438,7 +438,7 @@ class Test_TelemetryInstallSignature:
         """
 
         # Some libraries require a first span for telemetry to be emitted.
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
@@ -482,7 +482,7 @@ class Test_TelemetryInstallSignature:
         """
 
         # Some libraries require a first span for telemetry to be emitted.
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started")
@@ -521,7 +521,7 @@ class Test_TelemetrySCAEnvVar:
 
     @staticmethod
     def get_app_started_configuration_by_name(test_agent, test_library):
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
