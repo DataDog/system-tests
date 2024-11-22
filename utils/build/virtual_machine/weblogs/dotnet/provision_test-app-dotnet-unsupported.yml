@@ -15,7 +15,7 @@ lang_variant:
         sudo apt-get update;
         sudo apt-get install -y apt-transport-https
         sudo apt-get update 
-        sudo apt-get install -y dotnet-sdk-2.1
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-2.1
 
 
 weblog:
