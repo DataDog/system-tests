@@ -39,10 +39,8 @@ class TestK8sDJMWithSSI:
         
         traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         
-        # log the traces_json to see what it looks like
-        logger.info(f"Traces received: {traces_json}")
-        
+        logger.debug(f"Traces received: {traces_json}")
         assert len(traces_json) > 0, "No traces found"
-        # TODO: assert spark.application trace is received
+        assert any("spark.application" in trace for trace in traces_json), "No spark.application traces found"
         
-        logger.info(f"Test test_spark_instrumented_with_ssi finished")
+        self.logger.info(f"Test test_spark_instrumented_with_ssi finished")
