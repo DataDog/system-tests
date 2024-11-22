@@ -41,7 +41,7 @@ weblog:
     name: test-app-dotnet-unsupported
     # Mostly based on the docs on supported OSs from
     # https://github.com/dotnet/docs/commit/9693653929db2efbc8f5893c4eee37acf81b5ac6
-    exact_os_branches: [Ubuntu20amd64, Ubuntu18amd64, AmazonLinux2amd64, RedHat7_9amd64]
+    exact_os_branches: [ubuntu20_amd64, ubuntu18_amd64, amazon_linux2, rhel_7_amd64]
     install:
       - os_type: linux
         copy_files:
