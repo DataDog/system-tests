@@ -240,9 +240,9 @@ tests/:
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: irrelevant (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
-    Test_Span_Links_Flags_From_Conflicting_Contexts: irrelevant (implementation specs have not been determined)
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: irrelevant (implementation specs have not been determined)
   test_identify.py: irrelevant
   test_library_conf.py: irrelevant
