@@ -71,6 +71,11 @@ app.post('/trace/span/extract_headers', (req, res) => {
   res.json({ span_id: extractedSpanID });
 });
 
+app.get('/trace/crash', (req, res) => {
+  process.kill(process.pid, 'SIGSEGV');
+  res.json({});
+});
+
 app.post('/trace/span/start', (req, res) => {
   const request = req.body;
   let parent = spans[request.parent_id] || ddContext[request.parent_id];

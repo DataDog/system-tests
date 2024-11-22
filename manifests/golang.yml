@@ -482,6 +482,8 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+    test_inferred_proxy.py:
+      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   parametric/:

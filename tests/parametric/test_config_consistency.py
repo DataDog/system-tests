@@ -2,10 +2,10 @@
 Test configuration consistency for features across supported APM SDKs.
 """
 
-import pytest
-from utils import scenarios, features, context, bug, missing_feature, irrelevant
-from utils.parametric.spec.trace import find_span_in_traces
 from urllib.parse import urlparse
+import pytest
+from utils import scenarios, features, context, bug, missing_feature, irrelevant, flaky
+from utils.parametric.spec.trace import find_span_in_traces
 
 parametrize = pytest.mark.parametrize
 
@@ -183,6 +183,7 @@ class Test_Config_RateLimit:
         reason="PHP backfill model does not support strict two-trace limit, see test below for its behavior",
     )
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    @flaky(library="java", reason="APMAPI-908")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.start_span(name="s1") as s1:
