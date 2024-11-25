@@ -105,4 +105,3 @@ class K8sInstance:
     def export_debug_info(self):
         self.test_agent.export_debug_info()
         self.test_weblog.export_debug_info()
-        

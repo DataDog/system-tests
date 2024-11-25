@@ -106,9 +106,7 @@ class K8sWeblog:
 
         containers.append(container1)
 
-        pod_spec = client.V1PodSpec(
-            containers=containers,
-            service_account=service_account)
+        pod_spec = client.V1PodSpec(containers=containers, service_account=service_account)
 
         pod_body = client.V1Pod(api_version="v1", kind="Pod", metadata=pod_metadata, spec=pod_spec)
         self.logger.info("[Deploy weblog] Weblog pod configuration done.")
