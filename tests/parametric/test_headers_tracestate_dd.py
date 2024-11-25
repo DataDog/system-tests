@@ -555,10 +555,7 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
-    @bug(
-        library="php",
-        reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
-    )
+    @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
         """
         harness sends requests with both tracestate and traceparent.
@@ -625,15 +622,12 @@ class Test_Headers_Tracestate_DD:
         assert len(tracestate4String.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
-    @bug(library="cpp", reason="c++ is not dropping the 33rd (last) list-member")
-    @bug(library="dotnet", reason="dotnet is not dropping the 33rd (last) list-member")
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
-    @bug(library="nodejs", reason="NodeJS is not dropping the 33rd (last) list-member")
-    @bug(library="python", reason="python is not dropping the 33rd (last) list-member")
-    @bug(
-        library="php",
-        reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
-    )
+    @bug(library="cpp", reason="APMAPI-914")
+    @bug(library="dotnet", reason="APMAPI-914")
+    @bug(library="nodejs", reason="APMAPI-914")
+    @bug(library="python", reason="APMAPI-914")
+    @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent.
