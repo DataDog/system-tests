@@ -414,7 +414,7 @@ class APMLibrary:
         if exc_type is None:
             self.dd_flush()
             if self.lang != "cpp":
-                # C++ does not have an otel_flush endpoint
+                # C++ does not have an otel/flush endpoint
                 self.otel_flush(1)
 
     def crash(self) -> None:
