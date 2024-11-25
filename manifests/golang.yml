@@ -509,7 +509,7 @@ tests/:
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
     test_parametric_endpoints.py:
-      Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
+      Test_Parametric_DDSpan_Add_Link: missing_feature (add_link is not supported in ddtrace-go<2.0)
       Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
