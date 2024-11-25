@@ -4,7 +4,6 @@ import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, irrelevant, context, scenarios, features, bug
 
@@ -46,8 +45,7 @@ class Test_Headers_B3multi:
         and activated properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-b3-traceid", "000000000000000000000000075bcd15"],
                     ["x-b3-spanid", "000000003ade68b1"],
@@ -66,8 +64,8 @@ class Test_Headers_B3multi:
         """Ensure that invalid b3multi distributed tracing headers are not extracted.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -80,7 +78,7 @@ class Test_Headers_B3multi:
         """Ensure that b3multi distributed tracing headers are injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         b3_trace_id = headers["x-b3-traceid"]
@@ -99,8 +97,7 @@ class Test_Headers_B3multi:
         and injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-b3-traceid", "000000000000000000000000075bcd15"],
                     ["x-b3-spanid", "000000003ade68b1"],
@@ -126,8 +123,8 @@ class Test_Headers_B3multi:
         and the new span context is injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
