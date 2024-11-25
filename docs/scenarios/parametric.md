@@ -214,7 +214,7 @@ Below is an overview of how the testing architecture is structured:
 - Shared Tests in Python: We write shared test cases using Python's pytest framework. These tests are designed to be generic and interact with the tracers through an HTTP interface.
 - HTTP Servers in Docker: For each language tracer, we build and run an HTTP server within a Docker container. These servers expose the required endpoints defined in the OpenAPI schema and handle the tracer-specific logic.
 - [Test Agent](https://github.com/DataDog/dd-apm-test-agent/) in Docker: We start a test agent in a separate Docker container. This agent collects data (such as spans and traces) submitted by the HTTP servers. It serves as a centralized point for aggregating and accessing test data.
-- Test Execution: The Python test cases use an [HTTP client](/utils/parametric/_library_client.py) to communicate with the servers. The servers generate data based on the interactions, which is then sent to the test agent. The tests can query the test agent to retrieve  data (usually traces) and perform assertions to verify correct behavior.
+- Test Execution: The Python test cases use a [HTTP client](/utils/parametric/_library_client.py) to communicate with the servers. The servers generate data based on the interactions, which is then sent to the test agent. The tests can query the test agent to retrieve data (often traces) and perform assertions to verify correct behavior.
 
 An example of how to get a span from the test agent:
 ```python
