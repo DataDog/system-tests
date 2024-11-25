@@ -1,0 +1,27 @@
+onboarding_parse_results:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  stage: parse_results
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"
+  before_script:
+    #We need authenticate on git repository
+    - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+    - export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+  script:
+      - |
+        for folder in reports/logs*/ ; do
+          echo "Checking folder: ${folder}"
+          for filename in ./${folder}*_feature_parity.json; do
+            if [ -e ${filename} ]
+            then
+              echo "Processing report: ${filename}"
+              curl -X POST ${FP_IMPORT_URL} \
+                --fail \
+                --header "Content-Type: application/json" \
+                --header "FP_API_KEY: ${FP_API_KEY}" \
+                --data "@${filename}" \
+                --include
+            fi
+          done
+        done

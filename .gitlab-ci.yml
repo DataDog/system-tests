@@ -1,6 +1,6 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
-
+  - local: ".gitlab/feature-parity-dashboard.yml"
 stages:
   - child_pipelines
   - ruby_tracer
@@ -49,7 +49,7 @@ onboarding_nodejs:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
+    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
       when: always
     - when: manual
   variables:
@@ -89,7 +89,7 @@ onboarding_java:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
+    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
       when: always
     - when: manual
   variables:
@@ -128,7 +128,7 @@ onboarding_python:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
+    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
       when: always
     - when: manual
   variables:
@@ -168,7 +168,7 @@ onboarding_dotnet:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
+    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
       when: always
     - when: manual
   variables:
@@ -208,7 +208,7 @@ onboarding_ruby:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
+    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
       when: always
     - when: manual
   variables:
@@ -241,7 +241,7 @@ onboarding_php:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
+    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
       when: always
     - when: manual
   variables:
@@ -276,7 +276,7 @@ onboarding_stats_results:
   tags: ["arch:amd64"]
   stage: stats_results
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "scheduleX"
   script:
       - |
         echo "---------------------"
@@ -294,33 +294,6 @@ onboarding_stats_results:
         echo "Number of ec2 created"
         echo "---------------------"
         wc -l reports/logs*/vms_desc.log
-onboarding_parse_results:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  tags: ["arch:amd64"]
-  stage: parse_results
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"
-  before_script:
-    #We need authenticate on git repository
-    - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-    - export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
-  script:
-      - |
-        for folder in reports/logs*/ ; do
-          echo "Checking folder: ${folder}"
-          for filename in ./${folder}*_feature_parity.json; do
-            if [ -e ${filename} ]
-            then
-              echo "Processing report: ${filename}"
-              curl -X POST ${FP_IMPORT_URL} \
-                --fail \
-                --header "Content-Type: application/json" \
-                --header "FP_API_KEY: ${FP_API_KEY}" \
-                --data "@${filename}" \
-                --include
-            fi
-          done
-        done
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
