@@ -30,6 +30,7 @@ scp==0.14.5
 ddapm-test-agent==1.18.0
 filelock==3.12.2  # for parametric tests
 dictdiffer==0.9.0  # for parametric tests
+opentelemetry-api==1.27.0 # for parametric tests
 
 
 #On Boarding requirements
