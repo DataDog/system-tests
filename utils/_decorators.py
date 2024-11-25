@@ -157,6 +157,13 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     return partial(decorator, skip, condition, "flaky", reason, True, _get_skipped_item)
 
 
+def incomplete_test(condition=None, library=None, weblog_variant=None, reason=None):
+    """Decorator, allow to mark a test function/class as not compatible with the tested application"""
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+    return partial(decorator, skip, condition, "incomplete_test", reason, False, _get_expected_failure_item)
+
+
 def released(
     cpp=None,
     dotnet=None,
@@ -201,6 +208,7 @@ def released(
                 or declaration.startswith("flaky")
                 or declaration.startswith("bug")
                 or declaration.startswith("irrelevant")
+                or declaration.startswith("incomplete_test")
             ):
                 return declaration
 
