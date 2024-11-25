@@ -16,7 +16,6 @@ const tracerProvider = new TracerProvider()
 tracerProvider.register()
 
 const express = require('express');
-const Span = require('../../../../../../dd-trace-js/packages/dd-trace/src/opentelemetry/span')
 
 const app = express();
 app.use(express.json());
