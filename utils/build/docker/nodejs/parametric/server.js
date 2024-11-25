@@ -5,9 +5,6 @@ tracer.use('express', false)
 tracer.use('http', false)
 tracer.use('dns', false)
 
-const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
-const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
-
 const { trace, ROOT_CONTEXT } = require('@opentelemetry/api')
 const { millisToHrTime } = require('@opentelemetry/core')
 
@@ -20,6 +17,7 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
+let dummyIdIncrementer = 10000000
 
 function nanoLongToHrTime ({ high = 0, low = 0 } = {}) {
   return [
@@ -60,7 +58,15 @@ app.post('/trace/span/extract_headers', (req, res) => {
   const extracted = tracer.extract('http_headers', linkHeaders);
 
   let extractedSpanID = null;
-  if (extracted && extracted._spanId) {
+
+  if (extracted) {
+    if (!extracted._spanId) {
+      // baggage propagation does not require ids so http_headers could contain no ids
+      // several endpoints in this file rely on having ids so we need to have dummy ids for internal use
+      extracted._spanId = dummyIdIncrementer
+      extracted._traceId = dummyIdIncrementer
+      dummyIdIncrementer += 1
+    }
     extractedSpanID = extracted.toSpanId();
     ddContext[extractedSpanID] = extracted;
   }
