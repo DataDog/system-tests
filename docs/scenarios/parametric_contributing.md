@@ -47,7 +47,9 @@ Then we need to do the following:
 
 ### If the methods you need to run your tests are already written
 
-Make a new test file in `tests/parametric`, copying in the testing code you want to use as a base/guideline (usually the class and and one of the test methods in it).
+If it makes sense to add your tests to a file that already exists, great! Otherwise make a new test file in `tests/parametric`. 
+
+Next copy the testing code you want to use as a base/guideline (usually the class (if using a new file) and one of the test methods in it).
 
 Then:
 
