@@ -8,6 +8,8 @@ from utils.tools import logger
 from utils import scenarios, features
 from utils.k8s_lib_injection.k8s_command_utils import execute_command_sync
 
+from tests.k8s_lib_injection.utils import get_dev_agent_traces
+
 
 @features.djm_ssi_k8s
 @scenarios.k8s_library_injection_djm
@@ -22,21 +24,8 @@ class TestK8sDJMWithSSI:
     We then use the dev test agent to check if the Spark application is instrumented.
     """
 
-    def _get_dev_agent_traces(self, k8s_kind_cluster, retry=10):
-        for _ in range(retry):
-            logger.info(f"[Check traces] Checking traces:")
-            response = requests.get(
-                f"http://{k8s_kind_cluster.cluster_host_name}:{k8s_kind_cluster.get_agent_port()}/test/traces"
-            )
-            traces_json = response.json()
-            if len(traces_json) > 0:
-                logger.debug(f"Test traces response: {traces_json}")
-                return traces_json
-            time.sleep(2)
-        return []
-
     def _get_spark_application_traces(self, test_k8s_instance):
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        traces_json = get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         logger.debug(f"Traces received: {traces_json}")
         return [
             trace
