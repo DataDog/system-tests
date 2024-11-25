@@ -12,7 +12,7 @@ Parametric system-tests are great for assuring uniform behavior between tracers 
 
 The parametric tests rely on the hitting of [http endpoints](/tests/parametric) that run tracer methods to produce and modify spans (manual instrumentation). If you'd like to test behavior across automatic instrumentations of tracers then you should assess if weblog system-tests may be a better fit.
 
-Parametric system-tests are horrible for testing internal or niche tracer behavior. Tests for those should exist on the tracer repos since they're only applicable for that specific tracer.
+System-tests are **not** for testing internal or niche tracer behavior. Unit tests are a better fit for that case.
 
 ## Getting set up
 
