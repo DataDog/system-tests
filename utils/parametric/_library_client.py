@@ -8,9 +8,9 @@ from docker.models.containers import Container
 import pytest
 from _pytest.outcomes import Failed
 import requests
+from opentelemetry.trace import SpanKind, StatusCode
 from utils import context
 
-from opentelemetry.trace import SpanKind, StatusCode
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.tools import logger
 
