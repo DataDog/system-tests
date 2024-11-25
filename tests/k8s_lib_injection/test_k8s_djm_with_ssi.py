@@ -59,7 +59,7 @@ class TestK8sDJMWithSSI:
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_datadog_cluster_agent()
 
-        extra_envs_for_djm_weblog_app = {"LIB_INIT_IMAGE": test_k8s_instance.k8s_kind_cluster.library_init_image}
+        extra_envs_for_djm_weblog_app = {"LIB_INIT_IMAGE": test_k8s_instance.library_init_image}
         test_k8s_instance.deploy_weblog_as_pod(env=extra_envs_for_djm_weblog_app, service_account="spark")
 
         spark_traces = self._get_spark_application_traces(test_k8s_instance)
