@@ -11,8 +11,8 @@ parametrize = pytest.mark.parametrize
 
 
 def enable_tracing_enabled():
-    env1 = {}
-    env2 = {"DD_TRACE_ENABLED": "true"}
+    env1: dict = {}
+    env2: dict = {"DD_TRACE_ENABLED": "true"}
     return parametrize("library_env", [env1, env2])
 
 
@@ -63,8 +63,8 @@ class Test_Config_TraceLogDirectory:
 
 
 def set_service_version_tags():
-    env1 = {}
-    env2 = {"DD_SERVICE": "test_service", "DD_VERSION": "5.2.0"}
+    env1: dict = {}
+    env2: dict = {"DD_SERVICE": "test_service", "DD_VERSION": "5.2.0"}
     return parametrize("library_env", [env1, env2])
 
 
