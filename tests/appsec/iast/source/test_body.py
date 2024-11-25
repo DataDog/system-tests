@@ -16,7 +16,7 @@ class TestRequestBody(BaseSourceTest):
     source_names = None
     source_value = None
 
-    @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
+    @bug(weblog_variant="jersey-grizzly2", reason="APPSEC-56007")
     def test_source_reported(self):
         super().test_source_reported()
 
