@@ -56,8 +56,6 @@ class APMLibraryClient:
                     self._print_logs()
                     message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
                     _fail(message)
-
-            logger.debug(f"Wait for {delay}s for the HTTP library to be ready")
             time.sleep(delay)
         else:
             self._print_logs()
