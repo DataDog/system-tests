@@ -15,7 +15,7 @@ class Test_AwesomeFeature:
 
 Several key points:
 
-* Each new feature should be defined in [_features.py](/utils/_features.py). In most cases this consists of copying one of the already added features, changing the name, bumping the number in the url, and bumping the feature number. In this case we'd add
+* Each new feature should be defined in [_features.py](/utils/_features.py). This consists of adding a feature in [Feature Parity Dashbaord](https://feature-parity.us1.prod.dog/), get the feature id and copying one of the already added features, changing the name and the feature id in the url, and the feature number. In this case we'd add
 
 ```python
 
