@@ -10,7 +10,7 @@ def generate_gitlab_pipeline(languages):
     pipeline = {
         "include": [
             {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"},
-            {"local": '".gitlab/feature-parity-dashboard.yml"'},
+            {"local": ".gitlab/feature-parity-dashboard.yml"},
         ],
         "stages": ["dummy"],
         # A dummy job is necessary for cases where all of the test jobs are manual
