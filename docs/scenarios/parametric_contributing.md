@@ -18,7 +18,7 @@ System-tests are **not** for testing internal or niche tracer behavior. Unit tes
 
 We usually add new system tests when validating a new feature. This feature might not yet be implemented across all dd-trace libraries. If at least one library already supports the feature, you can verify your test by running it against that library.
 
-To begin we need to point system-tests towards a tracer that has the feature implemented (published or on a branch).
+To begin we need to make sure system-tests run with a tracer that has implemented the feature being tested (published or on a branch).
 Follow [Binaries Documentation](../execute/binaries.md) for your particular tracer language to set this up.
 
 [Try running the tests for your tracer language](parametric.md#running-the-tests) and make sure some pass (no need to run the whole suite, you can stop the tests from running with `ctrl+c`). If you have an issue, checkout the [debugging section](parametric.md#debugging) to troubleshoot.
