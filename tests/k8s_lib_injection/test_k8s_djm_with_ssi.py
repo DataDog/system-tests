@@ -9,7 +9,7 @@ from utils import scenarios, features
 from utils.k8s_lib_injection.k8s_command_utils import execute_command_sync
 
 
-@features.k8s_admission_controller
+@features.djm_ssi_k8s
 @scenarios.k8s_library_injection_djm
 @irrelevant(condition=(context.library != "java"), reason="Data Jobs Monitoring requires Java library only.")
 @irrelevant(

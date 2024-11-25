@@ -2466,3 +2466,13 @@ class features:
         """
         pytest.mark.features(feature_id=329)(test_object)
         return test_object
+
+    @staticmethod
+    def djm_ssi_k8s(test_object):
+        """
+        Data Jobs Monitoring: Java lib auto instrumentation for Spark applications on K8s.
+
+        https://feature-parity.us1.prod.dog/#/?feature=342
+        """
+        pytest.mark.features(feature_id=342)(test_object)
+        return test_object
