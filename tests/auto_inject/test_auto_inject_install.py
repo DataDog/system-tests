@@ -15,6 +15,8 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     def test_install(self, virtual_machine):
@@ -94,6 +96,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         ],
         reason="Zombies only appears in containers",
     )
+    @flaky(library="python", reason="APMLP-313")
     def test_crash_no_zombie(self, virtual_machine):
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
@@ -152,6 +155,8 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     def test_install_uninstall(self, virtual_machine):
@@ -174,6 +179,8 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"weblog_variant": "test-app-nodejs-esm", "reason": "INPLAT-136"},
+            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
+            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     def test_install(self, virtual_machine):

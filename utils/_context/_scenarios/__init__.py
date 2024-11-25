@@ -314,7 +314,7 @@ class scenarios:
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     appsec_auto_events_extended = EndToEndScenario(
@@ -361,6 +361,18 @@ class scenarios:
             "DD_IAST_REQUEST_SAMPLING": "100",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    sca_standalone = EndToEndScenario(
+        "SCA_STANDALONE",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APPSEC_SCA_ENABLED": "true",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "false",
+        },
+        doc="SCA standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 

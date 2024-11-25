@@ -4,7 +4,6 @@ import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, context, scenarios, features, bug
 from utils.tools import logger
@@ -53,8 +52,8 @@ class Test_Headers_B3:
         and activated properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
+            test_library.dd_make_child_span_and_get_headers(
+                [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -70,7 +69,7 @@ class Test_Headers_B3:
         """Ensure that invalid b3 distributed tracing headers are not extracted.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [["b3", "0-0-1"]])
+            test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
@@ -84,7 +83,7 @@ class Test_Headers_B3:
         """Ensure that b3 distributed tracing headers are injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         b3Arr = headers["b3"].split("-")
@@ -107,8 +106,8 @@ class Test_Headers_B3:
         and injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -131,7 +130,7 @@ class Test_Headers_B3:
         and the new span context is injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [["b3", "0-0-1"]])
+            headers = test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0

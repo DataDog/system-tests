@@ -7,6 +7,7 @@ from subprocess import run
 import time
 from functools import lru_cache
 from threading import RLock, Thread
+from time import sleep
 
 import docker
 from docker.errors import APIError, DockerException
@@ -41,10 +42,14 @@ def _get_client():
         except:
             pass
 
+        if "Error while fetching server API version: ('Connection aborted.'" in str(e):
+            pytest.exit("Connection refused to docker daemon, is it running?", 1)
+
         raise e
 
 
-_NETWORK_NAME = "system-tests_default"
+_DEFAULT_NETWORK_NAME = "system-tests_default"
+_NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
 def create_network():
@@ -179,6 +184,12 @@ class TestedContainer:
 
         return self._async_start_recursive()
 
+    def network_ip(self) -> str:
+        logger.debug("NetworksSettings: {self._container.attrs['NetworkSettings']}")
+
+        # NetworkSettings.Networks.bridge.IPAddress
+        return self._container.attrs["NetworkSettings"]["Networks"][_NETWORK_NAME]["IPAddress"]
+
     def check_circular_dependencies(self, seen: list):
         """ Check if the container has a circular dependency """
         if self in seen:
@@ -238,6 +249,8 @@ class TestedContainer:
             if exit_code != 0:
                 logger.stdout(f"Healthcheck failed for {self.name}:\n{output}")
                 return False
+            else:
+                logger.info(f"Healthcheck successful for {self.name}")
 
         return True
 
@@ -1032,14 +1045,21 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
 
 class APMTestAgentContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
+    def __init__(self, host_log_folder, agent_port=8126) -> None:
         super().__init__(
             image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
-            environment={"SNAPSHOT_CI": "0", "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket"},
-            healthcheck={"test": f"curl --fail --silent --show-error http://localhost:8126/info", "retries": 60,},
-            ports={"8126": ("127.0.0.1", 8126)},
+            environment={
+                "SNAPSHOT_CI": "0",
+                "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket",
+                "PORT": agent_port,
+            },
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{agent_port}/info",
+                "retries": 60,
+            },
+            ports={agent_port: ("127.0.0.1", agent_port)},
             allow_old_container=False,
             volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
         )

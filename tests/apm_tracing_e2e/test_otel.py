@@ -21,7 +21,7 @@ class Test_Otel_Span:
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
     # - span kind of SpanKind - Internal
-    @bug(context.library == "java", reason="Span.kind is not set to internal, have type instead")
+    @bug(context.library == "java", reason="APMAPI-912")
     @flaky(library="golang", reason="APMAPI-178")
     def test_datadog_otel_span(self):
         spans = interfaces.agent.get_spans_list(self.req)

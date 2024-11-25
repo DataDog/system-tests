@@ -1,9 +1,11 @@
 import json
 import time
+import os
 
 import docker
 from docker.errors import BuildError
 
+import utils.tools
 from utils import context, interfaces
 from utils._context.library_version import LibraryVersion, Version
 from utils._context.containers import (
@@ -14,6 +16,7 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
+from utils.docker_ssi.docker_ssi_definitions import SupportedImages
 from utils.tools import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
@@ -28,11 +31,17 @@ class DockerSSIScenario(Scenario):
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
+        self.agent_port = utils.tools.get_free_port()
+        self.agent_host = "localhost"
+        self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
+
         self._required_containers: list[TestedContainer] = []
-        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(self._agent_container)
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
         self._tested_components = {}
+        # scenario configuration that is going to be reported in the final report
+        self._configuration = {"app_type": "docker_ssi"}
 
     def configure(self, config):
         assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby,php"
@@ -54,8 +63,6 @@ class DockerSSIScenario(Scenario):
         # The runtime that is installed on the base image (because we installed automatically or because the weblog contains the runtime preinstalled).
         # the language is the language used by the tested datadog library
         self._installed_language_runtime = None
-        # usually base_weblog + base_image + (runtime) + arch
-        self._weblog_composed_name = None
 
         logger.stdout(
             f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}]"
@@ -90,8 +97,8 @@ class DockerSSIScenario(Scenario):
         # Extract version of the components that we are testing.
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
+        self.print_installed_components()
 
-        self._weblog_composed_name = f"{self._base_weblog}_{self.ssi_image_builder.get_base_docker_tag()}"
         for container in self._required_containers:
             try:
                 container.configure(self.replay)
@@ -106,7 +113,18 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             warmups.append(container.start)
+
+        if "GITLAB_CI" in os.environ:
+            warmups.append(self.fix_gitlab_network)
+
         return warmups
+
+    def fix_gitlab_network(self):
+        old_weblog_url = self.weblog_url
+        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip())
+        logger.debug(f"GITLAB_CI: Rewrote weblog url from {old_weblog_url} to {self.weblog_url}")
+        self.agent_host = self._agent_container.network_ip()
+        logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -124,21 +142,37 @@ class DockerSSIScenario(Scenario):
     def fill_context(self, json_tested_components):
         """ After extract the components from the weblog, fill the context with the data """
 
-        logger.stdout("\nInstalled components:\n")
+        image_internal_name = SupportedImages().get_internal_name_from_base_image(self._base_image, self._arch)
+        self.configuration["os"] = image_internal_name
+        self.configuration["arch"] = self._arch.replace("linux/", "")
 
         for key in json_tested_components:
+            self._tested_components[key] = json_tested_components[key].lstrip(" ")
             if key == "weblog_url" and json_tested_components[key]:
                 self.weblog_url = json_tested_components[key].lstrip(" ")
                 continue
             if key == "runtime_version" and json_tested_components[key]:
                 self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
+                # Runtime version is stored as configuration not as dependency
+                del self._tested_components[key]
+                self.configuration["runtime_version"] = f"{self._installed_language_runtime}"
             if key.startswith("datadog-apm-inject") and json_tested_components[key]:
                 self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
-            if key.startswith("datadog-apm-library-") and json_tested_components[key]:
+            if key.startswith("datadog-apm-library-") and self._tested_components[key]:
                 library_version_number = json_tested_components[key].lstrip(" ")
                 self._libray_version = LibraryVersion(self._library, library_version_number)
-            self._tested_components[key] = json_tested_components[key].lstrip(" ")
-            logger.stdout(f"{key}: {self._tested_components[key]}")
+                # We store without the lang sufix
+                self._tested_components["datadog-apm-library"] = self._tested_components[key]
+                del self._tested_components[key]
+
+    def print_installed_components(self):
+        logger.stdout("Installed components")
+        for component in self.components:
+            logger.stdout(f"{component}: {self.components[component]}")
+
+        logger.stdout("Configuration")
+        for conf in self.configuration:
+            logger.stdout(f"{conf}: {self.configuration[conf]}")
 
     def post_setup(self):
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
@@ -146,7 +180,9 @@ class DockerSSIScenario(Scenario):
         attempts = 0
         while attempts < 30 and not data:
             attempts += 1
-            data = interfaces.test_agent.collect_data(f"{self.host_log_folder}/interfaces/test_agent")
+            data = interfaces.test_agent.collect_data(
+                f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
+            )
             time.sleep(5)
 
     @property
@@ -163,11 +199,15 @@ class DockerSSIScenario(Scenario):
 
     @property
     def weblog_variant(self):
-        return self._weblog_composed_name
+        return self._base_weblog
 
     @property
     def dd_apm_inject_version(self):
         return self._datadog_apm_inject_version
+
+    @property
+    def configuration(self):
+        return self._configuration
 
 
 class DockerSSIImageBuilder:
@@ -326,9 +366,7 @@ class DockerSSIImageBuilder:
                 buildargs={"DD_LANG": self._library, "BASE_IMAGE": ssi_installer_docker_tag},
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
-            logger.stdout(
-                f"0000[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}]."
-            )
+            logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
             # Build the weblog image
             self._weblog_docker_image, build_logs = get_docker_client().images.build(
                 path=".",
@@ -338,7 +376,6 @@ class DockerSSIImageBuilder:
                 nocache=self._force_build or self.should_push_base_images,
                 buildargs={"BASE_IMAGE": self.ssi_all_docker_tag},
             )
-            logger.info("Weblog build done 000000000!")
             self.print_docker_build_logs(weblog_docker_tag, build_logs)
             logger.info("Weblog build done!")
         except BuildError as e:
@@ -366,7 +403,6 @@ class DockerSSIImageBuilder:
         vm_logger(scenario_name, "docker_build").info("***************************************************************")
 
         for chunk in build_logs:
-            logger.debug("chunk")
             if "stream" in chunk:
                 for line in chunk["stream"].splitlines():
                     vm_logger(scenario_name, "docker_build").info(line)
