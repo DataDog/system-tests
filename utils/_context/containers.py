@@ -42,6 +42,9 @@ def _get_client():
         except:
             pass
 
+        if "Error while fetching server API version: ('Connection aborted.'" in str(e):
+            pytest.exit("Connection refused to docker daemon, is it running?", 1)
+
         raise e
 
 
