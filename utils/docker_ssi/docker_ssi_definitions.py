@@ -139,22 +139,38 @@ class PythonRuntimeInstallableVersions:
 class JSRuntimeInstallableVersions:
     """Node.js runtime versions that can be installed automatically"""
 
-    JS12 = RuntimeInstallableVersion("JS12", "12.22.12")
-    JS14 = RuntimeInstallableVersion("JS14", "14.21.3")
-    JS16 = RuntimeInstallableVersion("JS16", "16.20.2")
-    JS18 = RuntimeInstallableVersion("JS18", "18.20.5")
-    JS20 = RuntimeInstallableVersion("JS20", "20.18.1")
-    JS22 = RuntimeInstallableVersion("JS22", "22.11.0")
+    JS1200 = RuntimeInstallableVersion("JS1200", "12.0")
+    JS1222 = RuntimeInstallableVersion("JS1222", "12.22")
+    JS1400 = RuntimeInstallableVersion("JS1400", "14.0")
+    JS1421 = RuntimeInstallableVersion("JS1421", "14.21")
+    JS1600 = RuntimeInstallableVersion("JS1600", "16.0")
+    JS1620 = RuntimeInstallableVersion("JS1620", "16.20")
+    JS1800 = RuntimeInstallableVersion("JS1800", "18.0")
+    JS1820 = RuntimeInstallableVersion("JS1820", "18.20")
+    JS2000 = RuntimeInstallableVersion("JS2000", "20.0")
+    JS2018 = RuntimeInstallableVersion("JS2018", "20.18")
+    JS2200 = RuntimeInstallableVersion("JS2200", "22.0")
+    JS2211 = RuntimeInstallableVersion("JS2211", "22.11")
+    JS2300 = RuntimeInstallableVersion("JS2300", "23.0")
+    JS2303 = RuntimeInstallableVersion("JS2303", "23.3")
 
     @staticmethod
     def get_all_versions():
         return [
-            JSRuntimeInstallableVersions.JS12,
-            JSRuntimeInstallableVersions.JS14,
-            JSRuntimeInstallableVersions.JS18,
-            JSRuntimeInstallableVersions.JS18,
-            JSRuntimeInstallableVersions.JS20,
-            JSRuntimeInstallableVersions.JS22,
+            JSRuntimeInstallableVersions.JS1200,
+            JSRuntimeInstallableVersions.JS1222,
+            JSRuntimeInstallableVersions.JS1400,
+            JSRuntimeInstallableVersions.JS1421,
+            JSRuntimeInstallableVersions.JS1600,
+            JSRuntimeInstallableVersions.JS1620,
+            JSRuntimeInstallableVersions.JS1800,
+            JSRuntimeInstallableVersions.JS1820,
+            JSRuntimeInstallableVersions.JS2000,
+            JSRuntimeInstallableVersions.JS2018,
+            JSRuntimeInstallableVersions.JS2200,
+            JSRuntimeInstallableVersions.JS2211,
+            JSRuntimeInstallableVersions.JS2300,
+            JSRuntimeInstallableVersions.JS2303,
         ]
 
     @staticmethod
