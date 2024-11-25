@@ -14,7 +14,7 @@ The parametric tests rely on the hitting of [http endpoints](/tests/parametric) 
 
 Parametric system-tests are horrible for testing internal or niche tracer behavior. Tests for those should exist on the tracer repos since they're only applicable for that specific tracer.
 
-## Getting setup
+## Getting set up
 
 Usually the one writing the system-tests is writing for a new feature, potentially one that hasn't been completed across all tracers yet. Therefore they'll want to focus on writing and getting the tests to pass for their tracer implementation first.
 
