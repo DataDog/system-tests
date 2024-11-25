@@ -52,7 +52,7 @@ class Test_Decisionless_Extraction:
         """
         trace_id = 1212121212121212121
         parent_id = 34343434
-        test_library.extract_headers(
+        test_library.dd_extract_headers(
             [
                 ["x-datadog-trace-id", str(trace_id)],
                 ["x-datadog-parent-id", str(parent_id)],
@@ -66,7 +66,7 @@ class Test_Decisionless_Extraction:
             "parent_id": parent_id,
         }
         with test_library:
-            with test_library.start_span(**span_args):
+            with test_library.dd_start_span(**span_args):
                 pass
 
         (trace,) = test_agent.wait_for_num_traces(1)

@@ -13,21 +13,20 @@ type GetTraceConfigReturn struct {
 }
 
 type StartSpanArgs struct {
-	Name        string     `json:"name,omitempty"`
-	Service     string     `json:"service,omitempty"`
-	ParentId    uint64     `json:"parent_id,omitempty"`
-	Resource    string     `json:"resource,omitempty"`
-	Type        string     `json:"type,omitempty"`
-	Origin      string     `json:"origin,omitempty"`
-	SpanTags    []Tuple    `json:"span_tags,omitempty"`
-	SpanLinks   []SpanLink `json:"span_links,omitempty"`
+	Name      string     `json:"name,omitempty"`
+	Service   string     `json:"service,omitempty"`
+	ParentId  uint64     `json:"parent_id,omitempty"`
+	Resource  string     `json:"resource,omitempty"`
+	Type      string     `json:"type,omitempty"`
+	SpanTags  []Tuple    `json:"span_tags,omitempty"`
+	SpanLinks []SpanLink `json:"span_links,omitempty"`
 }
 
 type Tuple []string
 
 type SpanLink struct {
-	ParentId    uint64           `json:"parent_id"`
-	Attributes  AttributeKeyVals `json:"attributes,omitempty"`
+	ParentId   uint64           `json:"parent_id"`
+	Attributes AttributeKeyVals `json:"attributes,omitempty"`
 }
 
 func (x Tuple) Key() string {
@@ -88,15 +87,12 @@ type SpanSetErrorArgs struct {
 }
 
 type OtelStartSpanArgs struct {
-	Name        string           `json:"name"`
-	ParentId    uint64           `json:"parent_id"`
-	SpanKind    uint64           `json:"span_kind"`
-	Service     string           `json:"service"`
-	Resource    string           `json:"resource"`
-	Type        string           `json:"type"`
-	Timestamp   int64            `json:"timestamp"`
-	SpanLinks   []SpanLink       `json:"links"`
-	Attributes  AttributeKeyVals `json:"attributes"`
+	Name       string           `json:"name"`
+	ParentId   *uint64          `json:"parent_id"`
+	SpanKind   *uint64          `json:"span_kind"`
+	Timestamp  *int64           `json:"timestamp"`
+	SpanLinks  []SpanLink       `json:"links"`
+	Attributes AttributeKeyVals `json:"attributes"`
 }
 
 type OtelStartSpanReturn struct {

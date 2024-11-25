@@ -222,20 +222,20 @@ class APMLibraryClient:
     def otel_trace_start_span(
         self,
         name: str,
-        timestamp: int,
-        span_kind: SpanKind,
-        parent_id: int,
-        links: List[Link],
-        attributes: dict = None,
+        timestamp: Optional[int],
+        span_kind: Optional[SpanKind],
+        parent_id: Optional[int],
+        links: Optional[List[Link]],
+        attributes: Optional[dict],
     ) -> StartSpanResponse:
         resp = self._session.post(
             self._url("/trace/otel/start_span"),
             json={
                 "name": name,
                 "timestamp": timestamp,
-                "span_kind": span_kind.value,
                 "parent_id": parent_id,
-                "links": links,
+                "span_kind": span_kind.value if span_kind is not None else None,
+                "links": links or [],
                 "attributes": attributes or {},
             },
         ).json()
@@ -243,7 +243,7 @@ class APMLibraryClient:
         # and others with bignum trace_ids and uint64 span_ids (ex: python). We should standardize this.
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
-    def otel_end_span(self, span_id: int, timestamp: int) -> None:
+    def otel_end_span(self, span_id: int, timestamp: Optional[int]) -> None:
         self._session.post(self._url("/trace/otel/end_span"), json={"id": span_id, "timestamp": timestamp})
 
     def otel_set_attributes(self, span_id: int, attributes) -> None:
@@ -295,7 +295,7 @@ class APMLibraryClient:
         resp = resp.json()
         return resp["value"]
 
-    def get_tracer_config(self) -> Dict[str, Optional[str]]:
+    def config(self) -> Dict[str, Optional[str]]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
         return {
@@ -390,7 +390,7 @@ class _TestOtelSpan:
     def record_exception(self, message: str, attributes: Optional[dict] = None):
         self._client.otel_record_exception(self.span_id, message, attributes)
 
-    def end_span(self, timestamp: int = 0):
+    def end_span(self, timestamp: Optional[int] = None):
         self._client.otel_end_span(self.span_id, timestamp)
 
     def is_recording(self) -> bool:
@@ -414,7 +414,7 @@ class APMLibrary:
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
-            self.flush()
+            self.dd_flush()
 
     def crash(self) -> None:
         self._client.crash()
@@ -423,7 +423,7 @@ class APMLibrary:
         return self._client.container_exec_run(command)
 
     @contextlib.contextmanager
-    def start_span(
+    def dd_start_span(
         self,
         name: str,
         service: Optional[str] = None,
@@ -439,37 +439,40 @@ class APMLibrary:
         yield span
         span.finish()
 
-    def extract_headers_and_make_child_span(self, name, http_headers):
-        parent_id = self.extract_headers(http_headers=http_headers)
-        return self.start_span(name=name, parent_id=parent_id,)
+    def dd_extract_headers_and_make_child_span(self, name, http_headers):
+        parent_id = self.dd_extract_headers(http_headers=http_headers)
+        return self.dd_start_span(name=name, parent_id=parent_id,)
+
+    def dd_make_child_span_and_get_headers(self, headers):
+        with self.dd_extract_headers_and_make_child_span("name", headers) as span:
+            headers = self.dd_inject_headers(span.span_id)
+            return {k.lower(): v for k, v in headers}
 
     @contextlib.contextmanager
     def otel_start_span(
         self,
         name: str,
-        timestamp: int = 0,
-        span_kind: SpanKind = SpanKind.UNSPECIFIED,
-        parent_id: int = 0,
+        timestamp: Optional[int] = None,
+        span_kind: Optional[SpanKind] = None,
+        parent_id: Optional[int] = None,
         links: Optional[List[Link]] = None,
-        attributes: dict = None,
+        attributes: Optional[dict] = None,
+        end_on_exit: bool = True,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(
             name=name,
             timestamp=timestamp,
             span_kind=span_kind,
             parent_id=parent_id,
-            links=links if links is not None else [],
+            links=links,
             attributes=attributes,
         )
         span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
+        if end_on_exit:
+            span.end_span()
 
-        return {
-            "span_id": resp["span_id"],
-            "trace_id": resp["trace_id"],
-        }
-
-    def flush(self) -> bool:
+    def dd_flush(self) -> bool:
         return self._client.trace_flush()
 
     def otel_flush(self, timeout_sec: int) -> bool:
@@ -478,22 +481,19 @@ class APMLibrary:
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
-    def inject_headers(self, span_id) -> List[Tuple[str, str]]:
+    def dd_inject_headers(self, span_id) -> List[Tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
 
-    def extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
+    def dd_extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
         return self._client.trace_extract_headers(http_headers)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
         return self._client.otel_set_baggage(span_id, key, value)
 
-    def finish_span(self, span_id: int) -> None:
-        self._client.finish_span(span_id)
+    def config(self) -> Dict[str, Optional[str]]:
+        return self._client.config()
 
-    def get_tracer_config(self) -> Dict[str, Optional[str]]:
-        return self._client.get_tracer_config()
-
-    def current_span(self) -> Union[_TestSpan, None]:
+    def dd_current_span(self) -> Union[_TestSpan, None]:
         resp = self._client.current_span()
         if resp is None:
             return None

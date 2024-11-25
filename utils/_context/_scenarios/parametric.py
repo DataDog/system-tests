@@ -388,8 +388,8 @@ def node_library_factory() -> APMLibraryTestServer:
         container_name="node-test-client",
         container_tag="node-test-client",
         container_img=f"""
-FROM node:18.10-alpine
-RUN apk add --no-cache bash curl git jq
+FROM node:18.10-slim
+RUN apt-get update && apt-get -y install bash curl git jq
 WORKDIR /usr/app
 COPY {nodejs_reldir}/../app.sh /usr/app/
 RUN printf 'node server.js' >> app.sh
