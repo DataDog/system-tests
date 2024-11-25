@@ -1,6 +1,7 @@
 import inspect
 import os
 import re
+from functools import partial
 
 import pytest
 import semantic_version as semver
@@ -111,43 +112,32 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def missing_feature(condition: bool = None, library=None, weblog_variant=None, reason=None):
+def decorator(skip, condition, decorator_type, reason, ensure_jira, callback, function_or_class):
+    if inspect.isclass(function_or_class):
+        assert condition is not None, _MANIFEST_ERROR_MESSAGE
+
+    if ensure_jira:
+        _ensure_jira_ticket_as_reason(function_or_class, reason)
+
+    if not skip:
+        return function_or_class
+
+    full_reason = decorator_type if reason is None else f"{decorator_type} ({reason})"
+    return callback(function_or_class, full_reason)
+
+
+def missing_feature(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as missing"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-
-    def decorator(function_or_class):
-
-        if inspect.isclass(function_or_class):
-            assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
-
-        if not skip:
-            return function_or_class
-
-        full_reason = "missing_feature" if reason is None else f"missing_feature ({reason})"
-
-        return _get_expected_failure_item(function_or_class, full_reason)
-
-    return decorator
+    return partial(decorator, skip, condition, "missing_feature", reason, False, _get_expected_failure_item)
 
 
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-
-    def decorator(function_or_class):
-
-        if inspect.isclass(function_or_class):
-            assert condition is not None, _MANIFEST_ERROR_MESSAGE
-
-        if not skip:
-            return function_or_class
-
-        full_reason = "irrelevant" if reason is None else f"irrelevant ({reason})"
-        return _get_skipped_item(function_or_class, full_reason)
-
-    return decorator
+    return partial(decorator, skip, condition, "irrelevant", reason, False, _get_skipped_item)
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None):
@@ -157,42 +147,14 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
     """
 
     expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-
-    def decorator(function_or_class):
-
-        if inspect.isclass(function_or_class):
-            assert condition is not None, _MANIFEST_ERROR_MESSAGE
-
-        _ensure_jira_ticket_as_reason(function_or_class, reason)
-
-        if not expected_to_fail:
-            return function_or_class
-
-        full_reason = "bug" if reason is None else f"bug ({reason})"
-        return _get_expected_failure_item(function_or_class, full_reason)
-
-    return decorator
+    return partial(decorator, expected_to_fail, condition, "bug", reason, True, _get_expected_failure_item)
 
 
 def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-
-    def decorator(function_or_class):
-
-        if inspect.isclass(function_or_class):
-            assert condition is not None, _MANIFEST_ERROR_MESSAGE
-
-        _ensure_jira_ticket_as_reason(function_or_class, reason)
-
-        if not skip:
-            return function_or_class
-
-        full_reason = "flaky" if reason is None else f"flaky ({reason})"
-        return _get_skipped_item(function_or_class, full_reason)
-
-    return decorator
+    return partial(decorator, skip, condition, "flaky", reason, True, _get_skipped_item)
 
 
 def released(
