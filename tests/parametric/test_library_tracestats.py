@@ -376,6 +376,7 @@ class Test_Library_Tracestats:
         durations: List[int] = []
         for trace in traces:
             span = find_root_span(trace)
+            assert span is not None
             durations.append(span["duration"])
 
         requests = test_agent.v06_stats_requests()

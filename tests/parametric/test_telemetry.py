@@ -5,6 +5,7 @@ import base64
 import copy
 import json
 import time
+from typing import Any
 import uuid
 
 import pytest
@@ -150,18 +151,20 @@ class Test_Consistent_Configs:
         configuration_by_name = {item["name"]: item for item in configuration}
 
         # # Check that the tags name match the expected value
-        assert configuration_by_name.get("DD_ENV").get("value") == "dev"
-        assert configuration_by_name.get("DD_SERVICE").get("value") == "service_test"
-        assert configuration_by_name.get("DD_VERSION").get("value") == "5.2.0"
-        assert configuration_by_name.get("DD_TRACE_RATE_LIMIT").get("value") == "10"
+        assert configuration_by_name.get("DD_ENV", {}).get("value") == "dev"
+        assert configuration_by_name.get("DD_SERVICE", {}).get("value") == "service_test"
+        assert configuration_by_name.get("DD_VERSION", {}).get("value") == "5.2.0"
+        assert configuration_by_name.get("DD_TRACE_RATE_LIMIT", {}).get("value") == "10"
         assert (
-            configuration_by_name.get("DD_TRACE_HEADER_TAGS").get("value") == "User-Agent:my-user-agent,Content-Type."
+            configuration_by_name.get("DD_TRACE_HEADER_TAGS", {}).get("value")
+            == "User-Agent:my-user-agent,Content-Type."
         )
-        assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == True
+        assert configuration_by_name.get("DD_TRACE_ENABLED", {}).get("value") is True
         assert (
-            configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == r"\d{3}-\d{2}-\d{4}"
+            configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP", {}).get("value")
+            == r"\d{3}-\d{2}-\d{4}"
         )
-        assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER").get("value") == "random-header-name"
+        assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER", {}).get("value") == "random-header-name"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -184,11 +187,11 @@ class Test_Consistent_Configs:
         configuration = event["payload"]["configuration"]
         configuration_by_name = {item["name"]: item for item in configuration}
 
-        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
-        assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES").get("value") == "200-250"
-        assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES").get("value") == "250-200"
+        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY", {}).get("value") == "/some/temporary/directory"
+        assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES", {}).get("value") == "200-250"
+        assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES", {}).get("value") == "250-200"
         assert (
-            configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING").get("value") == False
+            configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING", {}).get("value") is False
         )  # No telemetry received, tested with Python and Java(also tried: DD_HTTP_CLIENT_TAG_QUERY_STRING)
 
 

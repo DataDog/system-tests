@@ -82,7 +82,7 @@ class Test_Headers_Baggage:
             headers = test_library.dd_inject_headers(span.span_id)
 
         assert any("baggage" in header for header in headers)
-        baggage_list = next((header for header in headers if header[0] == "baggage"), [])
+        baggage_list: list = next((header for header in headers if header[0] == "baggage"), [])
         baggage_items = baggage_list[1].split(",")  # baggage items may not be in order
         assert len(baggage_items) == 5
         assert "foo=bar" in baggage_items
