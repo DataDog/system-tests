@@ -6,7 +6,9 @@ Note: a more in-depth overview of parametric system-tests can be found in [param
 
 ## Use cases
 
-Let's figure out if your feature is a good candidate to be tested with parametric system-tests. Parametric system-tests are great for assuring uniform behavior between tracers e.g. [environment variable configuration effects on api methods, sampling, propagation, configuration, telemetry](/tests/parametric).
+Let's figure out if your feature is a good candidate to be tested with parametric system-tests. 
+
+Parametric system-tests are great for assuring uniform behavior between tracers e.g. [environment variable configuration effects on api methods, sampling, propagation, configuration, telemetry](/tests/parametric).
 
 The parametric tests rely on the hitting of [http endpoints](/tests/parametric) that run tracer methods to produce and modify spans (manual instrumentation). If you'd like to test behavior across automatic instrumentations of tracers then you should assess if weblog system-tests may be a better fit.
 
