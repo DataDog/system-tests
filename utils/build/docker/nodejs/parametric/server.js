@@ -61,15 +61,18 @@ app.post('/trace/span/extract_headers', (req, res) => {
   const extracted = tracer.extract('http_headers', linkHeaders);
 
   let extractedSpanID = null;
+  const dummyTracer = require('dd-trace').init()
+  const extractPropagator = dummyTracer._tracer._config.tracePropagationStyle.extract
 
-  if (extracted) {
-    if (!extracted._spanId) {
-      // baggage propagation does not require ids so http_headers could contain no ids
-      // several endpoints in this file rely on having ids so we need to have dummy ids for internal use
-      extracted._spanId = dummyIdIncrementer
-      extracted._traceId = dummyIdIncrementer
-      dummyIdIncrementer += 1
-    }
+  if (extractPropagator.includes('baggage') && extractPropagator.length === 1 && extracted && !extracted._spanId && !extracted._traceId) {
+    // baggage propagation does not require ids so http_headers could contain no ids
+    // several endpoints in this file rely on having ids so we need to have dummy ids for internal use
+    extracted._spanId = dummyIdIncrementer
+    extracted._traceId = dummyIdIncrementer
+    dummyIdIncrementer += 1
+  }
+
+  if (extracted && extracted._spanId) {
     extractedSpanID = extracted.toSpanId();
     ddContext[extractedSpanID] = extracted;
   }
