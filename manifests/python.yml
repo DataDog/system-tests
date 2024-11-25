@@ -425,6 +425,7 @@ tests/:
         uwsgi-poc: v2.17.1
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
+        django-poc: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
