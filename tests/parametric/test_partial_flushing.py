@@ -63,8 +63,8 @@ def do_partial_flush_test(self, test_agent, test_library):
         partial flushing triggers.
     """
     with test_library:
-        with test_library.start_span(name="root") as parent_span:
-            with test_library.start_span(name="child1", parent_id=parent_span.span_id) as child1:
+        with test_library.dd_start_span(name="root") as parent_span:
+            with test_library.dd_start_span(name="child1", parent_id=parent_span.span_id) as child1:
                 pass
             partial_traces = test_agent.wait_for_num_traces(1, clear=True, wait_loops=30)
             partial_trace = find_trace(partial_traces, parent_span.trace_id)
@@ -88,8 +88,8 @@ def no_partial_flush_test(self, test_agent, test_library):
         partial flushing does NOT trigger.
     """
     with test_library:
-        with test_library.start_span(name="root") as parent_span:
-            with test_library.start_span(name="child1", parent_id=parent_span.span_id):
+        with test_library.dd_start_span(name="root") as parent_span:
+            with test_library.dd_start_span(name="child1", parent_id=parent_span.span_id):
                 pass
             try:
                 partial_traces = test_agent.wait_for_num_traces(1, clear=True)
