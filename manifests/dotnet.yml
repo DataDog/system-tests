@@ -242,6 +242,7 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.55.0
       Test_IastStandalone_UpstreamPropagation: v2.55.0
+      Test_SCAStandalone_Telemetry: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
@@ -360,6 +361,8 @@ tests/:
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+    test_inferred_proxy.py:
+      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
@@ -387,8 +390,6 @@ tests/:
       Test_Otel_Env_Vars: v2.53.0
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
-    test_otel_span_with_w3c.py:
-      Test_Otel_Span_With_W3c: v2.42.0
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:

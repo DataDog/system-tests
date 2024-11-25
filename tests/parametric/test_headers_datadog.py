@@ -1,6 +1,5 @@
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils.parametric.spec.trace import find_only_span
 from utils import features, scenarios, bug, context
 
@@ -13,8 +12,7 @@ class Test_Headers_Datadog:
         and activated properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -37,8 +35,7 @@ class Test_Headers_Datadog:
         """Ensure that invalid Datadog distributed tracing headers are not extracted.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "0"],
                     ["x-datadog-parent-id", "0"],
@@ -59,7 +56,7 @@ class Test_Headers_Datadog:
         """Ensure that Datadog distributed tracing headers are injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
@@ -71,8 +68,7 @@ class Test_Headers_Datadog:
         and injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -94,8 +90,7 @@ class Test_Headers_Datadog:
         and the new span context is injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "0"],
                     ["x-datadog-parent-id", "0"],

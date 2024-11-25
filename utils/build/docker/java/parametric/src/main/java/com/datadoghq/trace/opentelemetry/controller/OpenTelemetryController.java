@@ -164,45 +164,28 @@ public class OpenTelemetryController {
     // Build span from request
     SpanBuilder builder = this.tracer.spanBuilder(args.name());
     // Check parent span to create parent context from
-    if (args.parentId() != 0L) {
+    if (args.parentId() != null) {
       Span parentSpan = getSpan(args.parentId());
       if (parentSpan != null) {
         Context contextWithParentSpan = parentSpan.storeInContext(Context.root());
         builder.setParent(contextWithParentSpan);
       }
     }
-    // Check HTTP headers to extract propagated context from
-    if (args.httpHeaders() != null && !args.httpHeaders().isEmpty()) {
-      Context extractedContext = this.propagator.extract(
-          Context.root(),
-          args.httpHeaders(),
-          HeadersTextMapGetter.INSTANCE
-      );
-      builder.setParent(extractedContext);
-    }
     // Add other span information
-    builder.setSpanKind(parseSpanKindNumber(args.spanKind()));
-    if (args.timestamp() > 0) {
+    if (args.spanKind() != null) {
+      builder.setSpanKind(parseSpanKindNumber(args.spanKind()));
+    }
+    if (args.timestamp() != null) {
       builder.setStartTimestamp(args.timestamp(), MICROSECONDS);
     }
-    if (args.links() != null && !args.links().isEmpty()) {
+    if (!args.links().isEmpty()) {
       for (SpanLink spanLink : args.links()) {
-        SpanContext spanContext = null;
         LOGGER.debug("Span link: {}", spanLink);
-        if (spanLink.parentId() > 0) {
-          Span span = getSpan(spanLink.parentId());
-          if (span == null) {
-            return StartSpanResult.error();
-          }
-          spanContext = span.getSpanContext();
-        } else if (spanLink.httpHeaders() != null && !spanLink.httpHeaders().isEmpty()) {
-          Context extractedContext = this.propagator.extract(
-              Context.root(),
-              spanLink.httpHeaders(),
-              HeadersTextMapGetter.INSTANCE
-          );
-          spanContext = Span.fromContext(extractedContext).getSpanContext();
+        Span span = getSpan(spanLink.parentId());
+        if (span == null) {
+          return StartSpanResult.error();
         }
+        SpanContext spanContext = span.getSpanContext();
         if (spanContext != null && spanContext.isValid()) {
           LOGGER.debug("Adding links from context {}", spanContext);
           builder.addLink(spanContext, parseAttributes(spanLink.attributes()));
@@ -341,28 +324,5 @@ public class OpenTelemetryController {
       LOGGER.warn("OTel span {} does not exist.", spanId);
     }
     return span;
-  }
-
-  private static class HeadersTextMapGetter implements TextMapGetter<List<KeyValue>> {
-    private static final HeadersTextMapGetter INSTANCE = new HeadersTextMapGetter();
-
-    @Override
-    public Iterable<String> keys(List<KeyValue> headers) {
-      return headers.stream()
-          .map(KeyValue::key)
-          .toList();
-    }
-
-    @Override
-    public String get(List<KeyValue> headers, String key) {
-      if (headers == null || headers.isEmpty()) {
-        return null;
-      }
-      return headers.stream()
-          .filter(kv -> Objects.equals(key, kv.key()))
-          .map(KeyValue::value)
-          .findFirst()
-          .orElse(null);
-    }
   }
 }

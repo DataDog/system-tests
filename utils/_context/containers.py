@@ -42,10 +42,14 @@ def _get_client():
         except:
             pass
 
+        if "Error while fetching server API version: ('Connection aborted.'" in str(e):
+            pytest.exit("Connection refused to docker daemon, is it running?", 1)
+
         raise e
 
 
-_NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else "system-tests_default"
+_DEFAULT_NETWORK_NAME = "system-tests_default"
+_NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
 def create_network():

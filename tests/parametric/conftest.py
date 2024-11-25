@@ -11,7 +11,7 @@ import hashlib
 from typing import Dict, Generator, List, TextIO, TypedDict, Optional, Any
 import urllib.parse
 
-import requests
+import requests  # type: ignore
 import pytest
 
 from utils.parametric.spec import remoteconfig
@@ -46,10 +46,7 @@ class AgentRequest(TypedDict):
 
 
 class AgentRequestV06Stats(AgentRequest):
-    method: str
-    url: str
-    headers: Dict[str, str]
-    body: V06StatsPayload
+    body: V06StatsPayload  # type: ignore
 
 
 def pytest_configure(config):
@@ -107,7 +104,7 @@ class _TestAgentAPI:
         self._base_url = base_url
         self._session = requests.Session()
         self._pytest_request = pytest_request
-        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
+        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"  # type: ignore
         os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
 
     def _url(self, path: str) -> str:
@@ -300,9 +297,9 @@ class _TestAgentAPI:
             resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
-                raise RuntimeError(resp.text.decode("utf-8"), returncode=1)
+                raise RuntimeError(resp.text.decode("utf-8"))
         except Exception as e:
-            raise RuntimeError(f"Could not connect to test agent: {e}", returncode=1)
+            raise RuntimeError(f"Could not connect to test agent: {e}") from e
         else:
             yield self
             # Query for the results of the test.
@@ -310,7 +307,7 @@ class _TestAgentAPI:
                 self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
             )
             if resp.status_code != 200:
-                raise RuntimeError(resp.text.decode("utf-8"), returncode=1)
+                raise RuntimeError(resp.text.decode("utf-8"))
 
     def wait_for_num_traces(
         self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
@@ -460,7 +457,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
-    def wait_for_tracer_flare(self, case_id: str = None, clear: bool = False, wait_loops: int = 100):
+    def wait_for_tracer_flare(self, case_id: Optional[str] = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -479,7 +476,7 @@ class _TestAgentAPI:
 
 
 @pytest.fixture(scope="session")
-def docker() -> str:
+def docker() -> Optional[str]:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
     r = subprocess.run(

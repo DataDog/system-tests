@@ -789,6 +789,20 @@ def request_downstream():
     return response.data
 
 
+@app.get("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.post("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.options("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.get("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+@app.post("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+@app.options("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+def vulnerable_request_downstream():
+    weak_hash()
+    http_ = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http_.request("GET", "http://localhost:7777/returnheaders")
+    return response.data
+
+
 @app.get("/returnheaders", response_class=PlainTextResponse)
 @app.post("/returnheaders", response_class=PlainTextResponse)
 @app.options("/returnheaders", response_class=PlainTextResponse)

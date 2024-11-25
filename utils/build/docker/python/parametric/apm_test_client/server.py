@@ -394,14 +394,10 @@ def trace_span_current() -> TraceSpanCurrentReturn:
 
 class OtelStartSpanArgs(BaseModel):
     name: str
-    parent_id: int
-    span_kind: int
-    service: str = ""
-    resource: str = ""
-    type: str = ""
-    links: List[Dict] = []
-    timestamp: int
-    http_headers: List[Tuple[str, str]]
+    parent_id: Optional[int] = None
+    span_kind: Optional[int] = None
+    timestamp: Optional[int] = None
+    links: List[Dict]
     attributes: dict
 
 
@@ -414,51 +410,16 @@ class OtelStartSpanReturn(BaseModel):
 def otel_start_span(args: OtelStartSpanArgs):
     otel_tracer = opentelemetry.trace.get_tracer(__name__)
 
-    if args.parent_id:
-        parent_span = otel_spans[args.parent_id]
-    elif args.http_headers:
-        headers = {k: v for k, v in args.http_headers}
-        ddcontext = HTTPPropagator.extract(headers)
-        parent_span = OtelNonRecordingSpan(
-            OtelSpanContext(
-                ddcontext.trace_id,
-                ddcontext.span_id,
-                True,
-                (
-                    TraceFlags.SAMPLED
-                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                    else TraceFlags.DEFAULT
-                ),
-                TraceState.from_header([ddcontext._tracestate]),
-            )
-        )
-    else:
-        parent_span = None
-
+    parent_span = otel_spans.get(args.parent_id)
     links = []
     for link in args.links:
-        parent_id = link.get("parent_id", 0)
-        if parent_id > 0:
-            span_context = otel_spans[parent_id].get_span_context()
-        else:
-            headers = {k: v for k, v in link["http_headers"]}
-            ddcontext = HTTPPropagator.extract(headers)
-            span_context = OtelSpanContext(
-                ddcontext.trace_id,
-                ddcontext.span_id,
-                True,
-                (
-                    TraceFlags.SAMPLED
-                    if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                    else TraceFlags.DEFAULT
-                ),
-                TraceState.from_header([ddcontext._tracestate]),
-            )
+        parent_id = link["parent_id"]
+        span_context = otel_spans[parent_id].get_span_context()
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
 
     # parametric tests expect span kind to be 0 for internal, 1 for server, 2 for client, ....
     # while parametric tests set 0 for unset, 1 internal, 2 for server, 3 for client, ....
-    span_kind_int = max(0, args.span_kind - 1)
+    span_kind_int = (args.span_kind or 1) - 1
     with otel_tracer.start_as_current_span(
         args.name,
         context=set_span_in_context(parent_span),
@@ -537,7 +498,7 @@ def otel_record_exception(args: OtelRecordExceptionArgs) -> OtelRecordExceptionR
 
 class OtelEndSpanArgs(BaseModel):
     id: int
-    timestamp: int
+    timestamp: Optional[int]
 
 
 class OtelEndSpanReturn(BaseModel):

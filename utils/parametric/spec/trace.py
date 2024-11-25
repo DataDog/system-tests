@@ -257,4 +257,4 @@ def id_to_int(value: Union[str, int]) -> int:
         # as stringified integers (ids will be stringified to workaround percision issues in some languages)
         return int(value)
     except ValueError:
-        return int(value, 16)
+        return int(value, 16)  # type: ignore
