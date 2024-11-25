@@ -207,9 +207,15 @@ app.post('/trace/otel/end_span', (req, res) => {
 });
 
 app.post('/trace/otel/flush', async (req, res) => {
-  await tracerProvider.forceFlush()
-  otelSpans.clear();
-  res.json({ success: true });
+  tracerProvider.forceFlush().then(function() {
+    otelSpans.clear()
+    res.json({ success: true })
+  })
+  .catch(function(rej) {
+    //here when you reject the promise
+    console.log(rej)
+    res.json({ success: false })
+  });
 });
 
 app.post('/trace/otel/is_recording', (req, res) => {

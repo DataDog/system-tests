@@ -413,8 +413,7 @@ class APMLibrary:
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
             self.dd_flush()
-            if self.lang not in ("cpp", "nodejs"):
-                # FIXME(munir): nodejs app does not support calling otel_flush if otel spans are not created 
+            if self.lang != "cpp":
                 # C++ does not have an otel_flush endpoint
                 self.otel_flush(1)
 
