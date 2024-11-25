@@ -21,7 +21,7 @@ We usually add new system tests when validating a new feature. This feature migh
 To begin we need to make sure system-tests run with a tracer that has implemented the feature being tested (published or on a branch).
 Follow [Binaries Documentation](../execute/binaries.md) for your particular tracer language to set this up.
 
-[Try running the tests for your tracer language](parametric.md#running-the-tests) and make sure some pass (no need to run the whole suite, you can stop the tests from running with `ctrl+c`). If you have an issue, checkout the [debugging section](parametric.md#debugging) to troubleshoot.
+[Verify that you can run some parametric tests with your custom tracer](parametric.md#running-the-tests). Make sure some pass (no need to run the whole suite, you can stop the tests from running with `ctrl+c`). If you have an issue, checkout the [debugging section](parametric.md#debugging) to troubleshoot.
 
 ## Writing the tests
 
