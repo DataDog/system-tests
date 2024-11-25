@@ -8,7 +8,7 @@ tracer.use('dns', false)
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
-const { trace, ROOT_CONTEXT } = require('@opentelemetry/api')
+const { trace, ROOT_CONTEXT, SpanKind } = require('@opentelemetry/api')
 const { millisToHrTime } = require('@opentelemetry/core')
 
 const { TracerProvider } = tracer
@@ -16,6 +16,7 @@ const tracerProvider = new TracerProvider()
 tracerProvider.register()
 
 const express = require('express');
+const Span = require('../../../../../../dd-trace-js/packages/dd-trace/src/opentelemetry/span')
 
 const app = express();
 app.use(express.json());
@@ -35,6 +36,14 @@ const otelStatusCodes = {
   'UNSET': 0,
   'OK': 1,
   'ERROR': 2
+}
+
+const otelSpanKinds = {
+  0: SpanKind.INTERNAL,
+  1: SpanKind.SERVER,
+  2: SpanKind.CLIENT,
+  3: SpanKind.PRODUCER,
+  4: SpanKind.CONSUMER
 }
 
 const spans = new Map()
@@ -177,7 +186,7 @@ app.post('/trace/otel/start_span', (req, res) => {
     }
     const span = otelTracer.startSpan(request.name, {
         type: request.type,
-        kind: kind,
+        kind: otelSpanKinds[request.span_kind],
         attributes: request.attributes,
         links,
         startTime: microLongToHrTime(request.timestamp)

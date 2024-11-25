@@ -5,8 +5,8 @@ import pytest
 
 from typing import Union
 from utils.parametric._library_client import Link
-from utils.dd_constants import StatusCode
-from utils.dd_constants import SpanKind
+from opentelemetry.trace import StatusCode
+from opentelemetry.trace import SpanKind
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links

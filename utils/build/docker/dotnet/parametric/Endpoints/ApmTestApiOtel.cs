@@ -69,19 +69,19 @@ public abstract class ApmTestApiOtel : ApmTestApi
         {
             switch (Convert.ToInt64(spanKind))
             {
-                case 1:
+                case 0:
                     kind = ActivityKind.Internal;
                     break;
-                case 2:
+                case 1:
                     kind = ActivityKind.Server;
                     break;
-                case 3:
+                case 2:
                     kind = ActivityKind.Client;
                     break;
-                case 4:
+                case 3:
                     kind = ActivityKind.Producer;
                     break;
-                case 5:
+                case 4:
                     kind = ActivityKind.Consumer;
                     break;
                 default:

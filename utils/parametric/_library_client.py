@@ -10,7 +10,7 @@ from _pytest.outcomes import Failed
 import requests
 from utils import context
 
-from utils.dd_constants import SpanKind, StatusCode
+from opentelemetry.trace import SpanKind, StatusCode
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils.tools import logger
 
