@@ -10,7 +10,7 @@ Let's figure out if your feature is a good candidate to be tested with parametri
 
 Parametric system-tests are great for assuring uniform behavior between tracers e.g. [environment variable configuration effects on api methods, sampling, propagation, configuration, telemetry](/tests/parametric).
 
-The parametric tests rely on the hitting of [http endpoints](/tests/parametric) that run tracer methods to produce and modify spans (manual instrumentation). If you'd like to test behavior across automatic instrumentations of tracers then you should assess if weblog system-tests may be a better fit.
+Parametric tests make requests to [http endpoints](/tests/parametric) dedicated to various tracer methods for creating and modifying spans (manual instrumentation). If you want to test automatic instrumentation behavior, weblog system-tests may be a better fit.
 
 System-tests are **not** for testing internal or niche tracer behavior. Unit tests are a better fit for that case.
 
