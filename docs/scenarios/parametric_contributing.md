@@ -2,7 +2,7 @@
 
 Note: a more in-depth overview of parametric system-tests can be found in [parametric.md](parametric.md).
 
-**MUST:** Acquaint yourself with [this section](parametric.md#architecture-how-system-tests-work) for reference so you understand/can track what system-tests are actually doing.
+**MUST:** Acquaint yourself with [how system tests work](parametric.md#architecture-how-system-tests-work) before proceeding.
 
 ## Use cases
 
