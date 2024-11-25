@@ -16,7 +16,7 @@ System-tests are **not** for testing internal or niche tracer behavior. Unit tes
 
 ## Getting set up
 
-Usually the one writing the system-tests is writing for a new feature, potentially one that hasn't been completed across all tracers yet. Therefore they'll want to focus on writing and getting the tests to pass for their tracer implementation first.
+We usually add new system tests when validating a new feature. This feature might not yet be implemented across all dd-trace libraries. If at least one library already supports the feature, you can verify your test by running it against that library
 
 To begin we need to point system-tests towards a tracer that has the feature implemented (published or on a branch).
 Follow [Binaries Documentation](../execute/binaries.md) for your particular tracer language to set this up.
