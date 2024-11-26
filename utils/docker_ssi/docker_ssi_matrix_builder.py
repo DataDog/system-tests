@@ -37,7 +37,7 @@ def generate_gitlab_pipeline(languages):
                 "if [ -e ${filename} ]",
                 "then",
                 'echo "Processing report: ${filename}"',
-                '#curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json"  --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+                'curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json"  --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
                 "fi",
                 "done",
                 "done",
