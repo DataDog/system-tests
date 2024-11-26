@@ -7,7 +7,7 @@ from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
-from utils import scenarios, features
+from utils import scenarios, features, irrelevant
 
 from tests.k8s_lib_injection.utils import get_dev_agent_traces
 
@@ -187,5 +187,9 @@ def backend_trace_validator(trace_id, trace_data):
 
 @features.k8s_admission_controller
 @scenarios.k8s_library_injection_basic
+@irrelevant(
+    condition=(context.weblog_variant == "dd-djm-spark-test-app"),
+    reason="djm-spark-test-app web-log variant is not supported in this scenario.",
+)
 class TestAdmisionControllerBasic(_TestAdmisionController):
     pass
