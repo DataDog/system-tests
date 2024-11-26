@@ -246,6 +246,14 @@ This endpoint should set a cookie with empty cookie value without SameSite=Stric
 
 This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
 
+### GET /iast/header_injection/reflected/exclusion
+
+This endpoint should set the header whose name comes in the `reflected` field of the query string, with the reflected value of another header whose name comes in the `origin` field of the query string.
+
+### GET /iast/header_injection/reflected/no-exclusion
+
+Same behaviour as `/iast/header_injection/reflected/exclusion` but with separate specific cases to obtain a different vulnerability location to avoid deduplication.
+
 ### \[GET, POST\] /iast/source/*
 
 This group of endpoints should trigger vulnerabilities detected by IAST with untrusted data coming from certain sources. The used vulnerability is irrelevant. It could be a command injection, SQL injection, or something else.
@@ -512,6 +520,23 @@ By default, the generated event has the following specification:
 
 Values can be changed with the query params called `event_name`.
 
+### GET '/inferred-proxy/span-creation'
+
+This endpoint is supposed to be hit with the necessary headers that are used to create inferred proxy
+spans for routers such as AWS API Gateway. Not including the headers means a span will not be created by the tracer
+if the feature exists.
+
+The endpoint supports the following query parameters:
+ - `status_code`: str containing status code to used in API response
+
+The headers necessary to create a span with example values:
+  `x-dd-proxy-request-time-ms`: start time in milliseconds
+  `x-dd-proxy-path`: "/api/data",
+  `x-dd-proxy-httpmethod`: "GET",
+  `x-dd-proxy-domain-name`: "system-tests-api-gateway.com",
+  `x-dd-proxy-stage`: "staging",
+  `x-dd-proxy`: "aws-apigateway",
+
 ### GET /users
 
 This endpoint calls the appsec blocking SDK functions used for blocking users. If the expected parameter matches one of
@@ -684,6 +709,10 @@ This endpoint is used to validate DSM context extraction works correctly when pr
 This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning it's value (the headers received) to inspect them, looking for
 distributed tracing propagation headers.
 
+### \[GET\] /vulnerablerequestdownstream
+
+Similar to `/requestdownstream`. This is used to test standalone IAST downstream propagation. It should call `/returnheaders` and returning return the resulting json data structure from `/returnheaders` in its response.
+
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
 
@@ -748,7 +777,6 @@ Query parameters required in the `GET` method:
 Examples:
 - `GET`: `/session/user?sdk_user=sdkUser`
 
-
 ### \[GET\] /mock_s3/put_object
 
 This endpoint is used to test the s3 integration. It creates a bucket if
@@ -790,3 +818,4 @@ stripped (accounting for a quirk in the boto3 library).
 
 Examples:
 - `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
+

@@ -1180,6 +1180,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_sink_template_injection(test_object):
+        """
+        IAST Sink: Template Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=330
+        """
+        pytest.mark.features(feature_id=330)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_source_request_parameter_value(test_object):
         """
         IAST Source: Request Parameter Value
@@ -2248,6 +2258,16 @@ class features:
         return test_object
 
     @staticmethod
+    def sca_standalone(test_object):
+        """
+        SCA Standalone Billing
+
+        https://feature-parity.us1.prod.dog/#/?feature=320
+        """
+        pytest.mark.features(feature_id=320)(test_object)
+        return test_object
+
+    @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """
         Profiling works when enabled through the agent installer script in Host environments
@@ -2438,6 +2458,17 @@ class features:
         return test_object
 
     @staticmethod
+    def aws_api_gateway_inferred_span_creation(test_object):
+        """
+        AWS Api Gateway: Tests that API Gateway inferred span creation works as expected
+
+        https://feature-parity.us1.prod.dog/#/?feature=341
+        """
+        pytest.mark.features(feature_id=341)(test_object)
+
+        return test_object
+
+    @staticmethod
     def parametric_endpoint_parity(test_object):
         """
         Enforces standardized behaviors for configurations across the tracing libraries.
@@ -2445,4 +2476,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=339
         """
         pytest.mark.features(feature_id=339)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_stack_trace(test_object):
+        """
+        IAST: Stack Trace
+
+        https://feature-parity.us1.prod.dog/#/?feature=329
+        """
+        pytest.mark.features(feature_id=329)(test_object)
         return test_object

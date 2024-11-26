@@ -1,6 +1,7 @@
 using Datadog.Trace;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 
 
@@ -21,6 +22,15 @@ namespace weblog
                     childScope.Span.SetTag("garbage" + i, RandomString(50));
                 }
             }
+        }
+
+        public static string DoHttpGet(string url)
+        {
+            using var client = new HttpClient();
+            var response = client.GetAsync(url).Result;
+            response.EnsureSuccessStatusCode();
+
+            return response.Content.ReadAsStringAsync().Result;
         }
 
         private static string RandomString(int length)

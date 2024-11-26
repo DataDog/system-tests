@@ -1,5 +1,7 @@
-from utils import scenarios, features, flaky
+import re
+from utils import scenarios, features, flaky, irrelevant, context
 from utils.tools import logger
+from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
@@ -77,6 +79,69 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
+class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
+    @parametrize_virtual_machines(
+        bugs=[{"library": "ruby", "reason": "APMLP-312"},]
+    )
+    @irrelevant(
+        context.weblog_variant
+        not in [
+            "test-app-java-container",
+            "test-app-dotnet-container",
+            "test-app-ruby-container",
+            "test-app-python-container",
+            "test-app-nodejs-container",
+        ],
+        reason="Zombies only appears in containers",
+    )
+    @flaky(library="python", reason="APMLP-313")
+    def test_crash_no_zombie(self, virtual_machine):
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+
+        process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+        logger.info("Initial process tree: " + process_tree)
+
+        child_pids = get_child_pids(virtual_machine).strip()
+
+        if child_pids != "":
+            logger.warning("Child PIDs found: " + child_pids)
+            process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+            logger.warning("Failure process tree: " + process_tree)
+
+        assert child_pids == ""
+
+        try:
+            crash_result = fork_and_crash(virtual_machine)
+            logger.info("fork_and_crash: " + crash_result)
+        except Exception as e:
+            process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+            logger.warning("Failure process tree: " + process_tree)
+            raise
+
+        # At this point, there should be no zombies and no child pids
+        child_pids = get_child_pids(virtual_machine).strip()
+
+        if child_pids != "":
+            logger.warning("Child PIDs found: " + child_pids)
+            process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+            logger.warning("Failure process tree: " + process_tree)
+
+        assert child_pids == ""
+
+        zombies = get_zombies(virtual_machine).strip()
+
+        if zombies != "":
+            logger.warning("Zombies found: " + child_pids)
+            process_tree = self.execute_command(virtual_machine, "ps aux --forest")
+            logger.warning("Failure process tree: " + process_tree)
+
+        assert zombies == ""
+
+
+@features.installer_auto_instrumentation
+@scenarios.installer_auto_injection
 class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
     #  on the installer. As we can't only uninstall the injector, we are skipping
@@ -114,9 +179,9 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     )
     def test_install(self, virtual_machine):
         logger.info(
-            f"Launching test_install for : [{virtual_machine.name}] [{virtual_machine.get_current_deployed_weblog().runtime_version}]..."
+            f"Launching test_install for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
         )
         self._test_install(virtual_machine)
         logger.info(
-            f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_current_deployed_weblog().runtime_version}]"
+            f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )

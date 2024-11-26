@@ -3,9 +3,6 @@ FROM golang:1.22 AS build
 # print important lib versions
 RUN go version && curl --version
 
-# install jq
-RUN apt-get update && apt-get -y install jq
-
 # download go dependencies
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/

@@ -28,8 +28,9 @@ if [ -f "$FILE" ]; then
     echo "App already compiled."
 else 
     sudo sed -i "s/18080/$PORT/g" JettyServletMain.java
-    javac -cp "jetty-classpath/*:." JettyServletMain.java
+    javac -cp "jetty-classpath/*:." JettyServletMain.java CrashServlet.java
     sudo cp JettyServletMain.class /home/datadog
+    sudo cp CrashServlet.class /home/datadog
 fi
 
 echo "Compiling Java app DONE"

@@ -31,7 +31,7 @@ def get_iast_event(request):
 
 
 def assert_iast_vulnerability(
-    request, vulnerability_count=1, vulnerability_type=None, expected_location=None, expected_evidence=None
+    request, vulnerability_count=None, vulnerability_type=None, expected_location=None, expected_evidence=None
 ):
     iast = get_iast_event(request=request)
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
@@ -45,7 +45,8 @@ def assert_iast_vulnerability(
     if expected_evidence:
         vulns = [v for v in vulns if v.get("evidence", {}).get("value", "") == expected_evidence]
         assert vulns, f"No vulnerability with evidence value {expected_evidence}"
-    assert len(vulns) == vulnerability_count
+    if vulnerability_count is not None:
+        assert len(vulns) == vulnerability_count
 
 
 def _check_telemetry_response_from_agent():
@@ -123,7 +124,6 @@ class BaseSinkTestWithoutTelemetry:
     def test_insecure(self):
         assert_iast_vulnerability(
             request=self.insecure_request,
-            vulnerability_count=1,
             vulnerability_type=self.vulnerability_type,
             expected_location=self.expected_location,
             expected_evidence=self.expected_evidence,
@@ -159,10 +159,10 @@ class BaseSinkTestWithoutTelemetry:
         # to avoid false positive, we need to check first that the insecure endpoint is vulnerable
         self.check_test_insecure()
 
-        self.assert_no_iast_event(self.secure_request)
+        self.assert_no_iast_event(self.secure_request, self.vulnerability_type)
 
     @staticmethod
-    def assert_no_iast_event(request):
+    def assert_no_iast_event(request, tested_vulnerability_type=None):
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
         for data, _, span in interfaces.library.get_spans(request=request):
@@ -170,8 +170,69 @@ class BaseSinkTestWithoutTelemetry:
             meta = span.get("meta", {})
             iast_json = meta.get("_dd.iast.json")
             if iast_json is not None:
-                logger.error(json.dumps(iast_json, indent=2))
-                raise ValueError("Unexpected vulnerability reported")
+                if tested_vulnerability_type is None:
+                    logger.error(json.dumps(iast_json, indent=2))
+                    raise ValueError("Unexpected vulnerability reported")
+                elif iast_json["vulnerabilities"]:
+                    for vuln in iast_json["vulnerabilities"]:
+                        if vuln["type"] == tested_vulnerability_type:
+                            logger.error(json.dumps(iast_json, indent=2))
+                            raise ValueError(f"Unexpected vulnerability reported: {vuln['type']}")
+
+
+def validate_stack_traces(request):
+
+    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
+    assert spans, "No root span found"
+    span = spans[0]
+    meta = span.get("meta", {})
+    assert "_dd.iast.json" in meta, "No iast event in root span"
+    iast = meta["_dd.iast.json"]
+    assert iast["vulnerabilities"], "Expected at least one vulnerability"
+
+    # To simplify as we are relaying in insecure_request that is expected to have one vulnerability
+    vuln = iast["vulnerabilities"][0]
+
+    assert vuln["stackId"], "no 'stack_id's present'"
+    assert "meta_struct" in span, "'meta_struct' not found in span"
+    assert "_dd.stack" in span["meta_struct"], "'_dd.stack' not found in 'meta_struct'"
+    assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
+
+    stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
+    assert stack_trace, "No stack traces to validate"
+
+    assert "language" in stack_trace, "'language' not found in stack trace"
+    assert stack_trace["language"] in (
+        "php",
+        "python",
+        "nodejs",
+        "java",
+        "dotnet",
+        "go",
+        "ruby",
+    ), "unexpected language"
+
+    # Ensure the stack ID corresponds to an appsec event
+    assert "id" in stack_trace, "'id' not found in stack trace"
+    assert stack_trace["id"] == vuln["stackId"], "'id' doesn't correspond to an appsec event"
+
+    assert "frames" in stack_trace, "'frames' not found in stack trace"
+    assert len(stack_trace["frames"]) <= 32, "stack trace above size limit (32 frames)"
+
+    # Vulns without location path are not expected to have a stack trace
+    location = vuln["location"]
+    assert location is not None and "path" in location, "This vulnerability is not expected to have a stack trace"
+
+    locationFrame = None
+    for frame in stack_trace["frames"]:
+        # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
+        if (
+            location["path"] in frame["class_name"]
+            and location["method"] in frame["function"]
+            and location["line"] == frame["line"]
+        ):
+            locationFrame = frame
+    assert locationFrame is not None, "location not found in stack trace"
 
 
 class BaseSinkTest(BaseSinkTestWithoutTelemetry):

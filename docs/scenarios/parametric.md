@@ -12,11 +12,11 @@ from utils.parametric.spec.trace import find_span, find_trace, find_span_in_trac
 @pytest.mark.parametrize("library_env", [{"DD_ENV": "prod"}])
 def test_datadog_spans(library_env, test_library, test_agent):
     with test_library:
-        with test_library.start_span("operation") as s1:
-            with test_library.start_span("operation1", service="hello", parent_id=s1.span_id) as s2:
+        with test_library.dd_start_span("operation") as s1:
+            with test_library.dd_start_span("operation1", service="hello", parent_id=s1.span_id) as s2:
                 pass
 
-        with test_library.start_span("otel_rocks") as os1:
+        with test_library.dd_start_span("otel_rocks") as os1:
             pass
 
     # Waits for 2 traces to be captured and avoids sorting the received spans by start time

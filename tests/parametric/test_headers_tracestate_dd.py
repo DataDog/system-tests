@@ -3,7 +3,6 @@ from typing import Any
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
-from utils.parametric.headers import make_single_request_and_get_inject_headers
 from utils import bug, missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -29,8 +28,7 @@ class Test_Headers_Tracestate_DD:
         """
         with test_library:
             # 1) x-datadog-sampling-priority > 0
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
@@ -39,8 +37,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 2) x-datadog-sampling-priority <= 0
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
@@ -49,13 +46,12 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 3) Sampled = 1, tracestate[dd][s] is not present
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
             )
 
             # 4) Sampled = 1, tracestate[dd][s] <= 0
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1,dd=s:-1"],
@@ -63,8 +59,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 5) Sampled = 1, tracestate[dd][s] > 0
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1,dd=s:2"],
@@ -72,13 +67,12 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 6) Sampled = 0, tracestate[dd][s] is not present
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],]
+            headers6 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],]
             )
 
             # 7) Sampled = 0, tracestate[dd][s] <= 0
-            headers7 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers7 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
                     ["tracestate", "foo=1,dd=s:-1"],
@@ -86,8 +80,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 8) Sampled = 0, tracestate[dd][s] > 0
-            headers8 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers8 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
                     ["tracestate", "foo=1,dd=s:1"],
@@ -200,8 +193,7 @@ class Test_Headers_Tracestate_DD:
         """
         with test_library:
             # 1) x-datadog-origin is a well-known value
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
@@ -210,8 +202,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 2) x-datadog-origin is NOT a well-known value
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
@@ -220,8 +211,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 3) x-datadog-origin has invalid characters
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
@@ -230,8 +220,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 4) tracestate[dd][o] is not present
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1,dd=s:-1"],
@@ -239,8 +228,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 5) tracestate[dd][o] is present and is a well-known value
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1,dd=s:-1;o:synthetics-browser"],
@@ -248,8 +236,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 6) tracestate[dd][o] is present and is NOT a well-known value
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1,dd=s:-1;o:tracing2.0"],
@@ -339,8 +326,7 @@ class Test_Headers_Tracestate_DD:
         """
         with test_library:
             # 1) x-datadog-tags is populated with well-known tags
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
@@ -350,8 +336,7 @@ class Test_Headers_Tracestate_DD:
 
             # 2) x-datadog-tags is populated with well-known tags that require
             # substituting "=" characters with ":" characters
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
@@ -360,8 +345,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 3) x-datadog-tags is populated with both well-known tags and unrecognized tags
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
@@ -370,8 +354,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 4) tracestate[dd] does not contain propagated tags
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1,dd=s:-1"],
@@ -455,8 +438,7 @@ class Test_Headers_Tracestate_DD:
         """
         with test_library:
             # 1) tracestate[dd] is populated with well-known propagated tags
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1,dd=s:0;t.dm:-0;t.usr.id:baz64~~"],
@@ -464,8 +446,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 2) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
                     ["tracestate", "foo=1,dd=s:1;t.dm:-0;t.usr.id:baz64~~;t.url:http://localhost"],
@@ -522,8 +503,7 @@ class Test_Headers_Tracestate_DD:
         """
         with test_library:
             # 1) tracestate[dd] is populated with well-known propagated tags
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~"],
@@ -531,8 +511,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 2) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
                     ["tracestate", "foo=1,dd=s:2;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost"],
@@ -576,10 +555,7 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
-    @bug(
-        library="php",
-        reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
-    )
+    @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
         """
         harness sends requests with both tracestate and traceparent.
@@ -590,8 +566,7 @@ class Test_Headers_Tracestate_DD:
             other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
 
             # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", other_vendors + ",dd=s:-1"],
@@ -599,8 +574,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "dd=s:-1," + other_vendors],
@@ -608,8 +582,7 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 3) Input: 31 list-members without 'dd' in the tracestate string
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", other_vendors],
@@ -617,8 +590,8 @@ class Test_Headers_Tracestate_DD:
             )
 
             # 4) Input: No tracestate string
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],],
+            headers4 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],],
             )
 
         # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
@@ -649,15 +622,12 @@ class Test_Headers_Tracestate_DD:
         assert len(tracestate4String.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
-    @bug(library="cpp", reason="c++ is not dropping the 33rd (last) list-member")
-    @bug(library="dotnet", reason="dotnet is not dropping the 33rd (last) list-member")
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
-    @bug(library="nodejs", reason="NodeJS is not dropping the 33rd (last) list-member")
-    @bug(library="python", reason="python is not dropping the 33rd (last) list-member")
-    @bug(
-        library="php",
-        reason="PHP is incorrectly dropping a list-member even when the number of list-members is less than or equal to 32",
-    )
+    @bug(library="cpp", reason="APMAPI-914")
+    @bug(library="dotnet", reason="APMAPI-914")
+    @bug(library="nodejs", reason="APMAPI-914")
+    @bug(library="python", reason="APMAPI-914")
+    @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
         """
         harness sends a request with both tracestate and traceparent.
@@ -668,8 +638,7 @@ class Test_Headers_Tracestate_DD:
             other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
 
             # 1) Input: 32 list-members without 'dd' in the tracestate string
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", other_vendors + ",key32=value32"],
