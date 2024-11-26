@@ -70,7 +70,7 @@ def generate_gitlab_pipeline(languages):
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
                 "stage": language,
-                "allow_failure": "true",
+                "allow_failure": True,
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }
