@@ -33,7 +33,7 @@ def generate_gitlab_pipeline(languages):
             "script": [
                 "for folder in reports/logs*/ ; do",
                 'echo "Checking folder: ${folder}"',
-                "for filename in ./feature_parity.json; do",
+                "for filename in ./${folder}feature_parity.json; do",
                 "if [ -e ${filename} ]",
                 "then",
                 'echo "Processing report: ${filename}"',
