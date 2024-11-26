@@ -244,7 +244,7 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.10.0
         Test_Lfi_Optional_SpanTags: v2.10.0
         Test_Lfi_RC_CustomAction: v2.14.0
-        Test_Lfi_Rules_Version: missing_feature (waiting for 1.13.3 security rule file)
+        Test_Lfi_Rules_Version: v2.18.0.dev
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
@@ -422,8 +422,9 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
-        uwsgi-poc: flaky (APPSEC-55222)
-      Test_IastStandalone_UpstreamPropagation: missing_feature
+        uwsgi-poc: v2.17.1
+      Test_IastStandalone_UpstreamPropagation:
+        '*': v2.18.0.dev
       Test_SCAStandalone_Telemetry: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)

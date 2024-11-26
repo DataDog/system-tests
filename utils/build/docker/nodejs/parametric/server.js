@@ -171,9 +171,13 @@ app.post('/trace/otel/start_span', (req, res) => {
       return {context: spanContext, attributes: link.attributes}
     });
 
+    let kind = null
+    if (request.kind != null) {
+      kind = request.kind - 1
+    }
     const span = otelTracer.startSpan(request.name, {
         type: request.type,
-        kind: request.kind,
+        kind: kind,
         attributes: request.attributes,
         links,
         startTime: microLongToHrTime(request.timestamp)
@@ -203,9 +207,14 @@ app.post('/trace/otel/end_span', (req, res) => {
 });
 
 app.post('/trace/otel/flush', async (req, res) => {
-  await tracerProvider.forceFlush()
-  otelSpans.clear();
-  res.json({ success: true });
+  tracerProvider.forceFlush().then(function() {
+    otelSpans.clear()
+    res.json({ success: true })
+  })
+  .catch(function(rej) {
+    console.log(rej)
+    res.json({ success: false })
+  });
 });
 
 app.post('/trace/otel/is_recording', (req, res) => {

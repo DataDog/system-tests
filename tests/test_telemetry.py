@@ -238,7 +238,7 @@ class Test_Telemetry:
             ), "app-started is not the first message by seq_id"
 
     @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
-    @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
+    @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
     @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
@@ -369,7 +369,7 @@ class Test_Telemetry:
     @irrelevant(library="golang")
     @irrelevant(library="python")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    @bug(
+    @irrelevant(
         library="java",
         reason="""
         A Java application can be redeployed to the same server for many times (for the same JVM process). 
