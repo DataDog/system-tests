@@ -1,4 +1,4 @@
-System tests are feature-oriented; put another way, tests certify which features are supported in each client library (and the supported library versions). Each test class must belong to a "feature", where "features" map to entries in the [Feature Parity Dashboard](https://feature-parity.us1.prod.dog/). We use the @features decorators to achieve this.
+System tests are feature-oriented; put another way, tests certify which features are supported in each client library (and the supported library versions). Each test class must belong to a "feature", where "features" map to entries in the [Feature Parity Dashboard](https://feature-parity.us1.prod.dog/). We use the `@features` decorators to achieve this.
 
 For example, you have a new feature called `Awesome feature`, which is part of a meta feature called `stuffs`. We add a new file called `tests/test_stuffs.py` and add a test class with some boilerplate code, and a basic test:
 
@@ -32,7 +32,6 @@ Several key points:
 
 * One class test one feature
 * One class can have several tests
-* Feature link to the [Feature Parity Dashbaord](https://feature-parity.us1.prod.dog/) is declared with `@features` decorators
 * Files can be nested (`tests/test_product/test_stuffs.py::Test_AwesomeFeature`), and how files are organized does not make any difference. Use you common sense, or ask on [slack](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X).
 
 ## Skip tests
