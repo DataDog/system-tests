@@ -37,6 +37,7 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
         dotnet|java|nodejs|php|python|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
+        -r|--installable-runtime) INSTALLABLE_RUNTIME="$2"; shift ;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -a|--arch) ARCH="$2"; shift ;;
         -f|--force-build) FORCE_BUILD="$2"; shift ;;
@@ -64,11 +65,17 @@ do
   base_image=$(echo "$row" | jq -r .base_image)
   arch=$(echo "$row" | jq -r .arch)
   installable_runtime=$(echo "$row" | jq -r .installable_runtime)
-   if [ -z "$WEBLOG_VARIANT" ] || [ "$WEBLOG_VARIANT" = "$weblog" ]; then
-        if [ -z "$ARCH" ] || [ "$ARCH" = "$arch" ]; then
-            echo "Runing test scenario for weblog [${weblog}], base_image [${base_image}], arch [${arch}], installable_runtime [${installable_runtime}], extra_args: [${extra_args}]"
-            ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" "$extra_args"
-        fi
-   fi
+  if [ -n "$INSTALLABLE_RUNTIME" ] && [ "$INSTALLABLE_RUNTIME" != "$installable_runtime" ]; then
+      continue
+  fi
+  if [ -n "$WEBLOG_VARIANT" ] && [ "$WEBLOG_VARIANT" != "$weblog" ]; then
+      continue
+  fi
+  if [ -n "$ARCH" ] && [ "$ARCH" != "$arch" ]; then
+      continue
+  fi
+
+  echo "Runing test scenario for weblog [${weblog}], base_image [${base_image}], arch [${arch}], installable_runtime [${installable_runtime}], extra_args: [${extra_args}]"
+  ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" "$extra_args"
 
 done < <(echo "$matrix_json" | jq -c ".${TEST_LIBRARY}.parallel.matrix[]")

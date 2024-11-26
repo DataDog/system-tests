@@ -1,6 +1,5 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
-
 stages:
   - child_pipelines
   - ruby_tracer
@@ -270,7 +269,6 @@ onboarding_php:
       - ./build.sh -i runner
       - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
-
 onboarding_stats_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
@@ -294,6 +292,7 @@ onboarding_stats_results:
         echo "Number of ec2 created"
         echo "---------------------"
         wc -l reports/logs*/vms_desc.log
+
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
