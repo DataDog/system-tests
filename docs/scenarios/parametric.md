@@ -227,25 +227,16 @@ This architecture allows us to ensure that all tracers conform to the same inter
 
 The http server implementations for each tracer can be found at the following locations:
 
-[Python](/utils/build/docker/python/parametric/apm_test_client/server.py)
-
-[Ruby](utils/build/docker/ruby/parametric/server.rb)
-
-[Php](utils/build/docker/php/parametric/server.php)
-
-[Nodejs](utils/build/docker/nodejs/parametric/server.js)
-
-[Java Datadog](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentracing/controller/OpenTracingController.java)
-
-[Java Otel](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentelemetry/controller/OpenTelemetryController.java)
-
-[Dotnet Datadog](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApi.cs)
-
-[Dotnet Otel](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApiOtel.cs)
-
-[Go Datadog](utils/build/docker/golang/parametric/main.go)
-
-[Go Otel](utils/build/docker/golang/parametric/otel.go)
+* [Python](/utils/build/docker/python/parametric/apm_test_client/server.py)
+* [Ruby](utils/build/docker/ruby/parametric/server.rb)
+* [Php](utils/build/docker/php/parametric/server.php)
+* [Nodejs](utils/build/docker/nodejs/parametric/server.js)
+* [Java Datadog](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentracing/controller/OpenTracingController.java)
+* [Java Otel](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentelemetry/controller/OpenTelemetryController.java)
+* [Dotnet Datadog](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApi.cs)
+* [Dotnet Otel](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApiOtel.cs)
+* [Go Datadog](utils/build/docker/golang/parametric/main.go)
+* [Go Otel](utils/build/docker/golang/parametric/otel.go)
 
 
 ![image](https://github.com/user-attachments/assets/fc144fc1-95aa-4d50-97c5-cda8fdbcefef)
