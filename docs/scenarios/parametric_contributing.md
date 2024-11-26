@@ -46,7 +46,7 @@ Then we need to do the following:
 * Determine what you want the endpoint to be called and what you need it to do, and add it to your tracer's http server.
 
 *Note:* If adding a new endpoint please let a Python tracer implementer know so they can add it as well [see](parametric.md#shared-interface)
-
+*Note*: Only add new endpoints that operate on the public API and execute ONE operation. Endpoints that execute complex operations or validate tracer internals will not be accepted.
 * In [_library_client.py](/utils/parametric/_library_client.py) Add both the endpoint call in `class APMLibraryClient` and the method that invokes it in `class APMLibrary`. Use other implementations for reference.
 
 * Ok we now have our new method! Use it in the tests you write using the [below section](#if-the-methods-you-need-to-run-your-tests-are-already-written)
