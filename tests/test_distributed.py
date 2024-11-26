@@ -33,6 +33,9 @@ class Test_DistributedHttp:
 class Test_Span_Links_From_Conflicting_Contexts:
     """Verify headers containing conflicting trace context information are added as span links"""
 
+    """Datadog, tracecontext, b3multi headers, Datadog is primary context tracecontext and b3multi
+    trace_id do match it we should have two span links, b3multi should not have tracestate"""
+
     def setup_span_links_from_conflicting_contexts(self):
         extract_headers = {
             "traceparent": "00-11111111111111110000000000000002-000000003ade68b1-01",
@@ -73,6 +76,9 @@ class Test_Span_Links_From_Conflicting_Contexts:
         assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
         assert link2["trace_id_high"] == 1229782938247303441
 
+    """Datadog and tracecontext headers, trace-id does match, Datadog is primary 
+    context we want to make sure there's no span link since they match"""
+
     def setup_no_span_links_from_nonconflicting_contexts(self):
         extract_headers = {
             "traceparent": "00-11111111111111110000000000000001-000000003ade68b1-01",
@@ -95,6 +101,9 @@ class Test_Span_Links_From_Conflicting_Contexts:
         ]
 
         assert len(trace) == 0
+
+    """Datadog, b3multi headers edge case where we want to make sure NOT to create a 
+    span_link if the secondary context has trace_id 0 since that's not valid."""
 
     def setup_no_span_links_from_invalid_trace_id(self):
         extract_headers = {
@@ -119,6 +128,9 @@ class Test_Span_Links_From_Conflicting_Contexts:
         ]
 
         assert len(trace) == 0
+
+    """Datadog, b3multi headers edge case where we want to make sure NOT to create a 
+    span_link if the secondary context has span_id 0 since that's not valid."""
 
     def setup_no_span_links_from_invalid_span_id(self):
         extract_headers = {
@@ -148,7 +160,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 @scenarios.trace_propagation_style_datadog_w3c_b3
 @features.w3c_headers_injection_and_extraction
 class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
-    """Verify headers containing conflicting trace context information are added as span links"""
+    """Verify headers containing conflicting trace context information are added as span links with Datadog headers taking precedence"""
 
     def setup_span_links_from_conflicting_contexts_datadog_precedence(self):
         extract_headers = {
@@ -195,7 +207,7 @@ class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
 @scenarios.trace_propagation_style_w3c_datadog_b3
 @features.w3c_headers_injection_and_extraction
 class Test_Span_Links_Flags_From_Conflicting_Contexts:
-    """Verify headers containing conflicting trace context information are added as span links"""
+    """Verify span links created from conflicting header contexts have the correct flags set"""
 
     def setup_span_links_flags_from_conflicting_contexts(self):
         extract_headers = {
@@ -235,7 +247,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
 @scenarios.trace_propagation_style_w3c_datadog_b3
 @features.w3c_headers_injection_and_extraction
 class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
-    """Verify headers containing conflicting trace context information are added as span links"""
+    """Verify span links created from conflicting header contexts properly omit the tracestate when conflicting propagator is not W3C"""
 
     def setup_span_links_omit_tracestate_from_conflicting_contexts(self):
         extract_headers = {
