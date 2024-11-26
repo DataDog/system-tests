@@ -107,7 +107,7 @@ public abstract class ApmTestApi
     private static async Task<string> StartSpan(HttpRequest request)
     {
         var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, object?>>(headerRequestBody);
 
         _logger?.LogInformation("StartSpan: {HeaderRequestBody}", headerRequestBody);
 
@@ -147,7 +147,7 @@ public abstract class ApmTestApi
             span.Type = type.ToString();
         }
 
-        if (parsedDictionary.TryGetValue("span_tags", out var tagsToken))
+        if (parsedDictionary.TryGetValue("span_tags", out var tagsToken) && tagsToken is not null)
         {
             foreach (var tag in (Newtonsoft.Json.Linq.JArray)tagsToken)
             {
@@ -226,7 +226,7 @@ public abstract class ApmTestApi
             getter: GetHeaderValues
         );
 
-        String extractedSpanId = null;
+        string? extractedSpanId = null;
         if (extractedContext is not null)
         {
             DDContexts[extractedContext.SpanId] = extractedContext;
