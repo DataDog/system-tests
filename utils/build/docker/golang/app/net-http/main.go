@@ -21,9 +21,6 @@ import (
 	"weblog/internal/grpc"
 	"weblog/internal/rasp"
 
-	saramatrace "github.com/DataDog/dd-trace-go/contrib/Shopify/sarama/v2"
-	"github.com/DataDog/dd-trace-go/v2/datastreams"
-	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/Shopify/sarama"
 
 	saramatrace "github.com/DataDog/dd-trace-go/contrib/Shopify/sarama/v2"
@@ -39,6 +36,7 @@ import (
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	ddtracer "github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 

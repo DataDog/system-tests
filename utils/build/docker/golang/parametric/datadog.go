@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/DataDog/dd-trace-go/v2/ddtrace"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/sirupsen/logrus"
 )
@@ -39,7 +38,7 @@ func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (ddtrace.Span, error) {
+func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*tracer.Span, error) {
 	var opts []tracer.StartSpanOption
 	if p := args.ParentId; p > 0 {
 		if span, ok := s.spans[p]; ok {

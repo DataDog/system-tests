@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/DataDog/dd-trace-go/v2/ddtrace"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"go.opentelemetry.io/otel"
 
@@ -19,7 +18,7 @@ import (
 
 type apmClientServer struct {
 	spans        map[uint64]*tracer.Span
-	spanContexts map[uint64]ddtrace.SpanContext
+	spanContexts map[uint64]*tracer.SpanContext
 	otelSpans    map[uint64]spanContext
 	tp           *ddotel.TracerProvider
 	tracer       otel_trace.Tracer
@@ -33,7 +32,7 @@ type spanContext struct {
 func newServer() *apmClientServer {
 	s := &apmClientServer{
 		spans:        make(map[uint64]*tracer.Span),
-		spanContexts: make(map[uint64]ddtrace.SpanContext),
+		spanContexts: make(map[uint64]*tracer.SpanContext),
 		otelSpans:    make(map[uint64]spanContext),
 	}
 	s.tp = ddotel.NewTracerProvider()
