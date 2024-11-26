@@ -2,6 +2,7 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 stages:
   - child_pipelines
+  - test_tracer
   - ruby_tracer
   - nodejs_tracer
   - java_tracer
@@ -40,6 +41,25 @@ variables:
       description: "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
     DD_INSTALLER_INJECTOR_VERSION:
       description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
+
+onboarding_simple_tests:
+  extends: .base_job_onboarding_system_tests
+  stage: test_tracer
+  allow_failure: true
+  dependencies: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+  variables:
+    TEST_LIBRARY: "java"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
+  script:
+      - ./build.sh -i runner
+      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-only-branch ubuntu22_amd64
 
 onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
