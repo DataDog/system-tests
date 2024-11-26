@@ -171,7 +171,19 @@ public abstract class ApmTestApi
 
     private static async Task SpanSetError(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
+        var requestJson = await JsonHelper.Create(request.Body);
+        var spanId = requestJson.GetUInt64("span_id");
+
+        if (spanId is null)
+        {
+            throw new InvalidOperationException("span_id not found in request json.");
+        }
+
+        if (!Spans.TryGetValue(spanId.Value, out var span))
+        {
+            throw new InvalidOperationException($"Span not found. span_id: {spanId}");
+        }
+
         span.Error = true;
 
         var type = await FindBodyKeyValueAsync(request, "type");
@@ -229,10 +241,7 @@ public abstract class ApmTestApi
             static void Setter(List<string[]> headers, string key, string value) =>
                 headers.Add(new string[] { key, value });
 
-            Console.WriteLine(JsonConvert.SerializeObject(new
-            {
-                HttpHeaders = httpHeaders
-            }));
+            _logger?.LogInformation("StartSpan: {HeaderRequestBody}", headerRequestBody);
 
             // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
             _spanContextInjector.Inject(httpHeaders, Setter, span.Context);
@@ -345,10 +354,7 @@ public abstract class ApmTestApi
 
     internal static async Task<string> FindBodyKeyValueAsync(HttpRequest httpRequest, string keyToFind)
     {
-        var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
-        var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
-
-        return keyFound ? foundValue! : String.Empty;
+        var requestJson = await JsonHelper.Create(httpRequest.Body);
+        return requestJson.GetString(keyToFind);
     }
 }
