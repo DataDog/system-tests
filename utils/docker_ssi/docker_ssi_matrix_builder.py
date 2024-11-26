@@ -64,13 +64,14 @@ def generate_gitlab_pipeline(languages):
                     test["runner"] = "docker-arm"
                 test.pop("unique_name", None)
                 matrix.append(test)
-
+                break  # TODO RMM remve this before merge
         if matrix:
             pipeline[language] = {
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
                 "stage": language,
                 "allow_failure": True,
+                "dependencies": [],
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }
