@@ -115,7 +115,7 @@ class Test_UserLoginFailureEvent:
     def setup_user_login_failure_header_collection(self):
         self.r = weblog.get("/user_login_failure_event", headers=HEADERS)
 
-    @missing_feature(library="dotnet")
+    @missing_feature(context.library < "dotnet@3.7.0")
     @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="ruby")
     def test_user_login_failure_header_collection(self):
