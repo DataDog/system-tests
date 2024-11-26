@@ -1,6 +1,5 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
-  - local: ".gitlab/feature-parity-dashboard.yml"
 stages:
   - child_pipelines
   - ruby_tracer
