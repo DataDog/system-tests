@@ -48,7 +48,7 @@ onboarding_nodejs:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
       when: always
     - when: manual
   variables:
@@ -88,7 +88,7 @@ onboarding_java:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
       when: always
     - when: manual
   variables:
@@ -127,7 +127,7 @@ onboarding_python:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
       when: always
     - when: manual
   variables:
@@ -167,7 +167,7 @@ onboarding_dotnet:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
       when: always
     - when: manual
   variables:
@@ -207,7 +207,7 @@ onboarding_ruby:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
       when: always
     - when: manual
   variables:
@@ -240,7 +240,7 @@ onboarding_php:
   dependencies: []
   timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "scheduleX" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
       when: always
     - when: manual
   variables:
@@ -274,7 +274,7 @@ onboarding_stats_results:
   tags: ["arch:amd64"]
   stage: stats_results
   rules:
-    - if: $CI_PIPELINE_SOURCE == "scheduleX"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
       - |
         echo "---------------------"

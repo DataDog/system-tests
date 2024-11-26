@@ -69,8 +69,6 @@ def generate_gitlab_pipeline(languages):
     }
 
     for language in languages:
-        if language not in ["java"]:
-            continue  # TODO RMM remove this before merge
         pipeline["stages"].append(language)
         matrix = []
 
@@ -86,7 +84,6 @@ def generate_gitlab_pipeline(languages):
                     test["runner"] = "docker-arm"
                 test.pop("unique_name", None)
                 matrix.append(test)
-                break  # TODO RMM remve this before merge
         if matrix:
             pipeline[language] = {
                 "extends": ".base_ssi_job",
