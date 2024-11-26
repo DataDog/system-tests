@@ -42,7 +42,7 @@ public class CrashServlet extends HttpServlet {
     }
 
     private void handleCrash(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+            throws Exception {
         Field f = Unsafe.class.getDeclaredField("theUnsafe");
         f.setAccessible(true);
         Unsafe unsafe = (Unsafe) f.get(null);
