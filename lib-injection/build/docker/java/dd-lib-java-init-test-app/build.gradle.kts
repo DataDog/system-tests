@@ -34,7 +34,8 @@ val dockerImageTag: String by project
 tasks.named<BootBuildImage>("bootBuildImage") {
     imageName = "${resolvedDockerImageRepo}:${dockerImageTag}"
 
-    builder = "paketobuildpacks/builder-jammy-java-tiny:latest"
+    builder = System.getenv("DD_VM_NAME") == null ? "paketobuildpacks/builder-jammy-java-tiny:latest" : "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/builder-jammy-java-tiny:latest"
+
     //TODO Change to use images from gcr.io to aboud docker hub rate limits
     //There is a bug: https://github.com/paketo-buildpacks/adoptium/issues/401
     //buildpacks = listOf(
