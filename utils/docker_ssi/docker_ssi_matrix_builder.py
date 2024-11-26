@@ -8,10 +8,6 @@ from docker_ssi_definitions import ALL_WEBLOGS
 
 def generate_gitlab_pipeline(languages):
     pipeline = {
-        "include": [
-            {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"},
-            {"local": ".gitlab/feature-parity-dashboard.yml"},
-        ],
         "stages": ["dummy"],
         # A dummy job is necessary for cases where all of the test jobs are manual
         # The child pipeline shows as failed until at least 1 job is run
@@ -21,6 +17,37 @@ def generate_gitlab_pipeline(languages):
             "stage": "dummy",
             "dependencies": [],
             "script": ["echo 'DONE'"],
+        },
+        "docker_ssi_fpd": {
+            "image": "486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c",
+            "tags": ["arch:amd64"],
+            "stage": "parse_docker_ssi_results",
+            "rules": [
+                {"if": '$PARENT_PIPELINE_SOURCE == "schedule"', "when": "always"},
+                {"when": "manual", "allow_failure": True},
+            ],
+            "before_script": [
+                'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
+                'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
+            ],
+            "script": [
+                """|
+        for folder in reports/logs*/ ; do
+          echo "Checking folder: ${folder}"
+          for filename in ./feature_parity.json; do
+            if [ -e ${filename} ]
+            then
+              echo "Processing report: ${filename}"
+              #curl -X POST ${FP_IMPORT_URL} \
+              #  --fail \
+              #  --header "Content-Type: application/json" \
+              #  --header "FP_API_KEY: ${FP_API_KEY}" \
+              #  --data "@${filename}" \
+              #  --include
+            fi
+          done
+        done"""
+            ],
         },
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
@@ -48,7 +75,7 @@ def generate_gitlab_pipeline(languages):
     }
 
     for language in languages:
-        if language == "java":
+        if language not in ["java"]:
             continue  # TODO RMM remove this before merge
         pipeline["stages"].append(language)
         matrix = []
@@ -76,7 +103,7 @@ def generate_gitlab_pipeline(languages):
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }
-    pipeline["stages"].append("parse_results")
+    pipeline["stages"].append("parse_docker_ssi_results")
     return pipeline
 
 
