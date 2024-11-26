@@ -417,13 +417,10 @@ def otel_start_span(args: OtelStartSpanArgs):
         span_context = otel_spans[parent_id].get_span_context()
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
 
-    # parametric tests expect span kind to be 0 for internal, 1 for server, 2 for client, ....
-    # while parametric tests set 0 for unset, 1 internal, 2 for server, 3 for client, ....
-    span_kind_int = (args.span_kind or 1) - 1
     with otel_tracer.start_as_current_span(
         args.name,
         context=set_span_in_context(parent_span),
-        kind=SpanKind(span_kind_int),
+        kind=SpanKind(args.span_kind or 0),
         attributes=args.attributes,
         links=links,
         # parametric tests expect timestamps to be set in microseconds (required by go)

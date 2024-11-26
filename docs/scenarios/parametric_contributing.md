@@ -10,9 +10,9 @@ Let's figure out if your feature is a good candidate to be tested with parametri
 
 System-tests in general are great for assuring uniform behavior between different dd-trace repos (tracing, ASM, DI, profiling, etc.). There are two types of system-tests, [end-to-end](/docs/README.md) and [parametric](/docs/scenarios/parametric.md).
 
-The "parametric" in parametric system-tests stands for parameters. The original purpose of parametric scenarios is when a behavior must be tested across several different values for one or more parameters, usually different tracer configurations with some examples being [environment variable configuration effects on api methods, sampling, propagation, configuration, telemetry](/tests/parametric).
+Parametric tests in the Datadog system test repository validate the behavior of APM Client Libraries by interacting only with their public interfaces. These tests ensure the telemetry generated (spans, metrics, instrumentation telemetry) is consistent and accurate when libraries handle different input parameters (e.g., calling a Tracer's startSpan method with a specific type) and configurations (e.g., sampling rates, distributed tracing, remote settings). They run against web applications in languages like Java, Go, Python, PHP, Node.js, C++, and .NET, which expose endpoints simulating real-world library usage. The generated telemetry is sent to a Datadog agent, queried, and verified by system tests to confirm proper library functionality across scenarios.
 
-If your usage does not require different parameter values, then [end-to-end system-tests](/docs/README.md) should be used as they will achieve the same level of behavior uniformity verification and test the feature on real world use cases, catching more issues.
+If your usage does not require different parameter values, then [end-to-end system-tests](/docs/README.md) should be used as they will achieve the same level of behavior uniformity verification and test the feature on real world use cases, catching more issues. End-to-end tests are also what should be used for verify behavior between tracer integrations.
 
 System-tests are **not** for testing internal or niche tracer behavior. Unit tests are a better fit for that case.
 
@@ -46,7 +46,7 @@ Then we need to do the following:
 * Determine what you want the endpoint to be called and what you need it to do, and add it to your tracer's http server.
 
 *Note:* If adding a new endpoint please let a Python tracer implementer know so they can add it as well [see](parametric.md#shared-interface)
-
+*Note*: Only add new endpoints that operate on the public API and execute ONE operation. Endpoints that execute complex operations or validate tracer internals will not be accepted.
 * In [_library_client.py](/utils/parametric/_library_client.py) Add both the endpoint call in `class APMLibraryClient` and the method that invokes it in `class APMLibrary`. Use other implementations for reference.
 
 * Ok we now have our new method! Use it in the tests you write using the [below section](#if-the-methods-you-need-to-run-your-tests-are-already-written)

@@ -53,7 +53,7 @@ def test_datadog_spans(library_env, test_library, test_agent):
 - `test_library.dd_start_span` creates a new span using the shared HTTP interface.
 - The request is sent to a HTTP server by language. Implementations can be found in `utils/build/docker/<lang>/parametric`. More information in [Http Server Implementations](#http-server-implementations).
 - Data is flushed to the test agent after the with test_library block closes.
-- Traces are retrieved using the `test_agent` fixture and we assert that they look the way we'd expect.
+- Data (usually traces) are retrieved using the `test_agent` fixture and we assert that they look the way we'd expect.
 
 
 ## Usage
@@ -206,6 +206,7 @@ Note: These are based off of the Python tracer's http server which should be hel
 2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
 3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
 
+Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To see these please reference the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
 
 ### Architecture: How System-tests work
 
