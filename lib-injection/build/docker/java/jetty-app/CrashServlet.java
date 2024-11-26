@@ -1,5 +1,6 @@
 import java.io.*;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -40,7 +41,7 @@ public class CrashServlet extends HttpServlet {
         }
     }
 
-    private void handlCrash(HttpServletRequest req, HttpServletResponse resp)
+    private void handleCrash(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         Field f = Unsafe.class.getDeclaredField("theUnsafe");
         f.setAccessible(true);
