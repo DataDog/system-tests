@@ -74,7 +74,7 @@ def generate_gitlab_pipeline(languages):
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }
-        pipeline["stages"].append("parse_results")
+    pipeline["stages"].append("parse_results")
     return pipeline
 
 
