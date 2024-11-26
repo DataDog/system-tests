@@ -171,7 +171,7 @@ def _collect_item_metadata(item):
         elif result["details"].startswith("bug"):
             result["testDeclaration"] = "bug"
         elif result["details"].startswith("incomplete_test_app"):
-            result["testDeclaration"] = "testIncomplete"
+            result["testDeclaration"] = "incompleteTestApp"
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
         elif "got empty parameter set" in result["details"]:
