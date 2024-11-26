@@ -29,7 +29,7 @@ Now that we're all setup with a working test suite and a tracer with the impleme
 
 **MUST:** If you haven't yet, please acquaint yourself with [how system tests work](parametric.md#architecture-how-system-tests-work) before proceeding and reference it throughout this section.
 
-First take a look at the [currently existing tests](/tests/parametric) and see if what you're trying to test is similar and can use the same methods/endpoints, in many cases new endpoints do not need to be added.
+Before writing a new test, check the [existing tests](/tests/parametric) to see if you can use the same methods or endpoints for similar scenarios; in many cases, new endpoints do not need to be added.
 
 For a list of client methods that already exist, refer to `class APMLibrary` in the [_library_client.py](/utils/parametric/_library_client.py). If you're wondering what the methods do, you can take at look at the respective endpoints they're calling in that same file in `class APMLibraryClient`.
 

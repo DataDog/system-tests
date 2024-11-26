@@ -227,6 +227,7 @@ This architecture allows us to ensure that all tracers conform to the same inter
 #### Http Server Implementations
 
 The http server implementations for each tracer can be found at the following locations:
+*Note:* For some languages there is both an Otel and a Datadog server. This is simply to separate the available Otel endpoints from the available Datadog endpoints that can be hit by the client. If a language only has a single server, then both endpoints for Otel and Datadog exist there.
 
 * [Python](/utils/build/docker/python/parametric/apm_test_client/server.py)
 * [Ruby](utils/build/docker/ruby/parametric/server.rb)
