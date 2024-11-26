@@ -187,7 +187,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     def setup_pii_redaction_line(self):
         self._setup("pii_line")
 
-    @irrelevant(library="ruby", reason="Ruby needs to use line probes to capture variables")
+    @irrelevant(context.library != "ruby", reason="Ruby needs to use line probes to capture variables")
     def test_pii_redaction_line(self):
         self._test(REDACTED_KEYS, REDACTED_TYPES, True)
 
