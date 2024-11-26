@@ -25,10 +25,6 @@ class Test_Partial_Flushing:
     )
     @missing_feature(context.library == "golang", reason="partial flushing not enabled by default")
     @missing_feature(context.library == "dotnet", reason="partial flushing not enabled by default")
-    @bug(
-        context.library == "python",
-        reason="There is a problem with this tests when we execute python on multiple tests workers",
-    )
     def test_partial_flushing_one_span_default(self, test_agent, test_library):
         """
             Create a trace with a root span and a single child. Finish the child, and ensure
