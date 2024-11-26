@@ -279,7 +279,7 @@ def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
-class SpanInjectArgs(BaseModel):
+class SpanExtractArgs(BaseModel):
     http_headers: List[Tuple[str, str]]
 
 
@@ -288,7 +288,7 @@ class SpanExtractReturn(BaseModel):
 
 
 @app.post("/trace/span/extract_headers")
-def trace_span_extract_headers(args: SpanInjectArgs) -> SpanExtractReturn:
+def trace_span_extract_headers(args: SpanExtractArgs) -> SpanExtractReturn:
     headers = {k: v for k, v in args.http_headers}
     context = HTTPPropagator.extract(headers)
     if context.span_id:
