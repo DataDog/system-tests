@@ -70,8 +70,9 @@ class Test_Otel_API_Interoperability:
 
         root = find_root_span(trace)
         span = find_span(trace, otel_span.span_id)
+        assert root is not None
+        assert span is not None
         assert span.get("resource") == "otel_span"
-
         assert span.get("parent_id") == root.get("span_id")
 
     def test_has_ended(self, test_agent, test_library):
@@ -116,9 +117,11 @@ class Test_Otel_API_Interoperability:
         assert len(trace) == 2
 
         root = find_root_span(trace)
+        assert root is not None
         assert root.get("resource") == "otel_span"
 
         span = find_span(trace, dd_span.span_id)
+        assert span is not None
         assert span.get("parent_id") == root.get("span_id")
 
     def test_set_update_remove_meta(self, test_agent, test_library):
@@ -262,6 +265,8 @@ class Test_Otel_API_Interoperability:
 
         root1 = find_root_span(trace1)
         root2 = find_root_span(trace2)
+        assert root1 is not None
+        assert root2 is not None
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
@@ -308,6 +313,8 @@ class Test_Otel_API_Interoperability:
 
         root1 = find_root_span(trace1)
         root2 = find_root_span(trace2)
+        assert root1 is not None
+        assert root2 is not None
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
@@ -354,6 +361,8 @@ class Test_Otel_API_Interoperability:
 
         root1 = find_root_span(trace1)
         root2 = find_root_span(trace2)
+        assert root1 is not None
+        assert root2 is not None
         assert root1["resource"] == "otel_root"
         assert root2["name"] == "dd_root"
 
@@ -452,6 +461,7 @@ class Test_Otel_API_Interoperability:
         assert len(trace) == 1
 
         root = find_root_span(trace)
+        assert root is not None
         assert root["metrics"]["int"] == 1
         assert root["metrics"]["float"] == 1.0
         assert root["meta"]["bool"] == "true"
@@ -491,6 +501,7 @@ class Test_Otel_API_Interoperability:
         assert len(trace) == 1
 
         root = find_root_span(trace)
+        assert root is not None
         assert root["metrics"]["int"] == 1
         assert root["metrics"]["float"] == 1.0
         assert root["meta"]["bool"] == "true"

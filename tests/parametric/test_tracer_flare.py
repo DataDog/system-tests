@@ -79,7 +79,7 @@ def _set_log_level(test_agent, log_level: str) -> str:
     return cfg_id
 
 
-def _clear_log_level(test_agent, cfg_id: int) -> None:
+def _clear_log_level(test_agent, cfg_id: str) -> None:
     """Helper to clear a previously set "flare-log-level" config from RC."""
     test_agent.set_remote_config(path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={})
     test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, clear=True, post_only=True)

@@ -413,6 +413,9 @@ class APMLibrary:
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
             self.dd_flush()
+            if self.lang != "cpp":
+                # C++ does not have an otel/flush endpoint
+                self.otel_flush(1)
 
     def crash(self) -> None:
         self._client.crash()
