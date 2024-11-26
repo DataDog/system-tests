@@ -3,7 +3,7 @@ import json
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, flaky
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, flaky, missing_feature
 
 
 class AsmStandalone_UpstreamPropagation_Base:
@@ -711,6 +711,7 @@ class Test_SCAStandalone_Telemetry:
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
 
+    @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r)
 
