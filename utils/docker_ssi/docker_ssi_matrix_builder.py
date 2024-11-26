@@ -24,7 +24,6 @@ def generate_gitlab_pipeline(languages):
         },
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
-            "needs": [],
             "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",
