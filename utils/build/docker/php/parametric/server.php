@@ -80,15 +80,15 @@ function largeBaseConvert($numString, $fromBase, $toBase)
 
 function remappedSpanKind($spanKind) {
     switch ($spanKind) {
-        case 1: // SK_INTERNAL
+        case 0: // SK_INTERNAL
             return SpanKind::KIND_INTERNAL;
-        case 2: // SK_SERVER
+        case 1: // SK_SERVER
             return SpanKind::KIND_SERVER;
-        case 3: // SK_CLIENT
+        case 2: // SK_CLIENT
             return SpanKind::KIND_CLIENT;
-        case 4: // SK_PRODUCER
+        case 3: // SK_PRODUCER
             return SpanKind::KIND_PRODUCER;
-        case 5: // SK_CONSUMER
+        case 4: // SK_CONSUMER
             return SpanKind::KIND_CONSUMER;
         default:
             return null;

@@ -6,6 +6,15 @@ process.on('SIGTERM', (signal) => {
   process.exit(0);
 });
 
+function crashme(req, res) {
+  setTimeout(() => {
+    process.kill(process.pid, 'SIGSEGV');
+
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end(`Crashing process ${process.pid}`);
+  }, 2000); // Add a delay before crashing otherwise the telemetry forwarder leaves a zombie behind
+}
+
 function forkAndCrash(req, res) {
   const child = fork('child.js');
 
@@ -105,7 +114,9 @@ function getZombies(req, res) {
 }
 
 require('http').createServer((req, res) => {
-  if (req.url === '/fork_and_crash') {
+  if (req.url === '/crashme') {
+    crashme(req, res);
+  } else if (req.url === '/fork_and_crash') {
     forkAndCrash(req, res);
   } else if (req.url === '/child_pids') {
     getChildPids(req, res);

@@ -47,7 +47,7 @@ class Test_Config_TraceEnabled:
 
 @scenarios.parametric
 @features.tracing_configuration_consistency
-@bug(context.library == "php", reason="Can't create /parametric-tracer-logs at build step")
+@missing_feature(context.library == "php", reason="Can't create /parametric-tracer-logs at build step")
 class Test_Config_TraceLogDirectory:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_ENABLED": "true", "DD_TRACE_LOG_DIRECTORY": "/parametric-tracer-logs"}]

@@ -51,19 +51,13 @@ allow_no_jira_ticket_for_bugs = [
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidator.test_valid_weblog_instrumented",
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidatorUnsupported.test_invalid_weblog_not_instrumented",
 
-    "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing.test_partial_flushing_one_span_default",
     "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_multi_rule_independent_rate_limiters_sss013",
     "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_single_rule_rate_limiter_span_sampling_sss008",
     "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_globs_different_casing",
     "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_existence",
     "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_matching",
     "tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures.test_tracer_update_sequence",
-    "tests/stats/test_miscs.py::Test_Miscs.test_request_headers",
     "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_component_tag",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_http_url",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_language_tag",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_span_kind",
     "tests/test_telemetry.py::Test_Telemetry.test_proxy_forwarding",
     "tests/test_telemetry.py::Test_MessageBatch.test_message_batch_enabled",
     "tests/test_telemetry.py::Test_Telemetry.test_app_dependencies_loaded",
@@ -74,7 +68,6 @@ allow_no_jira_ticket_for_bugs = [
     "tests/test_the_test/",
 
     "tests/test_profiling.py::Test_Profile",
-    "tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory",
 ]
 
 [tool.mypy]
