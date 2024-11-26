@@ -1,4 +1,3 @@
-## Run the test locally
 System tests allow developers define scenarios and ensure datadog libraries produce consistent telemetry (that is, traces, metrics, profiles, etc...). This "edit" section addresses the following use-cases:
 
 1. Adding a new test (maybe to support a new or existing feature)
