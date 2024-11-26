@@ -219,7 +219,7 @@ public abstract class ApmTestApi
             getter: GetHeaderValues
         );
 
-        String extractedSpanId = null;
+        string? extractedSpanId = null;
         if (extractedContext is not null)
         {
             DDContexts[extractedContext.SpanId] = extractedContext;
