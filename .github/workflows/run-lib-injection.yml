@@ -44,7 +44,7 @@ jobs:
           "golang": [],
           "java": [{"name":"dd-lib-java-init-test-app","supported":"true"},
                    {"name":"jdk7-app","supported":"false"},
-                   {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}],],
+                   {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}],
           "nodejs": [{"name":"sample-app","supported":"true"},{"name":"sample-app-node13","supported":"false"}],
           "php": [],
           "python": [{"name":"dd-lib-python-init-test-django","supported":"true"},
