@@ -12,7 +12,7 @@ System-tests in general are great for assuring uniform behavior between differen
 
 Parametric tests in the Datadog system test repository validate the behavior of APM Client Libraries by interacting only with their public interfaces. These tests ensure the telemetry generated (spans, metrics, instrumentation telemetry) is consistent and accurate when libraries handle different input parameters (e.g., calling a Tracer's startSpan method with a specific type) and configurations (e.g., sampling rates, distributed tracing, remote settings). They run against web applications in languages like Java, Go, Python, PHP, Node.js, C++, and .NET, which expose endpoints simulating real-world library usage. The generated telemetry is sent to a Datadog agent, queried, and verified by system tests to confirm proper library functionality across scenarios.
 
-If your usage does not require different parameter values, then [end-to-end system-tests](/docs/README.md) should be used as they will achieve the same level of behavior uniformity verification and test the feature on real world use cases, catching more issues.
+If your usage does not require different parameter values, then [end-to-end system-tests](/docs/README.md) should be used as they will achieve the same level of behavior uniformity verification and test the feature on real world use cases, catching more issues. End-to-end tests are also what should be used for verify behavior between tracer integrations.
 
 System-tests are **not** for testing internal or niche tracer behavior. Unit tests are a better fit for that case.
 
