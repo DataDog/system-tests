@@ -39,8 +39,6 @@ def command_injection_skipped(command_line, log_local_path):
                 logger.info(f"    Command {command_args} was skipped by ignore arguments")
                 return True
 
-                logger.info(f"    command {command_args} is found but it was instrumented!")
-                return False
     logger.info(f"    Command {command} was NOT FOUND")
     raise ValueError(f"Command {command} was NOT FOUND")
 
