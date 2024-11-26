@@ -34,17 +34,10 @@ val dockerImageTag: String by project
 tasks.named<BootBuildImage>("bootBuildImage") {
     imageName = "${resolvedDockerImageRepo}:${dockerImageTag}"
 
-    builder = System.getenv("DD_VM_NAME") == null ? "paketobuildpacks/builder-jammy-java-tiny:latest" : "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/builder-jammy-java-tiny:latest"
-
-    //TODO Change to use images from gcr.io to aboud docker hub rate limits
-    //There is a bug: https://github.com/paketo-buildpacks/adoptium/issues/401
-    //buildpacks = listOf(
-    //    "gcr.io/paketo-buildpacks/adoptium:latest",
-    //     "urn:cnb:builder:paketo-buildpacks/java"
-	//"urn:cnb:builder:paketo-buildpacks/java",
-	//"gcr.io/paketo-buildpacks/new-relic",
-    //"gcr.io/paketo-buildpacks/builder:base",
-    //"gcr.io/paketo-buildpacks/run:base-cnb",
-    //"gcr.io/paketo-buildpacks/adoptium:11.2.3"
-    //)
+    // Builder and runner copied to ghcr.io to avoid docker.io rate limits
+    // alternative was to rebuild buildpacks directly which is a bit overkill
+    // skopeo copy --all docker://docker.io/paketobuildpacks/builder-jammy-java-tiny:0.0.11 docker://ghcr.io/datadog/system-tests/java-paketobuildpacks-builder:0.0.11
+    // skopeo copy --all docker://docker.io/paketobuildpacks/run-jammy-tiny:0.2.55 docker://ghcr.io/datadog/system-tests/java-paketobuildpacks-runner:0.2.55
+    builder = "ghcr.io/datadog/system-tests/java-paketobuildpacks-builder:0.0.11"
+    runImage = "ghcr.io/datadog/system-tests/java-paketobuildpacks-runner:0.2.55"
 }
