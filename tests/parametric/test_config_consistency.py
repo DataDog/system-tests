@@ -11,8 +11,8 @@ parametrize = pytest.mark.parametrize
 
 
 def enable_tracing_enabled():
-    env1 = {}
-    env2 = {"DD_TRACE_ENABLED": "true"}
+    env1: dict = {}
+    env2: dict = {"DD_TRACE_ENABLED": "true"}
     return parametrize("library_env", [env1, env2])
 
 
@@ -47,7 +47,7 @@ class Test_Config_TraceEnabled:
 
 @scenarios.parametric
 @features.tracing_configuration_consistency
-@bug(context.library == "php", reason="Can't create /parametric-tracer-logs at build step")
+@missing_feature(context.library == "php", reason="Can't create /parametric-tracer-logs at build step")
 class Test_Config_TraceLogDirectory:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_ENABLED": "true", "DD_TRACE_LOG_DIRECTORY": "/parametric-tracer-logs"}]
@@ -63,8 +63,8 @@ class Test_Config_TraceLogDirectory:
 
 
 def set_service_version_tags():
-    env1 = {}
-    env2 = {"DD_SERVICE": "test_service", "DD_VERSION": "5.2.0"}
+    env1: dict = {}
+    env2: dict = {"DD_SERVICE": "test_service", "DD_VERSION": "5.2.0"}
     return parametrize("library_env", [env1, env2])
 
 

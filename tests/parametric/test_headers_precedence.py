@@ -925,9 +925,8 @@ class Test_Headers_Precedence:
     @missing_feature(context.library == "cpp", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
     @missing_feature(context.library == "php", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
     @bug(
-        context.library < "golang@1.57.0",
-        reason="Legacy behaviour: tracecontext propagator would always take precedence",
-    )
+        context.library < "golang@1.57.0", reason="APMRP-360"
+    )  # Legacy behaviour: tracecontext propagator would always take precedence
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):

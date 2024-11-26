@@ -56,8 +56,6 @@ class APMLibraryClient:
                     self._print_logs()
                     message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
                     _fail(message)
-
-            logger.debug(f"Wait for {delay}s for the HTTP library to be ready")
             time.sleep(delay)
         else:
             self._print_logs()
@@ -415,6 +413,9 @@ class APMLibrary:
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
             self.dd_flush()
+            if self.lang != "cpp":
+                # C++ does not have an otel/flush endpoint
+                self.otel_flush(1)
 
     def crash(self) -> None:
         self._client.crash()

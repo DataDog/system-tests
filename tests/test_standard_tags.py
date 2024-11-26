@@ -25,7 +25,7 @@ class Test_StandardTagsMethod:
         self.trace_request = weblog.trace("/waf", data=None)
 
     @irrelevant(library="php", reason="Trace method does not reach php-land")
-    @bug(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
+    @missing_feature(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
     def test_method_trace(self):
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
@@ -270,9 +270,8 @@ class Test_StandardTagsClientIp:
         self._setup_with_attack()
 
     @bug(
-        context.library < "java@1.11.0",
-        reason="X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878",
-    )
+        context.library < "java@1.11.0", reason="APMRP-360"
+    )  # X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878
     def test_client_ip(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled"""
         meta = self._get_root_span_meta(self.request_with_attack)
@@ -286,8 +285,8 @@ class Test_StandardTagsClientIp:
 
     @bug(context.library < "golang@1.69.0", reason="APMRP-360")
     @bug(
-        context.library < "java@1.11.0", reason="not supported, see https://github.com/DataDog/dd-trace-java/pull/4878"
-    )
+        context.library < "java@1.11.0", reason="APMRP-360"
+    )  # not supported, see https://github.com/DataDog/dd-trace-java/pull/4878
     def test_client_ip_vendor(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled when using vendor headers"""
         self._test_client_ip(self.FORWARD_HEADERS_VENDOR)

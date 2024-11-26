@@ -810,6 +810,8 @@ urlpatterns = [
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
+    path("vulnerablerequestdownstream", vulnerable_request_downstream),
+    path("vulnerablerequestdownstream/", vulnerable_request_downstream),
     path("requestdownstream", request_downstream),
     path("requestdownstream/", request_downstream),
     path("returnheaders", return_headers),

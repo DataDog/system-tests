@@ -554,7 +554,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @bug(context.library == "ruby", reason="The ruby parametric app returns incorrect span ids on start span")
+    @bug(context.library == "ruby", reason="APMAPI-917")
     @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
         """Test adding a span link from a span to another span.
