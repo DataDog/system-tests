@@ -123,7 +123,7 @@ def filter(keys_to_filter):
 class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     def _setup(self, probes_file):
         self.initialize_weblog_remote_config()
-        
+
         probes = base.read_probes(probes_file)
         self.expected_probe_ids = base.extract_probe_ids(probes)
         self.rc_state = rc.send_debugger_command(probes, version=1)
@@ -187,7 +187,7 @@ class Test_Debugger_PII_Redaction(base._Base_Debugger_Test):
     def setup_pii_redaction_line(self):
         self._setup("pii_line")
 
-    @irrelevant(library = "ruby", reason="Ruby needs to use line probes to capture variables")
+    @irrelevant(library="ruby", reason="Ruby needs to use line probes to capture variables")
     def test_pii_redaction_line(self):
         self._test(REDACTED_KEYS, REDACTED_TYPES, True)
 

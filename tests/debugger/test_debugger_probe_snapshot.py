@@ -4,7 +4,17 @@
 
 import tests.debugger.utils as base
 
-from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug, missing_feature, context, irrelevant
+from utils import (
+    scenarios,
+    interfaces,
+    weblog,
+    features,
+    remote_config as rc,
+    bug,
+    missing_feature,
+    context,
+    irrelevant,
+)
 
 
 @features.debugger
@@ -12,7 +22,7 @@ from utils import scenarios, interfaces, weblog, features, remote_config as rc, 
 class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
     def setup_log_method_probe_snaphots(self):
         self.initialize_weblog_remote_config()
-        
+
         probes = base.read_probes("probe_snapshot_log_method")
         self.expected_probe_ids = base.extract_probe_ids(probes)
         self.rc_state = rc.send_debugger_command(probes, version=1)
@@ -43,7 +53,7 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
         ]
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
-    @irrelevant(library = "ruby", reason="Not yet implemented")
+    @irrelevant(library="ruby", reason="Not yet implemented")
     def test_span_method_probe_snaphots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
@@ -64,7 +74,7 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
         ]
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
-    @irrelevant(library = "ruby", reason="Not yet implemented")
+    @irrelevant(library="ruby", reason="Not yet implemented")
     def test_span_decoration_method_probe_snaphots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
@@ -80,7 +90,7 @@ class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
 class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
     def setup_log_line_probe_snaphots(self):
         self.initialize_weblog_remote_config()
-        
+
         probes = base.read_probes("probe_snapshot_log_line")
         self.expected_probe_ids = base.extract_probe_ids(probes)
         self.rc_state = rc.send_debugger_command(probes, version=1)
@@ -111,7 +121,7 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
             weblog.get("/debugger/span-decoration/asd/1"),
         ]
 
-    @irrelevant(library = "ruby", reason="Not yet implemented")
+    @irrelevant(library="ruby", reason="Not yet implemented")
     def test_span_decoration_line_probe_snaphots(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
@@ -127,7 +137,7 @@ class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
 class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
     def setup_mix_probe(self):
         self.initialize_weblog_remote_config()
-        
+
         probes = base.read_probes("probe_snapshot_log_mixed")
         self.expected_probe_ids = base.extract_probe_ids(probes)
         self.rc_state = rc.send_debugger_command(probes, version=1)

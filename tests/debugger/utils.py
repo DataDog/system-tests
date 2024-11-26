@@ -112,9 +112,9 @@ class _Base_Debugger_Test:
     rc_state = None
     installed_ids = set()
     all_probes_installed = False
-    
+
     def initialize_weblog_remote_config(self):
-        if get_tracer()['language'] == 'ruby':
+        if get_tracer()["language"] == "ruby":
             # Ruby tracer initializes remote configuration client from
             # middleware that is only invoked during request processing.
             # Therefore, we need to issue a request to the application for
