@@ -16,8 +16,8 @@ from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import find_only_span
 from utils import irrelevant, bug, scenarios, features, context
-from utils.dd_constants import SpanKind
-from utils.dd_constants import StatusCode
+from opentelemetry.trace import SpanKind
+from opentelemetry.trace import StatusCode
 from utils.parametric._library_client import Link
 
 

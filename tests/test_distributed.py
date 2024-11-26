@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
+import json
 from utils import weblog, interfaces, scenarios, features
 import json
 
@@ -19,8 +20,7 @@ class Test_DistributedHttp:
         interfaces.library.assert_trace_exists(self.r)
 
         assert self.r.status_code == 200
-        assert self.r.json() is not None
-        data = self.r.json()
+        data = json.loads(self.r.text)
         assert "traceparent" in data["request_headers"]
         assert "x-datadog-parent-id" not in data["request_headers"]
         assert "x-datadog-sampling-priority" not in data["request_headers"]
