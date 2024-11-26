@@ -6,11 +6,13 @@ Note: a more in-depth overview of parametric system-tests can be found in [param
 
 ## Use cases
 
-Let's figure out if your feature is a good candidate to be tested with parametric system-tests. 
+Let's figure out if your feature is a good candidate to be tested with parametric system-tests.
 
-Parametric system-tests are great for assuring uniform behavior between tracers e.g. [environment variable configuration effects on api methods, sampling, propagation, configuration, telemetry](/tests/parametric).
+System-tests in general are great for assuring uniform behavior between tracers. There are two types of system-tests, [end-to-end](/docs/README.md) and [parametric](/docs/scenarios/parametric.md).
 
-Parametric tests make requests to [http endpoints](/tests/parametric) dedicated to various tracer methods for creating and modifying spans (manual instrumentation). If you want to test automatic instrumentation behavior, weblog system-tests may be a better fit.
+The "parametric" in parametric system-tests stands for parameters. The original purpose of parametric scenarios is when a behavior must be tested across several different values for one or more parameters, usually different tracer configurations with some examples being [environment variable configuration effects on api methods, sampling, propagation, configuration, telemetry](/tests/parametric).
+
+If your usage does not require different parameter values, then [end-to-end system-tests](/docs/README.md) should be used as they will achieve the same level of behavior uniformity verification and test the feature on real world use cases, catching more issues.
 
 System-tests are **not** for testing internal or niche tracer behavior. Unit tests are a better fit for that case.
 
@@ -27,7 +29,9 @@ Follow [Binaries Documentation](../execute/binaries.md) for your particular trac
 
 Now that we're all setup with a working test suite and a tracer with the implemented feature, we can begin writing the new tests.
 
-First take a look at the [currently existing tests](/tests/parametric), (available client calls)[], and corresponding [available http server endpoints](parametric.md#http-server-implementations) and see if what you're trying to test is similar and can use the same methods/endpoints (in many cases this is true).
+**MUST:** If you haven't yet, please acquaint yourself with [how system tests work](parametric.md#architecture-how-system-tests-work) before proceeding and reference it throughout this section.
+
+First take a look at the [currently existing tests](/tests/parametric) and see if what you're trying to test is similar and can use the same methods/endpoints, in many cases new endpoints do not need to be added.
 
 For a list of client methods that already exist, refer to `class APMLibrary` in the [_library_client.py](/utils/parametric/_library_client.py). If you're wondering what the methods do, you can take at look at the respective endpoints they're calling in that same file in `class APMLibraryClient`.
 
@@ -41,13 +45,15 @@ Then we need to do the following:
 
 * Determine what you want the endpoint to be called and what you need it to do, and add it to your tracer's http server.
 
-*Note:* If adding a new endpoint please let a Python implementer know so they can add it as well [see](parametric.md#shared-interface)
+*Note:* If adding a new endpoint please let a Python tracer implementer know so they can add it as well [see](parametric.md#shared-interface)
+
 * In [_library_client.py](/utils/parametric/_library_client.py) Add both the endpoint call in `class APMLibraryClient` and the method that invokes it in `class APMLibrary`. Use other implementations for reference.
+
 * Ok we now have our new method! Use it in the tests you write using the [below section](#if-the-methods-you-need-to-run-your-tests-are-already-written)
 
 ### If the methods you need to run your tests are already written
 
-If it makes sense to add your tests to a file that already exists, great! Otherwise make a new test file in `tests/parametric`. 
+If it makes sense to add your tests to a file that already exists, great! Otherwise make a new test file in `tests/parametric`.
 
 Next copy the testing code you want to use as a base/guideline (usually the class (if using a new file) and one of the test methods in it).
 
