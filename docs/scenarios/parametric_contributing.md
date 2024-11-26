@@ -8,7 +8,7 @@ Note: a more in-depth overview of parametric system-tests can be found in [param
 
 Let's figure out if your feature is a good candidate to be tested with parametric system-tests.
 
-System-tests in general are great for assuring uniform behavior between tracers. There are two types of system-tests, [end-to-end](/docs/README.md) and [parametric](/docs/scenarios/parametric.md).
+System-tests in general are great for assuring uniform behavior between different dd-trace repos (tracing, ASM, DI, profiling, etc.). There are two types of system-tests, [end-to-end](/docs/README.md) and [parametric](/docs/scenarios/parametric.md).
 
 The "parametric" in parametric system-tests stands for parameters. The original purpose of parametric scenarios is when a behavior must be tested across several different values for one or more parameters, usually different tracer configurations with some examples being [environment variable configuration effects on api methods, sampling, propagation, configuration, telemetry](/tests/parametric).
 
