@@ -9,6 +9,7 @@ from typing import Any
 import uuid
 
 import pytest
+from typing import List, Optional
 
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, missing_feature, bug
@@ -330,7 +331,7 @@ class Test_Environment:
         else:
             otelsampler_config = "otel_traces_sampler_arg"
 
-        for dd_config, otel_config in [
+        dd_to_otel_mapping: List[List[Optional[str]]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             ["dd_service", "otel_service_name"],
             ["dd_trace_sample_rate", "otel_traces_sampler"],
@@ -340,7 +341,9 @@ class Test_Environment:
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
             ["dd_trace_sample_rate", otelsampler_config],
-        ]:
+        ]
+
+        for dd_config, otel_config in dd_to_otel_mapping:
             for metric in otelHiding:
                 if (
                     f"config_datadog:{dd_config}" in metric["tags"]
@@ -409,7 +412,7 @@ class Test_Environment:
         else:
             otelsampler_config = "otel_traces_sampler_arg"
 
-        for dd_config, otel_config in [
+        dd_to_otel_mapping: List[List[Optional[str]]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             ["dd_trace_sample_rate", "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
@@ -419,7 +422,9 @@ class Test_Environment:
             [ddlog_config, "otel_log_level"],
             ["dd_trace_sample_rate", otelsampler_config],
             [None, "otel_logs_exporter"],
-        ]:
+        ]
+
+        for dd_config, otel_config in dd_to_otel_mapping:
             for metric in otel_invalid:
                 if (
                     dd_config is None or f"config_datadog:{dd_config}" in metric["tags"]
