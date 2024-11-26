@@ -31,22 +31,16 @@ def generate_gitlab_pipeline(languages):
                 'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
             ],
             "script": [
-                """|
-        for folder in reports/logs*/ ; do
-          echo "Checking folder: ${folder}"
-          for filename in ./feature_parity.json; do
-            if [ -e ${filename} ]
-            then
-              echo "Processing report: ${filename}"
-              #curl -X POST ${FP_IMPORT_URL} \
-              #  --fail \
-              #  --header "Content-Type: application/json" \
-              #  --header "FP_API_KEY: ${FP_API_KEY}" \
-              #  --data "@${filename}" \
-              #  --include
-            fi
-          done
-        done"""
+                "for folder in reports/logs*/ ; do",
+                'echo "Checking folder: ${folder}"',
+                "for filename in ./feature_parity.json; do",
+                "if [ -e ${filename} ]",
+                "then",
+                'echo "Processing report: ${filename}"',
+                '#curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json"  --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+                "fi",
+                "done",
+                "done",
             ],
         },
         ".base_ssi_job": {
@@ -54,7 +48,7 @@ def generate_gitlab_pipeline(languages):
             "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",
-                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime"',
+                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" --report-run-url ${CI_PIPELINE_URL} --report-environment prod',
             ],
             "rules": [
                 {"if": '$PARENT_PIPELINE_SOURCE == "schedule"', "when": "always"},
