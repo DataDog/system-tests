@@ -64,7 +64,7 @@ app.post('/trace/span/extract_headers', (req, res) => {
   const dummyTracer = require('dd-trace').init()
   const extractPropagator = dummyTracer._tracer._config.tracePropagationStyle.extract
 
-  if (extractPropagator.includes('baggage') && extractPropagator.length === 1 && extracted && !extracted._spanId && !extracted._traceId) {
+  if (extractPropagator.includes('baggage') && extracted && !extracted._spanId && !extracted._traceId) {
     // baggage propagation does not require ids so http_headers could contain no ids
     // several endpoints in this file rely on having ids so we need to have dummy ids for internal use
     extracted._spanId = dummyIdIncrementer
