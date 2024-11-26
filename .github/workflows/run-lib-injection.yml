@@ -191,7 +191,7 @@ jobs:
       matrix:
         weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix_supported_langs) }}
         lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
-        cluster_agent_version: ['7.56.2', '7.57.0']
+        cluster_agent_version: ['7.56.2', '7.57.0', '7.59.0']
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
