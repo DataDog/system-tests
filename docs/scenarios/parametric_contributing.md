@@ -27,9 +27,9 @@ Follow [Binaries Documentation](../execute/binaries.md) for your particular trac
 
 Now that we're all setup with a working test suite and a tracer with the implemented feature, we can begin writing the new tests.
 
-First take a look at the [currently existing tests](/tests/parametric) and see if what you're trying to test is similar and can use the same methods/endpoints (in many cases this is true).
+First take a look at the [currently existing tests](/tests/parametric), (available client calls)[], and corresponding [available http server endpoints](parametric.md#http-server-implementations) and see if what you're trying to test is similar and can use the same methods/endpoints (in many cases this is true).
 
-For a list of methods that already exist, refer to `class APMLibrary` in the [_library_client.py](/utils/parametric/_library_client.py). If you're wondering what the methods do, you can take at look at the respective endpoints they're calling in that same file in `class APMLibraryClient`.
+For a list of client methods that already exist, refer to `class APMLibrary` in the [_library_client.py](/utils/parametric/_library_client.py). If you're wondering what the methods do, you can take at look at the respective endpoints they're calling in that same file in `class APMLibraryClient`.
 
 The endpoints (where the actual tracer code runs) are defined in the Http Server implementations per tracer [listed here](parametric.md#http-server-implementations). Click on the one for your language to take a look at the endpoints. In some cases you may need to just slightly modify an endpoint rather than add a new one.
 
