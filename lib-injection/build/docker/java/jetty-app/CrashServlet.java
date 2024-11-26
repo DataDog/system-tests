@@ -13,6 +13,7 @@ import javax.servlet.ServletException;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
+import sun.misc.Unsafe;
 
 
 
@@ -24,7 +25,9 @@ public class CrashServlet extends HttpServlet {
         // Check which endpoint is being accessed by looking at the request URI
         String requestURI = req.getRequestURI();
 
-        if (requestURI.equals("/fork_and_crash")) {
+        if (requestURI.equals("/crashme")) {
+            handleCrash(req, resp);
+        } else if (requestURI.equals("/fork_and_crash")) {
             handleForkAndCrash(req, resp);
         } else if (requestURI.equals("/child_pids")) {
             handleChildPids(req, resp);
@@ -35,6 +38,20 @@ public class CrashServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().println("Unknown endpoint");
         }
+    }
+
+    private void handlCrash(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        Field f = Unsafe.class.getDeclaredField("theUnsafe");
+        f.setAccessible(true);
+        Unsafe unsafe = (Unsafe) f.get(null);
+
+        // This will cause a segmentation fault by writing to address 0
+        unsafe.putAddress(0, 0);
+
+        resp.setContentType("text/plain");
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.getWriter().println("");
     }
 
     private void handleForkAndCrash(HttpServletRequest req, HttpServletResponse resp)

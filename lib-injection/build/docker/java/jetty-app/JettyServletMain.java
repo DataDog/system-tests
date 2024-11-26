@@ -43,6 +43,7 @@ public class JettyServletMain {
     URL webAppDir = JettyServletMain.class.getClassLoader().getResource(".");
     webAppContext.setResourceBase(webAppDir.toURI().toString());
 
+    webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/crashme");
     webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/fork_and_crash");
     webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/child_pids");
     webAppContext.addServlet(new ServletHolder(new CrashServlet()), "/zombies");
