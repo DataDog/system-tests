@@ -19,7 +19,7 @@ def generate_gitlab_pipeline(languages):
             "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal",
             "tags": ["arch:amd64"],
             "stage": "dummy",
-            "needs": [],
+            "dependencies": [],
             "script": ["echo 'DONE'"],
         },
         ".base_ssi_job": {
@@ -49,6 +49,8 @@ def generate_gitlab_pipeline(languages):
     }
 
     for language in languages:
+        if language == "java":
+            continue  # TODO RMM remove this before merge
         pipeline["stages"].append(language)
         matrix = []
 
