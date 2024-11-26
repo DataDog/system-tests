@@ -11,6 +11,7 @@ pylint==3.0.4
 python-dateutil==2.8.2
 msgpack==1.0.4
 watchdog==3.0.0
+mypy==1.0.0
 
 aiohttp==3.9.0
 yarl==1.9.4
@@ -29,6 +30,7 @@ scp==0.14.5
 ddapm-test-agent==1.18.0
 filelock==3.12.2  # for parametric tests
 dictdiffer==0.9.0  # for parametric tests
+opentelemetry-api==1.27.0 # for parametric tests
 
 
 #On Boarding requirements
@@ -40,6 +42,7 @@ pyyaml==6.0.1
 pyyaml-include==1.3
 python-vagrant==1.0.0
 pexpect==4.9.0
+crossplane==0.5.8
 
 #lib-injection kubernetes
 kubernetes==29.0.0

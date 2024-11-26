@@ -1,8 +1,7 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
-
 stages:
-  - extravms_tracer
+  - child_pipelines
   - ruby_tracer
   - nodejs_tracer
   - java_tracer
@@ -21,7 +20,7 @@ stages:
     - mkdir -p "$REPORTS_PATH"
     - cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/
     - cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
-    - mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}"
+    - mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"
   artifacts:
       when: always
       paths:
@@ -35,228 +34,240 @@ variables:
     KUBERNETES_CPU_LIMIT: "6"
     AMI_UPDATE:
       description: "Set to true to force the update the AMIs used in the system-tests"
+    ONBOARDING_FILTER_ENV: "prod"
+    ONLY_TEST_LIBRARY: ""
+    DD_INSTALLER_LIBRARY_VERSION:
+      description: "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
+    DD_INSTALLER_INJECTOR_VERSION:
+      description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
 
-onboarding_install_extra_vms:
-  extends: .base_job_onboarding_system_tests
-  stage: extravms_tracer
-  allow_failure: true
-  dependencies: []
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-  variables:
-    SCENARIO: "SIMPLE_INSTALLER_AUTO_INJECTION"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-multicontainer]
-          TEST_LIBRARY: "nodejs"
-        - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer]
-          TEST_LIBRARY: "java"
-        - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python,test-app-python-container,test-app-python-alpine]
-          TEST_LIBRARY: "python"
-        - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
-          TEST_LIBRARY: "dotnet"
-        - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
-          TEST_LIBRARY: "ruby"
-        - ONBOARDING_FILTER_ENV: [prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php,test-app-php-container-83,test-app-php-alpine]
-          TEST_LIBRARY: "php"
-  script:
-      - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms False --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
 onboarding_nodejs:
   extends: .base_job_onboarding_system_tests
   stage: nodejs_tracer
   allow_failure: true
   dependencies: []
+  timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
       when: always
     - when: manual
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-multicontainer]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+          SCENARIO:
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
+          SCENARIO:
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer,test-app-nodejs-esm]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_java:
   extends: .base_job_onboarding_system_tests
   stage: java_tracer
   allow_failure: true
   dependencies: []
+  timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
       when: always
     - when: manual
   variables:
     TEST_LIBRARY: "java"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer]
-          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer,test-app-java-buildpack]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
+          SCENARIO:
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
+          SCENARIO:
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine,test-app-java-buildpack]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer,test-app-java-multialpine]
           SCENARIO: [SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-java]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
-
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 onboarding_python:
   extends: .base_job_onboarding_system_tests
   stage: python_tracer
   allow_failure: true
   dependencies: []
+  timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
       when: always
     - when: manual
   variables:
     TEST_LIBRARY: "python"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [
             test-app-python,
-            test-app-python-multicontainer,
-            test-app-python-multialpine
+            test-app-python-container,
+            test-app-python-alpine
           ]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-python]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults,test-app-python-27]
+          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_dotnet:
   extends: .base_job_onboarding_system_tests
   stage: dotnet_tracer
   allow_failure: true
   dependencies: []
+  timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
       when: always
     - when: manual
   variables:
     TEST_LIBRARY: "dotnet"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
+          SCENARIO:
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
+          SCENARIO:
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-unsupported]
+          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
   dependencies: []
+  timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
       when: always
     - when: manual
   variables:
     TEST_LIBRARY: "ruby"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_php:
   extends: .base_job_onboarding_system_tests
   stage: php_tracer
   allow_failure: true
   dependencies: []
+  timeout: 90 minutes
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
       when: always
     - when: manual
   variables:
     TEST_LIBRARY: "php"
   parallel:
       matrix:
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
           SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-multicontainer, test-app-php-multialpine]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-container-83, test-app-php-alpine]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_ENV: [dev, prod]
-          ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php-multicontainer, test-app-php-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 2700s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV}
-
+      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
 
 onboarding_stats_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
@@ -281,6 +292,7 @@ onboarding_stats_results:
         echo "Number of ec2 created"
         echo "---------------------"
         wc -l reports/logs*/vms_desc.log
+
 onboarding_parse_results:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
@@ -342,3 +354,30 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
+
+generate_docker_ssi_pipeline:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  stage: child_pipelines
+  tags: ["arch:amd64"]
+  needs: []
+  script:
+    - python utils/docker_ssi/docker_ssi_matrix_builder.py --format yaml --output-file ssi_pipeline.yml
+  artifacts:
+    paths:
+      - ssi_pipeline.yml
+
+docker_ssi_pipeline:
+  stage: child_pipelines
+  needs: ["generate_docker_ssi_pipeline"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: ssi_pipeline.yml
+        job: generate_docker_ssi_pipeline
+    strategy: depend

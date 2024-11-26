@@ -155,7 +155,7 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
 def find_trace(traces: List[Trace], trace_id: int) -> Trace:
     """Return the trace from `traces` that match a `trace_id`."""
     # TODO: Ensure all parametric applications return uint64 trace ids (not strings or bigints)
-    trace_id = ((1 << 64) - 1) & int(trace_id)  # Use 64-bit trace id
+    trace_id = ((1 << 64) - 1) & id_to_int(trace_id)  # Use 64-bit trace id
     for trace in traces:
         # This check ignores the high bits of the trace id
         # TODO: Check _dd.p.tid
@@ -168,7 +168,7 @@ def find_span(trace: Trace, span_id: int) -> Span:
     """Return a span from the trace matches a `span_id`."""
     assert len(trace) > 0
     # TODO: Ensure all parametric applications return uint64 span ids (not strings)
-    span_id = int(span_id)
+    span_id = id_to_int(span_id)
     for span in trace:
         if span.get("span_id") == span_id:
             return span
@@ -267,3 +267,14 @@ def retrieve_span_events(span):
 
             events.append(event)
         return events
+
+
+def id_to_int(value: Union[str, int]) -> int:
+    """Convert an id from hex or a base 10 string to an integer."""
+    try:
+        # This is a best effort to convert hex span/trace id to an integer.
+        # This is temporary solution until all parametric applications return trace/span ids
+        # as stringified integers (ids will be stringified to workaround percision issues in some languages)
+        return int(value)
+    except ValueError:
+        return int(value, 16)  # type: ignore

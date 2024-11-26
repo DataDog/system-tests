@@ -61,48 +61,66 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: missing_feature
+          TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
+          TestCommandInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
+          Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
           Test_HardcodedSecretsExtended: missing_feature
+          Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
             '*': v2.10.0
             fastapi: missing_feature
+          TestHeaderInjectionExclusionAccessControlAllow: missing_feature
+          TestHeaderInjectionExclusionContentEncoding: missing_feature
+          TestHeaderInjectionExclusionPragma: missing_feature
+          TestHeaderInjectionExclusionTransferEncoding: missing_feature
+          TestHeaderInjection_StackTrace: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
+          Test_HstsMissingHeader_StackTrace: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
+          Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
             '*': v1.19.0
             fastapi: v2.16.0-dev
           TestInsecureCookieNameFilter: missing_feature
+          TestInsecureCookie_StackTrace: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
+          TestLDAPInjection_StackTrace: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
             '*': v1.19.0
             fastapi: v2.16.0-dev
           TestNoHttponlyCookieNameFilter: missing_feature
+          TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': v1.19.0
             fastapi: v2.16.0-dev
           TestNoSamesiteCookieNameFilter: missing_feature
+          TestNoSamesiteCookie_StackTrace: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': v2.10.0
             fastapi: v2.15.0
+          TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
+          TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.18.0
@@ -110,35 +128,52 @@ tests/:
             flask-poc: v1.18.0
             pylons: missing_feature
             python3.12: v1.18.0
+          TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
+          TestSSRF_StackTrace: missing_feature
+        test_template_injection.py:
+          TestTemplateInjection: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation_StackTrace: missing_feature
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization: missing_feature
+          TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
+          TestUnvalidatedHeader_StackTrace: missing_feature
           TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedRedirect_StackTrace: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
+          TestUnvalidatedForward_StackTrace: missing_feature
         test_weak_cipher.py:
           TestWeakCipher:
             '*': v1.18.0
             fastapi: v2.15.0
+          TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
+          TestDeduplication:
+            '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
+          TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
+          TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
+          Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
+          TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
           TestXSS: missing_feature
+          TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
           TestRequestBody:
@@ -209,9 +244,12 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.10.0
         Test_Lfi_Optional_SpanTags: v2.10.0
         Test_Lfi_RC_CustomAction: v2.14.0
+        Test_Lfi_Rules_Version: v2.18.0.dev
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
+      test_libddwaf.py:
+        Test_Libddwaf_Version: v2.15.0
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
@@ -219,6 +257,7 @@ tests/:
         Test_Shi_Capability: v2.11.0
         Test_Shi_Mandatory_SpanTags: v2.11.0-rc2
         Test_Shi_Optional_SpanTags: v2.11.0-rc2
+        Test_Shi_Rules_Version: v2.15.0
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
         Test_Shi_UrlQuery: v2.11.0-rc2
@@ -229,6 +268,7 @@ tests/:
         Test_Sqli_Capability: v2.11.0
         Test_Sqli_Mandatory_SpanTags: v2.10.0
         Test_Sqli_Optional_SpanTags: v2.10.0
+        Test_Sqli_Rules_Version: v2.16.0
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
         Test_Sqli_UrlQuery: v2.10.0
@@ -239,6 +279,7 @@ tests/:
         Test_Ssrf_Capability: v2.11.0
         Test_Ssrf_Mandatory_SpanTags: v2.10.0
         Test_Ssrf_Optional_SpanTags: v2.10.0
+        Test_Ssrf_Rules_Version: v2.16.0
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
         Test_Ssrf_UrlQuery: v2.10.0
@@ -381,8 +422,10 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
-        uwsgi-poc: flaky (APPSEC-55222)
-      Test_IastStandalone_UpstreamPropagation: missing_feature
+        uwsgi-poc: v2.17.1
+      Test_IastStandalone_UpstreamPropagation:
+        '*': v2.18.0.dev
+      Test_SCAStandalone_Telemetry: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -682,6 +725,10 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         flask-poc: v2.8.0
+    test_inferred_proxy.py:
+      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
     test_k8s_manual_inject.py:
       TestAdmisionControllerProfiling: v2.12.2
@@ -697,7 +744,6 @@ tests/:
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
-      TestDynamicConfigHeaderTags: flaky (APMAPI-734)
       TestDynamicConfigSamplingRules: v2.9.0
       TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
@@ -725,16 +771,15 @@ tests/:
       Test_Otel_API_Interoperability: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.9.0
-    test_otel_sdk_interoperability.py:
-      Test_Otel_SDK_Interoperability: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
-    test_otel_span_with_w3c.py:
-      Test_Otel_Span_With_W3c: v2.8.0
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
+    test_parametric_endpoints.py:
+      Test_Parametric_DDTrace_Baggage: v2.16.0
+      Test_Parametric_Otel_Baggage: v2.15.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
     test_sampling_delegation.py:
@@ -780,6 +825,16 @@ tests/:
       aws/:
         test_s3_span_pointers.py:
           # NOTE: fastapi-based async things don't play well with moto
+          Test_CopyObject:
+            '*': missing_feature
+            django-poc: v2.15.0
+            flask-poc: v2.15.0
+            python3.12: v2.15.0
+          Test_MultipartUpload:
+            '*': missing_feature
+            django-poc: v2.15.0
+            flask-poc: v2.15.0
+            python3.12: v2.15.0
           Test_PutObject:
             '*': missing_feature
             django-poc: v2.14.0
@@ -821,6 +876,7 @@ tests/:
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0
+    Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
     Test_HeaderTags_Short: missing_feature
     Test_HeaderTags_Whitespace_Header: missing_feature

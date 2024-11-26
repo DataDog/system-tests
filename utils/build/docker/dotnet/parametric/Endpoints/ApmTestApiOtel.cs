@@ -36,7 +36,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         ActivityContext? remoteParentContext = null;
 
         // try getting parent context from parent id (local parent)
-        if (requestBodyObject!.TryGetValue("parent_id", out var parentId))
+        if (requestBodyObject!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var stringParentId = parentId.ToString();
 
@@ -44,34 +44,6 @@ public abstract class ApmTestApiOtel : ApmTestApi
             {
                 var parentActivity = FindActivity(parentId);
                 localParentContext = parentActivity.Context;
-            }
-        }
-
-        // try extracting parent context from headers (remote parent)
-        if (requestBodyObject.TryGetValue("http_headers", out var headersList))
-        {
-            var manualExtractedContext = _spanContextExtractor.Extract(
-            ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
-            getter: GetHeaderValues!);
-
-            _logger?.LogInformation("Extracted SpanContext: {ExtractedContext}", manualExtractedContext);
-
-            if (manualExtractedContext is not null)
-            {
-                // This implementation is .NET v3 specific, and assumes that the span returned by StartActive is a DuckType
-                var extractedContext = manualExtractedContext.GetType()
-                    .GetProperty("Instance", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                    ?.GetValue(manualExtractedContext);
-                var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
-                var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
-                var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
-
-                remoteParentContext = new ActivityContext(
-                    parentTraceId,
-                    parentSpanId,
-                    flags,
-                    AdditionalW3CTraceState.GetValue(extractedContext) as string,
-                    isRemote: true);
             }
         }
 
@@ -84,7 +56,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         DateTimeOffset startTime = default;
-        if (requestBodyObject.TryGetValue("timestamp", out var timestamp))
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
         {
             startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
         }
@@ -93,23 +65,23 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         var kind = ActivityKind.Internal;
 
-        if (requestBodyObject.TryGetValue("span_kind", out var spanKind))
+        if (requestBodyObject.TryGetValue("span_kind", out var spanKind) && spanKind is not null)
         {
             switch (Convert.ToInt64(spanKind))
             {
-                case 1:
+                case 0:
                     kind = ActivityKind.Internal;
                     break;
-                case 2:
+                case 1:
                     kind = ActivityKind.Server;
                     break;
-                case 3:
+                case 2:
                     kind = ActivityKind.Client;
                     break;
-                case 4:
+                case 3:
                     kind = ActivityKind.Producer;
                     break;
-                case 5:
+                case 4:
                     kind = ActivityKind.Consumer;
                     break;
                 default:
@@ -132,38 +104,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)spanLink["attributes"])?.ToObject<Dictionary<string, object>>());
                 }
 
-                ActivityContext contextToLink = new ActivityContext();
-
-                if (parentSpanLink > 0)
-                {
-                    contextToLink = FindActivity(parentSpanLink).Context;
-                }
-                else
-                {
-                    var httpHeadersToken = (JArray)spanLink["http_headers"]!;
-
-                    var manualExtractedContext = _spanContextExtractor.Extract(
-                            httpHeadersToken.ToObject<string[][]>(),
-                            getter: GetHeaderValues!);
-
-                    // This implementation is .NET v3 specific, and assumes that the span returned by StartActive is a DuckType
-                    var extractedContext = manualExtractedContext?.GetType()
-                        .GetProperty("Instance", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                        ?.GetValue(manualExtractedContext);
-                    var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
-                    var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
-                    var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
-                    var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext! });
-                    var tracestate = (string?)httpHeadersToken[1][0] == "tracestate" ? (string?)httpHeadersToken[1][1] : datadogHeadersTracestate;
-
-                    contextToLink = new ActivityContext(
-                        parentTraceId,
-                        parentSpanId,
-                        flags,
-                        (string?)tracestate,
-                        isRemote: true);
-                }
-
+                ActivityContext contextToLink = FindActivity(parentSpanLink).Context;
                 linksList.Add(new ActivityLink(contextToLink, tags));
             }
         }
@@ -217,9 +158,9 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         var activity = FindActivity(requestBodyObject["id"]);
 
-        if (!string.IsNullOrEmpty(requestBodyObject["timestamp"].ToString()))
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
         {
-            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(requestBodyObject["timestamp"]));
+            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
             activity.SetEndTime(convertedTimestamp.UtcDateTime);
         }
 

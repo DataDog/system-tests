@@ -4,7 +4,7 @@
 
 import tests.debugger.utils as base
 
-from utils import scenarios, features, remote_config as rc
+from utils import weblog, scenarios, features, remote_config as rc, bug, context, missing_feature
 
 
 @features.debugger
@@ -27,6 +27,8 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     def test_probe_status_log(self):
         self._assert()
 
@@ -36,6 +38,9 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    @missing_feature(context.library == "ruby", reason="Not yet implemented")
     def test_probe_status_metric(self):
         self._assert()
 
@@ -45,6 +50,7 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
+    @missing_feature(context.library == "ruby", reason="Not yet implemented")
     def test_probe_status_span(self):
         self._assert()
 
@@ -54,6 +60,9 @@ class Test_Debugger_Probe_Statuses(base._Base_Debugger_Test):
 
         self._setup(probes)
 
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    @missing_feature(context.library == "ruby", reason="Not yet implemented")
     def test_probe_status_spandecoration(self):
         self._assert()
 

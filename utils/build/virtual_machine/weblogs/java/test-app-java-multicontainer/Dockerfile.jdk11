@@ -1,11 +1,8 @@
 FROM public.ecr.aws/docker/library/openjdk:11
 
-COPY jetty-distribution-9.4.56.v20240826.tar.gz .
-RUN tar -xf jetty-distribution-9.4.56.v20240826.tar.gz -C /opt/
+COPY jetty-classpath/. /opt/jetty-classpath
 COPY JettyServletMain.class /usr/local/app/
+COPY CrashServlet.class /usr/local/app/
 COPY run_app.sh /usr/local/app/
 WORKDIR /usr/local/app/
 ENTRYPOINT ["/usr/local/app/run_app.sh"]
-
-
-

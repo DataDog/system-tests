@@ -7,7 +7,7 @@ RUN pip uninstall -y psycopg2-binary
 RUN pip install psycopg2
 #############
 
-RUN pip install opentelemetry-distro==0.48b0 opentelemetry-exporter-otlp
+RUN pip install opentelemetry-distro[otlp]==0.49b0
 
 WORKDIR /app
 COPY binaries* /binaries/

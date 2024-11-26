@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, bug
-from ..utils import BaseSinkTest
+from utils import context, missing_feature, features, bug, rfc, weblog
+from ..utils import BaseSinkTest, validate_stack_traces
 
 
 @features.iast_sink_sql_injection
@@ -41,3 +41,18 @@ class TestSqlInjection(BaseSinkTest):
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 500")
     def test_secure(self):
         super().test_secure()
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class TestSqlInjection_StackTrace:
+    """Validate stack trace generation """
+
+    def setup_stack_trace(self):
+        self.r = weblog.post("/iast/sqli/test_insecure", data={"username": "shaquille_oatmeal", "password": "123456"})
+
+    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 500")
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)

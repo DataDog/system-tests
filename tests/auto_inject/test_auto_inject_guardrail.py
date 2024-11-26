@@ -6,7 +6,9 @@ from utils import scenarios, features
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
-class _AutoInjectNotSupportedBaseTest:
+@features.host_guardrail
+@scenarios.installer_not_supported_auto_injection
+class TestLanguageVersionNotSupported:
     """ Test for not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
     @parametrize_virtual_machines()
@@ -15,17 +17,10 @@ class _AutoInjectNotSupportedBaseTest:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
-
-        logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
+        logger.info(f"[{vm_name}] Waiting for weblog available [{vm_ip}:{vm_port}]")
         wait_for_port(vm_port, vm_ip, 80.0)
         logger.info(f"[{vm_ip}]: Weblog app is ready!")
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
-        request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
+        make_get_request(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Http request done for ip [{vm_ip}]")
-
-
-@features.host_guardrail
-@scenarios.installer_not_supported_auto_injection
-class TestLanguageVersionNotSupported(_AutoInjectNotSupportedBaseTest):
-    pass
