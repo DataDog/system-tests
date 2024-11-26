@@ -26,9 +26,7 @@ def command_injection_skipped(command_line, log_local_path):
             elif last_line_json["msg"] == "not injecting; on user deny list":
                 logger.debug(f"    Command {command_args} was skipped by user defined deny process list")
                 return True
-
-            # Perhaps the command was instrumented or could be skipped by its arguments. Checking
-            if last_line_json["msg"] in ["error injecting", "error when parsing", "skipping"] and (
+            elif last_line_json["msg"] in ["error injecting", "error when parsing", "skipping"] and (
                 last_line_json["error"].startswith(
                     (
                         "skipping due to ignore rules for language",
@@ -38,6 +36,8 @@ def command_injection_skipped(command_line, log_local_path):
             ):
                 logger.info(f"    Command {command_args} was skipped by ignore arguments")
                 return True
+            logger.info(f"    Missing injection deny: {last_line_json}")
+            return False
 
     logger.info(f"    Command {command} was NOT FOUND")
     raise ValueError(f"Command {command} was NOT FOUND")
