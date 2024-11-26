@@ -14,7 +14,7 @@ Parametric tests in the Datadog system test repository validate the behavior of 
 
 If your usage does not require different parameter values, then [end-to-end system-tests](/docs/README.md) should be used as they will achieve the same level of behavior uniformity verification and test the feature on real world use cases, catching more issues. End-to-end tests are also what should be used for verify behavior between tracer integrations.
 
-System-tests are **not** for testing internal or niche tracer behavior. Unit tests are a better fit for that case.
+System-tests are **not** for testing internal or niche library behavior. Unit tests are a better fit for that case.
 
 ## Getting set up
 
