@@ -79,7 +79,7 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 		span: span,
 		ctx:  ctx,
 	}
-	hexTid, err := hex2int(span.SpanContext().TraceID())
+	hexTid, err := hex2int(span.SpanContext().TraceID().String())
 	if err != nil {
 		return OtelStartSpanReturn{}, err
 	}
