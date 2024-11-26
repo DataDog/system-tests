@@ -138,6 +138,7 @@ def main():
                     r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL.value,
                     r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY.value,
                     r"\.github/.*": None,  # nothing to do??
+                    r"\.gitlab/.*": None,  # nothing to do
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY.value,
