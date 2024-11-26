@@ -67,11 +67,11 @@ public class OpenTelemetryController {
 
   private static SpanKind parseSpanKindNumber(int spanKindNumber) {
     return switch (spanKindNumber) {
-      case 1 -> INTERNAL;
-      case 2 -> SERVER;
-      case 3 -> CLIENT;
-      case 4 -> PRODUCER;
-      case 5 -> CONSUMER;
+      case 0 -> INTERNAL;
+      case 1 -> SERVER;
+      case 2 -> CLIENT;
+      case 3 -> PRODUCER;
+      case 4 -> CONSUMER;
       default -> null;
     };
   }

@@ -3,7 +3,7 @@ import json
 import pytest
 
 from utils import bug, missing_feature, irrelevant, context, scenarios, features
-from utils.dd_constants import SpanKind
+from opentelemetry.trace import SpanKind
 from utils.parametric.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
 
 # this global mark applies to all tests in this file.
