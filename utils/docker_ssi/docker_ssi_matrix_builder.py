@@ -50,7 +50,6 @@ def generate_gitlab_pipeline(languages):
 
     for language in languages:
         pipeline["stages"].append(language)
-        pipeline["allow_failure"] = "true"
         matrix = []
 
         filtered = [weblog for weblog in ALL_WEBLOGS if weblog.library == language]
@@ -71,6 +70,7 @@ def generate_gitlab_pipeline(languages):
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
                 "stage": language,
+                "allow_failure": "true",
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }
