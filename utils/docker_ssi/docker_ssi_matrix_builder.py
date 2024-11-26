@@ -23,7 +23,7 @@ def generate_gitlab_pipeline(languages):
             "tags": ["arch:amd64"],
             "stage": "parse_docker_ssi_results",
             "rules": [
-                {"if": '$PARENT_PIPELINE_SOURCE == "schedule"', "when": "always"},
+                {"if": '$PARENT_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"', "when": "always"},
                 {"when": "manual", "allow_failure": True},
             ],
             "before_script": [
